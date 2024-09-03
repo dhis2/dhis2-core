@@ -39,14 +39,14 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link EventAnalyticsController}.
+ * Tests the {@link EventQueryAnalyticsController}.
  *
  * <p>The main purpose of this test is not to test the correct business logic but to make sure the
  * controller parameters are recognised correctly.
  *
  * @author Jan Bernitt
  */
-class EventAnalyticsControllerTest extends H2ControllerIntegrationTestBase {
+class EventQueryAnalyticsControllerTest extends H2ControllerIntegrationTestBase {
 
   private String programId;
 

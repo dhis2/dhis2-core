@@ -27,11 +27,19 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
-import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
+import static org.hisp.dhis.common.DhisApiVersion.ALL;
+import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.OTHER;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
+import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_ANALYTICS_EXPLAIN;
+import static org.hisp.dhis.setting.SettingKey.ANALYSIS_RELATIVE_PERIOD;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_EXCEL;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_HTML;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -57,13 +65,11 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
-import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.util.PeriodCriteriaUtils;
@@ -85,12 +91,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Document(domain = DataValue.class)
 @Controller
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@ApiVersion({DEFAULT, ALL})
 @AllArgsConstructor
 @RequestMapping("/api/analytics/events")
-public class EventAnalyticsController {
-
-  private static final String EXPLAIN_PATH = "/explain";
+public class EventQueryAnalyticsController {
 
   @Nonnull private final EventDataQueryService eventDataService;
 
@@ -108,163 +112,6 @@ public class EventAnalyticsController {
 
   @Nonnull private final SystemSettingManager systemSettingManager;
 
-  // -------------------------------------------------------------------------
-  // Aggregate
-  // -------------------------------------------------------------------------
-
-  @RequiresAuthority(anyOf = F_PERFORM_ANALYTICS_EXPLAIN)
-  @GetMapping(
-      value = "/aggregate/{program}/explain",
-      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
-  public @ResponseBody Grid getExplainAggregateJson( // JSON, JSONP
-      @PathVariable String program,
-      EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response)
-      throws Exception {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, true, AGGREGATE);
-
-    configResponseForJson(response);
-
-    Grid grid =
-        analyticsService.getAggregatedEventData(
-            params,
-            getItemsFromParam(criteria.getColumns()),
-            getItemsFromParam(criteria.getRows()));
-
-    if (params.analyzeOnly()) {
-      grid.addPerformanceMetrics(executionPlanStore.getExecutionPlans(params.getExplainOrderId()));
-    }
-
-    return grid;
-  }
-
-  @GetMapping(
-      value = "/aggregate/{program}",
-      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
-  public @ResponseBody Grid getAggregateJson( // JSON, JSONP
-      @PathVariable String program,
-      EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response)
-      throws Exception {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
-
-    configResponseForJson(response);
-
-    return analyticsService.getAggregatedEventData(
-        params, getItemsFromParam(criteria.getColumns()), getItemsFromParam(criteria.getRows()));
-  }
-
-  @GetMapping(value = "/aggregate/{program}.xml")
-  public void getAggregateXml(
-      @PathVariable String program,
-      EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response)
-      throws Exception {
-    GridUtils.toXml(
-        getAggregatedGridWithAttachment(
-            criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_XML, "events.xml", response),
-        response.getOutputStream());
-  }
-
-  @GetMapping(value = "/aggregate/{program}.xls")
-  public void getAggregateXls(
-      @PathVariable String program,
-      EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response)
-      throws Exception {
-    GridUtils.toXls(
-        getAggregatedGridWithAttachment(
-            criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL, "events.xls", response),
-        response.getOutputStream());
-  }
-
-  @GetMapping(value = "/aggregate/{program}.xlsx")
-  public void getAggregateXlsx(
-      @PathVariable String program,
-      EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response)
-      throws Exception {
-    GridUtils.toXlsx(
-        getAggregatedGridWithAttachment(
-            criteria,
-            program,
-            apiVersion,
-            ContextUtils.CONTENT_TYPE_EXCEL,
-            "events.xlsx",
-            response),
-        response.getOutputStream());
-  }
-
-  @GetMapping(value = "/aggregate/{program}.csv")
-  public void getAggregateCsv(
-      @PathVariable String program,
-      EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response)
-      throws Exception {
-    GridUtils.toCsv(
-        getAggregatedGridWithAttachment(
-            criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_CSV, "events.csv", response),
-        response.getWriter());
-  }
-
-  @GetMapping(value = "/aggregate/{program}.html")
-  public void getAggregateHtml(
-      @PathVariable String program,
-      EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response)
-      throws Exception {
-    GridUtils.toHtml(
-        getAggregatedGridWithAttachment(
-            criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML, "events.html", response),
-        response.getWriter());
-  }
-
-  @GetMapping(value = "/aggregate/{program}.html+css")
-  public void getAggregateHtmlCss(
-      @PathVariable String program,
-      EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response)
-      throws Exception {
-    GridUtils.toHtmlCss(
-        getAggregatedGridWithAttachment(
-            criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML, "events.html", response),
-        response.getWriter());
-  }
-
-  @ResponseBody
-  @GetMapping(
-      value = "/aggregate/dimensions",
-      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
-  public AnalyticsDimensionsPagingWrapper<ObjectNode> getAggregateDimensions(
-      @RequestParam String programStageId,
-      @RequestParam(defaultValue = "*") List<String> fields,
-      DimensionsCriteria dimensionsCriteria,
-      HttpServletResponse response) {
-    configResponseForJson(response);
-
-    List<PrefixedDimension> dimensions =
-        eventAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId(programStageId);
-
-    List<DimensionResponse> dimResponse =
-        dimensionMapperService.toDimensionResponse(
-            dimensions, EventAnalyticsPrefixStrategy.of(programStageId));
-
-    return dimensionFilteringAndPagingService.pageAndFilter(
-        dimResponse, dimensionsCriteria, fields);
-  }
-
-  // -------------------------------------------------------------------------
-  // Count / rectangle
-  // -------------------------------------------------------------------------
-
   @GetMapping(
       value = "/count/{program}",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
@@ -279,10 +126,6 @@ public class EventAnalyticsController {
 
     return analyticsService.getRectangle(params);
   }
-
-  // -------------------------------------------------------------------------
-  // Clustering
-  // -------------------------------------------------------------------------
 
   @GetMapping(
       value = "/cluster/{program}",
@@ -309,13 +152,9 @@ public class EventAnalyticsController {
     return analyticsService.getEventClusters(params);
   }
 
-  // -------------------------------------------------------------------------
-  // Query
-  // -------------------------------------------------------------------------
-
   @RequiresAuthority(anyOf = F_PERFORM_ANALYTICS_EXPLAIN)
   @GetMapping(
-      value = "/query/{program}" + EXPLAIN_PATH,
+      value = "/query/{program}/explain",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public @ResponseBody Grid getExplainQueryJson( // JSON, JSONP
       @PathVariable String program,
@@ -359,13 +198,7 @@ public class EventAnalyticsController {
       throws Exception {
     GridUtils.toXml(
         getListGridWithAttachment(
-            criteria,
-            program,
-            apiVersion,
-            ContextUtils.CONTENT_TYPE_XML,
-            "events.xml",
-            false,
-            response),
+            criteria, program, apiVersion, CONTENT_TYPE_XML, "events.xml", false, response),
         response.getOutputStream());
   }
 
@@ -378,13 +211,7 @@ public class EventAnalyticsController {
       throws Exception {
     GridUtils.toXls(
         getListGridWithAttachment(
-            criteria,
-            program,
-            apiVersion,
-            ContextUtils.CONTENT_TYPE_EXCEL,
-            "events.xls",
-            true,
-            response),
+            criteria, program, apiVersion, CONTENT_TYPE_EXCEL, "events.xls", true, response),
         response.getOutputStream());
   }
 
@@ -397,13 +224,7 @@ public class EventAnalyticsController {
       throws Exception {
     GridUtils.toXlsx(
         getListGridWithAttachment(
-            criteria,
-            program,
-            apiVersion,
-            ContextUtils.CONTENT_TYPE_EXCEL,
-            "events.xlsx",
-            true,
-            response),
+            criteria, program, apiVersion, CONTENT_TYPE_EXCEL, "events.xlsx", true, response),
         response.getOutputStream());
   }
 
@@ -416,13 +237,7 @@ public class EventAnalyticsController {
       throws Exception {
     GridUtils.toCsv(
         getListGridWithAttachment(
-            criteria,
-            program,
-            apiVersion,
-            ContextUtils.CONTENT_TYPE_CSV,
-            "events.csv",
-            true,
-            response),
+            criteria, program, apiVersion, CONTENT_TYPE_CSV, "events.csv", true, response),
         response.getWriter());
   }
 
@@ -435,13 +250,7 @@ public class EventAnalyticsController {
       throws Exception {
     GridUtils.toHtml(
         getListGridWithAttachment(
-            criteria,
-            program,
-            apiVersion,
-            ContextUtils.CONTENT_TYPE_HTML,
-            "events.html",
-            false,
-            response),
+            criteria, program, apiVersion, CONTENT_TYPE_HTML, "events.html", false, response),
         response.getWriter());
   }
 
@@ -454,13 +263,7 @@ public class EventAnalyticsController {
       throws Exception {
     GridUtils.toHtmlCss(
         getListGridWithAttachment(
-            criteria,
-            program,
-            apiVersion,
-            ContextUtils.CONTENT_TYPE_HTML,
-            "events.html",
-            false,
-            response),
+            criteria, program, apiVersion, CONTENT_TYPE_HTML, "events.html", false, response),
         response.getWriter());
   }
 
@@ -496,23 +299,6 @@ public class EventAnalyticsController {
     }
   }
 
-  private Grid getAggregatedGridWithAttachment(
-      EventsAnalyticsQueryCriteria criteria,
-      String program,
-      DhisApiVersion apiVersion,
-      String contentType,
-      String file,
-      HttpServletResponse response)
-      throws Exception {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
-
-    contextUtils.configureResponse(
-        response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, file, false);
-
-    return analyticsService.getAggregatedEventData(
-        params, getItemsFromParam(criteria.getColumns()), getItemsFromParam(criteria.getRows()));
-  }
-
   private Grid getListGridWithAttachment(
       EventsAnalyticsQueryCriteria criteria,
       String program,
@@ -523,8 +309,7 @@ public class EventAnalyticsController {
       HttpServletResponse response) {
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
 
-    contextUtils.configureResponse(
-        response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, file, attachment);
+    contextUtils.configureResponse(response, contentType, RESPECT_SYSTEM_SETTING, file, attachment);
 
     return analyticsService.getEvents(params);
   }
@@ -535,12 +320,11 @@ public class EventAnalyticsController {
       DhisApiVersion apiVersion,
       boolean analyzeOnly,
       EndpointAction endpointAction) {
-    criteria.definePageSize(systemSettingManager.getIntSetting(SettingKey.ANALYTICS_MAX_LIMIT));
+    criteria.definePageSize(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT));
 
     PeriodCriteriaUtils.defineDefaultPeriodForCriteria(
         criteria,
-        systemSettingManager.getSystemSetting(
-            SettingKey.ANALYSIS_RELATIVE_PERIOD, RelativePeriodEnum.class));
+        systemSettingManager.getSystemSetting(ANALYSIS_RELATIVE_PERIOD, RelativePeriodEnum.class));
 
     EventDataQueryRequest request =
         EventDataQueryRequest.builder()
@@ -557,7 +341,6 @@ public class EventAnalyticsController {
   }
 
   private void configResponseForJson(HttpServletResponse response) {
-    contextUtils.configureResponse(
-        response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
+    contextUtils.configureResponse(response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING);
   }
 }

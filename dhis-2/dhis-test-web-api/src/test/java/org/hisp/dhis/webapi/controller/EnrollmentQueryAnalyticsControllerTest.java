@@ -41,14 +41,14 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for the {@link EnrollmentAnalyticsController}.
+ * Tests for the {@link EnrollmentQueryAnalyticsController}.
  *
  * <p>The main purpose of this test is not to test the correct business logic but to make sure the
  * controller parameters are recognised correctly.
  *
  * @author Jan Bernitt
  */
-class EnrollmentAnalyticsControllerTest extends H2ControllerIntegrationTestBase {
+class EnrollmentQueryAnalyticsControllerTest extends H2ControllerIntegrationTestBase {
 
   private String programId;
 
