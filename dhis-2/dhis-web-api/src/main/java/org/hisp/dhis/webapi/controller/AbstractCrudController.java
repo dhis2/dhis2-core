@@ -32,6 +32,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.typeReport;
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
@@ -450,7 +451,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     ImportReport importReport =
-        importService.importMetadata(params, new MetadataObjects().addObject(parsed));
+        importService.importMetadata(params, new MetadataObjects().addObject(parsed), transitory());
     WebMessage webMessage = objectReport(importReport);
 
     if (importReport.getStatus() == Status.OK) {

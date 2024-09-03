@@ -173,7 +173,7 @@ class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
                 object
                     .getObject("attributeValues")
                     .node()
-                    .replaceWith("[{\"value\":42, \"attribute\":{\"id\":\"" + attrId + "\"}}]")
+                    .replaceWith("[{\"value\":\"42\", \"attribute\":{\"id\":\"" + attrId + "\"}}]")
                     .getDeclaration()),
             ContentType(MediaType.APPLICATION_JSON)));
     assertEquals(
