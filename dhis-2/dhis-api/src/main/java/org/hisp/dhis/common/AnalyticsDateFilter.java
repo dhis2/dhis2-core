@@ -43,6 +43,10 @@ import org.hisp.dhis.analytics.common.CommonRequestParams;
 @Getter
 @RequiredArgsConstructor
 public enum AnalyticsDateFilter {
+  /**
+   * @deprecated use {@link #OCCURRED_DATE} instead. Kept for backward compatibility.
+   */
+  @Deprecated(since = "2.42")
   EVENT_DATE(
       TimeField.EVENT_DATE,
       EventsAnalyticsQueryCriteria::getEventDate,
@@ -64,8 +68,11 @@ public enum AnalyticsDateFilter {
   @Deprecated(since = "2.42")
   INCIDENT_DATE(
       TimeField.INCIDENT_DATE,
+      // Events
       EventsAnalyticsQueryCriteria::getIncidentDate,
+      // Enrollments
       EnrollmentAnalyticsQueryCriteria::getIncidentDate,
+      // TEs
       CommonRequestParams::getIncidentDate),
   OCCURRED_DATE(
       TimeField.OCCURRED_DATE,

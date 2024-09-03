@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryOption;
@@ -67,10 +68,10 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
   // ---------------------------------------------------------------------
 
   @Override
-  public List<String> canRead(UserDetails currentUser, DataValue dataValue) {
+  public List<String> canRead(@Nonnull UserDetails currentUser, DataValue dataValue) {
     List<String> errors = new ArrayList<>();
 
-    if (currentUser == null || currentUser.isSuper()) {
+    if (currentUser.isSuper()) {
       return errors;
     }
 
@@ -99,10 +100,10 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
   }
 
   @Override
-  public List<String> canWrite(UserDetails userDetails, DataSet dataSet) {
+  public List<String> canWrite(@Nonnull UserDetails userDetails, DataSet dataSet) {
     List<String> errors = new ArrayList<>();
 
-    if (userDetails == null || userDetails.isSuper()) {
+    if (userDetails.isSuper()) {
       return errors;
     }
 
@@ -114,10 +115,10 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
   }
 
   @Override
-  public List<String> canRead(UserDetails currentUser, DataSet dataSet) {
+  public List<String> canRead(@Nonnull UserDetails currentUser, DataSet dataSet) {
     List<String> errors = new ArrayList<>();
 
-    if (currentUser == null || currentUser.isSuper()) {
+    if (currentUser.isSuper()) {
       return errors;
     }
 
@@ -129,8 +130,8 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
   }
 
   @Override
-  public List<String> canWrite(UserDetails userDetails, CategoryOptionCombo optionCombo) {
-    if (userDetails == null || userDetails.isSuper()) {
+  public List<String> canWrite(@Nonnull UserDetails userDetails, CategoryOptionCombo optionCombo) {
+    if (userDetails.isSuper()) {
       return emptyList();
     }
 
@@ -154,10 +155,10 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
   }
 
   @Override
-  public List<String> canRead(UserDetails currentUser, CategoryOptionCombo optionCombo) {
+  public List<String> canRead(@Nonnull UserDetails currentUser, CategoryOptionCombo optionCombo) {
     List<String> errors = new ArrayList<>();
 
-    if (currentUser == null || currentUser.isSuper()) {
+    if (currentUser.isSuper()) {
       return errors;
     }
 
@@ -174,10 +175,11 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
   }
 
   @Override
-  public List<String> canWrite(UserDetails currentUser, DataElementOperand dataElementOperand) {
+  public List<String> canWrite(
+      @Nonnull UserDetails currentUser, DataElementOperand dataElementOperand) {
     List<String> errors = new ArrayList<>();
 
-    if (currentUser == null || currentUser.isSuper()) {
+    if (currentUser.isSuper()) {
       return errors;
     }
 

@@ -35,6 +35,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Date;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -92,13 +94,16 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
   public static final Pattern COHORT_HAVING_ATTRIBUTE_PATTERN =
       Pattern.compile(COHORT_HAVING_ATTRIBUTE_REGEX);
 
-  public static final String DB_EVENT_DATE = "occurreddate";
+  public static final String DB_EVENT_DATE = EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
 
-  public static final String DB_ENROLLMENT_DATE = "enrollmentdate";
+  public static final String DB_ENROLLMENT_DATE =
+      EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME;
 
-  public static final String DB_INCIDENT_DATE = "incidentdate";
+  public static final String DB_INCIDENT_DATE =
+      EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
 
-  public static final String DB_SCHEDULED_DATE = "scheduleddate";
+  public static final String DB_SCHEDULED_DATE =
+      EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME;
 
   public static final String DB_QUOTE = "\"";
 

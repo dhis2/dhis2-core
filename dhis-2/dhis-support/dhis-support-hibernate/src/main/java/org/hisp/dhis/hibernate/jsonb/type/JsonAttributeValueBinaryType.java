@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.hibernate.jsonb.type;
 
+import static org.hisp.dhis.jsontree.JsonBuilder.createObject;
+
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -39,6 +38,9 @@ import org.hibernate.HibernateException;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonNode;
+import org.hisp.dhis.jsontree.JsonObject;
 
 public class JsonAttributeValueBinaryType extends JsonBinaryType {
   public static final ObjectMapper MAPPER = JacksonObjectMapperConfig.staticJsonMapper();
@@ -49,26 +51,20 @@ public class JsonAttributeValueBinaryType extends JsonBinaryType {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public String convertObjectToJson(Object object) {
-    try {
-      Set<AttributeValue> attributeValues =
-          object == null ? Collections.emptySet() : (Set<AttributeValue>) object;
-
-      Map<String, AttributeValue> attrValueMap = new HashMap<>();
-
-      for (AttributeValue attributeValue : attributeValues) {
-        if (attributeValue.getAttribute() != null) {
-          attributeValue.setAttribute(new Attribute(attributeValue.getAttribute().getUid()));
-          attrValueMap.put(attributeValue.getAttribute().getUid(), attributeValue);
-        }
-      }
-
-      return writer.writeValueAsString(attrValueMap);
-
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    if (object == null) return "{}";
+    @SuppressWarnings("unchecked")
+    Set<AttributeValue> attributeValues = (Set<AttributeValue>) object;
+    // turn set into a JSON object: {<attribute-uid>:{"value":<value>}}
+    JsonNode json =
+        createObject(
+            obj ->
+                attributeValues.forEach(
+                    attr ->
+                        obj.addObject(
+                            attr.getAttribute().getUid(),
+                            attrObj -> attrObj.addString("value", attr.getValue()))));
+    return json.getDeclaration();
   }
 
   @Override
@@ -78,25 +74,15 @@ public class JsonAttributeValueBinaryType extends JsonBinaryType {
   }
 
   @Override
-  public Object convertJsonToObject(String content) {
-    try {
-      Map<String, AttributeValue> data = reader.readValue(content);
-
-      return convertAttributeValueMapIntoSet(data);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private static Set<AttributeValue> convertAttributeValueMapIntoSet(
-      Map<String, AttributeValue> data) {
-    Set<AttributeValue> attributeValues = new HashSet<>();
-
-    for (Map.Entry<String, AttributeValue> entry : data.entrySet()) {
-      AttributeValue attributeValue = entry.getValue();
-      attributeValues.add(attributeValue);
-    }
-
-    return attributeValues;
+  public Set<AttributeValue> convertJsonToObject(String json) {
+    JsonObject attrs = JsonMixed.of(json);
+    if (attrs.isUndefined() || attrs.isEmpty()) return new HashSet<>(0);
+    Set<AttributeValue> res = new HashSet<>(attrs.size());
+    attrs.forEach(
+        (uid, value) ->
+            res.add(
+                new AttributeValue(
+                    new Attribute(uid), value.asObject().getString("value").string())));
+    return res;
   }
 }

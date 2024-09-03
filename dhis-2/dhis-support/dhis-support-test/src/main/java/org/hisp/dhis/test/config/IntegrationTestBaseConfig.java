@@ -30,6 +30,7 @@ package org.hisp.dhis.test.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -38,10 +39,27 @@ import org.springframework.security.ldap.authentication.LdapAuthenticator;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 
 /**
+ * IntegrationTestBaseConfig will scan for Spring Components like we do in production. It will not
+ * scan for components in a test package. This is to not include any test configurations. {@link
+ * Configuration}s have to be included explicitly via a {@link
+ * org.springframework.test.context.ContextConfiguration}. This guarantees that our tests are as
+ * close to production as possible while having full control over the components we want to override
+ * during testing.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Configuration
-@ComponentScan("org.hisp.dhis")
+@ComponentScan(
+    basePackages = "org.hisp.dhis",
+    excludeFilters = {
+      @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org\\.hisp\\.dhis\\.test\\..*"),
+      // This is excluded as our org.hisp.dhis.test.webapi.MvcTestConfig is a rewrite of
+      // WebMvcConfig. We first need to adapt MvcTestConfig to override what needs to be different
+      // during testing so we can remove this.
+      @ComponentScan.Filter(
+          type = FilterType.REGEX,
+          pattern = "org\\.hisp\\.dhis\\.webapi\\.security\\.config\\.WebMvcConfig")
+    })
 public class IntegrationTestBaseConfig {
   @Bean
   public static SessionRegistry sessionRegistry() {

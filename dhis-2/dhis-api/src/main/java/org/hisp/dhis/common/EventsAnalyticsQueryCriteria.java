@@ -60,8 +60,16 @@ public class EventsAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
   /** End date for events. This is a mandatory field. */
   private Date endDate;
 
-  /** Time interval for event date; */
+  /**
+   * Time interval for event date;
+   *
+   * @deprecated use @see {@link #occurredDate} instead
+   */
+  @Deprecated(since = "2.42")
   private String eventDate;
+
+  /** Time interval for event date; */
+  private String occurredDate;
 
   /** Time interval for enrollment date; */
   private String enrollmentDate;
@@ -72,12 +80,13 @@ public class EventsAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
   /**
    * Time interval for incident date;
    *
-   * @deprecated use @see {@link #occurredDate} instead
+   * @deprecated use @see {@link #enrollmentOccurredDate} instead
    */
   @Deprecated(since = "2.42")
   private String incidentDate;
 
-  private String occurredDate;
+  /** Time interval for incident date; */
+  private String enrollmentOccurredDate;
 
   /** Time interval for last updated date; */
   private String lastUpdated;

@@ -59,8 +59,8 @@ import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.UserService;
@@ -91,7 +91,7 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       EnrollmentService enrollmentService,
-      TrackedEntityDataValueChangeLogService dataValueAuditService,
+      EventChangeLogService eventChangeLogService,
       FileResourceService fileResourceService,
       DhisConfigurationProvider config,
       IdentifiableObjectManager identifiableObjectManager,
@@ -104,7 +104,7 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
         incomingSmsService,
         smsSender,
         enrollmentService,
-        dataValueAuditService,
+        eventChangeLogService,
         fileResourceService,
         config,
         identifiableObjectManager);

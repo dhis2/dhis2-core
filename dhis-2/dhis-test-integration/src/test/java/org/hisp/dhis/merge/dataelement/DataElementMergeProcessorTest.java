@@ -111,9 +111,9 @@ import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogStore;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLogQueryParams;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -165,7 +165,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
   @Autowired private DataDimensionItemStore dataDimensionItemStore;
   @Autowired private DataValueStore dataValueStore;
   @Autowired private DataValueAuditStore dataValueAuditStore;
-  @Autowired private TrackedEntityDataValueChangeLogStore teDataValueChangeLogStore;
+  @Autowired private EventChangeLogService teDataValueChangeLogService;
 
   private DataElement deSource1;
   private DataElement deSource2;
@@ -2554,11 +2554,11 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     TrackedEntityDataValueChangeLog tedvcl4 = createTrackedEntityDataValueAudit(e, deSource2, "2");
     TrackedEntityDataValueChangeLog tedvcl5 = createTrackedEntityDataValueAudit(e, deTarget, "1");
 
-    teDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(tedvcl1);
-    teDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(tedvcl2);
-    teDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(tedvcl3);
-    teDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(tedvcl4);
-    teDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(tedvcl5);
+    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl1);
+    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl2);
+    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl3);
+    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl4);
+    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl5);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -2573,9 +2573,9 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
         getTeQueryParams(e, List.of(deTarget));
 
     List<TrackedEntityDataValueChangeLog> sourceAudits =
-        teDataValueChangeLogStore.getTrackedEntityDataValueChangeLogs(sourceTeDvChangeLogQuery);
+        teDataValueChangeLogService.getTrackedEntityDataValueChangeLogs(sourceTeDvChangeLogQuery);
     List<TrackedEntityDataValueChangeLog> targetAudits =
-        teDataValueChangeLogStore.getTrackedEntityDataValueChangeLogs(targeteDvChangeLogQuery);
+        teDataValueChangeLogService.getTrackedEntityDataValueChangeLogs(targeteDvChangeLogQuery);
 
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
@@ -2607,11 +2607,11 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     TrackedEntityDataValueChangeLog tedvcl4 = createTrackedEntityDataValueAudit(e, deSource2, "2");
     TrackedEntityDataValueChangeLog tedvcl5 = createTrackedEntityDataValueAudit(e, deTarget, "1");
 
-    teDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(tedvcl1);
-    teDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(tedvcl2);
-    teDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(tedvcl3);
-    teDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(tedvcl4);
-    teDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(tedvcl5);
+    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl1);
+    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl2);
+    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl3);
+    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl4);
+    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl5);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -2627,9 +2627,9 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
         getTeQueryParams(e, List.of(deTarget));
 
     List<TrackedEntityDataValueChangeLog> sourceAudits =
-        teDataValueChangeLogStore.getTrackedEntityDataValueChangeLogs(sourceTeDvChangeLogQuery);
+        teDataValueChangeLogService.getTrackedEntityDataValueChangeLogs(sourceTeDvChangeLogQuery);
     List<TrackedEntityDataValueChangeLog> targetAudits =
-        teDataValueChangeLogStore.getTrackedEntityDataValueChangeLogs(targeteDvChangeLogQuery);
+        teDataValueChangeLogService.getTrackedEntityDataValueChangeLogs(targeteDvChangeLogQuery);
 
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
