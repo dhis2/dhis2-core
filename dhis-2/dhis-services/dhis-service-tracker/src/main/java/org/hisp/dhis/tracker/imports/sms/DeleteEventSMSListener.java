@@ -74,17 +74,7 @@ public class DeleteEventSMSListener extends CompressionSMSListener {
       DataElementService dataElementService,
       IdentifiableObjectManager identifiableObjectManager,
       TrackerImportService trackerImportService) {
-    super(
-        incomingSmsService,
-        smsSender,
-        userService,
-        trackedEntityTypeService,
-        trackedEntityAttributeService,
-        programService,
-        organisationUnitService,
-        categoryService,
-        dataElementService,
-        identifiableObjectManager);
+    super(incomingSmsService, smsSender, userService, identifiableObjectManager);
     this.trackerImportService = trackerImportService;
   }
 

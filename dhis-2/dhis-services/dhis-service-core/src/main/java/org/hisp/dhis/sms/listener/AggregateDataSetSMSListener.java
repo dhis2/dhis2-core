@@ -48,7 +48,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
@@ -57,8 +56,6 @@ import org.hisp.dhis.smscompression.models.AggregateDatasetSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -75,13 +72,16 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
 
   private final CompleteDataSetRegistrationService registrationService;
 
+  private final CategoryService categoryService;
+
+  private final DataElementService dataElementService;
+
+  private final OrganisationUnitService organisationUnitService;
+
   public AggregateDataSetSMSListener(
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       UserService userService,
-      TrackedEntityTypeService trackedEntityTypeService,
-      TrackedEntityAttributeService trackedEntityAttributeService,
-      ProgramService programService,
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
       DataElementService dataElementService,
@@ -89,17 +89,10 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
       DataValueService dataValueService,
       CompleteDataSetRegistrationService registrationService,
       IdentifiableObjectManager identifiableObjectManager) {
-    super(
-        incomingSmsService,
-        smsSender,
-        userService,
-        trackedEntityTypeService,
-        trackedEntityAttributeService,
-        programService,
-        organisationUnitService,
-        categoryService,
-        dataElementService,
-        identifiableObjectManager);
+    super(incomingSmsService, smsSender, userService, identifiableObjectManager);
+    this.organisationUnitService = organisationUnitService;
+    this.categoryService = categoryService;
+    this.dataElementService = dataElementService;
     this.dataSetService = dataSetService;
     this.dataValueService = dataValueService;
     this.registrationService = registrationService;

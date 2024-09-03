@@ -56,8 +56,6 @@ import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.SimpleEventSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventService;
@@ -72,12 +70,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class SimpleEventSMSListener extends EventSavingSMSListener {
   private final EnrollmentService enrollmentService;
 
+  private final ProgramService programService;
+
+  private final OrganisationUnitService organisationUnitService;
+
+  private final CategoryService categoryService;
+
   public SimpleEventSMSListener(
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       UserService userService,
-      TrackedEntityTypeService trackedEntityTypeService,
-      TrackedEntityAttributeService trackedEntityAttributeService,
       ProgramService programService,
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
@@ -92,10 +94,6 @@ public class SimpleEventSMSListener extends EventSavingSMSListener {
         incomingSmsService,
         smsSender,
         userService,
-        trackedEntityTypeService,
-        trackedEntityAttributeService,
-        programService,
-        organisationUnitService,
         categoryService,
         dataElementService,
         identifiableObjectManager,
@@ -103,6 +101,9 @@ public class SimpleEventSMSListener extends EventSavingSMSListener {
         eventChangeLogService,
         fileResourceService,
         config);
+    this.programService = programService;
+    this.organisationUnitService = organisationUnitService;
+    this.categoryService = categoryService;
     this.enrollmentService = enrollmentService;
   }
 

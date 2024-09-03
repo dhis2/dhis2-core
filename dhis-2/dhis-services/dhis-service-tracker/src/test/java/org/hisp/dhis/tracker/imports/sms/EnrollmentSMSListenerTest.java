@@ -194,8 +194,6 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
             trackedEntityAttributeService,
             programService,
             organisationUnitService,
-            categoryService,
-            dataElementService,
             programStageService,
             eventService,
             eventChangeLogService,
@@ -205,7 +203,9 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
             trackedEntityService,
             enrollmentService,
             identifiableObjectManager,
-            smsEnrollmentService);
+            dataElementService,
+            smsEnrollmentService,
+            categoryService);
 
     setUpInstances();
 

@@ -55,11 +55,9 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
@@ -72,8 +70,6 @@ import org.hisp.dhis.smscompression.models.GeoPoint;
 import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
@@ -95,14 +91,14 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
 
   protected final DhisConfigurationProvider config;
 
+  private final DataElementService dataElementService;
+
+  protected final CategoryService categoryService;
+
   protected EventSavingSMSListener(
       IncomingSmsService incomingSmsService,
       MessageSender smsSender,
       UserService userService,
-      TrackedEntityTypeService trackedEntityTypeService,
-      TrackedEntityAttributeService trackedEntityAttributeService,
-      ProgramService programService,
-      OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
       DataElementService dataElementService,
       IdentifiableObjectManager identifiableObjectManager,
@@ -110,17 +106,9 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
       EventChangeLogService eventChangeLogService,
       FileResourceService fileResourceService,
       DhisConfigurationProvider config) {
-    super(
-        incomingSmsService,
-        smsSender,
-        userService,
-        trackedEntityTypeService,
-        trackedEntityAttributeService,
-        programService,
-        organisationUnitService,
-        categoryService,
-        dataElementService,
-        identifiableObjectManager);
+    super(incomingSmsService, smsSender, userService, identifiableObjectManager);
+    this.categoryService = categoryService;
+    this.dataElementService = dataElementService;
     this.eventService = eventService;
     this.eventChangeLogService = eventChangeLogService;
     this.fileResourceService = fileResourceService;

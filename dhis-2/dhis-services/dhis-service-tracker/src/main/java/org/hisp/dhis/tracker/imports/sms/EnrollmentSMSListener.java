@@ -94,6 +94,16 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
 
   private final SMSEnrollmentService smsEnrollmentService;
 
+  private final TrackedEntityTypeService trackedEntityTypeService;
+
+  private final TrackedEntityAttributeService trackedEntityAttributeService;
+
+  private final ProgramService programService;
+
+  private final OrganisationUnitService organisationUnitService;
+
+  private final CategoryService categoryService;
+
   public EnrollmentSMSListener(
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
@@ -102,8 +112,6 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
       TrackedEntityAttributeService trackedEntityAttributeService,
       ProgramService programService,
       OrganisationUnitService organisationUnitService,
-      CategoryService categoryService,
-      DataElementService dataElementService,
       ProgramStageService programStageService,
       EventService eventService,
       EventChangeLogService eventChangeLogService,
@@ -113,15 +121,13 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
       TrackedEntityService trackedEntityService,
       EnrollmentService enrollmentService,
       IdentifiableObjectManager manager,
-      SMSEnrollmentService smsEnrollmentService) {
+      DataElementService dataElementService,
+      SMSEnrollmentService smsEnrollmentService,
+      CategoryService categoryService) {
     super(
         incomingSmsService,
         smsSender,
         userService,
-        trackedEntityTypeService,
-        trackedEntityAttributeService,
-        programService,
-        organisationUnitService,
         categoryService,
         dataElementService,
         manager,
@@ -129,11 +135,16 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
         eventChangeLogService,
         fileResourceService,
         config);
+    this.programService = programService;
     this.trackedEntityService = trackedEntityService;
     this.programStageService = programStageService;
     this.enrollmentService = enrollmentService;
     this.attributeValueService = attributeValueService;
     this.smsEnrollmentService = smsEnrollmentService;
+    this.trackedEntityTypeService = trackedEntityTypeService;
+    this.trackedEntityAttributeService = trackedEntityAttributeService;
+    this.organisationUnitService = organisationUnitService;
+    this.categoryService = categoryService;
   }
 
   @Override

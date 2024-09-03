@@ -154,10 +154,6 @@ class TrackerEventSMSListenerTest extends CompressionSMSListenerTest {
             incomingSmsService,
             smsSender,
             userService,
-            trackedEntityTypeService,
-            trackedEntityAttributeService,
-            programService,
-            organisationUnitService,
             categoryService,
             dataElementService,
             identifiableObjectManager,
@@ -166,7 +162,8 @@ class TrackerEventSMSListenerTest extends CompressionSMSListenerTest {
             fileResourceService,
             config,
             programStageService,
-            enrollmentService);
+            enrollmentService,
+            organisationUnitService);
 
     setUpInstances();
 

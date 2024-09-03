@@ -143,8 +143,6 @@ class SimpleEventSMSListenerTest extends CompressionSMSListenerTest {
             incomingSmsService,
             smsSender,
             userService,
-            trackedEntityTypeService,
-            trackedEntityAttributeService,
             programService,
             organisationUnitService,
             categoryService,

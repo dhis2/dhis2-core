@@ -40,7 +40,6 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -51,8 +50,6 @@ import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventService;
@@ -70,14 +67,12 @@ public class TrackerEventSMSListener extends EventSavingSMSListener {
 
   private final EnrollmentService enrollmentService;
 
+  private final OrganisationUnitService organisationUnitService;
+
   public TrackerEventSMSListener(
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       UserService userService,
-      TrackedEntityTypeService trackedEntityTypeService,
-      TrackedEntityAttributeService trackedEntityAttributeService,
-      ProgramService programService,
-      OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
       DataElementService dataElementService,
       IdentifiableObjectManager identifiableObjectManager,
@@ -86,15 +81,12 @@ public class TrackerEventSMSListener extends EventSavingSMSListener {
       FileResourceService fileResourceService,
       DhisConfigurationProvider config,
       ProgramStageService programStageService,
-      EnrollmentService enrollmentService) {
+      EnrollmentService enrollmentService,
+      OrganisationUnitService organisationUnitService) {
     super(
         incomingSmsService,
         smsSender,
         userService,
-        trackedEntityTypeService,
-        trackedEntityAttributeService,
-        programService,
-        organisationUnitService,
         categoryService,
         dataElementService,
         identifiableObjectManager,
@@ -104,6 +96,7 @@ public class TrackerEventSMSListener extends EventSavingSMSListener {
         config);
     this.programStageService = programStageService;
     this.enrollmentService = enrollmentService;
+    this.organisationUnitService = organisationUnitService;
   }
 
   @Override
