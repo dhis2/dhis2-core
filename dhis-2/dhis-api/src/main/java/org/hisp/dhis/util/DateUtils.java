@@ -206,6 +206,16 @@ public class DateUtils {
    * @param date the Date to parse.
    * @return A formatted date string.
    */
+  public static String toLongDate(Date date) {
+    return date != null ? LONG_DATE_FORMAT.print(new DateTime(date)) : null;
+  }
+
+  /**
+   * Formats a Date to the format yyyy-MM-dd HH:mm:ss.
+   *
+   * @param date the Date to parse.
+   * @return A formatted date string.
+   */
   public static String getLongDateString(Date date) {
     return date != null ? LONG_DATE_FORMAT.print(new DateTime(date)) : null;
   }
@@ -256,6 +266,20 @@ public class DateUtils {
    */
   public static Date minusOneDay(Date date) {
     return new Date(date.getTime() - MS_PER_DAY);
+  }
+
+  /**
+   * Creates a {@link Date} representing the given year, month and day.
+   *
+   * @param year the year.
+   * @param month the month, from 1.
+   * @param dayOfMonth the day of the month, from 1.
+   * @param hourOfDay the hour of day, from 0.
+   * @param minuteOfHour the minute of hour, from 0.
+   * @return a {@link Date}.
+   */
+  public static Date getDate(int year, int month, int dayOfMonth, int hourOfDay, int minuteOfHour) {
+    return new DateTime(year, month, dayOfMonth, hourOfDay, minuteOfHour).toDate();
   }
 
   /**
