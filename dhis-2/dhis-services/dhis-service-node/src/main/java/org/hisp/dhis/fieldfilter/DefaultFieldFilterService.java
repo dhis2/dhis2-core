@@ -50,9 +50,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -538,7 +536,6 @@ public class DefaultFieldFilterService implements FieldFilterService {
             }
           }
         } else {
-          returnValue = handleJsonbObjectProperties(klass, propertyClass, returnValue);
           child = buildNode(fieldValue, propertyClass, returnValue, userDetails, defaults);
         }
       }
@@ -745,22 +742,5 @@ public class DefaultFieldFilterService implements FieldFilterService {
     }
 
     return IdentifiableObject.class.isAssignableFrom(klass);
-  }
-
-  /**
-   * An {@link Attribute} value is saved as JSONB, and it contains only Attribute's uid If fields
-   * parameter requires more than just Attribute's uid then we need to get full {@link Attribute}
-   * object ( from cache ) e.g. fields=id,name,attributeValues[value,attribute[id,name,description]]
-   */
-  private Object handleJsonbObjectProperties(
-      Class<?> klass, Class<?> propertyClass, Object returnObject) {
-    // FIXME AttributeValue is no longer used so this should be ineffective and needs equivalent
-    // replacement
-    if (AttributeValue.class.isAssignableFrom(klass)
-        && Attribute.class.isAssignableFrom(propertyClass)) {
-      returnObject = attributeService.getAttribute(((Attribute) returnObject).getUid());
-    }
-
-    return returnObject;
   }
 }
