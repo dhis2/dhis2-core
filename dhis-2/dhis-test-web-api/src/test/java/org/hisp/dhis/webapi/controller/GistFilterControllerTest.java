@@ -36,7 +36,6 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.web.HttpStatus;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -472,10 +471,8 @@ class GistFilterControllerTest extends AbstractGistControllerTest {
 
   @Test
   void testFilter_PasswordTypeFieldsCannotBeFiltered() {
-    JsonWebMessage message =
-        GET("/users/gist?fields=username&filter=password:like:d*")
-            .content(HttpStatus.CONFLICT)
-            .as(JsonWebMessage.class);
-    assertEquals("Filter not allowed: password:like:[d*]", message.getMessage());
+    JsonObject message =
+        GET("/users/gist?fields=username&filter=password:like:d*").content(HttpStatus.CONFLICT);
+    assertEquals("Filter not allowed: password:like:[d*]", message.getString("message").string());
   }
 }
