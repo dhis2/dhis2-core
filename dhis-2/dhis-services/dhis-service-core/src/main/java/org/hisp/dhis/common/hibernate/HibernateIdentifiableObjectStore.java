@@ -402,6 +402,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @CheckForNull
   public T getByUniqueAttributeValue(
       @Nonnull UID attribute, @Nonnull String value, @Nonnull UserDetails user) {
+    String sharingClause =
+        !sharingEnabled(user) ? "1=1" : generateHqlQueryForSharingCheck("t", user, "r%");
     // language=hql
     String hql =
         """
@@ -409,10 +411,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
           and exists(select 1 from Attribute a where a.uid = :attr and a.unique = true)
           and %s
         """
-            .formatted(
-                getClazz().getSimpleName(),
-                attribute.getValue(),
-                generateHqlQueryForSharingCheck("t", user, "r%"));
+            .formatted(getClazz().getSimpleName(), attribute.getValue(), sharingClause);
     return getSingleResult(
         getQuery(hql).setParameter("attr", attribute.getValue()).setParameter("value", value));
   }
