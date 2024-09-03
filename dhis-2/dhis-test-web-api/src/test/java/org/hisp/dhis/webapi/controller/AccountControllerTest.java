@@ -200,6 +200,9 @@ class AccountControllerTest extends DhisControllerIntegrationTest {
 
   @Test
   void testGetLinkedAccounts() {
+    createUserWithAuth("usera");
+    createUserWithAuth("userb");
+
     String openId = "email@provider.com";
     List<User> allUsers = userService.getAllUsers();
     for (User user : allUsers) {
@@ -209,7 +212,7 @@ class AccountControllerTest extends DhisControllerIntegrationTest {
 
     JsonMixed response = GET("/account/linkedAccounts").content(HttpStatus.OK);
     JsonList<JsonObject> users = response.getList("users", JsonObject.class);
-    assertEquals(2, users.size());
+    assertEquals(4, users.size());
   }
 
   private static void assertMessage(String key, String value, String message, JsonMixed response) {

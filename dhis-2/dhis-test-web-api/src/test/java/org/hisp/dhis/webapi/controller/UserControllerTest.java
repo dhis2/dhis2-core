@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.emptySet;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LINKED_ACCOUNTS_ENABLED;
 import static org.hisp.dhis.web.HttpStatus.Series.SUCCESSFUL;
 import static org.hisp.dhis.web.WebClient.Accept;
 import static org.hisp.dhis.web.WebClient.Body;
@@ -51,6 +52,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonBoolean;
@@ -69,7 +71,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
@@ -100,11 +101,11 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
   @Autowired private SessionRegistry sessionRegistry;
 
-  @Autowired private UserService userService;
+  @Autowired ObjectMapper objectMapper;
+
+  @Autowired private DhisConfigurationProvider config;
 
   private User peter;
-
-  @Autowired ObjectMapper objectMapper;
 
   @BeforeEach
   void setUp() {
@@ -221,8 +222,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  @DisplayName(
-      "Make sure an update after first setting OpenID works, has special handling logic in UserObjectBundleHook.")
+  @DisplayName("Check updates after setting an OpenID value works")
   void testSetOpenIdThenUpdate() {
     assertStatus(
         HttpStatus.OK,
@@ -240,6 +240,56 @@ class UserControllerTest extends DhisControllerConvenienceTest {
             "/users/{id}",
             peter.getUid() + "?importReportMode=ERRORS",
             Body("[{'op': 'add', 'path': '/openId', 'value': 'mapping value'}]")));
+  }
+
+  @Test
+  void testSetOpenIdThenUpdateWithLinkedAccountsEnabled() {
+    config.getProperties().put(LINKED_ACCOUNTS_ENABLED.getKey(), "on");
+
+    User wendy = createUserWithAuth("wendy");
+
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/users/{id}",
+            peter.getUid() + "?importReportMode=ERRORS",
+            Body("[{'op': 'add', 'path': '/openId', 'value': 'peter@mail.org'}]")));
+
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/users/{id}",
+            wendy.getUid() + "?importReportMode=ERRORS",
+            Body("[{'op': 'add', 'path': '/openId', 'value': 'peter@mail.org'}]")));
+  }
+
+  @Test
+  void testSetOpenIdThenUpdateWithLinkedAccountsDisabled() {
+    config.getProperties().put(LINKED_ACCOUNTS_ENABLED.getKey(), "off");
+
+    User wendy = createUserWithAuth("wendy");
+
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/users/{id}",
+            peter.getUid() + "?importReportMode=ERRORS",
+            Body("[{'op': 'add', 'path': '/openId', 'value': 'peter@mail.org'}]")));
+
+    JsonImportSummary response =
+        PATCH(
+                "/users/{id}",
+                wendy.getUid() + "?importReportMode=ERRORS",
+                Body("[{'op': 'add', 'path': '/openId', 'value': 'peter@mail.org'}]"))
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    assertEquals(
+        "Property `OIDC mapping value` already exists, was given `peter@mail.org`.",
+        response
+            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4054)
+            .getMessage());
   }
 
   /**
