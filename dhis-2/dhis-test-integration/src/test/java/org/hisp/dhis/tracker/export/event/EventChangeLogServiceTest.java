@@ -51,6 +51,7 @@ import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionServi
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -83,6 +84,12 @@ class EventChangeLogServiceTest extends TrackerTest {
     assertNoErrors(
         trackerImportService.importTracker(
             importParams, fromJson("tracker/event_and_enrollment.json")));
+  }
+
+  @BeforeEach
+  void setUpUser() {
+    importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
   }
 
   @Test
