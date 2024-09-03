@@ -407,25 +407,26 @@ public class GeoFeatureService {
       geoFeature.setCo(convertGeoJsonObjectCoordinates(lineString.getCoordinates()));
       return geoFeature;
     }
-  }
 
-  /**
-   * Convert coordinates of an {@link GeoJsonObject} to String
-   *
-   * @param coordinates the coordinate of a GeoJsonObject, usually is a list of {@link
-   *     org.geojson.LngLatAlt}
-   * @return a String contains given GeoJsonObject's coordinates. Return null if failed to convert.
-   */
-  private static String convertGeoJsonObjectCoordinates(List<?> coordinates) {
-    try {
-      return OBJECT_MAPPER.writeValueAsString(coordinates);
-    } catch (JsonProcessingException e) {
-      log.error(
-          String.format("Failed to write coordinate to String: %s", coordinates),
-          DebugUtils.getStackTrace(e));
+    /**
+     * Convert coordinates of an {@link GeoJsonObject} to String
+     *
+     * @param coordinates the coordinate of a GeoJsonObject, usually is a list of {@link
+     *     org.geojson.LngLatAlt}
+     * @return a String contains given GeoJsonObject's coordinates. Return null if failed to
+     *     convert.
+     */
+    private static String convertGeoJsonObjectCoordinates(List<?> coordinates) {
+      try {
+        return OBJECT_MAPPER.writeValueAsString(coordinates);
+      } catch (JsonProcessingException e) {
+        log.error(
+            String.format("Failed to write coordinate to String: %s", coordinates),
+            DebugUtils.getStackTrace(e));
+      }
+
+      return null;
     }
-
-    return null;
   }
 
   /**

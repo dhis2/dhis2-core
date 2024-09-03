@@ -50,7 +50,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -99,8 +98,6 @@ public class DefaultFieldFilterService implements FieldFilterService {
 
   private final AclService aclService;
 
-  private final AttributeService attributeService;
-
   private final Set<NodeTransformer> nodeTransformers;
 
   private ImmutableMap<String, FieldPreset> presets = ImmutableMap.of();
@@ -119,7 +116,6 @@ public class DefaultFieldFilterService implements FieldFilterService {
       FieldParser fieldParser,
       SchemaService schemaService,
       AclService aclService,
-      AttributeService attributeService,
       CacheProvider cacheProvider,
       UserGroupService userGroupService,
       UserService userService,
@@ -128,7 +124,6 @@ public class DefaultFieldFilterService implements FieldFilterService {
     this.schemaService = schemaService;
     this.aclService = aclService;
     this.userService = userService;
-    this.attributeService = attributeService;
     this.userGroupService = userGroupService;
     this.nodeTransformers = nodeTransformers == null ? new HashSet<>() : nodeTransformers;
     this.transformerCache = cacheProvider.createPropertyTransformerCache();

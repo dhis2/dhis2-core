@@ -247,4 +247,10 @@ class AttributeValuesTest {
     assertEquals(AttributeValues.of(Map.of("b", "y")), before.removedAll(id -> id.matches("[ac]")));
     assertSame(before, before.removedAll("r"::equals));
   }
+
+  @Test
+  void testToMap() {
+    assertEquals(Map.of(), AttributeValues.empty().toMap());
+    assertEquals(Map.of("a", "1"), AttributeValues.of(Map.of("a", "1")).toMap());
+  }
 }

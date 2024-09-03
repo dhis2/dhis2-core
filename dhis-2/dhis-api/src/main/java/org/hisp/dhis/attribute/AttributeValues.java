@@ -31,8 +31,8 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
@@ -177,14 +177,14 @@ public sealed interface AttributeValues extends Iterable<Map.Entry<String, Strin
    * @return a new set with same keys but all values transformed by the mapper function
    */
   @Nonnull
-  AttributeValues mapValues(@Nonnull Function<String, String> mapper);
+  AttributeValues mapValues(@Nonnull UnaryOperator<String> mapper);
 
   /**
    * @param mapper mapping function for keys
    * @return a new set with same values but all keys transformed by the mapper function
    */
   @Nonnull
-  AttributeValues mapKeys(@Nonnull Function<String, String> mapper);
+  AttributeValues mapKeys(@Nonnull UnaryOperator<String> mapper);
 
   default Map<String, String> toMap() {
     return isEmpty()

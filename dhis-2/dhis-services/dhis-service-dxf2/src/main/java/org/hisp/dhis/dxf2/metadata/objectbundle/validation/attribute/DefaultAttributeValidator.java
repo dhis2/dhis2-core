@@ -85,7 +85,7 @@ public class DefaultAttributeValidator implements AttributeValidator {
           validateValue(value, MathUtils::isUnitInterval, ErrorCode.E6011, addError);
       case PHONE_NUMBER ->
           validateValue(value, ValidationUtils::isPhoneNumber, ErrorCode.E6021, addError);
-      case DATE -> validateValue(value, DateUtils::dateIsValid, ErrorCode.E6014, addError);
+      case AGE, DATE -> validateValue(value, DateUtils::dateIsValid, ErrorCode.E6014, addError);
       case DATETIME -> validateValue(value, DateUtils::dateTimeIsValid, ErrorCode.E6015, addError);
       case BOOLEAN -> validateValue(value, MathUtils::isBool, ErrorCode.E6016, addError);
       case TRUE_ONLY -> validateValue(value, "true"::equals, ErrorCode.E6017, addError);

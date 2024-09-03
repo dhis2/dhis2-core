@@ -41,8 +41,8 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -294,20 +294,20 @@ final class LazyAttributeValues implements AttributeValues {
 
   @Nonnull
   @Override
-  public AttributeValues mapValues(@Nonnull Function<String, String> mapper) {
+  public AttributeValues mapValues(@Nonnull UnaryOperator<String> mapper) {
     init();
     return map(values, mapper);
   }
 
   @Nonnull
   @Override
-  public AttributeValues mapKeys(@Nonnull Function<String, String> mapper) {
+  public AttributeValues mapKeys(@Nonnull UnaryOperator<String> mapper) {
     init();
     return map(keys, mapper);
   }
 
   @Nonnull
-  private AttributeValues map(String[] elements, @Nonnull Function<String, String> f) {
+  private AttributeValues map(String[] elements, @Nonnull UnaryOperator<String> f) {
     String[] newElements = null;
     for (int i = 0; i < elements.length; i++) {
       String element = elements[i];

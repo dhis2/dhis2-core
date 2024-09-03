@@ -104,8 +104,8 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
     try {
       MetamodelImplementor metamodelImplementor = (MetamodelImplementor) em.getMetamodel();
       EntityPersister entityPersister = metamodelImplementor.entityPersister(entityClass);
-      if (entityPersister instanceof SingleTableEntityPersister) {
-        return ((SingleTableEntityPersister) entityPersister).getTableName();
+      if (entityPersister instanceof SingleTableEntityPersister persister) {
+        return persister.getTableName();
       }
     } catch (Exception ex) {
       log.warn("Failed to set table name for: " + entityClass, ex);

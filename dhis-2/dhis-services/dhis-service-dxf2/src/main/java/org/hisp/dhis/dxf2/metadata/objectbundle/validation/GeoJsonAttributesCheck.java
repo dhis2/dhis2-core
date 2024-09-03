@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
-import static java.util.Collections.emptyList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
@@ -121,11 +120,17 @@ public class GeoJsonAttributesCheck implements ObjectValidationCheck {
   private List<ErrorReport> checkGeoJsonAttributes(
       IdentifiableObject object, Set<String> attributes) {
     if (object == null) {
-      return emptyList();
+      return List.of();
     }
 
     List<ErrorReport> errorReports = new ArrayList<>();
-    object.getAttributeValues().forEach((k, v) -> validateGeoJsonValue(k, v, errorReports::add));
+    object
+        .getAttributeValues()
+        .forEach(
+            (attributeId, value) -> {
+              if (attributes.contains(attributeId))
+                validateGeoJsonValue(attributeId, value, errorReports::add);
+            });
 
     return errorReports;
   }

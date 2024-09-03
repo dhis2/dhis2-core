@@ -41,7 +41,6 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManagerFactory;
 import org.hamcrest.Matchers;
-import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.NoOpCache;
 import org.hisp.dhis.category.Category;
@@ -78,8 +77,6 @@ class DefaultFieldFilterServiceTest {
 
   @Mock private AclService aclService;
 
-  @Mock private AttributeService attributeService;
-
   @Mock private UserGroupService userGroupService;
 
   @Mock private UserService userService;
@@ -103,7 +100,6 @@ class DefaultFieldFilterServiceTest {
             new DefaultFieldParser(),
             schemaService,
             aclService,
-            attributeService,
             cacheProvider,
             userGroupService,
             userService,

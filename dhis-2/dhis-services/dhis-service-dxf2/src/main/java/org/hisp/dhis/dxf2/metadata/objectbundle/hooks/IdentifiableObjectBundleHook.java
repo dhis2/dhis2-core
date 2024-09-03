@@ -70,7 +70,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
 
     Schema schema =
         schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(identifiableObject));
-    handleAttributeValues(identifiableObject, bundle, schema);
+    handleAttributeValues(identifiableObject, schema);
     handleSkipSharing(identifiableObject, bundle);
     handleSkipTranslation(identifiableObject, bundle);
     handleSortOrder(identifiableObject, bundle, schema);
@@ -137,12 +137,11 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
     handleCreatedByProperty(object, persistedObject, bundle);
 
     Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
-    handleAttributeValues(object, bundle, schema);
+    handleAttributeValues(object, schema);
     handleSortOrder(object, bundle, schema);
   }
 
-  private void handleAttributeValues(
-      IdentifiableObject object, ObjectBundle bundle, Schema schema) {
+  private void handleAttributeValues(IdentifiableObject object, Schema schema) {
     if (!schema.hasPersistedProperty("attributeValues")) return;
 
     object.setAttributeValues(
