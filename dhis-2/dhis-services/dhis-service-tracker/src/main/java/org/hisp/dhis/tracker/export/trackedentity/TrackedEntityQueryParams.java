@@ -55,7 +55,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.User;
 
 @ToString
 public class TrackedEntityQueryParams {
@@ -143,35 +142,10 @@ public class TrackedEntityQueryParams {
   private final List<Order> order = new ArrayList<>();
 
   // -------------------------------------------------------------------------
-  // Transient properties
-  // -------------------------------------------------------------------------
-
-  /** Current user for query. */
-  private transient User user;
-
-  // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
 
   public TrackedEntityQueryParams() {}
-
-  /**
-   * Prepares the organisation units of the given parameters to simplify querying. Mode ACCESSIBLE
-   * is converted to DESCENDANTS for organisation units linked to the search scope of the given
-   * user. Mode CAPTURE is converted to DESCENDANTS too, but using organisation units linked to the
-   * user's capture scope, and mode CHILDREN is converted to SELECTED for organisation units
-   * including all their children. Mode can be DESCENDANTS, SELECTED, ALL only after invoking this
-   * method.
-   */
-  public void handleOrganisationUnits() {
-    if (user != null && isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
-      setOrgUnits(user.getEffectiveSearchOrganisationUnits());
-      setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    } else if (user != null && isOrganisationUnitMode(OrganisationUnitSelectionMode.CAPTURE)) {
-      setOrgUnits(user.getOrganisationUnits());
-      setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    }
-  }
 
   public boolean hasTrackedEntities() {
     return CollectionUtils.isNotEmpty(this.trackedEntityUids);
@@ -481,11 +455,6 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public TrackedEntityQueryParams setUser(User user) {
-    this.user = user;
-    return this;
-  }
-
   public EventStatus getEventStatus() {
     return eventStatus;
   }
@@ -529,10 +498,6 @@ public class TrackedEntityQueryParams {
   public TrackedEntityQueryParams setIncludeDeleted(boolean includeDeleted) {
     this.includeDeleted = includeDeleted;
     return this;
-  }
-
-  public User getUser() {
-    return user;
   }
 
   /**

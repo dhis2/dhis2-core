@@ -78,11 +78,11 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -127,7 +127,7 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
 
   @Mock private IdentifiableObjectManager identifiableObjectManager;
 
-  @Mock private TrackedEntityDataValueChangeLogService dataValueAuditService;
+  @Mock private EventChangeLogService eventChangeLogService;
 
   @Mock private FileResourceService fileResourceService;
 
@@ -198,7 +198,7 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
             dataElementService,
             programStageService,
             eventService,
-            dataValueAuditService,
+            eventChangeLogService,
             fileResourceService,
             config,
             attributeValueService,

@@ -77,5 +77,10 @@
         <!--<Logger name="org.hisp.dhis.test.junit" level="debug">
                <AppenderRef ref="console"/>
         </Logger>-->
+
+        <!-- Uncomment to debug Spring bean creation/test configuration -->
+        <!--<Logger name="org.springframework.beans.factory.support.DefaultListableBeanFactory" level="debug" additivity="false">
+                <AppenderRef ref="console"/>
+        </Logger>-->
     </Loggers>
 </Configuration>

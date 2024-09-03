@@ -53,8 +53,8 @@ import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -82,7 +82,7 @@ public class TrackerEventSMSListener extends EventSavingSMSListener {
       DataElementService dataElementService,
       IdentifiableObjectManager identifiableObjectManager,
       EventService eventService,
-      TrackedEntityDataValueChangeLogService dataValueAuditService,
+      EventChangeLogService eventChangeLogService,
       FileResourceService fileResourceService,
       DhisConfigurationProvider config,
       ProgramStageService programStageService,
@@ -99,7 +99,7 @@ public class TrackerEventSMSListener extends EventSavingSMSListener {
         dataElementService,
         identifiableObjectManager,
         eventService,
-        dataValueAuditService,
+        eventChangeLogService,
         fileResourceService,
         config);
     this.programStageService = programStageService;

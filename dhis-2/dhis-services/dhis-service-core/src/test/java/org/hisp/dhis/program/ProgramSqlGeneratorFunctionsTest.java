@@ -524,7 +524,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
         is(
             "(select count(*) from relationship r "
                 + "join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid "
-                + "join trackedentity te on rifrom.trackedentityid = te.trackedentityid and te.uid = ax.te"
+                + "join trackedentity te on rifrom.trackedentityid = te.trackedentityid and te.uid = ax.trackedentity"
                 + " where r.deleted is false)"));
   }
 
@@ -539,7 +539,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
             "(select count(*) from relationship r "
                 + "join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = 'RelatnTypeA' "
                 + "join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid "
-                + "join trackedentity te on rifrom.trackedentityid = te.trackedentityid and te.uid = ax.te"
+                + "join trackedentity te on rifrom.trackedentityid = te.trackedentityid and te.uid = ax.trackedentity"
                 + " where r.deleted is false)"));
   }
 

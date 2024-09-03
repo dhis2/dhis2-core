@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.deduplication;
 
+import static org.hisp.dhis.test.TestBase.injectSecurityContext;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -49,6 +50,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -163,6 +165,9 @@ class DeduplicationServiceTest {
           PotentialDuplicateForbiddenException,
           ForbiddenException,
           NotFoundException {
+    SystemUser actingUser = new SystemUser();
+    injectSecurityContext(actingUser);
+
     MergeObject mergeObject = MergeObject.builder().build();
     when(deduplicationHelper.generateMergeObject(trackedEntityA, trackedEntityB))
         .thenReturn(mergeObject);
@@ -292,6 +297,9 @@ class DeduplicationServiceTest {
           PotentialDuplicateForbiddenException,
           NotFoundException,
           ForbiddenException {
+    SystemUser actingUser = new SystemUser();
+    injectSecurityContext(actingUser);
+
     when(trackedEntityB.getTrackedEntityAttributeValues()).thenReturn(new HashSet<>());
     MergeObject mergeObject = MergeObject.builder().build();
     when(deduplicationHelper.generateMergeObject(trackedEntityA, trackedEntityB))
@@ -314,6 +322,9 @@ class DeduplicationServiceTest {
           PotentialDuplicateForbiddenException,
           NotFoundException,
           ForbiddenException {
+    SystemUser actingUser = new SystemUser();
+    injectSecurityContext(actingUser);
+
     deduplicationService.manualMerge(deduplicationMergeParams);
     verify(deduplicationHelper, times(1)).getInvalidReferenceErrors(deduplicationMergeParams);
     verify(deduplicationHelper, times(0)).generateMergeObject(trackedEntityA, trackedEntityB);

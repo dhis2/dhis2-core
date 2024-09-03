@@ -47,8 +47,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityChangeLogService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.deduplication.DeduplicationMergeParams;
 import org.hisp.dhis.tracker.deduplication.DeduplicationService;
 import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
@@ -58,6 +57,7 @@ import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateCriteria;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateForbiddenException;
+import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
@@ -84,7 +84,7 @@ public class DeduplicationController {
 
   private final IdentifiableObjectManager manager;
 
-  private final TrackedEntityChangeLogService trackedEntityChangeLogService;
+  private final TrackedEntityAuditService trackedEntityAuditService;
 
   private final TrackerAccessManager trackerAccessManager;
 
@@ -265,8 +265,7 @@ public class DeduplicationController {
 
   private TrackedEntity getTrackedEntity(String trackedEntityUid) throws NotFoundException {
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, trackedEntityUid);
-    trackedEntityChangeLogService.addTrackedEntityChangeLog(
-        trackedEntity, getCurrentUsername(), READ);
+    trackedEntityAuditService.addTrackedEntityAudit(trackedEntity, getCurrentUsername(), READ);
     // TODO(tracker) Do we need to apply ACL here?
     return Optional.ofNullable(trackedEntity)
         .orElseThrow(

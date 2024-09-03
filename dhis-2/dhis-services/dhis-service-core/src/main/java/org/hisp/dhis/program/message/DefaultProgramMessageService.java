@@ -37,7 +37,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.ss.formula.functions.T;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -51,8 +50,8 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.ApiTrackedEntityAuditService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,7 +79,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
 
   private final ProgramMessageOperationParamMapper operationParamMapper;
 
-  private final TrackedEntityChangeLogService trackedEntityChangeLogService;
+  private final ApiTrackedEntityAuditService apiTrackedEntityAuditService;
 
   // -------------------------------------------------------------------------
   // Implementation methods
@@ -174,8 +173,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
         violations.add("Tracked entity does not exist");
       }
 
-      trackedEntityChangeLogService.addTrackedEntityChangeLog(
-          trackedEntity, getCurrentUsername(), READ);
+      apiTrackedEntityAuditService.addTrackedEntityAudit(trackedEntity, getCurrentUsername(), READ);
     }
 
     if (recipients.getOrganisationUnit() != null
