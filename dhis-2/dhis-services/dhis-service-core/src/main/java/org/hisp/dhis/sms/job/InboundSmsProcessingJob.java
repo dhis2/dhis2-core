@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,72 +25,70 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms;
+package org.hisp.dhis.sms.job;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.SmsInboundProcessingJobParameters;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-@Slf4j
+@Component
 @RequiredArgsConstructor
-@Component("org.hisp.dhis.sms.SmsConsumerThread")
-public class SmsConsumerThread {
-  private List<IncomingSmsListener> listeners;
+public class InboundSmsProcessingJob implements Job {
+  private final IncomingSmsService incomingSmsService;
 
-  private final MessageQueue messageQueue;
+  private final List<IncomingSmsListener> listeners;
 
   @Qualifier("smsMessageSender")
   private final MessageSender smsSender;
 
-  private final IncomingSmsService incomingSmsService;
-
-  public void spawnSmsConsumer() {
-    IncomingSms message = messageQueue.get();
-
-    while (message != null) {
-      log.info("Received SMS: " + message.getText());
-
-      try {
-        for (IncomingSmsListener listener : listeners) {
-          if (listener.accept(message)) {
-            listener.receive(message);
-            messageQueue.remove(message);
-            return;
-          }
-        }
-
-        log.warn("No SMS command found in received data");
-
-        message.setStatus(SmsMessageStatus.UNHANDLED);
-
-        smsSender.sendMessage(null, "No command found", message.getOriginator());
-      } catch (Exception e) {
-        e.printStackTrace();
-
-        message.setStatus(SmsMessageStatus.FAILED);
-        message.setParsed(false);
-      } finally {
-        messageQueue.remove(message);
-
-        incomingSmsService.update(message);
-
-        message = messageQueue.get();
-      }
-    }
+  @Override
+  public JobType getJobType() {
+    return JobType.SMS_INBOUND_PROCESSING;
   }
 
-  @Autowired
-  public void setListeners(List<IncomingSmsListener> listeners) {
-    this.listeners = listeners;
+  @Override
+  public void execute(JobConfiguration config, JobProgress progress) {
+    SmsInboundProcessingJobParameters params =
+        (SmsInboundProcessingJobParameters) config.getJobParameters();
+    progress.startingProcess("Process incoming SMS with UID {}", params.getSms());
 
-    log.info("Following listeners are registered: " + listeners);
+    IncomingSms sms = incomingSmsService.get(params.getSms());
+    if (sms == null) {
+      progress.failedProcess("No incoming SMS found for UID {}", params.getSms());
+      return;
+    }
+
+    try {
+      for (IncomingSmsListener listener : listeners) {
+        if (listener.accept(sms)) {
+          listener.receive(sms);
+          progress.completedProcess("Processed SMS with UID {}", params.getSms());
+          return;
+        }
+      }
+
+      sms.setStatus(SmsMessageStatus.UNHANDLED);
+      incomingSmsService.update(sms);
+      smsSender.sendMessage(null, "No command found", sms.getOriginator());
+
+      progress.failedProcess("No command found for SMS with UID {}", params.getSms());
+    } catch (Exception e) {
+      sms.setStatus(SmsMessageStatus.FAILED);
+      sms.setParsed(false);
+      incomingSmsService.update(sms);
+
+      progress.failedProcess(e);
+    }
   }
 }
