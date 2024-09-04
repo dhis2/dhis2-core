@@ -31,7 +31,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
-import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
@@ -56,11 +56,17 @@ public interface IdentifiableObject
 
   User getLastUpdatedBy();
 
-  Set<AttributeValue> getAttributeValues();
+  AttributeValues getAttributeValues();
 
-  void setAttributeValues(Set<AttributeValue> attributeValues);
+  void setAttributeValues(AttributeValues attributeValues);
+
+  void addAttributeValue(String attributeUid, String value);
+
+  void removeAttributeValue(String attributeId);
 
   Set<Translation> getTranslations();
+
+  void setAccess(Access access);
 
   Set<String> getFavorites();
 

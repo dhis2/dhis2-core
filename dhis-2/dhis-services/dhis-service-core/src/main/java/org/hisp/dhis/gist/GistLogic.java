@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.gist;
 
-import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Filter;
@@ -100,7 +100,7 @@ final class GistLogic {
   }
 
   static boolean isAttributeValuesProperty(Property p) {
-    return "attributeValues".equals(p.key()) && p.getItemKlass() == AttributeValue.class;
+    return "attributeValues".equals(p.key()) && p.getKlass() == AttributeValues.class;
   }
 
   static boolean isAttributeFlagProperty(Property p) {

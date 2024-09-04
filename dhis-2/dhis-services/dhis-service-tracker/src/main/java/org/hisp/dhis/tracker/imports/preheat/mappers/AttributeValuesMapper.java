@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.attribute.AttributeValues;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class AttributeValueSchemaDescriptor implements SchemaDescriptor {
-  public static final String SINGULAR = "attributeValue";
-
-  public static final String PLURAL = "attributeValues";
+public class AttributeValuesMapper implements PreheatMapper<AttributeValues> {
 
   @Override
-  public Schema getSchema() {
-    return new Schema(AttributeValue.class, SINGULAR, PLURAL);
+  public AttributeValues map(AttributeValues obj) {
+    return obj;
   }
 }

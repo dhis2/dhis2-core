@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.attributeValue;
 import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.attributeValues;
 import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.setIdSchemeFields;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,8 +34,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -73,8 +72,7 @@ class ProgramMapperTest extends TestBase {
     assertEquals("WTTYiPQDqh1", mapped.getUid());
     assertEquals("friendship", mapped.getName());
     assertEquals("red", mapped.getCode());
-    assertContainsOnly(
-        Set.of(attributeValue("m0GpPuMUfFW", "yellow")), mapped.getAttributeValues());
+    assertEquals(AttributeValues.of(Map.of("m0GpPuMUfFW", "yellow")), mapped.getAttributeValues());
 
     Optional<ProgramTrackedEntityAttribute> actual =
         mapped.getProgramAttributes().stream().findFirst();
@@ -83,8 +81,9 @@ class ProgramMapperTest extends TestBase {
     assertEquals("khBzbxTLo8k", value.getAttribute().getUid());
     assertEquals("clouds", value.getAttribute().getName());
     assertEquals("orange", value.getAttribute().getCode());
-    assertContainsOnly(
-        Set.of(attributeValue("m0GpPuMUfFW", "purple")), value.getAttribute().getAttributeValues());
+    assertEquals(
+        AttributeValues.of(Map.of("m0GpPuMUfFW", "purple")),
+        value.getAttribute().getAttributeValues());
   }
 
   @Test

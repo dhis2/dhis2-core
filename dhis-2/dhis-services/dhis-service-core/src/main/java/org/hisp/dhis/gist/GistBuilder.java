@@ -31,7 +31,6 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.gist.GistLogic.getBaseType;
 import static org.hisp.dhis.gist.GistLogic.isAccessProperty;
 import static org.hisp.dhis.gist.GistLogic.isAttributeFlagProperty;
@@ -67,7 +66,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.Attribute.ObjectType;
-import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.gist.GistQuery.Comparison;
@@ -288,25 +287,13 @@ final class GistBuilder {
   }
 
   private Object attributeValue(String attributeUid, Object attributeValues, Attribute attribute) {
-    @SuppressWarnings("unchecked")
-    Set<AttributeValue> values = (Set<AttributeValue>) attributeValues;
-    for (AttributeValue v : values) {
-      if (attributeUid.equals(v.getAttribute().getUid())) {
-        return attribute != null
-            ? support.getTypedAttributeValue(attribute, v.getValue())
-            : v.getValue();
-      }
-    }
-    return null;
+    AttributeValues values = (AttributeValues) attributeValues;
+    String value = values.get(attributeUid);
+    return attribute != null ? support.getTypedAttributeValue(attribute, value) : value;
   }
 
   private Map<String, String> attributeValues(Object attributeValues) {
-    @SuppressWarnings("unchecked")
-    Set<AttributeValue> values = (Set<AttributeValue>) attributeValues;
-    return values == null || values.isEmpty()
-        ? Map.of()
-        : values.stream()
-            .collect(toMap(value -> value.getAttribute().getUid(), AttributeValue::getValue));
+    return attributeValues instanceof AttributeValues attrs ? attrs.toMap() : Map.of();
   }
 
   @SuppressWarnings("unchecked")

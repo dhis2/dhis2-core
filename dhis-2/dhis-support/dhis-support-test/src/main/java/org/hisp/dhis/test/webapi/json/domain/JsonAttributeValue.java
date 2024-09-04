@@ -30,7 +30,7 @@ package org.hisp.dhis.test.webapi.json.domain;
 import org.hisp.dhis.jsontree.JsonObject;
 
 /**
- * Web API equivalent of a {@link org.hisp.dhis.attribute.AttributeValue}.
+ * Web API equivalent of a value in a {@link org.hisp.dhis.attribute.AttributeValues} set.
  *
  * @author Jan Bernitt
  */

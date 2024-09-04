@@ -35,8 +35,6 @@ import java.util.Optional;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
@@ -172,17 +170,6 @@ public interface IdentifiableObjectManager {
   <T extends IdentifiableObject> T getByName(@Nonnull Class<T> type, @Nonnull String name);
 
   @CheckForNull
-  <T extends IdentifiableObject> T getByUniqueAttributeValue(
-      @Nonnull Class<T> type, @Nonnull Attribute attribute, @Nonnull String value);
-
-  @CheckForNull
-  <T extends IdentifiableObject> T getByUniqueAttributeValue(
-      @Nonnull Class<T> type,
-      @Nonnull Attribute attribute,
-      @Nonnull String value,
-      @CheckForNull String username);
-
-  @CheckForNull
   <T extends IdentifiableObject> T search(@Nonnull Class<T> type, @Nonnull String query);
 
   @Nonnull
@@ -202,14 +189,10 @@ public interface IdentifiableObjectManager {
 
   @Nonnull
   <T extends IdentifiableObject> List<T> getAllByAttributes(
-      @Nonnull Class<T> type, @Nonnull List<Attribute> attributes);
-
-  @Nonnull
-  <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes(
-      @Nonnull Class<T> type, @Nonnull List<Attribute> attributes);
+      @Nonnull Class<T> type, @Nonnull Collection<UID> attributes);
 
   <T extends IdentifiableObject> long countAllValuesByAttributes(
-      @Nonnull Class<T> type, @Nonnull List<Attribute> attributes);
+      @Nonnull Class<T> type, @Nonnull Collection<UID> attributes);
 
   @Nonnull
   <T extends IdentifiableObject> List<T> getByUid(
@@ -245,9 +228,6 @@ public interface IdentifiableObjectManager {
       @Nonnull Class<T> type, @Nonnull List<String> uids);
 
   @Nonnull
-  <T extends IdentifiableObject> List<T> getLikeName(@Nonnull Class<T> type, @Nonnull String name);
-
-  @Nonnull
   <T extends IdentifiableObject> List<T> getLikeName(
       @Nonnull Class<T> type, @Nonnull String name, boolean caseSensitive);
 
@@ -263,18 +243,6 @@ public interface IdentifiableObjectManager {
 
   @Nonnull
   <T extends IdentifiableObject> Map<String, T> getIdMap(
-      @Nonnull Class<T> type, @Nonnull IdentifiableProperty property);
-
-  @Nonnull
-  <T extends IdentifiableObject> Map<String, T> getIdMap(
-      @Nonnull Class<T> type, @Nonnull IdScheme idScheme);
-
-  @Nonnull
-  <T extends IdentifiableObject> Map<String, T> getIdMapNoAcl(
-      @Nonnull Class<T> type, @Nonnull IdentifiableProperty property);
-
-  @Nonnull
-  <T extends IdentifiableObject> Map<String, T> getIdMapNoAcl(
       @Nonnull Class<T> type, @Nonnull IdScheme idScheme);
 
   @Nonnull
@@ -328,24 +296,12 @@ public interface IdentifiableObjectManager {
 
   void clear();
 
-  void evict(@Nonnull Object object);
-
-  @Nonnull
-  <T extends IdentifiableObject> List<T> getByAttributeAndValue(
-      @Nonnull Class<T> type, @Nonnull Attribute attribute, @Nonnull String value);
-
-  <T extends IdentifiableObject> boolean isAttributeValueUnique(
-      @Nonnull Class<T> type, @Nonnull T object, @Nonnull AttributeValue attributeValue);
-
-  <T extends IdentifiableObject> boolean isAttributeValueUnique(
-      @Nonnull Class<T> type,
-      @Nonnull T object,
-      @Nonnull Attribute attribute,
-      @Nonnull String value);
+  <T extends IdentifiableObject> boolean isAttributeValueUniqueTo(
+      @Nonnull Class<T> type, @Nonnull UID object, @Nonnull UID attributeId, String value);
 
   @Nonnull
   <T extends IdentifiableObject> List<T> getAllByAttributeAndValues(
-      @Nonnull Class<T> type, @Nonnull Attribute attribute, @Nonnull List<String> values);
+      @Nonnull Class<T> type, @Nonnull UID attribute, @Nonnull List<String> values);
 
   @Nonnull
   Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults();

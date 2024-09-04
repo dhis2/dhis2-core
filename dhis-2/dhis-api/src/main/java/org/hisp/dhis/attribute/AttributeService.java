@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.attribute;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.common.IdentifiableObject;
 
@@ -36,9 +36,6 @@ import org.hisp.dhis.common.IdentifiableObject;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface AttributeService {
-  // -------------------------------------------------------------------------
-  // Attribute
-  // -------------------------------------------------------------------------
 
   /**
    * Adds an attribute.
@@ -57,17 +54,9 @@ public interface AttributeService {
   /**
    * Invalidate cached attribute
    *
-   * @param attributeUid
+   * @param attributeId
    */
-  void invalidateCachedAttribute(String attributeUid);
-
-  /**
-   * Gets the attribute with the given id.
-   *
-   * @param id the attribute id.
-   * @return the attribute with the given id.
-   */
-  Attribute getAttribute(long id);
+  void invalidateCachedAttribute(String attributeId);
 
   /**
    * Gets the attribute with the given uid.
@@ -86,48 +75,19 @@ public interface AttributeService {
   Attribute getAttributeByName(String name);
 
   /**
-   * Gets the attribute with the given code.
-   *
-   * @param code the code.
-   * @return the attribute with the given code.
-   */
-  Attribute getAttributeByCode(String code);
-
-  /**
    * Gets all attributes.
    *
-   * @return a set of all attributes.
+   * @return a list of all attributes in no particular order
    */
   List<Attribute> getAllAttributes();
+
+  List<Attribute> getAttributesByIds(Collection<String> ids);
 
   // -------------------------------------------------------------------------
   // AttributeValue
   // -------------------------------------------------------------------------
 
-  /**
-   * Adds an attribute value.
-   *
-   * @param attributeValue the attribute value.
-   */
-  <T extends IdentifiableObject> void addAttributeValue(T object, AttributeValue attributeValue)
+  /** Adds an attribute value. */
+  <T extends IdentifiableObject> void addAttributeValue(T object, String attributeId, String value)
       throws NonUniqueAttributeValueException;
-
-  /**
-   * Deletes an attribute value.
-   *
-   * @param object the object which the attributeValue belongs to.
-   * @param attributeValue the attribute value.
-   */
-  <T extends IdentifiableObject> void deleteAttributeValue(T object, AttributeValue attributeValue);
-
-  /**
-   * Deletes a Set of attribute values.
-   *
-   * @param object the object which the attributeValue belongs to.
-   * @param attributeValues the Set of attribute values.
-   */
-  <T extends IdentifiableObject> void deleteAttributeValues(
-      T object, Set<AttributeValue> attributeValues);
-
-  <T extends IdentifiableObject> void generateAttributes(List<T> entityList);
 }

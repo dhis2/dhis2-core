@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,29 +27,23 @@
  */
 package org.hisp.dhis.attribute;
 
-import java.util.List;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.common.IdentifiableObject;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import java.io.IOException;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Jan Bernitt
  */
-public interface AttributeValueStore extends GenericStore<AttributeValue> {
-  @Nonnull
-  List<AttributeValue> getAllByAttributes(@Nonnull List<Attribute> attributes);
-
-  List<AttributeValue> getAllByAttribute(Attribute attribute);
-
-  List<AttributeValue> getAllByAttributeAndValue(Attribute attribute, String value);
-
-  /**
-   * Is attribute value unique, the value must either not exist, or just exist in given object.
-   *
-   * @param object Object
-   * @param attributeValue AV to check for
-   * @return true/false depending on uniqueness of AV
-   */
-  <T extends IdentifiableObject> boolean isAttributeValueUnique(
-      T object, AttributeValue attributeValue);
+public class AttributeValuesSerializer extends JsonSerializer<AttributeValues> {
+  @Override
+  public void serialize(
+      AttributeValues values, JsonGenerator generator, SerializerProvider serializerProvider)
+      throws IOException {
+    if (values == null) {
+      generator.writeNull();
+    } else {
+      generator.writeRawValue(values.toArrayJson());
+    }
+  }
 }
