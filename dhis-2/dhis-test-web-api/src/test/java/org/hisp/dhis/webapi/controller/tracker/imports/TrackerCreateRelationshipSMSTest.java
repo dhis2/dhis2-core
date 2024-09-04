@@ -80,7 +80,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Tests tracker SMS to create an event implemented via {@link
+ * Tests tracker SMS to create a relationship implemented via {@link
  * org.hisp.dhis.tracker.imports.sms.RelationshipSMSListener}.
  */
 class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTestBase {
