@@ -69,6 +69,7 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
@@ -78,6 +79,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
@@ -877,12 +879,17 @@ final class GistBuilder {
     String fieldTemplate = "%s";
     if (filter.isAttribute()) {
       fieldTemplate = "jsonb_extract_path_text(%s, '" + filter.getPropertyPath() + "', 'value')";
-    } else if (isStringLengthFilter(filter, context.resolveMandatory(filter.getPropertyPath()))) {
-      fieldTemplate = "length(%s)";
-    } else if (isCollectionSizeFilter(filter, context.resolveMandatory(filter.getPropertyPath()))) {
-      fieldTemplate = "size(%s)";
-    } else if (operator.isCaseInsensitive()) {
-      fieldTemplate = "lower(%s)";
+    } else {
+      Property property = context.resolveMandatory(filter.getPropertyPath());
+      if (property.getPropertyType() == PropertyType.PASSWORD)
+        throw new IllegalQueryException("Filter not allowed: " + filter);
+      if (isStringLengthFilter(filter, property)) {
+        fieldTemplate = "length(%s)";
+      } else if (isCollectionSizeFilter(filter, property)) {
+        fieldTemplate = "size(%s)";
+      } else if (operator.isCaseInsensitive()) {
+        fieldTemplate = "lower(%s)";
+      }
     }
     str.append(String.format(fieldTemplate, field));
     str.append(" ").append(createOperatorLeftSideHQL(operator));
