@@ -102,8 +102,7 @@ public class OperationsParamsValidator {
         throw new BadRequestException("User needs to be assigned data capture org units");
       }
 
-    } else if (!getCurrentUserDetails().isSuper()
-        && getCurrentUserDetails().getUserEffectiveSearchOrgUnitIds().isEmpty()) {
+    } else if (getCurrentUserDetails().getUserEffectiveSearchOrgUnitIds().isEmpty()) {
       throw new BadRequestException(
           "User needs to be assigned either search or data capture org units");
     }
