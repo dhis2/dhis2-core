@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.program.notification;
 
-import java.util.Date;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Zubair Asghar
@@ -43,37 +41,21 @@ import org.hisp.dhis.program.Event;
 @Setter
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
-public class ProgramNotificationInstanceParam extends NotificationPagingParam {
+public class ProgramNotificationTemplateOperationParams extends NotificationPagingParam {
   @Builder
-  public ProgramNotificationInstanceParam(
+  public ProgramNotificationTemplateOperationParams(
       Integer page,
       Integer pageSize,
       boolean skipPaging,
-      Enrollment enrollment,
-      Event event,
-      Date scheduledAt,
+      UID program,
+      UID programStage,
       boolean paged) {
     super(page, pageSize, skipPaging, paged);
-    this.enrollment = enrollment;
-    this.event = event;
-    this.scheduledAt = scheduledAt;
+    this.program = program;
+    this.programStage = programStage;
   }
 
-  private Enrollment enrollment;
+  private UID program;
 
-  private Event event;
-
-  private Date scheduledAt;
-
-  public boolean hasEnrollment() {
-    return enrollment != null;
-  }
-
-  public boolean hasEvent() {
-    return event != null;
-  }
-
-  public boolean hasScheduledAt() {
-    return scheduledAt != null;
-  }
+  private UID programStage;
 }
