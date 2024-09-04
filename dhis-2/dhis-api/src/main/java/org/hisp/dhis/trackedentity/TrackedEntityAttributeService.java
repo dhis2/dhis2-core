@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
@@ -162,36 +161,6 @@ public interface TrackedEntityAttributeService {
    */
   List<TrackedEntityAttribute> getTrackedEntityAttributesByDisplayOnVisitSchedule(
       boolean displayOnVisitSchedule);
-
-  /**
-   * Get attributes which are displayed in visit schedule
-   *
-   * @return a list of attributes
-   */
-  List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInListNoProgram();
-
-  /**
-   * Get all attributes that user is allowed to read (through program and tracked entity type)
-   *
-   * @return a list of attributes
-   */
-  Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes();
-
-  /**
-   * Validate uniqueness of the tracked entity attribute value within its scope. Will return
-   * non-empty error message if attribute is non-unique.
-   *
-   * @param trackedEntityAttribute TrackedEntityAttribute
-   * @param value Value
-   * @param trackedEntity TrackedEntity - required if updating TE
-   * @param organisationUnit OrganisationUnit - only required if org unit scoped
-   * @return null if valid, a message if not
-   */
-  String validateAttributeUniquenessWithinScope(
-      TrackedEntityAttribute trackedEntityAttribute,
-      String value,
-      TrackedEntity trackedEntity,
-      OrganisationUnit organisationUnit);
 
   /**
    * Validate value against tracked entity attribute value type.
