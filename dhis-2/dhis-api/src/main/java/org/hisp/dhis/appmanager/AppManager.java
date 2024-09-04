@@ -48,6 +48,7 @@ public interface AppManager {
       Set.of(
           // Javascript apps
           "aggregate-data-entry",
+          "approval",
           "app-management",
           "cache-cleaner",
           "capture",

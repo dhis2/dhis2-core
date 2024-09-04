@@ -36,12 +36,15 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -87,17 +90,16 @@ public class TrackerOwnershipController {
       @RequestParam(required = false) UID trackedEntity,
       @RequestParam String program,
       @RequestParam String ou)
-      throws BadRequestException {
+      throws BadRequestException, ForbiddenException, NotFoundException {
     UID trackedEntityUid =
         validateMandatoryDeprecatedUidParameter(
             "trackedEntityInstance", trackedEntityInstance, "trackedEntity", trackedEntity);
 
     trackerOwnershipAccessManager.transferOwnership(
-        trackedEntityService.getTrackedEntity(trackedEntityUid.getValue()),
+        trackedEntityService.getTrackedEntity(
+            trackedEntityUid.getValue(), null, TrackedEntityParams.FALSE, false),
         programService.getProgram(program),
-        organisationUnitService.getOrganisationUnit(ou),
-        false,
-        false);
+        organisationUnitService.getOrganisationUnit(ou));
     return ok("Ownership transferred");
   }
 
@@ -108,14 +110,15 @@ public class TrackerOwnershipController {
       @RequestParam(required = false) UID trackedEntity,
       @RequestParam String reason,
       @RequestParam String program)
-      throws BadRequestException {
+      throws BadRequestException, ForbiddenException, NotFoundException {
     UID trackedEntityUid =
         validateMandatoryDeprecatedUidParameter(
             "trackedEntityInstance", trackedEntityInstance, "trackedEntity", trackedEntity);
 
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     trackerOwnershipAccessManager.grantTemporaryOwnership(
-        trackedEntityService.getTrackedEntity(trackedEntityUid.getValue()),
+        trackedEntityService.getTrackedEntity(
+            trackedEntityUid.getValue(), null, TrackedEntityParams.FALSE, false),
         programService.getProgram(program),
         currentUser,
         reason);

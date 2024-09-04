@@ -181,7 +181,7 @@ public class CommonParamsSecurityManager {
     // ---------------------------------------------------------------------
     // Check if current user has data view organisation units
     // ---------------------------------------------------------------------
-    if (currentUser == null || !currentUser.hasDataViewOrganisationUnit()) {
+    if (!currentUser.hasDataViewOrganisationUnit()) {
       return;
     }
 
@@ -199,9 +199,7 @@ public class CommonParamsSecurityManager {
     // Apply constraint as filter, and remove potential all-dimension
     // -----------------------------------------------------------------
     List<DimensionIdentifier<DimensionParam>> orgUnitDimensions =
-        commonParams.getDimensionIdentifiers().stream()
-            .filter(OrgUnitQueryBuilder::isOu)
-            .collect(toList());
+        commonParams.getDimensionIdentifiers().stream().filter(OrgUnitQueryBuilder::isOu).toList();
 
     Set<OrganisationUnit> userDataViewOrganisationUnits =
         currentUser.getDataViewOrganisationUnits();
@@ -235,9 +233,6 @@ public class CommonParamsSecurityManager {
     // ---------------------------------------------------------------------
     // Check if current user has dimension constraints
     // ---------------------------------------------------------------------
-    if (currentUser == null) {
-      return;
-    }
 
     List<DimensionalObject> dimensionalObjects =
         commonParams.getDimensionIdentifiers().stream()

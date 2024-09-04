@@ -74,9 +74,9 @@ import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -89,7 +89,7 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
 
   protected final EventService eventService;
 
-  protected final TrackedEntityDataValueChangeLogService dataValueAuditService;
+  protected final EventChangeLogService eventChangeLogService;
 
   protected final FileResourceService fileResourceService;
 
@@ -107,7 +107,7 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
       DataElementService dataElementService,
       IdentifiableObjectManager identifiableObjectManager,
       EventService eventService,
-      TrackedEntityDataValueChangeLogService dataValueAuditService,
+      EventChangeLogService eventChangeLogService,
       FileResourceService fileResourceService,
       DhisConfigurationProvider config) {
     super(
@@ -122,7 +122,7 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
         dataElementService,
         identifiableObjectManager);
     this.eventService = eventService;
-    this.dataValueAuditService = dataValueAuditService;
+    this.eventChangeLogService = eventChangeLogService;
     this.fileResourceService = fileResourceService;
     this.config = config;
   }
@@ -260,11 +260,11 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
       CategoryOptionCombo aoc = categoryService.getDefaultCategoryOptionCombo();
       event.setAttributeOptionCombo(aoc);
     }
-    identifiableObjectManager.save(event);
+    manager.save(event);
 
     for (Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet()) {
       entry.getValue().setAutoFields();
-      createAndAddAudit(entry.getValue(), entry.getKey(), event);
+      createAndAddChangeLog(entry.getValue(), entry.getKey(), event);
       handleFileDataValueSave(entry.getValue(), entry.getKey());
     }
   }
@@ -304,12 +304,13 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
     }
   }
 
-  private void createAndAddAudit(EventDataValue dataValue, DataElement dataElement, Event event) {
+  private void createAndAddChangeLog(
+      EventDataValue dataValue, DataElement dataElement, Event event) {
     if (!config.isEnabled(CHANGELOG_TRACKER) || dataElement == null) {
       return;
     }
 
-    TrackedEntityDataValueChangeLog dataValueAudit =
+    TrackedEntityDataValueChangeLog dataValueChangeLog =
         new TrackedEntityDataValueChangeLog(
             dataElement,
             event,
@@ -318,7 +319,7 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
             dataValue.getProvidedElsewhere(),
             ChangeLogType.CREATE);
 
-    dataValueAuditService.addTrackedEntityDataValueChangeLog(dataValueAudit);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(dataValueChangeLog);
   }
 
   /** Update FileResource with 'assigned' status. */

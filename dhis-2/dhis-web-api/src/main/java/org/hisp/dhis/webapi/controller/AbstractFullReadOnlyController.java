@@ -116,7 +116,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @Maturity.Stable
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@OpenApi.Document(group = OpenApi.Document.Group.QUERY)
+@OpenApi.Document(group = OpenApi.Document.GROUP_QUERY)
 public abstract class AbstractFullReadOnlyController<T extends IdentifiableObject>
     extends AbstractGistReadOnlyController<T> {
   protected static final String DEFAULTS = "INCLUDE";
@@ -557,7 +557,9 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
     query.setObjects(objects);
 
-    if (options.getOptions().containsKey("query")) {
+    // Note: objects being null means no query had been running whereas empty means a query did run
+    // with no result
+    if (objects == null && options.getOptions().containsKey("query")) {
       return getEntityListPostProcess(
           options,
           Lists.newArrayList(manager.filter(getEntityClass(), options.getOptions().get("query"))));

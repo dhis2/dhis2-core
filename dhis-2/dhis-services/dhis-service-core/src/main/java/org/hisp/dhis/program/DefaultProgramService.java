@@ -129,8 +129,7 @@ public class DefaultProgramService implements ProgramService {
   @Transactional(readOnly = true)
   public List<Program> getCurrentUserPrograms() {
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-
-    if (currentUserDetails == null || currentUserDetails.isSuper()) {
+    if (currentUserDetails.isSuper()) {
       return getAllPrograms();
     }
 
@@ -163,7 +162,7 @@ public class DefaultProgramService implements ProgramService {
 
   @Override
   public boolean hasOrgUnit(Program program, OrganisationUnit organisationUnit) {
-    return this.programStore.hasOrgUnit(program, organisationUnit);
+    return programStore.hasOrgUnit(program, organisationUnit);
   }
 
   @Override

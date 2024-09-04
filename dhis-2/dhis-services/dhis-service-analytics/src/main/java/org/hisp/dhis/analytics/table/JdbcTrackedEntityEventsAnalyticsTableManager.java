@@ -169,7 +169,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
               .selectExpression("ev.status")
               .build(),
           AnalyticsTableColumn.builder()
-              .name("evgeometry")
+              .name("eventgeometry")
               .dataType(GEOMETRY)
               .selectExpression("ev.geometry")
               .indexType(IndexType.GIST)

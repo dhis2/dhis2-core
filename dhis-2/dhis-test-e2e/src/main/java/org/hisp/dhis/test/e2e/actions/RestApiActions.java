@@ -308,6 +308,11 @@ public class RestApiActions {
     return this.postFile(file, queryParamsBuilder, null);
   }
 
+  public ApiResponse postFileWithContentType(
+      File file, QueryParamsBuilder queryParamsBuilder, String contentType) {
+    return this.postFile(file, queryParamsBuilder, contentType);
+  }
+
   public ApiResponse postFile(
       File file, QueryParamsBuilder queryParamsBuilder, String contentType) {
     String url = queryParamsBuilder == null ? "" : queryParamsBuilder.build();

@@ -284,7 +284,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
     return expressionHandler;
   }
 
-  @Bean
+  @Bean(name = {"messageSender", "emailMessageSender", "smsMessageSender"})
   @Primary
   public MessageSender fakeMessageSender() {
     return new FakeMessageSender();

@@ -31,7 +31,7 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.text.StringSubstitutor.replace;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isDataElement;
 import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.TRACKED_ENTITY_ALIAS;
-import static org.hisp.dhis.common.collection.CollectionUtils.merge;
+import static org.hisp.dhis.common.collection.CollectionUtils.mergeMaps;
 
 import java.util.Map;
 import lombok.NoArgsConstructor;
@@ -55,7 +55,7 @@ class SqlQueryHelper {
            from (select *,
                  row_number() over ( partition by trackedentity
                                      order by enrollmentdate ${programOffsetDirection} ) as rn
-                 from analytics_te_enrollments_${trackedEntityTypeUid}
+                 from analytics_te_enrollment_${trackedEntityTypeUid}
                  where program = '${programUid}'
                    and t_1.trackedentity = trackedentity) en
            where en.rn = ${programOffset})""";
@@ -66,7 +66,7 @@ class SqlQueryHelper {
            from (select *,
                  row_number() over ( partition by enrollment
                                      order by occurreddate ${programStageOffsetDirection} ) as rn
-                 from analytics_te_events_${trackedEntityTypeUid} events
+                 from analytics_te_event_${trackedEntityTypeUid} events
                  where programstage = '${programStageUid}'
                    and enrollment = %s
                    and status != 'SCHEDULE') ev
@@ -76,7 +76,7 @@ class SqlQueryHelper {
   private static final String DATA_VALUES_ORDER_BY_SUBQUERY =
       """
           (select ${dataElementField}
-           from analytics_te_events_${trackedEntityTypeUid}
+           from analytics_te_event_${trackedEntityTypeUid}
            where event = %s)"""
           .formatted(EVENT_ORDER_BY_SUBQUERY);
 
@@ -85,7 +85,7 @@ class SqlQueryHelper {
           exists(select 1
                  from (select *
                        from (select *, row_number() over (partition by trackedentity order by enrollmentdate ${programOffsetDirection}) as rn
-                             from analytics_te_enrollments_${trackedEntityTypeUid}
+                             from analytics_te_enrollment_${trackedEntityTypeUid}
                              where program = '${programUid}'
                                and trackedentity = t_1.trackedentity) en
                        where en.rn = 1) as "${enrollmentSubqueryAlias}"
@@ -100,7 +100,7 @@ class SqlQueryHelper {
                   exists(select 1
                          from (select *
                                from (select *, row_number() over ( partition by enrollment order by occurreddate ${programStageOffsetDirection} ) as rn
-                                     from analytics_te_events_${trackedEntityTypeUid}
+                                     from analytics_te_event_${trackedEntityTypeUid}
                                      where "${enrollmentSubqueryAlias}".enrollment = enrollment
                                        and programstage = '${programStageUid}'
                                        and status != 'SCHEDULE') ev
@@ -114,7 +114,7 @@ class SqlQueryHelper {
               "eventCondition",
               """
                   exists(select 1
-                         from analytics_te_events_${trackedEntityTypeUid}
+                         from analytics_te_event_${trackedEntityTypeUid}
                          where "${eventSubqueryAlias}".event = event
                            and ${eventDataValueCondition})"""));
 
@@ -131,7 +131,7 @@ class SqlQueryHelper {
       return () ->
           replace(
               DATA_VALUES_ORDER_BY_SUBQUERY,
-              merge(
+              mergeMaps(
                   getEnrollmentPlaceholders(dimId),
                   getEventPlaceholders(dimId),
                   Map.of(
@@ -139,11 +139,11 @@ class SqlQueryHelper {
                       "selectedEventField", "event",
                       "dataElementField", field.render())));
     }
-    if (dimId.isEventDimension() && !isDataElement(dimId)) {
+    if (dimId.isEventDimension()) {
       return () ->
           replace(
               EVENT_ORDER_BY_SUBQUERY,
-              merge(
+              mergeMaps(
                   getEnrollmentPlaceholders(dimId),
                   getEventPlaceholders(dimId),
                   Map.of(
@@ -156,7 +156,7 @@ class SqlQueryHelper {
       return () ->
           replace(
               ENROLLMENT_ORDER_BY_SUBQUERY,
-              merge(
+              mergeMaps(
                   getEnrollmentPlaceholders(dimId),
                   Map.of("selectedEnrollmentField", field.render())));
     }
@@ -179,7 +179,7 @@ class SqlQueryHelper {
       return () ->
           replace(
               DATA_VALUES_EXISTS_SUBQUERY,
-              merge(
+              mergeMaps(
                   getEnrollmentPlaceholders(dimId),
                   getEventPlaceholders(dimId),
                   Map.of(
@@ -191,7 +191,7 @@ class SqlQueryHelper {
       return () ->
           replace(
               EVENT_EXISTS_SUBQUERY,
-              merge(
+              mergeMaps(
                   getEnrollmentPlaceholders(dimId),
                   getEventPlaceholders(dimId),
                   Map.of(
@@ -203,7 +203,7 @@ class SqlQueryHelper {
       return () ->
           replace(
               ENROLLMENT_EXISTS_SUBQUERY,
-              merge(
+              mergeMaps(
                   getEnrollmentPlaceholders(dimId),
                   Map.of(
                       "enrollmentSubqueryAlias", dimId.getPrefix(),

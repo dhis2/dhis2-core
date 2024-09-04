@@ -64,9 +64,9 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  * @author Luciano Fiandesio
  */
 abstract class EventAnalyticsTest {
-  private static final String COL_NAME_ENROLLMENT_GEOMETRY = "engeometry";
+  private static final String COL_NAME_ENROLLMENT_GEOMETRY = "enrollmentgeometry";
 
-  private static final String COL_NAME_EVENT_GEOMETRY = "evgeometry";
+  private static final String COL_NAME_EVENT_GEOMETRY = "eventgeometry";
 
   private static final String COL_NAME_TRACKED_ENTITY_GEOMETRY = "tegeometry";
 

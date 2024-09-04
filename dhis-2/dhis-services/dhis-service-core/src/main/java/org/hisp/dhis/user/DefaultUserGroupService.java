@@ -128,10 +128,10 @@ public class DefaultUserGroupService implements UserGroupService {
 
   @Override
   @Transactional(readOnly = true)
-  public boolean canAddOrRemoveMember(String uid, UserDetails userDetails) {
+  public boolean canAddOrRemoveMember(String uid, @Nonnull UserDetails userDetails) {
     UserGroup userGroup = getUserGroup(uid);
 
-    if (userGroup == null || userDetails == null) {
+    if (userGroup == null) {
       return false;
     }
 

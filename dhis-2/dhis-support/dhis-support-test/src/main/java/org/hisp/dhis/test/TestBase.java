@@ -89,7 +89,6 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
-import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.design.Column;
@@ -185,6 +184,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
 import org.hisp.dhis.test.utils.Dxf2NamespaceResolver;
+import org.hisp.dhis.test.utils.RelationshipUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -1839,13 +1839,16 @@ public abstract class TestBase {
       ProgramMessageRecipients recipients,
       ProgramMessageStatus status,
       Set<DeliveryChannel> channels) {
-    return ProgramMessage.builder()
-        .text(text)
-        .subject(subject)
-        .recipients(recipients)
-        .messageStatus(status)
-        .deliveryChannels(channels)
-        .build();
+
+    ProgramMessage pm = new ProgramMessage();
+    pm.setAutoFields();
+    pm.setText(text);
+    pm.setSubject(subject);
+    pm.setRecipients(recipients);
+    pm.setMessageStatus(status);
+    pm.setDeliveryChannels(channels);
+
+    return pm;
   }
 
   public static ProgramIndicator createProgramIndicator(
@@ -2907,6 +2910,12 @@ public abstract class TestBase {
     return user;
   }
 
+  /**
+   * Used by setupAdminUser() in SpringIntegrationTestExtension.class, to set up the base admin user
+   * for all tests.
+   *
+   * @return the admin user
+   */
   protected User preCreateInjectAdminUser() {
     UserRole role = createUserRole("Superuser", "ALL");
     role.setUid("yrB6vc5Ip3r");

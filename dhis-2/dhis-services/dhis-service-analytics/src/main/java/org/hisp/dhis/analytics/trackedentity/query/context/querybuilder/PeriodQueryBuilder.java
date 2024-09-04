@@ -155,7 +155,7 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
         .map(Period.class::cast)
         .map(Period::getDateField)
         .map(TimeField::valueOf)
-        .map(TimeField::getField)
+        .map(TimeField::getTrackedEntityColumnName)
         .orElseGet(
             () ->
                 staticDimensionNameExtractor.apply(

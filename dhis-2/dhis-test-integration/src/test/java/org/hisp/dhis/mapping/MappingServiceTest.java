@@ -65,28 +65,23 @@ class MappingServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private RenderService _renderService;
 
-  private CategoryOption coA = createCategoryOption('A');
-
-  private Category caA = createCategory('A', coA);
-
-  private DataElement deA = createDataElement('A');
-
-  private OrganisationUnit ouA = createOrganisationUnit('A');
-
-  private OrganisationUnitGroup ougA = createOrganisationUnitGroup('A');
-
-  private OrganisationUnitGroupSet ougsA = createOrganisationUnitGroupSet('A');
-
   @BeforeAll
   void setUp() {
     renderService = _renderService;
-    deA.setCategoryCombo(categoryService.getDefaultCategoryCombo());
-    ougsA.addOrganisationUnitGroup(ougA);
-    idObjectManager.save(Lists.newArrayList(coA, caA, deA, ouA, ougA, ougsA));
   }
 
   @Test
   void testAddGet() {
+    CategoryOption coA = createCategoryOption('A');
+    Category caA = createCategory('A', coA);
+    DataElement deA = createDataElement('A');
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnitGroup ougA = createOrganisationUnitGroup('A');
+    OrganisationUnitGroupSet ougsA = createOrganisationUnitGroupSet('A');
+    deA.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    ougsA.addOrganisationUnitGroup(ougA);
+    idObjectManager.save(Lists.newArrayList(coA, caA, deA, ouA, ougA, ougsA));
+
     MapView mvA = new MapView("thematic");
     CategoryDimension cadA = new CategoryDimension();
     cadA.setDimension(caA);

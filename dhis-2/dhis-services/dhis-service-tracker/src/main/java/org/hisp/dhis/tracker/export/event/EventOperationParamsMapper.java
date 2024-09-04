@@ -87,8 +87,7 @@ class EventOperationParamsMapper {
       throws BadRequestException, ForbiddenException {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    Program program =
-        paramsValidator.validateProgramAccess(operationParams.getProgramUid(), currentUser);
+    Program program = paramsValidator.validateProgramAccess(operationParams.getProgramUid());
     ProgramStage programStage =
         validateProgramStage(operationParams.getProgramStageUid(), currentUser);
     TrackedEntity trackedEntity =
@@ -96,7 +95,7 @@ class EventOperationParamsMapper {
 
     OrganisationUnit orgUnit =
         validateRequestedOrgUnit(operationParams.getOrgUnitUid(), currentUser);
-    validateOrgUnitMode(operationParams.getOrgUnitMode(), currentUser, program);
+    validateOrgUnitMode(operationParams.getOrgUnitMode(), program);
 
     CategoryOptionCombo attributeOptionCombo =
         categoryOptionComboService.getAttributeOptionCombo(
@@ -124,9 +123,7 @@ class EventOperationParamsMapper {
         .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setAssignedUserQueryParam(
             new AssignedUserQueryParam(
-                operationParams.getAssignedUserMode(),
-                currentUser,
-                operationParams.getAssignedUsers()))
+                operationParams.getAssignedUserMode(), operationParams.getAssignedUsers()))
         .setOccurredStartDate(operationParams.getOccurredAfter())
         .setOccurredEndDate(operationParams.getOccurredBefore())
         .setScheduledStartDate(operationParams.getScheduledAfter())

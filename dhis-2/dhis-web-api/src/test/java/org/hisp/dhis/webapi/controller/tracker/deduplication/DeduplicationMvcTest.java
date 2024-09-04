@@ -44,13 +44,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.deduplication.DeduplicationMergeParams;
 import org.hisp.dhis.tracker.deduplication.DeduplicationService;
 import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
@@ -59,9 +58,8 @@ import org.hisp.dhis.tracker.deduplication.MergeStrategy;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateForbiddenException;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -81,15 +79,11 @@ class DeduplicationMvcTest {
 
   @Mock private DeduplicationService deduplicationService;
 
-  @Mock private TrackedEntityService trackedEntityService;
+  @Mock private IdentifiableObjectManager manager;
+
+  @Mock private TrackedEntityAuditService trackedEntityAuditService;
 
   @Mock private TrackerAccessManager trackerAccessManager;
-
-  @Mock private UserService userService;
-
-  @Mock private FieldFilterService fieldFilterService;
-
-  @Mock private ContextService contextService;
 
   @Mock private TrackedEntity trackedEntityA;
 
@@ -125,8 +119,8 @@ class DeduplicationMvcTest {
     when(trackerAccessManager.canRead(any(), any(TrackedEntity.class)))
         .thenReturn(Collections.emptyList());
 
-    when(trackedEntityService.getTrackedEntity(original)).thenReturn(trackedEntityA);
-    when(trackedEntityService.getTrackedEntity(duplicate)).thenReturn(trackedEntityB);
+    when(manager.get(TrackedEntity.class, original)).thenReturn(trackedEntityA);
+    when(manager.get(TrackedEntity.class, duplicate)).thenReturn(trackedEntityB);
 
     PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
     mockMvc
@@ -145,7 +139,7 @@ class DeduplicationMvcTest {
     when(trackerAccessManager.canRead(any(), any(TrackedEntity.class)))
         .thenReturn(List.of("error"));
 
-    when(trackedEntityService.getTrackedEntity(original)).thenReturn(trackedEntityA);
+    when(manager.get(TrackedEntity.class, original)).thenReturn(trackedEntityA);
 
     PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
     mockMvc
@@ -264,8 +258,8 @@ class DeduplicationMvcTest {
 
   @Test
   void shouldAutoMergePotentialDuplicateWhenUserHasAccessAndMergeIsOk() throws Exception {
-    when(trackedEntityService.getTrackedEntity(original)).thenReturn(trackedEntityA);
-    when(trackedEntityService.getTrackedEntity(duplicate)).thenReturn(trackedEntityB);
+    when(manager.get(TrackedEntity.class, original)).thenReturn(trackedEntityA);
+    when(manager.get(TrackedEntity.class, duplicate)).thenReturn(trackedEntityB);
 
     String uid = "uid";
     PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
@@ -285,8 +279,8 @@ class DeduplicationMvcTest {
 
   @Test
   void shouldManualMergePotentialDuplicateWhenUserHasAccessAndMergeIsOk() throws Exception {
-    when(trackedEntityService.getTrackedEntity(original)).thenReturn(trackedEntityA);
-    when(trackedEntityService.getTrackedEntity(duplicate)).thenReturn(trackedEntityB);
+    when(manager.get(TrackedEntity.class, original)).thenReturn(trackedEntityA);
+    when(manager.get(TrackedEntity.class, duplicate)).thenReturn(trackedEntityB);
 
     String uid = "uid";
     PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
@@ -306,8 +300,8 @@ class DeduplicationMvcTest {
 
   @Test
   void shouldThrowForbiddenExceptionWhenAutoMergingIsForbidden() throws Exception {
-    when(trackedEntityService.getTrackedEntity(original)).thenReturn(trackedEntityA);
-    when(trackedEntityService.getTrackedEntity(duplicate)).thenReturn(trackedEntityB);
+    when(manager.get(TrackedEntity.class, original)).thenReturn(trackedEntityA);
+    when(manager.get(TrackedEntity.class, duplicate)).thenReturn(trackedEntityB);
 
     String uid = "uid";
     PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
@@ -333,8 +327,8 @@ class DeduplicationMvcTest {
 
   @Test
   void shouldThrowConflictExceptionWhenAutoMergeHasConflicts() throws Exception {
-    when(trackedEntityService.getTrackedEntity(original)).thenReturn(trackedEntityA);
-    when(trackedEntityService.getTrackedEntity(duplicate)).thenReturn(trackedEntityB);
+    when(manager.get(TrackedEntity.class, original)).thenReturn(trackedEntityA);
+    when(manager.get(TrackedEntity.class, duplicate)).thenReturn(trackedEntityB);
 
     String uid = "uid";
     PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);

@@ -63,9 +63,8 @@ public class HibernateProgramNotificationTemplateStore
 
   @Override
   public int countProgramNotificationTemplates(ProgramNotificationTemplateQueryParams param) {
-    SqlHelper sqlHelper = new SqlHelper();
-
     StringBuilder sql = new StringBuilder("select count(*) from programnotificationtemplate ");
+    SqlHelper sqlHelper = new SqlHelper();
 
     if (param.hasProgram()) {
       sql.append(sqlHelper.whereAnd()).append(" programid = :programId");
@@ -118,7 +117,6 @@ public class HibernateProgramNotificationTemplateStore
       query.setFirstResult((param.getPage() - 1) * param.getPageSize());
       query.setMaxResults(param.getPageSize());
     }
-
     return query.getResultList();
   }
 

@@ -27,15 +27,12 @@
  */
 package org.hisp.dhis.tracker.imports.sms;
 
+import java.util.List;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
@@ -47,9 +44,14 @@ import org.hisp.dhis.smscompression.models.DeleteSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -58,7 +60,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Component("org.hisp.dhis.tracker.sms.DeleteEventSMSListener")
 @Transactional
 public class DeleteEventSMSListener extends CompressionSMSListener {
-  private final EventService eventService;
+  private final TrackerImportService trackerImportService;
 
   public DeleteEventSMSListener(
       IncomingSmsService incomingSmsService,
@@ -71,7 +73,7 @@ public class DeleteEventSMSListener extends CompressionSMSListener {
       CategoryService categoryService,
       DataElementService dataElementService,
       IdentifiableObjectManager identifiableObjectManager,
-      EventService eventService) {
+      TrackerImportService trackerImportService) {
     super(
         incomingSmsService,
         smsSender,
@@ -83,7 +85,7 @@ public class DeleteEventSMSListener extends CompressionSMSListener {
         categoryService,
         dataElementService,
         identifiableObjectManager);
-    this.eventService = eventService;
+    this.trackerImportService = trackerImportService;
   }
 
   @Override
@@ -91,16 +93,25 @@ public class DeleteEventSMSListener extends CompressionSMSListener {
       throws SMSProcessingException {
     DeleteSmsSubmission subm = (DeleteSmsSubmission) submission;
 
-    Event event;
-    try {
-      event = eventService.getEvent(UID.of(subm.getEvent().getUid()), UserDetails.fromUser(user));
-    } catch (NotFoundException | ForbiddenException e) {
-      throw new SMSProcessingException(SmsResponse.INVALID_EVENT.set(subm.getEvent()));
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .importStrategy(TrackerImportStrategy.DELETE)
+            .userId(
+                user.getUid()) // SMS processing is done inside a job executed as the user that sent
+            // the SMS. We might want to remove the params user in favor of the currentUser set on
+            // the thread.
+            .build();
+    TrackerObjects trackerObjects =
+        TrackerObjects.builder()
+            .events(List.of(Event.builder().event(subm.getEvent().getUid()).build()))
+            .build();
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
+    if (Status.OK == importReport.getStatus()) {
+      return SmsResponse.SUCCESS;
     }
 
-    identifiableObjectManager.delete(event);
-
-    return SmsResponse.SUCCESS;
+    return SmsResponse.INVALID_EVENT.set(subm.getEvent());
   }
 
   @Override

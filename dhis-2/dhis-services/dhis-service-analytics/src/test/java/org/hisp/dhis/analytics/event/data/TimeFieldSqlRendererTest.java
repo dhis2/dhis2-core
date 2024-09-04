@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.hisp.dhis.analytics.TimeField.INCIDENT_DATE;
 import static org.hisp.dhis.analytics.TimeField.LAST_UPDATED;
+import static org.hisp.dhis.analytics.TimeField.OCCURRED_DATE;
 import static org.hisp.dhis.analytics.TimeField.SCHEDULED_DATE;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -158,7 +158,7 @@ class TimeFieldSqlRendererTest extends TestBase {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(peA, peB, peC)))
-            .withTimeField(INCIDENT_DATE.getField())
+            .withTimeField(OCCURRED_DATE.getEnrollmentColumnName())
             .build();
 
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
@@ -183,7 +183,7 @@ class TimeFieldSqlRendererTest extends TestBase {
         new EventQueryParams.Builder()
             .addDimension(
                 new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(march, september)))
-            .withTimeField(SCHEDULED_DATE.getField())
+            .withTimeField(SCHEDULED_DATE.getEnrollmentColumnName())
             .withStartEndDatesForPeriods()
             .build();
 

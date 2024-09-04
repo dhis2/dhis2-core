@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
+import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createDataSet;
+import static org.hisp.dhis.test.TestBase.injectSecurityContext;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -68,7 +71,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.UserService;
 import org.hisp.quick.BatchHandlerFactory;
 import org.junit.jupiter.api.Test;
@@ -80,7 +83,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
 
 @ExtendWith(MockitoExtension.class)
-class DataValueSetServiceImportTest extends TestBase {
+class DataValueSetServiceImportTest {
 
   @Mock private IdentifiableObjectManager identifiableObjectManager;
 
@@ -128,6 +131,9 @@ class DataValueSetServiceImportTest extends TestBase {
 
   @Test
   void testImportDataValuesUpdatedSkipNoChange() {
+    SystemUser user = new SystemUser();
+    injectSecurityContext(user);
+
     Calendar calendar = mock(Calendar.class);
     when(calendarService.getSystemCalendar()).thenReturn(calendar);
 

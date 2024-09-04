@@ -119,7 +119,10 @@ class OpenApiAnnotations {
   @CheckForNull
   static OpenApi.Kind getKind(@Nonnull Class<?> schemaRawType) {
     Class<?> source = firstImplementedTypeWithAnnotation(schemaRawType, OpenApi.Kind.class);
-    return source == null ? null : source.getAnnotation(OpenApi.Kind.class);
+    if (source != null) return source.getAnnotation(OpenApi.Kind.class);
+    if (schemaRawType.getEnclosingClass() != null)
+      return getKind(schemaRawType.getEnclosingClass());
+    return null;
   }
 
   @CheckForNull

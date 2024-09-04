@@ -190,7 +190,7 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, params.getOrganisationUnits().size());
     assertEquals(1, params.getItems().size());
     assertEquals(2, params.getFilterPeriods().size());
-    assertEquals(List.of("evgeometry", "ougeometry"), params.getCoordinateFields());
+    assertEquals(List.of("eventgeometry", "ougeometry"), params.getCoordinateFields());
   }
 
   @Test
@@ -254,7 +254,7 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, params.getFilterPeriods().size());
     assertEquals(deA, params.getValue());
     assertEquals(AnalyticsAggregationType.AVERAGE, params.getAggregationType());
-    assertEquals(List.of("evgeometry", "ougeometry"), params.getCoordinateFields());
+    assertEquals(List.of("eventgeometry", "ougeometry"), params.getCoordinateFields());
   }
 
   @Test
@@ -501,16 +501,16 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testGetCoordinateField() {
     assertEquals(
-        List.of("evgeometry"),
+        List.of("eventgeometry"),
         dataQueryService.getCoordinateFields(
             prA.getUid(), EventQueryParams.EVENT_COORDINATE_FIELD, null, false));
     assertEquals(
-        List.of("engeometry"),
+        List.of("enrollmentgeometry"),
         dataQueryService.getCoordinateFields(
             prA.getUid(), EventQueryParams.ENROLLMENT_COORDINATE_FIELD, null, false));
     assertEquals(
-        List.of("evgeometry"),
-        dataQueryService.getCoordinateFields(prA.getUid(), null, "evgeometry", false));
+        List.of("eventgeometry"),
+        dataQueryService.getCoordinateFields(prA.getUid(), null, "eventgeometry", false));
     assertEquals(
         List.of(deC.getUid()),
         dataQueryService.getCoordinateFields(prA.getUid(), deC.getUid(), null, false));

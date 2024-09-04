@@ -40,13 +40,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 /**
  * @author Zubair Asghar
  */
-@MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class ProgramNotificationTemplateRequestParamsMapperTest {
   private static UID PROGRAM = UID.of(CodeGenerator.generateUid());
@@ -81,7 +78,7 @@ class ProgramNotificationTemplateRequestParamsMapperTest {
   }
 
   @Test
-  void shouldMapWithBothProgramAndProgramStage() {
+  void shouldThrowWhenBothProgramAndProgramStageArePresent() {
     ProgramNotificationTemplateRequestParams requestParams =
         new ProgramNotificationTemplateRequestParams();
     requestParams.setProgram(PROGRAM);
@@ -94,11 +91,11 @@ class ProgramNotificationTemplateRequestParamsMapperTest {
               mapper.map(requestParams);
             });
 
-    assertEquals("Program and ProgramStage cannot be processed together.", thrown.getMessage());
+    assertEquals("`program` and `programStage` cannot be processed together.", thrown.getMessage());
   }
 
   @Test
-  void shouldMapWithNeitherProgramNorProgramStage() {
+  void shouldThrowWhenBothProgramAndProgramStageAreMissing() {
     ProgramNotificationTemplateRequestParams requestParams =
         new ProgramNotificationTemplateRequestParams();
 
@@ -109,7 +106,7 @@ class ProgramNotificationTemplateRequestParamsMapperTest {
               mapper.map(requestParams);
             });
 
-    assertEquals("Program or ProgramStage must be specified.", thrown.getMessage());
+    assertEquals("`program` or `programStage` must be specified.", thrown.getMessage());
   }
 
   @Test

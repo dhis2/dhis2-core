@@ -31,15 +31,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -57,10 +59,10 @@ import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -89,7 +91,7 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       EnrollmentService enrollmentService,
-      TrackedEntityDataValueChangeLogService dataValueAuditService,
+      EventChangeLogService eventChangeLogService,
       FileResourceService fileResourceService,
       DhisConfigurationProvider config,
       IdentifiableObjectManager identifiableObjectManager,
@@ -102,7 +104,7 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
         incomingSmsService,
         smsSender,
         enrollmentService,
-        dataValueAuditService,
+        eventChangeLogService,
         fileResourceService,
         config,
         identifiableObjectManager);
@@ -144,7 +146,7 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
           new ArrayList<>(
               enrollmentService.getEnrollments(
                   trackedEntity.getUid(), smsCommand.getProgram(), EnrollmentStatus.ACTIVE));
-    } catch (BadRequestException | ForbiddenException e) {
+    } catch (BadRequestException | ForbiddenException | NotFoundException e) {
       // TODO(tracker) Find a better error message for these exceptions
       throw new SMSProcessingException(SmsResponse.UNKNOWN_ERROR);
     }
@@ -164,9 +166,14 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
     attributes.parallelStream()
         .map(attr -> getParams(attr, sms, command.getProgram(), ous))
         .forEach(
-            param ->
-                trackedEntities.addAll(
-                    trackedEntityService.getTrackedEntities(param, false, true)));
+            param -> {
+              try {
+                trackedEntities.addAll(trackedEntityService.getTrackedEntities(param));
+              } catch (BadRequestException | ForbiddenException | NotFoundException e) {
+                // TODO(tracker) Find a better error message for these exceptions
+                throw new SMSProcessingException(SmsResponse.UNKNOWN_ERROR);
+              }
+            });
 
     return trackedEntities;
   }
@@ -175,26 +182,22 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
     return trackedEntities.size() > 1;
   }
 
-  private TrackedEntityQueryParams getParams(
+  private TrackedEntityOperationParams getParams(
       TrackedEntityAttribute attribute,
       IncomingSms sms,
       Program program,
       Set<OrganisationUnit> ous) {
-    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
     QueryFilter queryFilter = new QueryFilter();
     queryFilter.setOperator(QueryOperator.LIKE);
     queryFilter.setFilter(sms.getOriginator());
 
-    QueryItem item = new QueryItem(attribute);
-    item.getFilters().add(queryFilter);
-    item.setValueType(ValueType.PHONE_NUMBER);
-
-    params.setProgram(program);
-    params.setOrgUnits(ous);
-    params.getFilters().add(item);
-
-    return params;
+    return TrackedEntityOperationParams.builder()
+        .filters(Map.of(attribute.getUid(), List.of(queryFilter)))
+        .programUid(program.getUid())
+        .organisationUnits(
+            ous.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet()))
+        .build();
   }
 
   private boolean validate(

@@ -146,6 +146,7 @@ public abstract class PeriodType implements Serializable {
           new YearlyPeriodType(),
           new FinancialAprilPeriodType(),
           new FinancialJulyPeriodType(),
+          new FinancialSeptemberPeriodType(),
           new FinancialOctoberPeriodType(),
           new FinancialNovemberPeriodType());
 

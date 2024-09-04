@@ -55,8 +55,8 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionStore;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableStore;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogStore;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
 import org.springframework.stereotype.Service;
 
 /**
@@ -76,7 +76,7 @@ public class TrackerDataElementMergeHandler {
   private final ProgramRuleActionStore programRuleActionStore;
   private final ProgramIndicatorStore programIndicatorStore;
   private final EventStore eventStore;
-  private final TrackedEntityDataValueChangeLogStore teDataValueChangeLogStore;
+  private final EventChangeLogService teDataValueChangeLogService;
 
   /**
    * Method retrieving {@link ProgramIndicator}s which have a source {@link DataElement} reference
@@ -286,7 +286,7 @@ public class TrackerDataElementMergeHandler {
     if (mergeRequest.isDeleteSources()) {
       log.info(
           "Deleting source tracked entity data value change log records as source DataElements are being deleted");
-      sources.forEach(teDataValueChangeLogStore::deleteTrackedEntityDataValueChangeLog);
+      sources.forEach(teDataValueChangeLogService::deleteTrackedEntityDataValueChangeLog);
     } else {
       log.info(
           "Leaving source tracked entity data value change log records as is, source DataElements are not being deleted");

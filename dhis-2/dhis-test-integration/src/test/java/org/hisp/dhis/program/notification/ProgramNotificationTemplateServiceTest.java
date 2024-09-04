@@ -31,7 +31,6 @@ import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -79,12 +78,8 @@ class ProgramNotificationTemplateServiceTest extends PostgresIntegrationTestBase
     organisationUnit = createOrganisationUnit('O');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     program = createProgram('P');
-    program.setAutoFields();
-    program.setUid(CodeGenerator.generateUid());
     programService.addProgram(program);
     programStage = createProgramStage('S', program);
-    programStage.setAutoFields();
-    programStage.setUid(CodeGenerator.generateUid());
     programStageService.saveProgramStage(programStage);
     pnt1 =
         createProgramNotificationTemplate(
@@ -117,26 +112,38 @@ class ProgramNotificationTemplateServiceTest extends PostgresIntegrationTestBase
         ProgramNotificationTemplateOperationParams.builder()
             .program(UID.of(program.getUid()))
             .build();
+
     List<ProgramNotificationTemplate> templates =
         programNotificationTemplateService.getProgramNotificationTemplates(param);
+
     assertContainsOnly(List.of(pnt1, pnt2), templates);
   }
 
   @Test
   void shouldCountProgramNotificationTemplates() {
-    ProgramNotificationTemplateOperationParams param =
+    ProgramNotificationTemplateOperationParams paramsOnlyWithProgram =
         ProgramNotificationTemplateOperationParams.builder()
             .program(UID.of(program.getUid()))
             .build();
-    ProgramNotificationTemplateOperationParams param2 =
+    ProgramNotificationTemplateOperationParams paramsOnlyWithProgramStage =
         ProgramNotificationTemplateOperationParams.builder()
             .programStage(UID.of(programStage.getUid()))
             .build();
+
+    // assert when associated with program
     assertEquals(
-        programNotificationTemplateService.getProgramNotificationTemplates(param).size(),
-        programNotificationTemplateService.countProgramNotificationTemplates(param));
+        programNotificationTemplateService
+            .getProgramNotificationTemplates(paramsOnlyWithProgram)
+            .size(),
+        programNotificationTemplateService.countProgramNotificationTemplates(
+            paramsOnlyWithProgram));
+
+    // assert when associated with programStage
     assertEquals(
-        programNotificationTemplateService.getProgramNotificationTemplates(param2).size(),
-        programNotificationTemplateService.countProgramNotificationTemplates(param2));
+        programNotificationTemplateService
+            .getProgramNotificationTemplates(paramsOnlyWithProgramStage)
+            .size(),
+        programNotificationTemplateService.countProgramNotificationTemplates(
+            paramsOnlyWithProgramStage));
   }
 }

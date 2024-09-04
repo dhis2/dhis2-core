@@ -32,7 +32,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -40,7 +39,7 @@ import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 @Setter
 @Getter
 @NoArgsConstructor
-@OpenApi.Shared(pattern = Pattern.INFO)
+@OpenApi.Shared(name = "SharingInfo")
 public class Sharing {
 
   @JsonProperty private Meta meta = new Meta();

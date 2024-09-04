@@ -85,16 +85,16 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
         POST(
             "/tracker?async=false",
             """
-{
- "trackedEntities": [
-   {
-     "trackedEntity": "%s",
-     "trackedEntityType": "%s",
-     "orgUnit": "%s"
-   }
- ]
-}
-"""
+            {
+             "trackedEntities": [
+               {
+                 "trackedEntity": "%s",
+                 "trackedEntityType": "%s",
+                 "orgUnit": "%s"
+               }
+             ]
+            }
+            """
                 .formatted(teUid, tetId, orgUnitAUid)));
 
     pId =
@@ -102,7 +102,15 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
             HttpStatus.CREATED,
             POST(
                 "/programs/",
-                "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}"));
+                """
+                    {
+                      'name':'P1',
+                      'shortName':'P1',
+                      'programType':'WITHOUT_REGISTRATION',
+                      'organisationUnits': [{'id':'%s'},{'id':'%s'}]
+                    }
+                    """
+                    .formatted(orgUnitAUid, orgUnitBUid)));
   }
 
   @Test
