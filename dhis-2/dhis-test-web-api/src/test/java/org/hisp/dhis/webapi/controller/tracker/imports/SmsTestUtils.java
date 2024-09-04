@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.attribute;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import java.util.List;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.common.IdentifiableObject;
+import java.util.Base64;
+import org.hisp.dhis.smscompression.SmsCompressionException;
+import org.hisp.dhis.smscompression.SmsSubmissionWriter;
+import org.hisp.dhis.smscompression.models.SmsMetadata;
+import org.hisp.dhis.smscompression.models.SmsSubmission;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface AttributeValueStore extends GenericStore<AttributeValue> {
-  @Nonnull
-  List<AttributeValue> getAllByAttributes(@Nonnull List<Attribute> attributes);
+class SmsTestUtils {
+  private static final int SMS_COMPRESSION_VERSION = 2;
 
-  List<AttributeValue> getAllByAttribute(Attribute attribute);
+  private SmsTestUtils() {
+    throw new IllegalStateException("Utility class");
+  }
 
-  List<AttributeValue> getAllByAttributeAndValue(Attribute attribute, String value);
-
-  /**
-   * Is attribute value unique, the value must either not exist, or just exist in given object.
-   *
-   * @param object Object
-   * @param attributeValue AV to check for
-   * @return true/false depending on uniqueness of AV
-   */
-  <T extends IdentifiableObject> boolean isAttributeValueUnique(
-      T object, AttributeValue attributeValue);
+  static String encodeSms(SmsSubmission submission) throws SmsCompressionException {
+    SmsSubmissionWriter smsSubmissionWriter = new SmsSubmissionWriter(new SmsMetadata());
+    byte[] compressedText = smsSubmissionWriter.compress(submission, SMS_COMPRESSION_VERSION);
+    return Base64.getEncoder().encodeToString(compressedText);
+  }
 }

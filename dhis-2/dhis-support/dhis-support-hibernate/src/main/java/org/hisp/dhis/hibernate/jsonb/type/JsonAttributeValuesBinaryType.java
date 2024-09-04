@@ -25,26 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.hibernate.jsonb.type;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.hibernate.HibernateException;
+import org.hisp.dhis.attribute.AttributeValues;
+import org.intellij.lang.annotations.Language;
 
-/**
- * @author Zubair Asghar
- */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class BaseNotificationParam {
-  public static final int DEFAULT_PAGE_SIZE = 50;
+public class JsonAttributeValuesBinaryType extends JsonBinaryType {
 
-  public static final int DEFAULT_PAGE = 1;
+  @Override
+  public String convertObjectToJson(Object object) {
+    if (!(object instanceof AttributeValues values)) return "{}";
+    return values.toObjectJson();
+  }
 
-  private Integer page;
+  @Override
+  public Object deepCopy(Object value) throws HibernateException {
+    return value; // is immutable and does not need a deep copy
+  }
 
-  private Integer pageSize;
-
-  private boolean skipPaging;
+  @Override
+  public AttributeValues convertJsonToObject(@Language("json") String json) {
+    return json == null ? AttributeValues.empty() : AttributeValues.of(json);
+  }
 }

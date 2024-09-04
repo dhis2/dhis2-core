@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +25,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.program.notification;
 
-import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.user.sharing.UserAccess;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author rajazubair
  */
+@Component
 @RequiredArgsConstructor
-@Service("org.hisp.dhis.user.UserAccessService")
-public class DefaultUserAccessService implements UserAccessService {
-  @Qualifier("org.hisp.dhis.user.UserAccessStore")
-  private final GenericStore<UserAccess> userAccessStore;
+public class ProgramNotificationTemplateOperationParamsMapper {
 
-  // -------------------------------------------------------------------------
-  // UserGroupAccess
-  // -------------------------------------------------------------------------
+  private final IdentifiableObjectManager manager;
 
-  @Override
   @Transactional
-  public void addUserAccess(UserAccess userAccess) {
-    userAccessStore.save(userAccess);
+  public ProgramNotificationTemplateQueryParams map(
+      ProgramNotificationTemplateOperationParams operationParams) {
+
+    Program program = getEntity(operationParams.getProgram(), Program.class);
+    ProgramStage programStage = getEntity(operationParams.getProgramStage(), ProgramStage.class);
+
+    return ProgramNotificationTemplateQueryParams.builder()
+        .program(program)
+        .programStage(programStage)
+        .page(operationParams.getPage())
+        .pageSize(operationParams.getPageSize())
+        .paged(operationParams.isPaged())
+        .skipPaging(operationParams.isPaged())
+        .build();
   }
 
-  @Override
-  @Transactional
-  public void updateUserAccess(UserAccess userAccess) {
-    userAccessStore.update(userAccess);
-  }
+  private <T extends BaseIdentifiableObject> T getEntity(UID objectId, Class<T> klass)
+      throws IllegalQueryException {
+    if (objectId == null) {
+      return null;
+    }
 
-  @Override
-  @Transactional
-  public void deleteUserAccess(UserAccess userAccess) {
-    userAccessStore.delete(userAccess);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<UserAccess> getAllUserAccesses() {
-    return userAccessStore.getAll();
+    return Optional.ofNullable(manager.get(klass, objectId.getValue()))
+        .orElseThrow(
+            () ->
+                new IllegalQueryException(
+                    "%s with UID %s does not exist."
+                        .formatted(klass.getSimpleName(), objectId.getValue())));
   }
 }

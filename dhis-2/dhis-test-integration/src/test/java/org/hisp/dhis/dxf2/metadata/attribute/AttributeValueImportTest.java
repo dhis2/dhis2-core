@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.dxf2.metadata.attribute;
 
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.List;
@@ -73,7 +75,7 @@ class AttributeValueImportTest extends PostgresIntegrationTestBase {
 
     MetadataImportParams params = createParams(ImportStrategy.CREATE);
     final ImportReport report =
-        importService.importMetadata(params, new MetadataObjects(attributes));
+        importService.importMetadata(params, new MetadataObjects(attributes), transitory());
     assertEquals(Status.OK, report.getStatus());
 
     // Import DataElement with created Attribute.
@@ -83,7 +85,7 @@ class AttributeValueImportTest extends PostgresIntegrationTestBase {
             RenderFormat.JSON);
     params = createParams(ImportStrategy.CREATE);
     final ImportReport importReport =
-        importService.importMetadata(params, new MetadataObjects(dataElements));
+        importService.importMetadata(params, new MetadataObjects(dataElements), transitory());
 
     assertEquals(Status.ERROR, importReport.getStatus());
     assertEquals(
@@ -107,7 +109,7 @@ class AttributeValueImportTest extends PostgresIntegrationTestBase {
 
     MetadataImportParams params = createParams(ImportStrategy.CREATE);
     final ImportReport report =
-        importService.importMetadata(params, new MetadataObjects(attributes));
+        importService.importMetadata(params, new MetadataObjects(attributes), transitory());
     assertEquals(Status.OK, report.getStatus());
 
     // Import DataElement with created Attribute.
@@ -118,7 +120,7 @@ class AttributeValueImportTest extends PostgresIntegrationTestBase {
             RenderFormat.JSON);
     params = createParams(ImportStrategy.CREATE);
     final ImportReport importReport =
-        importService.importMetadata(params, new MetadataObjects(dataSets));
+        importService.importMetadata(params, new MetadataObjects(dataSets), transitory());
 
     assertEquals(Status.ERROR, importReport.getStatus());
     assertEquals(
@@ -140,7 +142,7 @@ class AttributeValueImportTest extends PostgresIntegrationTestBase {
             RenderFormat.JSON);
     MetadataImportParams params = createParams(ImportStrategy.CREATE);
     final ImportReport report =
-        importService.importMetadata(params, new MetadataObjects(attributes));
+        importService.importMetadata(params, new MetadataObjects(attributes), transitory());
     assertEquals(Status.OK, report.getStatus());
 
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> dataSets =
@@ -149,11 +151,12 @@ class AttributeValueImportTest extends PostgresIntegrationTestBase {
             RenderFormat.JSON);
     params = createParams(ImportStrategy.CREATE);
     final ImportReport importReport =
-        importService.importMetadata(params, new MetadataObjects(dataSets));
+        importService.importMetadata(params, new MetadataObjects(dataSets), transitory());
     assertEquals(Status.OK, importReport.getStatus());
 
     DataSet dataSet = manager.get(DataSet.class, "sPnR8BCInMV");
-    assertEquals("true", dataSet.getAttributeValue("PtyV6lLcmol").getValue());
+    assertNotNull(dataSet);
+    assertEquals("true", dataSet.getAttributeValue("PtyV6lLcmol"));
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> attributesUpdate =
         renderService.fromMetadata(
             new ClassPathResource("dxf2/attribute/attribute_update.json").getInputStream(),
@@ -169,10 +172,11 @@ class AttributeValueImportTest extends PostgresIntegrationTestBase {
             RenderFormat.JSON);
     params = createParams(ImportStrategy.UPDATE);
     final ImportReport importReport2 =
-        importService.importMetadata(params, new MetadataObjects(dataSetUpdate));
+        importService.importMetadata(params, new MetadataObjects(dataSetUpdate), transitory());
     assertEquals(Status.OK, importReport2.getStatus());
     DataSet updatedDataSet = manager.get(DataSet.class, "sPnR8BCInMV");
-    assertEquals("false", updatedDataSet.getAttributeValue("PtyV6lLcmol").getValue());
+    assertNotNull(updatedDataSet);
+    assertEquals("false", updatedDataSet.getAttributeValue("PtyV6lLcmol"));
   }
 
   private MetadataImportParams createParams(ImportStrategy importStrategy) {

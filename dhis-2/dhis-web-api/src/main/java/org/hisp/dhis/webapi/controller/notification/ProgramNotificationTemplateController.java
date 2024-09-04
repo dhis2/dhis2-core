@@ -25,17 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event;
+package org.hisp.dhis.webapi.controller.notification;
 
 import static org.hisp.dhis.security.Authorities.ALL;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 
 import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplateParam;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateOperationParams;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.schema.descriptors.ProgramNotificationTemplateSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -45,7 +45,6 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
@@ -56,19 +55,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ProgramNotificationTemplateController
     extends AbstractCrudController<ProgramNotificationTemplate> {
-  private final ProgramService programService;
-
-  private final ProgramStageService programStageService;
-
   private final ProgramNotificationTemplateService programNotificationTemplateService;
 
+  private final ProgramNotificationTemplateRequestParamsMapper requestParamsMapper;
+
   public ProgramNotificationTemplateController(
-      ProgramService programService,
-      ProgramStageService programStageService,
-      ProgramNotificationTemplateService programNotificationTemplateService) {
-    this.programService = programService;
-    this.programStageService = programStageService;
+      ProgramNotificationTemplateService programNotificationTemplateService,
+      ProgramNotificationTemplateRequestParamsMapper requestParamsMapper) {
     this.programNotificationTemplateService = programNotificationTemplateService;
+    this.requestParamsMapper = requestParamsMapper;
   }
 
   // -------------------------------------------------------------------------
@@ -80,60 +75,23 @@ public class ProgramNotificationTemplateController
       produces = {"application/json"},
       value = "/filter")
   public @ResponseBody Page<ProgramNotificationTemplate> getProgramNotificationTemplates(
-      @RequestParam(required = false) String program,
-      @RequestParam(required = false) String programStage,
-      // @deprecated use {@code paging} instead
-      @Deprecated(since = "2.41") @RequestParam(required = false) Boolean skipPaging,
-      // TODO(tracker): set paging=true once skipPaging is removed. Both cannot have a default right
-      // now. This would lead to invalid parameters if the user passes the other param i.e.
-      // skipPaging==paging.
-      @RequestParam(required = false) Boolean paging,
-      @RequestParam(required = false, defaultValue = "1") int page,
-      @RequestParam(required = false, defaultValue = "50") int pageSize)
-      throws BadRequestException {
-    if (paging != null && skipPaging != null && paging.equals(skipPaging)) {
-      throw new BadRequestException(
-          "Paging can either be enabled or disabled. Prefer 'paging' as 'skipPaging' will be removed.");
-    }
-    boolean isPaged = isPaged(paging, skipPaging);
+      ProgramNotificationTemplateRequestParams requestParams)
+      throws ConflictException, BadRequestException {
+    validatePaginationParameters(requestParams);
 
-    ProgramNotificationTemplateParam params =
-        ProgramNotificationTemplateParam.builder()
-            .program(programService.getProgram(program))
-            .programStage(programStageService.getProgramStage(programStage))
-            .skipPaging(!isPaged)
-            .page(page)
-            .pageSize(pageSize)
-            .build();
+    ProgramNotificationTemplateOperationParams params = requestParamsMapper.map(requestParams);
 
     List<ProgramNotificationTemplate> instances =
         programNotificationTemplateService.getProgramNotificationTemplates(params);
 
-    if (isPaged) {
+    if (params.isPaged()) {
       long total = programNotificationTemplateService.countProgramNotificationTemplates(params);
       return Page.withPager(
           ProgramNotificationTemplateSchemaDescriptor.PLURAL,
-          org.hisp.dhis.tracker.export.Page.withTotals(instances, page, pageSize, total));
+          org.hisp.dhis.tracker.export.Page.withTotals(
+              instances, params.getPage(), params.getPageSize(), total));
     }
 
     return Page.withoutPager(ProgramNotificationTemplateSchemaDescriptor.PLURAL, instances);
-  }
-
-  /**
-   * Indicates whether to return a page of items or all items. By default, responses are paginated.
-   *
-   * <p>Note: this assumes {@code paging} and {@code skipPaging} have been validated. Preference is
-   * given to {@code paging} as the other parameter is deprecated.
-   */
-  private static boolean isPaged(Boolean paging, Boolean skipPaging) {
-    if (paging != null) {
-      return Boolean.TRUE.equals(paging);
-    }
-
-    if (skipPaging != null) {
-      return Boolean.FALSE.equals(skipPaging);
-    }
-
-    return true;
   }
 }

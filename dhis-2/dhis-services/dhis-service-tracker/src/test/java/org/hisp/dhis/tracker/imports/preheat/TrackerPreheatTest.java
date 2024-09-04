@@ -39,12 +39,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -190,10 +190,8 @@ class TrackerPreheatTest extends TestBase {
   void testPutAndGetByAttribute() {
     Attribute attribute = new Attribute();
     attribute.setAutoFields();
-    AttributeValue attributeValue = new AttributeValue("value1");
-    attributeValue.setAttribute(attribute);
     DataElement de1 = new DataElement("dataElementA");
-    de1.setAttributeValues(Collections.singleton(attributeValue));
+    de1.setAttributeValues(AttributeValues.of(Map.of(attribute.getUid(), "value1")));
 
     preheat.put(TrackerIdSchemeParam.ofAttribute(attribute.getUid()), de1);
 
@@ -285,7 +283,7 @@ class TrackerPreheatTest extends TestBase {
     preheat.put(TrackerIdSchemeParam.NAME, attribute);
 
     DataElement de1 = new DataElement("dataElementA");
-    de1.setAttributeValues(Collections.singleton(new AttributeValue("value1", attribute)));
+    de1.setAttributeValues(AttributeValues.of(Map.of(attribute.getUid(), "value1")));
     preheat.put(TrackerIdSchemeParam.ofAttribute(attribute.getUid()), de1);
 
     assertEquals(attribute, preheat.get(Attribute.class, MetadataIdentifier.ofName("best")));

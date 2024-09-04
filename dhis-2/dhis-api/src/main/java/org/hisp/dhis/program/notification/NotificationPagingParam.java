@@ -25,34 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata.objectbundle.validation.attribute;
+package org.hisp.dhis.program.notification;
 
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.util.DateUtils;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * Contains validators for Date types of {@link ValueType}
- *
- * @author viet
+ * @author Zubair Asghar
  */
-@FunctionalInterface
-public interface DateCheck extends Function<String, List<ErrorReport>> {
-  DateCheck empty = str -> List.of();
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class NotificationPagingParam {
+  public static final int DEFAULT_PAGE_SIZE = 50;
 
-  DateCheck isDate = check(DateUtils::dateIsValid, ErrorCode.E6014);
+  public static final int DEFAULT_PAGE = 1;
 
-  DateCheck isDateTime = check(DateUtils::dateTimeIsValid, ErrorCode.E6015);
+  private Integer page;
 
-  static DateCheck check(final Predicate<String> predicate, ErrorCode errorCode) {
-    return str ->
-        !predicate.test(str)
-            ? List.of(new ErrorReport(AttributeValue.class, errorCode, str))
-            : List.of();
-  }
+  private Integer pageSize;
+
+  private boolean skipPaging;
+
+  private boolean paged;
 }

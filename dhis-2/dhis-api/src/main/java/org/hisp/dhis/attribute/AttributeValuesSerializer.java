@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.attribute;
 
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.user.sharing.UserGroupAccess;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import java.io.IOException;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Jan Bernitt
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.user.UserGroupAccessService")
-public class DefaultUserGroupAccessService implements UserGroupAccessService {
-  @Qualifier("org.hisp.dhis.user.UserGroupAccessStore")
-  private final GenericStore<UserGroupAccess> userGroupAccessStore;
-
-  // -------------------------------------------------------------------------
-  // UserGroupAccess
-  // -------------------------------------------------------------------------
-
+public class AttributeValuesSerializer extends JsonSerializer<AttributeValues> {
   @Override
-  @Transactional
-  public void addUserGroupAccess(UserGroupAccess userGroupAccess) {
-    userGroupAccessStore.save(userGroupAccess);
-  }
-
-  @Override
-  @Transactional
-  public void updateUserGroupAccess(UserGroupAccess userGroupAccess) {
-    userGroupAccessStore.update(userGroupAccess);
-  }
-
-  @Override
-  @Transactional
-  public void deleteUserGroupAccess(UserGroupAccess userGroupAccess) {
-    userGroupAccessStore.delete(userGroupAccess);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<UserGroupAccess> getAllUserGroupAccesses() {
-    return userGroupAccessStore.getAll();
+  public void serialize(
+      AttributeValues values, JsonGenerator generator, SerializerProvider serializerProvider)
+      throws IOException {
+    if (values == null) {
+      generator.writeNull();
+    } else {
+      generator.writeRawValue(values.toArrayJson());
+    }
   }
 }

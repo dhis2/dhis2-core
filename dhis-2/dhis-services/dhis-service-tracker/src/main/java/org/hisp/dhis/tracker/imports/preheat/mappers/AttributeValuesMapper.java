@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +27,12 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import java.util.Set;
-import org.hisp.dhis.attribute.AttributeValue;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import org.hisp.dhis.attribute.AttributeValues;
 
-@Mapper(uses = {DebugMapper.class, AttributeMapper.class})
-public interface AttributeValueMapper extends PreheatMapper<AttributeValue> {
-  AttributeValueMapper INSTANCE = Mappers.getMapper(AttributeValueMapper.class);
+public class AttributeValuesMapper implements PreheatMapper<AttributeValues> {
 
-  @BeanMapping(ignoreByDefault = true)
-  @Mapping(target = "attribute")
-  @Mapping(target = "value")
-  AttributeValue map(AttributeValue attributeValue);
-
-  Set<AttributeValue> mapAttributeValues(Set<AttributeValue> attributeValues);
+  @Override
+  public AttributeValues map(AttributeValues obj) {
+    return obj;
+  }
 }

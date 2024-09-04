@@ -27,14 +27,11 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.Iterator;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -73,7 +70,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
 
     Schema schema =
         schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(identifiableObject));
-    handleAttributeValues(identifiableObject, bundle, schema);
+    handleAttributeValues(identifiableObject, schema);
     handleSkipSharing(identifiableObject, bundle);
     handleSkipTranslation(identifiableObject, bundle);
     handleSortOrder(identifiableObject, bundle, schema);
@@ -140,42 +137,15 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
     handleCreatedByProperty(object, persistedObject, bundle);
 
     Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
-    handleAttributeValues(object, bundle, schema);
+    handleAttributeValues(object, schema);
     handleSortOrder(object, bundle, schema);
   }
 
-  private void handleAttributeValues(
-      IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema) {
+  private void handleAttributeValues(IdentifiableObject object, Schema schema) {
     if (!schema.hasPersistedProperty("attributeValues")) return;
 
-    Iterator<AttributeValue> iterator = identifiableObject.getAttributeValues().iterator();
-
-    while (iterator.hasNext()) {
-      AttributeValue attributeValue = iterator.next();
-
-      // if value null or empty, just skip it
-      if (StringUtils.isEmpty(attributeValue.getValue())) {
-        iterator.remove();
-        continue;
-      }
-
-      Attribute attribute =
-          bundle
-              .getPreheat()
-              .get(
-                  bundle.getPreheatIdentifier(),
-                  Attribute.class,
-                  attributeValue.getAttribute().getUid());
-
-      if (attribute == null) {
-        iterator.remove();
-        continue;
-      }
-
-      attributeValue.setAttribute(attribute);
-
-      attributeValue.setValue(attributeValue.getValue().replaceAll("\\s{2,}", StringUtils.SPACE));
-    }
+    object.setAttributeValues(
+        object.getAttributeValues().mapValues(v -> v.replaceAll("\\s{2,}", StringUtils.SPACE)));
   }
 
   /**

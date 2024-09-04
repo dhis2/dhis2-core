@@ -37,10 +37,10 @@ public interface ProgramNotificationTemplateStore
     extends IdentifiableObjectStore<ProgramNotificationTemplate> {
   String ID = ProgramNotificationTemplate.class.getName();
 
-  int countProgramNotificationTemplates(ProgramNotificationTemplateParam param);
+  int countProgramNotificationTemplates(ProgramNotificationTemplateQueryParams param);
 
   List<ProgramNotificationTemplate> getProgramNotificationTemplates(
-      ProgramNotificationTemplateParam param);
+      ProgramNotificationTemplateQueryParams param);
 
   List<ProgramNotificationTemplate> getByDataElement(Collection<DataElement> dataElements);
 }

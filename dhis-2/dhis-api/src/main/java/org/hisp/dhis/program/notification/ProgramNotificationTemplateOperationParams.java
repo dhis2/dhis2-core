@@ -25,46 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata.objectbundle.validation.attribute;
+package org.hisp.dhis.program.notification;
 
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.system.util.MathUtils;
-import org.hisp.dhis.system.util.ValidationUtils;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hisp.dhis.common.UID;
 
 /**
- * Contains validators for Number types of {@link AttributeValue}
- *
- * @author viet
+ * @author Zubair Asghar
  */
-@FunctionalInterface
-public interface NumberCheck extends Function<String, List<ErrorReport>> {
-  NumberCheck empty = str -> List.of();
-
-  NumberCheck isInteger = check(MathUtils::isInteger, ErrorCode.E6006);
-
-  NumberCheck isPositiveInteger = check(MathUtils::isPositiveInteger, ErrorCode.E6007);
-
-  NumberCheck isNegativeInteger = check(MathUtils::isNegativeInteger, ErrorCode.E6013);
-
-  NumberCheck isNumber = check(MathUtils::isNumeric, ErrorCode.E6008);
-
-  NumberCheck isZeroOrPositiveInteger = check(MathUtils::isZeroOrPositiveInteger, ErrorCode.E6009);
-
-  NumberCheck isPercentage = check(MathUtils::isPercentage, ErrorCode.E6010);
-
-  NumberCheck isUnitInterval = check(MathUtils::isUnitInterval, ErrorCode.E6011);
-
-  NumberCheck isPhoneNumber = check(ValidationUtils::isPhoneNumber, ErrorCode.E6021);
-
-  static NumberCheck check(final Predicate<String> predicate, ErrorCode errorCode) {
-    return str ->
-        !predicate.test(str)
-            ? List.of(new ErrorReport(AttributeValue.class, errorCode, str))
-            : List.of();
+@Getter
+@Setter
+@EqualsAndHashCode(callSuper = false)
+@NoArgsConstructor
+public class ProgramNotificationTemplateOperationParams extends NotificationPagingParam {
+  @Builder
+  public ProgramNotificationTemplateOperationParams(
+      Integer page,
+      Integer pageSize,
+      boolean skipPaging,
+      UID program,
+      UID programStage,
+      boolean paged) {
+    super(page, pageSize, skipPaging, paged);
+    this.program = program;
+    this.programStage = programStage;
   }
+
+  private UID program;
+
+  private UID programStage;
 }

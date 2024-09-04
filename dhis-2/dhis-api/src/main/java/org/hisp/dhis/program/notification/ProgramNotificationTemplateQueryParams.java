@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata.objectbundle.validation.attribute;
+package org.hisp.dhis.program.notification;
 
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.system.util.MathUtils;
-import org.hisp.dhis.system.util.ValidationUtils;
+import lombok.Builder;
+import lombok.Data;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 
 /**
- * Contains validators for Text types of {@link ValueType}
- *
- * @author viet
+ * @author Zubair Asghar
  */
-@FunctionalInterface
-public interface TextCheck extends Function<String, List<ErrorReport>> {
-  DateCheck empty = $ -> List.of();
+@Data
+@Builder
+public class ProgramNotificationTemplateQueryParams {
+  private Integer page;
+  private Integer pageSize;
+  private boolean skipPaging;
+  private Program program;
+  private ProgramStage programStage;
+  private boolean paged;
 
-  DateCheck isBoolean = check(str -> MathUtils.isBool(str), ErrorCode.E6016);
+  public boolean hasProgram() {
+    return this.program != null;
+  }
 
-  DateCheck isTrueOnly = check(str -> "true".equals(str), ErrorCode.E6017);
-
-  DateCheck isEmail = check(str -> ValidationUtils.emailIsValid(str), ErrorCode.E6018);
-
-  static DateCheck check(final Predicate<String> predicate, ErrorCode errorCode) {
-    return str ->
-        !predicate.test(str)
-            ? List.of(new ErrorReport(AttributeValue.class, errorCode, str))
-            : List.of();
+  public boolean hasProgramStage() {
+    return this.programStage != null;
   }
 }
