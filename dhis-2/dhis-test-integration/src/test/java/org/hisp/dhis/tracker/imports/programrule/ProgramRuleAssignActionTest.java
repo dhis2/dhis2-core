@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.programrule;
 
 import static org.hisp.dhis.programrule.ProgramRuleActionType.ASSIGN;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyWarnings;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1307;
@@ -38,6 +39,7 @@ import java.io.IOException;
 import java.util.List;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -52,7 +54,6 @@ import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.utils.Assertions;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -61,8 +62,11 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class ProgramRuleAssignActionTest extends TrackerTest {
@@ -130,8 +134,10 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     assertHasOnlyWarnings(importReport, E1310);
   }
 
-  @Test
-  void shouldImportEventWithLastDateAndCorrectlyAssignPreviousEventDataValue() throws IOException {
+  @ParameterizedTest
+  @CsvSource({"2024-02-10,THIRD", "2024-01-28,SECOND", "2024-01-19,FIRST"})
+  void shouldImportEventAndCorrectlyAssignPreviousEventDataValue(
+      String eventOccurredDate, String previousEventDataValue) throws IOException {
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
         fromJson("tracker/programrule/three_events_with_different_dates.json");
@@ -141,7 +147,12 @@ class ProgramRuleAssignActionTest extends TrackerTest {
 
     assignPreviousEventProgramRule();
 
-    trackerObjects = fromJson("tracker/programrule/event_with_last_date.json");
+    trackerObjects = fromJson("tracker/programrule/event_with_data_value.json");
+
+    trackerObjects
+        .getEvents()
+        .get(0)
+        .setOccurredAt(DateUtils.instantFromDateAsString(eventOccurredDate));
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertHasOnlyWarnings(importReport, E1308);
@@ -151,35 +162,9 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     List<String> eventDataValues =
         event.getEventDataValues().stream()
             .filter(dv -> dv.getDataElement().equals("DATAEL00002"))
-            .map(dv -> dv.getValue())
+            .map(EventDataValue::getValue)
             .toList();
-    Assertions.assertContainsOnly(List.of("THIRD"), eventDataValues);
-  }
-
-  @Test
-  void shouldImportEventWithThirdDateAndCorrectlyAssignPreviousEventDataValue() throws IOException {
-    TrackerImportParams params = new TrackerImportParams();
-    TrackerObjects trackerObjects =
-        fromJson("tracker/programrule/three_events_with_different_dates.json");
-    params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
-
-    trackerImportService.importTracker(params, trackerObjects);
-
-    assignPreviousEventProgramRule();
-
-    trackerObjects = fromJson("tracker/programrule/event_with_third_date.json");
-
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
-    assertHasOnlyWarnings(importReport, E1308);
-
-    Event event = manager.get(Event.class, "D9PbzJY8bZZ");
-
-    List<String> eventDataValues =
-        event.getEventDataValues().stream()
-            .filter(dv -> dv.getDataElement().equals("DATAEL00002"))
-            .map(dv -> dv.getValue())
-            .toList();
-    Assertions.assertContainsOnly(List.of("SECOND"), eventDataValues);
+    assertContainsOnly(List.of(previousEventDataValue), eventDataValues);
   }
 
   @Test

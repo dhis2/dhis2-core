@@ -1,35 +1,4 @@
 {
-  "importMode": "COMMIT",
-  "idSchemes": {
-    "dataElementIdScheme": {
-      "idScheme": "UID"
-    },
-    "orgUnitIdScheme": {
-      "idScheme": "UID"
-    },
-    "programIdScheme": {
-      "idScheme": "UID"
-    },
-    "programStageIdScheme": {
-      "idScheme": "UID"
-    },
-    "idScheme": {
-      "idScheme": "UID"
-    },
-    "categoryOptionComboIdScheme": {
-      "idScheme": "UID"
-    },
-    "categoryOptionIdScheme": {
-      "idScheme": "UID"
-    }
-  },
-  "importStrategy": "CREATE",
-  "atomicMode": "ALL",
-  "flushMode": "AUTO",
-  "validationMode": "FULL",
-  "skipPatternValidation": false,
-  "skipSideEffects": false,
-  "skipRuleEngine": false,
   "trackedEntities": [],
   "enrollments": [],
   "events": [
@@ -61,7 +30,6 @@
 
       "dataValues": [
         {
-          "createdAt": "2019-01-28T12:10:38.113",
           "storedBy": "admin",
           "providedElsewhere": false,
           "dataElement": {
@@ -74,6 +42,5 @@
       "notes": []
     }
   ],
-  "relationships": [],
-  "username": "system-process"
+  "relationships": []
 }

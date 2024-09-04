@@ -149,7 +149,6 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsCreated() throws NotFoundException, ForbiddenException {
-    testAsUser("M5zQapPyTZI");
     Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
 

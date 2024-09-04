@@ -223,7 +223,6 @@ class DefaultProgramRuleService implements ProgramRuleService {
                       .enrollments(Set.of(enrollmentUid))
                       .build())
               .stream()
-              .filter(e -> e.getEnrollment().getUid().equals(enrollmentUid))
               .filter(e -> bundle.findEventByUid(e.getUid()).isEmpty());
     } catch (BadRequestException | ForbiddenException | NotFoundException e) {
       throw new RuntimeException(e);
