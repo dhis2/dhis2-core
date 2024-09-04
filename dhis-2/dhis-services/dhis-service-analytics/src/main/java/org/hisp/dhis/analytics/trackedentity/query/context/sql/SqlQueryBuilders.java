@@ -58,6 +58,8 @@ public class SqlQueryBuilders {
 
   private static final String ENROLLMENT_QUERY =
       replace(
+          // incidentDate is kept to support a deprecated field, will be removed when FE will only
+          // use occurreddate
           """
               select json_agg(
                          json_build_object(

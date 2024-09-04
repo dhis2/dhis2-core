@@ -55,8 +55,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLog;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
@@ -70,7 +68,7 @@ class TrackedEntityAuditServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityChangeLogService trackedEntityChangeLogService;
 
-  @Autowired private TrackedEntityAttributeValueChangeLogService oldChangeLogService;
+  @Autowired private TrackedEntityChangeLogService oldChangeLogService;
 
   @Autowired private TrackedEntityProgramOwnerService programOwnerService;
 
@@ -410,7 +408,7 @@ class TrackedEntityAuditServiceTest extends PostgresIntegrationTestBase {
       TrackedEntityAttributeValue trackedEntityAttributeValue,
       ChangeLogType changeLogType,
       String value) {
-    oldChangeLogService.addTrackedEntityAttributeValueChangLog(
+    oldChangeLogService.addTrackedEntityAttributeValueChangeLog(
         new TrackedEntityAttributeValueChangeLog(
             trackedEntityAttributeValue, value, user.getUsername(), changeLogType));
 

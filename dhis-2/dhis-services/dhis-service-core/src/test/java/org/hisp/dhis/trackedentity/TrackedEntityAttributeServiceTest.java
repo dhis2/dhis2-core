@@ -30,11 +30,8 @@ package org.hisp.dhis.trackedentity;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
-import java.util.Optional;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.option.Option;
@@ -120,49 +117,6 @@ class TrackedEntityAttributeServiceTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> trackedEntityAttributeService.validateValueType(null, ""));
-  }
-
-  @Test
-  void identicalTrackedEntityWithTheSameUniqueAttributeExistsInSystem() {
-    when(trackedEntityAttributeStore.getTrackedEntityUidWithUniqueAttributeValue(
-            any(TrackedEntityQueryParams.class)))
-        .thenReturn(Optional.of(identicalTrackedEntityUid));
-
-    String teaValue = "Firstname";
-
-    String result =
-        trackedEntityAttributeService.validateAttributeUniquenessWithinScope(
-            tea, teaValue, tePassedInPayload, orgUnit);
-    assertNull(result);
-  }
-
-  @Test
-  void differentTrackedEntityWithTheSameUniqueAttributeExistsInSystem() {
-    String differentTrackedEntityUid = "TrackedEntityUid54321";
-    when(trackedEntityAttributeStore.getTrackedEntityUidWithUniqueAttributeValue(
-            any(TrackedEntityQueryParams.class)))
-        .thenReturn(Optional.of(differentTrackedEntityUid));
-
-    String teaValue = "Firstname";
-
-    String result =
-        trackedEntityAttributeService.validateAttributeUniquenessWithinScope(
-            tea, teaValue, tePassedInPayload, orgUnit);
-    assertNotNull(result);
-  }
-
-  @Test
-  void attributeIsUniqueWithinTheSystem() {
-    when(trackedEntityAttributeStore.getTrackedEntityUidWithUniqueAttributeValue(
-            any(TrackedEntityQueryParams.class)))
-        .thenReturn(Optional.empty());
-
-    String teaValue = "Firstname";
-
-    String result =
-        trackedEntityAttributeService.validateAttributeUniquenessWithinScope(
-            tea, teaValue, tePassedInPayload, orgUnit);
-    assertNull(result);
   }
 
   @Test

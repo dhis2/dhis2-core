@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -78,12 +79,8 @@ class ProgramNotificationTemplateServiceTest extends PostgresIntegrationTestBase
     organisationUnit = createOrganisationUnit('O');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     program = createProgram('P');
-    program.setAutoFields();
-    program.setUid("P_UID_1");
     programService.addProgram(program);
     programStage = createProgramStage('S', program);
-    programStage.setAutoFields();
-    programStage.setUid("PS_UID_1");
     programStageService.saveProgramStage(programStage);
     pnt1 =
         createProgramNotificationTemplate(
@@ -112,8 +109,10 @@ class ProgramNotificationTemplateServiceTest extends PostgresIntegrationTestBase
 
   @Test
   void testGetProgramNotificationTemplates() {
-    ProgramNotificationTemplateParam param =
-        ProgramNotificationTemplateParam.builder().program(program).build();
+    ProgramNotificationTemplateOperationParams param =
+        ProgramNotificationTemplateOperationParams.builder()
+            .program(UID.of(program.getUid()))
+            .build();
     List<ProgramNotificationTemplate> templates =
         programNotificationTemplateService.getProgramNotificationTemplates(param);
     assertFalse(templates.isEmpty());
@@ -125,10 +124,14 @@ class ProgramNotificationTemplateServiceTest extends PostgresIntegrationTestBase
 
   @Test
   void testCountProgramNotificationTemplates() {
-    ProgramNotificationTemplateParam param =
-        ProgramNotificationTemplateParam.builder().program(program).build();
-    ProgramNotificationTemplateParam param2 =
-        ProgramNotificationTemplateParam.builder().programStage(programStage).build();
+    ProgramNotificationTemplateOperationParams param =
+        ProgramNotificationTemplateOperationParams.builder()
+            .program(UID.of(program.getUid()))
+            .build();
+    ProgramNotificationTemplateOperationParams param2 =
+        ProgramNotificationTemplateOperationParams.builder()
+            .programStage(UID.of(programStage.getUid()))
+            .build();
     assertEquals(
         programNotificationTemplateService.getProgramNotificationTemplates(param).size(),
         programNotificationTemplateService.countProgramNotificationTemplates(param));
