@@ -99,9 +99,11 @@ public class DataSourcePoolMetricsConfig {
   public Collection<PoolMetadataProvider> dataSourceMetadataProvider() {
     return List.of(
         dataSource -> {
-          if (dataSource instanceof ComboPooledDataSource comboPooledDataSource) {
+          if (dataSource instanceof ComboPooledDataSource) {
+            ComboPooledDataSource comboPooledDataSource = (ComboPooledDataSource) dataSource;
             return new C3p0MetadataProvider(comboPooledDataSource);
-          } else if (dataSource instanceof HikariDataSource hikariDataSource) {
+          } else if (dataSource instanceof HikariDataSource) {
+            HikariDataSource hikariDataSource = (HikariDataSource) dataSource;
             return new HikariMetadataProvider(hikariDataSource);
           } else {
             throw new IllegalArgumentException(
