@@ -32,9 +32,11 @@ import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.encodeSms;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -49,11 +51,16 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.program.Enrollment;
@@ -68,8 +75,13 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.smscompression.SmsCompressionException;
+import org.hisp.dhis.smscompression.SmsConsts.SmsEventStatus;
 import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.DeleteSmsSubmission;
+import org.hisp.dhis.smscompression.models.GeoPoint;
+import org.hisp.dhis.smscompression.models.SmsDataValue;
+import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
+import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.test.message.FakeMessageSender;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
@@ -79,18 +91,29 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Tests tracker SMS to delete an event implemented via {@link
- * org.hisp.dhis.tracker.imports.sms.DeleteEventSMSListener}. It also tests parts of {@link
- * org.hisp.dhis.webapi.controller.sms.SmsInboundController} and other SMS classes in the SMS class
- * hierarchy.
+ * Tests tracker SMS
+ *
+ * <ul>
+ *   <li>to delete an event via a {@link DeleteSmsSubmission} implemented via {@link
+ *       org.hisp.dhis.tracker.imports.sms.DeleteEventSMSListener}
+ *   <li>to create an event via a {@link TrackerEventSmsSubmission} implemented via {@link
+ *       org.hisp.dhis.tracker.imports.sms.TrackerEventSMSListener}
+ * </ul>
+ *
+ * It also tests parts of {@link org.hisp.dhis.webapi.controller.sms.SmsInboundController} and other
+ * SMS classes in the SMS class hierarchy.
  */
-class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
+class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private CategoryService categoryService;
@@ -113,7 +136,7 @@ class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
 
   private TrackedEntityType trackedEntityType;
 
-  private Event event;
+  private DataElement de;
 
   @BeforeEach
   void setUp() {
@@ -139,19 +162,18 @@ class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
     program.setTrackedEntityType(trackedEntityType);
     manager.save(program, false);
 
-    DataElement de = createDataElement('A', ValueType.TEXT, AggregationType.NONE);
+    de = createDataElement('A', ValueType.TEXT, AggregationType.NONE);
     de.getSharing().setOwner(user);
     manager.save(de, false);
 
     programStage = createProgramStage('A', program);
+    programStage.setFeatureType(FeatureType.POINT);
     programStage.getSharing().setOwner(user);
     programStage.getSharing().addUserAccess(fullAccess(user));
     ProgramStageDataElement programStageDataElement =
         createProgramStageDataElement(programStage, de, 1, false);
     programStage.setProgramStageDataElements(Sets.newHashSet(programStageDataElement));
     manager.save(programStage, false);
-
-    event = event(enrollment(trackedEntity()));
   }
 
   @AfterEach
@@ -161,6 +183,8 @@ class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void shouldDeleteEvent() throws SmsCompressionException {
+    Event event = event(enrollment(trackedEntity()));
+
     DeleteSmsSubmission submission = new DeleteSmsSubmission();
     int submissionId = 1;
     submission.setSubmissionId(submissionId);
@@ -187,8 +211,6 @@ class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
             .as(JsonWebMessage.class);
 
     IncomingSms sms = getSms(response);
-    String expectedText = submissionId + ":" + SmsResponse.SUCCESS;
-    OutboundMessage expectedMessage = new OutboundMessage(null, expectedText, Set.of(originator));
     assertAll(
         () -> assertEquals(SmsMessageStatus.PROCESSED, sms.getStatus()),
         () -> assertTrue(sms.isParsed()),
@@ -197,16 +219,21 @@ class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertNotNull(sms.getReceivedDate()),
         () -> assertEquals(sms.getReceivedDate(), sms.getSentDate()),
         () -> assertEquals("default", sms.getGatewayId()),
-        () ->
-            assertThrows(
-                NotFoundException.class, () -> eventService.getEvent(UID.of(event.getUid()))),
-        () -> assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages()));
+        () -> {
+          String expectedText = submissionId + ":" + SmsResponse.SUCCESS;
+          OutboundMessage expectedMessage =
+              new OutboundMessage(null, expectedText, Set.of(originator));
+          assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages());
+        });
+    assertThrows(NotFoundException.class, () -> eventService.getEvent(UID.of(event.getUid())));
   }
 
   @Test
   void shouldDeleteEventViaRequestParameters() throws SmsCompressionException {
+    Event event = event(enrollment(trackedEntity()));
+
     DeleteSmsSubmission submission = new DeleteSmsSubmission();
-    int submissionId = 1;
+    int submissionId = 2;
     submission.setSubmissionId(submissionId);
     submission.setUserId(user.getUid());
     submission.setEvent(event.getUid());
@@ -227,8 +254,6 @@ class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
             .as(JsonWebMessage.class);
 
     IncomingSms sms = getSms(response);
-    String expectedText = submissionId + ":" + SmsResponse.SUCCESS;
-    OutboundMessage expectedMessage = new OutboundMessage(null, expectedText, Set.of(originator));
     assertAll(
         () -> assertEquals(SmsMessageStatus.PROCESSED, sms.getStatus()),
         () -> assertTrue(sms.isParsed()),
@@ -241,10 +266,13 @@ class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
                 receivedTime,
                 sms.getSentDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()),
         () -> assertEquals("Unknown", sms.getGatewayId()),
-        () ->
-            assertThrows(
-                NotFoundException.class, () -> eventService.getEvent(UID.of(event.getUid()))),
-        () -> assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages()));
+        () -> {
+          String expectedText = submissionId + ":" + SmsResponse.SUCCESS;
+          OutboundMessage expectedMessage =
+              new OutboundMessage(null, expectedText, Set.of(originator));
+          assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages());
+        });
+    assertThrows(NotFoundException.class, () -> eventService.getEvent(UID.of(event.getUid())));
   }
 
   @Test
@@ -253,7 +281,7 @@ class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
     assertThrows(NotFoundException.class, () -> eventService.getEvent(uid));
 
     DeleteSmsSubmission submission = new DeleteSmsSubmission();
-    int submissionId = 2;
+    int submissionId = 3;
     submission.setSubmissionId(submissionId);
     submission.setUserId(user.getUid());
     submission.setEvent(uid.getValue());
@@ -278,14 +306,157 @@ class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
             .as(JsonWebMessage.class);
 
     IncomingSms sms = getSms(response);
-    String expectedText = submissionId + ":" + SmsResponse.INVALID_EVENT.set(uid.getValue());
-    OutboundMessage expectedMessage = new OutboundMessage(null, expectedText, Set.of(originator));
     assertAll(
         () -> assertEquals(SmsMessageStatus.FAILED, sms.getStatus()),
         () -> assertTrue(sms.isParsed()),
         () -> assertEquals(originator, sms.getOriginator()),
         () -> assertEquals(user, sms.getCreatedBy()),
-        () -> assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages()));
+        () -> {
+          String expectedText = submissionId + ":" + SmsResponse.INVALID_EVENT.set(uid.getValue());
+          OutboundMessage expectedMessage =
+              new OutboundMessage(null, expectedText, Set.of(originator));
+          assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages());
+        });
+  }
+
+  @Test
+  void shouldCreateEvent() throws SmsCompressionException, ForbiddenException, NotFoundException {
+    Enrollment enrollment = enrollment(trackedEntity());
+
+    TrackerEventSmsSubmission submission = new TrackerEventSmsSubmission();
+    int submissionId = 4;
+    submission.setSubmissionId(submissionId);
+    submission.setUserId(user.getUid());
+    String eventUid = CodeGenerator.generateUid();
+    submission.setEvent(eventUid);
+    submission.setOrgUnit(orgUnit.getUid());
+    submission.setProgramStage(programStage.getUid());
+    submission.setEnrollment(enrollment.getUid());
+    submission.setAttributeOptionCombo(coc.getUid());
+    submission.setEventStatus(SmsEventStatus.COMPLETED);
+    submission.setEventDate(DateUtils.getDate(2024, 9, 2, 10, 15));
+    submission.setDueDate(DateUtils.getDate(2024, 9, 3, 16, 23));
+    submission.setCoordinates(new GeoPoint(48.8575f, 2.3514f));
+
+    String text = encodeSms(submission);
+    String originator = user.getPhoneNumber();
+
+    switchContextToUser(user);
+
+    JsonWebMessage response =
+        POST(
+                "/sms/inbound",
+                format(
+                    """
+    {
+    "text": "%s",
+    "originator": "%s"
+    }
+    """,
+                    text, originator))
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+
+    IncomingSms sms = getSms(response);
+    assertAll(
+        () -> assertEquals(SmsMessageStatus.PROCESSED, sms.getStatus()),
+        () -> assertTrue(sms.isParsed()),
+        () -> assertEquals(originator, sms.getOriginator()),
+        () -> assertEquals(user, sms.getCreatedBy()),
+        () -> {
+          String expectedText = submissionId + ":" + SmsResponse.SUCCESS;
+          OutboundMessage expectedMessage =
+              new OutboundMessage(null, expectedText, Set.of(originator));
+          assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages());
+        });
+    assertDoesNotThrow(() -> eventService.getEvent(UID.of(eventUid)));
+    Event actual = eventService.getEvent(UID.of(eventUid));
+    assertAll(
+        "created event",
+        () -> assertEquals(eventUid, actual.getUid()),
+        () -> assertEqualUids(submission.getEnrollment(), actual.getEnrollment()),
+        () -> assertEqualUids(submission.getOrgUnit(), actual.getOrganisationUnit()),
+        () -> assertEqualUids(submission.getProgramStage(), actual.getProgramStage()),
+        () ->
+            assertEqualUids(submission.getAttributeOptionCombo(), actual.getAttributeOptionCombo()),
+        () -> assertEquals(user.getUsername(), actual.getStoredBy()),
+        () -> assertEquals(submission.getEventDate(), actual.getOccurredDate()),
+        () -> assertEquals(submission.getDueDate(), actual.getScheduledDate()),
+        () -> assertEquals(EventStatus.COMPLETED, actual.getStatus()),
+        () -> assertEquals(user.getUsername(), actual.getCompletedBy()),
+        () -> assertNotNull(actual.getCompletedDate()),
+        () -> assertGeometry(submission.getCoordinates(), actual.getGeometry()));
+  }
+
+  @Test
+  void shouldUpdateEvent() throws SmsCompressionException, ForbiddenException, NotFoundException {
+    Enrollment enrollment = enrollment(trackedEntity());
+    Event event = event(enrollment);
+
+    TrackerEventSmsSubmission submission = new TrackerEventSmsSubmission();
+    int submissionId = 5;
+    submission.setSubmissionId(submissionId);
+    submission.setUserId(user.getUid());
+    submission.setEvent(event.getUid());
+    submission.setOrgUnit(event.getOrganisationUnit().getUid());
+    submission.setProgramStage(event.getProgramStage().getUid());
+    submission.setEnrollment(enrollment.getUid());
+    submission.setAttributeOptionCombo(event.getAttributeOptionCombo().getUid());
+    submission.setEventStatus(SmsEventStatus.COMPLETED);
+    submission.setEventDate(event.getOccurredDate());
+    submission.setDueDate(event.getScheduledDate());
+    // The coc has to be set so the sms-compression library can encode the data value. Not sure why
+    // that is necessary though.
+    submission.setValues(List.of(new SmsDataValue(coc.getUid(), de.getUid(), "hello")));
+
+    String text = encodeSms(submission);
+    String originator = user.getPhoneNumber();
+
+    switchContextToUser(user);
+
+    JsonWebMessage response =
+        POST("/sms/inbound", format("""
+{
+"text": "%s",
+"originator": "%s"
+}
+""", text, originator))
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+
+    IncomingSms sms = getSms(response);
+    assertAll(
+        () -> assertEquals(SmsMessageStatus.PROCESSED, sms.getStatus()),
+        () -> assertTrue(sms.isParsed()),
+        () -> assertEquals(originator, sms.getOriginator()),
+        () -> assertEquals(user, sms.getCreatedBy()),
+        () -> {
+          String expectedText = submissionId + ":" + SmsResponse.SUCCESS;
+          OutboundMessage expectedMessage =
+              new OutboundMessage(null, expectedText, Set.of(originator));
+          assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages());
+        });
+    assertDoesNotThrow(() -> eventService.getEvent(UID.of(event.getUid())));
+    Event actual = eventService.getEvent(UID.of(event.getUid()));
+    assertAll(
+        "updated event",
+        () -> assertEqualUids(submission.getEnrollment(), actual.getEnrollment()),
+        () -> assertEqualUids(submission.getOrgUnit(), actual.getOrganisationUnit()),
+        () -> assertEqualUids(submission.getProgramStage(), actual.getProgramStage()),
+        () ->
+            assertEqualUids(submission.getAttributeOptionCombo(), actual.getAttributeOptionCombo()),
+        () -> assertNull(actual.getStoredBy()),
+        () -> assertEquals(event.getOccurredDate(), actual.getOccurredDate()),
+        () -> assertEquals(event.getScheduledDate(), actual.getScheduledDate()),
+        () -> assertEquals(EventStatus.COMPLETED, actual.getStatus()),
+        () -> assertEquals(user.getUsername(), actual.getCompletedBy()),
+        () -> assertNotNull(actual.getCompletedDate()),
+        () -> {
+          EventDataValue expected = new EventDataValue(de.getUid(), "hello");
+          expected.setStoredBy(user.getUsername());
+          assertContainsOnly(Set.of(expected), actual.getEventDataValues());
+        },
+        () -> assertNull(actual.getGeometry()));
   }
 
   private IncomingSms getSms(JsonWebMessage response) {
@@ -336,6 +507,7 @@ class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
 
   private Event event(Enrollment enrollment) {
     Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
+    event.setOccurredDate(new Date());
     event.setAutoFields();
     manager.save(event);
     return event;
@@ -353,5 +525,16 @@ class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
     a.setUser(user);
     a.setAccess(AccessStringHelper.FULL);
     return a;
+  }
+
+  private static void assertEqualUids(Uid expected, IdentifiableObject actual) {
+    assertEquals(expected.getUid(), actual.getUid());
+  }
+
+  private static void assertGeometry(GeoPoint expected, Geometry actual) {
+    assertEquals(
+        new GeometryFactory()
+            .createPoint(new Coordinate(expected.getLongitude(), expected.getLatitude())),
+        actual);
   }
 }

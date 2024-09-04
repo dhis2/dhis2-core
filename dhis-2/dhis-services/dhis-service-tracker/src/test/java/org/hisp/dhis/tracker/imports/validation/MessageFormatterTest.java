@@ -42,7 +42,9 @@ import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -187,8 +189,17 @@ class MessageFormatterTest {
   }
 
   @Test
+  void formatArgumentsShouldTurnEnumsIntoArguments() {
+    List<String> args =
+        MessageFormatter.formatArguments(
+            idSchemes, EventStatus.COMPLETED, EnrollmentStatus.CANCELLED);
+
+    assertContainsOnly(List.of("COMPLETED", "CANCELLED"), args);
+  }
+
+  @Test
   void formatArgumentsWithNumber() {
-    assertEquals(List.of(""), MessageFormatter.formatArguments(idSchemes, 2));
+    assertEquals(List.of("2"), MessageFormatter.formatArguments(idSchemes, 2));
   }
 
   @Test
