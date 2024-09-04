@@ -44,7 +44,6 @@ public class ProgramNotificationTemplateRequestParamsMapper {
   public ProgramNotificationTemplateOperationParams map(
       ProgramNotificationTemplateRequestParams requestParams)
       throws ConflictException, BadRequestException {
-
     validateRequestParams(requestParams);
 
     boolean isPaged = determinePaging(requestParams);
