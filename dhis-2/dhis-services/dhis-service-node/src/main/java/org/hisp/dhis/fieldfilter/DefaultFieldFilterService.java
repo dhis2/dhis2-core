@@ -159,22 +159,6 @@ public class DefaultFieldFilterService implements FieldFilterService {
   }
 
   @Override
-  public ComplexNode toComplexNode(FieldFilterParams params) {
-    if (params.getObjects().isEmpty()) {
-      return null;
-    }
-
-    Object object = params.getObjects().get(0);
-    CollectionNode collectionNode = toCollectionNode(object.getClass(), params);
-
-    if (!collectionNode.getChildren().isEmpty()) {
-      return (ComplexNode) collectionNode.getChildren().get(0);
-    }
-
-    return null;
-  }
-
-  @Override
   public CollectionNode toCollectionNode(Class<?> wrapper, FieldFilterParams params) {
     String fields = params.getFields() == null ? "" : Joiner.on(",").join(params.getFields());
 
