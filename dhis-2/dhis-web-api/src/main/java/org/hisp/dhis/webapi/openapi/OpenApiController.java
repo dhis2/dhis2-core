@@ -94,7 +94,7 @@ public class OpenApiController {
     Set<String> domain = Set.of();
 
     @OpenApi.Ignore
-    boolean isFull() {
+    boolean isCachable() {
       return path.isEmpty() && domain.isEmpty();
     }
   }
@@ -128,6 +128,11 @@ public class OpenApiController {
     @Maturity.Beta
     @OpenApi.Since(42)
     boolean expandedRefs = false;
+
+    @OpenApi.Ignore
+    boolean isCachable() {
+      return !skipCache && !expandedRefs;
+    }
   }
 
   /*
@@ -151,7 +156,8 @@ public class OpenApiController {
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
-    if (scope.isFull() && !generation.isSkipCache() && fullHtml != null) {
+    boolean cached = scope.isCachable() && generation.isCachable();
+    if (cached && fullHtml != null) {
       String fullHtml = OpenApiController.fullHtml.get();
       if (fullHtml != null) {
         getWriter(response, TEXT_HTML_VALUE).get().write(fullHtml);
@@ -164,7 +170,7 @@ public class OpenApiController {
         request, generation, scope, () -> new PrintWriter(json), OpenApiGenerator::generateJson);
 
     String html = OpenApiRenderer.render(json.toString(), rendering);
-    if (scope.isFull()) updateFullHtml(html);
+    if (cached) updateFullHtml(html);
     getWriter(response, TEXT_HTML_VALUE).get().write(html);
   }
 
@@ -294,7 +300,7 @@ public class OpenApiController {
 
   @Nonnull
   private Api getApiCached(OpenApiGenerationParams generation, OpenApiScopeParams scope) {
-    if (scope.isFull() && !generation.isSkipCache()) {
+    if (scope.isCachable() && generation.isCachable()) {
       Api api = fullApi == null ? null : fullApi.get();
       if (api == null) {
         api = getApiUncached(generation, scope);
