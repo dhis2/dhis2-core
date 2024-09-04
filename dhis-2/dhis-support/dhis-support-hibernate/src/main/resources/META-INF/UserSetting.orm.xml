@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.user.UserSetting" metadata-complete="true" cacheable="true">
+        <table name="usersetting"/>
+        <attributes>
+            <id name="name">
+                <column name="name"/>
+            </id>
+            <basic name="value" fetch="EAGER" optional="true"/>
+            <many-to-one name="user" target-entity="org.hisp.dhis.user.User" fetch="LAZY" id="true">
+                <join-column name="userinfoid"/>
+                <foreign-key name="fk_usersetting_userinfoid"/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.relationship.RelationshipItem" metadata-complete="true"  cacheable="true">
+        <table name="relationshipitem"/>
+        
+        <attributes>
+            <id name="id">
+                <column name="relationshipitemid"/>
+            </id>
+            <many-to-one name="relationship" target-entity="org.hisp.dhis.relationship.Relationship" fetch="LAZY" optional="true">
+                <join-column name="relationshipid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_relationshipitem_relationshipid"/>
+                <cascade>
+                    
+                </cascade>
+            </many-to-one>
+            <many-to-one name="trackedEntity" target-entity="org.hisp.dhis.trackedentity.TrackedEntity" fetch="LAZY" optional="true">
+                <join-column name="trackedentityid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_relationshipitem_trackedentityinstanceid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="enrollment" target-entity="org.hisp.dhis.program.Enrollment" fetch="LAZY" optional="true">
+                <join-column name="enrollmentid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_relationshipitem_programinstanceid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="event" target-entity="org.hisp.dhis.program.Event" fetch="LAZY" optional="true">
+                <join-column name="eventid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_relationshipitem_programstageinstanceid"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

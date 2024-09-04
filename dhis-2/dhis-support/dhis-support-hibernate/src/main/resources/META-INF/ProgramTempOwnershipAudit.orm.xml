@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.program.ProgramTempOwnershipAudit" metadata-complete="true">
+        <table name="programtempownershipaudit"/>
+        
+        <attributes>
+            <id name="id">
+                <column name="programtempownershipauditid"/>
+            </id>
+            <basic name="created" fetch="EAGER" optional="true"/>
+            <basic name="accessedBy" fetch="EAGER" optional="true"/>
+            <basic name="reason" fetch="EAGER" optional="true"/>
+            <many-to-one name="program" target-entity="org.hisp.dhis.program.Program" fetch="LAZY" optional="true">
+                <join-column name="programid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_programtempownershipaudit_programid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="trackedEntity" target-entity="org.hisp.dhis.trackedentity.TrackedEntity" fetch="LAZY" optional="true">
+                <join-column name="trackedentityid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_programtempownershipaudit_trackedentityinstanceid"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

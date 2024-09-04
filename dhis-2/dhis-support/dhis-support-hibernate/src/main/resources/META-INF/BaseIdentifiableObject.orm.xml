@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+  <description>
+    Base class for all identifiable objects in DHIS 2.
+  </description>
+  <mapped-superclass class="org.hisp.dhis.common.BaseIdentifiableObject" access="FIELD">
+    <attributes>
+      <id name="id">
+        <generated-value strategy="AUTO" />
+      </id>
+      <element-collection name="attributeValues" >
+        <convert converter="org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType" attribute-name="attributeValues"/>
+      </element-collection>
+      <element-collection name="favorites">
+        <convert converter="org.hisp.dhis.hibernate.jsonb.type.JsonSetBinaryType" attribute-name="favorites"/>
+      </element-collection>
+      <element-collection name="translations">
+        <convert converter="org.hisp.dhis.hibernate.jsonb.type.JsonSetBinaryType" attribute-name="translations"/>
+      </element-collection>
+    </attributes>
+  </mapped-superclass>
+</entity-mappings>

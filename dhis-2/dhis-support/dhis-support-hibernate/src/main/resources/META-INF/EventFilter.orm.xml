@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.programstagefilter.EventFilter" metadata-complete="true" cacheable="true">
+        <table name="eventfilter"/>
+        
+        <attributes>
+            <id name="id">
+                <column name="eventfilterid"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="false">
+                <column name="uid" unique="true" nullable="false" length="11"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="name" fetch="EAGER" optional="false">
+                <column name="name" unique="false" nullable="false" length="230"/>
+            </basic>
+            <basic name="description" fetch="EAGER" optional="true"/>
+            <basic name="program" fetch="EAGER" optional="false">
+                <column name="program" unique="false" nullable="false" length="11"/>
+            </basic>
+            <basic name="programStage" fetch="EAGER" optional="true">
+                <column name="programstage" unique="false" length="11"/>
+            </basic>
+            <basic name="eventQueryCriteria" fetch="EAGER" optional="true">
+                <column name="eventquerycriteria" unique="false"/>
+            </basic>
+            <basic name="sharing" fetch="EAGER" optional="true"/>
+            <basic name="translations" fetch="EAGER" optional="true"/>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
+                <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_lastupdateby_userid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
+                <join-column name="userid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_programstageinstancefilter_userid"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

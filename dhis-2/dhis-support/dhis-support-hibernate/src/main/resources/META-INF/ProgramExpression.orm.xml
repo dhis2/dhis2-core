@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.program.ProgramExpression" metadata-complete="true">
+        <table name="programexpression"/>
+        
+        <attributes>
+            <id name="id">
+                <column name="programexpressionid"/>
+            </id>
+            <basic name="description" fetch="EAGER" optional="true"/>
+            <basic name="expression" fetch="EAGER" optional="true"/>
+        </attributes>
+    </entity>
+</entity-mappings>

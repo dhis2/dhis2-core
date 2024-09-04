@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.datastatistics.DataStatisticsEvent" metadata-complete="true">
+        <table name="datastatisticsevent"/>
+        
+        <attributes>
+            <id name="id">
+                <column name="eventid"/>
+            </id>
+            <basic name="eventType" fetch="EAGER" optional="true">
+                <column name="eventtype" unique="false"/>
+            </basic>
+            <basic name="timestamp" fetch="EAGER" optional="true">
+                <column name="timestamp" unique="false"/>
+            </basic>
+            <basic name="username" fetch="EAGER" optional="true">
+                <column name="username" unique="false"/>
+            </basic>
+            <basic name="favoriteUid" fetch="EAGER" optional="true">
+                <column name="favoriteuid" unique="false"/>
+            </basic>
+        </attributes>
+    </entity>
+</entity-mappings>

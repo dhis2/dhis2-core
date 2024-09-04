@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.message.UserMessage" metadata-complete="true">
+        <table name="usermessage"/>
+        
+        <attributes>
+            <id name="id">
+                <column name="usermessageid"/>
+            </id>
+            <basic name="key" fetch="EAGER" optional="true">
+                <column name="usermessagekey" unique="false"/>
+            </basic>
+            <basic name="read" fetch="EAGER" optional="false">
+                <column name="isread" unique="false" nullable="false"/>
+            </basic>
+            <basic name="followUp" fetch="EAGER" optional="true">
+                <column name="isfollowup" unique="false" nullable="true"/>
+            </basic>
+            <many-to-one name="user" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="false">
+                <join-column name="userid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_usermessage_user"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

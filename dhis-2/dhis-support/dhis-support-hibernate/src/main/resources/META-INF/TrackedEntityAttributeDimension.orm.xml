@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension" metadata-complete="true">
+        <table name="trackedentityattributedimension"/>
+        
+        <attributes>
+            <id name="id">
+                <column name="trackedentityattributedimensionid"/>
+            </id>
+            <basic name="filter" fetch="EAGER" optional="true"/>
+            <many-to-one name="attribute" target-entity="org.hisp.dhis.trackedentity.TrackedEntityAttribute" fetch="LAZY" optional="true">
+                <join-column name="trackedentityattributeid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_teattributedimension_attributeid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="legendSet" target-entity="org.hisp.dhis.legend.LegendSet" fetch="LAZY" optional="true">
+                <join-column name="legendsetid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_teattributedimension_legendsetid"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog" metadata-complete="true">
+        <table name="trackedEntityDataValueAudit"/>
+        
+        <attributes>
+            <id name="id">
+                <column name="trackedentitydatavalueauditid"/>
+            </id>
+            <basic name="value" fetch="EAGER" optional="true"/>
+            <basic name="created" fetch="EAGER" optional="true"/>
+            <basic name="providedElsewhere" fetch="EAGER" optional="true"/>
+            <basic name="modifiedBy" fetch="EAGER" optional="true"/>
+            <basic name="auditType" fetch="EAGER" optional="false">
+                <column name="audittype" unique="false" nullable="false" length="100"/>
+            </basic>
+            <many-to-one name="event" target-entity="org.hisp.dhis.program.Event" fetch="LAZY" optional="true">
+                <join-column name="eventid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_entityinstancedatavalueaudit_programstageinstanceid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="dataElement" target-entity="org.hisp.dhis.dataelement.DataElement" fetch="LAZY" optional="true">
+                <join-column name="dataelementid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_entityinstancedatavalueaudit_dataelementid"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

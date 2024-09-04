@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.category.CategoryOptionGroupSetDimension" metadata-complete="true" cacheable="true">
+        <table name="categoryoptiongroupsetdimension"/>
+        
+        <attributes>
+            <id name="id">
+                <column name="categoryoptiongroupsetdimensionid"/>
+            </id>
+            <many-to-one name="dimension" target-entity="org.hisp.dhis.category.CategoryOptionGroupSet" fetch="LAZY" optional="true">
+                <join-column name="categoryoptiongroupsetid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_dimension_categoryoptiongroupsetid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-many name="items" target-entity="org.hisp.dhis.category.CategoryOptionGroup">
+                <order-column name="sort_order"/>
+            </many-to-many>
+        </attributes>
+    </entity>
+</entity-mappings>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate" metadata-complete="true">
+        <table name="datasetnotificationtemplate"/>
+        
+        <attributes>
+            <id name="id">
+                <column name="datasetnotificationtemplateid"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="false">
+                <column name="uid" unique="true" nullable="false" length="11"/>
+            </basic>
+            <basic name="code" fetch="EAGER" optional="true">
+                <column name="code" unique="true" nullable="true" length="50"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="name" fetch="EAGER" optional="false">
+                <column name="name" unique="false" nullable="false" length="230"/>
+            </basic>
+            <basic name="subjectTemplate" fetch="EAGER" optional="true">
+                <column name="subjecttemplate" unique="false" nullable="true" length="100"/>
+            </basic>
+            <basic name="messageTemplate" fetch="EAGER" optional="false">
+                <column name="messagetemplate" unique="false" nullable="false"/>
+            </basic>
+            <basic name="relativeScheduledDays" fetch="EAGER" optional="true">
+                <column name="relativeScheduledDays" unique="false" nullable="true"/>
+            </basic>
+            <basic name="notifyParentOrganisationUnitOnly" fetch="EAGER" optional="true">
+                <column name="notifyparentorganisationunitonly" unique="false"/>
+            </basic>
+            <basic name="notifyUsersInHierarchyOnly" fetch="EAGER" optional="true">
+                <column name="notifyusersinhierarchyonly" unique="false"/>
+            </basic>
+            <basic name="sendStrategy" fetch="EAGER" optional="true">
+                <column name="sendstrategy" unique="false" length="50"/>
+            </basic>
+            <basic name="dataSetNotificationTrigger" fetch="EAGER" optional="true">
+                <column name="datasetnotificationtrigger" unique="false"/>
+            </basic>
+            <basic name="notificationRecipient" fetch="EAGER" optional="true">
+                <column name="notificationrecipienttype" unique="false"/>
+            </basic>
+            <basic name="translations" fetch="EAGER" optional="true"/>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
+                <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_lastupdateby_userid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="recipientUserGroup" target-entity="org.hisp.dhis.user.UserGroup" fetch="LAZY" optional="true">
+                <join-column name="usergroupid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_datasetnotification_usergroup"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-many name="dataSets" target-entity="org.hisp.dhis.dataset.DataSet">
+            </many-to-many>
+            <element-collection name="deliveryChannels" fetch="LAZY">
+                <column name="deliverychannel" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <collection-table name="datasetnotificationtemplate_deliverychannel"/>
+            </element-collection>
+        </attributes>
+    </entity>
+</entity-mappings>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+    
+    
+    <package>org.hisp.dhis.sms.command</package>
+    
+    <entity class="SMSSpecialCharacter" metadata-complete="true">
+        <table name="smsspecialcharacter"/>
+        
+        <attributes>
+            <id name="id">
+                <column name="specialcharacterid"/>
+            </id>
+            <basic name="name" fetch="EAGER" optional="true"/>
+            <basic name="value" fetch="EAGER" optional="true"/>
+        </attributes>
+    </entity>
+</entity-mappings>

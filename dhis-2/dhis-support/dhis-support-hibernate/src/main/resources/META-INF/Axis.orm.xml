@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.visualization.Axis" metadata-complete="true" cacheable="true">
+        <table name="axis"/>
+        
+        <attributes>
+            <id name="id">
+                <column name="axisid"/>
+            </id>
+            <basic name="dimensionalItem" fetch="EAGER" optional="false"/>
+            <basic name="axis" fetch="EAGER" optional="false">
+                <column name="axis" unique="false" nullable="false"/>
+            </basic>
+        </attributes>
+    </entity>
+</entity-mappings>

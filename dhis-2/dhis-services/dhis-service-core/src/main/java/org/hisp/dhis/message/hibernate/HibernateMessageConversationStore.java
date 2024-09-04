@@ -29,10 +29,12 @@ package org.hisp.dhis.message.hibernate;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.message.Message;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.message.MessageConversationStatus;
@@ -86,25 +88,27 @@ public class HibernateMessageConversationStore
       Integer max) {
     Assert.notNull(user, "User must be specified");
 
-    getSession().enableFilter("userMessageUser").setParameter("userid", user.getId());
+    String statusCheck = status != null ? "and status = :status " : "";
+    String followUpCheck = followUpOnly ? "and um.followUp = true " : "";
+    String readCheck = unreadOnly ? "and um.read = false " : "";
 
     String hql =
-        "from MessageConversation mc "
-            + "inner join mc.userMessages as um "
-            + "left join mc.createdBy as ui "
-            + "left join mc.lastSender as ls ";
-
-    if (status != null) {
-      hql += "where status = :status ";
-    }
-
-    if (followUpOnly) {
-      hql += (status != null ? "and" : "where") + " um.followUp = true ";
-    }
-
-    if (unreadOnly) {
-      hql += (status != null || followUpOnly ? "and" : "where") + " um.read = false ";
-    }
+        TextUtils.replace(
+            """
+            from MessageConversation mc
+            inner join mc.userMessages as um
+            where mc.createdBy = :user and um.user = :user
+            {statusCheck}
+            {followUpCheck}
+            {readCheck}
+            """,
+            Map.of(
+                "statusCheck",
+                statusCheck,
+                "followUpCheck",
+                followUpCheck,
+                "readCheck",
+                readCheck));
 
     hql += "order by mc.lastMessage desc ";
 

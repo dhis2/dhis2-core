@@ -97,8 +97,16 @@ public class ReportingParams implements Serializable {
     return reportingPeriod;
   }
 
-  public void setReportingPeriod(Boolean reportingPeriod) {
+  public void setReportingPeriod(boolean reportingPeriod) {
     this.reportingPeriod = reportingPeriod;
+  }
+
+  public void setGrandParentOrganisationUnit(boolean grandParentOrganisationUnit) {
+    this.grandParentOrganisationUnit = grandParentOrganisationUnit;
+  }
+
+  public void setParentOrganisationUnit(boolean parentOrganisationUnit) {
+    this.parentOrganisationUnit = parentOrganisationUnit;
   }
 
   @JsonProperty
@@ -117,8 +125,8 @@ public class ReportingParams implements Serializable {
     return parentOrganisationUnit;
   }
 
-  public void setParentOrganisationUnit(Boolean parentOrganisationUnit) {
-    this.parentOrganisationUnit = parentOrganisationUnit;
+  public void setOrganisationUnit(boolean organisationUnit) {
+    this.organisationUnit = organisationUnit;
   }
 
   @JsonProperty

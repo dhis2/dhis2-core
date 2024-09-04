@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.program.Enrollment" metadata-complete="true" cacheable="true">
+        <table name="enrollment"/>
+        
+        <attributes>
+            <id name="id">
+                <column name="enrollmentid"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="true">
+                <column name="uid" unique="true" length="11"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="createdAtClient" fetch="EAGER" optional="true"/>
+            <basic name="lastUpdatedAtClient" fetch="EAGER" optional="true"/>
+            <basic name="createdByUserInfo" fetch="EAGER" optional="true">
+                <column name="createdbyuserinfo" unique="false"/>
+            </basic>
+            <basic name="lastUpdatedByUserInfo" fetch="EAGER" optional="true">
+                <column name="lastupdatedbyuserinfo" unique="false"/>
+            </basic>
+            <basic name="occurredDate" fetch="EAGER" optional="true">
+                <column name="occurreddate" unique="false"/>
+            </basic>
+            <basic name="enrollmentDate" fetch="EAGER" optional="false">
+                <column name="enrollmentdate" unique="false" nullable="false"/>
+            </basic>
+            <basic name="completedDate" fetch="EAGER" optional="true">
+                <column name="completeddate" unique="false"/>
+            </basic>
+            <basic name="followup" fetch="EAGER" optional="true">
+                <column name="followup" unique="false"/>
+            </basic>
+            <basic name="completedBy" fetch="EAGER" optional="true"/>
+            <basic name="geometry" fetch="EAGER" optional="true"/>
+            <basic name="deleted" fetch="EAGER" optional="true">
+                <column name="deleted" unique="false"/>
+            </basic>
+            <basic name="storedBy" fetch="EAGER" optional="true">
+                <column name="storedby" unique="false"/>
+            </basic>
+            <basic name="status" fetch="EAGER" optional="true"/>
+            <many-to-one name="trackedEntity" target-entity="org.hisp.dhis.trackedentity.TrackedEntity" fetch="EAGER" optional="true">
+                <join-column name="trackedentityid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_programinstance_trackedentityinstanceid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="program" target-entity="org.hisp.dhis.program.Program" fetch="EAGER" optional="false">
+                <join-column name="programid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_programinstance_programid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="organisationUnit" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" fetch="LAZY" optional="true">
+                <join-column name="organisationunitid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_programinstance_organisationunitid"/>
+                <cascade/>
+            </many-to-one>
+            <one-to-many name="events" target-entity="org.hisp.dhis.program.Event" orphan-removal="false">
+                <order-by>occurreddate,scheduleddate</order-by>
+              
+                <foreign-key/>
+                <cascade/>
+            </one-to-many>
+            <one-to-many name="relationshipItems" target-entity="org.hisp.dhis.relationship.RelationshipItem" orphan-removal="false">
+              
+                <foreign-key/>
+                <cascade/>
+            </one-to-many>
+            <many-to-many name="notes" target-entity="org.hisp.dhis.note.Note">
+                <order-column name="sort_order"/>
+            </many-to-many>
+        </attributes>
+    </entity>
+</entity-mappings>

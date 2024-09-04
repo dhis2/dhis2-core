@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.dataapproval.DataApprovalLevel" metadata-complete="true" cacheable="true">
+        <table name="dataapprovallevel"/>
+        
+        <attributes>
+            <id name="id">
+                <column name="dataapprovallevelid"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="false">
+                <column name="uid" unique="true" nullable="false" length="11"/>
+            </basic>
+            <basic name="code" fetch="EAGER" optional="true">
+                <column name="code" unique="true" nullable="true" length="50"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="name" fetch="EAGER" optional="false">
+                <column name="name" unique="true" nullable="false" length="230"/>
+            </basic>
+            <basic name="translations" fetch="EAGER" optional="true"/>
+            <basic name="level" fetch="EAGER" optional="false">
+                <column name="level" unique="false" nullable="false"/>
+            </basic>
+            <basic name="orgUnitLevel" fetch="EAGER" optional="false">
+                <column name="orgunitlevel" unique="false" nullable="false"/>
+            </basic>
+            <basic name="sharing" fetch="EAGER" optional="true"/>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
+                <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_lastupdateby_userid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="categoryOptionGroupSet" target-entity="org.hisp.dhis.category.CategoryOptionGroupSet" fetch="LAZY" optional="true">
+                <join-column name="categoryoptiongroupsetid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fK_dataapprovallevel_categoryoptiongroupsetid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
+                <join-column name="userid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_dataapprovallevel_userid"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

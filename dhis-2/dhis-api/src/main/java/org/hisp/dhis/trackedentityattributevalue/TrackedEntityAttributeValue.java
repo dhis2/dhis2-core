@@ -35,6 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
+import javax.persistence.Transient;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -77,11 +78,13 @@ public class TrackedEntityAttributeValue implements Serializable {
    * This value is only used to store values from setValue when we don't know if attribute is set or
    * not.
    */
-  @ToString.Include private String value;
+  @Transient @ToString.Include private String value;
 
-  private transient boolean auditValueIsSet = false;
-  private transient boolean valueIsSet = false;
-  @Getter private transient String auditValue;
+  @Transient private transient boolean auditValueIsSet = false;
+
+  @Transient private transient boolean valueIsSet = false;
+
+  @Getter @Transient private transient String auditValue;
 
   public TrackedEntityAttributeValue() {
     setAutoFields();
