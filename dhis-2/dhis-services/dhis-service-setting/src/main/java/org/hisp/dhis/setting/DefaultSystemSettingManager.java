@@ -43,6 +43,7 @@ import org.hisp.dhis.system.util.SerializableOptional;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -55,6 +56,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Lars Helge Overland
  */
 @Slf4j
+@Service
 public class DefaultSystemSettingManager implements SystemSettingManager {
 
   private static final Map<String, SettingKey> NAME_KEY_MAP =
@@ -66,12 +68,12 @@ public class DefaultSystemSettingManager implements SystemSettingManager {
   private final Cache<SerializableOptional> settingCache;
 
   private final SystemSettingStore systemSettingStore;
-  private final @Qualifier("tripleDesStringEncryptor") PBEStringEncryptor pbeStringEncryptor;
+  private final PBEStringEncryptor pbeStringEncryptor;
   private final TransactionTemplate transactionTemplate;
 
   public DefaultSystemSettingManager(
       SystemSettingStore systemSettingStore,
-      PBEStringEncryptor pbeStringEncryptor,
+      @Qualifier("tripleDesStringEncryptor") PBEStringEncryptor pbeStringEncryptor,
       CacheProvider cacheProvider,
       TransactionTemplate transactionTemplate) {
 
