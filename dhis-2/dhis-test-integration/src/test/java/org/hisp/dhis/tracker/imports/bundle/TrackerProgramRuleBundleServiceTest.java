@@ -88,6 +88,7 @@ class TrackerProgramRuleBundleServiceTest extends TrackerTest {
 
   @Test
   void testRunRuleEngineForEventOnBundleCreate() throws IOException {
+    injectSecurityContextUser(userService.getUser("tTgjgobT1oS"));
     TrackerObjects trackerObjects = fromJson("tracker/event_events_and_enrollment.json");
     assertEquals(8, trackerObjects.getEvents().size());
     TrackerBundle trackerBundle =
