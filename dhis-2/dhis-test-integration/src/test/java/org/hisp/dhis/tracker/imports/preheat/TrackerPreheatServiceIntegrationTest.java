@@ -31,10 +31,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.Map;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -101,7 +101,7 @@ class TrackerPreheatServiceIntegrationTest extends PostgresIntegrationTestBase {
     program.setTrackedEntityType(trackedEntityType);
     program.setProgramType(ProgramType.WITH_REGISTRATION);
     programAttribute = "PROGRAM1";
-    program.setAttributeValues(Sets.newHashSet(new AttributeValue(programAttribute, attributeA)));
+    program.setAttributeValues(AttributeValues.of(Map.of(attributeA.getUid(), programAttribute)));
     programService.addProgram(program);
   }
 

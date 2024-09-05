@@ -33,11 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import java.util.List;
 import org.geojson.Feature;
 import org.geojson.GeoJsonObject;
@@ -45,6 +43,7 @@ import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementStore;
@@ -80,8 +79,6 @@ class AttributeValueServiceTest extends PostgresIntegrationTestBase {
 
   private Attribute attribute2;
 
-  private Attribute attribute3;
-
   private User currentUser;
 
   @BeforeEach
@@ -92,7 +89,7 @@ class AttributeValueServiceTest extends PostgresIntegrationTestBase {
     attribute1.setDataElementAttribute(true);
     attribute2 = new Attribute("attribute 2", ValueType.TEXT);
     attribute2.setDataElementAttribute(true);
-    attribute3 = new Attribute("attribute 3", ValueType.TEXT);
+    Attribute attribute3 = new Attribute("attribute 3", ValueType.TEXT);
     attribute3.setDataElementAttribute(true);
     attributeService.addAttribute(attribute1);
     attributeService.addAttribute(attribute2);
@@ -107,38 +104,20 @@ class AttributeValueServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testAddAttributeValue() {
-    AttributeValue avA = new AttributeValue("valueA", attribute1);
-    AttributeValue avB = new AttributeValue("valueB", attribute2);
-    attributeService.addAttributeValue(dataElementA, avA);
-    attributeService.addAttributeValue(dataElementB, avB);
+    attributeService.addAttributeValue(dataElementA, attribute1.getUid(), "valueA");
+    attributeService.addAttributeValue(dataElementB, attribute2.getUid(), "valueB");
     assertEquals(1, dataElementA.getAttributeValues().size());
-    assertNotNull(dataElementA.getAttributeValue(attribute1));
+    assertNotNull(dataElementA.getAttributeValue(attribute1.getUid()));
     assertEquals(1, dataElementB.getAttributeValues().size());
-    assertNotNull(dataElementB.getAttributeValue(attribute2));
-  }
-
-  @Test
-  void testDeleteAttributeValue() {
-    AttributeValue avA = new AttributeValue("valueA", attribute1);
-    attributeService.addAttributeValue(dataElementA, avA);
-    attributeService.deleteAttributeValue(dataElementA, avA);
-    assertEquals(0, dataElementA.getAttributeValues().size());
+    assertNotNull(dataElementB.getAttributeValue(attribute2.getUid()));
   }
 
   @Test
   void testGetAttributeValue() {
-    AttributeValue avA = new AttributeValue("valueA", attribute1);
-    AttributeValue avB = new AttributeValue("valueB", attribute2);
-    attributeService.addAttributeValue(dataElementA, avA);
-    attributeService.addAttributeValue(dataElementB, avB);
-    avA = dataElementA.getAttributeValue(attribute1);
-    assertNotNull(avA);
-    List<AttributeValue> attributeValues =
-        dataElementStore.getAllValuesByAttributes(Lists.newArrayList(attribute2));
-    assertNotNull(attributeValues);
-    assertEquals(1, attributeValues.size());
-    assertEquals(avB.getValue(), attributeValues.get(0).getValue());
-    List<DataElement> list = dataElementStore.getByAttributeAndValue(attribute1, "valueA");
+    attributeService.addAttributeValue(dataElementA, attribute1.getUid(), "valueA");
+    attributeService.addAttributeValue(dataElementB, attribute2.getUid(), "valueB");
+    assertNotNull(dataElementA.getAttributeValue(attribute1.getUid()));
+    List<DataElement> list = dataElementStore.getByAttributeAndValue(UID.of(attribute1), "valueA");
     assertNotNull(list);
     assertEquals(1, list.size());
     assertEquals(dataElementA, list.get(0));
@@ -146,15 +125,13 @@ class AttributeValueServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetAllByAttribute() {
-    AttributeValue avA = new AttributeValue("valueA", attribute1);
-    AttributeValue avB = new AttributeValue("valueB", attribute2);
-    attributeService.addAttributeValue(dataElementA, avA);
-    attributeService.addAttributeValue(dataElementA, avB);
-    attributeService.addAttributeValue(dataElementB, avB);
+    attributeService.addAttributeValue(dataElementA, attribute1.getUid(), "valueA");
+    attributeService.addAttributeValue(dataElementA, attribute2.getUid(), "valueB");
+    attributeService.addAttributeValue(dataElementB, attribute2.getUid(), "valueB");
     manager.update(dataElementA);
     manager.update(dataElementB);
     List<DataElement> result =
-        manager.getAllByAttributes(DataElement.class, Lists.newArrayList(attribute1, attribute2));
+        manager.getAllByAttributes(DataElement.class, UID.of(attribute1, attribute2));
     assertEquals(2, result.size());
   }
 
@@ -164,10 +141,9 @@ class AttributeValueServiceTest extends PostgresIntegrationTestBase {
     attribute.setUnique(true);
     attribute.setDataElementAttribute(true);
     attributeService.addAttribute(attribute);
-    AttributeValue attributeValueA = new AttributeValue("A", attribute);
-    attributeService.addAttributeValue(dataElementA, attributeValueA);
-    AttributeValue attributeValueB = new AttributeValue("B", attribute);
-    assertDoesNotThrow(() -> attributeService.addAttributeValue(dataElementB, attributeValueB));
+    attributeService.addAttributeValue(dataElementA, attribute.getUid(), "A");
+    assertDoesNotThrow(
+        () -> attributeService.addAttributeValue(dataElementB, attribute.getUid(), "B"));
   }
 
   @Test
@@ -176,54 +152,10 @@ class AttributeValueServiceTest extends PostgresIntegrationTestBase {
     attribute.setUnique(true);
     attribute.setDataElementAttribute(true);
     attributeService.addAttribute(attribute);
-    AttributeValue attributeValueA = new AttributeValue("A", attribute);
-    attributeService.addAttributeValue(dataElementA, attributeValueA);
-    AttributeValue attributeValueB = new AttributeValue("A", attribute);
+    attributeService.addAttributeValue(dataElementA, attribute.getUid(), "A");
     assertThrows(
         NonUniqueAttributeValueException.class,
-        () -> attributeService.addAttributeValue(dataElementB, attributeValueB));
-  }
-
-  @Test
-  void testAttributeValueFromAttribute() throws NonUniqueAttributeValueException {
-    Attribute attribute = new Attribute("test", ValueType.TEXT);
-    attribute.setDataElementAttribute(true);
-    attributeService.addAttribute(attribute);
-    AttributeValue attributeValueA = new AttributeValue("SOME VALUE", attribute);
-    AttributeValue attributeValueB = new AttributeValue("SOME VALUE", attribute);
-    attributeService.addAttributeValue(dataElementA, attributeValueA);
-    attributeService.addAttributeValue(dataElementB, attributeValueB);
-    List<DataElement> dataElements = dataElementStore.getByAttribute(attribute);
-    assertEquals(2, dataElements.size());
-    List<AttributeValue> values = dataElementStore.getAttributeValueByAttribute(attribute);
-    assertEquals(2, values.size());
-  }
-
-  @Test
-  void testAttributeValueFromAttributeAndValue() throws NonUniqueAttributeValueException {
-    Attribute attribute = new Attribute("test", ValueType.TEXT);
-    attribute.setDataElementAttribute(true);
-    attributeService.addAttribute(attribute);
-    Attribute attribute1 = new Attribute("test1", ValueType.TEXT);
-    attribute1.setDataElementAttribute(true);
-    attributeService.addAttribute(attribute1);
-    AttributeValue attributeValueA = new AttributeValue("SOME VALUE", attribute);
-    AttributeValue attributeValueB = new AttributeValue("SOME VALUE", attribute);
-    AttributeValue attributeValueC = new AttributeValue("ANOTHER VALUE", attribute);
-    attributeService.addAttributeValue(dataElementA, attributeValueA);
-    attributeService.addAttributeValue(dataElementB, attributeValueB);
-    attributeService.addAttributeValue(dataElementC, attributeValueC);
-    assertEquals(1, dataElementA.getAttributeValues().size());
-    List<DataElement> dataElements =
-        dataElementStore.getByAttributeAndValue(attribute, "SOME VALUE");
-    assertEquals(2, dataElements.size());
-    dataElements = dataElementStore.getByAttributeAndValue(attribute, "ANOTHER VALUE");
-    assertEquals(1, dataElements.size());
-    List<AttributeValue> values =
-        dataElementStore.getAttributeValueByAttributeAndValue(attribute, "SOME VALUE");
-    assertEquals(2, values.size());
-    values = dataElementStore.getAttributeValueByAttributeAndValue(attribute, "ANOTHER VALUE");
-    assertEquals(1, values.size());
+        () -> attributeService.addAttributeValue(dataElementB, attribute.getUid(), "A"));
   }
 
   @Test
@@ -232,22 +164,20 @@ class AttributeValueServiceTest extends PostgresIntegrationTestBase {
     attribute.setDataElementAttribute(true);
     attribute.setUnique(true);
     attributeService.addAttribute(attribute);
-    AttributeValue attributeValueA = new AttributeValue("CID1", attribute);
-    AttributeValue attributeValueB = new AttributeValue("CID2", attribute);
-    AttributeValue attributeValueC = new AttributeValue("CID3", attribute);
-    attributeService.addAttributeValue(dataElementA, attributeValueA);
-    attributeService.addAttributeValue(dataElementB, attributeValueB);
-    attributeService.addAttributeValue(dataElementC, attributeValueC);
+    attributeService.addAttributeValue(dataElementA, attribute.getUid(), "CID1");
+    attributeService.addAttributeValue(dataElementB, attribute.getUid(), "CID2");
+    attributeService.addAttributeValue(dataElementC, attribute.getUid(), "CID3");
 
     UserDetails userDetails = userService.createUserDetails(currentUser);
-    DataElement deA = dataElementStore.getByUniqueAttributeValue(attribute, "CID1", userDetails);
-    DataElement deB = dataElementStore.getByUniqueAttributeValue(attribute, "CID2", userDetails);
-    DataElement deC = dataElementStore.getByUniqueAttributeValue(attribute, "CID3", userDetails);
+    UID attributeId = UID.of(attribute);
+    DataElement deA = dataElementStore.getByUniqueAttributeValue(attributeId, "CID1", userDetails);
+    DataElement deB = dataElementStore.getByUniqueAttributeValue(attributeId, "CID2", userDetails);
+    DataElement deC = dataElementStore.getByUniqueAttributeValue(attributeId, "CID3", userDetails);
     assertNotNull(deA);
     assertNotNull(deB);
     assertNotNull(deC);
-    assertNull(dataElementStore.getByUniqueAttributeValue(attribute, "CID4", userDetails));
-    assertNull(dataElementStore.getByUniqueAttributeValue(attribute, "CID5", userDetails));
+    assertNull(dataElementStore.getByUniqueAttributeValue(attributeId, "CID4", userDetails));
+    assertNull(dataElementStore.getByUniqueAttributeValue(attributeId, "CID5", userDetails));
     assertEquals("DataElementA", deA.getName());
     assertEquals("DataElementB", deB.getName());
     assertEquals("DataElementC", deC.getName());
@@ -267,20 +197,20 @@ class AttributeValueServiceTest extends PostgresIntegrationTestBase {
     attributeC.setDataElementAttribute(true);
     attributeC.setUnique(true);
     attributeService.addAttribute(attributeC);
-    AttributeValue attributeValueA = new AttributeValue("VALUE", attributeA);
-    AttributeValue attributeValueB = new AttributeValue("VALUE", attributeB);
-    AttributeValue attributeValueC = new AttributeValue("VALUE", attributeC);
-    attributeService.addAttributeValue(dataElementA, attributeValueA);
-    attributeService.addAttributeValue(dataElementB, attributeValueB);
-    attributeService.addAttributeValue(dataElementC, attributeValueC);
+    attributeService.addAttributeValue(dataElementA, attributeA.getUid(), "VALUE");
+    attributeService.addAttributeValue(dataElementB, attributeB.getUid(), "VALUE");
+    attributeService.addAttributeValue(dataElementC, attributeC.getUid(), "VALUE");
     assertEquals(1, dataElementA.getAttributeValues().size());
     assertEquals(1, dataElementB.getAttributeValues().size());
     assertEquals(1, dataElementC.getAttributeValues().size());
 
     UserDetails userDetails = userService.createUserDetails(currentUser);
-    DataElement de1 = dataElementStore.getByUniqueAttributeValue(attributeA, "VALUE", userDetails);
-    DataElement de2 = dataElementStore.getByUniqueAttributeValue(attributeB, "VALUE", userDetails);
-    DataElement de3 = dataElementStore.getByUniqueAttributeValue(attributeC, "VALUE", userDetails);
+    DataElement de1 =
+        dataElementStore.getByUniqueAttributeValue(UID.of(attributeA), "VALUE", userDetails);
+    DataElement de2 =
+        dataElementStore.getByUniqueAttributeValue(UID.of(attributeB), "VALUE", userDetails);
+    DataElement de3 =
+        dataElementStore.getByUniqueAttributeValue(UID.of(attributeC), "VALUE", userDetails);
     assertNotNull(de1);
     assertNotNull(de2);
     assertNotNull(de3);
@@ -290,30 +220,10 @@ class AttributeValueServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetAllValuesByAttributes() {
-    AttributeValue avA = new AttributeValue("valueA", attribute1);
-    AttributeValue avB = new AttributeValue("valueB", attribute2);
-    attributeService.addAttributeValue(dataElementA, avA);
-    attributeService.addAttributeValue(dataElementB, avB);
-    manager.update(dataElementA);
-    manager.update(dataElementB);
-    List<DataElement> result =
-        manager.getAllByAttributes(DataElement.class, Lists.newArrayList(attribute1, attribute2));
-    assertEquals(2, result.size());
-    List<AttributeValue> values =
-        manager.getAllValuesByAttributes(
-            DataElement.class, Lists.newArrayList(attribute1, attribute2));
-    assertEquals(2, values.size());
-    assertTrue(values.stream().anyMatch(av -> av.getValue().equals("valueA")));
-    assertTrue(values.stream().anyMatch(av -> av.getValue().equals("valueB")));
-  }
-
-  @Test
   void testDeleteAttributeWithReferences() {
-    AttributeValue avA = new AttributeValue("valueA", attribute1);
-    attributeService.addAttributeValue(dataElementA, avA);
+    attributeService.addAttributeValue(dataElementA, attribute1.getUid(), "valueA");
     assertEquals(
-        1, manager.countAllValuesByAttributes(DataElement.class, Lists.newArrayList(attribute1)));
+        1, manager.countAllValuesByAttributes(DataElement.class, List.of(UID.of(attribute1))));
     assertThrows(
         DeleteNotAllowedException.class, () -> attributeService.deleteAttribute(attribute1));
   }
@@ -329,21 +239,20 @@ class AttributeValueServiceTest extends PostgresIntegrationTestBase {
         "{\"type\": \"Feature\", \"geometry\": { \"type\": \"Point\","
             + "\"coordinates\": [125.6, 10.1] }, \"properties\": { \"name\": \"Dinagat Islands\" } }";
 
-    AttributeValue avA = new AttributeValue(geoJson, attribute);
-    dataElementA.getAttributeValues().add(avA);
+    dataElementA.addAttributeValue(attribute.getUid(), geoJson);
     dataElementStore.save(dataElementA);
 
-    List<DataElement> dataElements = dataElementStore.getByAttribute(attribute);
+    List<DataElement> dataElements = dataElementStore.getByAttribute(UID.of(attribute));
     assertEquals(1, dataElements.size());
     assertEquals(dataElementA.getUid(), dataElements.get(0).getUid());
 
-    dataElements = dataElementStore.getByAttributeAndValue(attribute, geoJson);
+    dataElements = dataElementStore.getByAttributeAndValue(UID.of(attribute), geoJson);
     assertEquals(1, dataElements.size());
     assertEquals(dataElementA.getUid(), dataElements.get(0).getUid());
 
     DataElement dataElement = dataElements.get(0);
-    AttributeValue av = dataElement.getAttributeValues().iterator().next();
-    GeoJsonObject geoJsonObject = new ObjectMapper().readValue(av.getValue(), GeoJsonObject.class);
+    String value = dataElement.getAttributeValues().get(attribute.getUid());
+    GeoJsonObject geoJsonObject = new ObjectMapper().readValue(value, GeoJsonObject.class);
     assertInstanceOf(Feature.class, geoJsonObject);
   }
 }

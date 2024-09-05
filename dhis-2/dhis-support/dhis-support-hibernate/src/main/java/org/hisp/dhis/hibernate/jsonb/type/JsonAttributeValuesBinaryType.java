@@ -25,37 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata.objectbundle.validation.attribute;
+package org.hisp.dhis.hibernate.jsonb.type;
 
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.system.util.MathUtils;
-import org.hisp.dhis.system.util.ValidationUtils;
+import org.hibernate.HibernateException;
+import org.hisp.dhis.attribute.AttributeValues;
+import org.intellij.lang.annotations.Language;
 
-/**
- * Contains validators for Text types of {@link ValueType}
- *
- * @author viet
- */
-@FunctionalInterface
-public interface TextCheck extends Function<String, List<ErrorReport>> {
-  DateCheck empty = $ -> List.of();
+public class JsonAttributeValuesBinaryType extends JsonBinaryType {
 
-  DateCheck isBoolean = check(str -> MathUtils.isBool(str), ErrorCode.E6016);
+  @Override
+  public String convertObjectToJson(Object object) {
+    if (!(object instanceof AttributeValues values)) return "{}";
+    return values.toObjectJson();
+  }
 
-  DateCheck isTrueOnly = check(str -> "true".equals(str), ErrorCode.E6017);
+  @Override
+  public Object deepCopy(Object value) throws HibernateException {
+    return value; // is immutable and does not need a deep copy
+  }
 
-  DateCheck isEmail = check(str -> ValidationUtils.emailIsValid(str), ErrorCode.E6018);
-
-  static DateCheck check(final Predicate<String> predicate, ErrorCode errorCode) {
-    return str ->
-        !predicate.test(str)
-            ? List.of(new ErrorReport(AttributeValue.class, errorCode, str))
-            : List.of();
+  @Override
+  public AttributeValues convertJsonToObject(@Language("json") String json) {
+    return json == null ? AttributeValues.empty() : AttributeValues.of(json);
   }
 }

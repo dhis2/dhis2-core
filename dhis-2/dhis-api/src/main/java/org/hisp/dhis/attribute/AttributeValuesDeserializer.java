@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,19 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.node;
+package org.hisp.dhis.attribute;
 
-import java.io.InputStream;
-import java.util.List;
-import org.hisp.dhis.node.types.RootNode;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import java.io.IOException;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface NodeDeserializer extends Deserializer<RootNode> {
+public class AttributeValuesDeserializer extends JsonDeserializer<AttributeValues> {
   @Override
-  List<String> contentTypes();
-
-  @Override
-  RootNode deserialize(InputStream inputStream) throws Exception;
+  public AttributeValues deserialize(JsonParser parser, DeserializationContext context)
+      throws IOException {
+    String value = parser.readValueAsTree().toString();
+    if (value == null) return AttributeValues.empty();
+    return AttributeValues.of(value);
+  }
 }

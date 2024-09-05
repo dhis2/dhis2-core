@@ -55,7 +55,7 @@ public interface RelationshipService {
    */
   Set<String> getOrderableFields();
 
-  Relationship getRelationship(String id) throws ForbiddenException, NotFoundException;
+  Relationship getRelationship(String uid) throws ForbiddenException, NotFoundException;
 
   /**
    * Get relationships matching given {@code UID}s under the privileges of the currently

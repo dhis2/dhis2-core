@@ -111,6 +111,7 @@ public class DeleteEventSMSListener extends CompressionSMSListener {
       return SmsResponse.SUCCESS;
     }
 
+    // TODO(DHIS2-18003) we need to map tracker import report errors/warnings to an sms
     return SmsResponse.INVALID_EVENT.set(subm.getEvent());
   }
 
