@@ -39,7 +39,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
 import lombok.Getter;
 import org.apache.commons.lang3.LocaleUtils;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
@@ -300,7 +299,7 @@ public enum SettingKey {
   GLOBAL_SHELL_APP_NAME("globalShellAppName", "global-app-shell", String.class, false, false),
   ;
 
-  @Nonnull private final String name;
+  private final String name;
 
   private final Serializable defaultValue;
 
@@ -333,11 +332,7 @@ public enum SettingKey {
   }
 
   <T extends Serializable> SettingKey(
-      @Nonnull String name,
-      T defaultValue,
-      Class<T> clazz,
-      boolean confidential,
-      boolean translatable) {
+      String name, T defaultValue, Class<T> clazz, boolean confidential, boolean translatable) {
     this.name = name;
     this.defaultValue = defaultValue;
     this.clazz = clazz;
