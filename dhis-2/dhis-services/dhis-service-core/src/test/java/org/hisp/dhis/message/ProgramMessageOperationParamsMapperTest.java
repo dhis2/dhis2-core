@@ -57,13 +57,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 /**
  * @author Zubair Asghar
  */
-@MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class ProgramMessageOperationParamsMapperTest {
   private static UID ENROLLMENT = UID.of(CodeGenerator.generateUid());
@@ -96,15 +93,13 @@ class ProgramMessageOperationParamsMapperTest {
     event = new Event();
     event.setUid(EVENT.getValue());
     event.setEnrollment(enrollment);
-
-    when(manager.get(eq(Enrollment.class), anyString())).thenReturn(enrollment);
-    when(manager.get(eq(Event.class), anyString())).thenReturn(event);
-
-    when(programService.getCurrentUserPrograms()).thenReturn(List.of(program));
   }
 
   @Test
   void shouldMapEnrollmentUIDToEnrollmentObject() throws NotFoundException, BadRequestException {
+    when(programService.getCurrentUserPrograms()).thenReturn(List.of(program));
+    when(manager.get(eq(Enrollment.class), anyString())).thenReturn(enrollment);
+
     ProgramMessageQueryParams queryParams =
         subject.map(ProgramMessageOperationParams.builder().enrollment(ENROLLMENT).build());
 
@@ -113,6 +108,9 @@ class ProgramMessageOperationParamsMapperTest {
 
   @Test
   void shouldMapEventUIDToEnrollmentObject() throws NotFoundException, BadRequestException {
+    when(programService.getCurrentUserPrograms()).thenReturn(List.of(program));
+    when(manager.get(eq(Event.class), anyString())).thenReturn(event);
+
     ProgramMessageQueryParams queryParams =
         subject.map(ProgramMessageOperationParams.builder().event(EVENT).build());
 
@@ -154,6 +152,7 @@ class ProgramMessageOperationParamsMapperTest {
 
   @Test
   void shouldFailWhenUserHasNoAccessToProgram() {
+    when(manager.get(eq(Enrollment.class), anyString())).thenReturn(enrollment);
     when(programService.getCurrentUserPrograms()).thenReturn(List.of());
 
     IllegalQueryException exception =
