@@ -55,7 +55,7 @@ public class DataGenerator {
   }
 
   public static String randomString(int count) {
-    return RandomStringUtils.randomAlphabetic(count);
+    return RandomStringUtils.randomAlphabetic(Math.min(100,count));
   }
 
   public static String randomEntityName() {
