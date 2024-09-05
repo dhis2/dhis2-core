@@ -44,7 +44,6 @@ public class ProgramNotificationTemplateRequestParamsMapper {
   public ProgramNotificationTemplateOperationParams map(
       ProgramNotificationTemplateRequestParams requestParams)
       throws ConflictException, BadRequestException {
-
     validateRequestParams(requestParams);
 
     boolean isPaged = determinePaging(requestParams);
@@ -69,7 +68,6 @@ public class ProgramNotificationTemplateRequestParamsMapper {
 
   private void validateRequestParams(ProgramNotificationTemplateRequestParams requestParams)
       throws ConflictException {
-
     if (requestParams.getProgram() == null && requestParams.getProgramStage() == null) {
       throw new ConflictException("`program` or `programStage` must be specified.");
     }

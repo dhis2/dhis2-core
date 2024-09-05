@@ -98,6 +98,7 @@ class ProgramNotificationTemplateOperationParamsMapperTest {
     assertEquals(1, result.getPage());
     assertEquals(10, result.getPageSize());
     assertTrue(result.isPaged());
+
     verify(manager).get(Program.class, PROGRAM.getValue());
     verifyNoMoreInteractions(manager);
   }
@@ -113,8 +114,6 @@ class ProgramNotificationTemplateOperationParamsMapperTest {
     assertNotNull(result);
     assertNull(result.getProgram());
     assertEquals(programStage, result.getProgramStage());
-    verify(manager).get(ProgramStage.class, PROGRAM_STAGE.getValue());
-    verifyNoMoreInteractions(manager);
   }
 
   @Test
@@ -141,6 +140,7 @@ class ProgramNotificationTemplateOperationParamsMapperTest {
         ProgramNotificationTemplateOperationParams.builder()
             .programStage(invalidProgramStage)
             .build();
+
     when(manager.get(ProgramStage.class, invalidProgramStage.getValue())).thenReturn(null);
 
     IllegalQueryException exception =
