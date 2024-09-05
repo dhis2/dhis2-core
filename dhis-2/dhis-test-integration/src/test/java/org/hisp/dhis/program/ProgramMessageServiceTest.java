@@ -211,6 +211,9 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
         Set.of(DeliveryChannel.SMS),
         programMessages.get(0).getDeliveryChannels(),
         "The delivery channels should match the expected channels");
+
+    assertEquals(
+        programMessages.get(0).getRecipients().getOrganisationUnit().getUid(), ouA.getUid());
   }
 
   @Test
