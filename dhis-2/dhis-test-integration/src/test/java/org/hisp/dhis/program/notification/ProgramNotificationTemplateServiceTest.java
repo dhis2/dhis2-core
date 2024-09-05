@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.program.notification;
 
-import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
@@ -116,7 +115,7 @@ class ProgramNotificationTemplateServiceTest extends PostgresIntegrationTestBase
     List<ProgramNotificationTemplate> templates =
         programNotificationTemplateService.getProgramNotificationTemplates(param);
 
-    assertContainsOnly(List.of(pnt1, pnt2), templates);
+    assertEquals(List.of(pnt2, pnt1), templates);
   }
 
   @Test
