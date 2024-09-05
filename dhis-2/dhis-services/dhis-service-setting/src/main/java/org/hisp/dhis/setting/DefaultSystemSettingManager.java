@@ -27,13 +27,11 @@
  */
 package org.hisp.dhis.setting;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import com.google.common.collect.Lists;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +58,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @Slf4j
 public class DefaultSystemSettingManager implements SystemSettingManager {
+
   private static final Map<String, SettingKey> NAME_KEY_MAP =
       Map.copyOf(
           Lists.newArrayList(SettingKey.values()).stream()
@@ -68,32 +67,18 @@ public class DefaultSystemSettingManager implements SystemSettingManager {
   /** Cache for system settings. Does not accept nulls. Disabled during test phase. */
   private final Cache<SerializableOptional> settingCache;
 
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
   private final SystemSettingStore systemSettingStore;
-
-  private final PBEStringEncryptor pbeStringEncryptor;
-
+  private final @Qualifier("tripleDesStringEncryptor") PBEStringEncryptor pbeStringEncryptor;
   private final TransactionTemplate transactionTemplate;
-
-  private final List<String> flags;
 
   public DefaultSystemSettingManager(
       SystemSettingStore systemSettingStore,
-      @Qualifier("tripleDesStringEncryptor") PBEStringEncryptor pbeStringEncryptor,
+      PBEStringEncryptor pbeStringEncryptor,
       CacheProvider cacheProvider,
-      List<String> flags,
       TransactionTemplate transactionTemplate) {
-    checkNotNull(systemSettingStore);
-    checkNotNull(pbeStringEncryptor);
-    checkNotNull(cacheProvider);
-    checkNotNull(flags);
 
     this.systemSettingStore = systemSettingStore;
     this.pbeStringEncryptor = pbeStringEncryptor;
-    this.flags = flags;
     this.settingCache = cacheProvider.createSystemSettingCache();
     this.transactionTemplate = transactionTemplate;
   }
@@ -221,42 +206,10 @@ public class DefaultSystemSettingManager implements SystemSettingManager {
     return Optional.empty();
   }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<SystemSetting> getAllSystemSettings() {
+  private List<SystemSetting> getAllSystemSettings() {
     return systemSettingStore.getAll().stream()
         .filter(systemSetting -> !isConfidential(systemSetting.getName()))
         .collect(Collectors.toList());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Map<String, Serializable> getSystemSettingsAsMap() {
-    final Map<String, Serializable> settingsMap = new HashMap<>();
-
-    for (SettingKey key : SettingKey.values()) {
-      if (key.hasDefaultValue()) {
-        settingsMap.put(key.getName(), key.getDefaultValue());
-      }
-    }
-
-    Collection<SystemSetting> systemSettings = getAllSystemSettings();
-
-    for (SystemSetting systemSetting : systemSettings) {
-      Serializable settingValue = systemSetting.getDisplayValue();
-
-      if (settingValue == null) {
-        Optional<SettingKey> setting = SettingKey.getByName(systemSetting.getName());
-
-        if (setting.isPresent()) {
-          settingValue = setting.get().getDefaultValue();
-        }
-      }
-
-      settingsMap.put(systemSetting.getName(), settingValue);
-    }
-
-    return settingsMap;
   }
 
   @Override
@@ -283,12 +236,6 @@ public class DefaultSystemSettingManager implements SystemSettingManager {
   // -------------------------------------------------------------------------
   // Specific methods
   // -------------------------------------------------------------------------
-
-  @Override
-  public List<String> getFlags() {
-    Collections.sort(flags);
-    return flags;
-  }
 
   @Override
   public boolean isConfidential(String name) {
