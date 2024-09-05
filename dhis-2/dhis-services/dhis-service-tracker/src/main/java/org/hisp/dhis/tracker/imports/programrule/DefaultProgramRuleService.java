@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.imports.programrule;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -37,6 +39,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -44,6 +48,9 @@ import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.export.event.EventOperationParams;
+import org.hisp.dhis.tracker.export.event.EventParams;
+import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.RuleEngineConverterService;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
@@ -61,6 +68,8 @@ import org.springframework.transaction.annotation.Transactional;
 class DefaultProgramRuleService implements ProgramRuleService {
   @Qualifier("serviceTrackerRuleEngine")
   private final ProgramRuleEngine programRuleEngine;
+
+  private final EventService eventService;
 
   private final RuleEngineConverterService<
           org.hisp.dhis.tracker.imports.domain.Enrollment, Enrollment>
@@ -208,10 +217,21 @@ class DefaultProgramRuleService implements ProgramRuleService {
   // if they are present in both places
   private Set<Event> getEventsFromEnrollment(
       String enrollmentUid, TrackerBundle bundle, TrackerPreheat preheat) {
-    Stream<Event> events =
-        preheat.getEvents().values().stream()
-            .filter(e -> e.getEnrollment().getUid().equals(enrollmentUid))
-            .filter(e -> bundle.findEventByUid(e.getUid()).isEmpty());
+    Stream<Event> events;
+    try {
+      events =
+          eventService
+              .getEvents(
+                  EventOperationParams.builder()
+                      .eventParams(EventParams.TRUE)
+                      .orgUnitMode(ACCESSIBLE)
+                      .enrollments(Set.of(enrollmentUid))
+                      .build())
+              .stream()
+              .filter(e -> bundle.findEventByUid(e.getUid()).isEmpty());
+    } catch (BadRequestException | ForbiddenException e) {
+      throw new RuntimeException(e);
+    }
 
     Stream<Event> bundleEvents =
         bundle.getEvents().stream()

@@ -51,6 +51,7 @@ import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -76,6 +77,12 @@ class EnrollmentImportValidationTest extends TrackerTest {
             new TrackerImportParams(),
             fromJson("tracker/validations/enrollments_te_te-data.json")));
     manager.flush();
+  }
+
+  @BeforeEach
+  void setUpUser() {
+    User importUser = userService.getUser("M5zQapPyTZI");
+    injectSecurityContextUser(importUser);
   }
 
   @Test

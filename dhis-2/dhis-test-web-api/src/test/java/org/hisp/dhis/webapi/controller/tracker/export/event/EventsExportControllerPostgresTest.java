@@ -89,6 +89,7 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
     manager.save(orgUnit);
 
     user = createAndAddUser("username", orgUnit, ALL.name());
+    injectSecurityContextUser(user);
 
     trackedEntityType = trackedEntityTypeAccessible();
 
