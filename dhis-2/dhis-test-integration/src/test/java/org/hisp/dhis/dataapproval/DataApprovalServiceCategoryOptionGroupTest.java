@@ -67,7 +67,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.jupiter.api.AfterEach;
@@ -96,8 +95,6 @@ class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTest
   @Autowired protected IdentifiableObjectManager identifiableObjectManager;
 
   @Autowired private SystemSettingManager systemSettingManager;
-
-  @Autowired protected UserGroupAccessService userGroupAccessService;
 
   @Autowired protected UserGroupService userGroupService;
 

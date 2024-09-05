@@ -32,11 +32,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
@@ -312,19 +312,19 @@ public class DefaultDataElementService implements DataElementService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataElement> getByAttributeAndValue(Attribute attribute, String value) {
+  public List<DataElement> getByAttributeAndValue(UID attribute, String value) {
     return dataElementStore.getByAttributeAndValue(attribute, value);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataElement> getByAttribute(Attribute attribute) {
+  public List<DataElement> getByAttribute(UID attribute) {
     return dataElementStore.getByAttribute(attribute);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public DataElement getByUniqueAttributeValue(Attribute attribute, String value) {
+  public DataElement getByUniqueAttributeValue(UID attribute, String value) {
     return dataElementStore.getByUniqueAttributeValue(attribute, value);
   }
 }

@@ -40,7 +40,7 @@ import org.mapstruct.factory.Mappers;
       DebugMapper.class,
       TrackedEntityMapper.class,
       OrganisationUnitMapper.class,
-      AttributeValueMapper.class
+      AttributeValuesMapper.class
     })
 public interface EnrollmentMapper extends PreheatMapper<Enrollment> {
   EnrollmentMapper INSTANCE = Mappers.getMapper(EnrollmentMapper.class);

@@ -31,11 +31,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -77,26 +74,20 @@ public class OrganisationUnitLocationController {
                 longitude, latitude, distance));
 
     for (OrganisationUnit organisationUnit : entityList) {
-      Set<AttributeValue> attributeValues = organisationUnit.getAttributeValues();
-      attributeValues.clear();
-
       if (orgUnitGroupSetId != null) {
+        AttributeValues attributeValues = AttributeValues.empty();
         for (OrganisationUnitGroup organisationUnitGroup : organisationUnit.getGroups()) {
           for (OrganisationUnitGroupSet orgunitGroupSet : organisationUnitGroup.getGroupSets()) {
             if (orgunitGroupSet.getUid().compareTo(orgUnitGroupSetId) == 0) {
-              AttributeValue attributeValue = new AttributeValue();
-              // attributeValue.setAttribute( new Attribute(
-              // ORGUNIGROUP_SYMBOL, ORGUNIGROUP_SYMBOL ) );
-              attributeValue.setAttribute(new Attribute(ORGUNIGROUP_SYMBOL, ValueType.TEXT));
-              attributeValue.setValue(organisationUnitGroup.getSymbol());
-              attributeValues.add(attributeValue);
+              attributeValues =
+                  attributeValues.added(ORGUNIGROUP_SYMBOL, organisationUnitGroup.getSymbol());
             }
           }
         }
+        organisationUnit.setAttributeValues(attributeValues);
+      } else {
+        organisationUnit.setAttributeValues(AttributeValues.empty());
       }
-
-      organisationUnit.setAttributeValues(attributeValues);
-
       // Clear out all data not needed for this task
 
       organisationUnit.removeAllDataSets();
@@ -125,8 +116,7 @@ public class OrganisationUnitLocationController {
     // Remove unrelated details and output in JSON format
 
     for (OrganisationUnit organisationUnit : entityList) {
-      Set<AttributeValue> attributeValues = organisationUnit.getAttributeValues();
-      attributeValues.clear();
+      organisationUnit.setAttributeValues(AttributeValues.empty());
       organisationUnit.removeAllDataSets();
       organisationUnit.removeAllUsers();
       organisationUnit.removeAllOrganisationUnitGroups();
