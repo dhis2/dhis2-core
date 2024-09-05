@@ -50,7 +50,6 @@ public class ProgramNotificationTemplateOperationParamsMapper {
   @Transactional
   public ProgramNotificationTemplateQueryParams map(
       ProgramNotificationTemplateOperationParams operationParams) {
-
     Program program = getEntity(operationParams.getProgram(), Program.class);
     ProgramStage programStage = getEntity(operationParams.getProgramStage(), ProgramStage.class);
 

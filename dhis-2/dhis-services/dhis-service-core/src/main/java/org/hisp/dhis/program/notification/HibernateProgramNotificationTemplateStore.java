@@ -30,9 +30,9 @@ package org.hisp.dhis.program.notification;
 import java.util.Collection;
 import java.util.List;
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -41,13 +41,13 @@ import org.springframework.stereotype.Repository;
 
 /** Created by zubair@dhis2.org on 16.11.17. */
 @Repository("org.hisp.dhis.program.ProgramNotificationTemplateStore")
-public class DefaultProgramNotificationTemplateStore
+public class HibernateProgramNotificationTemplateStore
     extends HibernateIdentifiableObjectStore<ProgramNotificationTemplate>
     implements ProgramNotificationTemplateStore {
-  private static final String PROGRAM_ID = "pid";
-  private static final String PROGRAM_STAGE_ID = "psid";
 
-  public DefaultProgramNotificationTemplateStore(
+  private static final String DEFAULT_ORDER = " programnotificationtemplateid desc ";
+
+  public HibernateProgramNotificationTemplateStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
@@ -63,26 +63,60 @@ public class DefaultProgramNotificationTemplateStore
 
   @Override
   public int countProgramNotificationTemplates(ProgramNotificationTemplateQueryParams param) {
-    Query query =
-        nativeSynchronizedQuery(
-            "select count(*) from programnotificationtemplate where programstageid = :psid or programid = :pid");
-    query.setParameter(
-        PROGRAM_STAGE_ID, param.hasProgramStage() ? param.getProgramStage().getId() : 0);
-    query.setParameter(PROGRAM_ID, param.hasProgram() ? param.getProgram().getId() : 0);
+    StringBuilder sql = new StringBuilder("select count(*) from programnotificationtemplate ");
+    SqlHelper sqlHelper = new SqlHelper();
 
-    return ((Number) query.getSingleResult()).intValue();
+    if (param.hasProgram()) {
+      sql.append(sqlHelper.whereAnd()).append(" programid = :programId");
+    }
+
+    if (param.hasProgramStage()) {
+      sql.append(sqlHelper.whereAnd()).append(" programstageid = :programStageId");
+    }
+
+    NativeQuery<Number> query = nativeSynchronizedQuery(sql.toString());
+
+    if (param.hasProgram()) {
+      query.setParameter("programId", param.getProgram().getId());
+    }
+
+    if (param.hasProgramStage()) {
+      query.setParameter("programStageId", param.getProgramStage().getId());
+    }
+    return query.getSingleResult().intValue();
   }
 
   @Override
   public List<ProgramNotificationTemplate> getProgramNotificationTemplates(
       ProgramNotificationTemplateQueryParams param) {
-    NativeQuery<ProgramNotificationTemplate> query =
-        nativeSynchronizedTypedQuery(
-            "select * from programnotificationtemplate where programstageid = :psid or programid = :pid");
-    query.setParameter(
-        PROGRAM_STAGE_ID, param.hasProgramStage() ? param.getProgramStage().getId() : 0);
-    query.setParameter(PROGRAM_ID, param.hasProgram() ? param.getProgram().getId() : 0);
+    SqlHelper sqlHelper = new SqlHelper();
 
+    StringBuilder sql = new StringBuilder("select * from programnotificationtemplate ");
+
+    if (param.hasProgram()) {
+      sql.append(sqlHelper.whereAnd()).append(" programid = :programId ");
+    }
+
+    if (param.hasProgramStage()) {
+      sql.append(sqlHelper.whereAnd()).append(" programstageid = :programStageId ");
+    }
+
+    sql.append(" ORDER BY ").append(DEFAULT_ORDER);
+
+    NativeQuery<ProgramNotificationTemplate> query = nativeSynchronizedTypedQuery(sql.toString());
+
+    if (param.hasProgram()) {
+      query.setParameter("programId", param.getProgram().getId());
+    }
+
+    if (param.hasProgramStage()) {
+      query.setParameter("programStageId", param.getProgramStage().getId());
+    }
+
+    if (param.isPaged()) {
+      query.setFirstResult((param.getPage() - 1) * param.getPageSize());
+      query.setMaxResults(param.getPageSize());
+    }
     return query.getResultList();
   }
 
