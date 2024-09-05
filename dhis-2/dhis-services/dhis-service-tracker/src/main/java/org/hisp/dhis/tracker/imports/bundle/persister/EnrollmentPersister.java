@@ -35,9 +35,9 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
@@ -61,8 +61,8 @@ public class EnrollmentPersister
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Enrollment, Enrollment>
           enrollmentConverter,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
-      TrackedEntityAttributeValueChangeLogService trackedEntityAttributeValueChangeLogService) {
-    super(reservedValueService, trackedEntityAttributeValueChangeLogService);
+      TrackedEntityChangeLogService trackedEntityChangeLogService) {
+    super(reservedValueService, trackedEntityChangeLogService);
 
     this.enrollmentConverter = enrollmentConverter;
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;

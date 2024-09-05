@@ -56,6 +56,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.OrgUnitField;
@@ -63,6 +64,8 @@ import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
+import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -75,6 +78,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RequestTypeAware;
+import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -100,19 +104,6 @@ import org.springframework.util.Assert;
 @Service("org.hisp.dhis.analytics.event.EventDataQueryService")
 @RequiredArgsConstructor
 public class DefaultEventDataQueryService implements EventDataQueryService {
-  private static final String COL_NAME_PROGRAM_STATUS_EVENTS = "pistatus";
-
-  private static final String COL_NAME_PROGRAM_STATUS_ENROLLMENTS = "enrollmentstatus";
-
-  private static final String COL_NAME_EVENT_STATUS = "psistatus";
-
-  private static final String COL_NAME_EVENTDATE = "occurreddate";
-
-  private static final String COL_NAME_ENROLLMENTDATE = "enrollmentdate";
-
-  private static final String COL_NAME_INCIDENTDATE = "incidentdate";
-
-  private static final String COL_NAME_DUEDATE = "scheduleddate";
 
   private final ProgramService programService;
 
@@ -143,8 +134,11 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     Locale locale = (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE);
 
+    DataQueryParams dataQueryParams =
+        DataQueryParams.newBuilder().withUserOrgUnitType(UserOrgUnitType.DATA_OUTPUT).build();
+
     List<OrganisationUnit> userOrgUnits =
-        dataQueryService.getUserOrgUnits(null, request.getUserOrgUnit());
+        dataQueryService.getUserOrgUnits(dataQueryParams, request.getUserOrgUnit());
 
     Program pr = programService.getProgram(request.getProgram());
 
@@ -599,18 +593,27 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   @Getter
   @RequiredArgsConstructor
   enum SortableItems {
-    ENROLLMENT_DATE(ColumnHeader.ENROLLMENT_DATE.getItem(), COL_NAME_ENROLLMENTDATE),
-    INCIDENT_DATE(ColumnHeader.INCIDENT_DATE.getItem(), COL_NAME_INCIDENTDATE),
-    EVENT_DATE(ColumnHeader.EVENT_DATE.getItem(), COL_NAME_EVENTDATE),
-    SCHEDULED_DATE(ColumnHeader.SCHEDULED_DATE.getItem(), COL_NAME_DUEDATE),
+    ENROLLMENT_DATE(
+        ColumnHeader.ENROLLMENT_DATE.getItem(),
+        EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME),
+    INCIDENT_DATE(
+        ColumnHeader.INCIDENT_DATE.getItem(),
+        EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
+    EVENT_DATE(
+        ColumnHeader.EVENT_DATE.getItem(), EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
+    SCHEDULED_DATE(
+        ColumnHeader.SCHEDULED_DATE.getItem(), EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME),
     ORG_UNIT_NAME(ColumnHeader.ORG_UNIT_NAME.getItem()),
     ORG_UNIT_NAME_HIERARCHY(ColumnHeader.ORG_UNIT_NAME_HIERARCHY.getItem()),
     ORG_UNIT_CODE(ColumnHeader.ORG_UNIT_CODE.getItem()),
     PROGRAM_STATUS(
         ColumnHeader.PROGRAM_STATUS.getItem(),
-        COL_NAME_PROGRAM_STATUS_EVENTS,
-        COL_NAME_PROGRAM_STATUS_ENROLLMENTS),
-    EVENT_STATUS(ColumnHeader.EVENT_STATUS.getItem(), COL_NAME_EVENT_STATUS),
+        EventAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME),
+    EVENT_STATUS(
+        ColumnHeader.EVENT_STATUS.getItem(), EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME),
     CREATED_BY_DISPLAY_NAME(ColumnHeader.CREATED_BY_DISPLAY_NAME.getItem()),
     LAST_UPDATED_BY_DISPLAY_NAME(ColumnHeader.LAST_UPDATED_BY_DISPLAY_NAME.getItem()),
     LAST_UPDATED(ColumnHeader.LAST_UPDATED.getItem());

@@ -50,9 +50,9 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -248,7 +248,7 @@ class DefaultEnrollmentService implements EnrollmentService {
   @Override
   public List<Enrollment> getEnrollments(
       String trackedEntityUid, Program program, EnrollmentStatus enrollmentStatus)
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
             .trackedEntityUid(trackedEntityUid)
@@ -262,7 +262,7 @@ class DefaultEnrollmentService implements EnrollmentService {
 
   @Override
   public List<Enrollment> getEnrollments(EnrollmentOperationParams params)
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
 
     return getEnrollments(
@@ -274,7 +274,7 @@ class DefaultEnrollmentService implements EnrollmentService {
 
   @Override
   public Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
 
     Page<Enrollment> enrollmentsPage = enrollmentStore.getEnrollments(queryParams, pageParams);

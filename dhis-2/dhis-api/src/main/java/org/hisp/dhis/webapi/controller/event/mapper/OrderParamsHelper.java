@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.event.mapper;
 
-import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.findColumn;
+import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.OrderColumn.findColumn;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -37,12 +38,23 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderParamsHelper {
+  public static final String CREATED_ID = "created";
+
+  public static final String ORG_UNIT_NAME = "ouname";
+
+  public static final String INACTIVE_ID = "inactive";
+
+  public static final String MAIN_QUERY_ALIAS = "TE";
+
+  public static final String ENROLLMENT_QUERY_ALIAS = "en";
 
   public static List<OrderParam> toOrderParams(List<OrderCriteria> criteria) {
     return Optional.ofNullable(criteria).orElse(Collections.emptyList()).stream()
@@ -68,5 +80,32 @@ public class OrderParamsHelper {
     }
 
     return errors;
+  }
+
+  @Getter
+  @AllArgsConstructor
+  public enum OrderColumn {
+    TRACKEDENTITY("trackedEntity", "uid", MAIN_QUERY_ALIAS),
+    CREATED_AT("createdAt", CREATED_ID, MAIN_QUERY_ALIAS),
+    CREATED_AT_CLIENT("createdAtClient", "createdatclient", MAIN_QUERY_ALIAS),
+    UPDATED_AT("updatedAt", "lastupdated", MAIN_QUERY_ALIAS),
+    UPDATED_AT_CLIENT("updatedAtClient", "lastupdatedatclient", MAIN_QUERY_ALIAS),
+    ENROLLED_AT("enrolledAt", "enrollmentdate", ENROLLMENT_QUERY_ALIAS),
+    INACTIVE(INACTIVE_ID, "inactive", MAIN_QUERY_ALIAS);
+
+    private final String propName;
+
+    private final String column;
+
+    private final String tableAlias;
+
+    /**
+     * @return an Optional of an OrderColumn matching by property name
+     */
+    public static Optional<OrderColumn> findColumn(String property) {
+      return Arrays.stream(values())
+          .filter(orderColumn -> orderColumn.getPropName().equals(property))
+          .findFirst();
+    }
   }
 }

@@ -31,13 +31,15 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
@@ -58,7 +60,7 @@ class RelationshipOperationParamsMapper {
 
   @Transactional(readOnly = true)
   public RelationshipQueryParams map(RelationshipOperationParams params)
-      throws NotFoundException, ForbiddenException {
+      throws NotFoundException, ForbiddenException, BadRequestException {
 
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
@@ -78,8 +80,9 @@ class RelationshipOperationParamsMapper {
   }
 
   private TrackedEntity validateTrackedEntity(UserDetails user, String uid)
-      throws NotFoundException, ForbiddenException {
-    TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(uid);
+      throws NotFoundException, ForbiddenException, BadRequestException {
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(uid, null, TrackedEntityParams.FALSE, false);
     if (trackedEntity == null) {
       throw new NotFoundException(TrackedEntity.class, uid);
     }

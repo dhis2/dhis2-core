@@ -38,7 +38,6 @@ import java.util.Collections;
 import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.GeoJsonAttributesCheck;
@@ -60,7 +59,7 @@ import org.mockito.internal.util.collections.Sets;
  * @author viet@dhis2.org
  */
 class GeoJsonAttributesCheckTest {
-  private GeoJsonAttributesCheck geoJsonAttributesCheck = new GeoJsonAttributesCheck();
+  private final GeoJsonAttributesCheck geoJsonAttributesCheck = new GeoJsonAttributesCheck();
 
   private OrganisationUnit organisationUnit;
 
@@ -98,23 +97,21 @@ class GeoJsonAttributesCheckTest {
 
   @Test
   public void testValidPolygon() {
-    organisationUnit
-        .getAttributeValues()
-        .add(
-            new AttributeValue(
-                attribute,
-                " {\n"
-                    + "         \"type\": \"Polygon\",\n"
-                    + "         \"coordinates\": [\n"
-                    + "             [\n"
-                    + "                 [100.0, 0.0],\n"
-                    + "                 [101.0, 0.0],\n"
-                    + "                 [101.0, 1.0],\n"
-                    + "                 [100.0, 1.0],\n"
-                    + "                 [100.0, 0.0]\n"
-                    + "             ]\n"
-                    + "         ]\n"
-                    + "     }"));
+    organisationUnit.addAttributeValue(
+        attribute.getUid(),
+        """
+                 {
+                         "type": "Polygon",
+                         "coordinates": [
+                             [
+                                 [100.0, 0.0],
+                                 [101.0, 0.0],
+                                 [101.0, 1.0],
+                                 [100.0, 1.0],
+                                 [100.0, 0.0]
+                             ]
+                         ]
+                     }""");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -125,16 +122,15 @@ class GeoJsonAttributesCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertTrue(CollectionUtils.isEmpty(objectReportList));
   }
 
   @Test
   public void testInValidPolygon() {
-    organisationUnit
-        .getAttributeValues()
-        .add(new AttributeValue(attribute, " {\n" + "         \"type\": \"Polygon\"     }"));
+    organisationUnit.addAttributeValue(
+        attribute.getUid(), " {\n" + "         \"type\": \"Polygon\"     }");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -145,7 +141,7 @@ class GeoJsonAttributesCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertFalse(CollectionUtils.isEmpty(objectReportList));
     assertEquals(ErrorCode.E6004, objectReportList.get(0).getErrorReports().get(0).getErrorCode());
@@ -153,9 +149,8 @@ class GeoJsonAttributesCheckTest {
 
   @Test
   public void testInValidPolygonType() {
-    organisationUnit
-        .getAttributeValues()
-        .add(new AttributeValue(attribute, " {\n" + "         \"type\": \"PolygonNew\"     }"));
+    organisationUnit.addAttributeValue(
+        attribute.getUid(), " {\n" + "         \"type\": \"PolygonNew\"     }");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -166,7 +161,7 @@ class GeoJsonAttributesCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertFalse(CollectionUtils.isEmpty(objectReportList));
     assertEquals(ErrorCode.E6004, objectReportList.get(0).getErrorReports().get(0).getErrorCode());
@@ -174,23 +169,21 @@ class GeoJsonAttributesCheckTest {
 
   @Test
   public void testInvalidPolygonCoordinates() {
-    organisationUnit
-        .getAttributeValues()
-        .add(
-            new AttributeValue(
-                attribute,
-                " {\n"
-                    + "         \"type\": \"Polygon\",\n"
-                    + "         \"test\": [\n"
-                    + "             [\n"
-                    + "                 [100.0, 0.0],\n"
-                    + "                 [101.0, 0.0],\n"
-                    + "                 [101.0, 1.0],\n"
-                    + "                 [100.0, 1.0],\n"
-                    + "                 [100.0, 0.0]\n"
-                    + "             ]\n"
-                    + "         ]\n"
-                    + "     }"));
+    organisationUnit.addAttributeValue(
+        attribute.getUid(),
+        """
+                 {
+                         "type": "Polygon",
+                         "test": [
+                             [
+                                 [100.0, 0.0],
+                                 [101.0, 0.0],
+                                 [101.0, 1.0],
+                                 [100.0, 1.0],
+                                 [100.0, 0.0]
+                             ]
+                         ]
+                     }""");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -201,22 +194,18 @@ class GeoJsonAttributesCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
     assertFalse(CollectionUtils.isEmpty(objectReportList));
     assertEquals(ErrorCode.E6004, objectReportList.get(0).getErrorReports().get(0).getErrorCode());
   }
 
   @Test
   public void testInvalidPolygonCoordinatesValue() {
-    organisationUnit
-        .getAttributeValues()
-        .add(
-            new AttributeValue(
-                attribute,
-                " {"
-                    + "         \"type\": \"Polygon\","
-                    + "         \"coordinates\": [100.0, 0.0]"
-                    + "     }"));
+    organisationUnit.addAttributeValue(
+        attribute.getUid(),
+        """
+                {
+                 "type": "Polygon",         "coordinates": [100.0, 0.0]     }""");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -227,7 +216,7 @@ class GeoJsonAttributesCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
     assertFalse(CollectionUtils.isEmpty(objectReportList));
     assertEquals(ErrorCode.E6004, objectReportList.get(0).getErrorReports().get(0).getErrorCode());
   }
@@ -235,10 +224,14 @@ class GeoJsonAttributesCheckTest {
   @Test
   public void testInvalidGeoJsonType() {
     String geoJson =
-        "{\"type\": \"Feature\", \"geometry\": { \"type\": \"Point\","
-            + "\"coordinasstes\": [125.6, 10.1] }, \"properties\": { \"name\": \"Dinagat Islands\" } }";
+        """
+            {
+              "type": "Feature",
+              "geometry": { "type": "Point","coordinasstes": [125.6, 10.1] },
+              "properties": { "name": "Dinagat Islands" }
+            }""";
 
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, geoJson));
+    organisationUnit.addAttributeValue(attribute.getUid(), geoJson);
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -249,7 +242,7 @@ class GeoJsonAttributesCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
     assertFalse(CollectionUtils.isEmpty(objectReportList));
     assertEquals(ErrorCode.E6005, objectReportList.get(0).getErrorReports().get(0).getErrorCode());
   }

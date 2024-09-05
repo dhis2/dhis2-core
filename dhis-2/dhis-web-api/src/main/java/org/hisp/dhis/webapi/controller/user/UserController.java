@@ -44,11 +44,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -57,14 +55,13 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.OpenApi.Document.Group;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
@@ -133,7 +130,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(group = Group.MANAGE)
+@OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
 @Slf4j
 @Controller
 @RequestMapping("/api/users")
@@ -256,7 +253,7 @@ public class UserController extends AbstractCrudController<User> {
 
   @Override
   @GetMapping("/{uid}/{property}")
-  @OpenApi.Document(group = Group.QUERY)
+  @OpenApi.Document(group = OpenApi.Document.GROUP_QUERY)
   public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
       @OpenApi.Param(OpenApi.PropertyNames.class) @PathVariable("property") String pvProperty,
@@ -808,25 +805,16 @@ public class UserController extends AbstractCrudController<User> {
    * @param userReplica user for which to copy attribute values.
    */
   private void copyAttributeValues(User userReplica) {
-    if (userReplica.getAttributeValues() == null) {
-      return;
-    }
+    if (userReplica.getAttributeValues().isEmpty()) return;
 
-    Set<AttributeValue> newAttributeValues = new HashSet<>();
+    List<String> uniqueAttributeIds =
+        attributeService.getAttributesByIds(userReplica.getAttributeValues().keys()).stream()
+            .filter(Attribute::isUnique)
+            .map(Attribute::getUid)
+            .toList();
 
-    for (AttributeValue oldValue : userReplica.getAttributeValues()) {
-      if (!oldValue.getAttribute().isUnique()) {
-        AttributeValue newValue = new AttributeValue(oldValue.getValue(), oldValue.getAttribute());
-
-        newAttributeValues.add(newValue);
-      }
-    }
-
-    if (newAttributeValues.isEmpty()) {
-      userReplica.setAttributeValues(null);
-    }
-
-    userReplica.setAttributeValues(newAttributeValues);
+    userReplica.setAttributeValues(
+        userReplica.getAttributeValues().removedAll(uniqueAttributeIds::contains));
   }
 
   private User mergeLastLoginAttribute(User source, User target) {

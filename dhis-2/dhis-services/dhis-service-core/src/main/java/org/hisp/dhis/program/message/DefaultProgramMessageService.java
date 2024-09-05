@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.program.message;
 
+import static org.hisp.dhis.changelog.ChangeLogType.READ;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -47,7 +50,8 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentity.ApiTrackedEntityAuditService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,8 +69,6 @@ public class DefaultProgramMessageService implements ProgramMessageService {
 
   private final OrganisationUnitService organisationUnitService;
 
-  private final TrackedEntityService trackedEntityService;
-
   private final OutboundMessageBatchService messageBatchService;
 
   private final List<DeliveryChannelStrategy> strategies;
@@ -76,6 +78,8 @@ public class DefaultProgramMessageService implements ProgramMessageService {
   private final AclService aclService;
 
   private final ProgramMessageOperationParamMapper operationParamMapper;
+
+  private final ApiTrackedEntityAuditService apiTrackedEntityAuditService;
 
   // -------------------------------------------------------------------------
   // Implementation methods
@@ -185,9 +189,13 @@ public class DefaultProgramMessageService implements ProgramMessageService {
       violations.add("Enrollment or event must be specified");
     }
 
-    if (recipients.getTrackedEntity() != null
-        && trackedEntityService.getTrackedEntity(recipients.getTrackedEntity().getUid()) == null) {
-      violations.add("Tracked entity does not exist");
+    if (recipients.getTrackedEntity() != null) {
+      TrackedEntity trackedEntity = getEntity(TrackedEntity.class, recipients.getTrackedEntity());
+      if (trackedEntity == null) {
+        violations.add("Tracked entity does not exist");
+      }
+
+      apiTrackedEntityAuditService.addTrackedEntityAudit(trackedEntity, getCurrentUsername(), READ);
     }
 
     if (recipients.getOrganisationUnit() != null

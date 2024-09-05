@@ -41,7 +41,6 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -53,8 +52,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 class PotentialDuplicateStoreRelationshipTest extends PostgresIntegrationTestBase {
 
   @Autowired private HibernatePotentialDuplicateStore potentialDuplicateStore;
-
-  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private RelationshipTypeService relationshipTypeService;
 
@@ -147,8 +144,8 @@ class PotentialDuplicateStoreRelationshipTest extends PostgresIntegrationTestBas
     manager.save(uni2);
     manager.save(uni3);
     manager.save(uni4);
-    original = trackedEntityService.getTrackedEntity(original.getUid());
-    duplicate = trackedEntityService.getTrackedEntity(duplicate.getUid());
+    original = manager.get(TrackedEntity.class, original.getUid());
+    duplicate = manager.get(TrackedEntity.class, duplicate.getUid());
     List<String> relationships = Lists.newArrayList(uni3.getUid());
     potentialDuplicateStore.moveRelationships(original, duplicate, relationships);
     manager.update(original);

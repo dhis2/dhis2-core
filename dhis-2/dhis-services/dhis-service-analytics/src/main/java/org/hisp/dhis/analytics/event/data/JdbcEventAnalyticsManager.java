@@ -66,6 +66,8 @@ import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -318,17 +320,21 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     ImmutableList.Builder<String> cols =
         new ImmutableList.Builder<String>()
             .add(
-                "event",
-                "ps",
-                "occurreddate",
-                "storedby",
-                "createdbydisplayname",
-                "lastupdatedbydisplayname",
-                "lastupdated",
-                "scheduleddate");
+                EventAnalyticsColumnName.EVENT_COLUMN_NAME,
+                EventAnalyticsColumnName.PS_COLUMN_NAME,
+                EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
+                EventAnalyticsColumnName.STORED_BY_COLUMN_NAME,
+                EventAnalyticsColumnName.CREATED_BY_DISPLAYNAME_COLUMN_NAME,
+                EventAnalyticsColumnName.LAST_UPDATED_BY_DISPLAYNAME_COLUMN_NAME,
+                EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
+                EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
 
     if (params.getProgram().isRegistration()) {
-      cols.add("enrollmentdate", "incidentdate", "trackedentity", "enrollment");
+      cols.add(
+          EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
+          EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME,
+          EventAnalyticsColumnName.TRACKED_ENTITY_COLUMN_NAME,
+          EventAnalyticsColumnName.ENROLLMENT_COLUMN_NAME);
     }
 
     String coordinatesFieldsSnippet =
@@ -337,13 +343,13 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     cols.add(
         "ST_AsGeoJSON(" + coordinatesFieldsSnippet + ", 6) as geometry",
-        "longitude",
-        "latitude",
-        "ouname",
-        "ounamehierarchy",
-        "oucode",
-        "enrollmentstatus",
-        "eventstatus");
+        EventAnalyticsColumnName.LONGITUDE_COLUMN_NAME,
+        EventAnalyticsColumnName.LATITUDE_COLUMN_NAME,
+        EventAnalyticsColumnName.OU_NAME_COLUMN_NAME,
+        AbstractJdbcTableManager.OU_NAME_HIERARCHY_COLUMN_NAME,
+        EventAnalyticsColumnName.OU_CODE_COLUMN_NAME,
+        EventAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME,
+        EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME);
 
     List<String> selectCols =
         ListUtils.distinctUnion(cols.build(), getSelectColumns(params, false));
@@ -371,7 +377,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     sql += " as " + ANALYTICS_TBL_ALIAS + " ";
 
     if (params.hasTimeField()) {
-      String joinCol = quoteAlias(params.getTimeFieldAsField());
+      String joinCol = quoteAlias(params.getTimeFieldAsField(AnalyticsType.EVENT));
       sql +=
           "left join analytics_rs_dateperiodstructure as "
               + DATE_PERIOD_STRUCT_ALIAS
@@ -661,7 +667,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         "Last value aggregation type query must have value dimension or a program indicator");
 
     String timeCol = quoteAlias(params.getTimeFieldAsFieldFallback());
-    String createdCol = quoteAlias(TimeField.CREATED.getField());
+    String createdCol = quoteAlias(TimeField.CREATED.getEventColumnName());
     String partitionByClause = getFirstOrLastValuePartitionByClause(params);
     String order =
         params.getAggregationTypeFallback().isFirstPeriodAggregationType() ? "asc" : "desc";

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.jobs;
 
+import static org.hisp.dhis.test.TestBase.injectSecurityContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -42,6 +43,8 @@ import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.SystemUser;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,6 +57,12 @@ class MetadataSyncJobTest {
   @Mock private SystemSettingManager systemSettingManager;
   @Mock private MetadataVersionService metadataVersionService;
   @Mock private MetadataVersionDelegate metadataVersionDelegate;
+
+  @BeforeAll
+  static void setUp() {
+    SystemUser user = new SystemUser();
+    injectSecurityContext(user);
+  }
 
   @Test
   @DisplayName(

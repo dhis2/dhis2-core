@@ -6,6 +6,13 @@
       "version": {
         "min": 39
       }
+    },
+    {
+      "name": "financialYear2022Sep",
+      "query": "/api/42/analytics/enrollments/query/IpHINAT79UW?dimension=ou:USER_ORGUNIT,GxdhnY5wmHq&headers=ouname,GxdhnY5wmHq,lastupdated&totalPages=false&rowContext=true&lastUpdated=2022Sep&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT",
+      "version": {
+        "min": 42
+      }
     }
   ]
 }

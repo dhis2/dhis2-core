@@ -543,37 +543,37 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   void testValidCoordinatesFieldInSqlWhereClauseForEvent() {
     EventQueryParams params =
         getEventQueryParamsForCoordinateFieldsTest(
-            List.of("engeometry", "evgeometry", "tegeometry", "ougeometry"));
+            List.of("enrollmentgeometry", "eventgeometry", "tegeometry", "ougeometry"));
 
     String whereClause = this.eventSubject.getWhereClause(params);
 
     assertThat(
         whereClause,
         containsString(
-            "coalesce(ax.\"engeometry\",ax.\"evgeometry\",ax.\"tegeometry\",ax.\"ougeometry\") is not null"));
+            "coalesce(ax.\"enrollmentgeometry\",ax.\"eventgeometry\",ax.\"tegeometry\",ax.\"ougeometry\") is not null"));
   }
 
   @Test
   void testMissingPsiGeometryInDefaultCoordinatesFieldInSqlSelectClause() {
     EventQueryParams params =
         getEventQueryParamsForCoordinateFieldsTest(
-            List.of("engeometry", "tegeometry", "ougeometry"));
+            List.of("enrollmentgeometry", "tegeometry", "ougeometry"));
 
     String whereClause = this.eventSubject.getSelectClause(params);
 
     assertThat(
         whereClause,
-        containsString("coalesce(ax.\"engeometry\",ax.\"tegeometry\",ax.\"ougeometry\")"));
+        containsString("coalesce(ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\")"));
   }
 
   @Test
   void testValidExplicitCoordinatesFieldInSqlSelectClause() {
     EventQueryParams params =
-        getEventQueryParamsForCoordinateFieldsTest(List.of("ougeometry", "evgeometry"));
+        getEventQueryParamsForCoordinateFieldsTest(List.of("ougeometry", "eventgeometry"));
 
     String whereClause = this.eventSubject.getSelectClause(params);
 
-    assertThat(whereClause, containsString("coalesce(ax.\"ougeometry\",ax.\"evgeometry\")"));
+    assertThat(whereClause, containsString("coalesce(ax.\"ougeometry\",ax.\"eventgeometry\")"));
   }
 
   @Test
@@ -876,7 +876,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     String select = enrollmentSubject.getSelectClause(params);
     // Then
     assertEquals(
-        "select enrollment,trackedentity,enrollmentdate,incidentdate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(engeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"yearly\" ",
+        "select enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"yearly\" ",
         select);
   }
 

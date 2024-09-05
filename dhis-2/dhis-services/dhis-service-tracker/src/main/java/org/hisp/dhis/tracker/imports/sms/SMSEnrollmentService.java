@@ -40,8 +40,7 @@ import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -54,7 +53,6 @@ public class SMSEnrollmentService {
   private final IdentifiableObjectManager manager;
   private final TrackerOwnershipManager trackerOwnershipAccessManager;
   private final ApplicationEventPublisher eventPublisher;
-  private final TrackedEntityService trackedEntityService;
 
   public void enrollTrackedEntity(
       TrackedEntity trackedEntity,

@@ -65,14 +65,17 @@ public class DimensionIdentifierHelper {
    * dimension.
    */
   private static final Map<StaticDimension, Function<DimensionIdentifier<DimensionParam>, String>>
-      DISPLAYNAME_EXTRACTOR_BY_STATIC_DIMENSION =
+      DISPLAY_NAME_EXTRACTOR_BY_STATIC_DIMENSION =
           Map.of(
               ENROLLMENTDATE,
               di -> di.getProgram().getElement().getDisplayEnrollmentDateLabel(),
               INCIDENTDATE,
               di -> di.getProgram().getElement().getDisplayIncidentDateLabel(),
               OCCURREDDATE,
-              di -> di.getProgramStage().getElement().getDisplayExecutionDateLabel(),
+              di ->
+                  di.isEnrollmentDimension()
+                      ? di.getProgram().getElement().getDisplayIncidentDateLabel()
+                      : di.getProgramStage().getElement().getDisplayExecutionDateLabel(),
               OUNAME,
               di -> di.getProgram().getElement().getDisplayOrgUnitLabel());
 
@@ -195,7 +198,7 @@ public class DimensionIdentifierHelper {
   public static boolean supportsCustomLabel(
       DimensionIdentifier<DimensionParam> dimensionIdentifier) {
     return Objects.nonNull(dimensionIdentifier.getDimension().getStaticDimension())
-        && DISPLAYNAME_EXTRACTOR_BY_STATIC_DIMENSION.containsKey(
+        && DISPLAY_NAME_EXTRACTOR_BY_STATIC_DIMENSION.containsKey(
             dimensionIdentifier.getDimension().getStaticDimension());
   }
 
@@ -275,7 +278,7 @@ public class DimensionIdentifierHelper {
   private static String getStaticDimensionDisplayName(
       DimensionIdentifier<DimensionParam> dimensionIdentifier) {
     try {
-      return DISPLAYNAME_EXTRACTOR_BY_STATIC_DIMENSION
+      return DISPLAY_NAME_EXTRACTOR_BY_STATIC_DIMENSION
           .get(dimensionIdentifier.getDimension().getStaticDimension())
           .apply(dimensionIdentifier);
     } catch (Exception e) {

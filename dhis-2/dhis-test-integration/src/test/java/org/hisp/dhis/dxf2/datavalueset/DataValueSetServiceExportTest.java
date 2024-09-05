@@ -41,7 +41,6 @@ import java.util.Date;
 import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -109,14 +108,6 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
   private CategoryOptionCombo cocB;
 
   private Attribute atA;
-
-  private AttributeValue avA;
-
-  private AttributeValue avB;
-
-  private AttributeValue avC;
-
-  private AttributeValue avD;
 
   private DataSet dsA;
 
@@ -191,14 +182,10 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
     organisationUnitService.addOrganisationUnit(ouC);
     ogA = createOrganisationUnitGroup('A');
     idObjectManager.save(ogA);
-    avA = new AttributeValue("AttributeValueA", atA);
-    avB = new AttributeValue("AttributeValueB", atA);
-    avC = new AttributeValue("AttributeValueC", atA);
-    avD = new AttributeValue("AttributeValueD", atA);
-    attributeService.addAttributeValue(deA, avA);
-    attributeService.addAttributeValue(ouA, avB);
-    attributeService.addAttributeValue(cocA, avC);
-    attributeService.addAttributeValue(cocB, avD);
+    attributeService.addAttributeValue(deA, atA.getUid(), "AttributeValueA");
+    attributeService.addAttributeValue(ouA, atA.getUid(), "AttributeValueB");
+    attributeService.addAttributeValue(cocA, atA.getUid(), "AttributeValueC");
+    attributeService.addAttributeValue(cocB, atA.getUid(), "AttributeValueD");
     // Data values
     dataValueService.addDataValue(new DataValue(deA, peA, ouA, cocA, cocA, "1"));
     dataValueService.addDataValue(new DataValue(deA, peA, ouA, cocB, cocB, "1"));
@@ -451,8 +438,8 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
     assertEquals(2, dvs.getDataValues().size());
     for (org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues()) {
       assertNotNull(dv);
-      assertEquals(avA.getValue(), dv.getDataElement());
-      assertEquals(avB.getValue(), dv.getOrgUnit());
+      assertEquals("AttributeValueA", dv.getDataElement());
+      assertEquals("AttributeValueB", dv.getOrgUnit());
     }
   }
 

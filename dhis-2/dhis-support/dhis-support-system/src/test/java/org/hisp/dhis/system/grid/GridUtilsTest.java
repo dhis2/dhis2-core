@@ -102,4 +102,12 @@ class GridUtilsTest {
     OutputStream outputStream = new ByteArrayOutputStream();
     assertDoesNotThrow(() -> GridUtils.toXls(grids, outputStream));
   }
+
+  @Test
+  void testToXlsx() {
+    Grid grid = new ListGrid();
+    grid.setTitle("Grid");
+    OutputStream outputStream = new ByteArrayOutputStream();
+    assertDoesNotThrow(() -> GridUtils.toXlsx(grid, outputStream));
+  }
 }

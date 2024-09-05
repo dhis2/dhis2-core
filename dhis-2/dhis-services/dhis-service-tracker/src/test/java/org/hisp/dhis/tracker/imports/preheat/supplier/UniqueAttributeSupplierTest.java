@@ -37,7 +37,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -48,10 +48,10 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -97,12 +97,11 @@ class UniqueAttributeSupplierTest extends TestBase {
     OrganisationUnit orgUnit = createOrganisationUnit('A');
     Program program = createProgram('A');
     Attribute attribute = createAttribute('A');
-    AttributeValue attributeValue = createAttributeValue(attribute, UNIQUE_VALUE);
     trackedEntity = createTrackedEntity('A', orgUnit);
     trackedEntity.setUid(TE_UID);
-    trackedEntity.setAttributeValues(Collections.singleton(attributeValue));
+    trackedEntity.setAttributeValues(AttributeValues.of(Map.of(attribute.getUid(), UNIQUE_VALUE)));
     enrollment = createEnrollment(program, trackedEntity, orgUnit);
-    enrollment.setAttributeValues(Collections.singleton(attributeValue));
+    enrollment.setAttributeValues(AttributeValues.of(Map.of(attribute.getUid(), UNIQUE_VALUE)));
     trackedEntityAttributeValue =
         createTrackedEntityAttributeValue('A', trackedEntity, uniqueAttribute);
   }

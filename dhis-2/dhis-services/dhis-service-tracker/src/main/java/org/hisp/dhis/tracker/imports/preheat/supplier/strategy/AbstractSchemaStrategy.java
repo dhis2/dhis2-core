@@ -32,9 +32,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
@@ -103,11 +103,11 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
       List<? extends IdentifiableObject> objects;
 
       if (TrackerIdScheme.ATTRIBUTE.equals(idScheme)) {
-        Attribute attribute = new Attribute();
-        attribute.setUid(idSchemeParam.getAttributeUid());
         objects =
             manager.getAllByAttributeAndValues(
-                (Class<? extends IdentifiableObject>) schema.getKlass(), attribute, ids);
+                (Class<? extends IdentifiableObject>) schema.getKlass(),
+                UID.of(idSchemeParam.getAttributeUid()),
+                ids);
       } else {
         objects = cacheAwareFetch(preheat.getUser(), schema, idSchemeParam, ids, mapper);
       }

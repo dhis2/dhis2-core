@@ -34,12 +34,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.function.BooleanSupplier;
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.scheduling.JobRunErrors;
 import org.hisp.dhis.scheduling.JobStatus;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonJobConfiguration;
@@ -64,12 +68,19 @@ class JobConfigurationRunErrorsControllerTest extends PostgresControllerIntegrat
 
   @Test
   void testGetJobRunErrors_List() {
-    JsonArray list = GET("/jobConfigurations/errors").content();
+    JsonList<JobRunErrors> list =
+        GET("/jobConfigurations/errors").content().asList(JobRunErrors.class);
 
     assertEquals(1, list.size());
-    JsonObject job = list.getObject(0);
-    assertEquals(jobId, job.getString("id").string());
-    assertEquals(1, job.getArray("errors").size());
+    JobRunErrors job = list.get(0);
+    assertEquals(jobId, job.id());
+    assertEquals(JobType.METADATA_IMPORT, job._type());
+    assertEquals("ErrorCode", job.codes());
+    assertEquals(1, job.errors().size());
+    JobRunErrors.JobRunError error = job.errors().get(0);
+    assertEquals("E4000", error.code());
+    assertEquals(List.of("openingDate"), error.args());
+    assertEquals("Missing required property `openingDate`", error.message());
   }
 
   @Test

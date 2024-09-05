@@ -101,7 +101,7 @@ class EnrollmentsExportController {
       // from a browser
       )
   ResponseEntity<Page<ObjectNode>> getEnrollments(EnrollmentRequestParams requestParams)
-      throws BadRequestException, ForbiddenException {
+      throws BadRequestException, ForbiddenException, NotFoundException {
     validatePaginationParameters(requestParams);
     EnrollmentOperationParams operationParams = paramsMapper.map(requestParams);
 

@@ -34,10 +34,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.test.web.HttpStatus;
@@ -224,5 +226,34 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
             .string();
 
     assertStartsWith("Paging can either be enabled or disabled", message);
+  }
+
+  @Test
+  void shouldFailWhenProgramDoesNotExist() {
+    String invalidProgram = CodeGenerator.generateUid();
+    String message =
+        GET("/programNotificationTemplates/filter?program={uid}", invalidProgram)
+            .content(HttpStatus.CONFLICT)
+            .getString("message")
+            .string();
+
+    assertStartsWith(
+        "%s with UID %s does not exist.".formatted(Program.class.getSimpleName(), invalidProgram),
+        message);
+  }
+
+  @Test
+  void shouldFailWhenProgramStageDoesNotExist() {
+    String invalidProgramStage = CodeGenerator.generateUid();
+    String message =
+        GET("/programNotificationTemplates/filter?programStage={uid}", invalidProgramStage)
+            .content(HttpStatus.CONFLICT)
+            .getString("message")
+            .string();
+
+    assertStartsWith(
+        "%s with UID %s does not exist."
+            .formatted(ProgramStage.class.getSimpleName(), invalidProgramStage),
+        message);
   }
 }

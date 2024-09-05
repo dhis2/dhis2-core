@@ -35,6 +35,7 @@ import static org.hisp.dhis.system.grid.GridUtils.toCsv;
 import static org.hisp.dhis.system.grid.GridUtils.toHtml;
 import static org.hisp.dhis.system.grid.GridUtils.toHtmlCss;
 import static org.hisp.dhis.system.grid.GridUtils.toXls;
+import static org.hisp.dhis.system.grid.GridUtils.toXlsx;
 import static org.hisp.dhis.system.grid.GridUtils.toXml;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_EXCEL;
@@ -160,6 +161,22 @@ class TrackedEntityAnalyticsController {
       throws IOException {
     prepareForDownload(response, CONTENT_TYPE_EXCEL, "trackedEntities.xls");
     toXls(
+        getGrid(
+            trackedEntityRequestParams.withTrackedEntityType(trackedEntityType),
+            commonRequestParams,
+            trackedEntityAnalyticsQueryService::getGrid),
+        response.getOutputStream());
+  }
+
+  @GetMapping(value = "/query/{trackedEntityType}.xlsx")
+  public void queryXlsx(
+      @PathVariable String trackedEntityType,
+      TrackedEntityRequestParams trackedEntityRequestParams,
+      CommonRequestParams commonRequestParams,
+      HttpServletResponse response)
+      throws IOException {
+    prepareForDownload(response, CONTENT_TYPE_EXCEL, "trackedEntities.xlsx");
+    toXlsx(
         getGrid(
             trackedEntityRequestParams.withTrackedEntityType(trackedEntityType),
             commonRequestParams,

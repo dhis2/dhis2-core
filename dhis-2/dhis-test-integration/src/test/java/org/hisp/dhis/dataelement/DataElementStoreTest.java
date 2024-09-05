@@ -42,10 +42,10 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -260,18 +260,16 @@ class DataElementStoreTest extends PostgresIntegrationTestBase {
     dataElementStore.save(dataElementA);
     dataElementStore.save(dataElementB);
     dataElementStore.save(dataElementC);
-    AttributeValue attributeValueA = new AttributeValue("CID1", attribute);
-    AttributeValue attributeValueB = new AttributeValue("CID2", attribute);
-    AttributeValue attributeValueC = new AttributeValue("CID3", attribute);
-    attributeService.addAttributeValue(dataElementA, attributeValueA);
-    attributeService.addAttributeValue(dataElementB, attributeValueB);
-    attributeService.addAttributeValue(dataElementC, attributeValueC);
+    attributeService.addAttributeValue(dataElementA, attribute.getUid(), "CID1");
+    attributeService.addAttributeValue(dataElementB, attribute.getUid(), "CID2");
+    attributeService.addAttributeValue(dataElementC, attribute.getUid(), "CID3");
     dataElementStore.update(dataElementA);
     dataElementStore.update(dataElementB);
     dataElementStore.update(dataElementC);
-    assertNull(dataElementStore.getByUniqueAttributeValue(attribute, "CID1"));
-    assertNull(dataElementStore.getByUniqueAttributeValue(attribute, "CID2"));
-    assertNull(dataElementStore.getByUniqueAttributeValue(attribute, "CID3"));
+    UID attributeId = UID.of(attribute);
+    assertNull(dataElementStore.getByUniqueAttributeValue(attributeId, "CID1"));
+    assertNull(dataElementStore.getByUniqueAttributeValue(attributeId, "CID2"));
+    assertNull(dataElementStore.getByUniqueAttributeValue(attributeId, "CID3"));
   }
 
   @Test
