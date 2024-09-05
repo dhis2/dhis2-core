@@ -51,6 +51,7 @@ import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionServi
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -83,6 +84,12 @@ class EventChangeLogServiceTest extends TrackerTest {
     assertNoErrors(
         trackerImportService.importTracker(
             importParams, fromJson("tracker/event_and_enrollment.json")));
+  }
+
+  @BeforeEach
+  void setUpUser() {
+    importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
   }
 
   @Test
@@ -142,7 +149,6 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsCreated() throws NotFoundException, ForbiddenException {
-    testAsUser("M5zQapPyTZI");
     Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
 
@@ -157,8 +163,6 @@ class EventChangeLogServiceTest extends TrackerTest {
   @Test
   void shouldReturnChangeLogsWhenDataValueIsDeleted()
       throws NotFoundException, IOException, ForbiddenException {
-    testAsUser("M5zQapPyTZI");
-
     Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
 
@@ -179,8 +183,6 @@ class EventChangeLogServiceTest extends TrackerTest {
   @Test
   void shouldNotUpdateChangeLogsWhenDataValueIsDeletedTwiceInARow()
       throws NotFoundException, IOException, ForbiddenException {
-    testAsUser("M5zQapPyTZI");
-
     Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
 
@@ -203,8 +205,6 @@ class EventChangeLogServiceTest extends TrackerTest {
   @Test
   void shouldReturnChangeLogsWhenDataValueIsUpdated()
       throws NotFoundException, IOException, ForbiddenException {
-    testAsUser("M5zQapPyTZI");
-
     Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
 
@@ -225,8 +225,6 @@ class EventChangeLogServiceTest extends TrackerTest {
   @Test
   void shouldReturnChangeLogsWhenDataValueIsUpdatedTwiceInARow()
       throws NotFoundException, IOException, ForbiddenException {
-    testAsUser("M5zQapPyTZI");
-
     Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
 
@@ -250,8 +248,6 @@ class EventChangeLogServiceTest extends TrackerTest {
   @Test
   void shouldReturnChangeLogsWhenDataValueIsCreatedUpdatedAndDeleted()
       throws IOException, NotFoundException, ForbiddenException {
-    testAsUser("M5zQapPyTZI");
-
     Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
 
