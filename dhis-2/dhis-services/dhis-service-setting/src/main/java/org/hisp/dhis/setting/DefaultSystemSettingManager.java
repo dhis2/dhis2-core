@@ -27,16 +27,14 @@
  */
 package org.hisp.dhis.setting;
 
+import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import com.google.common.collect.Lists;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -62,7 +60,7 @@ public class DefaultSystemSettingManager implements SystemSettingManager {
   private static final Map<String, SettingKey> NAME_KEY_MAP =
       Map.copyOf(
           Lists.newArrayList(SettingKey.values()).stream()
-              .collect(Collectors.toMap(SettingKey::getName, e -> e)));
+              .collect(toMap(SettingKey::getName, e -> e)));
 
   /** Cache for system settings. Does not accept nulls. Disabled during test phase. */
   private final Cache<SerializableOptional> settingCache;
@@ -82,10 +80,6 @@ public class DefaultSystemSettingManager implements SystemSettingManager {
     this.settingCache = cacheProvider.createSystemSettingCache();
     this.transactionTemplate = transactionTemplate;
   }
-
-  // -------------------------------------------------------------------------
-  // SystemSettingManager implementation
-  // -------------------------------------------------------------------------
 
   @Override
   @Transactional
@@ -206,26 +200,12 @@ public class DefaultSystemSettingManager implements SystemSettingManager {
     return Optional.empty();
   }
 
-  private List<SystemSetting> getAllSystemSettings() {
-    return systemSettingStore.getAll().stream()
-        .filter(systemSetting -> !isConfidential(systemSetting.getName()))
-        .collect(Collectors.toList());
-  }
-
   @Override
-  @Transactional(readOnly = true)
+  @IndirectTransactional
   public Map<String, Serializable> getSystemSettings(Collection<SettingKey> keys) {
-    Map<String, Serializable> map = new HashMap<>();
-
-    for (SettingKey setting : keys) {
-      Serializable value = getSystemSetting(setting, setting.getClazz());
-
-      if (value != null) {
-        map.put(setting.getName(), value);
-      }
-    }
-
-    return map;
+    return keys.stream()
+        .map(setting -> Map.entry(setting.getName(), getSystemSetting(setting, setting.getClazz())))
+        .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   @Override

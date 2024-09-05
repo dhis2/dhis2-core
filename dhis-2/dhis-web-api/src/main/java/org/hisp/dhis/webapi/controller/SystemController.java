@@ -325,7 +325,7 @@ public class SystemController {
     return job;
   }
 
-  List<String> FLAGS =
+  private static final List<String> FLAGS =
       List.of(
               "afghanistan",
               "africare",
