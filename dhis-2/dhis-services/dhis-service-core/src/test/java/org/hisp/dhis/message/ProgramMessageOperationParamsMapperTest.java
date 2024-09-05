@@ -33,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -104,6 +106,8 @@ class ProgramMessageOperationParamsMapperTest {
         subject.map(ProgramMessageOperationParams.builder().enrollment(ENROLLMENT).build());
 
     assertEquals(enrollment, queryParams.getEnrollment());
+    verify(manager).get(eq(Enrollment.class), eq(ENROLLMENT.getValue()));
+    verifyNoMoreInteractions(manager);
   }
 
   @Test
@@ -115,6 +119,8 @@ class ProgramMessageOperationParamsMapperTest {
         subject.map(ProgramMessageOperationParams.builder().event(EVENT).build());
 
     assertEquals(event, queryParams.getEvent());
+    verify(manager).get(eq(Event.class), eq(EVENT.getValue()));
+    verifyNoMoreInteractions(manager);
   }
 
   @Test
@@ -133,6 +139,8 @@ class ProgramMessageOperationParamsMapperTest {
         String.format(
             "%s: %s does not exist.", Enrollment.class.getSimpleName(), invalidEnrollment),
         exception.getMessage());
+    verify(manager).get(eq(Enrollment.class), eq(invalidEnrollment.getValue()));
+    verifyNoMoreInteractions(manager);
   }
 
   @Test
@@ -148,6 +156,8 @@ class ProgramMessageOperationParamsMapperTest {
     assertStartsWith(
         String.format("%s: %s does not exist.", Event.class.getSimpleName(), invalidEvent),
         exception.getMessage());
+    verify(manager).get(eq(Event.class), eq(invalidEvent.getValue()));
+    verifyNoMoreInteractions(manager);
   }
 
   @Test
@@ -167,5 +177,8 @@ class ProgramMessageOperationParamsMapperTest {
             "User:%s does not have access to the required program:%s",
             user.getUsername(), program.getName()),
         exception.getMessage());
+
+    verify(programService).getCurrentUserPrograms();
+    verifyNoMoreInteractions(programService);
   }
 }
