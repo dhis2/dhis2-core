@@ -33,6 +33,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import com.google.common.collect.Lists;
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -205,9 +206,12 @@ public class DefaultSystemSettingManager implements SystemSettingManager {
   @Override
   @IndirectTransactional
   public Map<String, Serializable> getSystemSettings(Collection<SettingKey> keys) {
-    return keys.stream()
-        .map(setting -> Map.entry(setting.getName(), getSystemSetting(setting, setting.getClazz())))
-        .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+    Map<String, Serializable> map = new HashMap<>();
+    for (SettingKey setting : keys) {
+      Serializable value = getSystemSetting(setting, setting.getClazz());
+      if (value != null) map.put(setting.getName(), value);
+    }
+    return map;
   }
 
   @Override
