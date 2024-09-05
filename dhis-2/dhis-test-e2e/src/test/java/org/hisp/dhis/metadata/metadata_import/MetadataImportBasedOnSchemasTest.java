@@ -100,7 +100,8 @@ public class MetadataImportBasedOnSchemasTest extends ApiTest {
             "programRuleVariables",
             "eventCharts",
             "programStages",
-            "programStageWorkingLists");
+            "programStageWorkingLists",
+            "categoryOptionCombos");
 
     List<SchemaProperty> schemaProperties = schemasActions.getRequiredProperties(schema);
 
