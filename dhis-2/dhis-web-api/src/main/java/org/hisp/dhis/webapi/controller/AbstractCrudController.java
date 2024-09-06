@@ -34,8 +34,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.typeReport;
 import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
-import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -307,20 +305,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     return postObject(deserializeJsonEntity(request));
   }
 
-  @OpenApi.Params(MetadataImportParams.class)
-  @OpenApi.Param(OpenApi.EntityType.class)
-  @PostMapping(consumes = {APPLICATION_XML_VALUE, TEXT_XML_VALUE})
-  @ResponseBody
-  @SuppressWarnings("java:S1130")
-  public WebMessage postXmlObject(HttpServletRequest request)
-      throws IOException,
-          ForbiddenException,
-          ConflictException,
-          HttpRequestMethodNotSupportedException,
-          NotFoundException {
-    return postObject(deserializeXmlEntity(request));
-  }
-
   private WebMessage postObject(T parsed) throws ForbiddenException, ConflictException {
 
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
@@ -452,49 +436,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     ImportReport importReport =
         importService.importMetadata(params, new MetadataObjects().addObject(parsed), transitory());
-    WebMessage webMessage = objectReport(importReport);
-
-    if (importReport.getStatus() == Status.OK) {
-      T entity = manager.get(getEntityClass(), pvUid);
-      postUpdateEntity(entity);
-    } else {
-      webMessage.setStatus(Status.ERROR);
-    }
-
-    return webMessage;
-  }
-
-  @OpenApi.Params(MetadataImportParams.class)
-  @OpenApi.Param(OpenApi.EntityType.class)
-  @PutMapping(
-      value = "/{uid}",
-      consumes = {APPLICATION_XML_VALUE, TEXT_XML_VALUE})
-  @ResponseBody
-  public WebMessage putXmlObject(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @CurrentUser UserDetails currentUser,
-      HttpServletRequest request,
-      HttpServletResponse response)
-      throws IOException, ConflictException, NotFoundException, ForbiddenException {
-    T persisted = getEntity(pvUid);
-    if (!aclService.canUpdate(currentUser, persisted)) {
-      throw new ForbiddenException("You don't have the proper permissions to update this object.");
-    }
-
-    T parsed = deserializeXmlEntity(request);
-    ((BaseIdentifiableObject) parsed).setUid(pvUid);
-
-    preUpdateEntity(persisted, parsed);
-
-    MetadataImportParams params =
-        importService
-            .getParamsFromMap(contextService.getParameterValuesMap())
-            .setImportReportMode(ImportReportMode.FULL)
-            .setUser(UID.of(currentUser))
-            .setImportStrategy(ImportStrategy.UPDATE);
-
-    ImportReport importReport =
-        importService.importMetadata(params, new MetadataObjects().addObject(parsed));
     WebMessage webMessage = objectReport(importReport);
 
     if (importReport.getStatus() == Status.OK) {
@@ -651,25 +592,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         renderService.fromJson(request.getInputStream(), IdentifiableObjects.class));
   }
 
-  @OpenApi.Param(IdentifiableObjects.class)
-  @PostMapping(value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE)
-  @ResponseStatus(HttpStatus.OK)
-  @ResponseBody
-  public WebMessage addCollectionItemsXml(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @OpenApi.Param(PropertyNames.class) @PathVariable("property") String pvProperty,
-      HttpServletRequest request)
-      throws IOException,
-          ForbiddenException,
-          ConflictException,
-          NotFoundException,
-          BadRequestException {
-    return addCollectionItems(
-        pvProperty,
-        getEntity(pvUid),
-        renderService.fromXml(request.getInputStream(), IdentifiableObjects.class));
-  }
-
   private WebMessage addCollectionItems(String pvProperty, T object, IdentifiableObjects items)
       throws ConflictException, ForbiddenException, NotFoundException, BadRequestException {
     preUpdateItems(object, items);
@@ -696,25 +618,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         pvProperty,
         getEntity(pvUid),
         renderService.fromJson(request.getInputStream(), IdentifiableObjects.class));
-  }
-
-  @OpenApi.Param(IdentifiableObjects.class)
-  @PutMapping(value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE)
-  @ResponseStatus(HttpStatus.OK)
-  @ResponseBody
-  public WebMessage replaceCollectionItemsXml(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @OpenApi.Param(PropertyNames.class) @PathVariable("property") String pvProperty,
-      HttpServletRequest request)
-      throws IOException,
-          ForbiddenException,
-          ConflictException,
-          NotFoundException,
-          BadRequestException {
-    return replaceCollectionItems(
-        pvProperty,
-        getEntity(pvUid),
-        renderService.fromXml(request.getInputStream(), IdentifiableObjects.class));
   }
 
   private WebMessage replaceCollectionItems(String pvProperty, T object, IdentifiableObjects items)
@@ -765,25 +668,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         pvProperty,
         getEntity(pvUid),
         renderService.fromJson(request.getInputStream(), IdentifiableObjects.class));
-  }
-
-  @OpenApi.Param(IdentifiableObjects.class)
-  @DeleteMapping(value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE)
-  @ResponseStatus(HttpStatus.OK)
-  @ResponseBody
-  public WebMessage deleteCollectionItemsXml(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @OpenApi.Param(PropertyNames.class) @PathVariable("property") String pvProperty,
-      HttpServletRequest request)
-      throws IOException,
-          ForbiddenException,
-          ConflictException,
-          NotFoundException,
-          BadRequestException {
-    return deleteCollectionItems(
-        pvProperty,
-        getEntity(pvUid),
-        renderService.fromXml(request.getInputStream(), IdentifiableObjects.class));
   }
 
   private WebMessage deleteCollectionItems(String pvProperty, T object, IdentifiableObjects items)
@@ -893,24 +777,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     return isCompatibleWith(type, MediaType.APPLICATION_JSON);
-  }
-
-  /**
-   * Are we receiving XML data?
-   *
-   * @param request HttpServletRequest from current session
-   * @return true if XML compatible
-   */
-  private boolean isXml(HttpServletRequest request) {
-    String type = request.getContentType();
-    type = !StringUtils.isEmpty(type) ? type : APPLICATION_JSON_VALUE;
-
-    // allow type to be overridden by path extension
-    if (request.getPathInfo().endsWith(".xml")) {
-      type = APPLICATION_XML_VALUE;
-    }
-
-    return isCompatibleWith(type, MediaType.APPLICATION_XML);
   }
 
   private boolean isCompatibleWith(String type, MediaType mediaType) {

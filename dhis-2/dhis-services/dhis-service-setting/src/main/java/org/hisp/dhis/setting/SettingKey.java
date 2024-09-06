@@ -39,6 +39,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Stream;
+import lombok.Getter;
 import org.apache.commons.lang3.LocaleUtils;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
@@ -57,6 +58,7 @@ import org.hisp.dhis.sms.config.SmsConfiguration;
 /**
  * @author Lars Helge Overland
  */
+@Getter
 public enum SettingKey {
   UI_LOCALE("keyUiLocale", LocaleManager.DEFAULT_LOCALE, Locale.class),
   DB_LOCALE("keyDbLocale", Locale.class),
@@ -390,10 +392,6 @@ public enum SettingKey {
     return value;
   }
 
-  public boolean hasDefaultValue() {
-    return defaultValue != null;
-  }
-
   public static Set<String> getNames() {
     return NAMES;
   }
@@ -406,26 +404,6 @@ public enum SettingKey {
   // -------------------------------------------------------------------------
   // Getters
   // -------------------------------------------------------------------------
-
-  public String getName() {
-    return name;
-  }
-
-  public Serializable getDefaultValue() {
-    return defaultValue;
-  }
-
-  public Class<? extends Serializable> getClazz() {
-    return clazz;
-  }
-
-  public boolean isConfidential() {
-    return confidential;
-  }
-
-  public boolean isTranslatable() {
-    return translatable;
-  }
 
   @Override
   public String toString() {

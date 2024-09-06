@@ -30,7 +30,6 @@ package org.hisp.dhis.setting;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
@@ -104,19 +103,6 @@ public interface SystemSettingManager {
   Optional<String> getSystemSettingTranslation(SettingKey key, String locale);
 
   /**
-   * Returns all system settings.
-   *
-   * @return a list of all system settings.
-   */
-  List<SystemSetting> getAllSystemSettings();
-
-  /**
-   * Returns all system settings as a mapping between the setting name and the value. Includes
-   * system settings which have a default value but no explicitly set value.
-   */
-  Map<String, Serializable> getSystemSettingsAsMap();
-
-  /**
    * Returns system settings for the given collection of setting keys as a map, where the key is
    * string representation of the {@link SettingKey}, and the value is the setting value.
    *
@@ -127,8 +113,6 @@ public interface SystemSettingManager {
 
   /** Invalidates the currently cached system settings. */
   void invalidateCache();
-
-  List<String> getFlags();
 
   boolean isConfidential(String name);
 
