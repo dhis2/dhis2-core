@@ -27,46 +27,58 @@
  */
 package org.hisp.dhis.monitoring.metrics.jdbc;
 
-import javax.sql.DataSource;
+import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.pool.HikariPool;
+import org.springframework.beans.DirectFieldAccessor;
 
 /**
- * A base {@link DataSourcePoolMetadata} implementation.
- *
- * @param <T> the data source type
- * @author Stephane Nicoll
- * @since 2.0.0
+ * @author Morten Svanæs
  */
-public abstract class AbstractDataSourcePoolMetadata<T extends DataSource>
-    implements DataSourcePoolMetadata {
+public class HikariPoolMetadataAccessor extends AbstractPoolMetadata<HikariDataSource> {
 
-  private final T dataSource;
-
-  /**
-   * Create an instance with the data source to use.
-   *
-   * @param dataSource the data source
-   */
-  protected AbstractDataSourcePoolMetadata(T dataSource) {
-    this.dataSource = dataSource;
+  public HikariPoolMetadataAccessor(HikariDataSource dataSource) {
+    super(dataSource);
   }
 
   @Override
-  public Float getUsage() {
-    Integer maxSize = getMax();
-    Integer currentSize = getActive();
-    if (maxSize == null || currentSize == null) {
+  public Integer getActive() {
+    try {
+      return getHikariPool().getActiveConnections();
+    } catch (Exception ex) {
       return null;
     }
-    if (maxSize < 0) {
-      return -1F;
-    }
-    if (currentSize == 0) {
-      return 0F;
-    }
-    return (float) currentSize / (float) maxSize;
   }
 
-  protected final T getDataSource() {
-    return this.dataSource;
+  @Override
+  public Integer getIdle() {
+    try {
+      return getHikariPool().getIdleConnections();
+    } catch (Exception ex) {
+      return null;
+    }
+  }
+
+  private HikariPool getHikariPool() {
+    return (HikariPool) new DirectFieldAccessor(getDataSource()).getPropertyValue("pool");
+  }
+
+  @Override
+  public Integer getMax() {
+    return getDataSource().getMaximumPoolSize();
+  }
+
+  @Override
+  public Integer getMin() {
+    return getDataSource().getMinimumIdle();
+  }
+
+  @Override
+  public String getValidationQuery() {
+    return getDataSource().getConnectionTestQuery();
+  }
+
+  @Override
+  public Boolean getDefaultAutoCommit() {
+    return getDataSource().isAutoCommit();
   }
 }
