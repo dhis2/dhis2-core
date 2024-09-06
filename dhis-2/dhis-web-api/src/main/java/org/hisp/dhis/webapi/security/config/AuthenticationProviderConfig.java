@@ -76,6 +76,7 @@ public class AuthenticationProviderConfig {
   CustomLdapAuthenticationProvider customLdapAuthenticationProvider() {
     return new CustomLdapAuthenticationProvider(
         dhisBindAuthenticator(),
+        ldapUserDetailsService,
         userDetailsServiceLdapAuthoritiesPopulator(ldapUserDetailsService),
         configurationProvider);
   }
