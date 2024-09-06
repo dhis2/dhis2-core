@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.converter;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import com.google.common.base.Objects;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -235,15 +234,20 @@ public class EventTrackerConverterService
 
     programStageInstance.setGeometry(event.getGeometry());
 
+    EventStatus currentStatus = event.getStatus();
     EventStatus previousStatus = programStageInstance.getStatus();
 
-    programStageInstance.setStatus(event.getStatus());
-
-    if (!Objects.equal(previousStatus, programStageInstance.getStatus())
-        && programStageInstance.isCompleted()) {
-      programStageInstance.setCompletedDate(new Date());
+    if (currentStatus != previousStatus && currentStatus == EventStatus.COMPLETED) {
+      programStageInstance.setCompletedDate(now);
       programStageInstance.setCompletedBy(preheat.getUsername());
     }
+
+    if (currentStatus != EventStatus.COMPLETED) {
+      programStageInstance.setCompletedDate(null);
+      programStageInstance.setCompletedBy(null);
+    }
+
+    programStageInstance.setStatus(currentStatus);
 
     if (Boolean.TRUE.equals(programStage.isEnableUserAssignment())
         && event.getAssignedUser() != null
