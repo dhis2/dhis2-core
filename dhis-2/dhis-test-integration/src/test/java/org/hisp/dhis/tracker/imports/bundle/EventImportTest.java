@@ -69,61 +69,32 @@ class EventImportTest extends TrackerTest {
   }
 
   @Test
-  void shouldPopulateCompletedDataWhenCreatingAnEventWithStatusCompleted()
-      throws IOException, ForbiddenException, NotFoundException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
-    TrackerObjects trackerObjects = fromJson("tracker/te_enrollment_event.json");
-    trackerObjects.getEvents().get(0).setStatus(EventStatus.COMPLETED);
-
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
-
-    assertNoErrors(importReport);
-
-    Event event = eventService.getEvent(UID.of("D9PbzJY8bJO"));
-
-    assertEquals(importUser.getUsername(), event.getCompletedBy());
-    assertNotNull(event.getCompletedDate());
-  }
-
-  @ParameterizedTest
-  @MethodSource("notCompletedStatus")
-  void shouldNotPopulateCompletedDataWhenCreatingAnEventWithNotCompletedStatus(EventStatus status)
-      throws IOException, ForbiddenException, NotFoundException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
-    TrackerObjects trackerObjects = fromJson("tracker/te_enrollment_event.json");
-    trackerObjects.getEvents().get(0).setStatus(status);
-
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
-
-    assertNoErrors(importReport);
-
-    Event event = eventService.getEvent(UID.of("D9PbzJY8bJO"));
-
-    assertNull(event.getCompletedBy());
-    assertNull(event.getCompletedDate());
-  }
-
-  @Test
   void shouldDeleteCompletedDataWhenUpdatingAnEventWithStatusActive()
       throws IOException, ForbiddenException, NotFoundException {
     TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/te_enrollment_event.json");
-    trackerObjects.getEvents().get(0).setStatus(EventStatus.COMPLETED);
+    org.hisp.dhis.tracker.imports.domain.Event event = trackerObjects.getEvents().get(0);
+    event.setStatus(EventStatus.COMPLETED);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertNoErrors(importReport);
 
-    trackerObjects.getEvents().get(0).setStatus(EventStatus.ACTIVE);
+    Event savedEvent = eventService.getEvent(UID.of(event.getUid()));
+
+    assertEquals(importUser.getUsername(), savedEvent.getCompletedBy());
+    assertNotNull(savedEvent.getCompletedDate());
+
+    event.setStatus(EventStatus.ACTIVE);
 
     importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertNoErrors(importReport);
 
-    Event event = eventService.getEvent(UID.of("D9PbzJY8bJO"));
+    savedEvent = eventService.getEvent(UID.of(event.getUid()));
 
-    assertNull(event.getCompletedBy());
-    assertNull(event.getCompletedDate());
+    assertNull(savedEvent.getCompletedBy());
+    assertNull(savedEvent.getCompletedDate());
   }
 
   @ParameterizedTest
@@ -132,22 +103,28 @@ class EventImportTest extends TrackerTest {
       throws IOException, ForbiddenException, NotFoundException {
     TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/te_enrollment_event.json");
-    trackerObjects.getEvents().get(0).setStatus(status);
+    org.hisp.dhis.tracker.imports.domain.Event event = trackerObjects.getEvents().get(0);
+    event.setStatus(status);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertNoErrors(importReport);
 
-    trackerObjects.getEvents().get(0).setStatus(EventStatus.COMPLETED);
+    Event savedEvent = eventService.getEvent(UID.of(event.getUid()));
+
+    assertNull(savedEvent.getCompletedBy());
+    assertNull(savedEvent.getCompletedDate());
+
+    event.setStatus(EventStatus.COMPLETED);
 
     importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertNoErrors(importReport);
 
-    Event event = eventService.getEvent(UID.of("D9PbzJY8bJO"));
+    savedEvent = eventService.getEvent(UID.of(event.getUid()));
 
-    assertEquals(importUser.getUsername(), event.getCompletedBy());
-    assertNotNull(event.getCompletedDate());
+    assertEquals(importUser.getUsername(), savedEvent.getCompletedBy());
+    assertNotNull(savedEvent.getCompletedDate());
   }
 
   public Stream<Arguments> notCompletedStatus() {
