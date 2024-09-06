@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- NOTE: configuration changes will only have an effect AFTER recompiling dhis-support-test
-     If you find a way for us to only re-run the test to see config changes without having to recompile
-     dhis-support-test , please do :) -->
 <Configuration status="warn">
     <Properties>
         <Property name="layout">%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</Property>
