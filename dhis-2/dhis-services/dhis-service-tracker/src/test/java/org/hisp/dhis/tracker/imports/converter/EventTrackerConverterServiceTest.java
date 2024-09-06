@@ -92,16 +92,13 @@ class EventTrackerConverterServiceTest extends TestBase {
 
   private OrganisationUnit organisationUnit;
 
-  private Event event;
-
-  private DataElement dataElement;
+  private Event dbEvent;
 
   private org.hisp.dhis.user.User user;
 
   @BeforeEach
   void setUpTest() {
     converter = new EventTrackerConverterService(notesConverterService);
-    dataElement = createDataElement('D');
     user = makeUser("U");
     programStage = createProgramStage('A', 1);
     programStage.setUid(PROGRAM_STAGE_UID);
@@ -113,20 +110,20 @@ class EventTrackerConverterServiceTest extends TestBase {
     TrackedEntity te = createTrackedEntity(organisationUnit);
     Enrollment enrollment = createEnrollment(program, te, organisationUnit);
     enrollment.setUid(ENROLLMENT_UID);
-    event = new Event();
-    event.setAutoFields();
-    event.setAttributeOptionCombo(createCategoryOptionCombo('C'));
-    event.setCreated(today);
-    event.setOccurredDate(today);
-    event.setEnrollment(enrollment);
-    event.setOrganisationUnit(organisationUnit);
-    event.setProgramStage(programStage);
-    event.setEventDataValues(Sets.newHashSet());
-    event.setScheduledDate(null);
-    event.setCompletedDate(null);
-    event.setStoredBy(user.getUsername());
-    event.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
-    event.setCreatedByUserInfo(UserInfoSnapshot.from(user));
+    dbEvent = new Event();
+    dbEvent.setAutoFields();
+    dbEvent.setAttributeOptionCombo(createCategoryOptionCombo('C'));
+    dbEvent.setCreated(today);
+    dbEvent.setOccurredDate(today);
+    dbEvent.setEnrollment(enrollment);
+    dbEvent.setOrganisationUnit(organisationUnit);
+    dbEvent.setProgramStage(programStage);
+    dbEvent.setEventDataValues(Sets.newHashSet());
+    dbEvent.setScheduledDate(null);
+    dbEvent.setCompletedDate(null);
+    dbEvent.setStoredBy(user.getUsername());
+    dbEvent.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
+    dbEvent.setCreatedByUserInfo(UserInfoSnapshot.from(user));
   }
 
   @Test
@@ -202,8 +199,8 @@ class EventTrackerConverterServiceTest extends TestBase {
     String eventUid = CodeGenerator.generateUid();
     when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElement.getUid())))
         .thenReturn(dataElement);
-    event.setStatus(EventStatus.COMPLETED);
-    when(preheat.getEvent(eventUid)).thenReturn(event);
+    dbEvent.setStatus(EventStatus.COMPLETED);
+    when(preheat.getEvent(eventUid)).thenReturn(dbEvent);
 
     org.hisp.dhis.tracker.imports.domain.Event event =
         event(eventUid, dataValue(MetadataIdentifier.ofUid(dataElement.getUid()), "value"));
@@ -237,8 +234,8 @@ class EventTrackerConverterServiceTest extends TestBase {
     when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElement.getUid())))
         .thenReturn(dataElement);
     when(preheat.getUsername()).thenReturn(USERNAME);
-    event.setStatus(EventStatus.ACTIVE);
-    when(preheat.getEvent(eventUid)).thenReturn(event);
+    dbEvent.setStatus(EventStatus.ACTIVE);
+    when(preheat.getEvent(eventUid)).thenReturn(dbEvent);
 
     org.hisp.dhis.tracker.imports.domain.Event event =
         event(eventUid, dataValue(MetadataIdentifier.ofUid(dataElement.getUid()), "value"));
@@ -392,13 +389,12 @@ class EventTrackerConverterServiceTest extends TestBase {
     eventDataValue.setAutoFields();
     eventDataValue.setCreated(today);
     eventDataValue.setValue("sample-value");
-    eventDataValue.setDataElement(dataElement.getUid());
     eventDataValue.setStoredBy(user.getUsername());
     eventDataValue.setCreatedByUserInfo(UserInfoSnapshot.from(user));
     eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
-    event.getEventDataValues().add(eventDataValue);
+    dbEvent.getEventDataValues().add(eventDataValue);
 
-    org.hisp.dhis.tracker.imports.domain.Event event = converter.to(this.event);
+    org.hisp.dhis.tracker.imports.domain.Event event = converter.to(this.dbEvent);
 
     assertEquals(ENROLLMENT_UID, event.getEnrollment());
     assertEquals(event.getStoredBy(), user.getUsername());
@@ -406,12 +402,13 @@ class EventTrackerConverterServiceTest extends TestBase {
         .getDataValues()
         .forEach(
             e -> {
-              assertEquals(DateUtils.fromInstant(e.getCreatedAt()), this.event.getCreated());
+              assertEquals(DateUtils.fromInstant(e.getCreatedAt()), this.dbEvent.getCreated());
               assertEquals(
                   e.getUpdatedBy().getUsername(),
-                  this.event.getLastUpdatedByUserInfo().getUsername());
+                  this.dbEvent.getLastUpdatedByUserInfo().getUsername());
               assertEquals(
-                  e.getUpdatedBy().getUsername(), this.event.getCreatedByUserInfo().getUsername());
+                  e.getUpdatedBy().getUsername(),
+                  this.dbEvent.getCreatedByUserInfo().getUsername());
             });
   }
 
@@ -452,14 +449,14 @@ class EventTrackerConverterServiceTest extends TestBase {
   }
 
   private DataValue dataValue(MetadataIdentifier dataElement, String value) {
-    User user = User.builder().username(USERNAME).build();
+    User trackerUser = User.builder().username(USERNAME).build();
 
     return DataValue.builder()
         .dataElement(dataElement)
         .value(value)
         .providedElsewhere(true)
-        .createdBy(user)
-        .updatedBy(user)
+        .createdBy(trackerUser)
+        .updatedBy(trackerUser)
         .createdAt(Instant.now())
         .storedBy(USERNAME)
         .updatedAt(Instant.now())
