@@ -44,7 +44,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.message.SmsMessageSender;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.program.Event;
@@ -72,7 +72,7 @@ class DeleteEventSMSListenerTest extends CompressionSMSListenerTest {
 
   @Mock private IncomingSmsService incomingSmsService;
 
-  @Mock private SmsMessageSender smsSender;
+  @Mock private MessageSender smsSender;
 
   @Mock private DataElementService dataElementService;
 

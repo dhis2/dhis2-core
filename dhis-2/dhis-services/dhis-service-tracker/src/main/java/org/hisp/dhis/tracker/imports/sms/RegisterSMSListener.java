@@ -47,7 +47,7 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.message.SmsMessageSender;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -83,13 +83,13 @@ public abstract class RegisterSMSListener extends CommandSMSListener {
       CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      SmsMessageSender smsSender,
+      MessageSender smsMessageSender,
       EnrollmentService enrollmentService,
       EventChangeLogService eventChangeLogService,
       FileResourceService fileResourceService,
       DhisConfigurationProvider config,
       IdentifiableObjectManager identifiableObjectManager) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
+    super(dataElementCategoryService, userService, incomingSmsService, smsMessageSender);
     this.enrollmentService = enrollmentService;
     this.eventChangeLogService = eventChangeLogService;
     this.fileResourceService = fileResourceService;

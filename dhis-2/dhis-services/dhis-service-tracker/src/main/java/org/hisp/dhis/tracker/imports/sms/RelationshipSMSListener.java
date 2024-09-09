@@ -35,7 +35,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.message.SmsMessageSender;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -85,7 +85,7 @@ public class RelationshipSMSListener extends CompressionSMSListener {
 
   public RelationshipSMSListener(
       IncomingSmsService incomingSmsService,
-      SmsMessageSender smsSender,
+      MessageSender smsMessageSender,
       UserService userService,
       TrackedEntityTypeService trackedEntityTypeService,
       TrackedEntityAttributeService trackedEntityAttributeService,
@@ -100,7 +100,7 @@ public class RelationshipSMSListener extends CompressionSMSListener {
       EnrollmentService enrollmentService) {
     super(
         incomingSmsService,
-        smsSender,
+        smsMessageSender,
         userService,
         trackedEntityTypeService,
         trackedEntityAttributeService,

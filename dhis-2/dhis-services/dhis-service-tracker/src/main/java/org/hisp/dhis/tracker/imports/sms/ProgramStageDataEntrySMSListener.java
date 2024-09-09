@@ -43,7 +43,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.message.SmsMessageSender;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -88,7 +88,7 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
       CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      SmsMessageSender smsSender,
+      MessageSender smsMessageSender,
       EnrollmentService enrollmentService,
       EventChangeLogService eventChangeLogService,
       FileResourceService fileResourceService,
@@ -101,7 +101,7 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
         dataElementCategoryService,
         userService,
         incomingSmsService,
-        smsSender,
+        smsMessageSender,
         enrollmentService,
         eventChangeLogService,
         fileResourceService,

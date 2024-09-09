@@ -38,7 +38,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.message.SmsMessageSender;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -89,14 +89,14 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
       CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      SmsMessageSender smsSender,
+      MessageSender smsMessageSender,
       SMSCommandService smsCommandService,
       TrackedEntityTypeService trackedEntityTypeService,
       TrackedEntityService trackedEntityService,
       SMSEnrollmentService smsEnrollmentService,
       IdentifiableObjectManager manager,
       TrackedEntityAttributeValueService trackedEntityAttributeValueService) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
+    super(dataElementCategoryService, userService, incomingSmsService, smsMessageSender);
     this.smsCommandService = smsCommandService;
     this.trackedEntityTypeService = trackedEntityTypeService;
     this.trackedEntityService = trackedEntityService;

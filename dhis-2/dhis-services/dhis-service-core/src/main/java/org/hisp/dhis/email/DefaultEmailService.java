@@ -31,7 +31,7 @@ import com.google.common.collect.Sets;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.message.EmailMessageSender;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -57,7 +57,7 @@ public class DefaultEmailService implements EmailService {
   // Dependencies
   // -------------------------------------------------------------------------
 
-  private final EmailMessageSender emailMessageSender;
+  private final MessageSender emailMessageSender;
 
   private final UserService userService;
 

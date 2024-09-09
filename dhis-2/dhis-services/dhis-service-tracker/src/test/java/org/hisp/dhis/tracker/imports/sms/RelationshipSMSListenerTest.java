@@ -40,7 +40,7 @@ import static org.mockito.Mockito.when;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.message.SmsMessageSender;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.program.Enrollment;
@@ -73,7 +73,7 @@ class RelationshipSMSListenerTest extends CompressionSMSListenerTest {
 
   @Mock private IncomingSmsService incomingSmsService;
 
-  @Mock private SmsMessageSender smsSender;
+  @Mock private MessageSender smsSender;
 
   @Mock private DataElementService dataElementService;
 

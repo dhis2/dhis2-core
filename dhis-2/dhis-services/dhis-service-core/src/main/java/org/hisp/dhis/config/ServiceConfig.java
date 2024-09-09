@@ -28,6 +28,7 @@
 package org.hisp.dhis.config;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -77,10 +78,16 @@ public class ServiceConfig {
 
   @Bean("org.hisp.dhis.outboundmessage.OutboundMessageService")
   public DefaultOutboundMessageBatchService defaultOutboundMessageBatchService(
-      SmsMessageSender smsMessageSender, EmailMessageSender emailMessageSender) {
+      List<MessageSender> messageSenders) {
     Map<DeliveryChannel, MessageSender> channels = new HashMap<>();
-    channels.put(DeliveryChannel.SMS, smsMessageSender);
-    channels.put(DeliveryChannel.EMAIL, emailMessageSender);
+    messageSenders.forEach(
+        sender -> {
+          if (messageSenders instanceof EmailMessageSender) {
+            channels.put(DeliveryChannel.EMAIL, sender);
+          } else if (messageSenders instanceof SmsMessageSender) {
+            channels.put(DeliveryChannel.SMS, sender);
+          }
+        });
 
     DefaultOutboundMessageBatchService service = new DefaultOutboundMessageBatchService();
 

@@ -51,7 +51,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.message.SmsMessageSender;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -99,7 +99,7 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
 
   @Mock private IncomingSmsService incomingSmsService;
 
-  @Mock private SmsMessageSender smsSender;
+  @Mock private MessageSender smsSender;
 
   @Mock private DataElementService dataElementService;
 

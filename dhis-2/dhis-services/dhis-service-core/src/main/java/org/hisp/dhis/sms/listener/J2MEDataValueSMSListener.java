@@ -43,7 +43,7 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.message.SmsMessageSender;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -80,11 +80,11 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
       CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      SmsMessageSender smsSender,
+      MessageSender smsMessageSender,
       DataValueService dataValueService,
       SMSCommandService smsCommandService,
       CompleteDataSetRegistrationService registrationService) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
+    super(dataElementCategoryService, userService, incomingSmsService, smsMessageSender);
     this.dataValueService = dataValueService;
     this.smsCommandService = smsCommandService;
     this.registrationService = registrationService;
@@ -292,7 +292,7 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
       reportBack = command.getSuccessMessage();
     }
 
-    smsSender.sendMessage(null, reportBack, sender);
+    smsMessageSender.sendMessage(null, reportBack, sender);
   }
 
   public Period getPeriod(String periodName, PeriodType periodType)

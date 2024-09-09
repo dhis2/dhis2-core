@@ -36,9 +36,9 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageConversationParams;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
-import org.hisp.dhis.message.SmsMessageSender;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -65,10 +65,10 @@ public class DhisMessageAlertListener extends CommandSMSListener {
       CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      SmsMessageSender smsSender,
+      MessageSender smsMessageSender,
       SMSCommandService smsCommandService,
       MessageService messageService) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
+    super(dataElementCategoryService, userService, incomingSmsService, smsMessageSender);
     this.smsCommandService = smsCommandService;
     this.messageService = messageService;
   }
@@ -122,8 +122,8 @@ public class DhisMessageAlertListener extends CommandSMSListener {
           confirmMessage = SMSCommand.ALERT_FEEDBACK;
         }
 
-        if (smsSender.isConfigured()) {
-          smsSender.sendMessage(
+        if (smsMessageSender.isConfigured()) {
+          smsMessageSender.sendMessage(
               smsCommand.getName(), confirmMessage, null, null, feedbackList, false);
         } else {
           log.info("No sms configuration found.");

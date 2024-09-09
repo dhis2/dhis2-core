@@ -46,7 +46,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.message.SmsMessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -74,17 +73,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/sms/outbound")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class SmsOutboundController extends AbstractCrudController<OutboundSms> {
-  private final MessageSender smsSender;
+  private final MessageSender smsMessageSender;
 
   private final RenderService renderService;
 
   private final OutboundSmsService outboundSmsService;
 
   public SmsOutboundController(
-      SmsMessageSender smsSender,
+      MessageSender smsMessageSender,
       RenderService renderService,
       OutboundSmsService outboundSmsService) {
-    this.smsSender = smsSender;
+    this.smsMessageSender = smsMessageSender;
     this.renderService = renderService;
     this.outboundSmsService = outboundSmsService;
   }
@@ -118,7 +117,7 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms> {
       return conflict("Message must be specified");
     }
 
-    OutboundMessageResponse status = smsSender.sendMessage(null, message, recipient);
+    OutboundMessageResponse status = smsMessageSender.sendMessage(null, message, recipient);
 
     if (status.isOk()) {
       return ok("SMS sent");
@@ -133,7 +132,7 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms> {
     OutboundSms sms = renderService.fromJson(request.getInputStream(), OutboundSms.class);
 
     OutboundMessageResponse status =
-        smsSender.sendMessage(null, sms.getMessage(), sms.getRecipients());
+        smsMessageSender.sendMessage(null, sms.getMessage(), sms.getRecipients());
 
     if (status.isOk()) {
       return ok("SMS sent");

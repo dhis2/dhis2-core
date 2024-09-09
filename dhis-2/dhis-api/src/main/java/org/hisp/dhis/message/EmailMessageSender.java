@@ -27,4 +27,18 @@
  */
 package org.hisp.dhis.message;
 
-public interface EmailMessageSender extends MessageSender {}
+import java.util.List;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
+
+public interface EmailMessageSender extends MessageSender {
+  default List<OutboundMessage> getMessagesByEmail(String recipient) {
+    return List.of();
+  }
+
+  default void clearMessages() {}
+  ;
+
+  default List<OutboundMessage> getAllMessages() {
+    return List.of();
+  }
+}

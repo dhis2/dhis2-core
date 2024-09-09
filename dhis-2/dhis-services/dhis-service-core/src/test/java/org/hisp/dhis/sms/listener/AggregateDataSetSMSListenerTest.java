@@ -49,7 +49,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.message.SmsMessageSender;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -79,7 +79,7 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
 
   @Mock private IncomingSmsService incomingSmsService;
 
-  @Mock private SmsMessageSender smsSender;
+  @Mock private MessageSender smsSender;
 
   @Mock private DataElementService dataElementService;
 

@@ -47,7 +47,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.message.SmsMessageSender;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -94,14 +94,14 @@ public class DataValueSMSListener extends CommandSMSListener {
       CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      SmsMessageSender smsSender,
+      MessageSender smsMessageSender,
       CompleteDataSetRegistrationService registrationService,
       DataValueService dataValueService,
       CategoryService dataElementCategoryService1,
       SMSCommandService smsCommandService,
       DataSetService dataSetService,
       DataElementService dataElementService) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
+    super(dataElementCategoryService, userService, incomingSmsService, smsMessageSender);
     this.registrationService = registrationService;
     this.dataValueService = dataValueService;
     this.dataElementCategoryService = dataElementCategoryService1;
@@ -454,12 +454,12 @@ public class DataValueSMSListener extends CommandSMSListener {
 
     notInReport = notInReport.substring(0, notInReport.length() - 1);
 
-    if (smsSender.isConfigured()) {
+    if (smsMessageSender.isConfigured()) {
       if (command.getSuccessMessage() != null
           && !StringUtils.isEmpty(command.getSuccessMessage())) {
-        smsSender.sendMessage(null, command.getSuccessMessage(), sender);
+        smsMessageSender.sendMessage(null, command.getSuccessMessage(), sender);
       } else {
-        smsSender.sendMessage(null, reportBack, sender);
+        smsMessageSender.sendMessage(null, reportBack, sender);
       }
     } else {
       log.info("No sms configuration found.");

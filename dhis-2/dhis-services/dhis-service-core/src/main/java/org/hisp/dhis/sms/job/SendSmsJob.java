@@ -31,7 +31,7 @@ import static java.lang.String.format;
 
 import java.util.HashSet;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.message.SmsMessageSender;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 public class SendSmsJob implements Job {
-  private final SmsMessageSender smsSender;
+  private final MessageSender smsMessageSender;
 
   private final OutboundSmsService outboundSmsService;
 
@@ -69,7 +69,9 @@ public class SendSmsJob implements Job {
     OutboundMessageResponse status =
         progress.runStage(
             (OutboundMessageResponse) null,
-            () -> smsSender.sendMessage(sms.getSubject(), sms.getMessage(), sms.getRecipients()));
+            () ->
+                smsMessageSender.sendMessage(
+                    sms.getSubject(), sms.getMessage(), sms.getRecipients()));
 
     sms.setStatus(
         status != null && status.isOk() ? OutboundSmsStatus.SENT : OutboundSmsStatus.FAILED);

@@ -40,14 +40,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
 import org.hisp.dhis.email.EmailResponse;
+import org.hisp.dhis.message.EmailMessageSender;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.message.SmsMessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.user.User;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 
 /**
@@ -56,17 +60,23 @@ import org.springframework.util.concurrent.ListenableFuture;
  *
  * @author Jan Bernitt
  */
-public class DefaultFakeMessageSender implements FakeMessageSender {
+@Service
+@Profile("test")
+public class DefaultFakeMessageSender implements EmailMessageSender, SmsMessageSender {
+
   private final Map<String, List<OutboundMessage>> sendMessagesByRecipient = new HashMap<>();
 
+  @Override
   public List<OutboundMessage> getMessagesByEmail(String recipient) {
     return unmodifiableList(sendMessagesByRecipient.getOrDefault(recipient, emptyList()));
   }
 
+  @Override
   public void clearMessages() {
     sendMessagesByRecipient.clear();
   }
 
+  @Override
   public List<OutboundMessage> getAllMessages() {
     return sendMessagesByRecipient.values().stream().flatMap(List::stream).toList();
   }

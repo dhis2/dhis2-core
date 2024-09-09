@@ -30,9 +30,9 @@ package org.hisp.dhis.sms.listener;
 import java.util.Map;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageConversationParams;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
-import org.hisp.dhis.message.SmsMessageSender;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -59,11 +59,11 @@ public class UnregisteredSMSListener extends CommandSMSListener {
       CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      SmsMessageSender smsSender,
+      MessageSender smsMessageSender,
       SMSCommandService smsCommandService,
       UserService userService1,
       MessageService messageService) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
+    super(dataElementCategoryService, userService, incomingSmsService, smsMessageSender);
     this.smsCommandService = smsCommandService;
     this.userService = userService1;
     this.messageService = messageService;

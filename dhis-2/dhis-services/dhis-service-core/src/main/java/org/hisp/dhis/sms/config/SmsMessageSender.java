@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.message.SmsMessageSender;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
@@ -62,15 +62,15 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 
 /**
  * @author Nguyen Kim Lai
  */
 @Slf4j
-@Component
-public class DefaultSmsMessageSender implements SmsMessageSender {
+@Service
+public class SmsMessageSender implements MessageSender {
   private static final String NO_CONFIG = "No default gateway configured";
 
   private static final String BATCH_ABORTED = "Aborted sending message batch";
@@ -94,7 +94,7 @@ public class DefaultSmsMessageSender implements SmsMessageSender {
 
   private final SystemSettingManager systemSettingManager;
 
-  public DefaultSmsMessageSender(
+  public SmsMessageSender(
       GatewayAdministrationService gatewayAdminService,
       List<SmsGateway> smsGateways,
       UserSettingService userSettingService,

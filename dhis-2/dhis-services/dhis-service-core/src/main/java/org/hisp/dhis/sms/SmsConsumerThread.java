@@ -30,7 +30,7 @@ package org.hisp.dhis.sms;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.message.SmsMessageSender;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
@@ -46,7 +46,7 @@ public class SmsConsumerThread {
 
   private final MessageQueue messageQueue;
 
-  private final SmsMessageSender smsSender;
+  private final MessageSender smsMessageSender;
 
   private final IncomingSmsService incomingSmsService;
 
@@ -69,7 +69,7 @@ public class SmsConsumerThread {
 
         message.setStatus(SmsMessageStatus.UNHANDLED);
 
-        smsSender.sendMessage(null, "No command found", message.getOriginator());
+        smsMessageSender.sendMessage(null, "No command found", message.getOriginator());
       } catch (Exception e) {
         e.printStackTrace();
 

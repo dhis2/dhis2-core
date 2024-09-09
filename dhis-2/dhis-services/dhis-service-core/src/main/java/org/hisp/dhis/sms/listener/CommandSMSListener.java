@@ -41,7 +41,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.message.SmsMessageSender;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
@@ -71,8 +71,8 @@ public abstract class CommandSMSListener extends BaseSMSListener {
       CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      SmsMessageSender smsSender) {
-    super(incomingSmsService, smsSender);
+      MessageSender smsMessageSender) {
+    super(incomingSmsService, smsMessageSender);
     checkNotNull(dataElementCategoryService);
     checkNotNull(userService);
     this.dataElementCategoryService = dataElementCategoryService;

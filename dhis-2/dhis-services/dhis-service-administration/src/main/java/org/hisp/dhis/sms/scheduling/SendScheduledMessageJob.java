@@ -33,7 +33,7 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLI
 import java.util.Date;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.message.SmsMessageSender;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -48,7 +48,7 @@ import org.springframework.stereotype.Component;
 public class SendScheduledMessageJob implements Job {
   private final OutboundSmsService outboundSmsService;
 
-  private final SmsMessageSender smsSender;
+  private final MessageSender smsMessageSender;
 
   // -------------------------------------------------------------------------
   // Implementation
@@ -63,7 +63,7 @@ public class SendScheduledMessageJob implements Job {
   public void execute(JobConfiguration config, JobProgress progress) {
     progress.startingProcess("Starting to send outbound messages");
     progress.startingStage("Validating environment setup");
-    if (!smsSender.isConfigured()) {
+    if (!smsMessageSender.isConfigured()) {
       progress.failedStage("SMS gateway configuration does not exist, job aborted");
       return;
     }
@@ -92,7 +92,8 @@ public class SendScheduledMessageJob implements Job {
           outboundSms -> {
             outboundSms.setDate(new Date());
             outboundSms.setStatus(OutboundSmsStatus.SENT);
-            smsSender.sendMessage(null, outboundSms.getMessage(), outboundSms.getRecipients());
+            smsMessageSender.sendMessage(
+                null, outboundSms.getMessage(), outboundSms.getRecipients());
           });
     }
   }

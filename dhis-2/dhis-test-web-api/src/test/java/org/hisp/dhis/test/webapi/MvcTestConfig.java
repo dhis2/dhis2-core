@@ -40,12 +40,12 @@ import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPathConverter;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.test.message.DefaultFakeMessageSender;
-import org.hisp.dhis.test.message.FakeMessageSender;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
@@ -119,6 +119,8 @@ public class MvcTestConfig implements WebMvcConfigurer {
   @Autowired private FormattingConversionService mvcConversionService;
 
   @Autowired private ResourceUrlProvider mvcResourceUrlProvider;
+
+  private static MessageSender messageSender = new DefaultFakeMessageSender();
 
   @Bean
   @Primary
@@ -287,19 +289,13 @@ public class MvcTestConfig implements WebMvcConfigurer {
   }
 
   @Bean("smsMessageSender")
-  public FakeMessageSender smsMessageSender(FakeMessageSender fakeMessageSender) {
-    return fakeMessageSender;
+  public MessageSender smsMessageSender() {
+    return messageSender;
   }
 
   @Bean("emailMessageSender")
-  public FakeMessageSender emailMessageSender(FakeMessageSender fakeMessageSender) {
-    return fakeMessageSender;
-  }
-
-  @Primary
-  @Bean("fakeMessageSender")
-  public FakeMessageSender fakeMessageSender() {
-    return new DefaultFakeMessageSender();
+  public MessageSender emailMessageSender() {
+    return messageSender;
   }
 
   static final class TestInterceptorRegistry extends InterceptorRegistry {

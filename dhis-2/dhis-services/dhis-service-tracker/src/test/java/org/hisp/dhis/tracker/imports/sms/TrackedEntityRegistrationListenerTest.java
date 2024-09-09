@@ -43,7 +43,7 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.message.SmsMessageSender;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.program.Program;
@@ -93,7 +93,7 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
 
   @Mock private IncomingSmsService incomingSmsService;
 
-  @Mock private SmsMessageSender smsSender;
+  @Mock private MessageSender smsSender;
 
   @Mock private SMSCommandService smsCommandService;
 

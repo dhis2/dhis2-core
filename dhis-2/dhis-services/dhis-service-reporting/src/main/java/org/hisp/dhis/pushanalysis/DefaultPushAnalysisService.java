@@ -64,7 +64,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
 import org.hisp.dhis.mapgeneration.MapUtils;
 import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.message.EmailMessageSender;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SettingKey;
@@ -114,7 +114,7 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
 
   private final I18nManager i18nManager;
 
-  private final EmailMessageSender messageSender;
+  private final MessageSender emailMessageSender;
 
   @Qualifier("org.hisp.dhis.pushanalysis.PushAnalysisStore")
   private final IdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
@@ -219,7 +219,7 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
           // refactoring of EmailMessageSender
           @SuppressWarnings("unused")
           Future<OutboundMessageResponse> status =
-              messageSender.sendMessageAsync(title, html, "", null, Set.of(user), true);
+              emailMessageSender.sendMessageAsync(title, html, "", null, Set.of(user), true);
         });
   }
 

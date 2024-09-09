@@ -1930,6 +1930,7 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${maven-compiler-plugin.version}</version>
           <configuration>
+            <parameters>true</parameters>
             <release>${minimum-java.version}</release>
             <encoding>${project.build.sourceEncoding}</encoding>
             <annotationProcessorPaths>
@@ -1944,7 +1945,6 @@
                 <version>${mapstruct.version}</version>
               </path>
             </annotationProcessorPaths>
-            <parameters>true</parameters>
           </configuration>
         </plugin>
         <plugin>
