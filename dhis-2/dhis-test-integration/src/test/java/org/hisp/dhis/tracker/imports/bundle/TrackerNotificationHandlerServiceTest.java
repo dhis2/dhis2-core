@@ -119,6 +119,8 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
     user.getGroups().add(userGroup);
     manager.update(user);
 
+    injectSecurityContextUser(user);
+
     templateForEnrollment =
         createProgramNotification(
             "enrollment",

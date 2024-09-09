@@ -136,8 +136,8 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
       User user,
       List<SmsDataValue> values,
       SmsEventStatus eventStatus,
-      Date eventDate,
-      Date dueDate,
+      Date occurredDate,
+      Date scheduledDate,
       GeoPoint coordinates) {
     ArrayList<Object> errorUids = new ArrayList<>();
 
@@ -163,8 +163,8 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
     event.setOrganisationUnit(orgUnit);
     event.setProgramStage(programStage);
     event.setEnrollment(enrollment);
-    event.setOccurredDate(eventDate);
-    event.setScheduledDate(dueDate);
+    event.setOccurredDate(occurredDate);
+    event.setScheduledDate(scheduledDate);
     event.setAttributeOptionCombo(aoc);
     event.setStoredBy(user.getUsername());
 
