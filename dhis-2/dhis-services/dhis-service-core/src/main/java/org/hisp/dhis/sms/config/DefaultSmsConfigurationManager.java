@@ -27,28 +27,77 @@
  */
 package org.hisp.dhis.sms.config;
 
+import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IndirectTransactional;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.datastore.DatastoreEntry;
+import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
+import org.hisp.dhis.datastore.DatastoreService;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.user.SystemUser;
 import org.springframework.stereotype.Component;
 
 /** Manages the {@link SmsConfiguration} for the instance. */
-@Component("org.hisp.dhis.sms.config.SmsConfigurationManager")
+@Slf4j
+@Component
 @RequiredArgsConstructor
 public class DefaultSmsConfigurationManager implements SmsConfigurationManager {
 
-  private final SystemSettingManager settings;
+  private static final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
-  @Override
-  @IndirectTransactional
-  public SmsConfiguration getSmsConfiguration() {
-    return settings.getSystemSetting(SettingKey.SMS_CONFIG, SmsConfiguration.class);
+  private final DatastoreService datastore;
+
+  @PostConstruct
+  private void init() {
+    // Note: the trick here is that read-access is RESTRICTED but when a read
+    // is performed by this service the SystemUser is used
+    // this allows programmatic access but not access via datastore API
+    datastore.addProtection(
+        new DatastoreNamespaceProtection(
+            "sms-config", RESTRICTED, RESTRICTED, Authorities.F_MOBILE_SENDSMS.toString()));
   }
 
   @Override
   @IndirectTransactional
-  public void updateSmsConfiguration(SmsConfiguration config) {
-    settings.saveSystemSetting(SettingKey.SMS_CONFIG, config);
+  public SmsConfiguration getSmsConfiguration() {
+    DatastoreEntry entry = null;
+    try {
+      entry = datastore.getEntry("sms-config", "config", new SystemUser());
+    } catch (ForbiddenException e) {
+      return null;
+    }
+    if (entry == null) return null;
+    try {
+      return jsonMapper.readValue(entry.getValue(), SmsConfiguration.class);
+    } catch (JsonProcessingException e) {
+      log.error("Failed to parse SMS configuration", e);
+      return null;
+    }
+  }
+
+  @Override
+  @IndirectTransactional
+  public void updateSmsConfiguration(SmsConfiguration config)
+      throws ConflictException, ForbiddenException, BadRequestException {
+    DatastoreEntry entry = new DatastoreEntry();
+    entry.setNamespace("sms-config");
+    entry.setKey("config");
+    try {
+      entry.setValue(jsonMapper.writeValueAsString(config));
+    } catch (JsonProcessingException e) {
+      ConflictException ex = new ConflictException("Failed to convert config to JSON");
+      ex.initCause(e);
+      throw ex;
+    }
+    datastore.saveOrUpdateEntry(entry);
   }
 }

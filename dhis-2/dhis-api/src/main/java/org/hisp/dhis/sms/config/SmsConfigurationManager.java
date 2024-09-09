@@ -27,9 +27,14 @@
  */
 package org.hisp.dhis.sms.config;
 
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
+
 /** Zubair <rajazubair.asghar@gmail.com> */
 public interface SmsConfigurationManager {
   SmsConfiguration getSmsConfiguration();
 
-  void updateSmsConfiguration(SmsConfiguration config);
+  void updateSmsConfiguration(SmsConfiguration config)
+      throws ConflictException, ForbiddenException, BadRequestException;
 }
