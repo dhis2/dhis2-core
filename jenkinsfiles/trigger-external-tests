@@ -44,6 +44,28 @@ pipeline {
     }
 
     stages {
+        stage('Validate Parameters') {
+            steps {
+                script {
+                    if (!params.DHIS2_VERSION) {
+                        echo "DHIS2_VERSION is empty, using Git branch version: ${env.GIT_BRANCH}"
+                    } else {
+                        echo "Using DHIS2_VERSION: ${params.DHIS2_VERSION}"
+                    }
+
+                    if (!params.DB_VERSION) {
+                        echo "DB_VERSION is empty, using DHIS2_VERSION: ${params.DHIS2_VERSION ? params.DHIS2_VERSION : env.GIT_BRANCH}"
+                    } else {
+                        echo "Using DB_VERSION: ${params.DB_VERSION}"
+                    }
+
+                    if (!env.GIT_BRANCH) {
+                        error 'GIT_BRANCH is not defined. Make sure you are running this job from a Git branch.'
+                    }
+                }
+            }
+        }
+
         stage('Deploy DHIS2 instance') {
             steps {
                 script {
@@ -76,7 +98,10 @@ pipeline {
                                     }
                                 }
 
-                                sh '[ -n "$DATABASE_ID" ]'
+                                if (!env.DATABASE_ID) {
+                                    error "Failed to find or upload database for ${DB_VERSION_TAG}. Stopping build."
+                                }
+
                                 echo "DATABASE_ID is $DATABASE_ID"
                             }
 
@@ -133,10 +158,5 @@ pipeline {
             }
         }
 
-        aborted {
-            script {
-                slack.sendTimedoutMessage()
-            }
-        }
     }
 }
