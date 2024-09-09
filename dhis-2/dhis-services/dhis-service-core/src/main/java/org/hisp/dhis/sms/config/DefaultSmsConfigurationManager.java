@@ -31,6 +31,7 @@ import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionTyp
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +67,7 @@ public class DefaultSmsConfigurationManager implements SmsConfigurationManager {
             "sms-config", RESTRICTED, RESTRICTED, Authorities.F_MOBILE_SENDSMS.toString()));
   }
 
+  @Nonnull
   @Override
   @IndirectTransactional
   public SmsConfiguration getSmsConfiguration() {
@@ -73,20 +75,20 @@ public class DefaultSmsConfigurationManager implements SmsConfigurationManager {
     try {
       entry = datastore.getEntry("sms-config", "config", new SystemUser());
     } catch (ForbiddenException e) {
-      return null;
+      return new SmsConfiguration();
     }
-    if (entry == null) return null;
+    if (entry == null) return new SmsConfiguration();
     try {
       return jsonMapper.readValue(entry.getValue(), SmsConfiguration.class);
     } catch (JsonProcessingException e) {
       log.error("Failed to parse SMS configuration", e);
-      return null;
+      return new SmsConfiguration();
     }
   }
 
   @Override
   @IndirectTransactional
-  public void updateSmsConfiguration(SmsConfiguration config)
+  public void updateSmsConfiguration(@Nonnull SmsConfiguration config)
       throws ConflictException, ForbiddenException, BadRequestException {
     DatastoreEntry entry = new DatastoreEntry();
     entry.setNamespace("sms-config");

@@ -77,7 +77,7 @@ class GatewayAdministrationServiceTest {
   private DefaultGatewayAdministrationService subject;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  public void setUp() {
 
     subject = new DefaultGatewayAdministrationService(smsConfigurationManager, pbeStringEncryptor);
 
@@ -290,7 +290,7 @@ class GatewayAdministrationServiceTest {
     assertEquals(expectedNumberOfGateways, spyConfiguration.getGateways().size());
   }
 
-  private SmsGatewayConfig getConfigByClassName(String name) throws Exception {
+  private SmsGatewayConfig getConfigByClassName(String name) {
     return smsConfigurationManager.getSmsConfiguration().getGateways().stream()
         .filter(gateway -> gateway.getClass().getName().equals(name))
         .findFirst()

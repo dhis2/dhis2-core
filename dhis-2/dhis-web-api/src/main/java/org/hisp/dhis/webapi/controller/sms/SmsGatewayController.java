@@ -35,7 +35,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
@@ -98,8 +97,8 @@ public class SmsGatewayController {
       })
   @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @GetMapping(produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonRoot> getGateways(@RequestParam(defaultValue = "*") List<String> fields)
-      throws ForbiddenException, ConflictException {
+  public ResponseEntity<JsonRoot> getGateways(
+      @RequestParam(defaultValue = "*") List<String> fields) {
     SmsConfiguration config = smsConfigurationManager.getSmsConfiguration();
     FieldFilterParams<?> params = FieldFilterParams.of(config.getGateways(), fields);
 
@@ -161,7 +160,7 @@ public class SmsGatewayController {
   @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @PostMapping
   @ResponseBody
-  public WebMessage addGateway(HttpServletRequest request, HttpServletResponse response)
+  public WebMessage addGateway(HttpServletRequest request)
       throws IOException, ConflictException, ForbiddenException, BadRequestException {
     SmsGatewayConfig config =
         renderService.fromJson(request.getInputStream(), SmsGatewayConfig.class);
