@@ -80,8 +80,11 @@ class AppHubControllerTest extends H2ControllerIntegrationTestBase {
     String versionId = firstApp.getString("id").string();
     String version = firstApp.getString("version").string();
 
-    JsonObject result = POST("/appHub/" + versionId).content();
+    HttpResponse response = POST("/appHub/" + versionId);
 
+    assertEquals(201, response.status().code());
+
+    JsonObject result = response.content();
     assertEquals(
         version,
         result.getString("version").string(),

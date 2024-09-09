@@ -45,6 +45,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -93,6 +94,6 @@ public class AppHubController {
       throw new ConflictException(message);
     }
 
-    return ResponseEntity.ok(app);
+    return new ResponseEntity<>(app, HttpStatus.CREATED);
   }
 }

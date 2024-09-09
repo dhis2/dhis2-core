@@ -294,6 +294,7 @@ public class DefaultAppManager implements AppManager {
     App installedApp = new App();
     if (appHubId == null) {
       installedApp.setAppState(AppStatus.NOT_FOUND);
+      return installedApp;
     }
 
     try {
@@ -301,6 +302,7 @@ public class DefaultAppManager implements AppManager {
       if (versionJson == null || versionJson.isEmpty()) {
         log.info(String.format("No version found for id %s", appHubId));
         installedApp.setAppState(AppStatus.NOT_FOUND);
+        return installedApp;
       }
       JsonString downloadUrlNode = JsonMixed.of(versionJson).getString("downloadUrl");
       if (downloadUrlNode.isUndefined()) {
@@ -308,6 +310,7 @@ public class DefaultAppManager implements AppManager {
             String.format(
                 "No download URL property found in response for id %s: %s", appHubId, versionJson));
         installedApp.setAppState(AppStatus.NOT_FOUND);
+        return installedApp;
       }
       String downloadUrl = downloadUrlNode.string();
       URL url = new URL(downloadUrl);

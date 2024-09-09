@@ -169,7 +169,7 @@ public class AppController {
       throw new WebMessageException(conflict(message));
     }
 
-    return ResponseEntity.ok(installedApp);
+    return new ResponseEntity<>(installedApp, HttpStatus.CREATED);
   }
 
   @PutMapping
