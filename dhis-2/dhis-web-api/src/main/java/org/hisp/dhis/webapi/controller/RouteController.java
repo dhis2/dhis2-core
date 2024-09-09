@@ -141,8 +141,8 @@ public class RouteController extends AbstractCrudController<Route> {
   @Override
   @PostMapping(value = "/deleteCollectionItem__disabled")
   @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
-  public WebMessage deleteCollectionItem(String pvUid, String pvProperty, String pvItemId,
-      HttpServletResponse response)
+  public WebMessage deleteCollectionItem(
+      String pvUid, String pvProperty, String pvItemId, HttpServletResponse response)
       throws NotFoundException, ForbiddenException, ConflictException, BadRequestException {
     throw new NotFoundException("Method Not Allowed");
   }
