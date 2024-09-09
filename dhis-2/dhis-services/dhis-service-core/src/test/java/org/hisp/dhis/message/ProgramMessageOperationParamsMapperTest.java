@@ -106,7 +106,7 @@ class ProgramMessageOperationParamsMapperTest {
         subject.map(ProgramMessageOperationParams.builder().enrollment(ENROLLMENT).build());
 
     assertEquals(enrollment, queryParams.getEnrollment());
-    verify(manager).get(eq(Enrollment.class), eq(ENROLLMENT.getValue()));
+    verify(manager).get(Enrollment.class, ENROLLMENT.getValue());
     verifyNoMoreInteractions(manager);
   }
 
@@ -119,7 +119,7 @@ class ProgramMessageOperationParamsMapperTest {
         subject.map(ProgramMessageOperationParams.builder().event(EVENT).build());
 
     assertEquals(event, queryParams.getEvent());
-    verify(manager).get(eq(Event.class), eq(EVENT.getValue()));
+    verify(manager).get(Event.class, EVENT.getValue());
     verifyNoMoreInteractions(manager);
   }
 
@@ -139,7 +139,7 @@ class ProgramMessageOperationParamsMapperTest {
         String.format(
             "%s: %s does not exist.", Enrollment.class.getSimpleName(), invalidEnrollment),
         exception.getMessage());
-    verify(manager).get(eq(Enrollment.class), eq(invalidEnrollment.getValue()));
+    verify(manager).get(Enrollment.class, invalidEnrollment.getValue());
     verifyNoMoreInteractions(manager);
   }
 
@@ -156,7 +156,7 @@ class ProgramMessageOperationParamsMapperTest {
     assertStartsWith(
         String.format("%s: %s does not exist.", Event.class.getSimpleName(), invalidEvent),
         exception.getMessage());
-    verify(manager).get(eq(Event.class), eq(invalidEvent.getValue()));
+    verify(manager).get(Event.class, invalidEvent.getValue());
     verifyNoMoreInteractions(manager);
   }
 
