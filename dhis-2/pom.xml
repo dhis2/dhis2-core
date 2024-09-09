@@ -191,7 +191,7 @@
     <guava.version>33.3.0-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
-    <google-api-client.version>2.6.0</google-api-client.version>
+    <google-api-client.version>2.7.0</google-api-client.version>
     <lombok.version>1.18.34</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <joda-time.version>2.12.7</joda-time.version>
@@ -216,7 +216,7 @@
     <micrometer.version>1.12.6</micrometer.version>
 
     <!-- Logging -->
-    <log4j.version>2.23.1</log4j.version>
+    <log4j.version>2.24.0</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
