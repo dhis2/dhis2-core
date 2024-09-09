@@ -66,10 +66,6 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
   @Qualifier("tripleDesStringEncryptor")
   private final PBEStringEncryptor pbeStringEncryptor;
 
-  // -------------------------------------------------------------------------
-  // GatewayAdministrationService implementation
-  // -------------------------------------------------------------------------
-
   @EventListener
   public void handleContextRefresh(ContextRefreshedEvent event) {
     updateHasGatewaysState();
@@ -233,40 +229,13 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
     return hasGateways.get();
   }
 
-  // -------------------------------------------------------------------------
-  // Supportive methods
-  // -------------------------------------------------------------------------
-
   private SmsConfiguration getSmsConfiguration() {
-    SmsConfiguration smsConfiguration = smsConfigurationManager.getSmsConfiguration();
-
-    if (smsConfiguration != null) {
-      return smsConfiguration;
-    }
-
-    return new SmsConfiguration();
+    return smsConfigurationManager.getSmsConfiguration();
   }
 
   private void updateHasGatewaysState() {
-    SmsConfiguration smsConfiguration = smsConfigurationManager.getSmsConfiguration();
-
-    if (smsConfiguration == null) {
-      log.info("SMS configuration not found");
-      hasGateways.set(false);
-      return;
-    }
-
-    List<SmsGatewayConfig> gatewayList = smsConfiguration.getGateways();
-
-    if (gatewayList == null || gatewayList.isEmpty()) {
-      log.info("No Gateway configuration found");
-
-      hasGateways.set(false);
-      return;
-    }
-
-    log.info("Gateway configuration found: " + gatewayList);
-
-    hasGateways.set(true);
+    SmsConfiguration config = smsConfigurationManager.getSmsConfiguration();
+    List<SmsGatewayConfig> gateways = config.getGateways();
+    hasGateways.set(gateways != null && !gateways.isEmpty());
   }
 }

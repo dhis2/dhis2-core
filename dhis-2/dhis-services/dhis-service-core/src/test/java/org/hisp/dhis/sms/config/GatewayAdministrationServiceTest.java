@@ -281,7 +281,7 @@ class GatewayAdministrationServiceTest {
     assertGateway(BULKSMS, gateway -> assertEquals("bulksms2", gateway.getName()));
   }
 
-  private void assertGateway(String name, Consumer<SmsGatewayConfig> test) throws Exception {
+  private void assertGateway(String name, Consumer<SmsGatewayConfig> test) {
     SmsGatewayConfig config = getConfigByClassName(name);
     test.accept(config);
   }
