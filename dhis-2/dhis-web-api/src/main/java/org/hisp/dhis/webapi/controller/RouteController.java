@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import java.io.IOException;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -134,6 +135,15 @@ public class RouteController extends AbstractCrudController<Route> {
   @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
   public WebMessage addCollectionItem(String pvUid, String pvProperty, String pvItemId)
       throws NotFoundException, ConflictException, ForbiddenException, BadRequestException {
+    throw new NotFoundException("Method Not Allowed");
+  }
+
+  @Override
+  @PostMapping(value = "/deleteCollectionItem__disabled")
+  @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+  public WebMessage deleteCollectionItem(
+      String pvUid, String pvProperty, String pvItemId, HttpServletResponse response)
+      throws NotFoundException, ForbiddenException, ConflictException, BadRequestException {
     throw new NotFoundException("Method Not Allowed");
   }
 }
