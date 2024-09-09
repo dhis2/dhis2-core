@@ -68,11 +68,11 @@ public class RouteController extends AbstractCrudController<Route> {
   @RequestMapping(
       value = "/{id}/run",
       method = {
-          RequestMethod.GET,
-          RequestMethod.POST,
-          RequestMethod.PUT,
-          RequestMethod.DELETE,
-          RequestMethod.PATCH
+        RequestMethod.GET,
+        RequestMethod.POST,
+        RequestMethod.PUT,
+        RequestMethod.DELETE,
+        RequestMethod.PATCH
       })
   public ResponseEntity<String> run(
       @PathVariable("id") String id,
@@ -85,11 +85,11 @@ public class RouteController extends AbstractCrudController<Route> {
   @RequestMapping(
       value = "/{id}/run/**",
       method = {
-          RequestMethod.GET,
-          RequestMethod.POST,
-          RequestMethod.PUT,
-          RequestMethod.DELETE,
-          RequestMethod.PATCH
+        RequestMethod.GET,
+        RequestMethod.POST,
+        RequestMethod.PUT,
+        RequestMethod.DELETE,
+        RequestMethod.PATCH
       })
   public ResponseEntity<String> runWithSubpath(
       @PathVariable("id") String id,
@@ -139,8 +139,8 @@ public class RouteController extends AbstractCrudController<Route> {
   @Override
   @PostMapping(value = "/deleteCollectionItem__disabled")
   @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
-  public WebMessage deleteCollectionItem(String pvUid, String pvProperty, String pvItemId,
-      HttpServletResponse response)
+  public WebMessage deleteCollectionItem(
+      String pvUid, String pvProperty, String pvItemId, HttpServletResponse response)
       throws NotFoundException, ForbiddenException, ConflictException, BadRequestException {
     throw new NotFoundException("Method Not Allowed");
   }
