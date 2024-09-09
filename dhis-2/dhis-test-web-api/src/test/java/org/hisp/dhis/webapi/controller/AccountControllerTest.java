@@ -196,7 +196,7 @@ class AccountControllerTest extends DhisControllerIntegrationTest {
     }
 
     JsonResponse response = GET("/account/linkedAccounts").content(HttpStatus.OK);
-    JsonList<JsonUser> list = response.asList(JsonUser.class);
+    JsonList<JsonUser> list = response.getList("users", JsonUser.class);
     assertEquals(3, list.size());
   }
 
