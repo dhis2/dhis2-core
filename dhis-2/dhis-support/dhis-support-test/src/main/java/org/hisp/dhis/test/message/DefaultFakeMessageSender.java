@@ -40,9 +40,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
 import org.hisp.dhis.email.EmailResponse;
-import org.hisp.dhis.message.EmailMessageSender;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.message.SmsMessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
@@ -62,7 +60,7 @@ import org.springframework.util.concurrent.ListenableFuture;
  */
 @Service
 @Profile("test")
-public class DefaultFakeMessageSender implements EmailMessageSender, SmsMessageSender {
+public class DefaultFakeMessageSender implements MessageSender {
 
   private final Map<String, List<OutboundMessage>> sendMessagesByRecipient = new HashMap<>();
 
