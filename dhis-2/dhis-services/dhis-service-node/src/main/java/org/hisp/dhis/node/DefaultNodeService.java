@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.PostConstruct;
 import org.hisp.dhis.node.types.RootNode;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
