@@ -41,6 +41,7 @@ import org.springframework.util.concurrent.ListenableFuture;
  * @author Lars Helge Overland
  */
 public interface MessageSender {
+
   /**
    * Sends a message. The given message will be sent to the given set of users.
    *
@@ -79,7 +80,6 @@ public interface MessageSender {
   }
 
   default void clearMessages() {}
-  ;
 
   default List<OutboundMessage> getAllMessages() {
     return List.of();
