@@ -78,7 +78,7 @@ public class InboundSmsProcessingJob implements Job {
 
       sms.setStatus(SmsMessageStatus.UNHANDLED);
       incomingSmsService.update(sms);
-      smsSender.sendMessage(null, "No command found", sms.getOriginator());
+      smsMessageSender.sendMessage(null, "No command found", sms.getOriginator());
 
       progress.failedProcess("No command found for SMS with UID {}", params.getSms());
     } catch (Exception e) {

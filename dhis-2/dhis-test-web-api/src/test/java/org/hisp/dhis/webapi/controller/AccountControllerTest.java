@@ -62,7 +62,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @AfterEach
   void afterEach() {
-    messageSender.clearMessages();
+    emailMessageSender.clearMessages();
   }
 
   @Test

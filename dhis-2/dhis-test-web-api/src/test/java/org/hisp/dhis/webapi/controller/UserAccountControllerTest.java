@@ -44,6 +44,7 @@ import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.security.PasswordManager;

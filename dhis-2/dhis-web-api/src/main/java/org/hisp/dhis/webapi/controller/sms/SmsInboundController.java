@@ -35,6 +35,7 @@ import static org.hisp.dhis.security.Authorities.F_MOBILE_SENDSMS;
 import static org.hisp.dhis.security.Authorities.F_MOBILE_SETTINGS;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import jakarta.annotation.Nonnull;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
