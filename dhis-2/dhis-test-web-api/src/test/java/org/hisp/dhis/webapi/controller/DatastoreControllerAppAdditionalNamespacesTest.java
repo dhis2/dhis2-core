@@ -55,9 +55,11 @@ class DatastoreControllerAppAdditionalNamespacesTest extends H2ControllerIntegra
   void setUp() throws IOException {
     assertEquals(
         AppStatus.OK,
-        appManager.installApp(
-            new ClassPathResource("app/test-app-with-additional-ns.zip").getFile(),
-            "test-app-with-additional-ns.zip"));
+        appManager
+            .installApp(
+                new ClassPathResource("app/test-app-with-additional-ns.zip").getFile(),
+                "test-app-with-additional-ns.zip")
+            .getAppState());
   }
 
   @Test

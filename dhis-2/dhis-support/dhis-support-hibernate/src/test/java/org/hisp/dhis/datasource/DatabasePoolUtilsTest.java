@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.datasource;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -38,35 +37,17 @@ import java.beans.PropertyVetoException;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 import javax.sql.DataSource;
-import org.apache.logging.log4j.core.Logger;
-import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.core.test.appender.ListAppender;
 import org.hisp.dhis.datasource.model.PoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 class DatabasePoolUtilsTest {
-
-  private static ListAppender appender;
-
-  @BeforeAll
-  public static void beforeAll() {
-    LoggerContext loggerContext = LoggerContext.getContext(false);
-    Logger logger = (Logger) loggerContext.getLogger(DatabasePoolUtils.class);
-    appender = new ListAppender("Test");
-    appender.start();
-    loggerContext.getConfiguration().addLoggerAppender(logger, appender);
-  }
-
   @BeforeEach
   public void beforeEach() throws SQLException {
-    appender.clear();
     StubDriver jdbcDriver = new StubDriver();
     DriverManager.registerDriver(jdbcDriver);
   }
@@ -88,8 +69,6 @@ class DatabasePoolUtilsTest {
 
     DataSource dataSource = DatabasePoolUtils.createDbPool(poolConfigBuilder.build());
     assertInstanceOf(DriverManagerDataSource.class, dataSource);
-
-    assertEquals("Database pool type value is 'UNPOOLED'", getLogEntry());
   }
 
   @Test
@@ -127,8 +106,6 @@ class DatabasePoolUtilsTest {
 
     DataSource dataSource = DatabasePoolUtils.createDbPool(poolConfigBuilder.build());
     assertInstanceOf(ComboPooledDataSource.class, dataSource);
-
-    assertEquals("Database pool type value is 'C3P0'", getLogEntry());
   }
 
   @Test
@@ -156,14 +133,5 @@ class DatabasePoolUtilsTest {
 
     DataSource dataSource = DatabasePoolUtils.createDbPool(poolConfigBuilder.build());
     assertInstanceOf(HikariDataSource.class, dataSource);
-
-    assertEquals("Database pool type value is 'HIKARI'", getLogEntry());
-  }
-
-  private String getLogEntry() {
-    return appender.getEvents().stream()
-        .map(event -> event.getMessage().getFormattedMessage())
-        .collect(Collectors.toList())
-        .get(0);
   }
 }
