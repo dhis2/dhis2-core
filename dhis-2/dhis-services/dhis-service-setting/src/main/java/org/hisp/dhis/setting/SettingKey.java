@@ -52,7 +52,6 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.LoginPageLayout;
-import org.hisp.dhis.sms.config.SmsConfiguration;
 
 /**
  * @author Lars Helge Overland
@@ -85,7 +84,6 @@ public enum SettingKey {
   EMAIL_PASSWORD("keyEmailPassword", "", String.class, true, false),
   MIN_PASSWORD_LENGTH("minPasswordLength", 8, Integer.class),
   MAX_PASSWORD_LENGTH("maxPasswordLength", 72, Integer.class),
-  SMS_CONFIG("keySmsSetting", new SmsConfiguration(), SmsConfiguration.class),
   SMS_MAX_LENGTH("keySmsMaxLength", 1071, Integer.class),
   CACHE_STRATEGY("keyCacheStrategy", CacheStrategy.CACHE_1_MINUTE, CacheStrategy.class),
   CACHEABILITY("keyCacheability", Cacheability.PUBLIC, Cacheability.class),
