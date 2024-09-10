@@ -107,22 +107,6 @@
       <version>3.3.4</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-api</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-core-test</artifactId>
-      <version>${log4j.version}</version>
-      <scope>test</scope>
-    </dependency>
 
     <!-- Other -->
 
