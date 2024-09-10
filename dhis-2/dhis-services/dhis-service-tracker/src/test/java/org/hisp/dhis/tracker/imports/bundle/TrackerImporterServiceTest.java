@@ -42,7 +42,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.RecordingJobProgress;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -74,8 +73,6 @@ class TrackerImporterServiceTest {
   @Mock private TrackerPreprocessService trackerPreprocessService;
 
   @Mock private TrackerUserService trackerUserService;
-
-  @Mock private Notifier notifier;
 
   @Mock private ValidationResult validationResult;
 

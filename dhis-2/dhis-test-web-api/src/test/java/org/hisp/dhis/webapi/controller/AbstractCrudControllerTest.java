@@ -45,7 +45,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -59,6 +58,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.web.snippets.SomeUserId;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonAttributeValue;
 import org.hisp.dhis.test.webapi.json.domain.JsonError;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonGeoMap;
@@ -1037,15 +1037,15 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     attribute.setDataElementAttribute(true);
     manager.save(attribute);
     DataElement dataElement = createDataElement('A');
-    dataElement.getAttributeValues().add(new AttributeValue("value", attribute));
+    dataElement.addAttributeValue(attribute.getUid(), "value");
     manager.save(dataElement);
 
     JsonList<JsonIdentifiableObject> response =
         GET("/dataElements?fields=id,name,attributeValues", dataElement.getUid())
             .content()
             .getList("dataElements", JsonIdentifiableObject.class);
-    assertEquals(
-        attribute.getUid(), response.get(0).getAttributeValues().get(0).getAttribute().getId());
+    JsonAttributeValue attributeValue0 = response.get(0).getAttributeValues().get(0);
+    assertEquals(attribute.getUid(), attributeValue0.getAttribute().getId());
 
     response =
         GET(
@@ -1053,10 +1053,9 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                 dataElement.getUid())
             .content()
             .getList("dataElements", JsonIdentifiableObject.class);
-    assertEquals(
-        attribute.getUid(), response.get(0).getAttributeValues().get(0).getAttribute().getId());
-    assertEquals(
-        attribute.getName(), response.get(0).getAttributeValues().get(0).getAttribute().getName());
+    attributeValue0 = response.get(0).getAttributeValues().get(0);
+    assertEquals(attribute.getUid(), attributeValue0.getAttribute().getId());
+    assertEquals("AttributeA", attributeValue0.getAttribute().getName());
   }
 
   @Test

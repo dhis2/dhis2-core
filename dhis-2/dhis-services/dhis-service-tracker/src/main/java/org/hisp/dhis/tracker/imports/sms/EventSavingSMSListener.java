@@ -74,9 +74,9 @@ import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -136,8 +136,8 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
       User user,
       List<SmsDataValue> values,
       SmsEventStatus eventStatus,
-      Date eventDate,
-      Date dueDate,
+      Date occurredDate,
+      Date scheduledDate,
       GeoPoint coordinates) {
     ArrayList<Object> errorUids = new ArrayList<>();
 
@@ -163,8 +163,8 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
     event.setOrganisationUnit(orgUnit);
     event.setProgramStage(programStage);
     event.setEnrollment(enrollment);
-    event.setOccurredDate(eventDate);
-    event.setScheduledDate(dueDate);
+    event.setOccurredDate(occurredDate);
+    event.setScheduledDate(scheduledDate);
     event.setAttributeOptionCombo(aoc);
     event.setStoredBy(user.getUsername());
 

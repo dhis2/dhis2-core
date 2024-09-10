@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.webapi.service;
 
+import static java.util.Map.entry;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_GROUP_DIM_ID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
@@ -42,7 +42,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Builder;
@@ -66,7 +65,6 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -74,6 +72,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.coordinate.CoordinateObject;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -102,6 +101,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service
 public class GeoFeatureService {
+
   private final DataQueryService dataQueryService;
 
   private final OrganisationUnitGroupService organisationUnitGroupService;
@@ -110,16 +110,17 @@ public class GeoFeatureService {
 
   private final AttributeService attributeService;
 
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
   /**
    * The {@link GeoFeature#getTy} in the response is integer, so we need to map {@link FeatureType}
    * to integer and return to client.
    */
   private static final Map<FeatureType, Integer> FEATURE_TYPE_MAP =
-      ImmutableMap.<FeatureType, Integer>builder()
-          .put(FeatureType.POINT, GeoFeature.TYPE_POINT)
-          .put(FeatureType.MULTI_POLYGON, GeoFeature.TYPE_POLYGON)
-          .put(FeatureType.POLYGON, GeoFeature.TYPE_POLYGON)
-          .build();
+      Map.ofEntries(
+          entry(FeatureType.POINT, GeoFeature.TYPE_POINT),
+          entry(FeatureType.MULTI_POLYGON, GeoFeature.TYPE_POLYGON),
+          entry(FeatureType.POLYGON, GeoFeature.TYPE_POLYGON));
 
   /**
    * Returns a list of {@link GeoFeature}. Returns null if not modified based on the request.
@@ -230,7 +231,7 @@ public class GeoFeatureService {
         }
       }
 
-      getCoordinates(feature, unit, geoJsonAttribute);
+      updateFeatureCoordinates(feature, unit, geoJsonAttribute);
 
       feature.setNa(unit.getDisplayProperty(params.getDisplayProperty()));
       features.add(feature);
@@ -242,80 +243,64 @@ public class GeoFeatureService {
   }
 
   /**
-   * Get the {@link GeoFeature} coordinate from {@link DimensionalItemObject}
+   * Updates the {@link GeoFeature} coordinate from {@link DimensionalItemObject}
    *
-   * @param feature the {@link GeoFeature}
-   * @param unit the {@link DimensionalItemObject} contains the coordinate values.
-   * @return the given {@link GeoFeature} with updated coordinate value and coordinate type.
+   * @param target the {@link GeoFeature}
+   * @param source the {@link DimensionalItemObject} contains the coordinate values.
    */
-  private void getCoordinates(GeoFeature feature, DimensionalItemObject unit) {
-    if (!CoordinateObject.class.isAssignableFrom(unit.getClass())) {
-      return;
-    }
-
-    CoordinateObject coordinateObject = (CoordinateObject) unit;
+  private void updateFeatureCoordinates(GeoFeature target, DimensionalItemObject source) {
+    if (!(source instanceof CoordinateObject coordinateObject)) return;
 
     Integer ty =
         coordinateObject.getFeatureType() != null
             ? FEATURE_TYPE_MAP.get(coordinateObject.getFeatureType())
             : null;
-    feature.setCo(coordinateObject.getCoordinates());
-    feature.setTy(ObjectUtils.firstNonNull(ty, 0));
+    target.setCo(coordinateObject.getCoordinates());
+    target.setTy(ObjectUtils.firstNonNull(ty, 0));
   }
 
   /**
-   * Get the {@link GeoFeature} coordinate from {@link DimensionalItemObject}
+   * Updates the {@link GeoFeature} coordinate from {@link DimensionalItemObject}
    *
    * <p>The coordinate value is retrieved from {@link DimensionalItemObject}'s geoJsonAttribute
    * value.
    *
-   * @param feature the {@link GeoFeature}
-   * @param unit the {@link DimensionalItemObject} contains the coordinate values.
+   * @param target the {@link GeoFeature}
+   * @param source the {@link DimensionalItemObject} contains the coordinate values.
    * @param geoJsonAttribute The {@link Attribute} which has {@link ValueType#GEOJSON} and is
    *     assigned to {@link OrganisationUnit}.
-   * @return the given {@link GeoFeature} with updated coordinate value and coordinate type.
    */
-  private void getCoordinates(
-      GeoFeature feature, DimensionalItemObject unit, Attribute geoJsonAttribute) {
+  private void updateFeatureCoordinates(
+      GeoFeature target, DimensionalItemObject source, Attribute geoJsonAttribute) {
     if (geoJsonAttribute == null) {
-      getCoordinates(feature, unit);
+      updateFeatureCoordinates(target, source);
       return;
     }
 
-    if (!unit.getClass().isAssignableFrom(OrganisationUnit.class)) {
-      return;
-    }
+    if (!(source instanceof OrganisationUnit organisationUnit)) return;
 
-    OrganisationUnit organisationUnit = (OrganisationUnit) unit;
-    Optional<AttributeValue> geoJsonAttributeValue =
-        organisationUnit.getAttributeValues().stream()
-            .filter(
-                attributeValue ->
-                    attributeValue.getAttribute().getUid().equals(geoJsonAttribute.getUid()))
-            .findFirst();
+    String value = organisationUnit.getAttributeValues().get(geoJsonAttribute.getUid());
 
-    if (!geoJsonAttributeValue.isPresent()
-        || StringUtils.isBlank(geoJsonAttributeValue.get().getValue())) {
-      getCoordinates(feature, unit);
+    if (value == null || StringUtils.isBlank(value)) {
+      updateFeatureCoordinates(target, source);
       return;
     }
 
     try {
-      GeoJsonObject geoJsonObject =
-          new ObjectMapper().readValue(geoJsonAttributeValue.get().getValue(), GeoJsonObject.class);
+      GeoJsonObject geoJsonObject = OBJECT_MAPPER.readValue(value, GeoJsonObject.class);
       GeoFeature geoJsonFeature = geoJsonObject.accept(new GeoFeatureVisitor());
 
       if (geoJsonFeature == null) {
         return;
       }
 
-      feature.setTy(geoJsonFeature.getTy());
-      feature.setCo(geoJsonFeature.getCo());
+      target.setTy(geoJsonFeature.getTy());
+      target.setCo(geoJsonFeature.getCo());
     } catch (JsonProcessingException e) {
       log.error(
           String.format("Couldn't read GeoJson value from organisationUnit %s: ", organisationUnit),
           e);
-      getCoordinates(feature, unit);
+      updateFeatureCoordinates(target, source);
     }
   }
 
@@ -357,7 +342,7 @@ public class GeoFeatureService {
    *
    * <p>Return null if GeoJsonObject type is not supported
    */
-  class GeoFeatureVisitor implements GeoJsonObjectVisitor<GeoFeature> {
+  static class GeoFeatureVisitor implements GeoJsonObjectVisitor<GeoFeature> {
     @Override
     public GeoFeature visit(GeometryCollection geometryCollection) {
       // Not support type
@@ -374,7 +359,7 @@ public class GeoFeatureService {
     public GeoFeature visit(Point point) {
       GeoFeature geoFeature = new GeoFeature();
       geoFeature.setTy(GeoFeature.TYPE_POINT);
-      geoFeature.setCo(convertGeoJsonObjectCoordinates(Lists.newArrayList(point.getCoordinates())));
+      geoFeature.setCo(convertGeoJsonObjectCoordinates(List.of(point.getCoordinates())));
       return geoFeature;
     }
 
@@ -422,25 +407,26 @@ public class GeoFeatureService {
       geoFeature.setCo(convertGeoJsonObjectCoordinates(lineString.getCoordinates()));
       return geoFeature;
     }
-  }
 
-  /**
-   * Convert coordinates of an {@link GeoJsonObject} to String
-   *
-   * @param coordinates the coordinate of a GeoJsonObject, usually is a list of {@link
-   *     org.geojson.LngLatAlt}
-   * @return a String contains given GeoJsonObject's coordinates. Return null if failed to convert.
-   */
-  private String convertGeoJsonObjectCoordinates(Object coordinates) {
-    try {
-      return new ObjectMapper().writeValueAsString(coordinates);
-    } catch (JsonProcessingException e) {
-      log.error(
-          String.format("Failed to write coordinate to String: %s", coordinates),
-          DebugUtils.getStackTrace(e));
+    /**
+     * Convert coordinates of an {@link GeoJsonObject} to String
+     *
+     * @param coordinates the coordinate of a GeoJsonObject, usually is a list of {@link
+     *     org.geojson.LngLatAlt}
+     * @return a String contains given GeoJsonObject's coordinates. Return null if failed to
+     *     convert.
+     */
+    private static String convertGeoJsonObjectCoordinates(List<?> coordinates) {
+      try {
+        return OBJECT_MAPPER.writeValueAsString(coordinates);
+      } catch (JsonProcessingException e) {
+        log.error(
+            String.format("Failed to write coordinate to String: %s", coordinates),
+            DebugUtils.getStackTrace(e));
+      }
+
+      return null;
     }
-
-    return null;
   }
 
   /**
@@ -509,11 +495,11 @@ public class GeoFeatureService {
    * @param object {@link DimensionalItemObject}
    * @return true if given object has coordinates, otherwise return false.
    */
-  private boolean validateDimensionalItemObject(Object object, Attribute geoJsonAttribute) {
+  private boolean validateDimensionalItemObject(
+      IdentifiableObject object, Attribute geoJsonAttribute) {
     if (geoJsonAttribute != null) {
       return hasGeoJsonAttributeCoordinates(object, geoJsonAttribute);
     }
-
     return hasGeometryCoordinates(object);
   }
 
@@ -540,15 +526,9 @@ public class GeoFeatureService {
    * @param geoJsonAttribute the {@link Attribute} which has {@link ValueType#GEOJSON}.
    * @return true if given object has GeoJson coordinates, false otherwise.
    */
-  private boolean hasGeoJsonAttributeCoordinates(Object object, Attribute geoJsonAttribute) {
-    if (geoJsonAttribute == null
-        || !BaseIdentifiableObject.class.isAssignableFrom(object.getClass())) {
-      return false;
-    }
-
-    BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
-    AttributeValue geoJsonValue = identifiableObject.getAttributeValue(geoJsonAttribute);
-
-    return geoJsonValue != null && StringUtils.isNotBlank(geoJsonValue.getValue());
+  private boolean hasGeoJsonAttributeCoordinates(
+      IdentifiableObject object, Attribute geoJsonAttribute) {
+    return geoJsonAttribute != null
+        && isNotBlank(object.getAttributeValues().get(geoJsonAttribute.getUid()));
   }
 }

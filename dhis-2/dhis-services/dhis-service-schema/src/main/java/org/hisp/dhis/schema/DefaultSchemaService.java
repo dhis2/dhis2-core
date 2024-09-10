@@ -64,7 +64,6 @@ import org.hisp.dhis.schema.descriptors.AnalyticsPeriodBoundarySchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.AnalyticsTableHookSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ApiTokenSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.AttributeSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.AttributeValueSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.AxisSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.CategoryComboSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.CategoryDimensionSchemaDescriptor;
@@ -205,7 +204,6 @@ public class DefaultSchemaService implements SchemaService {
     register(new EventHookSchemaDescriptor());
     register(new AnalyticsTableHookSchemaDescriptor());
     register(new AttributeSchemaDescriptor());
-    register(new AttributeValueSchemaDescriptor());
     register(new CategoryComboSchemaDescriptor());
     register(new CategoryOptionComboSchemaDescriptor());
     register(new CategoryOptionGroupSchemaDescriptor());

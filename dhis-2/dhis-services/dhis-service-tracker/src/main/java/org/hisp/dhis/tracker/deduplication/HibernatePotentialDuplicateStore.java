@@ -64,8 +64,8 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLog;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogStore;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLog;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLogStore;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
@@ -300,26 +300,25 @@ class HibernatePotentialDuplicateStore
     mergeObject
         .getRelationships()
         .forEach(
-            rel -> {
-              duplicate.getRelationshipItems().stream()
-                  .map(RelationshipItem::getRelationship)
-                  .filter(r -> r.getUid().equals(rel))
-                  .findAny()
-                  .ifPresent(
-                      relationship ->
-                          auditManager.send(
-                              Audit.builder()
-                                  .auditScope(AuditScope.TRACKER)
-                                  .auditType(AuditType.UPDATE)
-                                  .createdAt(LocalDateTime.now())
-                                  .object(relationship)
-                                  .klass(
-                                      HibernateProxyUtils.getRealClass(relationship)
-                                          .getCanonicalName())
-                                  .uid(rel)
-                                  .auditableEntity(
-                                      new AuditableEntity(Relationship.class, relationship))
-                                  .build()));
-            });
+            rel ->
+                duplicate.getRelationshipItems().stream()
+                    .map(RelationshipItem::getRelationship)
+                    .filter(r -> r.getUid().equals(rel))
+                    .findAny()
+                    .ifPresent(
+                        relationship ->
+                            auditManager.send(
+                                Audit.builder()
+                                    .auditScope(AuditScope.TRACKER)
+                                    .auditType(AuditType.UPDATE)
+                                    .createdAt(LocalDateTime.now())
+                                    .object(relationship)
+                                    .klass(
+                                        HibernateProxyUtils.getRealClass(relationship)
+                                            .getCanonicalName())
+                                    .uid(rel)
+                                    .auditableEntity(
+                                        new AuditableEntity(Relationship.class, relationship))
+                                    .build())));
   }
 }

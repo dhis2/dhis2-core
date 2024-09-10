@@ -31,7 +31,7 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.text.StringSubstitutor.replace;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isDataElement;
 import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.TRACKED_ENTITY_ALIAS;
-import static org.hisp.dhis.common.collection.CollectionUtils.merge;
+import static org.hisp.dhis.common.collection.CollectionUtils.mergeMaps;
 
 import java.util.Map;
 import lombok.NoArgsConstructor;
@@ -131,7 +131,7 @@ class SqlQueryHelper {
       return () ->
           replace(
               DATA_VALUES_ORDER_BY_SUBQUERY,
-              merge(
+              mergeMaps(
                   getEnrollmentPlaceholders(dimId),
                   getEventPlaceholders(dimId),
                   Map.of(
@@ -143,7 +143,7 @@ class SqlQueryHelper {
       return () ->
           replace(
               EVENT_ORDER_BY_SUBQUERY,
-              merge(
+              mergeMaps(
                   getEnrollmentPlaceholders(dimId),
                   getEventPlaceholders(dimId),
                   Map.of(
@@ -156,7 +156,7 @@ class SqlQueryHelper {
       return () ->
           replace(
               ENROLLMENT_ORDER_BY_SUBQUERY,
-              merge(
+              mergeMaps(
                   getEnrollmentPlaceholders(dimId),
                   Map.of("selectedEnrollmentField", field.render())));
     }
@@ -179,7 +179,7 @@ class SqlQueryHelper {
       return () ->
           replace(
               DATA_VALUES_EXISTS_SUBQUERY,
-              merge(
+              mergeMaps(
                   getEnrollmentPlaceholders(dimId),
                   getEventPlaceholders(dimId),
                   Map.of(
@@ -191,7 +191,7 @@ class SqlQueryHelper {
       return () ->
           replace(
               EVENT_EXISTS_SUBQUERY,
-              merge(
+              mergeMaps(
                   getEnrollmentPlaceholders(dimId),
                   getEventPlaceholders(dimId),
                   Map.of(
@@ -203,7 +203,7 @@ class SqlQueryHelper {
       return () ->
           replace(
               ENROLLMENT_EXISTS_SUBQUERY,
-              merge(
+              mergeMaps(
                   getEnrollmentPlaceholders(dimId),
                   Map.of(
                       "enrollmentSubqueryAlias", dimId.getPrefix(),

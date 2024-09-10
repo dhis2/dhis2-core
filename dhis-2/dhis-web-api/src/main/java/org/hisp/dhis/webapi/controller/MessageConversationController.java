@@ -246,14 +246,6 @@ public class MessageConversationController
   // --------------------------------------------------------------------------
 
   @Override
-  public WebMessage postXmlObject(HttpServletRequest request)
-      throws IOException, ConflictException, NotFoundException {
-    MessageConversation messageConversation =
-        renderService.fromXml(request.getInputStream(), MessageConversation.class);
-    return postObject(request, messageConversation);
-  }
-
-  @Override
   public WebMessage postJsonObject(HttpServletRequest request)
       throws ConflictException, IOException, NotFoundException {
     MessageConversation messageConversation =

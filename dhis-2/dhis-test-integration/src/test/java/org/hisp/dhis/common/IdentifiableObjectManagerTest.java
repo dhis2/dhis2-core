@@ -47,7 +47,6 @@ import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -158,8 +157,8 @@ class IdentifiableObjectManagerTest extends PostgresIntegrationTestBase {
     DataElement dataElementB = createDataElement('B');
     dataElementService.addDataElement(dataElementA);
     dataElementService.addDataElement(dataElementB);
-    attributeService.addAttributeValue(dataElementA, new AttributeValue(atA, "DEA"));
-    attributeService.addAttributeValue(dataElementB, new AttributeValue(atA, "DEB"));
+    attributeService.addAttributeValue(dataElementA, atA.getUid(), "DEA");
+    attributeService.addAttributeValue(dataElementB, atA.getUid(), "DEB");
     assertEquals(
         dataElementA, idObjectManager.getObject(DataElement.class, IdScheme.from(atA), "DEA"));
     assertEquals(

@@ -50,9 +50,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -101,8 +98,6 @@ public class DefaultFieldFilterService implements FieldFilterService {
 
   private final AclService aclService;
 
-  private final AttributeService attributeService;
-
   private final Set<NodeTransformer> nodeTransformers;
 
   private ImmutableMap<String, FieldPreset> presets = ImmutableMap.of();
@@ -121,7 +116,6 @@ public class DefaultFieldFilterService implements FieldFilterService {
       FieldParser fieldParser,
       SchemaService schemaService,
       AclService aclService,
-      AttributeService attributeService,
       CacheProvider cacheProvider,
       UserGroupService userGroupService,
       UserService userService,
@@ -130,7 +124,6 @@ public class DefaultFieldFilterService implements FieldFilterService {
     this.schemaService = schemaService;
     this.aclService = aclService;
     this.userService = userService;
-    this.attributeService = attributeService;
     this.userGroupService = userGroupService;
     this.nodeTransformers = nodeTransformers == null ? new HashSet<>() : nodeTransformers;
     this.transformerCache = cacheProvider.createPropertyTransformerCache();
@@ -156,22 +149,6 @@ public class DefaultFieldFilterService implements FieldFilterService {
 
     baseIdentifiableIdProperty =
         schemaService.getDynamicSchema(BaseIdentifiableObject.class).getProperty("id");
-  }
-
-  @Override
-  public ComplexNode toComplexNode(FieldFilterParams params) {
-    if (params.getObjects().isEmpty()) {
-      return null;
-    }
-
-    Object object = params.getObjects().get(0);
-    CollectionNode collectionNode = toCollectionNode(object.getClass(), params);
-
-    if (!collectionNode.getChildren().isEmpty()) {
-      return (ComplexNode) collectionNode.getChildren().get(0);
-    }
-
-    return null;
   }
 
   @Override
@@ -538,7 +515,6 @@ public class DefaultFieldFilterService implements FieldFilterService {
             }
           }
         } else {
-          returnValue = handleJsonbObjectProperties(klass, propertyClass, returnValue);
           child = buildNode(fieldValue, propertyClass, returnValue, userDetails, defaults);
         }
       }
@@ -745,20 +721,5 @@ public class DefaultFieldFilterService implements FieldFilterService {
     }
 
     return IdentifiableObject.class.isAssignableFrom(klass);
-  }
-
-  /**
-   * {@link AttributeValue} is saved as JSONB, and it contains only Attribute's uid If fields
-   * parameter requires more than just Attribute's uid then we need to get full {@link Attribute}
-   * object ( from cache ) e.g. fields=id,name,attributeValues[value,attribute[id,name,description]]
-   */
-  private Object handleJsonbObjectProperties(
-      Class<?> klass, Class<?> propertyClass, Object returnObject) {
-    if (AttributeValue.class.isAssignableFrom(klass)
-        && Attribute.class.isAssignableFrom(propertyClass)) {
-      returnObject = attributeService.getAttribute(((Attribute) returnObject).getUid());
-    }
-
-    return returnObject;
   }
 }

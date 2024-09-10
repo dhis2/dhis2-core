@@ -28,7 +28,6 @@
 package org.hisp.dhis.config;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -36,14 +35,13 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.DefaultResourceBundleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
-import org.hisp.dhis.message.EmailMessageSender;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.message.SmsMessageSender;
 import org.hisp.dhis.outboundmessage.DefaultOutboundMessageBatchService;
 import org.hisp.dhis.setting.DefaultStyleManager;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.UserSettingService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -78,16 +76,11 @@ public class ServiceConfig {
 
   @Bean("org.hisp.dhis.outboundmessage.OutboundMessageService")
   public DefaultOutboundMessageBatchService defaultOutboundMessageBatchService(
-      List<MessageSender> messageSenders) {
+      @Qualifier("smsMessageSender") MessageSender smsMessageSender,
+      @Qualifier("emailMessageSender") MessageSender emailMessageSender) {
     Map<DeliveryChannel, MessageSender> channels = new HashMap<>();
-    messageSenders.forEach(
-        sender -> {
-          if (messageSenders instanceof EmailMessageSender) {
-            channels.put(DeliveryChannel.EMAIL, sender);
-          } else if (messageSenders instanceof SmsMessageSender) {
-            channels.put(DeliveryChannel.SMS, sender);
-          }
-        });
+    channels.put(DeliveryChannel.SMS, smsMessageSender);
+    channels.put(DeliveryChannel.EMAIL, emailMessageSender);
 
     DefaultOutboundMessageBatchService service = new DefaultOutboundMessageBatchService();
 

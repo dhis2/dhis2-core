@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.sms.listener;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -146,10 +144,6 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
       sendSMSResponse(SmsResponse.READ_ERROR, sms, header.getSubmissionId());
       return;
     }
-
-    // TODO: Can be removed - debugging line to check Sms submissions
-    Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    log.info(String.format("New received Sms submission decoded as: %s", gson.toJson(subm)));
 
     SmsResponse resp;
     try {

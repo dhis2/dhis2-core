@@ -55,8 +55,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.Value;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -397,9 +395,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
   }
 
   private static Object getAttributeValue(Object obj, String attrId) {
-    if (obj instanceof BaseIdentifiableObject) {
-      AttributeValue attr = ((BaseIdentifiableObject) obj).getAttributeValue(attrId);
-      return attr == null ? null : attr.getValue();
+    if (obj instanceof IdentifiableObject identifiableObject) {
+      return identifiableObject.getAttributeValues().get(attrId);
     }
     return null;
   }
@@ -450,7 +447,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     List<T> entities = (List<T>) queryService.query(query);
 
     handleLinksAndAccess(entities, fields, true);
-    handleAttributeValues(entities, fields);
 
     entities.forEach(e -> postProcessResponseEntity(e, options, rpParameters));
 
@@ -525,7 +521,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     List<T> entities = (List<T>) queryService.query(query);
 
     handleLinksAndAccess(entities, fields, true);
-    handleAttributeValues(entities, fields);
 
     entities.forEach(e -> postProcessResponseEntity(entity, options, parameters));
 
@@ -599,15 +594,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
   private void handleLinksAndAccess(List<T> entityList, List<String> fields, boolean deep) {
     if (hasHref(fields)) {
       linkService.generateLinks(entityList, deep);
-    }
-  }
-
-  private void handleAttributeValues(List<T> entityList, List<String> fields) {
-    List<String> hasAttributeValues =
-        fields.stream().filter(field -> field.contains("attributeValues")).collect(toList());
-
-    if (!hasAttributeValues.isEmpty()) {
-      attributeService.generateAttributes(entityList);
     }
   }
 

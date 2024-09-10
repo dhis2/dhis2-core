@@ -111,7 +111,7 @@ class MessageFormatter {
     if (Event.class.isAssignableFrom(type)) return ((Event) argument).getEvent();
     if (TrackedEntity.class.isAssignableFrom(type))
       return ((TrackedEntity) argument).getTrackedEntity();
-    return "";
+    return argument.toString();
   }
 
   private static String getIdAndName(MetadataIdentifier identifier) {

@@ -33,26 +33,17 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.query.Query;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
-import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -97,60 +88,6 @@ public class HibernateTrackedEntityAttributeStore
         builder,
         newJpaParameters()
             .addPredicate(root -> builder.equal(root.get("displayInListNoProgram"), true)));
-  }
-
-  @Override
-  public Optional<String> getTrackedEntityUidWithUniqueAttributeValue(
-      TrackedEntityQueryParams params) {
-    // ---------------------------------------------------------------------
-    // Select clause
-    // ---------------------------------------------------------------------
-
-    SqlHelper hlp = new SqlHelper(true);
-
-    String hql = "select te.uid from TrackedEntity te ";
-
-    if (params.hasOrganisationUnits()) {
-      String orgUnitUids =
-          params.getOrgUnits().stream()
-              .map(OrganisationUnit::getUid)
-              .collect(Collectors.joining(", ", "'", "'"));
-
-      hql += "inner join te.organisationUnit as ou ";
-      hql += hlp.whereAnd() + " ou.uid in (" + orgUnitUids + ") ";
-    }
-
-    for (QueryItem item : params.getAttributes()) {
-      for (QueryFilter filter : item.getFilters()) {
-        final String encodedFilter =
-            filter.getSqlFilter(SqlUtils.escape(StringUtils.lowerCase(filter.getFilter())));
-
-        hql +=
-            hlp.whereAnd()
-                + " exists (from TrackedEntityAttributeValue teav where teav.trackedEntity=te";
-        hql += " and teav.attribute.uid='" + item.getItemId() + "'";
-
-        if (item.isNumeric()) {
-          hql += " and teav.plainValue " + filter.getSqlOperator() + encodedFilter + ")";
-        } else {
-          hql += " and lower(teav.plainValue) " + filter.getSqlOperator() + encodedFilter + ")";
-        }
-      }
-    }
-
-    if (!params.isIncludeDeleted()) {
-      hql += hlp.whereAnd() + " te.deleted is false";
-    }
-
-    Query<String> query = getTypedQuery(hql);
-
-    Iterator<String> it = query.iterate();
-
-    if (it.hasNext()) {
-      return Optional.of(it.next());
-    }
-
-    return Optional.empty();
   }
 
   @Override

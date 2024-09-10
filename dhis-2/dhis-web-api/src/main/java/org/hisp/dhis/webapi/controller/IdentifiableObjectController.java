@@ -61,12 +61,6 @@ public class IdentifiableObjectController extends AbstractCrudController<Identif
   }
 
   @Override
-  public WebMessage postXmlObject(HttpServletRequest request)
-      throws HttpRequestMethodNotSupportedException {
-    throw new HttpRequestMethodNotSupportedException("POST");
-  }
-
-  @Override
   public WebMessage postJsonObject(HttpServletRequest request)
       throws HttpRequestMethodNotSupportedException {
     throw new HttpRequestMethodNotSupportedException("POST");

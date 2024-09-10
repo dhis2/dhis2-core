@@ -52,8 +52,9 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogStore;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLogQueryParams;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -71,7 +72,7 @@ class TrackedEntityDataValueChangeLogStoreTest extends PostgresIntegrationTestBa
 
   private static final UserInfoSnapshot USER_SNAP_A = UserInfoTestHelper.testUserInfo(USER_A);
 
-  @Autowired private TrackedEntityDataValueChangeLogStore auditStore;
+  @Autowired private EventChangeLogService changeLogService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -210,25 +211,26 @@ class TrackedEntityDataValueChangeLogStoreTest extends PostgresIntegrationTestBa
             USER_A,
             dvC.getProvidedElsewhere(),
             ChangeLogType.UPDATE);
-    auditStore.addTrackedEntityDataValueChangeLog(dvaA);
-    auditStore.addTrackedEntityDataValueChangeLog(dvaB);
-    auditStore.addTrackedEntityDataValueChangeLog(dvaC);
+    changeLogService.addTrackedEntityDataValueChangeLog(dvaA);
+    changeLogService.addTrackedEntityDataValueChangeLog(dvaB);
+    changeLogService.addTrackedEntityDataValueChangeLog(dvaC);
 
     TrackedEntityDataValueChangeLogQueryParams params =
         new TrackedEntityDataValueChangeLogQueryParams()
             .setDataElements(List.of(deA, deB))
             .setEvents(List.of(eventA))
             .setAuditTypes(List.of(ChangeLogType.UPDATE));
-    assertContainsOnly(List.of(dvaA, dvaB), auditStore.getTrackedEntityDataValueChangeLogs(params));
-    assertEquals(2, auditStore.countTrackedEntityDataValueChangeLogs(params));
+    assertContainsOnly(
+        List.of(dvaA, dvaB), changeLogService.getTrackedEntityDataValueChangeLogs(params));
+    assertEquals(2, changeLogService.countTrackedEntityDataValueChangeLogs(params));
 
     params =
         new TrackedEntityDataValueChangeLogQueryParams()
             .setDataElements(List.of(deA))
             .setEvents(List.of(eventA))
             .setAuditTypes(List.of(ChangeLogType.UPDATE));
-    assertContainsOnly(List.of(dvaA), auditStore.getTrackedEntityDataValueChangeLogs(params));
-    assertEquals(1, auditStore.countTrackedEntityDataValueChangeLogs(params));
+    assertContainsOnly(List.of(dvaA), changeLogService.getTrackedEntityDataValueChangeLogs(params));
+    assertEquals(1, changeLogService.countTrackedEntityDataValueChangeLogs(params));
   }
 
   @Test
@@ -257,23 +259,24 @@ class TrackedEntityDataValueChangeLogStoreTest extends PostgresIntegrationTestBa
             USER_A,
             dvC.getProvidedElsewhere(),
             ChangeLogType.UPDATE);
-    auditStore.addTrackedEntityDataValueChangeLog(dvaA);
-    auditStore.addTrackedEntityDataValueChangeLog(dvaB);
-    auditStore.addTrackedEntityDataValueChangeLog(dvaC);
+    changeLogService.addTrackedEntityDataValueChangeLog(dvaA);
+    changeLogService.addTrackedEntityDataValueChangeLog(dvaB);
+    changeLogService.addTrackedEntityDataValueChangeLog(dvaC);
 
     TrackedEntityDataValueChangeLogQueryParams params =
         new TrackedEntityDataValueChangeLogQueryParams()
             .setOrgUnits(List.of(ouA))
             .setAuditTypes(List.of(ChangeLogType.UPDATE));
-    assertContainsOnly(List.of(dvaA, dvaB), auditStore.getTrackedEntityDataValueChangeLogs(params));
-    assertEquals(2, auditStore.countTrackedEntityDataValueChangeLogs(params));
+    assertContainsOnly(
+        List.of(dvaA, dvaB), changeLogService.getTrackedEntityDataValueChangeLogs(params));
+    assertEquals(2, changeLogService.countTrackedEntityDataValueChangeLogs(params));
 
     params =
         new TrackedEntityDataValueChangeLogQueryParams()
             .setOrgUnits(List.of(ouB))
             .setAuditTypes(List.of(ChangeLogType.UPDATE));
-    assertContainsOnly(List.of(dvaC), auditStore.getTrackedEntityDataValueChangeLogs(params));
-    assertEquals(1, auditStore.countTrackedEntityDataValueChangeLogs(params));
+    assertContainsOnly(List.of(dvaC), changeLogService.getTrackedEntityDataValueChangeLogs(params));
+    assertEquals(1, changeLogService.countTrackedEntityDataValueChangeLogs(params));
   }
 
   @Test
@@ -318,11 +321,11 @@ class TrackedEntityDataValueChangeLogStoreTest extends PostgresIntegrationTestBa
             USER_A,
             dvE.getProvidedElsewhere(),
             ChangeLogType.UPDATE);
-    auditStore.addTrackedEntityDataValueChangeLog(dvaA);
-    auditStore.addTrackedEntityDataValueChangeLog(dvaB);
-    auditStore.addTrackedEntityDataValueChangeLog(dvaC);
-    auditStore.addTrackedEntityDataValueChangeLog(dvaD);
-    auditStore.addTrackedEntityDataValueChangeLog(dvaE);
+    changeLogService.addTrackedEntityDataValueChangeLog(dvaA);
+    changeLogService.addTrackedEntityDataValueChangeLog(dvaB);
+    changeLogService.addTrackedEntityDataValueChangeLog(dvaC);
+    changeLogService.addTrackedEntityDataValueChangeLog(dvaD);
+    changeLogService.addTrackedEntityDataValueChangeLog(dvaE);
 
     TrackedEntityDataValueChangeLogQueryParams params =
         new TrackedEntityDataValueChangeLogQueryParams()
@@ -330,8 +333,8 @@ class TrackedEntityDataValueChangeLogStoreTest extends PostgresIntegrationTestBa
             .setOuMode(OrganisationUnitSelectionMode.DESCENDANTS)
             .setAuditTypes(List.of(ChangeLogType.UPDATE));
     assertContainsOnly(
-        List.of(dvaB, dvaD, dvaE), auditStore.getTrackedEntityDataValueChangeLogs(params));
-    assertEquals(3, auditStore.countTrackedEntityDataValueChangeLogs(params));
+        List.of(dvaB, dvaD, dvaE), changeLogService.getTrackedEntityDataValueChangeLogs(params));
+    assertEquals(3, changeLogService.countTrackedEntityDataValueChangeLogs(params));
 
     params =
         new TrackedEntityDataValueChangeLogQueryParams()
@@ -340,8 +343,8 @@ class TrackedEntityDataValueChangeLogStoreTest extends PostgresIntegrationTestBa
             .setAuditTypes(List.of(ChangeLogType.UPDATE));
     assertContainsOnly(
         List.of(dvaA, dvaB, dvaC, dvaD, dvaE),
-        auditStore.getTrackedEntityDataValueChangeLogs(params));
-    assertEquals(5, auditStore.countTrackedEntityDataValueChangeLogs(params));
+        changeLogService.getTrackedEntityDataValueChangeLogs(params));
+    assertEquals(5, changeLogService.countTrackedEntityDataValueChangeLogs(params));
   }
 
   @Test
@@ -370,23 +373,24 @@ class TrackedEntityDataValueChangeLogStoreTest extends PostgresIntegrationTestBa
             USER_A,
             dvC.getProvidedElsewhere(),
             ChangeLogType.UPDATE);
-    auditStore.addTrackedEntityDataValueChangeLog(dvaA);
-    auditStore.addTrackedEntityDataValueChangeLog(dvaB);
-    auditStore.addTrackedEntityDataValueChangeLog(dvaC);
+    changeLogService.addTrackedEntityDataValueChangeLog(dvaA);
+    changeLogService.addTrackedEntityDataValueChangeLog(dvaB);
+    changeLogService.addTrackedEntityDataValueChangeLog(dvaC);
 
     TrackedEntityDataValueChangeLogQueryParams params =
         new TrackedEntityDataValueChangeLogQueryParams()
             .setProgramStages(List.of(psA))
             .setAuditTypes(List.of(ChangeLogType.UPDATE));
-    assertContainsOnly(List.of(dvaA, dvaB), auditStore.getTrackedEntityDataValueChangeLogs(params));
-    assertEquals(2, auditStore.countTrackedEntityDataValueChangeLogs(params));
+    assertContainsOnly(
+        List.of(dvaA, dvaB), changeLogService.getTrackedEntityDataValueChangeLogs(params));
+    assertEquals(2, changeLogService.countTrackedEntityDataValueChangeLogs(params));
 
     params =
         new TrackedEntityDataValueChangeLogQueryParams()
             .setProgramStages(List.of(psB))
             .setAuditTypes(List.of(ChangeLogType.UPDATE));
-    assertContainsOnly(List.of(dvaC), auditStore.getTrackedEntityDataValueChangeLogs(params));
-    assertEquals(1, auditStore.countTrackedEntityDataValueChangeLogs(params));
+    assertContainsOnly(List.of(dvaC), changeLogService.getTrackedEntityDataValueChangeLogs(params));
+    assertEquals(1, changeLogService.countTrackedEntityDataValueChangeLogs(params));
   }
 
   @Test
@@ -418,25 +422,26 @@ class TrackedEntityDataValueChangeLogStoreTest extends PostgresIntegrationTestBa
             dvC.getProvidedElsewhere(),
             ChangeLogType.UPDATE);
     dvaC.setCreated(getDate(2021, 8, 1));
-    auditStore.addTrackedEntityDataValueChangeLog(dvaA);
-    auditStore.addTrackedEntityDataValueChangeLog(dvaB);
-    auditStore.addTrackedEntityDataValueChangeLog(dvaC);
+    changeLogService.addTrackedEntityDataValueChangeLog(dvaA);
+    changeLogService.addTrackedEntityDataValueChangeLog(dvaB);
+    changeLogService.addTrackedEntityDataValueChangeLog(dvaC);
 
     TrackedEntityDataValueChangeLogQueryParams params =
         new TrackedEntityDataValueChangeLogQueryParams()
             .setDataElements(List.of(deA, deB))
             .setStartDate(getDate(2021, 6, 15))
             .setEndDate(getDate(2021, 8, 15));
-    assertContainsOnly(List.of(dvaB, dvaC), auditStore.getTrackedEntityDataValueChangeLogs(params));
-    assertEquals(2, auditStore.countTrackedEntityDataValueChangeLogs(params));
+    assertContainsOnly(
+        List.of(dvaB, dvaC), changeLogService.getTrackedEntityDataValueChangeLogs(params));
+    assertEquals(2, changeLogService.countTrackedEntityDataValueChangeLogs(params));
 
     params =
         new TrackedEntityDataValueChangeLogQueryParams()
             .setDataElements(List.of(deA, deB))
             .setStartDate(getDate(2021, 6, 15))
             .setEndDate(getDate(2021, 7, 15));
-    assertContainsOnly(List.of(dvaB), auditStore.getTrackedEntityDataValueChangeLogs(params));
-    assertEquals(1, auditStore.countTrackedEntityDataValueChangeLogs(params));
+    assertContainsOnly(List.of(dvaB), changeLogService.getTrackedEntityDataValueChangeLogs(params));
+    assertEquals(1, changeLogService.countTrackedEntityDataValueChangeLogs(params));
   }
 
   @Test
@@ -465,14 +470,15 @@ class TrackedEntityDataValueChangeLogStoreTest extends PostgresIntegrationTestBa
             USER_A,
             dvC.getProvidedElsewhere(),
             ChangeLogType.DELETE);
-    auditStore.addTrackedEntityDataValueChangeLog(dvaA);
-    auditStore.addTrackedEntityDataValueChangeLog(dvaB);
-    auditStore.addTrackedEntityDataValueChangeLog(dvaC);
+    changeLogService.addTrackedEntityDataValueChangeLog(dvaA);
+    changeLogService.addTrackedEntityDataValueChangeLog(dvaB);
+    changeLogService.addTrackedEntityDataValueChangeLog(dvaC);
 
     TrackedEntityDataValueChangeLogQueryParams params =
         new TrackedEntityDataValueChangeLogQueryParams()
             .setAuditTypes(List.of(ChangeLogType.UPDATE, ChangeLogType.DELETE));
-    assertContainsOnly(List.of(dvaB, dvaC), auditStore.getTrackedEntityDataValueChangeLogs(params));
-    assertEquals(2, auditStore.countTrackedEntityDataValueChangeLogs(params));
+    assertContainsOnly(
+        List.of(dvaB, dvaC), changeLogService.getTrackedEntityDataValueChangeLogs(params));
+    assertEquals(2, changeLogService.countTrackedEntityDataValueChangeLogs(params));
   }
 }

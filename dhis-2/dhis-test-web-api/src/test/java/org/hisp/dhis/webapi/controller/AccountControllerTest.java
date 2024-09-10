@@ -47,6 +47,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -58,6 +59,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 class AccountControllerTest extends PostgresControllerIntegrationTestBase {
   @Autowired private SystemSettingManager systemSettingManager;
   @Autowired private MessageSender emailMessageSender;
+
+  @AfterEach
+  void afterEach() {
+    messageSender.clearMessages();
+  }
 
   @Test
   void testRecoverAccount_NotEnabled() {

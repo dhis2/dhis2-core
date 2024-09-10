@@ -50,8 +50,6 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.sharing.UserAccess;
-import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -107,18 +105,6 @@ public class StoreConfig {
   public HibernateGenericStore<ExpressionDimensionItem> expressionDimensionItemStore() {
     return new HibernateGenericStore<>(
         entityManager, jdbcTemplate, publisher, ExpressionDimensionItem.class, true);
-  }
-
-  @Bean("org.hisp.dhis.user.UserGroupAccessStore")
-  public HibernateGenericStore<UserGroupAccess> userGroupAccessStore() {
-    return new HibernateGenericStore<>(
-        entityManager, jdbcTemplate, publisher, UserGroupAccess.class, true);
-  }
-
-  @Bean("org.hisp.dhis.user.UserAccessStore")
-  public HibernateGenericStore<UserAccess> userAccessStore() {
-    return new HibernateGenericStore<>(
-        entityManager, jdbcTemplate, publisher, UserAccess.class, true);
   }
 
   @Bean("org.hisp.dhis.configuration.ConfigurationStore")
