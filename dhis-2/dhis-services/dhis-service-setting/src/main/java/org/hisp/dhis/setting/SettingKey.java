@@ -47,7 +47,6 @@ import org.hisp.dhis.common.DigitGroupSeparator;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheability;
-import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.fileresource.FileResourceRetentionStrategy;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.period.RelativePeriodEnum;
@@ -96,7 +95,6 @@ public enum SettingKey {
       AnalyticsFinancialYearStartKey.class),
   PHONE_NUMBER_AREA_CODE("phoneNumberAreaCode"),
   MULTI_ORGANISATION_UNIT_FORMS("multiOrganisationUnitForms", Boolean.FALSE, Boolean.class),
-  CONFIGURATION("keyConfig", Configuration.class),
   ACCOUNT_RECOVERY("keyAccountRecovery", Boolean.FALSE, Boolean.class),
   LOCK_MULTIPLE_FAILED_LOGINS("keyLockMultipleFailedLogins", Boolean.FALSE, Boolean.class),
   GOOGLE_ANALYTICS_UA("googleAnalyticsUA"),
