@@ -89,7 +89,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -151,10 +150,8 @@ class DataElementOperandControllerTest {
             dataElementCategoryService);
 
     // Set custom Node Message converter //
-    NodeService nodeService = new DefaultNodeService();
     Jackson2JsonNodeSerializer serializer = new Jackson2JsonNodeSerializer(staticJsonMapper());
-    ReflectionTestUtils.setField(nodeService, "nodeSerializers", Lists.newArrayList(serializer));
-    ReflectionTestUtils.invokeMethod(nodeService, "init");
+    NodeService nodeService = new DefaultNodeService(List.of(serializer));
 
     JsonMessageConverter jsonMessageConverter =
         new JsonMessageConverter(nodeService, Compression.NONE);

@@ -42,7 +42,6 @@ import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPathConverter;
-import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
@@ -115,6 +114,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Autowired private AuthorityInterceptor authorityInterceptor;
 
+  @Autowired private NodeService nodeService;
+
   @Autowired
   @Qualifier("jsonMapper")
   private ObjectMapper jsonMapper;
@@ -180,11 +181,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   }
 
   @Bean
-  public NodeService nodeService() {
-    return new DefaultNodeService();
-  }
-
-  @Bean
   public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter() {
     return new MappingJackson2HttpMessageConverter(jsonMapper);
   }
@@ -205,11 +201,9 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Override
   public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
     Arrays.stream(Compression.values())
-        .forEach(
-            compression -> converters.add(new JsonMessageConverter(nodeService(), compression)));
+        .forEach(compression -> converters.add(new JsonMessageConverter(nodeService, compression)));
     Arrays.stream(Compression.values())
-        .forEach(
-            compression -> converters.add(new XmlMessageConverter(nodeService(), compression)));
+        .forEach(compression -> converters.add(new XmlMessageConverter(nodeService, compression)));
 
     Arrays.stream(Compression.values())
         .forEach(

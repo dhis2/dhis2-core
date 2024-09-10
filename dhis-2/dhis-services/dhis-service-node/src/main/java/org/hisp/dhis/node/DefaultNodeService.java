@@ -42,10 +42,13 @@ import org.springframework.stereotype.Service;
 @Service("org.hisp.dhis.node.NodeService")
 public class DefaultNodeService implements NodeService {
 
-  @Autowired(required = false)
-  private List<NodeSerializer> nodeSerializers;
+  private final List<NodeSerializer> nodeSerializers;
 
   private Map<String, NodeSerializer> nodeSerializerMap = Map.of();
+
+  public DefaultNodeService(List<NodeSerializer> nodeSerializers) {
+    this.nodeSerializers = nodeSerializers;
+  }
 
   @PostConstruct
   private void init() {

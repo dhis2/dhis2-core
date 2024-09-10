@@ -41,7 +41,6 @@ import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPathConverter;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
@@ -102,6 +101,8 @@ public class MvcTestConfig implements WebMvcConfigurer {
   @Autowired private MetadataExportService metadataExportService;
 
   @Autowired private AuthorityInterceptor authorityInterceptor;
+
+  @Autowired private NodeService nodeService;
 
   @Autowired
   private CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
@@ -197,11 +198,6 @@ public class MvcTestConfig implements WebMvcConfigurer {
   }
 
   @Bean
-  public NodeService nodeService() {
-    return new DefaultNodeService();
-  }
-
-  @Bean
   public DatabaseInfoProvider databaseInfoProvider() {
     return () -> DatabaseInfo.builder().build();
   }
@@ -237,11 +233,9 @@ public class MvcTestConfig implements WebMvcConfigurer {
   @Override
   public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
     Arrays.stream(Compression.values())
-        .forEach(
-            compression -> converters.add(new JsonMessageConverter(nodeService(), compression)));
+        .forEach(compression -> converters.add(new JsonMessageConverter(nodeService, compression)));
     Arrays.stream(Compression.values())
-        .forEach(
-            compression -> converters.add(new XmlMessageConverter(nodeService(), compression)));
+        .forEach(compression -> converters.add(new XmlMessageConverter(nodeService, compression)));
 
     Arrays.stream(Compression.values())
         .forEach(
