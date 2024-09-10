@@ -42,7 +42,7 @@ class BaseDimensionalItemObjectTest {
     baseDimensionalItemObject.setAggregationType(AggregationType.NONE);
 
     // then
-    assertSame(baseDimensionalItemObject.getTotalAggregationType(), TotalAggregationType.NONE);
+    assertSame(TotalAggregationType.NONE, baseDimensionalItemObject.getTotalAggregationType());
   }
 
   @Test
@@ -54,6 +54,6 @@ class BaseDimensionalItemObjectTest {
     baseDimensionalItemObject.setAggregationType(AggregationType.AVERAGE_SUM_ORG_UNIT);
 
     // then
-    assertSame(baseDimensionalItemObject.getTotalAggregationType(), TotalAggregationType.SUM);
+    assertSame(TotalAggregationType.SUM, baseDimensionalItemObject.getTotalAggregationType());
   }
 }
