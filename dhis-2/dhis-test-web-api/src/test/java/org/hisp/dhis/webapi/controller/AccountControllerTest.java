@@ -40,7 +40,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,7 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
-class AccountControllerTest extends DhisControllerConvenienceTest {
+class AccountControllerTest extends DhisControllerIntegrationTest {
   @Autowired private SystemSettingManager systemSettingManager;
   @Autowired private DhisConfigurationProvider configurationProvider;
 
@@ -196,7 +196,7 @@ class AccountControllerTest extends DhisControllerConvenienceTest {
     }
 
     JsonResponse response = GET("/account/linkedAccounts").content(HttpStatus.OK);
-    JsonList<JsonUser> list = response.asList(JsonUser.class);
+    JsonList<JsonUser> list = response.getList("users", JsonUser.class);
     assertEquals(3, list.size());
   }
 

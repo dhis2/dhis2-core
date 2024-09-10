@@ -191,4 +191,12 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   List<User> getHasAuthority(String authority);
 
   List<User> getLinkedUserAccounts(User currentUser);
+
+  /**
+   * Get active linked user accounts for the given user
+   *
+   * @param actingUser the acting/current user
+   * @param activeUsername the username of the user to set as active
+   */
+  void setActiveLinkedAccounts(@Nonnull String actingUser, @Nonnull String activeUsername);
 }
