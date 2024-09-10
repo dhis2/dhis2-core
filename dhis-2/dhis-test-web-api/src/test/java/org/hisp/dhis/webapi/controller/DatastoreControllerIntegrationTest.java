@@ -90,7 +90,9 @@ class DatastoreControllerIntegrationTest extends PostgresControllerIntegrationTe
   void testUpdateKeyJsonValue_App() throws IOException {
     assertEquals(
         AppStatus.OK,
-        appManager.installApp(new ClassPathResource("app/test-app.zip").getFile(), "test-app.zip"));
+        appManager
+            .installApp(new ClassPathResource("app/test-app.zip").getFile(), "test-app.zip")
+            .getAppState());
     // by default we are an app manager
     switchToNewUser("app-admin", Authorities.M_DHIS_WEB_APP_MANAGEMENT.toString());
 
