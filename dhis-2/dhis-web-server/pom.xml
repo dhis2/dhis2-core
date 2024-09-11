@@ -16,7 +16,7 @@
     <rootDir>../</rootDir>
     <build.time>${maven.build.timestamp}</build.time>
     <mainClass>org.hisp.dhis.web.tomcat.Main</mainClass>
-    <tomcat.version>9.0.90</tomcat.version>
+    <tomcat.version>10.1.29</tomcat.version>
     <spring-boot-maven-plugin.version>3.3.3</spring-boot-maven-plugin.version>
     <env>default</env>
   </properties>
