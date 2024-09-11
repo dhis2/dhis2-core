@@ -141,7 +141,7 @@ pipeline {
                                     -H "Accept: application/vnd.github.v3+json" \
                                     -H "Authorization: token $GITHUB_TOKEN" \
                                     https://api.github.com/repos/${repo}/dispatches \
-                                    -d '{ "event_type": ${event_type}", "client_payload": ${groovy.json.JsonOutput.toJson(payload)} }'
+                                    -d '{ "event_type": "apps-e2e-tests-trigger", "client_payload": {"dhis2_version":"${env.DOCKER_IMAGE_TAG}", "instance_url":"$INSTANCE_URL"} }'
                                 """,
                                 returnStdout: true
                             ).trim()
@@ -155,12 +155,9 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifacts: '**/target/surefire-reports/TEST-*.xml'
-
             script {
                 gitHelper.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
             }
         }
-
     }
 }
