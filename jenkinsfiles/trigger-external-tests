@@ -113,7 +113,7 @@ pipeline {
                                     IMAGE_TAG=${DOCKER_IMAGE_TAG} IMAGE_REPOSITORY=${IMAGE_REPOSITORY} ./deploy-dhis2.sh $INSTANCE_GROUP_NAME $INSTANCE_NAME $description
                                 """
 
-                                timeout(5) {
+                                timeout(time: 20, unit: 'MINUTES') {
                                     waitFor.statusOk("$INSTANCE_URL/$INSTANCE_NAME")
                                 }
                             }
