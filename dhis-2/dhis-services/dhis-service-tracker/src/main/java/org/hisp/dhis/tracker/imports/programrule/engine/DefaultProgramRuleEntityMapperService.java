@@ -94,7 +94,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @RequiredArgsConstructor
-@Service
+@Service("org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleEntityMapperService")
 public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityMapperService {
   private final ProgramRuleVariableService programRuleVariableService;
 
