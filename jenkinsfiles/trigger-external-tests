@@ -127,7 +127,6 @@ pipeline {
             steps {
                 script {
                     def repos = ['dhis2/line-listing-app']
-                    def event_type = 'apps-e2e-tests-trigger'
                     def payload = [
                         dhis2_version: env.DOCKER_IMAGE_TAG,
                         instance_url: "$INSTANCE_URL"
@@ -140,8 +139,8 @@ pipeline {
                                     curl -X POST \
                                     -H "Accept: application/vnd.github.v3+json" \
                                     -H "Authorization: token $GITHUB_TOKEN" \
-                                    https://api.github.com/repos/${repo}/dispatches \
-                                    -d '{ "event_type": "apps-e2e-tests-trigger", "client_payload": {"dhis2_version":"${env.DOCKER_IMAGE_TAG}", "instance_url":"$INSTANCE_URL"} }'
+                                    https://api.github.com/repos/${repo}/actions/workflows/e2e-test-dispatch.yml/dispatches \
+                                    -d '{ "ref": "workflow-dispatch-cypress", "inputs": {"dhis2_version":"${env.DOCKER_IMAGE_TAG}", "instance_url":"$INSTANCE_URL"} }'
                                 """,
                                 returnStdout: true
                             ).trim()
