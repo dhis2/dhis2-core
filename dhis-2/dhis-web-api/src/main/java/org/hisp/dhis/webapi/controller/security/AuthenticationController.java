@@ -226,17 +226,21 @@ public class AuthenticationController {
     SavedRequest savedRequest = requestCache.getRequest(request, null);
     if (savedRequest != null) {
       DefaultSavedRequest defaultSavedRequest = (DefaultSavedRequest) savedRequest;
-
-      if (defaultSavedRequest.getQueryString() != null) {
-        redirectUrl =
-            defaultSavedRequest.getRequestURI() + "?" + defaultSavedRequest.getQueryString();
-      } else {
-        redirectUrl = defaultSavedRequest.getRequestURI();
+      if (!filterSavedRequest(defaultSavedRequest)) {
+        if (defaultSavedRequest.getQueryString() != null) {
+          redirectUrl =
+              defaultSavedRequest.getRequestURI() + "?" + defaultSavedRequest.getQueryString();
+        } else {
+          redirectUrl = defaultSavedRequest.getRequestURI();
+        }
       }
-
       this.requestCache.removeRequest(request, response);
     }
-
     return redirectUrl;
+  }
+
+  private boolean filterSavedRequest(DefaultSavedRequest savedRequest) {
+    String requestURI = savedRequest.getRequestURI();
+    return !requestURI.endsWith(".html") && !requestURI.endsWith("/") && requestURI.contains(".");
   }
 }
