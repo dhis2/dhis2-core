@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.analytics.common.ColumnHeader.CREATED_BY_DISPLAY_NAME;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ENROLLMENT;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ENROLLMENT_DATE;
@@ -49,72 +46,97 @@ import static org.hisp.dhis.analytics.event.LabelMapper.getEnrollmentDateLabel;
 import static org.hisp.dhis.analytics.event.LabelMapper.getEnrollmentLabel;
 import static org.hisp.dhis.analytics.event.LabelMapper.getIncidentDateLabel;
 import static org.hisp.dhis.analytics.event.LabelMapper.getOrgUnitLabel;
+import static org.hisp.dhis.analytics.tracker.HeaderHelper.addCommonHeaders;
+import static org.hisp.dhis.analytics.tracker.ResponseHelper.UNLIMITED_PAGING;
+import static org.hisp.dhis.analytics.tracker.ResponseHelper.addPaging;
+import static org.hisp.dhis.analytics.tracker.ResponseHelper.applyHeaders;
+import static org.hisp.dhis.analytics.tracker.ResponseHelper.getDimensionsKeywords;
+import static org.hisp.dhis.analytics.tracker.ResponseHelper.setRowContextColumns;
 import static org.hisp.dhis.common.ValueType.DATETIME;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
-import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
-import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
+import org.hisp.dhis.analytics.tracker.TrackerMetadataHandler;
+import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Service;
 
-/**
- * @author Markus Bekken
- */
-@Service("org.hisp.dhis.analytics.event.EnrollmentAnalyticsService")
-public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
-    implements EnrollmentAnalyticsService {
+/** This service is responsible for querying enrollments. */
+@Service
+@RequiredArgsConstructor
+public class EnrollmentQueryService {
 
   private final EnrollmentAnalyticsManager enrollmentAnalyticsManager;
 
   private final EventQueryPlanner queryPlanner;
 
-  public DefaultEnrollmentAnalyticsService(
-      EnrollmentAnalyticsManager enrollmentAnalyticsManager,
-      AnalyticsSecurityManager securityManager,
-      EventQueryPlanner queryPlanner,
-      EventQueryValidator queryValidator,
-      SchemeIdResponseMapper schemeIdResponseMapper,
-      UserService userService) {
-    super(securityManager, queryValidator, schemeIdResponseMapper, userService);
+  private final AnalyticsSecurityManager securityManager;
 
-    checkNotNull(enrollmentAnalyticsManager);
-    checkNotNull(queryPlanner);
-    checkNotNull(schemeIdResponseMapper);
+  private final EventQueryValidator queryValidator;
 
-    this.enrollmentAnalyticsManager = enrollmentAnalyticsManager;
-    this.queryPlanner = queryPlanner;
-  }
+  private final TrackerMetadataHandler metadataHandler;
 
-  // -------------------------------------------------------------------------
-  // EventAnalyticsService implementation
-  // -------------------------------------------------------------------------
+  private final SchemeIdHandler schemeIdHandler;
 
-  @Override
+  /**
+   * Returns a list of enrollments matching the given query.
+   *
+   * @param params the {@link EventQueryParams} parameters.
+   * @return enrollments data as a {@link Grid} object.
+   */
   public Grid getEnrollments(EventQueryParams params) {
-    return getGrid(params);
-  }
+    // Check access/constraints.
+    securityManager.decideAccessEventQuery(params);
+    params = securityManager.withUserConstraints(params);
 
-  @Override
-  protected Grid createGridWithHeaders(EventQueryParams params) {
-    if (params.getEndpointAction() == RequestTypeAware.EndpointAction.AGGREGATE) {
-      return new ListGrid()
-          .addHeader(new GridHeader(VALUE_ID, VALUE_HEADER_NAME, NUMBER, false, false));
+    // Validate request.
+    queryValidator.validate(params);
+
+    List<Keyword> keywords = getDimensionsKeywords(params);
+
+    // Set periods.
+    params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
+
+    // Populate headers.
+    Grid grid = createGridWithHeaders(params);
+    addCommonHeaders(grid, params, List.of());
+
+    // Add data.
+    long count = 0;
+
+    if (!params.isSkipData() || params.analyzeOnly()) {
+      count = addData(grid, params);
     }
 
+    // Set response info.
+    metadataHandler.addMetadata(grid, params, keywords);
+    schemeIdHandler.applyScheme(grid, params);
+
+    addPaging(params, count, grid);
+    applyHeaders(grid, params);
+    setRowContextColumns(grid);
+
+    return grid;
+  }
+
+  /**
+   * Creates a {@link Grid} object with default headers.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @return the {@link Grid} with initial headers.
+   */
+  private Grid createGridWithHeaders(EventQueryParams params) {
     return new ListGrid()
         .addHeader(
             new GridHeader(
@@ -179,45 +201,33 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
             new GridHeader(PROGRAM_STATUS.getItem(), PROGRAM_STATUS.getName(), TEXT, false, true));
   }
 
-  @Override
-  protected long addData(Grid grid, EventQueryParams params) {
+  /**
+   * Adds data into the given grid, based on the given params.
+   *
+   * @param grid {@link Grid}.
+   * @param params the {@link EventQueryParams}. @@param maxLimit the max number of records to
+   *     retrieve.
+   */
+  private long addData(Grid grid, EventQueryParams params) {
     Timer timer = new Timer().start().disablePrint();
 
-    List<EventQueryParams> paramsList;
-
-    if (params.getEndpointAction() == RequestTypeAware.EndpointAction.AGGREGATE) {
-      paramsList = queryPlanner.planAggregateQuery(params);
-    } else {
-      paramsList = List.of(queryPlanner.planEnrollmentQuery(params));
-    }
+    EventQueryParams queryParams = queryPlanner.planEnrollmentQuery(params);
 
     long count = 0;
-    for (EventQueryParams queryParams : paramsList) {
-      timer.getSplitTime("Planned event query, got partitions: " + queryParams.getPartitions());
-      if (queryParams.isTotalPages() && !params.isAggregatedEnrollments()) {
-        count += enrollmentAnalyticsManager.getEnrollmentCount(queryParams);
-      }
 
-      // maxLimit == 0 means unlimited paging
-      int maxLimit = params.isAggregatedEnrollments() ? 0 : queryValidator.getMaxLimit();
+    timer.getSplitTime("Planned enrollment query, got partitions: " + queryParams.getPartitions());
 
-      enrollmentAnalyticsManager.getEnrollments(queryParams, grid, maxLimit);
-
-      timer.getTime("Got enrollments " + grid.getHeight());
+    if (queryParams.isTotalPages()) {
+      count += enrollmentAnalyticsManager.getEnrollmentCount(queryParams);
     }
+
+    int maxLimit =
+        params.isAggregatedEnrollments() ? UNLIMITED_PAGING : queryValidator.getMaxLimit();
+
+    enrollmentAnalyticsManager.getEnrollments(queryParams, grid, maxLimit);
+
+    timer.getTime("Got enrollments " + grid.getHeight());
 
     return count;
-  }
-
-  @Override
-  protected List<DimensionalObject> getPeriods(EventQueryParams params) {
-    // for aggregated enrollments only
-    if (!params.isAggregatedEnrollments()) {
-      return List.of();
-    }
-
-    return params.getDimensions().stream()
-        .filter(d -> d.getDimensionType() == DimensionType.PERIOD)
-        .toList();
   }
 }
