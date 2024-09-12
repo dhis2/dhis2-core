@@ -94,8 +94,8 @@ public class Section extends BaseIdentifiableObject implements MetadataObject {
     return !getCategoryCombos().isEmpty();
   }
 
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Set<CategoryCombo> getCategoryCombos() {
     Set<CategoryCombo> categoryCombos = new HashSet<>();

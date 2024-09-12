@@ -31,7 +31,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Consumer;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -85,7 +84,7 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
     for (String path : rqmPatterns) {
       versions.stream()
           .filter(version -> !version.isIgnore())
-          .forEach(addVersionedPath(path, allPaths));
+          .forEach(version -> addVersionedPath(version, path, allPaths));
     }
 
     PatternsRequestCondition patternsRequestCondition =
@@ -103,29 +102,26 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
         info.getCustomCondition());
   }
 
-  private static Consumer<DhisApiVersion> addVersionedPath(String path, Set<String> allPaths) {
+  private static void addVersionedPath(DhisApiVersion version, String path, Set<String> allPaths) {
+    // Normalize path to start with "/api/"
+    String normalizedPath = path.startsWith("/api/") ? path : path.replaceFirst("^api/", "/api/");
 
-    return version -> {
-      // Normalize path to start with "/api/"
-      String normalizedPath = path.startsWith("/api/") ? path : path.replaceFirst("^api/", "/api/");
+    // Skip path that don't start with "/api/"
+    if (!normalizedPath.startsWith("/api/")) {
+      return;
+    }
 
-      // Skip path that don't start with "/api/"
-      if (!normalizedPath.startsWith("/api/")) {
-        return;
-      }
+    // Check if the path corresponds directly to a versioned API endpoint
+    if (normalizedPath.startsWith("/api/" + version.getVersionString())) {
+      allPaths.add(normalizedPath);
+      return;
+    }
 
-      // Check if the path corresponds directly to a versioned API endpoint
-      if (normalizedPath.startsWith("/api/" + version.getVersionString())) {
-        allPaths.add(normalizedPath);
-        return;
-      }
+    // Remove the leading "/api/" for further processing
+    String pathWithoutApi = normalizedPath.substring(5); // Skip "/api/"
 
-      // Remove the leading "/api/" for further processing
-      String pathWithoutApi = normalizedPath.substring(5); // Skip "/api/"
-
-      // Add the versioned API path
-      allPaths.add("/api/" + version.getVersionString() + "/" + pathWithoutApi);
-    };
+    // Add the versioned API path
+    allPaths.add("/api/" + version.getVersionString() + "/" + pathWithoutApi);
   }
 
   private Set<DhisApiVersion> getVersions(ApiVersion typeApiVersion, ApiVersion methodApiVersion) {

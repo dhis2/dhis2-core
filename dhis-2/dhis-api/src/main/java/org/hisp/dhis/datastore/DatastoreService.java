@@ -38,7 +38,9 @@ import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Datastore is a key-value store with namespaces to isolate different collections of key-value
@@ -142,6 +144,9 @@ public interface DatastoreService {
    * @throws AccessDeniedException when user lacks authority for namespace
    */
   DatastoreEntry getEntry(String namespace, String key) throws ForbiddenException;
+
+  @Transactional(readOnly = true)
+  DatastoreEntry getEntry(String namespace, String key, UserDetails user) throws ForbiddenException;
 
   /**
    * Adds a new entry.

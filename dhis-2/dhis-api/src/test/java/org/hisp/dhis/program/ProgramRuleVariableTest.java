@@ -41,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.security.acl.Access;
@@ -111,7 +112,7 @@ class ProgramRuleVariableTest {
   @Test
   void testExpectedFieldCount() {
     Field[] allClassFieldsIncludingInherited = getAllFields(ProgramRuleVariable.class);
-    assertEquals(23, allClassFieldsIncludingInherited.length);
+    assertEquals(22, allClassFieldsIncludingInherited.length);
   }
 
   private ProgramRuleVariable getNewProgramRuleVariable(
@@ -119,7 +120,7 @@ class ProgramRuleVariableTest {
     ProgramRuleVariable prv = new ProgramRuleVariable();
     prv.setAccess(new Access());
     prv.setAttribute(new TrackedEntityAttribute());
-    prv.setAttributeValues(Set.of());
+    prv.setAttributeValues(AttributeValues.empty());
     prv.setDataElement(new DataElement());
     prv.setName("rule name");
     prv.setPublicAccess("rw------");

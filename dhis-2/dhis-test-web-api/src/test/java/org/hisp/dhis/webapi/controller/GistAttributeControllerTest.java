@@ -210,20 +210,16 @@ class GistAttributeControllerTest extends AbstractGistControllerTest {
   }
 
   private String postNewUserGroupWithAttributeValue(String name, String attrId, String value) {
-    return assertStatus(
-        HttpStatus.CREATED,
-        POST(
-            "/userGroups/",
-            "{"
-                + "'name':'"
-                + name
-                + "', "
-                + "'attributeValues':[{'attribute': {'id':'"
-                + attrId
-                + "'}, 'value':'"
-                + value
-                + "'}]"
-                + "}"));
+    // language=JSON
+    String json =
+        """
+        {
+        "name":"%s",
+        "attributeValues":[{"attribute": {"id":"%s"}, "value":"%s"}]
+        }
+        """
+            .formatted(name, attrId, value);
+    return assertStatus(HttpStatus.CREATED, POST("/userGroups/", json));
   }
 
   private String postNewAttribute(

@@ -27,24 +27,28 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation.attribute;
 
-import static java.util.AbstractMap.SimpleImmutableEntry;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
-import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.system.util.MathUtils;
+import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
 /**
- * Validate {@link AttributeValue} using series of predefined validator function such as {@link
- * NumberCheck}, {@link DateCheck}, {@link TextCheck}, {@link EntityCheck}, {@link UserCheck}.
+ * Validate {@link org.hisp.dhis.attribute.Attribute} values based on the {@link
+ * org.hisp.dhis.attribute.Attribute}'s {@link ValueType}.
  *
  * @author viet
  */
@@ -54,32 +58,6 @@ public class DefaultAttributeValidator implements AttributeValidator {
   private final IdentifiableObjectManager manager;
 
   private final UserService userService;
-
-  private final Map<ValueType, Function<String, List<ErrorReport>>> mapValidators =
-      Map.ofEntries(
-          new SimpleImmutableEntry<>(ValueType.INTEGER, NumberCheck.isInteger),
-          new SimpleImmutableEntry<>(ValueType.INTEGER_POSITIVE, NumberCheck.isPositiveInteger),
-          new SimpleImmutableEntry<>(ValueType.INTEGER_NEGATIVE, NumberCheck.isNegativeInteger),
-          new SimpleImmutableEntry<>(ValueType.NUMBER, NumberCheck.isNumber),
-          new SimpleImmutableEntry<>(
-              ValueType.INTEGER_ZERO_OR_POSITIVE, NumberCheck.isZeroOrPositiveInteger),
-          new SimpleImmutableEntry<>(ValueType.PERCENTAGE, NumberCheck.isPercentage),
-          new SimpleImmutableEntry<>(ValueType.UNIT_INTERVAL, NumberCheck.isUnitInterval),
-          new SimpleImmutableEntry<>(ValueType.PHONE_NUMBER, NumberCheck.isPhoneNumber),
-          new SimpleImmutableEntry<>(ValueType.DATE, DateCheck.isDate),
-          new SimpleImmutableEntry<>(ValueType.DATETIME, DateCheck.isDateTime),
-          new SimpleImmutableEntry<>(ValueType.BOOLEAN, TextCheck.isBoolean),
-          new SimpleImmutableEntry<>(ValueType.TRUE_ONLY, TextCheck.isTrueOnly),
-          new SimpleImmutableEntry<>(ValueType.EMAIL, TextCheck.isEmail));
-
-  private final Map<ValueType, EntityCheck> mapEntityCheck =
-      Map.ofEntries(
-          new SimpleImmutableEntry<>(
-              ValueType.ORGANISATION_UNIT, EntityCheck.isOrganisationUnitExist),
-          new SimpleImmutableEntry<>(ValueType.FILE_RESOURCE, EntityCheck.isFileResourceExist));
-
-  private final Map<ValueType, UserCheck.Function> mapUserCheck =
-      Map.ofEntries(new SimpleImmutableEntry<>(ValueType.USERNAME, UserCheck.isUserNameExist));
 
   /**
    * Call all predefined map of validators for checking given value and {@link ValueType}.
@@ -92,19 +70,55 @@ public class DefaultAttributeValidator implements AttributeValidator {
    */
   @Override
   public void validate(ValueType valueType, String value, Consumer<ErrorReport> addError) {
-    if (StringUtils.isEmpty(value)) {
-      return;
+    if (isEmpty(value)) return;
+    switch (valueType) {
+      case INTEGER -> validateValue(value, MathUtils::isInteger, ErrorCode.E6006, addError);
+      case INTEGER_POSITIVE ->
+          validateValue(value, MathUtils::isPositiveInteger, ErrorCode.E6007, addError);
+      case INTEGER_NEGATIVE ->
+          validateValue(value, MathUtils::isNegativeInteger, ErrorCode.E6013, addError);
+      case NUMBER -> validateValue(value, MathUtils::isNumeric, ErrorCode.E6008, addError);
+      case INTEGER_ZERO_OR_POSITIVE ->
+          validateValue(value, MathUtils::isZeroOrPositiveInteger, ErrorCode.E6009, addError);
+      case PERCENTAGE -> validateValue(value, MathUtils::isPercentage, ErrorCode.E6010, addError);
+      case UNIT_INTERVAL ->
+          validateValue(value, MathUtils::isUnitInterval, ErrorCode.E6011, addError);
+      case PHONE_NUMBER ->
+          validateValue(value, ValidationUtils::isPhoneNumber, ErrorCode.E6021, addError);
+      case DATE -> validateValue(value, DateUtils::dateIsValid, ErrorCode.E6014, addError);
+      case DATETIME -> validateValue(value, DateUtils::dateTimeIsValid, ErrorCode.E6015, addError);
+      case BOOLEAN -> validateValue(value, MathUtils::isBool, ErrorCode.E6016, addError);
+      case TRUE_ONLY -> validateValue(value, "true"::equals, ErrorCode.E6017, addError);
+      case EMAIL -> validateValue(value, ValidationUtils::emailIsValid, ErrorCode.E6018, addError);
+      case ORGANISATION_UNIT -> validateOrganisationUnitExists(value, addError);
+      case FILE_RESOURCE -> validateFileResourceExists(value, addError);
+      case USERNAME -> validateUserExists(value, addError);
     }
-    mapValidators.getOrDefault(valueType, str -> List.of()).apply(value).forEach(addError::accept);
+  }
 
-    mapEntityCheck
-        .getOrDefault(valueType, EntityCheck.empty)
-        .apply(value, klass -> manager.get(klass, value) != null)
-        .forEach(addError::accept);
+  private void validateValue(
+      String value, Predicate<String> validator, ErrorCode error, Consumer<ErrorReport> addError) {
+    if (!validator.test(value)) addError.accept(error(error, value));
+  }
 
-    mapUserCheck
-        .getOrDefault(valueType, UserCheck.empty)
-        .apply(value, userService)
-        .forEach(addError::accept);
+  private void validateFileResourceExists(String value, Consumer<ErrorReport> addError) {
+    FileResource fr = manager.get(FileResource.class, value);
+    if (fr == null)
+      addError.accept(error(ErrorCode.E6019, value, FileResource.class.getSimpleName()));
+  }
+
+  private void validateOrganisationUnitExists(String value, Consumer<ErrorReport> addError) {
+    OrganisationUnit ou = manager.get(OrganisationUnit.class, value);
+    if (ou == null)
+      addError.accept(error(ErrorCode.E6019, value, OrganisationUnit.class.getSimpleName()));
+  }
+
+  private void validateUserExists(String value, Consumer<ErrorReport> addError) {
+    User user = userService.getUserByUsername(value);
+    if (user == null) addError.accept(error(ErrorCode.E6020, value));
+  }
+
+  private static ErrorReport error(ErrorCode error, Object... args) {
+    return new ErrorReport(AttributeValues.class, error, args);
   }
 }

@@ -42,7 +42,6 @@ import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -251,12 +250,10 @@ public class DefaultOrgUnitProfileService implements OrgUnitProfileService {
     List<ProfileItem> items = new ArrayList<>();
 
     for (Attribute attribute : attributes) {
-      AttributeValue attributeValue = orgUnit.getAttributeValue(attribute);
+      String attributeValue = orgUnit.getAttributeValues().get(attribute.getUid());
 
       if (attributeValue != null) {
-        items.add(
-            new ProfileItem(
-                attribute.getUid(), attribute.getDisplayName(), attributeValue.getValue()));
+        items.add(new ProfileItem(attribute.getUid(), attribute.getDisplayName(), attributeValue));
       }
     }
 
@@ -266,7 +263,7 @@ public class DefaultOrgUnitProfileService implements OrgUnitProfileService {
   /**
    * Retrieves a list of org unit group set data items for the given org unit profile and org unit.
    *
-   * @param profile the {@link OrganisationUnitProfile}.
+   * @param profile the {@link OrgUnitProfile}.
    * @param orgUnit the {@link OrganisationUnit}.
    * @return a list of {@link ProfileItem}.
    */

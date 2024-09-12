@@ -52,7 +52,6 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
@@ -74,6 +73,7 @@ import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.jboss.aerogear.security.otp.api.Base32;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -86,7 +86,7 @@ import org.springframework.security.core.session.SessionRegistry;
  * @author Jan Bernitt
  */
 class UserControllerTest extends H2ControllerIntegrationTestBase {
-  @Autowired private MessageSender messageSender;
+  @Autowired private FakeMessageSender messageSender;
 
   @Autowired private SystemSettingManager systemSettingManager;
 
@@ -119,6 +119,11 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
     User user = userService.getUser(peter.getUid());
     assertEquals("peter@pan.net", user.getEmail());
+  }
+
+  @AfterEach
+  void afterEach() {
+    messageSender.clearMessages();
   }
 
   @Test
