@@ -1010,6 +1010,12 @@
       </dependency>
       <dependency>
         <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-json-template-layout</artifactId>
+        <version>${log4j.version}</version>
+        <scope>runtime</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j-web</artifactId>
         <version>${log4j.version}</version>
       </dependency>
@@ -2050,6 +2056,7 @@ jasperreports.version=${jasperreports.version}
               <ignoredUnusedDeclaredDependency>net.sf.jasperreports:jasperreports-fonts</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.mockito:mockito-inline</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.logging.log4j:log4j-slf4j-impl</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.apache.logging.log4j:log4j-json-template-layout</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>javax.servlet:javax.servlet-api</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.jclouds.provider:aws-s3</ignoredUnusedDeclaredDependency>
               <!-- Needed by dhis-web modules -->
