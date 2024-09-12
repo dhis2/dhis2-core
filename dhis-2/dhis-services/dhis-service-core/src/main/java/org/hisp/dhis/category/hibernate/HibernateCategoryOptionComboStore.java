@@ -136,8 +136,7 @@ public class HibernateCategoryOptionComboStore
 
   @Override
   public void deleteNoRollBack(CategoryOptionCombo categoryOptionCombo) {
-    ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent(categoryOptionCombo);
-    event.setRollback(false);
+    ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent(categoryOptionCombo, false);
 
     publisher.publishEvent(event);
 

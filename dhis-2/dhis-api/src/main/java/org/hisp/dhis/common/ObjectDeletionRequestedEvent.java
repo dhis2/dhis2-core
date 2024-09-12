@@ -45,15 +45,16 @@ public class ObjectDeletionRequestedEvent extends ApplicationEvent {
     super(source);
   }
 
+  public ObjectDeletionRequestedEvent(Object source, boolean rollback) {
+    super(source);
+    this.rollback = rollback;
+  }
+
   // -------------------------------------------------------------------------
   // Getter && Setter
   // -------------------------------------------------------------------------
 
-  public boolean getRollback() {
+  public boolean isRollback() {
     return rollback;
-  }
-
-  public void setRollback(boolean rollback) {
-    this.rollback = rollback;
   }
 }

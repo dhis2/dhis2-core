@@ -33,7 +33,6 @@ import static java.time.ZoneId.systemDefault;
 import static java.util.stream.Collectors.toMap;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaUpdate;
@@ -97,8 +96,6 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   private final QueryCacheManager queryCacheManager;
 
   private final SchemaService schemaService;
-
-  private @PersistenceContext EntityManager entityManager;
 
   public HibernateUserStore(
       EntityManager entityManager,
