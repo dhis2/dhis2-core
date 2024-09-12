@@ -229,7 +229,7 @@ class AuthTest {
 
   @Test
   void testRedirectToSlashEnding() {
-    testRedirectUrl("/api/users/", "/api/users/resource.html");
+    testRedirectUrl("/api/users/", "/api/users/");
   }
 
   @Test
