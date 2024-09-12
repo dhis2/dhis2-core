@@ -417,8 +417,10 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isFavorite() {
-    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
-    return user != null && favorites != null && favorites.contains(user.getUid());
+    if (favorites == null || !CurrentUserUtil.hasCurrentUser()) {
+      return false;
+    }
+    return favorites.contains(CurrentUserUtil.getCurrentUserDetails().getUid());
   }
 
   @Override

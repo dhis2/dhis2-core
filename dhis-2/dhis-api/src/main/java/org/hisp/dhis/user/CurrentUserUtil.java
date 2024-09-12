@@ -99,7 +99,6 @@ public class CurrentUserUtil {
    * @return list of authority names
    */
   public static List<String> getCurrentUserAuthorities() {
-
     if (!CurrentUserUtil.hasCurrentUser()) {
       return List.of();
     }
@@ -136,11 +135,10 @@ public class CurrentUserUtil {
   @Nullable
   @SuppressWarnings("unchecked")
   public static <T> T getUserSetting(UserSettingKey key) {
-    UserDetails currentUser = getCurrentUserDetails();
-    if (currentUser == null) {
+    if (!hasCurrentUser()) {
       return null;
     }
-
+    UserDetails currentUser = getCurrentUserDetails();
     return (T) currentUser.getUserSettings().get(key.getName());
   }
 
@@ -153,15 +151,12 @@ public class CurrentUserUtil {
    */
   @SuppressWarnings("unchecked")
   public static <T> T getUserSetting(UserSettingKey key, @Nonnull T defaultValue) {
-    UserDetails currentUser = getCurrentUserDetails();
-    if (currentUser == null) {
+    if (!hasCurrentUser()) {
       return defaultValue;
     }
-
+    UserDetails currentUser = getCurrentUserDetails();
     Map<String, Serializable> userSettings = currentUser.getUserSettings();
-
     Serializable setting = userSettings.get(key.getName());
-
     return setting != null ? (T) setting : defaultValue;
   }
 
