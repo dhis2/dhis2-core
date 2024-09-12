@@ -217,7 +217,26 @@ class AuthTest {
     testRedirectUrl("/api/users");
   }
 
+  @Test
+  void testRedirectToResource() {
+    testRedirectUrl("/api/users/resource.js", "/dhis-web-dashboard/");
+  }
+
+  @Test
+  void testRedirectToResourceWorker() {
+    testRedirectUrl("/dhis-web-dashboard/service-worker.js", "/dhis-web-dashboard/");
+  }
+
+  @Test
+  void testRedirectToCssResourceWorker() {
+    testRedirectUrl("/dhis-web-dashboard/static/css/main.4536e618.css", "/dhis-web-dashboard/");
+  }
+
   private static void testRedirectUrl(String url) {
+    testRedirectUrl(url, url);
+  }
+
+  private static void testRedirectUrl(String url, String redirectUrl) {
     String port = Integer.toString(availablePort);
 
     RestTemplate restTemplate = new RestTemplate();
@@ -243,6 +262,6 @@ class AuthTest {
     assertNotNull(body);
     assertEquals(LoginResponse.STATUS.SUCCESS, body.getLoginStatus());
 
-    assertEquals(url, body.getRedirectUrl());
+    assertEquals(redirectUrl, body.getRedirectUrl());
   }
 }
