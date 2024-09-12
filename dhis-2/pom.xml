@@ -240,7 +240,7 @@
     <dependency-check-maven.version>8.1.2</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.7.2.0</spotbugs-maven-plugin.version>
     <spotless.version>2.43.0</spotless.version>
-    <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
+    <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.1.11</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.33</dhis-antlr-expression-parser.version>
     <jai-imageio.version>1.1.1</jai-imageio.version>
