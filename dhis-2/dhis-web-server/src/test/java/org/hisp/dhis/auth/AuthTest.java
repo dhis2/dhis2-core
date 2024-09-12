@@ -223,6 +223,16 @@ class AuthTest {
   }
 
   @Test
+  void testRedirectToHtmlResource() {
+    testRedirectUrl("/api/users/resource.html", "/api/users/resource.html");
+  }
+
+  @Test
+  void testRedirectToSlashEnding() {
+    testRedirectUrl("/api/users/", "/api/users/resource.html");
+  }
+
+  @Test
   void testRedirectToResourceWorker() {
     testRedirectUrl("/dhis-web-dashboard/service-worker.js", "/dhis-web-dashboard/");
   }
