@@ -207,7 +207,36 @@ class AuthTest {
     testRedirectUrl("/api/users");
   }
 
+  @Test
+  void testRedirectToResource() {
+    testRedirectUrl("/api/users/resource.js", "/dhis-web-dashboard");
+  }
+
+  @Test
+  void testRedirectToHtmlResource() {
+    testRedirectUrl("/api/users/resource.html", "/api/users/resource.html");
+  }
+
+  @Test
+  void testRedirectToSlashEnding() {
+    testRedirectUrl("/api/users/", "/api/users/");
+  }
+
+  @Test
+  void testRedirectToResourceWorker() {
+    testRedirectUrl("/api/users/service-worker.js", "/dhis-web-dashboard");
+  }
+
+  @Test
+  void testRedirectToCssResourceWorker() {
+    testRedirectUrl("/api/users/main.4536e618.css", "/dhis-web-dashboard");
+  }
+
   private static void testRedirectUrl(String url) {
+    testRedirectUrl(url, url);
+  }
+
+  private static void testRedirectUrl(String url, String redirectUrl) {
     RestTemplate restTemplate = new RestTemplate();
 
     ResponseEntity<LoginResponse> firstResponse =
@@ -231,6 +260,6 @@ class AuthTest {
     assertNotNull(body);
     assertEquals(LoginResponse.STATUS.SUCCESS, body.getLoginStatus());
 
-    assertEquals(url, body.getRedirectUrl());
+    assertEquals(redirectUrl, body.getRedirectUrl());
   }
 }
