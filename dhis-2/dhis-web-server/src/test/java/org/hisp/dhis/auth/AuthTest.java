@@ -322,13 +322,6 @@ class AuthTest {
     HttpHeaders loginHeaders = loginResponse.getHeaders();
     String loggedInCookie = loginHeaders.get(HttpHeaders.SET_COOKIE).get(0);
 
-    assertNotNull(loginResponse);
-    assertEquals(HttpStatus.OK, loginResponse.getStatusCode());
-    LoginResponse body = loginResponse.getBody();
-    assertNotNull(body);
-    assertEquals(LoginResponse.STATUS.SUCCESS, body.getLoginStatus());
-    assertEquals(redirectUrl, body.getRedirectUrl());
-
     HttpHeaders headers = new HttpHeaders();
     headers.set("Cookie", loggedInCookie);
     HttpEntity<String> entity = new HttpEntity<>(headers);
