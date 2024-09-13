@@ -125,9 +125,16 @@ class DataSetTest {
 
   @Test
   void testIsLocked_AfterLastDayOfPeriod() {
+    // 12 hours after the end is still ok
+    assertIsLocked(
+        false, period -> new Date(period.getEndDate().getTime() + TimeUnit.HOURS.toMillis(12)));
     // expiryDays is 1 so 1 extra day after the end is still ok
     assertIsLocked(
         false, period -> new Date(period.getEndDate().getTime() + TimeUnit.DAYS.toMillis(1)));
+    // 1.5 days after the end is too much
+    assertIsLocked(
+        true,
+        period -> new Date(period.getEndDate().getTime() + TimeUnit.HOURS.toMillis(36)));
     // but 2 is too much
     assertIsLocked(
         true, period -> new Date(period.getEndDate().getTime() + TimeUnit.DAYS.toMillis(2)));
@@ -140,4 +147,5 @@ class DataSetTest {
     ds.setExpiryDays(1);
     assertEquals(expected, ds.isLocked(null, thisMonth, actual.apply(thisMonth)));
   }
+
 }
