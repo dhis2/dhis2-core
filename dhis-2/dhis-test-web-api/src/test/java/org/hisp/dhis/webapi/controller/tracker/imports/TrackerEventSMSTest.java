@@ -40,7 +40,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.Sets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -172,7 +171,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     programStage.getSharing().addUserAccess(fullAccess(user));
     ProgramStageDataElement programStageDataElement =
         createProgramStageDataElement(programStage, de, 1, false);
-    programStage.setProgramStageDataElements(Sets.newHashSet(programStageDataElement));
+    programStage.setProgramStageDataElements(Set.of(programStageDataElement));
     manager.save(programStage, false);
   }
 
