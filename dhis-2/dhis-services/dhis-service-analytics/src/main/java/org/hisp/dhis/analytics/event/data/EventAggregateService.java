@@ -78,8 +78,8 @@ import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
+import org.hisp.dhis.analytics.tracker.MetadataItemsHandler;
 import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
-import org.hisp.dhis.analytics.tracker.TrackerMetadataHandler;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
@@ -136,7 +136,7 @@ public class EventAggregateService {
 
   private final EventQueryValidator queryValidator;
 
-  private final TrackerMetadataHandler metadataHandler;
+  private final MetadataItemsHandler metadataHandler;
 
   private final SchemeIdHandler schemeIdHandler;
 

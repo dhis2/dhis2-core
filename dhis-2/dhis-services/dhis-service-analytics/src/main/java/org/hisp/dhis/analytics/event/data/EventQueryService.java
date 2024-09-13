@@ -78,8 +78,8 @@ import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
+import org.hisp.dhis.analytics.tracker.MetadataItemsHandler;
 import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
-import org.hisp.dhis.analytics.tracker.TrackerMetadataHandler;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -103,7 +103,7 @@ public class EventQueryService {
 
   private final DatabaseInfoProvider databaseInfoProvider;
 
-  private final TrackerMetadataHandler metadataHandler;
+  private final MetadataItemsHandler metadataHandler;
 
   private final SchemeIdHandler schemeIdHandler;
 

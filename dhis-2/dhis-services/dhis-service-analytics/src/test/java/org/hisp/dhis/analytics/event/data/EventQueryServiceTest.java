@@ -50,8 +50,8 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.table.model.Partitions;
+import org.hisp.dhis.analytics.tracker.MetadataItemsHandler;
 import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
-import org.hisp.dhis.analytics.tracker.TrackerMetadataHandler;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -75,7 +75,7 @@ class EventQueryServiceTest {
 
   @Mock private EventQueryValidator queryValidator;
 
-  @Mock private TrackerMetadataHandler metadataHandler;
+  @Mock private MetadataItemsHandler metadataHandler;
 
   @Mock private SchemeIdHandler schemeIdHandler;
 

@@ -63,8 +63,8 @@ import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
+import org.hisp.dhis.analytics.tracker.MetadataItemsHandler;
 import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
-import org.hisp.dhis.analytics.tracker.TrackerMetadataHandler;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -85,7 +85,7 @@ public class EnrollmentQueryService {
 
   private final EventQueryValidator queryValidator;
 
-  private final TrackerMetadataHandler metadataHandler;
+  private final MetadataItemsHandler metadataHandler;
 
   private final SchemeIdHandler schemeIdHandler;
 

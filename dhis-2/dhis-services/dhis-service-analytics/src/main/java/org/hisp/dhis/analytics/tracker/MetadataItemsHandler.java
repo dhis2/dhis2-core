@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARC
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptions;
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptionsAsFilter;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getItemUid;
+import static org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils.getUserOrganisationUnitItems;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
@@ -57,10 +58,8 @@ import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
-import org.hisp.dhis.analytics.common.processing.MetadataItemsHandler;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
-import org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
@@ -81,7 +80,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class TrackerMetadataHandler {
+public class MetadataItemsHandler {
   protected final AnalyticsSecurityManager securityManager;
 
   protected final UserService userService;
@@ -108,7 +107,7 @@ public class TrackerMetadataHandler {
       }
 
       Map<String, Object> items = new HashMap<>();
-      AnalyticsOrganisationUnitUtils.getUserOrganisationUnitItems(
+      getUserOrganisationUnitItems(
               userService.getUserByUsername(CurrentUserUtil.getCurrentUsername()),
               params.getUserOrganisationUnitsCriteria())
           .forEach(items::putAll);
@@ -178,7 +177,8 @@ public class TrackerMetadataHandler {
                     includeDetails ? option.getUid() : null,
                     option.getCode())));
 
-    new MetadataItemsHandler().addOptionsSetIntoMap(metadataItemMap, itemOptions);
+    new org.hisp.dhis.analytics.common.processing.MetadataItemsHandler()
+        .addOptionsSetIntoMap(metadataItemMap, itemOptions);
   }
 
   /**
