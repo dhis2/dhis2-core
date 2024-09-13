@@ -459,7 +459,7 @@ public class DataSet extends BaseDimensionalItemObject
       return false;
     }
     Date date = now != null ? now : new Date();
-    return !Period.isDateInTimeFrame(null, addDays(period.getEndDate(), expiryDays), date);
+    return !Period.isDateWithTimeInTimeFrame(null, addDays(period.getEndDate(), expiryDays), date);
   }
 
   /**
