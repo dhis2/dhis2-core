@@ -276,7 +276,7 @@ class OperationsParamsValidatorTest {
     }
   }
 
-  @Disabled("Failing for unknown reason")
+  @Test
   void shouldReturnTrackedEntityWhenTrackedEntityUidExists()
       throws ForbiddenException, BadRequestException {
     when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID)).thenReturn(trackedEntity);
@@ -299,7 +299,7 @@ class OperationsParamsValidatorTest {
         exception.getMessage());
   }
 
-  @Disabled("Failing for unknown reason")
+ @Test
   void shouldReturnTrackedEntityWhenUserHasAccessToTrackedEntity()
       throws ForbiddenException, BadRequestException {
     User user = new User();
@@ -311,7 +311,7 @@ class OperationsParamsValidatorTest {
     assertEquals(trackedEntity, paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user));
   }
 
-  @Disabled("Failing for unknown reason")
+  @Test
   void shouldThrowForbiddenExceptionWhenUserHasNoAccessToTrackedEntity() {
     User user = new User();
     TrackedEntityType trackedEntityType = new TrackedEntityType("trackedEntityType", "");
