@@ -256,7 +256,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
   private List<AnalyticsTableColumn> getColumns() {
     String idColAlias = "concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',ao.uid) as id ";
-    String timelyDateDiff = "cast(cdr.date as date) - ps.enddate";
+    String timelyDateDiff = "EXTRACT(EPOCH FROM (cdr.date - ps.enddate)) / (24 * 60 * 60)";
     String timelyAlias = "((" + timelyDateDiff + ") <= ds.timelydays) as timely";
 
     List<AnalyticsTableColumn> columns = new ArrayList<>();
