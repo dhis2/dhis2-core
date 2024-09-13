@@ -267,8 +267,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     registry.addInterceptor(new UserContextInterceptor(userSettingService));
     registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
     registry.addInterceptor(authorityInterceptor);
-    registry.addInterceptor(new TrailingSlashInterceptor())
-        .excludePathPatterns("/api/**");
+    registry.addInterceptor(new TrailingSlashInterceptor()).excludePathPatterns("/api/**");
   }
 
   @Override
