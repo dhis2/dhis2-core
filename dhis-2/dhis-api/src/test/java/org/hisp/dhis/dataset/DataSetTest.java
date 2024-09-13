@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.indicator.Indicator;
@@ -125,18 +124,28 @@ class DataSetTest {
 
   @Test
   void testIsLocked_AfterLastDayOfPeriod() {
-    // 12 hours after the end is still ok
-    assertIsLocked(
-        false, period -> new Date(period.getEndDate().getTime() + TimeUnit.HOURS.toMillis(12)));
+    // 12 hours after the end is still ok (12/24 = 0.5 days)
+    assertIsLocked(false, period -> addDays(period.getEndDate(), 0.5));
+
     // expiryDays is 1 so 1 extra day after the end is still ok
-    assertIsLocked(
-        false, period -> new Date(period.getEndDate().getTime() + TimeUnit.DAYS.toMillis(1)));
+    assertIsLocked(false, period -> addDays(period.getEndDate(), 1));
+
     // 1.5 days after the end is too much
-    assertIsLocked(
-        true, period -> new Date(period.getEndDate().getTime() + TimeUnit.HOURS.toMillis(36)));
-    // but 2 is too much
-    assertIsLocked(
-        true, period -> new Date(period.getEndDate().getTime() + TimeUnit.DAYS.toMillis(2)));
+    assertIsLocked(true, period -> addDays(period.getEndDate(), 1.5));
+
+    // 2 days after the end is too much
+    assertIsLocked(true, period -> addDays(period.getEndDate(), 2));
+
+    // 60 hours is 2.5 days (60 / 24) which is too much
+    assertIsLocked(true, period -> addDays(period.getEndDate(), 2.5));
+  }
+
+  public static Date addDays(Date date, double days) {
+    // Use double precision to calculate milliseconds for fractional days
+    final long millisPerDay = 24 * 60 * 60 * 1000;
+    long additionalMillis = (long) (days * millisPerDay);
+    // Add milliseconds to the base date
+    return new Date(date.getTime() + additionalMillis);
   }
 
   private static void assertIsLocked(boolean expected, Function<Period, Date> actual) {
