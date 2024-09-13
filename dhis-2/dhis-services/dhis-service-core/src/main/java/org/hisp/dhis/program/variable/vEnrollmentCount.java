@@ -43,8 +43,8 @@ public class vEnrollmentCount extends ProgramDoubleVariable {
         .getProgramIndicator()
         .getAnalyticsType()
         .equals(AnalyticsType.ENROLLMENT)) {
-      return "pi";
+      return "enrollment";
     }
-    return "distinct pi";
+    return "distinct enrollment";
   }
 }

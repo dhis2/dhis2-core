@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.auth;
 
+import static org.hisp.dhis.common.network.PortUtil.findAvailablePort;
 import static org.hisp.dhis.system.StartupEventPublisher.SERVER_STARTED_LATCH;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -39,17 +40,16 @@ import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.system.util.HttpHeadersBuilder;
-import org.hisp.dhis.web.jetty.Main;
 import org.hisp.dhis.webapi.controller.security.LoginRequest;
 import org.hisp.dhis.webapi.controller.security.LoginResponse;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -59,7 +59,7 @@ import org.testcontainers.utility.DockerImageName;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
-@Disabled
+@ActiveProfiles(profiles = {"test-postgres"})
 class AuthTest {
   private static final String POSTGRES_POSTGIS_VERSION = "13-3.4-alpine";
   private static final DockerImageName POSTGIS_IMAGE_NAME =
@@ -68,9 +68,12 @@ class AuthTest {
   private static final String POSTGRES_USERNAME = "dhis";
   private static final String POSTGRES_PASSWORD = "dhis";
   private static PostgreSQLContainer<?> POSTGRES_CONTAINER;
+  private static int availablePort;
 
   @BeforeAll
   static void setup() throws Exception {
+
+    availablePort = findAvailablePort();
 
     POSTGRES_CONTAINER =
         new PostgreSQLContainer<>(POSTGIS_IMAGE_NAME.withTag(POSTGRES_POSTGIS_VERSION))
@@ -98,7 +101,8 @@ class AuthTest {
         new Thread(
             () -> {
               try {
-                Main.main(null);
+                System.setProperty("jetty.http.port", Integer.toString(availablePort));
+                org.hisp.dhis.web.jetty.Main.main(null);
               } catch (InterruptedException ignored) {
               } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -138,6 +142,8 @@ class AuthTest {
 
   @Test
   void testLogin() {
+    String port = Integer.toString(availablePort);
+
     RestTemplate restTemplate = new RestTemplate();
 
     HttpHeadersBuilder headersBuilder = new HttpHeadersBuilder().withContentTypeJson();
@@ -148,7 +154,7 @@ class AuthTest {
 
     ResponseEntity<LoginResponse> loginResponse =
         restTemplate.postForEntity(
-            "http://localhost:9090/api/auth/login", requestEntity, LoginResponse.class);
+            "http://localhost:" + port + "/api/auth/login", requestEntity, LoginResponse.class);
 
     assertNotNull(loginResponse);
     assertEquals(HttpStatus.OK, loginResponse.getStatusCode());
@@ -173,7 +179,7 @@ class AuthTest {
 
     ResponseEntity<JsonNode> getResponse =
         restTemplate.exchange(
-            "http://localhost:9090/api/me", HttpMethod.GET, getEntity, JsonNode.class);
+            "http://localhost:" + port + "/api/me", HttpMethod.GET, getEntity, JsonNode.class);
 
     assertEquals(HttpStatus.OK, getResponse.getStatusCode());
 
@@ -183,6 +189,8 @@ class AuthTest {
 
   @Test
   void testLoginFailure() {
+    String port = Integer.toString(availablePort);
+
     RestTemplate restTemplate = new RestTemplate();
 
     HttpHeadersBuilder headersBuilder = new HttpHeadersBuilder().withContentTypeJson();
@@ -193,7 +201,7 @@ class AuthTest {
 
     try {
       restTemplate.postForEntity(
-          "http://localhost:9090/api/auth/login", requestEntity, LoginResponse.class);
+          "http://localhost:" + port + "/api/auth/login", requestEntity, LoginResponse.class);
     } catch (HttpClientErrorException e) {
       assertEquals(HttpStatus.UNAUTHORIZED, e.getStatusCode());
     }
@@ -209,11 +217,42 @@ class AuthTest {
     testRedirectUrl("/api/users");
   }
 
+  @Test
+  void testRedirectToResource() {
+    testRedirectUrl("/api/users/resource.js", "/dhis-web-dashboard/");
+  }
+
+  @Test
+  void testRedirectToHtmlResource() {
+    testRedirectUrl("/api/users/resource.html", "/api/users/resource.html");
+  }
+
+  @Test
+  void testRedirectToSlashEnding() {
+    testRedirectUrl("/api/users/", "/api/users/");
+  }
+
+  @Test
+  void testRedirectToResourceWorker() {
+    testRedirectUrl("/dhis-web-dashboard/service-worker.js", "/dhis-web-dashboard/");
+  }
+
+  @Test
+  void testRedirectToCssResourceWorker() {
+    testRedirectUrl("/dhis-web-dashboard/static/css/main.4536e618.css", "/dhis-web-dashboard/");
+  }
+
   private static void testRedirectUrl(String url) {
+    testRedirectUrl(url, url);
+  }
+
+  private static void testRedirectUrl(String url, String redirectUrl) {
+    String port = Integer.toString(availablePort);
+
     RestTemplate restTemplate = new RestTemplate();
 
     ResponseEntity<LoginResponse> firstResponse =
-        restTemplate.postForEntity("http://localhost:9090" + url, null, LoginResponse.class);
+        restTemplate.postForEntity("http://localhost:" + port + url, null, LoginResponse.class);
     HttpHeaders headersFirstResponse = firstResponse.getHeaders();
     String firstCookie = headersFirstResponse.get(HttpHeaders.SET_COOKIE).get(0);
 
@@ -225,7 +264,7 @@ class AuthTest {
 
     ResponseEntity<LoginResponse> loginResponse =
         restTemplate.postForEntity(
-            "http://localhost:9090/api/auth/login", requestEntity, LoginResponse.class);
+            "http://localhost:" + port + "/api/auth/login", requestEntity, LoginResponse.class);
 
     assertNotNull(loginResponse);
     assertEquals(HttpStatus.OK, loginResponse.getStatusCode());
@@ -233,6 +272,6 @@ class AuthTest {
     assertNotNull(body);
     assertEquals(LoginResponse.STATUS.SUCCESS, body.getLoginStatus());
 
-    assertEquals(url, body.getRedirectUrl());
+    assertEquals(redirectUrl, body.getRedirectUrl());
   }
 }

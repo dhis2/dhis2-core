@@ -33,8 +33,8 @@ import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.intellij.lang.annotations.Language;
 
@@ -138,6 +138,36 @@ public @interface OpenApi {
   }
 
   /**
+   * Kind as a higher order type bucket to group objects of similar role. This is purely for display
+   * purposes showing types (schemas) of same kind in the same group.
+   *
+   * <p>When annotated on a top level type the enclosed types are also associated with the same kind
+   * unless they have a varying annotation on their own.
+   */
+  @Inherited
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.TYPE)
+  @interface Kind {
+    /**
+     * @return name of the kind
+     */
+    String value();
+  }
+
+  @Inherited
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.TYPE)
+  @interface Team {
+
+    /**
+     * Names are case-insensitive, e.g. "Tracker" is the same as "tracker"
+     *
+     * @return name of the team that supports the annotated element
+     */
+    String value();
+  }
+
+  /**
    * Can be used to annotate endpoint methods to constraint which concrete {@link EntityType}s will
    * support the annotated endpoint method.
    */
@@ -163,25 +193,9 @@ public @interface OpenApi {
   @Retention(RetentionPolicy.RUNTIME)
   @interface Document {
 
-    @Getter
-    @RequiredArgsConstructor
-    enum Group {
-      DEFAULT("Default"),
-      QUERY("Query"),
-      MANAGE("Management"),
-      CONFIG("Configuration"),
-      MISC("Miscellaneous");
-
-      @Language("markdown")
-      private final String description;
-
-      /**
-       * @return the name of the OpenAPI tag used for this group
-       */
-      public String tag() {
-        return name().toLowerCase();
-      }
-    }
+    String GROUP_QUERY = "query";
+    String GROUP_MANAGE = "management";
+    String GROUP_CONFIG = "configuration";
 
     /**
      * Alternative to {@link #domain()} for a "manual" override. Takes precedence when non-empty.
@@ -206,7 +220,16 @@ public @interface OpenApi {
      *
      * @return type of group used
      */
-    Group group() default Group.DEFAULT;
+    String group() default "";
+  }
+
+  @Target({ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER})
+  @Retention(RetentionPolicy.RUNTIME)
+  @interface Since {
+    /**
+     * @return the 2.xx version when the annotated element was introduced
+     */
+    int value();
   }
 
   /**
@@ -255,6 +278,7 @@ public @interface OpenApi {
      *
      * @return the string representation of the default value for the property (must be non-empty)
      */
+    @Language("JSON")
     String defaultValue() default "";
   }
 
@@ -284,19 +308,19 @@ public @interface OpenApi {
      *
      * @return type of the parameter, should be a simple type for a path parameter.
      */
-    Class<?>[] value();
+    Class<?>[] value() default {};
+
+    /**
+     * When used together with {@link #value()} it is assumed that the {@link #value()} type is
+     * object and that the given properties are in addition to that type's properties.
+     *
+     * @return the properties of the declared object
+     */
+    Property[] object() default {};
 
     boolean required() default false;
 
     boolean deprecated() default false;
-
-    /**
-     * When not empty the parameter is wrapped in an object having a single member with the provided
-     * property name.
-     *
-     * @return name of the property to use
-     */
-    String asProperty() default "";
 
     /**
      * If given, this values takes precedence over the actual initial value of a field that might be
@@ -304,6 +328,7 @@ public @interface OpenApi {
      *
      * @return the string representation of the default value for the property (must be non-empty)
      */
+    @Language("JSON")
     String defaultValue() default "";
   }
 
@@ -357,6 +382,8 @@ public @interface OpenApi {
       OK(200),
       CREATED(201),
       NO_CONTENT(204),
+      FOUND(302),
+      NOT_MODIFIED(304),
       BAD_REQUEST(400),
       FORBIDDEN(403),
       NOT_FOUND(404),
@@ -366,12 +393,22 @@ public @interface OpenApi {
     }
 
     /**
-     * None (length zero) uses the actual type of the method. More than one use a {@code oneOf}
-     * union type of all the type schemas.
+     * No value (length zero) uses the actual type of the method unless {@link #object()} is
+     * non-empty.
+     *
+     * <p>More than one use a {@code oneOf} union type of all the type schemas.
      *
      * @return body type of the response.
      */
-    Class<?>[] value();
+    Class<?>[] value() default {};
+
+    /**
+     * When used together with {@link #value()} it is assumed that the {@link #value()} type is
+     * object and that the given properties are in addition to that type's properties.
+     *
+     * @return the properties of the declared object
+     */
+    Property[] object() default {};
 
     /**
      * If status is left empty the {@link #value()} applies to the status inferred from the method
@@ -411,30 +448,21 @@ public @interface OpenApi {
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
   @interface Shared {
+
+    /**
+     * Marker annotation to use on properties of a shared parameter object that cannot be shared as
+     * their type is dynamic (varying).
+     */
+    @Target({ElementType.FIELD, ElementType.METHOD})
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface Inline {}
+
     boolean value() default true;
 
     /**
      * @return can be used to override the class name part of a shared parameter
      */
     String name() default "";
-
-    @Getter
-    @AllArgsConstructor
-    enum Pattern {
-      DEFAULT(""),
-      INFO("%sInfo"),
-      TRACKER("Tracker%s"),
-      ANALYTICS("Analytics%s");
-
-      private final String template;
-    }
-
-    /**
-     * If both name and pattern are used the pattern is ignored.
-     *
-     * @return naming pattern used to create a name based on the simple class name.
-     */
-    Pattern pattern() default Pattern.DEFAULT;
 
     /**
      * @return just for documentation purposes to indicate why the manual adjustment was made
@@ -517,4 +545,12 @@ public @interface OpenApi {
   @interface ResponseRepeat {
     Response[] value();
   }
+
+  /**
+   * A "virtual" property name enumeration type. It creates an OpenAPI {@code enum} string schema
+   * containing all valid property names for the target type. The target type is either the actual
+   * type substitute for the {@link EntityType} or the first argument type.
+   */
+  @NoArgsConstructor
+  final class PropertyNames {}
 }

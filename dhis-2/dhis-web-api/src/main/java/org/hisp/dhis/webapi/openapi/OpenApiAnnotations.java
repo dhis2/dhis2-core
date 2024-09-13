@@ -102,4 +102,43 @@ class OpenApiAnnotations {
     B value = whenPresent.apply(target.getAnnotation(type));
     return test.test(value) ? value : otherwise.get();
   }
+
+  @Nonnull
+  static Class<?> getDomain(@Nonnull Class<?> controller) {
+    OpenApi.Document doc = controller.getAnnotation(OpenApi.Document.class);
+    Class<?> domain = OpenApi.EntityType.class;
+    if (doc != null) {
+      domain = doc.domain();
+    }
+    if (domain == OpenApi.EntityType.class) {
+      domain = getEntityType(controller);
+    }
+    return domain == null ? Object.class : domain;
+  }
+
+  @CheckForNull
+  static OpenApi.Kind getKind(@Nonnull Class<?> schemaRawType) {
+    Class<?> source = firstImplementedTypeWithAnnotation(schemaRawType, OpenApi.Kind.class);
+    if (source != null) return source.getAnnotation(OpenApi.Kind.class);
+    if (schemaRawType.getEnclosingClass() != null)
+      return getKind(schemaRawType.getEnclosingClass());
+    return null;
+  }
+
+  @CheckForNull
+  static OpenApi.Team getTeam(@Nonnull Class<?> controllerOrSchema) {
+    Class<?> source = firstImplementedTypeWithAnnotation(controllerOrSchema, OpenApi.Team.class);
+    return source == null ? null : source.getAnnotation(OpenApi.Team.class);
+  }
+
+  private static Class<?> firstImplementedTypeWithAnnotation(
+      Class<?> type, Class<? extends Annotation> anno) {
+    if (type == null) return null;
+    if (type.isAnnotationPresent(anno)) return type;
+    for (Class<?> i : type.getInterfaces()) {
+      Class<?> t = firstImplementedTypeWithAnnotation(i, anno);
+      if (t != null) return t;
+    }
+    return firstImplementedTypeWithAnnotation(type.getSuperclass(), anno);
+  }
 }

@@ -31,6 +31,7 @@ import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE_LIST;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABLE;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -41,6 +42,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
@@ -107,6 +109,14 @@ public class HibernateEventVisualizationStore
   @Override
   public int countEventVisualizationsCreated(Date startingAt) {
     return countEventVisualizationCreated(startingAt, EventVisualizationSet.EVENT_LINE_LIST, false);
+  }
+
+  @Override
+  public List<EventVisualization> getByDataElement(Collection<DataElement> dataElements) {
+    return getQuery(
+            "from EventVisualization ev where ev.dataElementValueDimension in :dataElements")
+        .setParameter("dataElements", dataElements)
+        .list();
   }
 
   @Override

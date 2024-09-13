@@ -34,14 +34,14 @@ import java.util.List;
 import java.util.stream.Stream;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.actions.SchemasActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.schemas.PropertyType;
-import org.hisp.dhis.dto.schemas.SchemaProperty;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
-import org.hisp.dhis.utils.DataGenerator;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.actions.SchemasActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.dto.schemas.PropertyType;
+import org.hisp.dhis.test.e2e.dto.schemas.SchemaProperty;
+import org.hisp.dhis.test.e2e.utils.DataGenerator;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -100,7 +100,8 @@ public class MetadataImportBasedOnSchemasTest extends ApiTest {
             "programRuleVariables",
             "eventCharts",
             "programStages",
-            "programStageWorkingLists");
+            "programStageWorkingLists",
+            "categoryOptionCombos");
 
     List<SchemaProperty> schemaProperties = schemasActions.getRequiredProperties(schema);
 

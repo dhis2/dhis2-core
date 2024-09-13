@@ -30,8 +30,8 @@ package org.hisp.dhis.webapi.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.jsontree.JsonMixed;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -42,7 +42,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author david mackessy
  */
-class AnalyticsOutlierDetectionControllerTest extends DhisControllerConvenienceTest {
+class AnalyticsOutlierDetectionControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   @DisplayName("Class-level authority check fails when no required auth")

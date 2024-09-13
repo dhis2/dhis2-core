@@ -53,20 +53,19 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.OpenApi.Document.Group;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
@@ -110,7 +109,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(domain = User.class, group = Group.QUERY)
+@OpenApi.Document(domain = User.class, group = OpenApi.Document.GROUP_QUERY)
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequestMapping("/api/me")
@@ -223,7 +222,7 @@ public class MeController {
     return ResponseEntity.ok(objectNode);
   }
 
-  @OpenApi.Document(group = Group.MANAGE)
+  @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PutMapping(value = "", consumes = APPLICATION_JSON_VALUE)
   public void updateCurrentUser(
       HttpServletRequest request,
@@ -258,7 +257,7 @@ public class MeController {
     manager.update(currentUser);
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.ALL.getFields());
+      fields.addAll(FieldPreset.ALL.getFields());
     }
 
     CollectionNode collectionNode =
@@ -320,7 +319,7 @@ public class MeController {
     return ResponseEntity.ok().cacheControl(noStore()).body(value);
   }
 
-  @OpenApi.Document(group = Group.MANAGE)
+  @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PutMapping(
       value = "/changePassword",
       consumes = {"text/*", "application/*"})
@@ -347,7 +346,7 @@ public class MeController {
     userService.invalidateUserSessions(currentUser.getUid());
   }
 
-  @OpenApi.Document(group = Group.MANAGE)
+  @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/verifyPassword", consumes = "text/*")
   public @ResponseBody RootNode verifyPasswordText(
       @RequestBody String password,
@@ -357,7 +356,7 @@ public class MeController {
     return verifyPasswordInternal(password, currentUser);
   }
 
-  @OpenApi.Document(group = Group.MANAGE)
+  @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/validatePassword", consumes = "text/*")
   public @ResponseBody RootNode validatePasswordText(
       @RequestBody String password,
@@ -367,7 +366,7 @@ public class MeController {
     return validatePasswordInternal(password, currentUser);
   }
 
-  @OpenApi.Document(group = Group.MANAGE)
+  @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/verifyPassword", consumes = APPLICATION_JSON_VALUE)
   public @ResponseBody RootNode verifyPasswordJson(
       @RequestBody Map<String, String> body,
@@ -388,7 +387,7 @@ public class MeController {
     return dashboard;
   }
 
-  @OpenApi.Document(group = Group.MANAGE)
+  @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/dashboard/interpretations/read")
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
   @ApiVersion(include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})

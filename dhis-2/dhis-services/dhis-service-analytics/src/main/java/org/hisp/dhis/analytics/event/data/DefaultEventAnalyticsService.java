@@ -61,6 +61,7 @@ import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STAGE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
 import static org.hisp.dhis.analytics.common.ColumnHeader.SCHEDULED_DATE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.STORED_BY;
+import static org.hisp.dhis.analytics.common.ColumnHeader.TRACKED_ENTITY;
 import static org.hisp.dhis.analytics.event.LabelMapper.getEnrollmentDateLabel;
 import static org.hisp.dhis.analytics.event.LabelMapper.getEventDateLabel;
 import static org.hisp.dhis.analytics.event.LabelMapper.getEventLabel;
@@ -756,8 +757,7 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
                   false,
                   true))
           .addHeader(
-              new GridHeader(
-                  ColumnHeader.TEI.getItem(), ColumnHeader.TEI.getName(), TEXT, false, true))
+              new GridHeader(TRACKED_ENTITY.getItem(), TRACKED_ENTITY.getName(), TEXT, false, true))
           .addHeader(
               new GridHeader(
                   PROGRAM_INSTANCE.getItem(), PROGRAM_INSTANCE.getName(), TEXT, false, true));

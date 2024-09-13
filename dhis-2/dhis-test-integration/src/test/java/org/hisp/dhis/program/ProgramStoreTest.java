@@ -37,14 +37,17 @@ import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran
  */
-class ProgramStoreTest extends TransactionalIntegrationTest {
+@Transactional
+class ProgramStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramStore programStore;
 
@@ -62,8 +65,8 @@ class ProgramStoreTest extends TransactionalIntegrationTest {
 
   private Program programC;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnitA);
     organisationUnitB = createOrganisationUnit('B');

@@ -40,7 +40,7 @@ import org.mapstruct.factory.Mappers;
       DebugMapper.class,
       TrackedEntityMapper.class,
       OrganisationUnitMapper.class,
-      AttributeValueMapper.class
+      AttributeValuesMapper.class
     })
 public interface EnrollmentMapper extends PreheatMapper<Enrollment> {
   EnrollmentMapper INSTANCE = Mappers.getMapper(EnrollmentMapper.class);
@@ -60,6 +60,7 @@ public interface EnrollmentMapper extends PreheatMapper<Enrollment> {
   @Mapping(target = "deleted")
   @Mapping(target = "createdByUserInfo")
   @Mapping(target = "lastUpdatedByUserInfo")
+  @Mapping(target = "status")
   Enrollment map(Enrollment enrollment);
 
   @Named("program")

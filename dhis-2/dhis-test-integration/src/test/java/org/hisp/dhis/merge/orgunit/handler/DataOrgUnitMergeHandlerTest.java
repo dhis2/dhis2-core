@@ -43,14 +43,15 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
+import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest.Builder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -59,7 +60,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 /**
  * @author Lars Helge Overland
  */
-class DataOrgUnitMergeHandlerTest extends IntegrationTestBase {
+class DataOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
 
@@ -70,8 +71,6 @@ class DataOrgUnitMergeHandlerTest extends IntegrationTestBase {
   @Autowired private DataValueService dataValueService;
 
   @Autowired private DataApprovalService dataApprovalService;
-
-  @Autowired private UserService userService;
 
   @Autowired private DataOrgUnitMergeHandler handler;
 
@@ -99,8 +98,8 @@ class DataOrgUnitMergeHandlerTest extends IntegrationTestBase {
 
   private DataApprovalWorkflow dwA;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     cocA = categoryService.getDefaultCategoryOptionCombo();
     deA = createDataElement('A');
     deB = createDataElement('B');
@@ -136,7 +135,7 @@ class DataOrgUnitMergeHandlerTest extends IntegrationTestBase {
     assertEquals(2, getDataValueCount(ouB));
     assertEquals(0, getDataValueCount(ouC));
     OrgUnitMergeRequest request =
-        new OrgUnitMergeRequest.Builder()
+        new Builder()
             .addSource(ouA)
             .addSource(ouB)
             .withTarget(ouC)
@@ -159,7 +158,7 @@ class DataOrgUnitMergeHandlerTest extends IntegrationTestBase {
     assertEquals(2, getDataApprovalCount(ouB));
     assertEquals(0, getDataApprovalCount(ouC));
     OrgUnitMergeRequest request =
-        new OrgUnitMergeRequest.Builder()
+        new Builder()
             .addSource(ouA)
             .addSource(ouB)
             .withTarget(ouC)

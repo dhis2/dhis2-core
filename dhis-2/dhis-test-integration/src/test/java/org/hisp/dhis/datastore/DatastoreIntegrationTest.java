@@ -28,7 +28,7 @@
 package org.hisp.dhis.datastore;
 
 import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.utils.JavaToJson.toJson;
+import static org.hisp.dhis.test.utils.JavaToJson.toJson;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -36,8 +36,10 @@ import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -54,14 +56,11 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
-class DatastoreIntegrationTest extends IntegrationTestBase {
+class DatastoreIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private DatastoreService datastore;
-  @Autowired private UserService _userService;
 
-  @Override
-  protected void setUpTest() throws Exception {
-    this.userService = _userService;
-    createAndInjectAdminUser();
+  @BeforeEach
+  void setUp() throws ConflictException, BadRequestException, ForbiddenException {
     datastore.deleteNamespace("pets");
 
     addEntry("dog", toJson(false));
@@ -80,20 +79,20 @@ class DatastoreIntegrationTest extends IntegrationTestBase {
     addPet("pig", "Oink", 6, List.of("carrots", "potatoes"));
   }
 
-  @Override
-  protected void tearDownTest() throws Exception {
+  @AfterEach
+  void tearDown() {
     datastore.deleteNamespace("pets");
   }
 
   private DatastoreEntry addEntry(String key, String value)
-      throws ConflictException, BadRequestException {
+      throws ConflictException, BadRequestException, ForbiddenException {
     DatastoreEntry entry = new DatastoreEntry("pets", key, value.replace('\'', '"'), false);
     datastore.addEntry(entry);
     return entry;
   }
 
   private DatastoreEntry addPet(String key, String name, int age, List<String> eats)
-      throws ConflictException, BadRequestException {
+      throws ConflictException, BadRequestException, ForbiddenException {
     return addEntry(
         key,
         toJson(
@@ -108,10 +107,6 @@ class DatastoreIntegrationTest extends IntegrationTestBase {
                 eats == null ? List.of() : eats.stream().map(food -> Map.of("name", food)))));
   }
 
-  /*
-   * Boolean Equality Filters
-   */
-
   @Test
   void test_Filter_RootEq_Boolean() {
     assertEntries(".:eq:true", "bat");
@@ -121,10 +116,6 @@ class DatastoreIntegrationTest extends IntegrationTestBase {
   void test_Filter_RootNotEq_Boolean() {
     assertEntries(".:!eq:true", "dog");
   }
-
-  /*
-   * String Equality Filters
-   */
 
   @Test
   void test_Filter_RootEq_String() {
@@ -145,10 +136,6 @@ class DatastoreIntegrationTest extends IntegrationTestBase {
   void test_Filter_PathNotEq_String() {
     assertEntries("name:!eq:Miao", "cow", "hamster", "pig");
   }
-
-  /*
-   * Numeric Filters (decided by value)
-   */
 
   @Test
   void test_Filter_RootEq_Numeric() {
@@ -210,12 +197,6 @@ class DatastoreIntegrationTest extends IntegrationTestBase {
     assertEntries("age:ge:6", "cat", "pig");
   }
 
-  /*
-   * Emptiness Filters
-   *
-   * These match empty/non-empty objects or arrays or strings of length zero
-   */
-
   @Test
   void test_Filter_RootEmpty() {
     assertEntries(".:empty", "duck", "eagle", "mole");
@@ -236,14 +217,6 @@ class DatastoreIntegrationTest extends IntegrationTestBase {
     assertEntries("eats:!empty", "cat", "cow", "pig");
   }
 
-  /*
-   * String Pattern Filters
-   *
-   * We test ilike and !ilike since they represent the most complicated
-   * combination. If those work it is very likely the other variants work as
-   * well.
-   */
-
   @Test
   void test_Filter_RootILike_String() {
     assertEntries(".:ilike:uRy", "horse");
@@ -263,10 +236,6 @@ class DatastoreIntegrationTest extends IntegrationTestBase {
   void test_Filter_PathNotILike_String() {
     assertEntries("name:!ilike:IA", "cow", "hamster", "pig");
   }
-
-  /*
-   * Nullness Filters
-   */
 
   @Test
   void test_Filter_RootNull() {
@@ -310,14 +279,15 @@ class DatastoreIntegrationTest extends IntegrationTestBase {
         .build();
   }
 
-  private List<DatastoreFields> queryAsList(DatastoreQuery query) throws ConflictException {
+  private List<DatastoreFields> queryAsList(DatastoreQuery query)
+      throws ConflictException, ForbiddenException {
     return datastore.getEntries(query, stream -> stream.collect(toList()));
   }
 
   private void assertEntries(String filter, String... expectedKeys) {
     try {
       assertEntries(List.of(expectedKeys), queryAsList(createQuery(filter)));
-    } catch (ConflictException ex) {
+    } catch (ConflictException | ForbiddenException ex) {
       fail(ex);
     }
   }

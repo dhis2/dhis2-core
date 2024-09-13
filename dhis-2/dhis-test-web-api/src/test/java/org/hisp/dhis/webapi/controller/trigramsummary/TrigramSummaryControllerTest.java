@@ -50,13 +50,13 @@ import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeTableManager;
 import org.hisp.dhis.webapi.controller.tracker.export.trigramsummary.TrigramSummary;
 import org.hisp.dhis.webapi.controller.tracker.export.trigramsummary.TrigramSummaryController;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -68,7 +68,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @ExtendWith(MockitoExtension.class)
-class TrigramSummaryControllerTest extends DhisControllerConvenienceTest {
+class TrigramSummaryControllerTest extends H2ControllerIntegrationTestBase {
 
   private static final List<FieldPath> DEFAULT_FIELDS =
       FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);

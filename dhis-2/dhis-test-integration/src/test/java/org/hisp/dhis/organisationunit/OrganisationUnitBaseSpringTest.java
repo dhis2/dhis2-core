@@ -29,10 +29,15 @@ package org.hisp.dhis.organisationunit;
 
 import static java.util.Arrays.asList;
 
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-abstract class OrganisationUnitBaseSpringTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+abstract class OrganisationUnitBaseSpringTest extends PostgresIntegrationTestBase {
   @Autowired protected OrganisationUnitStore unitStore;
 
   @Autowired protected OrganisationUnitGroupStore groupStore;

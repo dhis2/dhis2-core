@@ -30,15 +30,15 @@ package org.hisp.dhis.analytics;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hisp.dhis.AnalyticsApiTest.JSON;
 
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.actions.analytics.AnalyticsEnrollmentsActions;
-import org.hisp.dhis.actions.analytics.AnalyticsEventActions;
-import org.hisp.dhis.actions.analytics.AnalyticsOutlierDetectionActions;
-import org.hisp.dhis.actions.analytics.AnalyticsTeiActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEventActions;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsOutlierDetectionActions;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsTrackedEntityActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
@@ -58,7 +58,8 @@ public class NoAnalyticsTablesErrorsScenariosTest {
   private final AnalyticsEnrollmentsActions analyticsEnrollmentsActions =
       new AnalyticsEnrollmentsActions();
   private final AnalyticsEventActions analyticsEventActions = new AnalyticsEventActions();
-  private final AnalyticsTeiActions analyticsTeiActions = new AnalyticsTeiActions();
+  private final AnalyticsTrackedEntityActions analyticsTrackedEntityActions =
+      new AnalyticsTrackedEntityActions();
   private final AnalyticsOutlierDetectionActions analyticsOutlierActions =
       new AnalyticsOutlierDetectionActions();
   private final RestApiActions analyticsAggregateActions = new RestApiActions("analytics");
@@ -80,7 +81,8 @@ public class NoAnalyticsTablesErrorsScenariosTest {
     ApiResponse response = analyticsAggregateActions.get(params);
 
     // Then
-    assertNoAnalyticsTableResponse(response);
+    assertNoAnalyticsTableResponse(
+        response, "ERROR: relation \"analytics\" does not exist\n  Position: 68");
   }
 
   @Test
@@ -95,7 +97,9 @@ public class NoAnalyticsTablesErrorsScenariosTest {
     ApiResponse response = analyticsEventActions.query().get("eBAyeGv0exc", JSON, JSON, params);
 
     // Then
-    assertNoAnalyticsTableResponse(response);
+    assertNoAnalyticsTableResponse(
+        response,
+        "ERROR: relation \"analytics_event_ebayegv0exc\" does not exist\n  Position: 263");
   }
 
   @Test
@@ -108,7 +112,9 @@ public class NoAnalyticsTablesErrorsScenariosTest {
         analyticsEnrollmentsActions.query().get("IpHINAT79UW", JSON, JSON, params);
 
     // Then
-    assertNoAnalyticsTableResponse(response);
+    assertNoAnalyticsTableResponse(
+        response,
+        "ERROR: relation \"analytics_enrollment_iphinat79uw\" does not exist\n  Position: 241");
   }
 
   @Test
@@ -123,7 +129,8 @@ public class NoAnalyticsTablesErrorsScenariosTest {
     ApiResponse response = analyticsEventActions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
 
     // Then
-    assertNoAnalyticsTableResponse(response);
+    assertNoAnalyticsTableResponse(
+        response, "ERROR: relation \"analytics_event_iphinat79uw\" does not exist\n  Position: 68");
   }
 
   @Test
@@ -135,10 +142,12 @@ public class NoAnalyticsTablesErrorsScenariosTest {
             .add("enrollmentDate=IpHINAT79UW.LAST_YEAR");
 
     // When
-    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+    ApiResponse response =
+        analyticsTrackedEntityActions.query().get("nEenWmSyUEp", JSON, JSON, params);
 
     // Then
-    assertNoAnalyticsTableResponse(response);
+    assertNoAnalyticsTableResponse(
+        response, "ERROR: relation \"analytics_te_neenwmsyuep\" does not exist\n  Position: 1955");
   }
 
   @Test
@@ -168,7 +177,7 @@ public class NoAnalyticsTablesErrorsScenariosTest {
         .body("errorCode", equalTo("E7180"));
   }
 
-  private void assertNoAnalyticsTableResponse(ApiResponse response) {
+  private void assertNoAnalyticsTableResponse(ApiResponse response, String expectedMessage) {
     response
         .validate()
         .statusCode(409)
@@ -178,6 +187,6 @@ public class NoAnalyticsTablesErrorsScenariosTest {
             equalTo(
                 "Query failed because a referenced table does not exist. Please ensure analytics job was run (SqlState: 42P01)"))
         .body("errorCode", equalTo("E7144"))
-        .body("devMessage", equalTo("SqlState: 42P01"));
+        .body("devMessage", equalTo(expectedMessage));
   }
 }

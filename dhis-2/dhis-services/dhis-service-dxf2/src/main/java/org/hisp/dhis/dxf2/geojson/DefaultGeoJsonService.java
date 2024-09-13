@@ -50,7 +50,7 @@ import lombok.experimental.Accessors;
 import org.geotools.geojson.geom.GeometryJSON;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
@@ -91,7 +91,8 @@ public class DefaultGeoJsonService implements GeoJsonService {
     int deletions =
         attribute == null
             ? organisationUnitStore.updateAllOrganisationUnitsGeometryToNull()
-            : organisationUnitStore.updateAllAttributeValues(attribute, "null", false);
+            : organisationUnitStore.updateAllAttributeValues(
+                UID.of(attribute.getUid()), "null", false);
     report.getImportCount().incrementDeleted(deletions);
     return report;
   }
@@ -325,28 +326,26 @@ public class DefaultGeoJsonService implements GeoJsonService {
       Attribute attribute, GeoJsonImportReport report, GeometryUpdate update) {
     ImportCount stats = report.getImportCount();
     OrganisationUnit target = update.target();
-    AttributeValue attributeValue = target.getAttributeValue(attribute);
+    String attributeId = attribute.getUid();
+    String oldValue = target.getAttributeValue(attributeId);
     String newValue = update.newValue();
     if (!update.isDeletion() && validateGeometry(report, update) == null) {
       return false;
     }
-    if (attributeValue != null) {
-      String old = attributeValue.getValue();
+    if (oldValue != null) {
       if (update.isDeletion()) {
-        target
-            .getAttributeValues()
-            .removeIf(attr -> attr.getAttribute().getUid().equals(attribute.getUid()));
+        target.removeAttributeValue(attributeId);
         update.inc(stats::incrementDeleted).needsUpdate(true);
       } else {
-        attributeValue.setValue(newValue);
-        update.inc(stats::incrementUpdated).needsUpdate(!Objects.equals(newValue, old));
+        target.addAttributeValue(attributeId, newValue);
+        update.inc(stats::incrementUpdated).needsUpdate(!Objects.equals(newValue, oldValue));
       }
     } else {
       if (update.isDeletion()) {
         // attribute did not exist so NOOP
         update.inc(stats::incrementDeleted).needsUpdate(false);
       } else {
-        target.getAttributeValues().add(new AttributeValue(attribute, newValue));
+        target.addAttributeValue(attributeId, newValue);
         update.inc(stats::incrementImported);
       }
     }

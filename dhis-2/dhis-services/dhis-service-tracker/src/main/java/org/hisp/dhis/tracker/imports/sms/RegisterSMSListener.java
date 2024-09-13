@@ -50,7 +50,6 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -61,8 +60,9 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.listener.CommandSMSListener;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserService;
 
@@ -71,7 +71,7 @@ public abstract class RegisterSMSListener extends CommandSMSListener {
 
   protected final EnrollmentService enrollmentService;
 
-  protected final TrackedEntityDataValueChangeLogService dataValueAuditService;
+  protected final EventChangeLogService eventChangeLogService;
 
   protected final FileResourceService fileResourceService;
 
@@ -85,13 +85,13 @@ public abstract class RegisterSMSListener extends CommandSMSListener {
       IncomingSmsService incomingSmsService,
       MessageSender smsSender,
       EnrollmentService enrollmentService,
-      TrackedEntityDataValueChangeLogService dataValueAuditService,
+      EventChangeLogService eventChangeLogService,
       FileResourceService fileResourceService,
       DhisConfigurationProvider config,
       IdentifiableObjectManager identifiableObjectManager) {
     super(dataElementCategoryService, userService, incomingSmsService, smsSender);
     this.enrollmentService = enrollmentService;
-    this.dataValueAuditService = dataValueAuditService;
+    this.eventChangeLogService = eventChangeLogService;
     this.fileResourceService = fileResourceService;
     this.config = config;
     this.identifiableObjectManager = identifiableObjectManager;
@@ -110,7 +110,7 @@ public abstract class RegisterSMSListener extends CommandSMSListener {
       enrollment.setProgram(smsCommand.getProgram());
       enrollment.setStatus(EnrollmentStatus.ACTIVE);
 
-      enrollmentService.addEnrollment(enrollment);
+      identifiableObjectManager.save(enrollment);
 
       enrollments.add(enrollment);
     } else if (enrollments.size() > 1) {
@@ -236,7 +236,7 @@ public abstract class RegisterSMSListener extends CommandSMSListener {
             dataValue.getProvidedElsewhere(),
             ChangeLogType.CREATE);
 
-    dataValueAuditService.addTrackedEntityDataValueChangeLog(dataValueAudit);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(dataValueAudit);
   }
 
   /** Update FileResource with 'assigned' status. */

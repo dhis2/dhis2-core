@@ -33,10 +33,9 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.springframework.http.CacheControl.noCache;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -53,6 +52,7 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
@@ -77,7 +77,6 @@ import org.hisp.dhis.webapi.webdomain.sharing.SharingUserGroupAccess;
 import org.hisp.dhis.webapi.webdomain.sharing.comparator.SharingUserGroupAccessNameComparator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -116,7 +115,7 @@ public class SharingController {
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Sharing> getSharing(@RequestParam String type, @RequestParam String id)
-      throws WebMessageException {
+      throws WebMessageException, ForbiddenException {
     if (!aclService.isShareable(type)) {
       throw new WebMessageException(conflict("Type " + type + " is not supported."));
     }
@@ -132,7 +131,7 @@ public class SharingController {
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
     if (!aclService.canRead(currentUserDetails, object)) {
-      throw new AccessDeniedException("You do not have manage access to this object.");
+      throw new ForbiddenException("You do not have manage access to this object.");
     }
 
     Sharing sharing = new Sharing();
@@ -240,7 +239,7 @@ public class SharingController {
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
     if (!aclService.canManage(currentUserDetails, object)) {
-      throw new AccessDeniedException("You do not have manage access to this object.");
+      throw new ForbiddenException("You do not have manage access to this object.");
     }
 
     Sharing sharing = renderService.fromJson(request.getInputStream(), Sharing.class);
@@ -348,8 +347,12 @@ public class SharingController {
     return ok("Access control set");
   }
 
+  public record SharingSearchResult(
+      @JsonProperty List<SharingUserAccess> users,
+      @JsonProperty List<SharingUserGroupAccess> userGroups) {}
+
   @GetMapping(value = "/search", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Map<String, Object>> searchUserGroups(
+  public ResponseEntity<SharingSearchResult> searchUserGroups(
       @RequestParam String key, @RequestParam(required = false) Integer pageSize)
       throws WebMessageException {
     if (key == null) {
@@ -361,9 +364,7 @@ public class SharingController {
     List<SharingUserGroupAccess> userGroupAccesses = getSharingUserGroups(key, max);
     List<SharingUserAccess> userAccesses = getSharingUser(key, max);
 
-    Map<String, Object> output = new HashMap<>();
-    output.put("userGroups", userGroupAccesses);
-    output.put("users", userAccesses);
+    SharingSearchResult output = new SharingSearchResult(userAccesses, userGroupAccesses);
 
     return ResponseEntity.ok().cacheControl(noCache()).body(output);
   }

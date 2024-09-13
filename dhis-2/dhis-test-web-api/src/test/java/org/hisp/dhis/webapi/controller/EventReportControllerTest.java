@@ -30,10 +30,10 @@ package org.hisp.dhis.webapi.controller;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.web.HttpStatus.BAD_REQUEST;
-import static org.hisp.dhis.web.HttpStatus.CREATED;
-import static org.hisp.dhis.web.HttpStatus.OK;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.HttpStatus.BAD_REQUEST;
+import static org.hisp.dhis.test.web.HttpStatus.CREATED;
+import static org.hisp.dhis.test.web.HttpStatus.OK;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -41,8 +41,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.web.WebClient;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.test.web.WebClient;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author maikel arabori
  */
-class EventReportControllerTest extends DhisControllerConvenienceTest {
+class EventReportControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 

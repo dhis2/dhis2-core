@@ -30,6 +30,7 @@ package org.hisp.dhis.datadimensionitem.hibernate;
 import java.util.List;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.common.DataDimensionItem;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.springframework.context.ApplicationEventPublisher;
@@ -56,5 +57,16 @@ public class HibernateDataDimensionItemStore extends HibernateGenericStore<DataD
       where d.indicatorid in :indicators
     """;
     return nativeSynchronizedTypedQuery(sql).setParameter("indicators", indicators).list();
+  }
+
+  @Override
+  public List<DataDimensionItem> getDataElementDataDimensionItems(List<DataElement> dataElements) {
+    return getQuery(
+            """
+             from DataDimensionItem d
+             where d.dataElement in :dataElements
+             """)
+        .setParameter("dataElements", dataElements)
+        .getResultList();
   }
 }

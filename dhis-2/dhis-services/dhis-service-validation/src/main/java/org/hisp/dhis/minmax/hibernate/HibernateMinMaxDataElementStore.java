@@ -181,6 +181,18 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
         .executeUpdate();
   }
 
+  @Override
+  public List<MinMaxDataElement> getByDataElement(Collection<DataElement> dataElements) {
+    return getQuery(
+            """
+            from  MinMaxDataElement mmde
+            where mmde.dataElement in :dataElements
+            """,
+            MinMaxDataElement.class)
+        .setParameter("dataElements", dataElements)
+        .list();
+  }
+
   private Predicate parseFilter(CriteriaBuilder builder, Root<?> root, List<String> filters) {
     Predicate conjunction = builder.conjunction();
 

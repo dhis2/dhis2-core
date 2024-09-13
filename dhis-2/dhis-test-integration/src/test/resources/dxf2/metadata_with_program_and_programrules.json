@@ -864,55 +864,6 @@
   ],
   "users": [
     {
-      "code": "admin",
-      "lastUpdated": "2020-12-17T12:50:43.634",
-      "id": "M5zQapPyTZI",
-      "created": "2020-12-17T12:50:43.176",
-      "surname": "admin",
-      "firstName": "admin",
-      "name": "admin admin",
-      "lastLogin": "2020-12-17T12:55:39.262",
-      "displayName": "admin admin",
-      "externalAuth": false,
-      "externalAccess": false,
-      "disabled": false,
-      "twoFA": false,
-      "passwordLastUpdated": "2020-12-17T12:50:43.302",
-      "invitation": false,
-      "selfRegistered": false,
-      "favorite": false,
-      "username": "admin",
-      "access": {
-        "read": true,
-        "update": true,
-        "externalize": true,
-        "delete": true,
-        "write": true,
-        "manage": true
-      },
-      "user": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
-      "favorites": [],
-      "cogsDimensionConstraints": [],
-      "catDimensionConstraints": [],
-      "translations": [],
-      "userGroupAccesses": [],
-      "userRoles": [
-        {
-          "id": "yrB6vc5Ip3r"
-        }
-      ],
-      "userAccesses": [],
-      "teiSearchOrganisationUnits": [],
-      "organisationUnits": [],
-      "dataViewOrganisationUnits": [],
-      "attributeValues": []
-    },
-    {
       "lastUpdated": "2020-12-17T12:52:43.521",
       "id": "PQD6wXJ2r5j",
       "created": "2019-04-23T09:35:15.027",
@@ -1216,12 +1167,12 @@
   ],
   "userRoles": [
     {
-      "code": "Superuser",
+      "code": "metadata Superuser",
       "created": "2020-12-17T12:50:43.290",
       "lastUpdated": "2020-12-17T12:50:43.290",
-      "name": "Superuser",
-      "id": "yrB6vc5Ip3r",
-      "description": "Superuser",
+      "name": "metadata Superuser",
+      "id": "yrB6vc5Ip7r",
+      "description": "metadata Superuser",
       "authorities": [
         "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "ALL",
@@ -1537,37 +1488,6 @@
       "translations": [],
       "sharing": {
         "public": "rw------",
-        "external": false,
-        "owner": "M5zQapPyTZI",
-        "users": {},
-        "userGroups": {}
-      }
-    },
-    {
-      "code": "TA Superuser",
-      "created": "2019-04-17T09:51:30.952",
-      "lastUpdated": "2020-12-17T12:51:38.050",
-      "name": "TA Superuser",
-      "id": "yrB6vc5Ip7r",
-      "description": "TA Superuser",
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
-      "user": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
-      "authorities": [
-        "ALL"
-      ],
-      "translations": [],
-      "sharing": {
-        "public": "--------",
         "external": false,
         "owner": "M5zQapPyTZI",
         "users": {},

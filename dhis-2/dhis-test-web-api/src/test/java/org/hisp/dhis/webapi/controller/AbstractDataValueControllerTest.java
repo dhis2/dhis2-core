@@ -27,20 +27,20 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.hisp.dhis.web.WebClientUtils.substitutePlaceholders;
+import static org.hisp.dhis.test.web.WebClient.Body;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClientUtils.substitutePlaceholders;
 
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 
-abstract class AbstractDataValueControllerTest extends DhisControllerConvenienceTest {
+abstract class AbstractDataValueControllerTest extends H2ControllerIntegrationTestBase {
   protected String dataElementId;
 
   protected String orgUnitId;
@@ -75,11 +75,11 @@ abstract class AbstractDataValueControllerTest extends DhisControllerConvenience
 
     // Add the newly created org unit to the superuser's hierarchy
     OrganisationUnit unit = manager.get(OrganisationUnit.class, orgUnitId);
-    User user = userService.getUser(getSuperUser().getUid());
+    User user = userService.getUser(getAdminUser().getUid());
     user.addOrganisationUnit(unit);
     userService.updateUser(user);
 
-    switchToSuperuser();
+    switchToAdminUser();
   }
 
   /**

@@ -28,6 +28,7 @@
 package org.hisp.dhis.common.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.query.JpaQueryUtils.generateHqlQueryForSharingCheck;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,20 +46,15 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
-import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
-import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
-import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
-import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
@@ -69,6 +65,7 @@ import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.access.AccessDeniedException;
 
 /**
  * @author bobj
@@ -120,9 +117,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Override
   public void save(@Nonnull T object, boolean clearSharing) {
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    if (currentUserDetails == null) {
-      throw new IllegalArgumentException("Current user is not set, can not save object!");
-    }
     save(object, currentUserDetails, clearSharing);
   }
 
@@ -160,7 +154,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
       if (!checkPublicAccess(userDetails, object)) {
         AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_CREATE_DENIED);
-        throw new CreateAccessDeniedException(object.toString());
+        throw new AccessDeniedException(object.toString());
       }
     }
 
@@ -171,9 +165,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Override
   public void update(@Nonnull T object) {
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    if (currentUserDetails == null) {
-      throw new IllegalArgumentException("Current user is not set, can not update object");
-    }
     update(object, currentUserDetails);
   }
 
@@ -192,7 +183,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     if (!isUpdateAllowed(object, userDetails)) {
       AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_UPDATE_DENIED);
-      throw new UpdateAccessDeniedException(String.valueOf(object));
+      throw new AccessDeniedException(String.valueOf(object));
     }
 
     AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_UPDATE);
@@ -223,11 +214,11 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Override
   public void delete(@Nonnull T object) {
     UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
-    String username = userDetails != null ? userDetails.getUsername() : "system-process";
+    String username = userDetails.getUsername();
 
     if (!isDeleteAllowed(object, userDetails)) {
       AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_DELETE_DENIED);
-      throw new DeleteAccessDeniedException(object.toString());
+      throw new AccessDeniedException(object.toString());
     }
 
     AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_DELETE);
@@ -243,7 +234,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     if (object != null && isReadNotAllowed(object, currentUserDetails)) {
       AuditLogUtil.infoWrapper(
           log, CurrentUserUtil.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED);
-      throw new ReadAccessDeniedException(object.toString());
+      throw new AccessDeniedException(object.toString());
     }
 
     return postProcessObject(object);
@@ -366,7 +357,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     if (isReadNotAllowed(object, currentUser)) {
       AuditLogUtil.infoWrapper(
           log, CurrentUserUtil.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED);
-      throw new ReadAccessDeniedException(String.valueOf(object));
+      throw new AccessDeniedException(String.valueOf(object));
     }
 
     return object;
@@ -403,55 +394,26 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
   @Override
   @CheckForNull
-  public T getByUniqueAttributeValue(@Nonnull Attribute attribute, @Nonnull String value) {
-    if (StringUtils.isEmpty(value) || !attribute.isUnique()) {
-      return null;
-    }
-
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    JpaQueryParameters<T> param =
-        new JpaQueryParameters<T>()
-            .addPredicates(getSharingPredicates(builder))
-            .addPredicate(
-                root ->
-                    builder.equal(
-                        builder.function(
-                            FUNCTION_JSONB_EXTRACT_PATH_TEXT,
-                            String.class,
-                            root.get("attributeValues"),
-                            builder.literal(attribute.getUid()),
-                            builder.literal("value")),
-                        value));
-
-    return getSingleResult(builder, param);
+  public T getByUniqueAttributeValue(@Nonnull UID attribute, @Nonnull String value) {
+    return getByUniqueAttributeValue(attribute, value, CurrentUserUtil.getCurrentUserDetails());
   }
 
   @Override
   @CheckForNull
   public T getByUniqueAttributeValue(
-      @Nonnull Attribute attribute, @Nonnull String value, @CheckForNull UserDetails user) {
-    if (StringUtils.isEmpty(value) || !attribute.isUnique()) {
-      return null;
-    }
-
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    JpaQueryParameters<T> param =
-        new JpaQueryParameters<T>()
-            .addPredicates(getSharingPredicates(builder, user))
-            .addPredicate(
-                root ->
-                    builder.equal(
-                        builder.function(
-                            FUNCTION_JSONB_EXTRACT_PATH_TEXT,
-                            String.class,
-                            root.get("attributeValues"),
-                            builder.literal(attribute.getUid()),
-                            builder.literal("value")),
-                        value));
-
-    return getSingleResult(builder, param);
+      @Nonnull UID attribute, @Nonnull String value, @Nonnull UserDetails user) {
+    String sharingClause =
+        !sharingEnabled(user) ? "1=1" : generateHqlQueryForSharingCheck("t", user, "r%");
+    // language=hql
+    String hql =
+        """
+        from %s t where jsonb_extract_path_text(t.attributeValues, '%s', 'value') = :value
+          and exists(select 1 from Attribute a where a.uid = :attr and a.unique = true)
+          and %s
+        """
+            .formatted(getClazz().getSimpleName(), attribute.getValue(), sharingClause);
+    return getSingleResult(
+        getQuery(hql).setParameter("attr", attribute.getValue()).setParameter("value", value));
   }
 
   @Nonnull
@@ -853,8 +815,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     JpaQueryParameters<T> parameters =
         new JpaQueryParameters<T>().addPredicates(dataSharingPredicates);
 
-    List<T> list = getList(builder, parameters);
-    return list;
+    return getList(builder, parameters);
   }
 
   /** Remove given UserGroup UID from all sharing records in given tableName */

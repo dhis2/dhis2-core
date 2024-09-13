@@ -77,7 +77,9 @@ class DimensionMapperServiceTest {
 
     List<DimensionResponse> dimensionResponse =
         dimensionMapperService.toDimensionResponse(
-            mockDimensions(DimType.PROGRAM_ATTRIBUTE), TeiAnalyticsPrefixStrategy.INSTANCE, true);
+            mockDimensions(DimType.PROGRAM_ATTRIBUTE),
+            TrackedEntityAnalyticsPrefixStrategy.INSTANCE,
+            true);
 
     assertEquals(4, dimensionResponse.size());
 
@@ -104,7 +106,9 @@ class DimensionMapperServiceTest {
 
     List<DimensionResponse> dimensionResponse =
         dimensionMapperService.toDimensionResponse(
-            mockDimensions(DimType.DATA_ELEMENT), TeiAnalyticsPrefixStrategy.INSTANCE, true);
+            mockDimensions(DimType.DATA_ELEMENT),
+            TrackedEntityAnalyticsPrefixStrategy.INSTANCE,
+            true);
 
     assertEquals(5, dimensionResponse.size());
 

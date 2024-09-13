@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics.common.processing;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.hisp.dhis.analytics.tei.query.TeiFields.getGridHeaders;
+import static org.hisp.dhis.analytics.trackedentity.query.TrackedEntityFields.getGridHeaders;
 import static org.hisp.dhis.feedback.ErrorCode.E7230;
 
 import java.util.ArrayList;
@@ -37,8 +37,8 @@ import java.util.Set;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.query.Field;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
-import org.hisp.dhis.analytics.tei.TeiRequestParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -63,7 +63,7 @@ public class HeaderParamsHandler {
    */
   public void handle(
       Grid grid,
-      ContextParams<TeiRequestParams, TeiQueryParams> contextParams,
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams,
       List<Field> fields) {
     CommonRequestParams requestParams = contextParams.getCommonRaw();
 

@@ -38,7 +38,7 @@ import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT;
 import static org.hisp.dhis.period.RelativePeriodEnum.LAST_12_MONTHS;
-import static org.hisp.dhis.utils.Assertions.assertMapEquals;
+import static org.hisp.dhis.test.utils.Assertions.assertMapEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -54,7 +54,6 @@ import java.util.Set;
 import org.apache.commons.lang3.SerializationUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -91,17 +90,20 @@ import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.visualization.Visualization;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class DimensionServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class DimensionServiceTest extends PostgresIntegrationTestBase {
   private Attribute atA;
 
   private DataElement deA;
@@ -216,8 +218,8 @@ class DimensionServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private DimensionService dimensionService;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     atA = createAttribute('A');
     atA.setUnique(true);
     atA.setDataElementAttribute(true);
@@ -293,10 +295,10 @@ class DimensionServiceTest extends TransactionalIntegrationTest {
     ouGroupSetA.getOrganisationUnitGroups().add(ouGroupB);
     ouGroupSetA.getOrganisationUnitGroups().add(ouGroupC);
     organisationUnitGroupService.updateOrganisationUnitGroupSet(ouGroupSetA);
-    attributeService.addAttributeValue(deA, new AttributeValue(atA, "DEA"));
-    attributeService.addAttributeValue(deB, new AttributeValue(atA, "DEB"));
-    attributeService.addAttributeValue(deC, new AttributeValue(atA, "DEC"));
-    attributeService.addAttributeValue(dsA, new AttributeValue(atA, "DSA"));
+    attributeService.addAttributeValue(deA, atA.getUid(), "DEA");
+    attributeService.addAttributeValue(deB, atA.getUid(), "DEB");
+    attributeService.addAttributeValue(deC, atA.getUid(), "DEC");
+    attributeService.addAttributeValue(dsA, atA.getUid(), "DSA");
     queryModsA = QueryModifiers.builder().periodOffset(10).build();
     queryModsB = QueryModifiers.builder().minDate(new Date()).build();
     queryModsC = QueryModifiers.builder().maxDate(new Date()).build();

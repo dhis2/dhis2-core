@@ -33,7 +33,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
@@ -45,7 +44,9 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.Value;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.PropertyNames;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -58,6 +59,7 @@ import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
 import org.hisp.dhis.gist.GistService;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -66,7 +68,6 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.webapi.CsvBuilder;
 import org.hisp.dhis.webapi.JsonBuilder;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.openapi.Api.PropertyNames;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -80,9 +81,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
  *
  * @author Jan Bernitt
  */
+@Maturity.Stable
 @OpenApi.EntityType(OpenApi.EntityType.class)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@OpenApi.Document(group = OpenApi.Document.Group.QUERY)
+@OpenApi.Document(group = OpenApi.Document.GROUP_QUERY)
 public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject> {
   @Autowired protected ObjectMapper jsonMapper;
 
@@ -94,7 +96,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
   // GET Gist
   // --------------------------------------------------------------------------
 
-  @OpenApi.Response(value = ObjectNode.class)
+  @OpenApi.Response(value = OpenApi.EntityType.class)
   @GetMapping(value = "/{uid}/gist", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody ResponseEntity<JsonNode> getObjectGist(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid, GistParams params)
@@ -128,11 +130,11 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
   private static class GistListResponse {
     @OpenApi.Property GistPager pager;
 
-    @OpenApi.Property(name = "path$")
+    @OpenApi.Property(name = "path$", value = OpenApi.EntityType[].class)
     ObjectNode[] entries = null;
   }
 
-  @OpenApi.Response({GistListResponse.class, ObjectNode[].class})
+  @OpenApi.Response({GistListResponse.class, OpenApi.EntityType[].class})
   @GetMapping(value = "/gist", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody ResponseEntity<JsonNode> getObjectListGist(
       GistParams params, HttpServletRequest request) throws BadRequestException {
@@ -153,7 +155,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
             .build());
   }
 
-  @OpenApi.Response({ObjectNode.class, ArrayNode.class})
+  @OpenApi.Response(JsonValue.class)
   @GetMapping(value = "/{uid}/{property}/gist", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody ResponseEntity<JsonNode> getObjectPropertyGist(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,

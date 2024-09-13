@@ -17,7 +17,7 @@
     <build.time>${maven.build.timestamp}</build.time>
     <mainClass>org.hisp.dhis.web.tomcat.Main</mainClass>
     <tomcat.version>9.0.90</tomcat.version>
-    <spring-boot-maven-plugin.version>3.3.1</spring-boot-maven-plugin.version>
+    <spring-boot-maven-plugin.version>3.3.3</spring-boot-maven-plugin.version>
     <env>default</env>
   </properties>
 
@@ -143,6 +143,11 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

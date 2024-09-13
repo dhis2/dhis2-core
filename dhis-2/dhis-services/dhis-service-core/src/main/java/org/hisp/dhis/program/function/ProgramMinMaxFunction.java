@@ -83,9 +83,9 @@ public abstract class ProgramMinMaxFunction extends ProgramExpressionItem {
         + eventTableName
         + " where "
         + eventTableName
-        + ".pi = "
+        + ".enrollment = "
         + AnalyticsConstants.ANALYTICS_TBL_ALIAS
-        + ".pi "
+        + ".enrollment "
         + (pi.getEndEventBoundary() != null
             ? ("and "
                 + sb.getBoundaryCondition(pi.getEndEventBoundary(), pi, startDate, endDate)

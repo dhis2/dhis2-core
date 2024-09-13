@@ -40,14 +40,15 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Chau Thu Tran
  */
-class ProgramStageDataElementServiceTest extends IntegrationTestBase {
+class ProgramStageDataElementServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramStageDataElementService programStageDataElementService;
 
@@ -73,8 +74,8 @@ class ProgramStageDataElementServiceTest extends IntegrationTestBase {
 
   private ProgramStageDataElement stageDataElementB;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     Program program = createProgram('A', new HashSet<>(), organisationUnit);

@@ -27,15 +27,14 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.attributeValue;
 import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.attributeValues;
 import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.setIdSchemeFields;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import java.util.Set;
+import java.util.Map;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.jupiter.api.Test;
 
@@ -56,8 +55,7 @@ class OrganisationUnitMapperTest {
     assertEquals("HpSAvRWtdDR", mapped.getUid());
     assertEquals("meet", mapped.getName());
     assertEquals("green", mapped.getCode());
-    assertContainsOnly(
-        Set.of(attributeValue("m0GpPuMUfFW", "purple")), mapped.getAttributeValues());
+    assertEquals(AttributeValues.of(Map.of("m0GpPuMUfFW", "purple")), mapped.getAttributeValues());
   }
 
   @Test

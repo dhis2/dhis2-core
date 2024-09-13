@@ -30,10 +30,10 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.common.CodeGenerator.generateUid;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.hisp.dhis.web.WebClientUtils.objectReference;
-import static org.hisp.dhis.web.WebClientUtils.objectReferences;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClientUtils.objectReference;
+import static org.hisp.dhis.test.web.WebClientUtils.objectReferences;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -44,9 +44,9 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
-import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegrityReport;
 import org.hisp.dhis.webapi.controller.DataIntegrityController;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 

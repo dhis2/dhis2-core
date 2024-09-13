@@ -35,7 +35,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -47,7 +46,6 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -60,21 +58,23 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar
  */
-class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTest {
+@Transactional
+class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase {
 
   private String dataElementUid = CodeGenerator.generateUid();
 
@@ -138,11 +138,7 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
 
   @Autowired private ProgramStageDataElementService programStageDataElementService;
 
-  @Autowired private TrackedEntityService trackedEntityService;
-
   @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
-
-  @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private ProgramNotificationTemplateStore programNotificationTemplateStore;
 
@@ -153,16 +149,14 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
   @Autowired
   private ProgramStageNotificationMessageRenderer programStageNotificationMessageRenderer;
 
-  @Autowired private CategoryService categoryService;
-
   @Autowired private IdentifiableObjectManager manager;
 
-  @Override
-  protected void setUpTest() throws Exception {
+  @BeforeEach
+  void setUp() {
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
     testDate1 = testDate1.minusDays(70);
-    Date incidentDate = testDate1.toDate();
+    Date occurredDate = testDate1.toDate();
     DateTime testDate2 = DateTime.now();
     testDate2.withTimeAtStartOfDay();
     Date enrollmentDate = testDate2.toDate();
@@ -208,18 +202,22 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
     programService.updateProgram(programA);
     trackedEntityA = createTrackedEntity(organisationUnitA);
     trackedEntityA.setUid(trackedEntityUid);
-    trackedEntityService.addTrackedEntity(trackedEntityA);
+    manager.save(trackedEntityA);
     trackedEntityAttributeValueA =
         new TrackedEntityAttributeValue(trackedEntityAttributeA, trackedEntityA, "attribute-test");
     trackedEntityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValueA);
     trackedEntityA.setTrackedEntityAttributeValues(Sets.newHashSet(trackedEntityAttributeValueA));
-    trackedEntityService.updateTrackedEntity(trackedEntityA);
+    manager.update(trackedEntityA);
+
     // Enrollment to be provided in message renderer
-    enrollmentA =
-        enrollmentService.enrollTrackedEntity(
-            trackedEntityA, programA, enrollmentDate, incidentDate, organisationUnitA);
+    enrollmentA = createEnrollment(programA, trackedEntityA, organisationUnitA);
+    enrollmentA.setEnrollmentDate(enrollmentDate);
+    enrollmentA.setOccurredDate(occurredDate);
     enrollmentA.setUid(enrollmentUid);
-    enrollmentService.updateEnrollment(enrollmentA);
+    manager.save(enrollmentA);
+    trackedEntityA.getEnrollments().add(enrollmentA);
+    manager.update(trackedEntityA);
+
     // Event to be provided in message renderer
     eventA = createEvent(programStageA, enrollmentA, organisationUnitA);
     eventA.setScheduledDate(enrollmentDate);
@@ -236,7 +234,7 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
     eventA.setEventDataValues(Sets.newHashSet(eventDataValueA, eventDataValueB));
     manager.save(eventA);
     enrollmentA.getEvents().add(eventA);
-    enrollmentService.updateEnrollment(enrollmentA);
+    manager.save(enrollmentA);
     programNotificationTemplate = new ProgramNotificationTemplate();
     programNotificationTemplate.setName("Test-PNT");
     programNotificationTemplate.setMessageTemplate("message_template");

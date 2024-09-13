@@ -27,18 +27,20 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertNoErrors;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
@@ -243,7 +245,6 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(dataValue()))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1303);
@@ -285,7 +286,7 @@ class DataValuesValidatorTest {
 
   @ParameterizedTest
   @MethodSource("transactionsNotCreatingDataValues")
-  void shouldPassValidationWhenAMandatoryDataElementIsMissingAndDataValuesAreNotCreated(
+  void shouldPassValidationWhenAMandatoryDataElementIsMissingAndDataValueIsAlreadyPresentInDB(
       EventStatus savedStatus, EventStatus newStatus) {
     DataElement dataElement = dataElement();
     String eventUid = CodeGenerator.generateUid();
@@ -307,7 +308,8 @@ class DataValuesValidatorTest {
     programStage.setProgramStageDataElements(
         Set.of(mandatoryStageElement1, mandatoryStageElement2));
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
-    when(preheat.getEvent(eventUid)).thenReturn(event(eventUid, savedStatus));
+    when(preheat.getEvent(eventUid))
+        .thenReturn(event(eventUid, savedStatus, Set.of("MANDATORY_DE", dataElementUid)));
 
     Event event =
         Event.builder()
@@ -317,7 +319,6 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(dataValue()))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
     validator.validate(reporter, bundle, event);
 
     assertNoErrors(reporter);
@@ -357,7 +358,6 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(dataValue()))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1303);
@@ -392,7 +392,6 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(dataValue))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
@@ -515,7 +514,6 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
@@ -541,7 +539,6 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1076);
@@ -568,7 +565,6 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1076);
@@ -597,7 +593,6 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1076);
@@ -624,7 +619,6 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1076);
@@ -676,7 +670,6 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1076);
@@ -776,7 +769,6 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
@@ -1094,6 +1086,18 @@ class DataValuesValidatorTest {
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1302);
+  }
+
+  private org.hisp.dhis.program.Event event(
+      String uid, EventStatus status, Set<String> dataElements) {
+    org.hisp.dhis.program.Event event = new org.hisp.dhis.program.Event();
+    event.setUid(uid);
+    event.setStatus(status);
+    event.setEventDataValues(
+        dataElements.stream()
+            .map(de -> new EventDataValue(de, "value"))
+            .collect(Collectors.toSet()));
+    return event;
   }
 
   private org.hisp.dhis.program.Event event(String uid, EventStatus status) {

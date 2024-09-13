@@ -27,32 +27,56 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.supplier.strategy;
 
+import com.google.common.collect.Lists;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
-import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
+import java.util.Set;
+import javax.persistence.EntityManager;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.note.Note;
-import org.hisp.dhis.note.NoteStore;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.NoteMapper;
-import org.hisp.dhis.tracker.imports.preheat.supplier.DetachUtils;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
-@RequiredArgsConstructor
 @Component
 @StrategyFor(value = Note.class, mapper = NoteMapper.class)
-public class NoteStrategy implements ClassBasedSupplierStrategy {
-  @Nonnull private final NoteStore noteStore;
+public class NoteStrategy extends HibernateGenericStore<Note>
+    implements ClassBasedSupplierStrategy {
+
+  public NoteStrategy(
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, Note.class, false);
+  }
 
   @Override
   public void add(List<List<String>> splitList, TrackerPreheat preheat) {
-    splitList.forEach(
-        ids ->
-            preheat.putNotes(
-                DetachUtils.detach(
-                    this.getClass().getAnnotation(StrategyFor.class).mapper(),
-                    noteStore.getByUid(ids))));
+    List<String> uids =
+        splitList.stream().flatMap(Collection::stream).filter(CodeGenerator::isValidUid).toList();
+
+    preheat.addNotes(getExistingNotes(uids));
+  }
+
+  private Set<String> getExistingNotes(List<String> uids) {
+    Set<String> notes = new HashSet<>();
+    List<List<String>> uidsPartitions = Lists.partition(uids, 20000);
+
+    for (List<String> uidsPartition : uidsPartitions) {
+      if (!uidsPartition.isEmpty()) {
+        notes.addAll(
+            getSession()
+                .createQuery("select n.uid from Note as n where n.uid in (:uids)", String.class)
+                .setParameter("uids", uidsPartition)
+                .list());
+      }
+    }
+
+    return notes;
   }
 }

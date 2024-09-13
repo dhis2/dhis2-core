@@ -64,8 +64,6 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
-import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler;
@@ -159,11 +157,10 @@ class TrackedEntitiesExportController {
       // use the text/html Accept header to default to a Json response when a generic request comes
       // from a browser
       )
-  ResponseEntity<Page<ObjectNode>> getTrackedEntities(
-      TrackedEntityRequestParams requestParams, @CurrentUser User currentUser)
+  ResponseEntity<Page<ObjectNode>> getTrackedEntities(TrackedEntityRequestParams requestParams)
       throws BadRequestException, ForbiddenException, NotFoundException {
     validatePaginationParameters(requestParams);
-    TrackedEntityOperationParams operationParams = paramsMapper.map(requestParams, currentUser);
+    TrackedEntityOperationParams operationParams = paramsMapper.map(requestParams);
 
     if (requestParams.isPaged()) {
       PageParams pageParams =
@@ -198,11 +195,10 @@ class TrackedEntitiesExportController {
   void getTrackedEntitiesAsCsv(
       TrackedEntityRequestParams trackedEntityRequestParams,
       HttpServletResponse response,
-      @CurrentUser User user,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
       throws IOException, BadRequestException, ForbiddenException, NotFoundException {
     TrackedEntityOperationParams operationParams =
-        paramsMapper.map(trackedEntityRequestParams, user, CSV_FIELDS);
+        paramsMapper.map(trackedEntityRequestParams, CSV_FIELDS);
 
     ResponseHeader.addContentDispositionAttachment(response, TE_CSV_FILE);
     ResponseHeader.addContentTransferEncodingBinary(response);
@@ -219,11 +215,10 @@ class TrackedEntitiesExportController {
   void getTrackedEntitiesAsCsvZip(
       TrackedEntityRequestParams trackedEntityRequestParams,
       HttpServletResponse response,
-      @CurrentUser User user,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
       throws IOException, BadRequestException, ForbiddenException, NotFoundException {
     TrackedEntityOperationParams operationParams =
-        paramsMapper.map(trackedEntityRequestParams, user, CSV_FIELDS);
+        paramsMapper.map(trackedEntityRequestParams, CSV_FIELDS);
 
     ResponseHeader.addContentDispositionAttachment(response, TE_CSV_FILE + ZIP_EXT);
     ResponseHeader.addContentTransferEncodingBinary(response);
@@ -241,11 +236,10 @@ class TrackedEntitiesExportController {
   void getTrackedEntitiesAsCsvGZip(
       TrackedEntityRequestParams trackedEntityRequestParams,
       HttpServletResponse response,
-      @CurrentUser User user,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
       throws IOException, BadRequestException, ForbiddenException, NotFoundException {
     TrackedEntityOperationParams operationParams =
-        paramsMapper.map(trackedEntityRequestParams, user, CSV_FIELDS);
+        paramsMapper.map(trackedEntityRequestParams, CSV_FIELDS);
 
     ResponseHeader.addContentDispositionAttachment(response, TE_CSV_FILE + GZIP_EXT);
     ResponseHeader.addContentTransferEncodingBinary(response);
@@ -338,7 +332,7 @@ class TrackedEntitiesExportController {
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
       ChangeLogRequestParams requestParams,
       HttpServletRequest request)
-      throws NotFoundException, BadRequestException {
+      throws NotFoundException, BadRequestException, ForbiddenException {
 
     TrackedEntityChangeLogOperationParams operationParams =
         ChangeLogRequestParamsMapper.map(

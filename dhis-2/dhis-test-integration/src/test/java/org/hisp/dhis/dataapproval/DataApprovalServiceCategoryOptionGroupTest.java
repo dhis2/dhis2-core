@@ -27,13 +27,12 @@
  */
 package org.hisp.dhis.dataapproval;
 
-import static com.google.common.collect.Sets.newHashSet;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_ACCEPT_LOWER_LEVELS;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE_LOWER_LEVELS;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_VIEW_UNAPPROVED_DATA;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -44,6 +43,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -64,20 +64,20 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Jim Grace
  */
-class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase {
+class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTestBase {
   private static final String ACCESS_NONE = "--------";
 
   private static final String ACCESS_READ = "r-------";
@@ -96,11 +96,7 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase {
 
   @Autowired private SystemSettingManager systemSettingManager;
 
-  @Autowired protected UserGroupAccessService userGroupAccessService;
-
   @Autowired protected UserGroupService userGroupService;
-
-  @Autowired protected UserService _userService;
 
   @Autowired protected DataSetService dataSetService;
 
@@ -183,7 +179,7 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase {
 
   private CategoryOption worldwide;
 
-  private org.hisp.dhis.category.Category mechanismCategory;
+  private Category mechanismCategory;
 
   private CategoryCombo mechanismCategoryCombo;
 
@@ -235,10 +231,6 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase {
 
   private DataSet dataSetB;
 
-  // -------------------------------------------------------------------------
-  // Set up/tear down helper methods
-  // -------------------------------------------------------------------------
-
   private UserGroup getUserGroup(String userGroupName, Set<User> users) {
     UserGroup userGroup = new UserGroup();
     userGroup.setAutoFields();
@@ -273,13 +265,8 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase {
     user.getCatDimensionConstraints().add(mechanismCategory);
   }
 
-  // -------------------------------------------------------------------------
-  // Set up/tear down
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() throws Exception {
-    userService = _userService;
-
+  @BeforeEach
+  void setUp() {
     // ---------------------------------------------------------------------
     // Add supporting data
     // ---------------------------------------------------------------------
@@ -607,12 +594,12 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase {
         new DataApprovalWorkflow(
             "workflow1",
             periodType,
-            newHashSet(globalLevel1, countryLevel3, agencyLevel4, partnerLevel5));
+            Sets.newHashSet(globalLevel1, countryLevel3, agencyLevel4, partnerLevel5));
     workflow2 =
         new DataApprovalWorkflow(
             "workflow2",
             periodType,
-            newHashSet(globalLevel1, globalAgencyLevel2, agencyLevel4, partnerLevel5));
+            Sets.newHashSet(globalLevel1, globalAgencyLevel2, agencyLevel4, partnerLevel5));
     dataApprovalService.addWorkflow(workflow1);
     dataApprovalService.addWorkflow(workflow2);
 
@@ -641,16 +628,12 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase {
     systemSettingManager.saveSystemSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, true);
   }
 
-  @Override
-  public void tearDownTest() {
+  @AfterEach
+  void tearDown() {
     systemSettingManager.saveSystemSetting(SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD, -1);
     systemSettingManager.saveSystemSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, false);
     DataApprovalPermissionsEvaluator.invalidateCache();
   }
-
-  // -------------------------------------------------------------------------
-  // Test helper methods
-  // -------------------------------------------------------------------------
 
   private void setUser(User user) {
     injectSecurityContextUser(user);
@@ -846,10 +829,6 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase {
   private static void eq(Object expected, Object actual) {
     assertEquals(expected, actual);
   }
-
-  // -------------------------------------------------------------------------
-  // Tests
-  // -------------------------------------------------------------------------
 
   @Test
   void testGetUserDataApprovalLevels() {

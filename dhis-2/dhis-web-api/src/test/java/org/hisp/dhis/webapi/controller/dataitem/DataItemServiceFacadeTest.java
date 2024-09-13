@@ -57,6 +57,7 @@ import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -88,6 +89,7 @@ class DataItemServiceFacadeTest {
 
   @BeforeEach
   public void setUp() {
+    injectSecurityContext(new SystemUser());
     dataItemServiceFacade = new DataItemServiceFacade(userService, queryExecutor);
   }
 

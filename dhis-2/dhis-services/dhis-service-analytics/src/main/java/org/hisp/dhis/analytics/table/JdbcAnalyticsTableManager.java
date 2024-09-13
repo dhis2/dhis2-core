@@ -793,7 +793,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         // Table "t2" is the complement of the t1 table. It contains all values belong to the
         // specific median (see t1).
         // To "group by" criteria is added the time dimension (periodid). This part of the query has
-        // to be verified (maybe add TEI to aggregation criteria).
+        // to be verified (maybe add TE to aggregation criteria).
         + "(select dv1.dataelementid as dataelementid, "
         + "dv1.sourceid as sourceid, "
         + "dv1.categoryoptioncomboid  as categoryoptioncomboid, "

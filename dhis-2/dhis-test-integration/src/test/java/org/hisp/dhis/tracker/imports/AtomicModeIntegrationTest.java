@@ -32,28 +32,25 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class AtomicModeIntegrationTest extends TrackerTest {
   @Autowired private TrackerImportService trackerImportService;
 
-  @Autowired private TrackedEntityService trackedEntityService;
-
-  @Autowired protected UserService _userService;
-
-  @Override
-  public void initTest() throws IOException {
-    this.userService = _userService;
-
+  @BeforeAll
+  void setUp() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
-    injectAdminUser();
+
+    User importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
   }
 
   @Test
@@ -67,8 +64,8 @@ class AtomicModeIntegrationTest extends TrackerTest {
     assertNotNull(trackerImportTeReport);
     assertEquals(Status.OK, trackerImportTeReport.getStatus());
     assertEquals(1, trackerImportTeReport.getValidationReport().getErrors().size());
-    assertNotNull(trackedEntityService.getTrackedEntity("VALIDTEAAAA"));
-    assertNull(trackedEntityService.getTrackedEntity("INVALIDTEAA"));
+    assertNotNull(manager.get(TrackedEntity.class, "VALIDTEAAAA"));
+    assertNull(manager.get(TrackedEntity.class, "INVALIDTEAA"));
   }
 
   @Test
@@ -80,7 +77,7 @@ class AtomicModeIntegrationTest extends TrackerTest {
     assertNotNull(trackerImportTeReport);
     assertEquals(Status.ERROR, trackerImportTeReport.getStatus());
     assertEquals(1, trackerImportTeReport.getValidationReport().getErrors().size());
-    assertNull(trackedEntityService.getTrackedEntity("VALIDTEAAAA"));
-    assertNull(trackedEntityService.getTrackedEntity("INVALIDTEAA"));
+    assertNull(manager.get(TrackedEntity.class, "VALIDTEAAAA"));
+    assertNull(manager.get(TrackedEntity.class, "INVALIDTEAA"));
   }
 }

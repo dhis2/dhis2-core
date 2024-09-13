@@ -30,17 +30,18 @@ package org.hisp.dhis.webapi.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author david mackessy
  */
-class CurrentUserUtilTest extends DhisControllerConvenienceTest {
+class CurrentUserUtilTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testCurrentUserDetailsIsSuper() {
@@ -58,5 +59,21 @@ class CurrentUserUtilTest extends DhisControllerConvenienceTest {
     assertNotNull(basicUser);
     assertEquals("basicUser", basicUser.getUsername());
     assertFalse(basicUser.isSuper());
+  }
+
+  @Test
+  void testCurrentUserDetailsThrowsException() {
+    clearSecurityContext();
+    RuntimeException exception =
+        assertThrows(RuntimeException.class, () -> CurrentUserUtil.getCurrentUserDetails());
+    assertEquals("No authenticated user found", exception.getMessage());
+  }
+
+  @Test
+  void testCurrentUsernameThrowsException() {
+    clearSecurityContext();
+    RuntimeException exception =
+        assertThrows(RuntimeException.class, () -> CurrentUserUtil.getCurrentUsername());
+    assertEquals("No authenticated user found", exception.getMessage());
   }
 }

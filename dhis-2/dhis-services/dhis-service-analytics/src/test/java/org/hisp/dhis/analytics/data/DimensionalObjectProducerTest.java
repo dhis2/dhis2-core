@@ -30,13 +30,6 @@ package org.hisp.dhis.analytics.data;
 import static java.util.Arrays.asList;
 import static java.util.Collections.sort;
 import static org.apache.commons.lang3.StringUtils.substringAfter;
-import static org.hisp.dhis.DhisConvenienceTest.createCategory;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
-import static org.hisp.dhis.DhisConvenienceTest.createIndicator;
-import static org.hisp.dhis.DhisConvenienceTest.createIndicatorType;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnitGroup;
-import static org.hisp.dhis.DhisConvenienceTest.injectSecurityContext;
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_APRIL;
 import static org.hisp.dhis.analytics.DataQueryParams.DYNAMIC_DIM_CLASSES;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
@@ -51,6 +44,13 @@ import static org.hisp.dhis.feedback.ErrorCode.E7124;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_DATASET;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_PROGRAM;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_FINANCIAL_YEAR_START;
+import static org.hisp.dhis.test.TestBase.createCategory;
+import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createIndicator;
+import static org.hisp.dhis.test.TestBase.createIndicatorType;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnitGroup;
+import static org.hisp.dhis.test.TestBase.injectSecurityContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -470,6 +470,8 @@ class DimensionalObjectProducerTest {
 
   @Test
   void testDynamicFrom() {
+    injectSecurityContext(new SystemUser());
+
     String categoryUid = "L6BswcbPGqs";
     String categoryName = "Category-A";
     Category category = createCategory(categoryName, categoryUid);

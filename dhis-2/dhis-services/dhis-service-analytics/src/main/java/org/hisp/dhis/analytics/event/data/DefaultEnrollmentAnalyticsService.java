@@ -44,7 +44,7 @@ import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_NAME;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
 import static org.hisp.dhis.analytics.common.ColumnHeader.STORED_BY;
-import static org.hisp.dhis.analytics.common.ColumnHeader.TEI;
+import static org.hisp.dhis.analytics.common.ColumnHeader.TRACKED_ENTITY;
 import static org.hisp.dhis.analytics.event.LabelMapper.getEnrollmentDateLabel;
 import static org.hisp.dhis.analytics.event.LabelMapper.getEnrollmentLabel;
 import static org.hisp.dhis.analytics.event.LabelMapper.getIncidentDateLabel;
@@ -123,7 +123,8 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
                 TEXT,
                 false,
                 true))
-        .addHeader(new GridHeader(TEI.getItem(), TEI.getName(), TEXT, false, true))
+        .addHeader(
+            new GridHeader(TRACKED_ENTITY.getItem(), TRACKED_ENTITY.getName(), TEXT, false, true))
         .addHeader(
             new GridHeader(
                 ENROLLMENT_DATE.getItem(),

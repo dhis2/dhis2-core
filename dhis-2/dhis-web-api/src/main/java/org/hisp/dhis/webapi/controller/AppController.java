@@ -59,7 +59,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -153,21 +153,23 @@ public class AppController {
     return ResponseEntity.ok(apps);
   }
 
-  @PostMapping
+  @PostMapping(produces = ContextUtils.CONTENT_TYPE_JSON)
   @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void installApp(@RequestParam("file") MultipartFile file)
+  public ResponseEntity<App> installApp(@RequestParam("file") MultipartFile file)
       throws IOException, WebMessageException {
     File tempFile = File.createTempFile("IMPORT_", "_ZIP");
     file.transferTo(tempFile);
 
-    AppStatus status = appManager.installApp(tempFile, file.getOriginalFilename());
+    App installedApp = appManager.installApp(tempFile, file.getOriginalFilename());
+    AppStatus appStatus = installedApp.getAppState();
 
-    if (!status.ok()) {
-      String message = i18nManager.getI18n().getString(status.getMessage());
+    if (!appStatus.ok()) {
+      String message = i18nManager.getI18n().getString(installedApp.getAppState().getMessage());
 
       throw new WebMessageException(conflict(message));
     }
+
+    return new ResponseEntity<>(installedApp, HttpStatus.CREATED);
   }
 
   @PutMapping
@@ -180,7 +182,7 @@ public class AppController {
   @GetMapping("/{app}/**")
   public void renderApp(
       @PathVariable("app") String app, HttpServletRequest request, HttpServletResponse response)
-      throws IOException, WebMessageException {
+      throws IOException, WebMessageException, ForbiddenException {
     String contextPath = HttpServletRequestPaths.getContextPath(request);
     App application = appManager.getApp(app, contextPath);
 
@@ -201,7 +203,7 @@ public class AppController {
     }
 
     if (!appManager.isAccessible(application)) {
-      throw new ReadAccessDeniedException("You don't have access to application " + app + ".");
+      throw new ForbiddenException("You don't have access to application " + app + ".");
     }
 
     if (application.getAppState() == AppStatus.DELETION_IN_PROGRESS) {

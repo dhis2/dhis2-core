@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.hisp.dhis.analytics.TimeField.INCIDENT_DATE;
 import static org.hisp.dhis.analytics.TimeField.LAST_UPDATED;
+import static org.hisp.dhis.analytics.TimeField.OCCURRED_DATE;
 import static org.hisp.dhis.analytics.TimeField.SCHEDULED_DATE;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -40,7 +40,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
@@ -50,6 +49,7 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.test.TestBase;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,7 +57,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Dusan Bernat
  */
-class TimeFieldSqlRendererTest extends DhisConvenienceTest {
+class TimeFieldSqlRendererTest extends TestBase {
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   private final TimeFieldSqlRenderer eventTimeFieldSqlRenderer =
@@ -158,7 +158,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(peA, peB, peC)))
-            .withTimeField(INCIDENT_DATE.getField())
+            .withTimeField(OCCURRED_DATE.getEnrollmentColumnName())
             .build();
 
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
@@ -183,7 +183,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
         new EventQueryParams.Builder()
             .addDimension(
                 new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(march, september)))
-            .withTimeField(SCHEDULED_DATE.getField())
+            .withTimeField(SCHEDULED_DATE.getEnrollmentColumnName())
             .withStartEndDatesForPeriods()
             .build();
 

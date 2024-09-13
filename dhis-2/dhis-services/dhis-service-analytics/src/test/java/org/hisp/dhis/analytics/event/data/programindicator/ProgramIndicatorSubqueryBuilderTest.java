@@ -29,11 +29,11 @@ package org.hisp.dhis.analytics.event.data.programindicator;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.DhisConvenienceTest.createProgram;
-import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
-import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
+import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.createProgramIndicator;
+import static org.hisp.dhis.test.TestBase.getDate;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
@@ -41,9 +41,9 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.test.random.BeanRandomizer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -85,7 +85,7 @@ class ProgramIndicatorSubqueryBuilderTest {
 
     when(programIndicatorService.getAnalyticsSql(
             DUMMY_EXPRESSION, NUMERIC, pi, startDate, endDate, "subax"))
-        .thenReturn("distinct psi");
+        .thenReturn("distinct event");
 
     String sql =
         subject.getAggregateClauseForProgramIndicator(
@@ -94,9 +94,9 @@ class ProgramIndicatorSubqueryBuilderTest {
     assertThat(
         sql,
         is(
-            "(SELECT avg (distinct psi) FROM analytics_event_"
+            "(SELECT avg (distinct event) FROM analytics_event_"
                 + program.getUid().toLowerCase()
-                + " as subax WHERE pi = ax.pi)"));
+                + " as subax WHERE enrollment = ax.enrollment)"));
   }
 
   /** Verifies that the join after WHERE is changing when outer join is type EVENT. */
@@ -107,7 +107,7 @@ class ProgramIndicatorSubqueryBuilderTest {
 
     when(programIndicatorService.getAnalyticsSql(
             DUMMY_EXPRESSION, NUMERIC, pi, startDate, endDate, "subax"))
-        .thenReturn("distinct psi");
+        .thenReturn("distinct event");
 
     String sql =
         subject.getAggregateClauseForProgramIndicator(pi, AnalyticsType.EVENT, startDate, endDate);
@@ -115,9 +115,9 @@ class ProgramIndicatorSubqueryBuilderTest {
     assertThat(
         sql,
         is(
-            "(SELECT avg (distinct psi) FROM analytics_event_"
+            "(SELECT avg (distinct event) FROM analytics_event_"
                 + program.getUid().toLowerCase()
-                + " as subax WHERE psi = ax.psi)"));
+                + " as subax WHERE event = ax.event)"));
   }
 
   @Test
@@ -126,7 +126,7 @@ class ProgramIndicatorSubqueryBuilderTest {
 
     when(programIndicatorService.getAnalyticsSql(
             DUMMY_EXPRESSION, NUMERIC, pi, startDate, endDate, "subax"))
-        .thenReturn("distinct psi");
+        .thenReturn("distinct event");
 
     String sql =
         subject.getAggregateClauseForProgramIndicator(
@@ -135,16 +135,16 @@ class ProgramIndicatorSubqueryBuilderTest {
     assertThat(
         sql,
         is(
-            "(SELECT avg (distinct psi) FROM analytics_event_"
+            "(SELECT avg (distinct event) FROM analytics_event_"
                 + program.getUid().toLowerCase()
-                + " as subax WHERE pi = ax.pi)"));
+                + " as subax WHERE enrollment = ax.enrollment)"));
   }
 
   @Test
   void verifyJoinWhenRelationshipTypeIsPresent() {
     ProgramIndicator pi = createProgramIndicator('A', program, DUMMY_EXPRESSION, "");
 
-    // Create a TEI to TEI relationship
+    // Create a TE to TE relationship
     RelationshipType relationshipType = rnd.nextObject(RelationshipType.class);
     relationshipType
         .getFromConstraint()
@@ -155,7 +155,7 @@ class ProgramIndicatorSubqueryBuilderTest {
 
     when(programIndicatorService.getAnalyticsSql(
             DUMMY_EXPRESSION, NUMERIC, pi, startDate, endDate, "subax"))
-        .thenReturn("distinct psi");
+        .thenReturn("distinct event");
 
     String sql =
         subject.getAggregateClauseForProgramIndicator(
@@ -164,17 +164,17 @@ class ProgramIndicatorSubqueryBuilderTest {
     assertThat(
         sql,
         is(
-            "(SELECT avg (distinct psi) FROM analytics_event_"
+            "(SELECT avg (distinct event) FROM analytics_event_"
                 + program.getUid().toLowerCase()
-                + " as subax WHERE  subax.tei in (select tei.uid from trackedentity tei "
-                + "LEFT JOIN relationshipitem ri on tei.trackedentityid = ri.trackedentityid  "
+                + " as subax WHERE  subax.trackedentity in (select te.uid from trackedentity te "
+                + "LEFT JOIN relationshipitem ri on te.trackedentityid = ri.trackedentityid  "
                 + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
                 + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
                 + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
-                + "LEFT JOIN trackedentity tei on tei.trackedentityid = ri2.trackedentityid "
+                + "LEFT JOIN trackedentity te on te.trackedentityid = ri2.trackedentityid "
                 + "WHERE rty.relationshiptypeid = "
                 + relationshipType.getId()
-                + " AND tei.uid = ax.tei ))"));
+                + " AND te.uid = ax.trackedentity ))"));
   }
 
   @Test
@@ -184,7 +184,7 @@ class ProgramIndicatorSubqueryBuilderTest {
 
     when(programIndicatorService.getAnalyticsSql(
             DUMMY_EXPRESSION, NUMERIC, pi, startDate, endDate, "subax"))
-        .thenReturn("distinct psi");
+        .thenReturn("distinct event");
     when(programIndicatorService.getAnalyticsSql(
             DUMMY_FILTER_EXPRESSION, BOOLEAN, pi, startDate, endDate, "subax"))
         .thenReturn("a = b");
@@ -196,8 +196,8 @@ class ProgramIndicatorSubqueryBuilderTest {
     assertThat(
         sql,
         is(
-            "(SELECT avg (distinct psi) FROM analytics_event_"
+            "(SELECT avg (distinct event) FROM analytics_event_"
                 + program.getUid().toLowerCase()
-                + " as subax WHERE pi = ax.pi AND (a = b))"));
+                + " as subax WHERE enrollment = ax.enrollment AND (a = b))"));
   }
 }

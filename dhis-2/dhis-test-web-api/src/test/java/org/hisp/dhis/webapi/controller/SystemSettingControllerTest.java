@@ -28,18 +28,19 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Arrays.stream;
-import static org.hisp.dhis.web.WebClient.Accept;
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClient.ContentType;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClient.Accept;
+import static org.hisp.dhis.test.web.WebClient.Body;
+import static org.hisp.dhis.test.web.WebClient.ContentType;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.Test;
 
@@ -48,7 +49,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class SystemSettingControllerTest extends DhisControllerConvenienceTest {
+class SystemSettingControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testSetSystemSettingOrTranslation_NoSuchObject() {
@@ -189,7 +190,7 @@ class SystemSettingControllerTest extends DhisControllerConvenienceTest {
     assertStatus(HttpStatus.NOT_FOUND, GET("/systemSettings/keyEmailPassword"));
     assertStatus(
         HttpStatus.NOT_FOUND, GET("/systemSettings/keyEmailPassword", Accept("application/json")));
-    switchToSuperuser();
+    switchToAdminUser();
     assertStatus(HttpStatus.OK, GET("/systemSettings/keyEmailPassword"));
   }
 

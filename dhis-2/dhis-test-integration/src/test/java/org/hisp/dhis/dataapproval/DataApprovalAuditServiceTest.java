@@ -56,22 +56,22 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jim Grace
  */
-// FIXME refactor this test to use mocks
-class DataApprovalAuditServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class DataApprovalAuditServiceTest extends PostgresIntegrationTestBase {
 
   private static final String ACCESS_NONE = "--------";
 
@@ -88,10 +88,6 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest {
   @Autowired private PeriodService periodService;
 
   @Autowired private CategoryService categoryService;
-
-  @Autowired private UserService _userService;
-
-  @Autowired protected UserGroupAccessService userGroupAccessService;
 
   @Autowired protected UserGroupService userGroupService;
 
@@ -197,14 +193,8 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest {
     identifiableObjectManager.updateNoAcl(object);
   }
 
-  // -------------------------------------------------------------------------
-  // Set up/tear down
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() throws Exception {
-    //    userService = _userService;
-    //    preCreateInjectAdminUser();
-
+  @BeforeEach
+  void setUp() {
     // ---------------------------------------------------------------------
     // Add supporting data
     // ---------------------------------------------------------------------

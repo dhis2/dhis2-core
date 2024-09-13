@@ -31,18 +31,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-class TrackedEntityProgramOwnerServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class TrackedEntityProgramOwnerServiceTest extends PostgresIntegrationTestBase {
 
   private static final String PA = "PA";
 
@@ -50,7 +58,7 @@ class TrackedEntityProgramOwnerServiceTest extends SingleSetupIntegrationTestBas
 
   private static final String TE_A1 = "TE-A1";
 
-  @Autowired private TrackedEntityService trackedEntityService;
+  @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackedEntityProgramOwnerService programOwnerService;
 
@@ -62,41 +70,48 @@ class TrackedEntityProgramOwnerServiceTest extends SingleSetupIntegrationTestBas
 
   private OrganisationUnit organisationUnitB;
 
-  @Override
-  public void setUpTest() {
+  private Program programA;
+
+  private TrackedEntity trackedEntityA1;
+
+  private TrackedEntity trackedEntityB1;
+
+  @BeforeAll
+  void setUp() {
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnitA);
     organisationUnitB = createOrganisationUnit('B');
     organisationUnitService.addOrganisationUnit(organisationUnitB);
-    TrackedEntity trackedEntityA1 = createTrackedEntity(organisationUnitA);
+    trackedEntityA1 = createTrackedEntity(organisationUnitA);
     trackedEntityA1.setUid(TE_A1);
-    TrackedEntity trackedEntityB1 = createTrackedEntity(organisationUnitA);
+    trackedEntityB1 = createTrackedEntity(organisationUnitA);
     trackedEntityB1.setUid(TE_B1);
-    trackedEntityService.addTrackedEntity(trackedEntityA1);
-    trackedEntityService.addTrackedEntity(trackedEntityB1);
-    Program programA = createProgram('A');
+    manager.save(trackedEntityA1);
+    manager.save(trackedEntityB1);
+    programA = createProgram('A');
     programA.setUid(PA);
     programService.addProgram(programA);
   }
 
   @Test
   void testCreateTrackedEntityProgramOwner() {
-    programOwnerService.createTrackedEntityProgramOwner(TE_A1, PA, organisationUnitA.getUid());
-    assertNotNull(programOwnerService.getTrackedEntityProgramOwner(TE_A1, PA));
-    assertNull(programOwnerService.getTrackedEntityProgramOwner(TE_B1, PA));
+    programOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityA1, programA, organisationUnitA);
+    assertNotNull(programOwnerService.getTrackedEntityProgramOwner(trackedEntityA1, programA));
+    assertNull(programOwnerService.getTrackedEntityProgramOwner(trackedEntityB1, programA));
   }
 
   @Test
   void testCreateOrUpdateTrackedEntityProgramOwner() {
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
-        TE_A1, PA, organisationUnitA.getUid());
+        trackedEntityA1, programA, organisationUnitA);
     TrackedEntityProgramOwner programOwner =
-        programOwnerService.getTrackedEntityProgramOwner(TE_A1, PA);
+        programOwnerService.getTrackedEntityProgramOwner(trackedEntityA1, programA);
     assertNotNull(programOwner);
     assertEquals(organisationUnitA.getUid(), programOwner.getOrganisationUnit().getUid());
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
-        TE_A1, PA, organisationUnitB.getUid());
-    programOwner = programOwnerService.getTrackedEntityProgramOwner(TE_A1, PA);
+        trackedEntityA1, programA, organisationUnitB);
+    programOwner = programOwnerService.getTrackedEntityProgramOwner(trackedEntityA1, programA);
     assertNotNull(programOwner);
     assertEquals(organisationUnitB.getUid(), programOwner.getOrganisationUnit().getUid());
   }

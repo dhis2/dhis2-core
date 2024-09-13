@@ -53,7 +53,6 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -67,7 +66,8 @@ import org.hisp.dhis.smscompression.models.SimpleEventSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -112,7 +112,7 @@ class SimpleEventSMSListenerTest extends CompressionSMSListenerTest {
 
   @Mock private EnrollmentService enrollmentService;
 
-  @Mock private TrackedEntityDataValueChangeLogService dataValueAuditService;
+  @Mock private EventChangeLogService eventChangeLogService;
 
   @Mock private FileResourceService fileResourceService;
 
@@ -150,7 +150,7 @@ class SimpleEventSMSListenerTest extends CompressionSMSListenerTest {
             categoryService,
             dataElementService,
             eventService,
-            dataValueAuditService,
+            eventChangeLogService,
             fileResourceService,
             config,
             enrollmentService,

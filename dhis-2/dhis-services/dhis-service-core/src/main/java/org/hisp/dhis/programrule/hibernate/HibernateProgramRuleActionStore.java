@@ -28,10 +28,12 @@
 package org.hisp.dhis.programrule.hibernate;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionStore;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
@@ -73,7 +75,7 @@ public class HibernateProgramRuleActionStore
   @Override
   public List<ProgramRuleAction> getProgramActionsWithNoNotification() {
     return getQuery(
-            "FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN ( :notificationTypes ) AND pra.templateUid IS NULL")
+            "FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN ( :notificationTypes ) AND pra.notificationTemplate IS NULL")
         .setParameter("notificationTypes", ProgramRuleActionType.NOTIFICATION_LINKED_TYPES)
         .getResultList();
   }
@@ -87,5 +89,16 @@ public class HibernateProgramRuleActionStore
     }
 
     return new ArrayList<>();
+  }
+
+  @Override
+  public List<ProgramRuleAction> getByDataElement(Collection<DataElement> dataElements) {
+    return getQuery(
+            """
+            from ProgramRuleAction pra
+            where pra.dataElement in :dataElements
+            """)
+        .setParameter("dataElements", dataElements)
+        .list();
   }
 }

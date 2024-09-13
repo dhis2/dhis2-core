@@ -165,6 +165,18 @@ public class AnalyticsController {
         response.getOutputStream());
   }
 
+  @GetMapping(value = RESOURCE_PATH + ".xlsx")
+  public void getXlsx(
+      AggregateAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
+    GridUtils.toXlsx(
+        getGridWithAttachment(
+            criteria, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL, "data.xlsx", response),
+        response.getOutputStream());
+  }
+
   @GetMapping(value = RESOURCE_PATH + ".jrxml")
   public void getJrxml(
       AggregateAnalyticsQueryCriteria criteria,

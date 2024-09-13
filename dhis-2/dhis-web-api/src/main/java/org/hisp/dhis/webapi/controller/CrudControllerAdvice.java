@@ -47,6 +47,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import javax.persistence.PersistenceException;
 import javax.servlet.ServletException;
 import lombok.extern.slf4j.Slf4j;
@@ -62,8 +63,6 @@ import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
 import org.hisp.dhis.dataexchange.client.Dhis2ClientException;
-import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
-import org.hisp.dhis.deduplication.PotentialDuplicateForbiddenException;
 import org.hisp.dhis.dxf2.adx.AdxException;
 import org.hisp.dhis.dxf2.metadata.MetadataExportException;
 import org.hisp.dhis.dxf2.metadata.MetadataImportException;
@@ -78,6 +77,8 @@ import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
+import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
+import org.hisp.dhis.tracker.deduplication.PotentialDuplicateForbiddenException;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
@@ -429,7 +430,8 @@ public class CrudControllerAdvice {
   @ExceptionHandler(PersistenceException.class)
   @ResponseBody
   public WebMessage persistenceExceptionHandler(PersistenceException ex) {
-    return conflict(ex.getMessage());
+    String helpfulMessage = getHelpfulMessage(ex);
+    return conflict(helpfulMessage);
   }
 
   @ExceptionHandler(AccessDeniedException.class)
@@ -511,12 +513,12 @@ public class CrudControllerAdvice {
 
   /**
    * Handles {@link IllegalStateException} and logs the stack trace to standard error. {@link
-   * IllegalArgumentException} is used in DHIS 2 application code but also by various frameworks to
+   * IllegalStateException} is used in DHIS 2 application code but also by various frameworks to
    * indicate programming errors, so stack trace must be printed and not swallowed.
    */
   @ExceptionHandler(IllegalStateException.class)
   @ResponseBody
-  public WebMessage illegalArgumentExceptionHandler(IllegalStateException ex) {
+  public WebMessage illegalStateExceptionHandler(IllegalStateException ex) {
     log.error(IllegalStateException.class.getName(), ex);
     return conflict(ex.getMessage());
   }
@@ -704,5 +706,30 @@ public class CrudControllerAdvice {
 
       setValue(enumValue);
     }
+  }
+
+  /**
+   * {@link PersistenceException}s can have deeply-nested root causes and may have a very vague
+   * message, which may not be very helpful. This method checks if a more detailed, user-friendly
+   * message is available and returns it if found.
+   *
+   * <p>For example, instead of returning: <b><i>"Could not execute statement"</i></b> , potentially
+   * returning: <b><i>"duplicate key value violates unique constraint "minmaxdataelement_unique_key"
+   * Detail: Key (sourceid, dataelementid, categoryoptioncomboid)=(x, y, z) already exists"</i></b>.
+   *
+   * @param ex exception to check
+   * @return detailed message or original exception message
+   */
+  @Nullable
+  public static String getHelpfulMessage(PersistenceException ex) {
+    Throwable cause = ex.getCause();
+
+    if (cause != null) {
+      Throwable rootCause = cause.getCause();
+      if (rootCause != null) {
+        return rootCause.getMessage();
+      }
+    }
+    return ex.getMessage();
   }
 }

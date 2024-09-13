@@ -47,12 +47,12 @@ import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hibernate.query.Query;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.sms.command.SMSCommand;
+import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,7 +67,7 @@ import org.mockito.quality.Strictness;
 @SuppressWarnings("unchecked")
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class SchemaToDataFetcherTest extends DhisConvenienceTest {
+class SchemaToDataFetcherTest extends TestBase {
 
   private SchemaToDataFetcher subject;
 

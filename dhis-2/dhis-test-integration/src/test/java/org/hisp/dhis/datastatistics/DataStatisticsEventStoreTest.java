@@ -42,7 +42,8 @@ import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -50,7 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-class DataStatisticsEventStoreTest extends IntegrationTestBase {
+class DataStatisticsEventStoreTest extends PostgresIntegrationTestBase {
   @Autowired private DataStatisticsEventStore dataStatisticsEventStore;
 
   @Autowired private DashboardService dashboardService;
@@ -67,11 +68,8 @@ class DataStatisticsEventStoreTest extends IntegrationTestBase {
 
   private static final String DASHBOARD_UID = "anyUid12345";
 
-  /**
-   * Defining a set of events/statistics, so they can be asserted on each individual test/scenario.
-   */
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     // Stub objects.
     final Dashboard dashboard = new Dashboard("anyName");
     dashboard.setUid(DASHBOARD_UID);

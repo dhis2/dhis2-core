@@ -27,9 +27,14 @@
  */
 package org.hisp.dhis.program;
 
+import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 
 /**
  * @author Chau Thu Tran
  */
-public interface ProgramStageSectionStore extends IdentifiableObjectStore<ProgramStageSection> {}
+public interface ProgramStageSectionStore extends IdentifiableObjectStore<ProgramStageSection> {
+
+  List<ProgramStageSection> getAllByDataElement(List<DataElement> dataElements);
+}

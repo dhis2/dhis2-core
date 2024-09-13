@@ -41,7 +41,6 @@ import org.hibernate.event.spi.PreCollectionUpdateEventListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
@@ -50,7 +49,6 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-@Profile({"!test", "!test-h2"})
 @Conditional(value = CacheInvalidationEnabledCondition.class)
 public class PostCollectionCacheEventPublisher implements PreCollectionUpdateEventListener {
   @Autowired
@@ -94,7 +92,7 @@ public class PostCollectionCacheEventPublisher implements PreCollectionUpdateEve
               + ":"
               + affectedOwnerIdOrNull;
 
-      messagePublisher.publish(CacheInvalidationConfiguration.CHANNEL_NAME, message);
+      messagePublisher.publish(CacheInvalidationConfig.CHANNEL_NAME, message);
     }
   }
 

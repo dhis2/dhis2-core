@@ -67,6 +67,8 @@ public class Main extends EmbeddedJettyBase {
     setDefaultPropertyValue("jetty.host", SERVER_HOSTNAME_OR_IP);
     setDefaultPropertyValue("jetty.http.port", String.valueOf(DEFAULT_HTTP_PORT));
 
+    setDefaultPropertyValue("spring.profiles.active", "embeddedJetty");
+
     Main jettyEmbeddedCoreWeb = new Main();
     jettyEmbeddedCoreWeb.printBanner("DHIS2 API Server");
     jettyEmbeddedCoreWeb.startJetty();
@@ -95,14 +97,12 @@ public class Main extends EmbeddedJettyBase {
 
     setupServlets(context, webApplicationContext);
 
-    context.addServlet("RootPageServlet", RootPageServlet.class).addMapping("/index.html");
-
     return contextHandler;
   }
 
   private static AnnotationConfigWebApplicationContext getWebApplicationContext() {
     AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
-    context.register(JettyStartupTimerSpringConfiguration.class);
+    context.register(JettyStartupTimerSpringConfig.class);
     return context;
   }
 

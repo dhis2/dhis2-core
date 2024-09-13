@@ -273,35 +273,44 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
-  public AppStatus installApp(File file, String fileName) {
+  public App installApp(File file, String fileName) {
     App app = jCloudsAppStorageService.installApp(file, fileName, appCache);
+
+    log.info(
+        String.format(
+            "Installed App with ID %s (status: %s)", app.getAppHubId(), app.getAppState()));
 
     if (app.getAppState().ok()) {
       appCache.put(app.getKey(), app);
       registerDatastoreProtection(app);
     }
 
-    return app.getAppState();
+    return app;
   }
 
   @Override
-  public AppStatus installApp(UUID appHubId) {
+  public App installApp(UUID appHubId) {
+
+    App installedApp = new App();
     if (appHubId == null) {
-      return AppStatus.NOT_FOUND;
+      installedApp.setAppState(AppStatus.NOT_FOUND);
+      return installedApp;
     }
 
     try {
       String versionJson = appHubService.getAppHubApiResponse("v2", "appVersions/" + appHubId);
       if (versionJson == null || versionJson.isEmpty()) {
         log.info(String.format("No version found for id %s", appHubId));
-        return AppStatus.NOT_FOUND;
+        installedApp.setAppState(AppStatus.NOT_FOUND);
+        return installedApp;
       }
       JsonString downloadUrlNode = JsonMixed.of(versionJson).getString("downloadUrl");
       if (downloadUrlNode.isUndefined()) {
         log.info(
             String.format(
                 "No download URL property found in response for id %s: %s", appHubId, versionJson));
-        return AppStatus.NOT_FOUND;
+        installedApp.setAppState(AppStatus.NOT_FOUND);
+        return installedApp;
       }
       String downloadUrl = downloadUrlNode.string();
       URL url = new URL(downloadUrl);
@@ -312,11 +321,13 @@ public class DefaultAppManager implements AppManager {
 
     } catch (IOException ex) {
       log.info(String.format("No version found for id %s", appHubId));
-      return AppStatus.NOT_FOUND;
+      installedApp.setAppState(AppStatus.NOT_FOUND);
     } catch (ConflictException | URISyntaxException e) {
       log.error("Failed to install app with id " + appHubId, e);
-      return AppStatus.INSTALLATION_FAILED;
+      installedApp.setAppState(AppStatus.INSTALLATION_FAILED);
     }
+
+    return installedApp;
   }
 
   @Override
@@ -393,6 +404,22 @@ public class DefaultAppManager implements AppManager {
   @Override
   public Resource getAppResource(App app, String pageName) throws IOException {
     return getAppStorageServiceByApp(app).getAppResource(app, pageName);
+  }
+
+  /**
+   * @param resource resource to check content length
+   * @return the content length or -1 (unknown size) if exception caught
+   */
+  @Override
+  public int getUriContentLength(Resource resource) {
+    try {
+      URLConnection urlConnection = resource.getURL().openConnection();
+      return urlConnection.getContentLength();
+    } catch (IOException e) {
+      log.error("Error trying to retrieve content length of Resource: {}", e.getMessage());
+      e.printStackTrace();
+      return -1;
+    }
   }
 
   // -------------------------------------------------------------------------

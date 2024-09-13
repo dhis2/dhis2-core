@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Lists;
 import java.util.List;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -42,20 +43,18 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Jim Grace
  */
-class DataApprovalStoreUserTest extends IntegrationTestBase {
+class DataApprovalStoreUserTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataApprovalStore dataApprovalStore;
-
-  @Autowired private UserService _userService;
 
   @Autowired private DataApprovalService dataApprovalService;
 
@@ -90,14 +89,8 @@ class DataApprovalStoreUserTest extends IntegrationTestBase {
 
   private User currentUser;
 
-  // -------------------------------------------------------------------------
-  // Set up/tear down
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() throws Exception {
-    //    userService = _userService;
-    //    preCreateInjectAdminUser();
-
+  @BeforeEach
+  void setUp() {
     periodA = createPeriod("201801");
     periodService.addPeriod(periodA);
     level1 = new DataApprovalLevel("Level1", 1, null);
@@ -142,7 +135,7 @@ class DataApprovalStoreUserTest extends IntegrationTestBase {
     CategoryOption catOptionA = new CategoryOption("CategoryOptionA");
     catOptionA.addOrganisationUnit(orgUnitB);
     categoryService.addCategoryOption(catOptionA);
-    org.hisp.dhis.category.Category catA = createCategory('A', catOptionA);
+    Category catA = createCategory('A', catOptionA);
     categoryService.addCategory(catA);
     CategoryCombo catComboA = createCategoryCombo('A', catA);
     categoryService.addCategoryCombo(catComboA);

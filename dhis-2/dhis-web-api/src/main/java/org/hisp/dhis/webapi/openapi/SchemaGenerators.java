@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.openapi;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.webapi.openapi.Property.getProperties;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.PrimaryKeyObject;
 
 /**
@@ -53,7 +54,7 @@ public interface SchemaGenerators {
       (endpoint, source, args) -> {
         Class<?> ofType = args.length == 0 ? endpoint.getEntityType() : args[0];
         return Api.Schema.ofEnum(
-            Api.PropertyNames.class,
+            OpenApi.PropertyNames.class,
             ofType,
             getProperties(ofType).stream().map(Property::getName).collect(toList()));
       };

@@ -69,7 +69,7 @@
             "idScheme": "UID",
             "identifier": "numericAttr"
           },
-          "value": 88
+          "value": "88"
         }
       ],
       "enrollments": []
@@ -120,7 +120,7 @@
             "idScheme": "UID",
             "identifier": "numericAttr"
           },
-          "value": 70
+          "value": "70"
         }
       ],
       "enrollments": []
@@ -162,7 +162,7 @@
             "idScheme": "UID",
             "identifier": "numericAttr"
           },
-          "value": 72
+          "value": "72"
         }
       ],
       "enrollments": []
@@ -204,7 +204,7 @@
             "idScheme": "UID",
             "identifier": "numericAttr"
           },
-          "value": 89
+          "value": "89"
         }
       ],
       "enrollments": []
@@ -246,7 +246,7 @@
             "idScheme": "UID",
             "identifier": "numericAttr"
           },
-          "value": 91
+          "value": "91"
         }
       ],
       "enrollments": []
@@ -288,7 +288,7 @@
             "idScheme": "UID",
             "identifier": "numericAttr"
           },
-          "value": 90
+          "value": "90"
         }
       ],
       "enrollments": []

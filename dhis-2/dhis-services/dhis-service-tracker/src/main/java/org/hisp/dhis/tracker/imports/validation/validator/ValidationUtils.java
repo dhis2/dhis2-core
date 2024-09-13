@@ -97,7 +97,7 @@ public class ValidationUtils {
       {
         // If a note having the same UID already exist in the db, raise
         // warning, ignore the note and continue
-        if (isNotEmpty(note.getNote()) && preheat.getNote(note.getNote()).isPresent()) {
+        if (isNotEmpty(note.getNote()) && preheat.hasNote(note.getNote())) {
           reporter.addWarning(dto, ValidationCode.E1119, note.getNote());
         } else {
           notes.add(note);
@@ -112,6 +112,7 @@ public class ValidationUtils {
     if (!needsToValidateDataValues(event, programStage)) {
       return List.of();
     }
+
     Set<MetadataIdentifier> eventDataElements =
         event.getDataValues().stream()
             .filter(dv -> dv.getValue() == null)
@@ -126,29 +127,25 @@ public class ValidationUtils {
       Event event,
       ProgramStage programStage,
       List<MetadataIdentifier> mandatoryDataElements) {
-    if (!areDataValuesBeingCreated(bundle, event, programStage)) {
+    if (!needsToValidateDataValues(event, programStage)) {
       return List.of();
     }
 
-    Set<MetadataIdentifier> eventDataElements =
-        event.getDataValues().stream().map(DataValue::getDataElement).collect(Collectors.toSet());
+    Set<MetadataIdentifier> eventDataElements = getEventDataValues(bundle, event);
 
     return mandatoryDataElements.stream().filter(de -> !eventDataElements.contains(de)).toList();
   }
 
-  public static boolean areDataValuesBeingCreated(
-      TrackerBundle bundle, Event event, ProgramStage programStage) {
-    if (!needsToValidateDataValues(event, programStage)) {
-      return false;
-    }
-
-    if (bundle.getStrategy(event).isCreate()) {
-      return true;
-    }
-
-    EventStatus savedStatus = bundle.getPreheat().getEvent(event.getUid()).getStatus();
-    return EventStatus.STATUSES_WITHOUT_DATA_VALUES.contains(savedStatus)
-        && EventStatus.STATUSES_WITH_DATA_VALUES.contains(event.getStatus());
+  private static Set<MetadataIdentifier> getEventDataValues(TrackerBundle bundle, Event event) {
+    Stream<MetadataIdentifier> payloadDataValues =
+        event.getDataValues().stream().map(DataValue::getDataElement);
+    Stream<MetadataIdentifier> savedDataValues =
+        Optional.ofNullable(bundle.getPreheat().getEvent(event.getUid()))
+            .map(org.hisp.dhis.program.Event::getEventDataValues)
+            .orElse(Set.of())
+            .stream()
+            .map(dv -> MetadataIdentifier.ofUid(dv.getDataElement()));
+    return Stream.concat(payloadDataValues, savedDataValues).collect(Collectors.toSet());
   }
 
   public static boolean needsToValidateDataValues(Event event, ProgramStage programStage) {

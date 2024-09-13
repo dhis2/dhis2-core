@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -37,7 +39,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class TrackerImportControllerTest extends DhisControllerIntegrationTest {
+class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void shouldSucceedWhenAllValidParametersArePassed() {
     assertWebMessage(

@@ -29,10 +29,13 @@ package org.hisp.dhis.tracker.export.enrollment;
 
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
@@ -52,11 +55,21 @@ public interface EnrollmentService {
 
   /** Get all enrollments matching given params. */
   List<Enrollment> getEnrollments(EnrollmentOperationParams params)
-      throws BadRequestException, ForbiddenException;
+      throws BadRequestException, ForbiddenException, NotFoundException;
 
   /** Get a page of enrollments matching given params. */
   Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
-      throws BadRequestException, ForbiddenException;
+      throws BadRequestException, ForbiddenException, NotFoundException;
+
+  /**
+   * Get event matching given {@code UID} under the privileges the user in the context. This method
+   * does not get the events relationships.
+   */
+  List<Enrollment> getEnrollments(@Nonnull List<String> uids) throws ForbiddenException;
+
+  List<Enrollment> getEnrollments(
+      String trackedEntityUid, Program program, EnrollmentStatus enrollmentStatus)
+      throws ForbiddenException, BadRequestException, NotFoundException;
 
   /**
    * Fields the {@link #getEnrollments(EnrollmentOperationParams)} can order enrollments by.

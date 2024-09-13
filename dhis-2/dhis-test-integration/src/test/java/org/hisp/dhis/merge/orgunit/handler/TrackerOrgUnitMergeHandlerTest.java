@@ -32,31 +32,28 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.google.common.collect.Sets;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
-
-  @Autowired private TrackedEntityService trackedEntityService;
-
-  @Autowired private EnrollmentService enrollmentService;
-
-  @Autowired private CategoryService categoryService;
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class TrackerOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -92,8 +89,8 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
 
   private Event eventC;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     prA = createProgram('A', Sets.newHashSet(), ouA);
     manager.save(prA);
     psA = createProgramStage('A', prA);
@@ -107,15 +104,15 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
     trackedEntityA = createTrackedEntity('A', ouA);
     trackedEntityB = createTrackedEntity('B', ouB);
     trackedEntityC = createTrackedEntity('C', ouC);
-    trackedEntityService.addTrackedEntity(trackedEntityA);
-    trackedEntityService.addTrackedEntity(trackedEntityB);
-    trackedEntityService.addTrackedEntity(trackedEntityC);
+    manager.save(trackedEntityA);
+    manager.save(trackedEntityB);
+    manager.save(trackedEntityC);
     enrollmentA = createEnrollment(prA, trackedEntityA, ouA);
     enrollmentB = createEnrollment(prA, trackedEntityB, ouB);
     enrollmentC = createEnrollment(prA, trackedEntityC, ouA);
-    enrollmentService.addEnrollment(enrollmentA);
-    enrollmentService.addEnrollment(enrollmentB);
-    enrollmentService.addEnrollment(enrollmentC);
+    manager.save(enrollmentA);
+    manager.save(enrollmentB);
+    manager.save(enrollmentC);
     eventA = createEvent(psA, enrollmentA, ouA);
     eventB = createEvent(psA, enrollmentB, ouB);
     eventC = createEvent(psA, enrollmentC, ouA);

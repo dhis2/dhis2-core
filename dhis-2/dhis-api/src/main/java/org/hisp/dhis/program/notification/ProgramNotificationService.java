@@ -109,8 +109,8 @@ public interface ProgramNotificationService {
   void sendEnrollmentNotifications(long enrollment);
 
   /**
-   * Get all events which have notifications with the given. ProgramNotificationTemplate scheduled
-   * on the given date.
+   * Get all events which have notifications with the given ProgramNotificationTemplate scheduled on
+   * the given date.
    *
    * @param template the template.
    * @param notificationDate the Date for which the notification is scheduled.
@@ -118,5 +118,17 @@ public interface ProgramNotificationService {
    */
   @Deprecated
   List<Event> getWithScheduledNotifications(
+      ProgramNotificationTemplate template, Date notificationDate);
+
+  /**
+   * Get all enrollments which have notifications with the given ProgramNotificationTemplate
+   * scheduled on the given date.
+   *
+   * @param template the template.
+   * @param notificationDate the Date for which the notification is scheduled.
+   * @return a list of Enrollment.
+   */
+  @Deprecated
+  List<Enrollment> getEnrollmentsWithScheduledNotifications(
       ProgramNotificationTemplate template, Date notificationDate);
 }

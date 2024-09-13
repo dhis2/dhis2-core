@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.tracker.imports.report;
 
-import static org.hisp.dhis.common.OpenApi.Shared.Pattern.TRACKER;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 import lombok.AccessLevel;
@@ -48,7 +46,7 @@ import org.hisp.dhis.tracker.TrackerType;
  *
  * @author Luciano Fiandesio
  */
-@OpenApi.Shared(pattern = TRACKER)
+@OpenApi.Shared(name = "TrackerImportReport")
 @Getter
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)

@@ -29,15 +29,15 @@ package org.hisp.dhis.tracker.imports.sms;
 
 import java.util.Base64;
 import java.util.Date;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.smscompression.SmsCompressionException;
 import org.hisp.dhis.smscompression.SmsSubmissionWriter;
 import org.hisp.dhis.smscompression.models.SmsMetadata;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.User;
 
-abstract class CompressionSMSListenerTest extends DhisConvenienceTest {
+abstract class CompressionSMSListenerTest extends TestBase {
   protected static final String SUCCESS_MESSAGE = "1:0::Submission has been processed successfully";
 
   protected static final String NOVALUES_MESSAGE =

@@ -52,9 +52,8 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,7 +71,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class FileResourceCleanUpJobTest extends IntegrationTestBase {
+class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
 
   private FileResourceCleanUpJob cleanUpJob;
 
@@ -95,8 +94,6 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
 
   @Autowired private ExternalFileResourceService externalFileResourceService;
 
-  @Autowired private UserService _userService;
-
   @Mock private FileResourceContentStore fileResourceContentStore;
 
   private DataValue dataValueA;
@@ -109,8 +106,6 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
 
   @BeforeEach
   public void init() {
-    userService = _userService;
-
     cleanUpJob =
         new FileResourceCleanUpJob(
             fileResourceService, systemSettingManager, fileResourceContentStore);

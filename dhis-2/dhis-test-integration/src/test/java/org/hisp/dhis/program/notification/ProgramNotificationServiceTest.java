@@ -28,7 +28,11 @@
 package org.hisp.dhis.program.notification;
 
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_DUE_DATE;
+import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE;
+import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.util.Calendar;
@@ -42,29 +46,33 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementStore;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran
  */
-class ProgramNotificationServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class ProgramNotificationServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -76,11 +84,9 @@ class ProgramNotificationServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private ProgramStageService programStageService;
 
-  @Autowired private TrackedEntityService trackedEntityService;
-
-  @Autowired private EnrollmentService enrollmentService;
-
   @Autowired private CategoryService categoryService;
+
+  @Autowired private EventStore eventStore;
 
   @Autowired
   @Qualifier("org.hisp.dhis.program.notification.ProgramNotificationStore")
@@ -100,18 +106,22 @@ class ProgramNotificationServiceTest extends TransactionalIntegrationTest {
 
   private Enrollment enrollmentB;
 
-  @Override
-  public void setUpTest() {
+  private OrganisationUnit organisationUnitA;
+
+  private Program programA;
+
+  @BeforeEach
+  void setUp() {
     coA = categoryService.getDefaultCategoryOptionCombo();
-    OrganisationUnit organisationUnitA = createOrganisationUnit('A');
+    organisationUnitA = createOrganisationUnit('A');
     OrganisationUnit organisationUnitB = createOrganisationUnit('B');
     manager.save(organisationUnitA);
     manager.save(organisationUnitB);
     TrackedEntity trackedEntityA = createTrackedEntity(organisationUnitA);
-    trackedEntityService.addTrackedEntity(trackedEntityA);
+    manager.save(trackedEntityA);
     TrackedEntity trackedEntityB = createTrackedEntity(organisationUnitB);
-    trackedEntityService.addTrackedEntity(trackedEntityB);
-    Program programA = createProgram('A', new HashSet<>(), organisationUnitA);
+    manager.save(trackedEntityB);
+    programA = createProgram('A', new HashSet<>(), organisationUnitA);
     programService.addProgram(programA);
     stageA = new ProgramStage("A", programA);
     programStageService.saveProgramStage(stageA);
@@ -161,9 +171,9 @@ class ProgramNotificationServiceTest extends TransactionalIntegrationTest {
     Date enrollmentDate = testDate2.toDate();
     enrollmentA = new Enrollment(enrollmentDate, incidenDate, trackedEntityA, programA);
     enrollmentA.setUid("UID-PIA");
-    enrollmentService.addEnrollment(enrollmentA);
+    manager.save(enrollmentA);
     enrollmentB = new Enrollment(enrollmentDate, incidenDate, trackedEntityB, programB);
-    enrollmentService.addEnrollment(enrollmentB);
+    manager.save(enrollmentB);
     Event eventA = new Event(enrollmentA, stageA);
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
@@ -187,7 +197,7 @@ class ProgramNotificationServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void testGetWithScheduledNotifications() {
+  void testGetEventsWithScheduledNotifications() {
     ProgramNotificationTemplate
         a1 =
             createProgramNotificationTemplate(
@@ -308,5 +318,119 @@ class ProgramNotificationServiceTest extends TransactionalIntegrationTest {
     results = programNotificationService.getWithScheduledNotifications(c3, today);
     assertEquals(1, results.size());
     assertEquals(eventC, results.get(0));
+  }
+
+  @Test
+  @DisplayName(
+      "Retrieving Events whose eventdatavalues contain search strings has expected results")
+  void eventDataValuesSearchStringTest() {
+    // given
+    OrganisationUnit orgUnit1 = createOrganisationUnit('1');
+    OrganisationUnit orgUnit2 = createOrganisationUnit('2');
+    manager.save(List.of(orgUnit1, orgUnit2));
+    Event e1 = createEvent(stageA, enrollmentA, orgUnit1);
+    e1.setAttributeOptionCombo(coA);
+    Event e2 = createEvent(stageB, enrollmentB, orgUnit2);
+    e2.setAttributeOptionCombo(coA);
+    Event e3 = createEvent(stageC, enrollmentB, orgUnit2);
+    e3.setAttributeOptionCombo(coA);
+    EventDataValue edv1 = new EventDataValue("dataEl1", "value1");
+    EventDataValue edv11 = new EventDataValue("dataEl1", "value11");
+    EventDataValue edv2 = new EventDataValue("dataEl2", "value2");
+    EventDataValue edv3 = new EventDataValue("dataEl3", "value3");
+    Set<EventDataValue> edvs1 = new HashSet<>();
+    edvs1.add(edv1);
+    edvs1.add(edv11);
+    edvs1.add(edv2);
+    Set<EventDataValue> edvs2 = new HashSet<>();
+    Set<EventDataValue> edvs3 = new HashSet<>();
+    edvs2.add(edv1);
+    edvs3.add(edv3);
+
+    e1.setEventDataValues(edvs1);
+    e2.setEventDataValues(edvs2);
+    e3.setEventDataValues(edvs3);
+    eventStore.save(e1);
+    eventStore.save(e2);
+    eventStore.save(e3);
+
+    // when
+    List<Event> events =
+        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(List.of("dataEl1", "dataEl2"));
+
+    // then
+    assertEquals(2, events.size(), "2 events should be found");
+    assertTrue(
+        events.stream()
+            .flatMap(e -> e.getEventDataValues().stream())
+            .toList()
+            .containsAll(List.of(edv1, edv11, edv2)),
+        "should contain these event data values");
+    assertFalse(
+        events.stream().flatMap(e -> e.getEventDataValues().stream()).toList().contains(edv3),
+        "should not contain this event data value");
+  }
+
+  @Test
+  void testGetEnrollmentsWithScheduledNotifications() {
+    ProgramNotificationTemplate
+        a1 =
+            createProgramNotificationTemplate(
+                "a1",
+                -1,
+                SCHEDULED_DAYS_INCIDENT_DATE,
+                ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE),
+        a2 =
+            createProgramNotificationTemplate(
+                "a2",
+                1,
+                SCHEDULED_DAYS_INCIDENT_DATE,
+                ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE),
+        a3 =
+            createProgramNotificationTemplate(
+                "a3",
+                7,
+                SCHEDULED_DAYS_ENROLLMENT_DATE,
+                ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE);
+    programNotificationStore.save(a1);
+    programNotificationStore.save(a2);
+    programNotificationStore.save(a3);
+    // TE
+    TrackedEntity trackedEntityX = createTrackedEntity(organisationUnitA);
+    TrackedEntity trackedEntityY = createTrackedEntity(organisationUnitA);
+    manager.save(trackedEntityX);
+    manager.save(trackedEntityY);
+    // Program
+    programA.setNotificationTemplates(Sets.newHashSet(a1, a2, a3));
+    programService.updateProgram(programA);
+    // Dates
+    Calendar cal = Calendar.getInstance();
+    PeriodType.clearTimeOfDay(cal);
+    Date today = cal.getTime();
+    cal.add(Calendar.DATE, 1);
+    Date tomorrow = cal.getTime();
+    cal.add(Calendar.DATE, -2);
+    Date yesterday = cal.getTime();
+    cal.add(Calendar.DATE, -6);
+    Date aWeekAgo = cal.getTime();
+    // Enrollments
+    Enrollment enrollmentC = new Enrollment(today, tomorrow, trackedEntityX, programA);
+    manager.save(enrollmentC);
+    Enrollment enrollmentD = new Enrollment(aWeekAgo, yesterday, trackedEntityY, programA);
+    manager.save(enrollmentD);
+    // Queries
+    List<Enrollment> results;
+    // A
+    results = programNotificationService.getEnrollmentsWithScheduledNotifications(a1, today);
+    assertEquals(1, results.size());
+    assertEquals(enrollmentC, results.get(0));
+    results = programNotificationService.getEnrollmentsWithScheduledNotifications(a2, today);
+    assertEquals(1, results.size());
+    assertEquals(enrollmentD, results.get(0));
+    results = programNotificationService.getEnrollmentsWithScheduledNotifications(a3, today);
+    assertEquals(1, results.size());
+    assertEquals(enrollmentD, results.get(0));
+    results = programNotificationService.getEnrollmentsWithScheduledNotifications(a3, yesterday);
+    assertEquals(0, results.size());
   }
 }

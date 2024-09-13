@@ -223,14 +223,20 @@ public class EventTrackerConverterService
 
     result.setGeometry(event.getGeometry());
 
+    EventStatus currentStatus = event.getStatus();
     EventStatus previousStatus = result.getStatus();
 
-    result.setStatus(event.getStatus());
-
-    if (previousStatus != result.getStatus() && result.isCompleted()) {
+    if (currentStatus != previousStatus && currentStatus == EventStatus.COMPLETED) {
       result.setCompletedDate(now);
       result.setCompletedBy(preheat.getUsername());
     }
+
+    if (currentStatus != EventStatus.COMPLETED) {
+      result.setCompletedDate(null);
+      result.setCompletedBy(null);
+    }
+
+    result.setStatus(currentStatus);
 
     if (Boolean.TRUE.equals(programStage.isEnableUserAssignment())
         && event.getAssignedUser() != null

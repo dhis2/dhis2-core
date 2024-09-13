@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1020;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1021;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1023;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1025;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.Mockito.when;
 
