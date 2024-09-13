@@ -98,7 +98,7 @@ public class Period extends BaseDimensionalItemObject {
    * @param end inclusive, null is open to any time after start
    * @param checked the date checked, maybe null
    * @return true, if the checked date is non-null and is between start and end date. Exact times
-   * are considered.
+   *     are considered.
    */
   public static boolean isDateWithTimeInTimeFrame(
       @CheckForNull Date start, @CheckForNull Date end, @CheckForNull Date checked) {
@@ -107,7 +107,6 @@ public class Period extends BaseDimensionalItemObject {
     }
     return (start == null || !checked.before(start)) && (end == null || !checked.after(end));
   }
-
 
   /** Required. */
   private PeriodType periodType;
