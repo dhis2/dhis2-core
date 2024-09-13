@@ -56,7 +56,6 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -299,7 +298,7 @@ class OperationsParamsValidatorTest {
         exception.getMessage());
   }
 
-@Test
+  @Test
   void shouldReturnTrackedEntityWhenUserHasAccessToTrackedEntity()
       throws ForbiddenException, BadRequestException {
     User user = new User();
@@ -311,7 +310,7 @@ class OperationsParamsValidatorTest {
     assertEquals(trackedEntity, paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user));
   }
 
-@Test
+  @Test
   void shouldThrowForbiddenExceptionWhenUserHasNoAccessToTrackedEntity() {
     User user = new User();
     TrackedEntityType trackedEntityType = new TrackedEntityType("trackedEntityType", "");
