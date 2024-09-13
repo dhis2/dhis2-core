@@ -339,14 +339,14 @@ public class EventAggregateService {
    *
    * @param eventDimensionalItemObject the {@link ValueTypedDimensionalItemObject} object to get
    *     properties from.
-   * @param objects the list of {@link EventAnalyticsDimensionalItem} objects.
+   * @param dimensionalItems the list of {@link EventAnalyticsDimensionalItem} objects.
    * @param grid the {@link Grid} from the event analytics request.
    * @param dimension the dimension identifier.
    */
   @SuppressWarnings("unchecked")
   private void addEventReportDimensionalItems(
       ValueTypedDimensionalItemObject eventDimensionalItemObject,
-      List<EventAnalyticsDimensionalItem> objects,
+      List<EventAnalyticsDimensionalItem> dimensionalItems,
       Grid grid,
       String dimension) {
     checkNotNull(
@@ -355,13 +355,13 @@ public class EventAggregateService {
     String parentUid = eventDimensionalItemObject.getUid();
 
     if (eventDimensionalItemObject.getValueType() == BOOLEAN) {
-      objects.add(new EventAnalyticsDimensionalItem(OPT_TRUE, parentUid));
-      objects.add(new EventAnalyticsDimensionalItem(OPT_FALSE, parentUid));
+      dimensionalItems.add(new EventAnalyticsDimensionalItem(OPT_TRUE, parentUid));
+      dimensionalItems.add(new EventAnalyticsDimensionalItem(OPT_FALSE, parentUid));
     }
 
     if (eventDimensionalItemObject.hasOptionSet()) {
       for (Option option : eventDimensionalItemObject.getOptionSet().getOptions()) {
-        objects.add(new EventAnalyticsDimensionalItem(option, parentUid));
+        dimensionalItems.add(new EventAnalyticsDimensionalItem(option, parentUid));
       }
     } else if (eventDimensionalItemObject.hasLegendSet()) {
       List<String> legendOptions =
@@ -370,27 +370,52 @@ public class EventAggregateService {
 
       if (legendOptions.isEmpty()) {
         List<Legend> legends = eventDimensionalItemObject.getLegendSet().getSortedLegends();
-
-        for (Legend legend : legends) {
-          for (int i = legend.getStartValue().intValue();
-              i < legend.getEndValue().intValue();
-              i++) {
-            objects.add(
-                new EventAnalyticsDimensionalItem(
-                    new Option(String.valueOf(i), String.valueOf(i)), parentUid));
-          }
-        }
+        addLegends(dimensionalItems, parentUid, legends);
       } else {
-        for (String legend : legendOptions) {
-          MetadataItem metadataItem =
-              (MetadataItem)
-                  ((Map<String, Object>) grid.getMetaData().get(ITEMS.getKey())).get(legend);
-
-          objects.add(
-              new EventAnalyticsDimensionalItem(
-                  new Option(metadataItem.getName(), legend), parentUid));
-        }
+        addLegendOptions(dimensionalItems, grid, parentUid, legendOptions);
       }
+    }
+  }
+
+  /**
+   * Adds the given legends into the list of dimensionalItems.
+   *
+   * @param dimensionalItems
+   * @param parentUid
+   * @param legends
+   */
+  private static void addLegends(
+      List<EventAnalyticsDimensionalItem> dimensionalItems,
+      String parentUid,
+      List<Legend> legends) {
+    for (Legend legend : legends) {
+      for (int i = legend.getStartValue().intValue(); i < legend.getEndValue().intValue(); i++) {
+        dimensionalItems.add(
+            new EventAnalyticsDimensionalItem(
+                new Option(String.valueOf(i), String.valueOf(i)), parentUid));
+      }
+    }
+  }
+
+  /**
+   * Adds the given legendOptions into the list of dimensionalItems.
+   *
+   * @param dimensionalItems
+   * @param grid
+   * @param parentUid
+   * @param legendOptions
+   */
+  private static void addLegendOptions(
+      List<EventAnalyticsDimensionalItem> dimensionalItems,
+      Grid grid,
+      String parentUid,
+      List<String> legendOptions) {
+    for (String legend : legendOptions) {
+      MetadataItem metadataItem =
+          (MetadataItem) ((Map<String, Object>) grid.getMetaData().get(ITEMS.getKey())).get(legend);
+
+      dimensionalItems.add(
+          new EventAnalyticsDimensionalItem(new Option(metadataItem.getName(), legend), parentUid));
     }
   }
 

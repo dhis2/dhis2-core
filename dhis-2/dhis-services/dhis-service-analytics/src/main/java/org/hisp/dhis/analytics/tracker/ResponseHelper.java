@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.tracker;
 
-import static java.util.stream.Collectors.toList;
+import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
 
@@ -45,10 +45,10 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.ValueStatus;
 
-@NoArgsConstructor
+@NoArgsConstructor(access = PRIVATE)
 public class ResponseHelper {
 
-  public static int UNLIMITED_PAGING = 0;
+  public static final int UNLIMITED_PAGING = 0;
 
   /**
    * Applies the headers to the given if the given query specifies headers.
@@ -75,7 +75,7 @@ public class ResponseHelper {
             dimensionItemKeywords ->
                 dimensionItemKeywords != null && !dimensionItemKeywords.isEmpty())
         .flatMap(dk -> dk.getKeywords().stream())
-        .collect(toList());
+        .toList();
   }
 
   /**

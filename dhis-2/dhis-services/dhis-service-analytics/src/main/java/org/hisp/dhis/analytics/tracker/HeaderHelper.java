@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.tracker;
 
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
+import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getItemUid;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
@@ -46,7 +47,7 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
 
-@NoArgsConstructor
+@NoArgsConstructor(access = PRIVATE)
 public class HeaderHelper {
   public static void addCommonHeaders(
       Grid grid, EventQueryParams params, List<DimensionalObject> periods) {
