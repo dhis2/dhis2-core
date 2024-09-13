@@ -635,7 +635,7 @@ public class DataSet extends BaseDimensionalItemObject
     return timelyDays;
   }
 
-  public void setTimelyDays(int timelyDays) {
+  public void setTimelyDays(double timelyDays) {
     this.timelyDays = timelyDays;
   }
 
