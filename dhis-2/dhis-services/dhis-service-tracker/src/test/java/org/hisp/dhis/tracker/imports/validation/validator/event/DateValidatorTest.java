@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1031;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1042;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1043;
@@ -34,20 +35,19 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1046;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1047;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1050;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -69,7 +69,7 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class DateValidatorTest extends DhisConvenienceTest {
+class DateValidatorTest extends TestBase {
 
   private static final String PROGRAM_WITH_REGISTRATION_ID = "ProgramWithRegistration";
 

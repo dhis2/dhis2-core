@@ -75,14 +75,14 @@ import org.hisp.dhis.smscompression.models.SmsEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -121,19 +121,19 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
 
   @Mock private TrackedEntityService trackedEntityService;
 
-  @Mock private org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
-
   @Mock private EnrollmentService enrollmentService;
 
   @Mock private TrackedEntityAttributeValueService attributeValueService;
 
   @Mock private IdentifiableObjectManager identifiableObjectManager;
 
-  @Mock private TrackedEntityDataValueChangeLogService dataValueAuditService;
+  @Mock private EventChangeLogService eventChangeLogService;
 
   @Mock private FileResourceService fileResourceService;
 
   @Mock private DhisConfigurationProvider config;
+
+  @Mock private SMSEnrollmentService smsEnrollmentService;
 
   EnrollmentSMSListener subject;
 
@@ -198,14 +198,14 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
             dataElementService,
             programStageService,
             eventService,
-            dataValueAuditService,
+            eventChangeLogService,
             fileResourceService,
             config,
             attributeValueService,
             trackedEntityService,
-            apiEnrollmentService,
             enrollmentService,
-            identifiableObjectManager);
+            identifiableObjectManager,
+            smsEnrollmentService);
 
     setUpInstances();
 
@@ -221,8 +221,6 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
     when(organisationUnitService.getOrganisationUnit(anyString())).thenReturn(organisationUnit);
     when(programService.getProgram(anyString())).thenReturn(program);
     when(trackedEntityTypeService.getTrackedEntityType(anyString())).thenReturn(trackedEntityType);
-    when(apiEnrollmentService.enrollTrackedEntity(any(), any(), any(), any(), any(), any()))
-        .thenReturn(enrollment);
     when(programService.hasOrgUnit(any(Program.class), any(OrganisationUnit.class)))
         .thenReturn(true);
     when(enrollmentService.getEnrollment(anyString(), any(UserDetails.class)))
@@ -235,6 +233,10 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
             })
         .when(incomingSmsService)
         .update(any());
+
+    trackedEntity.setTrackedEntityType(trackedEntityType);
+    when(smsEnrollmentService.enrollTrackedEntity(any(), any(), any(), any(), any()))
+        .thenReturn(enrollment);
   }
 
   @Test

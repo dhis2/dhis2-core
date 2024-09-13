@@ -47,7 +47,7 @@ public class vEventStatus implements ProgramVariable {
         .getStatementBuilder()
         .getProgramIndicatorEventColumnSql(
             null,
-            "psistatus",
+            "eventstatus",
             params.getReportingStartDate(),
             params.getReportingEndDate(),
             params.getProgramIndicator());

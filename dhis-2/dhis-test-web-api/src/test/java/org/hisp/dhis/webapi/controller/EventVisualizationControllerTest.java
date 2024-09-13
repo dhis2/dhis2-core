@@ -35,11 +35,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.dataelement.DataElementDomain.TRACKER;
 import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE;
-import static org.hisp.dhis.web.HttpStatus.BAD_REQUEST;
-import static org.hisp.dhis.web.HttpStatus.CONFLICT;
-import static org.hisp.dhis.web.HttpStatus.CREATED;
-import static org.hisp.dhis.web.HttpStatus.OK;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.HttpStatus.BAD_REQUEST;
+import static org.hisp.dhis.test.web.HttpStatus.CONFLICT;
+import static org.hisp.dhis.test.web.HttpStatus.CREATED;
+import static org.hisp.dhis.test.web.HttpStatus.OK;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -57,9 +57,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonError;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -70,7 +70,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author maikel arabori
  */
-class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
+class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
   @Autowired private ObjectMapper jsonMapper;
 
   @Autowired private IdentifiableObjectManager manager;

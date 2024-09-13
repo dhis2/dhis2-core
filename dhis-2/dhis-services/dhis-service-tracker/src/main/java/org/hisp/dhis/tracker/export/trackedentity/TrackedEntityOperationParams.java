@@ -46,7 +46,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.User;
 
 @Getter
 @Builder(toBuilder = true)
@@ -164,8 +163,6 @@ public class TrackedEntityOperationParams {
    * be ordered by while storing the order in a single List of {@link Order}.
    */
   private List<Order> order;
-
-  private User user;
 
   public static class TrackedEntityOperationParamsBuilder {
 

@@ -342,8 +342,8 @@
   "users": [
     {
       "attributeValues": [],
-      "firstName": "admin",
-      "surname": "admin",
+      "firstName": "metadata admin",
+      "surname": "metadata admin",
       "organisationUnits": [
         {
           "id": "SR705r4KVRu"
@@ -352,7 +352,7 @@
       "user": {
         "id": "ZK1wkC59FCw"
       },
-      "username": "admin",
+      "username": "metadataadmin",
       "catDimensionConstraints": [],
       "selfRegistered": false,
       "passwordLastUpdated": "2016-03-10T05:00:11.791+0000",
@@ -412,7 +412,7 @@
         "F_TRACKED_ENTITY_DATAVALUE_DELETE"
       ],
       "dataSets": [],
-      "name": "Superuser",
+      "name": "metadata Superuser",
       "sharing": {
         "public": "--------",
         "external": false,

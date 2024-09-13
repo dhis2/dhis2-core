@@ -27,26 +27,35 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClient.ContentType;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClient.Body;
+import static org.hisp.dhis.test.web.WebClient.ContentType;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.DynamicContainer.dynamicContainer;
+import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
-import org.hisp.dhis.webapi.json.domain.JsonGenerator;
-import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
-import org.hisp.dhis.webapi.json.domain.JsonSchema;
-import org.junit.jupiter.api.Test;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonGenerator;
+import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
+import org.hisp.dhis.test.webapi.json.domain.JsonSchema;
+import org.intellij.lang.annotations.Language;
+import org.junit.jupiter.api.DynamicNode;
+import org.junit.jupiter.api.TestFactory;
 import org.springframework.http.MediaType;
 
 /**
@@ -57,7 +66,7 @@ import org.springframework.http.MediaType;
  *
  * @author Jan Bernitt
  */
-class SchemaBasedControllerTest extends DhisControllerIntegrationTest {
+class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
 
   private static final Set<String> IGNORED_SCHEMAS =
       Set.of(
@@ -89,70 +98,132 @@ class SchemaBasedControllerTest extends DhisControllerIntegrationTest {
    */
   private static final Set<String> IGNORED_GIST_ENDPOINTS = Set.of("reportTable", "chart");
 
-  @Test
-  void testCreateAndDeleteSchemaObjects() {
+  private final Map<String, String> createdObjectIds = new ConcurrentHashMap<>();
+
+  @TestFactory
+  Stream<DynamicNode> generateSchemaBasedTests() {
     JsonList<JsonSchema> schemas = GET("/schemas").content().getList("schemas", JsonSchema.class);
     JsonGenerator generator = new JsonGenerator(schemas);
-    int testedSchemas = 0;
+    List<DynamicNode> tests = new ArrayList<>();
     for (JsonSchema schema : schemas) {
       if (!isExcludedFromTest(schema)) {
-        testedSchemas++;
-        Map<String, String> objects = generator.generateObjects(schema);
-        String uid = "";
-        String endpoint = "";
-        // create needed object(s)
-        // last created is the one we want to test for schema
-        // those before might be objects it depends upon that
-        // need to be created first
-        for (Entry<String, String> entry : objects.entrySet()) {
-          endpoint = entry.getKey();
-          uid = assertStatus(HttpStatus.CREATED, POST(endpoint, entry.getValue()));
-        }
-        // run other tests that depend upon having an existing object
-        testWithSchema(schema, uid);
-        // delete the last created object
-        // (the one belonging to the tested schema)
-        assertStatus(HttpStatus.OK, DELETE(endpoint + "/" + uid));
+        tests.add(
+            dynamicContainer(
+                schema.getRelativeApiEndpoint(), generatorTestsForSchema(schema, generator)));
       }
     }
-
-    assertTrue(testedSchemas >= 56, "make sure we actually test schemas");
+    assertTrue(tests.size() > 50, "There should be around 50 schemas");
+    return tests.stream();
   }
 
-  /** Uses the created instance to test the {@code /gist} endpoint list. */
-  private void testWithSchema(JsonSchema schema, String uid) {
-    String endpoint = schema.getRelativeApiEndpoint();
-    if (endpoint != null) {
-      testGistAPI(schema, uid);
-      testCanHaveAttributes(schema, uid);
-    }
+  private List<DynamicNode> generatorTestsForSchema(JsonSchema schema, JsonGenerator generator) {
+    return List.of(
+        dynamicTest("create object", () -> runCreateObject(schema, generator)),
+        dynamicTest("patch object", () -> runPatchObject(schema)),
+        dynamicTest("query object", () -> runQueryObject(schema)),
+        dynamicTest("query object list", () -> runQueryObjectList(schema)),
+        dynamicTest("query object Gist", () -> runQueryObjectGist(schema)),
+        dynamicTest("query object list Gist", () -> runQueryObjectListGist(schema)),
+        dynamicTest("update object attribute value", () -> runUpdateAttributeValue(schema)),
+        dynamicTest("delete object", () -> runDeleteObject(schema)));
   }
 
-  private void testGistAPI(JsonSchema schema, String uid) {
-    if (IGNORED_GIST_ENDPOINTS.contains(schema.getName())) {
-      return;
+  private void runCreateObject(JsonSchema schema, JsonGenerator generator) {
+    Map<String, String> objects = generator.generateObjects(schema);
+    String uid = "";
+    // create needed object(s)
+    // last created is the one we want to test for schema
+    // those before might be objects it depends upon that
+    // need to be created first
+    for (Entry<String, String> entry : objects.entrySet()) {
+      uid = assertStatus(HttpStatus.CREATED, POST(entry.getKey(), entry.getValue()));
     }
     String endpoint = schema.getRelativeApiEndpoint();
+    createdObjectIds.put(endpoint, uid);
+  }
+
+  private void runPatchObject(JsonSchema schema) {
+    String endpoint = schema.getRelativeApiEndpoint();
+    String uid = createdObjectIds.get(endpoint);
+    @Language("json")
+    String json = """
+    [{ "op": "add", "path": "/name", "value": "new_name_patch" }]""";
+    assertStatus(HttpStatus.OK, PATCH(endpoint + "/" + uid, json));
+  }
+
+  private void runDeleteObject(JsonSchema schema) {
+    String endpoint = schema.getRelativeApiEndpoint();
+    String uid = createdObjectIds.get(endpoint);
+    assertStatus(HttpStatus.OK, DELETE(endpoint + "/" + uid));
+  }
+
+  private void runQueryObjectListGist(JsonSchema schema) {
+    String name = schema.getName();
+    assumeFalse(
+        IGNORED_GIST_ENDPOINTS.contains(schema.getName()), name + " ignores Gist API for reasons");
+
+    String endpoint = schema.getRelativeApiEndpoint();
+    String uid = createdObjectIds.get(endpoint);
+
     // test gist list of object for the schema
     JsonObject gist = GET(endpoint + "/gist").content();
     assertTrue(gist.getObject("pager").exists());
     JsonArray list = gist.getArray(schema.getPlural());
     assertFalse(list.isEmpty());
-    // only if there is only one we are sure its the one we created
+    // only if there is only one we are sure it is the one we created
     if (list.size() == 1) {
       assertEquals(uid, list.getObject(0).getString("id").string());
     }
-    // test the single object gist as well
+  }
+
+  private void runQueryObjectGist(JsonSchema schema) {
+    String name = schema.getName();
+    assumeFalse(
+        IGNORED_GIST_ENDPOINTS.contains(schema.getName()), name + " ignores Gist API for reasons");
+
+    String endpoint = schema.getRelativeApiEndpoint();
+    String uid = createdObjectIds.get(endpoint);
+
     JsonObject object = GET(endpoint + "/" + uid + "/gist").content();
     assertTrue(object.exists());
     assertEquals(uid, object.getString("id").string());
   }
 
-  private void testCanHaveAttributes(JsonSchema schema, String uid) {
-    ObjectType type = ObjectType.valueOf(schema.getKlass());
-    if (type == null || type == ObjectType.MAP) {
-      return;
+  private void runQueryObject(JsonSchema schema) {
+    String name = schema.getName();
+    assumeFalse(
+        IGNORED_GIST_ENDPOINTS.contains(schema.getName()), name + " ignores Gist API for reasons");
+
+    String endpoint = schema.getRelativeApiEndpoint();
+    String uid = createdObjectIds.get(endpoint);
+
+    JsonObject object = GET(endpoint + "/" + uid).content();
+    assertTrue(object.exists());
+    assertEquals(uid, object.getString("id").string());
+  }
+
+  private void runQueryObjectList(JsonSchema schema) {
+    String endpoint = schema.getRelativeApiEndpoint();
+    String uid = createdObjectIds.get(endpoint);
+
+    // test list of object for the schema
+    JsonObject gist = GET(endpoint).content();
+    assertTrue(gist.getObject("pager").exists());
+    JsonArray list = gist.getArray(schema.getPlural());
+    assertFalse(list.isEmpty());
+    // only if there is only one we are sure it is the one we created
+    if (list.size() == 1) {
+      assertEquals(uid, list.getObject(0).getString("id").string());
     }
+  }
+
+  private void runUpdateAttributeValue(JsonSchema schema) {
+    ObjectType type = ObjectType.valueOf(schema.getKlass());
+    if (type == null || type == ObjectType.MAP) return;
+
+    String endpoint = schema.getRelativeApiEndpoint();
+    String uid = createdObjectIds.get(endpoint);
+
     String attrId =
         assertStatus(
             HttpStatus.CREATED,
@@ -163,7 +234,7 @@ class SchemaBasedControllerTest extends DhisControllerIntegrationTest {
                     + "', 'valueType':'INTEGER','"
                     + type.getPropertyName()
                     + "':true}"));
-    String endpoint = schema.getRelativeApiEndpoint();
+
     JsonObject object = GET(endpoint + "/" + uid).content();
     assertStatus(
         HttpStatus.OK,
@@ -173,7 +244,7 @@ class SchemaBasedControllerTest extends DhisControllerIntegrationTest {
                 object
                     .getObject("attributeValues")
                     .node()
-                    .replaceWith("[{\"value\":42, \"attribute\":{\"id\":\"" + attrId + "\"}}]")
+                    .replaceWith("[{\"value\":\"42\", \"attribute\":{\"id\":\"" + attrId + "\"}}]")
                     .getDeclaration()),
             ContentType(MediaType.APPLICATION_JSON)));
     assertEquals(

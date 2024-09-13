@@ -32,14 +32,17 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Stian Strandli
  */
-class SystemSettingStoreTest extends TransactionalIntegrationTest {
+@Transactional
+class SystemSettingStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private SystemSettingStore systemSettingStore;
 
@@ -49,8 +52,8 @@ class SystemSettingStoreTest extends TransactionalIntegrationTest {
 
   private SystemSetting settingC;
 
-  @Override
-  public void setUpTest() throws Exception {
+  @BeforeEach
+  void setUp() {
     settingA = new SystemSetting();
     settingA.setName("Setting1");
     settingA.setDisplayValue("Value1");

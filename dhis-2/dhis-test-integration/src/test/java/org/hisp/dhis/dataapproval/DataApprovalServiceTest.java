@@ -54,6 +54,7 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeApprovedException;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -61,16 +62,18 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Jim Grace
  */
-class DataApprovalServiceTest extends IntegrationTestBase {
+class DataApprovalServiceTest extends PostgresIntegrationTestBase {
   private static final String AUTH_APPR_LEVEL = "F_SYSTEM_SETTING";
 
   private static final boolean ACCEPTED = true;
@@ -89,11 +92,13 @@ class DataApprovalServiceTest extends IntegrationTestBase {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
-  @Autowired protected UserService _userService;
-
   @Autowired protected DataSetService dataSetService;
 
   @Autowired private SystemSettingManager systemSettingManager;
+
+  @Autowired private TransactionTemplate transactionTemplate;
+
+  @Autowired private DbmsManager dbmsManager;
 
   // -------------------------------------------------------------------------
   // Supporting data
@@ -268,12 +273,8 @@ class DataApprovalServiceTest extends IntegrationTestBase {
 
   private CategoryOptionGroupSet groupSetEFGH;
 
-  // -------------------------------------------------------------------------
-  // Set up/tear down
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() {
-    userService = _userService;
+  @BeforeEach
+  void setUp() {
     // ---------------------------------------------------------------------
     // Add supporting data
     // ---------------------------------------------------------------------
@@ -438,8 +439,8 @@ class DataApprovalServiceTest extends IntegrationTestBase {
     userService.addUser(userB);
   }
 
-  @Override
-  public void tearDownTest() {
+  @AfterEach
+  void tearDown() {
     DataApprovalPermissionsEvaluator.invalidateCache();
   }
 
@@ -4121,7 +4122,7 @@ class DataApprovalServiceTest extends IntegrationTestBase {
     assertEquals(level1, status.getApprovedLevel());
     assertEquals(organisationUnitA.getUid(), status.getOrganisationUnitUid());
     assertEquals(DataApprovalState.ACCEPTED_HERE, status.getState());
-    assertEquals(false, status.getPermissions().isMayAccept());
+    assertFalse(status.getPermissions().isMayAccept());
     assertEquals(userA.getName(), status.getPermissions().getApprovedBy());
     assertEquals(date, status.getPermissions().getApprovedAt());
   }

@@ -46,7 +46,7 @@ public class RelationshipTypeJoinGenerator {
   static final String RELATIONSHIP_JOIN = " WHERE rty.relationshiptypeid = ${relationshipid}";
 
   /**
-   * Generate a sub query that joins an incoming Event/Enrollment/TEI UID to one or more related
+   * Generate a sub query that joins an incoming Event/Enrollment/TE UID to one or more related
    * entities, based on the selected relationship type
    *
    * @param alias the table alias to use for the main analytics table
@@ -82,11 +82,11 @@ public class RelationshipTypeJoinGenerator {
     String sql = "LEFT JOIN ";
     switch (relationshipEntity) {
       case TRACKED_ENTITY_INSTANCE:
-        return sql + "trackedentity tei on tei.trackedentityid = ri2.trackedentityid";
+        return sql + "trackedentity te on te.trackedentityid = ri2.trackedentityid";
       case PROGRAM_STAGE_INSTANCE:
-        return sql + "event psi on psi.eventid = ri2.eventid";
+        return sql + "event ev on ev.eventid = ri2.eventid";
       case PROGRAM_INSTANCE:
-        return sql + "enrollment pi on pi.enrollmentid = ri2.enrollmentid";
+        return sql + "enrollment en on en.enrollmentid = ri2.enrollmentid";
       default:
         throw new IllegalQueryException(
             new ErrorMessage(ErrorCode.E7227, relationshipEntity.name()));
@@ -110,22 +110,22 @@ public class RelationshipTypeJoinGenerator {
   private static String getTei(String alias) {
     return " "
         + alias
-        + ".tei in (select tei.uid from trackedentity tei"
-        + " LEFT JOIN relationshipitem ri on tei.trackedentityid = ri.trackedentityid ";
+        + ".trackedentity in (select te.uid from trackedentity te"
+        + " LEFT JOIN relationshipitem ri on te.trackedentityid = ri.trackedentityid ";
   }
 
   private static String getEnrollment(String alias) {
     return " "
         + alias
-        + ".pi in (select pi.uid from enrollment pi"
-        + " LEFT JOIN relationshipitem ri on pi.enrollmentid = ri.enrollmentid ";
+        + ".enrollment in (select en.uid from enrollment en"
+        + " LEFT JOIN relationshipitem ri on en.enrollmentid = ri.enrollmentid ";
   }
 
   private static String getEvent(String alias) {
     return " "
         + alias
-        + ".psi in (select psi.uid from event psi"
-        + " LEFT JOIN relationshipitem ri on psi.eventid = ri.eventid ";
+        + ".event in (select ev.uid from event ev"
+        + " LEFT JOIN relationshipitem ri on ev.eventid = ri.eventid ";
   }
 
   private static String addRelationshipWhereClause(
@@ -138,11 +138,11 @@ public class RelationshipTypeJoinGenerator {
 
     switch (relationshipEntity) {
       case TRACKED_ENTITY_INSTANCE:
-        return sql + "tei.uid = ax.tei ";
+        return sql + "te.uid = ax.trackedentity ";
       case PROGRAM_STAGE_INSTANCE:
-        return sql + "psi.uid = ax.psi ";
+        return sql + "ev.uid = ax.event ";
       case PROGRAM_INSTANCE:
-        return sql + "pi.uid = ax.pi ";
+        return sql + "en.uid = ax.enrollment ";
       default:
         throw new IllegalQueryException(
             new ErrorMessage(ErrorCode.E7227, relationshipEntity.name()));

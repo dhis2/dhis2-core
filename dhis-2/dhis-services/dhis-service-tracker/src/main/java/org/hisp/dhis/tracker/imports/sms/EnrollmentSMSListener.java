@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.sms;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -38,6 +39,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -62,14 +64,15 @@ import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -81,14 +84,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Component("org.hisp.dhis.tracker.sms.EnrollmentSMSListener")
 @Transactional
 public class EnrollmentSMSListener extends EventSavingSMSListener {
-  private final TrackedEntityService teService;
+  private final TrackedEntityService trackedEntityService;
 
-  private final org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
   private final EnrollmentService enrollmentService;
 
   private final TrackedEntityAttributeValueService attributeValueService;
 
   private final ProgramStageService programStageService;
+
+  private final SMSEnrollmentService smsEnrollmentService;
 
   public EnrollmentSMSListener(
       IncomingSmsService incomingSmsService,
@@ -102,14 +106,14 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
       DataElementService dataElementService,
       ProgramStageService programStageService,
       EventService eventService,
-      TrackedEntityDataValueChangeLogService dataValueAuditService,
+      EventChangeLogService eventChangeLogService,
       FileResourceService fileResourceService,
       DhisConfigurationProvider config,
       TrackedEntityAttributeValueService attributeValueService,
-      TrackedEntityService teService,
-      org.hisp.dhis.program.EnrollmentService apiEnrollmentService,
+      TrackedEntityService trackedEntityService,
       EnrollmentService enrollmentService,
-      IdentifiableObjectManager identifiableObjectManager) {
+      IdentifiableObjectManager manager,
+      SMSEnrollmentService smsEnrollmentService) {
     super(
         incomingSmsService,
         smsSender,
@@ -120,16 +124,16 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
         organisationUnitService,
         categoryService,
         dataElementService,
-        identifiableObjectManager,
+        manager,
         eventService,
-        dataValueAuditService,
+        eventChangeLogService,
         fileResourceService,
         config);
-    this.teService = teService;
+    this.trackedEntityService = trackedEntityService;
     this.programStageService = programStageService;
-    this.apiEnrollmentService = apiEnrollmentService;
     this.enrollmentService = enrollmentService;
     this.attributeValueService = attributeValueService;
+    this.smsEnrollmentService = smsEnrollmentService;
   }
 
   @Override
@@ -138,7 +142,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     EnrollmentSmsSubmission subm = (EnrollmentSmsSubmission) submission;
 
     Date enrollmentDate = subm.getEnrollmentDate();
-    Date incidentDate = subm.getIncidentDate();
+    Date occurredDate = subm.getIncidentDate();
     Uid teUid = subm.getTrackedEntityInstance();
     Uid progid = subm.getTrackerProgram();
     Uid tetid = subm.getTrackedEntityType();
@@ -163,11 +167,18 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     }
 
     TrackedEntity trackedEntity;
-    boolean teExists = teService.trackedEntityExists(teUid.getUid());
+    boolean teExists = this.manager.exists(TrackedEntity.class, teUid.getUid());
 
     if (teExists) {
       log.info("Tracked entity exists: '{}'. Updating.", teUid);
-      trackedEntity = teService.getTrackedEntity(teUid.getUid());
+      try {
+        trackedEntity =
+            trackedEntityService.getTrackedEntity(
+                teUid.getUid(), null, TrackedEntityParams.FALSE, false);
+      } catch (NotFoundException | ForbiddenException | BadRequestException e) {
+        // TODO(tracker) Find a better error message for these exceptions
+        throw new SMSProcessingException(SmsResponse.UNKNOWN_ERROR);
+      }
     } else {
       log.info("Tracked entity does not exist: '{}'. Creating.", teUid);
       trackedEntity = new TrackedEntity();
@@ -181,19 +192,34 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     if (teExists) {
       updateAttributeValues(attributeValues, trackedEntity.getTrackedEntityAttributeValues());
       trackedEntity.setTrackedEntityAttributeValues(attributeValues);
-      teService.updateTrackedEntity(trackedEntity);
+      this.manager.update(trackedEntity);
     } else {
-      teService.createTrackedEntity(trackedEntity, attributeValues);
+      manager.save(trackedEntity);
+
+      for (TrackedEntityAttributeValue pav : attributeValues) {
+        attributeValueService.addTrackedEntityAttributeValue(pav);
+        trackedEntity.getTrackedEntityAttributeValues().add(pav);
+      }
+
+      manager.update(trackedEntity);
     }
 
-    TrackedEntity te = teService.getTrackedEntity(teUid.getUid());
+    TrackedEntity te;
+    try {
+      te =
+          trackedEntityService.getTrackedEntity(
+              teUid.getUid(), null, TrackedEntityParams.FALSE, false);
+    } catch (NotFoundException | ForbiddenException | BadRequestException e) {
+      // TODO(tracker) Improve this error message
+      throw new SMSProcessingException(SmsResponse.INVALID_TEI.set(trackedEntity.getUid()));
+    }
 
     Enrollment enrollment = null;
     try {
       enrollment =
           enrollmentService.getEnrollment(enrollmentid.getUid(), UserDetails.fromUser(user));
       enrollment.setEnrollmentDate(enrollmentDate);
-      enrollment.setOccurredDate(incidentDate);
+      enrollment.setOccurredDate(occurredDate);
     } catch (ForbiddenException e) {
       throw new SMSProcessingException(SmsResponse.INVALID_ENROLL.set(enrollmentid.getUid()));
     } catch (NotFoundException e) {
@@ -204,8 +230,8 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
 
     if (enrollment == null) {
       enrollment =
-          apiEnrollmentService.enrollTrackedEntity(
-              te, program, enrollmentDate, incidentDate, orgUnit, enrollmentid.getUid());
+          smsEnrollmentService.enrollTrackedEntity(
+              te, program, orgUnit, occurredDate, enrollmentid.getUid());
 
       if (enrollment == null) {
         throw new SMSProcessingException(SmsResponse.ENROLL_FAILED.set(teUid, progid));
@@ -214,7 +240,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
 
     enrollment.setStatus(getCoreEnrollmentStatus(subm.getEnrollmentStatus()));
     enrollment.setGeometry(convertGeoPointToGeometry(subm.getCoordinates()));
-    apiEnrollmentService.updateEnrollment(enrollment);
+    this.manager.update(enrollment);
 
     // We now check if the enrollment has events to process
     List<Object> errorUIDs = new ArrayList<>();
@@ -225,13 +251,13 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     }
     enrollment.setStatus(getCoreEnrollmentStatus(subm.getEnrollmentStatus()));
     enrollment.setGeometry(convertGeoPointToGeometry(subm.getCoordinates()));
-    apiEnrollmentService.updateEnrollment(enrollment);
+    this.manager.update(enrollment);
 
     if (!errorUIDs.isEmpty()) {
       return SmsResponse.WARN_DVERR.setList(errorUIDs);
     }
 
-    if (attributeValues == null || attributeValues.isEmpty()) {
+    if (attributeValues.isEmpty()) {
       // TODO: Is this correct handling?
       return SmsResponse.WARN_AVEMPTY;
     }
@@ -279,7 +305,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
   private Set<TrackedEntityAttributeValue> getSMSAttributeValues(
       EnrollmentSmsSubmission submission, TrackedEntity trackedEntity) {
     if (submission.getValues() == null) {
-      return null;
+      return Collections.emptySet();
     }
     return submission.getValues().stream()
         .map(v -> createTrackedEntityValue(v, trackedEntity))

@@ -40,7 +40,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Lars Helge Overland
  */
 @RequiredArgsConstructor
-@Transactional
 @Service("org.hisp.dhis.minmax.MinMaxDataElementService")
 public class DefaultMinMaxDataElementService implements MinMaxDataElementService {
   private final MinMaxDataElementStore minMaxDataElementStore;
@@ -49,6 +48,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   // MinMaxDataElementService implementation
   // -------------------------------------------------------------------------
 
+  @Transactional
   @Override
   public long addMinMaxDataElement(MinMaxDataElement minMaxDataElement) {
     minMaxDataElementStore.save(minMaxDataElement);
@@ -56,11 +56,13 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
     return minMaxDataElement.getId();
   }
 
+  @Transactional
   @Override
   public void deleteMinMaxDataElement(MinMaxDataElement minMaxDataElement) {
     minMaxDataElementStore.delete(minMaxDataElement);
   }
 
+  @Transactional
   @Override
   public void updateMinMaxDataElement(MinMaxDataElement minMaxDataElement) {
     minMaxDataElementStore.update(minMaxDataElement);
@@ -93,21 +95,25 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
     return minMaxDataElementStore.countMinMaxDataElements(query);
   }
 
+  @Transactional
   @Override
   public void removeMinMaxDataElements(OrganisationUnit organisationUnit) {
     minMaxDataElementStore.delete(organisationUnit);
   }
 
+  @Transactional
   @Override
   public void removeMinMaxDataElements(DataElement dataElement) {
     minMaxDataElementStore.delete(dataElement);
   }
 
+  @Transactional
   @Override
   public void removeMinMaxDataElements(CategoryOptionCombo optionCombo) {
     minMaxDataElementStore.delete(optionCombo);
   }
 
+  @Transactional
   @Override
   public void removeMinMaxDataElements(
       Collection<DataElement> dataElements, OrganisationUnit parent) {

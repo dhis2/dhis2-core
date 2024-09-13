@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -48,8 +49,8 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -58,8 +59,8 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -72,24 +73,23 @@ class OwnershipTest extends TrackerTest {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackerOwnershipManager trackerOwnershipManager;
-  @Autowired protected UserService _userService;
-  private User superUser;
 
   private User nonSuperUser;
 
-  @Override
-  protected void initTest() throws IOException {
-    userService = _userService;
+  @BeforeAll
+  void setUp() throws IOException {
     setUpMetadata("tracker/ownership_metadata.json");
-    superUser = userService.getUser("M5zQapPyTZI");
-    injectSecurityContextUser(superUser);
 
-    nonSuperUser = userService.getUser("Tu9fv8ezgHl");
-    TrackerImportParams params = TrackerImportParams.builder().userId(superUser.getUid()).build();
+    User importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
+
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     assertNoErrors(
         trackerImportService.importTracker(params, fromJson("tracker/ownership_te.json")));
     assertNoErrors(
         trackerImportService.importTracker(params, fromJson("tracker/ownership_enrollment.json")));
+
+    nonSuperUser = userService.getUser("Tu9fv8ezgHl");
   }
 
   @Test
@@ -236,7 +236,7 @@ class OwnershipTest extends TrackerTest {
   }
 
   @Test
-  void testCreateEnrollmentWithoutOwnership() throws IOException {
+  void testCreateEnrollmentWithoutOwnership() throws IOException, ForbiddenException {
     injectSecurityContextUser(userService.getUser(nonSuperUser.getUid()));
     TrackerImportParams params =
         TrackerImportParams.builder().userId(nonSuperUser.getUid()).build();
@@ -247,10 +247,10 @@ class OwnershipTest extends TrackerTest {
     ImportReport updatedReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(updatedReport);
     assertEquals(1, updatedReport.getStats().getDeleted());
-    TrackedEntity te = manager.get(TrackedEntity.class, "IOR1AXXl24H");
+    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, "IOR1AXXl24H");
     OrganisationUnit ou = manager.get(OrganisationUnit.class, "B1nCbRV3qtP");
     Program pgm = manager.get(Program.class, "BFcipDERJnf");
-    trackerOwnershipManager.transferOwnership(te, pgm, ou, true, false);
+    trackerOwnershipManager.transferOwnership(trackedEntity, pgm, ou);
     params.setImportStrategy(TrackerImportStrategy.CREATE);
     trackerObjects.getEnrollments().get(0).setEnrollment(CodeGenerator.generateUid());
     updatedReport = trackerImportService.importTracker(params, trackerObjects);
@@ -274,15 +274,15 @@ class OwnershipTest extends TrackerTest {
   }
 
   @Test
-  void testDeleteEnrollmentWithoutOwnership() throws IOException {
+  void testDeleteEnrollmentWithoutOwnership() throws IOException, ForbiddenException {
     // Change ownership
-    TrackedEntity te = manager.get(TrackedEntity.class, "IOR1AXXl24H");
+    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, "IOR1AXXl24H");
     OrganisationUnit ou = manager.get(OrganisationUnit.class, "B1nCbRV3qtP");
     Program pgm = manager.get(Program.class, "BFcipDERJnf");
     TrackerImportParams params =
         TrackerImportParams.builder().userId(nonSuperUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/ownership_enrollment.json");
-    trackerOwnershipManager.transferOwnership(te, pgm, ou, true, false);
+    trackerOwnershipManager.transferOwnership(trackedEntity, pgm, ou);
     params.setImportStrategy(TrackerImportStrategy.DELETE);
     ImportReport updatedReport = trackerImportService.importTracker(params, trackerObjects);
     assertEquals(1, updatedReport.getStats().getIgnored());
@@ -290,12 +290,12 @@ class OwnershipTest extends TrackerTest {
   }
 
   @Test
-  void testUpdateEnrollmentWithoutOwnership() throws IOException {
+  void testUpdateEnrollmentWithoutOwnership() throws IOException, ForbiddenException {
     // Change ownership
-    TrackedEntity te = manager.get(TrackedEntity.class, "IOR1AXXl24H");
+    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, "IOR1AXXl24H");
     OrganisationUnit ou = manager.get(OrganisationUnit.class, "B1nCbRV3qtP");
     Program pgm = manager.get(Program.class, "BFcipDERJnf");
-    trackerOwnershipManager.transferOwnership(te, pgm, ou, true, false);
+    trackerOwnershipManager.transferOwnership(trackedEntity, pgm, ou);
     TrackerImportParams params =
         TrackerImportParams.builder().userId(nonSuperUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/ownership_enrollment.json");

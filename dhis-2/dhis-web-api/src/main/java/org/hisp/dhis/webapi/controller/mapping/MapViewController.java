@@ -131,7 +131,7 @@ public class MapViewController extends AbstractCrudController<MapView> {
     query.setDefaultOrder();
     query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
 
-    if (options.getOptions().containsKey("query")) {
+    if (objects == null && options.getOptions().containsKey("query")) {
       entityList =
           Lists.newArrayList(manager.filter(getEntityClass(), options.getOptions().get("query")));
     } else {

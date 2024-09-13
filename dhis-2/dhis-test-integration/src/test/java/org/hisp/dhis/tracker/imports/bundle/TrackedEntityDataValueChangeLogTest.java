@@ -39,13 +39,14 @@ import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLogQueryParams;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -65,19 +66,18 @@ public class TrackedEntityDataValueChangeLogTest extends TrackerTest {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private TrackedEntityDataValueChangeLogService dataValueAuditService;
+  @Autowired private EventChangeLogService eventChangeLogService;
 
   private DataElement dataElement;
 
   private Event event;
 
-  @Autowired protected UserService _userService;
-
-  @Override
-  protected void initTest() throws IOException {
-    userService = _userService;
+  @BeforeAll
+  void setUp() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
-    injectAdminUser();
+
+    User importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
   }
 
   @Test
@@ -99,19 +99,19 @@ public class TrackedEntityDataValueChangeLogTest extends TrackerTest {
     assertNotNull(event);
 
     List<TrackedEntityDataValueChangeLog> createdAudit =
-        dataValueAuditService.getTrackedEntityDataValueChangeLogs(
+        eventChangeLogService.getTrackedEntityDataValueChangeLogs(
             new TrackedEntityDataValueChangeLogQueryParams()
                 .setDataElements(List.of(dataElement))
                 .setEvents(List.of(event))
                 .setAuditTypes(List.of(ChangeLogType.CREATE)));
     List<TrackedEntityDataValueChangeLog> updatedAudit =
-        dataValueAuditService.getTrackedEntityDataValueChangeLogs(
+        eventChangeLogService.getTrackedEntityDataValueChangeLogs(
             new TrackedEntityDataValueChangeLogQueryParams()
                 .setDataElements(List.of(dataElement))
                 .setEvents(List.of(event))
                 .setAuditTypes(List.of(ChangeLogType.UPDATE)));
     List<TrackedEntityDataValueChangeLog> deletedAudit =
-        dataValueAuditService.getTrackedEntityDataValueChangeLogs(
+        eventChangeLogService.getTrackedEntityDataValueChangeLogs(
             new TrackedEntityDataValueChangeLogQueryParams()
                 .setDataElements(List.of(dataElement))
                 .setEvents(List.of(event))

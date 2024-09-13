@@ -34,14 +34,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hisp.dhis.DhisConvenienceTest.createCategory;
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryCombo;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
-import static org.hisp.dhis.DhisConvenienceTest.createProgram;
-import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
-import static org.hisp.dhis.DhisConvenienceTest.createProgramTrackedEntityAttribute;
-import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityAttribute;
-import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.db.model.DataType.BIGINT;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
@@ -54,6 +46,14 @@ import static org.hisp.dhis.db.model.Table.STAGING_TABLE_SUFFIX;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.test.TestBase.createCategory;
+import static org.hisp.dhis.test.TestBase.createCategoryCombo;
+import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.createProgramStage;
+import static org.hisp.dhis.test.TestBase.createProgramTrackedEntityAttribute;
+import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
+import static org.hisp.dhis.test.TestBase.getDate;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
@@ -99,12 +99,12 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
-import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
+import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -149,10 +149,10 @@ class JdbcEventAnalyticsTableManagerTest {
 
   private static final String TABLE_PREFIX = "analytics_event_";
 
-  private static final String FROM_CLAUSE = "from event where eventid=psi.eventid";
+  private static final String FROM_CLAUSE = "from event where eventid=ev.eventid";
 
   private static final String DATE_CLAUSE =
-      "CASE WHEN 'SCHEDULE' = psi.status THEN psi.scheduleddate ELSE psi.occurreddate END";
+      "CASE WHEN 'SCHEDULE' = ev.status THEN ev.scheduleddate ELSE ev.occurreddate END";
 
   private static final int OU_NAME_HIERARCHY_COUNT = 1;
 
@@ -288,7 +288,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableType(AnalyticsTableType.EVENT)
         .withName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
         .withMainName(TABLE_PREFIX + program.getUid().toLowerCase())
-        .withColumnSize(56 + OU_NAME_HIERARCHY_COUNT)
+        .withColumnSize(57 + OU_NAME_HIERARCHY_COUNT)
         .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .addColumns(periodColumns)
         .addColumn(
@@ -335,11 +335,10 @@ class JdbcEventAnalyticsTableManagerTest {
     assertThat(
         lastUpdated.getSelectExpression(),
         is(
-            "case when psi.lastupdatedatclient is not null then psi.lastupdatedatclient else psi.lastupdated end"));
+            "case when ev.lastupdatedatclient is not null then ev.lastupdatedatclient else ev.lastupdated end"));
     assertThat(
         created.getSelectExpression(),
-        is(
-            "case when psi.createdatclient is not null then psi.createdatclient else psi.created end"));
+        is("case when ev.createdatclient is not null then ev.createdatclient else ev.created end"));
   }
 
   @Test
@@ -423,7 +422,7 @@ class JdbcEventAnalyticsTableManagerTest {
             + FROM_CLAUSE
             + "  and eventdatavalues #>> '{%s,value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
     String aliasD7 =
-        "(select ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{%s, value}') || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}') from event where eventid=psi.eventid ) as \"%s\"";
+        "(select ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{%s, value}') || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}') from event where eventid=ev.eventid ) as \"%s\"";
     String aliasD5_geo =
         "(select ou.geometry from organisationunit ou where ou.uid = (select eventdatavalues #>> '{"
             + d5.getUid()
@@ -465,7 +464,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .withName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
         .withMainName(TABLE_PREFIX + program.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
-        .withColumnSize(63 + OU_NAME_HIERARCHY_COUNT)
+        .withColumnSize(64 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
         .addColumn(
             d1.getUid(),
@@ -542,7 +541,7 @@ class JdbcEventAnalyticsTableManagerTest {
     String aliasD1 = "(select eventdatavalues #>> '{%s, value}' " + FROM_CLAUSE + " ) as \"%s\"";
     String aliasTea1 =
         "(select %s from organisationunit ou where ou.uid = (select value from "
-            + "trackedentityattributevalue where trackedentityid=pi.trackedentityid and "
+            + "trackedentityattributevalue where trackedentityid=en.trackedentityid and "
             + "trackedentityattributeid=%d)) as \"%s\"";
 
     AnalyticsTableUpdateParams params =
@@ -569,7 +568,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .withName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
         .withMainName(TABLE_PREFIX + program.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
-        .withColumnSize(58 + OU_NAME_HIERARCHY_COUNT)
+        .withColumnSize(59 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
         .addColumn(
             d1.getUid(),
@@ -637,7 +636,7 @@ class JdbcEventAnalyticsTableManagerTest {
             + "(select eventdatavalues #>> '{"
             + d5.getUid()
             + ", value}' from event where "
-            + "eventid=psi.eventid )) as \""
+            + "eventid=ev.eventid )) as \""
             + d5.getUid()
             + "\"";
 
@@ -686,7 +685,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
     String ouQuery =
         "(select ou.%s from organisationunit ou where ou.uid = "
-            + "(select value from trackedentityattributevalue where trackedentityid=pi.trackedentityid and "
+            + "(select value from trackedentityattributevalue where trackedentityid=en.trackedentityid and "
             + "trackedentityattributeid=9999)) as \""
             + tea.getUid()
             + "\"";
@@ -736,9 +735,9 @@ class JdbcEventAnalyticsTableManagerTest {
     verify(jdbcTemplate).execute(sql.capture());
 
     String ouEnrollmentLeftJoin =
-        "left join organisationunit enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid";
+        "left join organisationunit enrollmentou on en.organisationunitid=enrollmentou.organisationunitid";
     String ouRegistrationLeftJoin =
-        "left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid";
+        "left join organisationunit registrationou on te.organisationunitid=registrationou.organisationunitid";
 
     assertThat(sql.getValue(), containsString(ouEnrollmentLeftJoin));
     assertThat(sql.getValue(), containsString(ouRegistrationLeftJoin));
@@ -764,13 +763,13 @@ class JdbcEventAnalyticsTableManagerTest {
             "select temp.supportedyear from (select distinct extract(year from "
                 + DATE_CLAUSE
                 + ") as supportedyear "
-                + "from event psi inner join enrollment pi on psi.enrollmentid = pi.enrollmentid "
-                + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and ("
+                + "from event ev inner join enrollment en on ev.enrollmentid = en.enrollmentid "
+                + "where ev.lastupdated <= '2019-08-01T00:00:00' and en.programid = 0 and ("
                 + DATE_CLAUSE
                 + ") is not null "
                 + "and ("
                 + DATE_CLAUSE
-                + ") > '1000-01-01' and psi.deleted = false ) "
+                + ") > '1000-01-01' and ev.deleted = false ) "
                 + "as temp where temp.supportedyear >= "
                 + startYear
                 + " and temp.supportedyear <= "
@@ -945,15 +944,15 @@ class JdbcEventAnalyticsTableManagerTest {
             "select temp.supportedyear from (select distinct extract(year from "
                 + DATE_CLAUSE
                 + ") as supportedyear "
-                + "from event psi "
-                + "inner join enrollment pi on psi.enrollmentid = pi.enrollmentid "
-                + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 "
+                + "from event ev "
+                + "inner join enrollment en on ev.enrollmentid = en.enrollmentid "
+                + "where ev.lastupdated <= '2019-08-01T00:00:00' and en.programid = 0 "
                 + "and ("
                 + DATE_CLAUSE
                 + ") is not null "
                 + "and ("
                 + DATE_CLAUSE
-                + ") > '1000-01-01' and psi.deleted = false and ("
+                + ") > '1000-01-01' and ev.deleted = false and ("
                 + DATE_CLAUSE
                 + ") >= '2018-01-01') "
                 + "as temp where temp.supportedyear >= "
@@ -981,7 +980,7 @@ class JdbcEventAnalyticsTableManagerTest {
     String ouQuery =
         """
         (select ou.%s from organisationunit ou where ou.uid = \
-        (select value from trackedentityattributevalue where trackedentityid=pi.trackedentityid and \
+        (select value from trackedentityattributevalue where trackedentityid=en.trackedentityid and \
         trackedentityattributeid=9999)) as %s""";
 
     assertThat(sql.getValue(), containsString(String.format(ouQuery, "uid", quote(tea.getUid()))));
@@ -1006,16 +1005,16 @@ class JdbcEventAnalyticsTableManagerTest {
             + "extract(year from "
             + DATE_CLAUSE
             + ") as supportedyear "
-            + "from event psi "
-            + "inner join enrollment pi on psi.enrollmentid = pi.enrollmentid "
-            + "where psi.lastupdated <= '2019-08-01T00:00:00' "
-            + "and pi.programid = "
+            + "from event ev "
+            + "inner join enrollment en on ev.enrollmentid = en.enrollmentid "
+            + "where ev.lastupdated <= '2019-08-01T00:00:00' "
+            + "and en.programid = "
             + program.getId()
             + " and ("
             + DATE_CLAUSE
             + ") is not null and ("
             + DATE_CLAUSE
-            + ") > '1000-01-01' and psi.deleted = false ";
+            + ") > '1000-01-01' and ev.deleted = false ";
 
     if (withExecutionDate) {
       sql += "and (" + DATE_CLAUSE + ") >= '2018-01-01'";

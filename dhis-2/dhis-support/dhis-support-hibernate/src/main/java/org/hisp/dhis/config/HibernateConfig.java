@@ -52,7 +52,6 @@ import org.hisp.dhis.dbms.HibernateDbmsManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.EntityManagerBeanDefinitionRegistrarPostProcessor;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -81,23 +80,18 @@ public class HibernateConfig {
     return new PersistenceExceptionTranslationPostProcessor();
   }
 
-  @Bean("jpaTransactionManager")
-  @DependsOn("entityManagerFactory")
-  public JpaTransactionManager jpaTransactionManager(
-      @Qualifier("entityManagerFactory") EntityManagerFactory emf) {
-    return new JpaTransactionManager(emf);
+  @Bean
+  public JpaTransactionManager jpaTransactionManager(EntityManagerFactory entityManagerFactory) {
+    return new JpaTransactionManager(entityManagerFactory);
   }
 
-  @Bean("transactionTemplate")
-  @DependsOn("jpaTransactionManager")
-  public TransactionTemplate transactionTemplate(
-      @Qualifier("jpaTransactionManager") JpaTransactionManager transactionManager) {
+  @Bean
+  public TransactionTemplate transactionTemplate(JpaTransactionManager transactionManager) {
     return new TransactionTemplate(transactionManager);
   }
 
   @Bean
-  public DefaultHibernateCacheManager cacheManager(
-      @Qualifier("entityManagerFactory") EntityManagerFactory emf) {
+  public DefaultHibernateCacheManager cacheManager(EntityManagerFactory emf) {
     DefaultHibernateCacheManager cacheManager = new DefaultHibernateCacheManager();
     cacheManager.setSessionFactory(emf.unwrap(SessionFactory.class));
 
@@ -121,9 +115,9 @@ public class HibernateConfig {
     return new EntityManagerBeanDefinitionRegistrarPostProcessor();
   }
 
-  @Bean("entityManagerFactory")
+  @Bean
   @DependsOn({"flyway"})
-  public EntityManagerFactory entityManagerFactoryBean(
+  public EntityManagerFactory entityManagerFactory(
       DhisConfigurationProvider dhisConfig, DataSource dataSource) {
     HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
     adapter.setDatabasePlatform(dhisConfig.getProperty(ConfigurationKey.CONNECTION_DIALECT));

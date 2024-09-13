@@ -50,7 +50,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
@@ -235,14 +235,14 @@ class DefaultEventService implements EventService {
 
   @Override
   public List<Event> getEvents(EventOperationParams operationParams)
-      throws BadRequestException, ForbiddenException {
+      throws BadRequestException, ForbiddenException, NotFoundException {
     EventQueryParams queryParams = paramsMapper.map(operationParams);
     return eventStore.getEvents(queryParams);
   }
 
   @Override
   public Page<Event> getEvents(EventOperationParams operationParams, PageParams pageParams)
-      throws BadRequestException, ForbiddenException {
+      throws BadRequestException, ForbiddenException, NotFoundException {
     EventQueryParams queryParams = paramsMapper.map(operationParams);
     return eventStore.getEvents(queryParams, pageParams);
   }

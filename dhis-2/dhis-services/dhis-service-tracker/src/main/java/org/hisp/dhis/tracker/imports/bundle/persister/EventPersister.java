@@ -36,7 +36,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -48,14 +47,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
@@ -74,27 +73,16 @@ public class EventPersister
   private final TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event>
       eventConverter;
 
-  private final TrackedEntityDataValueChangeLogService trackedEntityDataValueAuditService;
+  private final EventChangeLogService eventChangeLogService;
 
   public EventPersister(
       ReservedValueService reservedValueService,
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> eventConverter,
-      TrackedEntityAttributeValueChangeLogService trackedEntityAttributeValueChangeLogService,
-      TrackedEntityDataValueChangeLogService trackedEntityDataValueChangeLogService) {
-    super(reservedValueService, trackedEntityAttributeValueChangeLogService);
+      TrackedEntityChangeLogService trackedEntityChangeLogService,
+      EventChangeLogService eventChangeLogService) {
+    super(reservedValueService, trackedEntityChangeLogService);
     this.eventConverter = eventConverter;
-    this.trackedEntityDataValueAuditService = trackedEntityDataValueChangeLogService;
-  }
-
-  @Override
-  protected void persistNotes(EntityManager entityManager, TrackerPreheat preheat, Event event) {
-    if (!event.getNotes().isEmpty()) {
-      for (Note note : event.getNotes()) {
-        if (Objects.isNull(preheat.getNote(note.getUid()))) {
-          entityManager.persist(note);
-        }
-      }
-    }
+    this.eventChangeLogService = eventChangeLogService;
   }
 
   @Override
@@ -108,20 +96,8 @@ public class EventPersister
   }
 
   @Override
-  protected TrackerNotificationDataBundle handleNotifications(TrackerBundle bundle, Event event) {
-    TrackerPreheat preheat = bundle.getPreheat();
-    List<NotificationTrigger> triggers = new ArrayList<>();
-
-    if (isNew(preheat, event.getUid())) {
-      if (event.isCompleted()) {
-        triggers.add(NotificationTrigger.EVENT_COMPLETION);
-      }
-    } else {
-      Event existingEvent = preheat.getEvent(event.getUid());
-      if (existingEvent.getStatus() != event.getStatus() && event.isCompleted()) {
-        triggers.add(NotificationTrigger.EVENT_COMPLETION);
-      }
-    }
+  protected TrackerNotificationDataBundle handleNotifications(
+      TrackerBundle bundle, Event event, List<NotificationTrigger> triggers) {
 
     return TrackerNotificationDataBundle.builder()
         .klass(Event.class)
@@ -133,6 +109,28 @@ public class EventPersister
         .program(event.getProgramStage().getProgram())
         .triggers(triggers)
         .build();
+  }
+
+  @Override
+  protected List<NotificationTrigger> determineNotificationTriggers(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event entity) {
+    Event persistedEvent = preheat.getEvent(entity.getUid());
+    List<NotificationTrigger> triggers = new ArrayList<>();
+    // If the event is new and has been completed
+    if (persistedEvent == null && entity.getStatus() == EventStatus.COMPLETED) {
+      triggers.add(NotificationTrigger.EVENT_COMPLETION);
+      return triggers;
+    }
+
+    // If the event is existing and its status has changed to completed
+    if (persistedEvent != null
+        && persistedEvent.getStatus() != entity.getStatus()
+        && entity.getStatus() == EventStatus.COMPLETED) {
+      triggers.add(NotificationTrigger.EVENT_COMPLETION);
+      return triggers;
+    }
+
+    return triggers;
   }
 
   @Override
@@ -235,7 +233,7 @@ public class EventPersister
       valueAudit.setProvidedElsewhere(valuesHolder.isProvidedElseWhere());
       valueAudit.setCreated(created);
 
-      trackedEntityDataValueAuditService.addTrackedEntityDataValueChangeLog(valueAudit);
+      eventChangeLogService.addTrackedEntityDataValueChangeLog(valueAudit);
     }
   }
 

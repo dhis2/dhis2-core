@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
@@ -41,13 +40,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -58,12 +56,14 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,7 +76,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Zubair Asghar.
  */
 @ExtendWith(MockitoExtension.class)
-class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest {
+class TrackedEntityRegistrationListenerTest extends TestBase {
   private static final String TE_REGISTRATION_COMMAND = "te";
 
   private static final String ATTRIBUTE_VALUE = "TEST";
@@ -86,8 +86,6 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest {
   private static final String ORIGINATOR = "47400000";
 
   private static final String SUCCESS_MESSAGE = "Command has been processed successfully";
-
-  @Mock private EnrollmentService enrollmentService;
 
   @Mock private CategoryService dataElementCategoryService;
 
@@ -105,17 +103,17 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest {
 
   @Mock private ProgramService programService;
 
+  @Mock private IdentifiableObjectManager manager;
+
+  @Mock private SMSEnrollmentService smsEnrollmentService;
+
+  @Mock private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+
   private TrackedEntityRegistrationSMSListener subject;
-
-  private TrackedEntityType trackedEntityType;
-
-  private TrackedEntity trackedEntity;
 
   private TrackedEntityAttribute trackedEntityAttribute;
 
   private TrackedEntityAttributeValue trackedEntityAttributeValue;
-
-  private ProgramTrackedEntityAttribute programTrackedEntityAttribute;
 
   private Program program;
 
@@ -125,13 +123,11 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest {
 
   private SMSCommand teRegistrationCommand;
 
-  private SMSCode smsCode;
-
   private IncomingSms incomingSms;
 
   private IncomingSms updatedIncomingSms;
 
-  private OutboundMessageResponse response = new OutboundMessageResponse();
+  private final OutboundMessageResponse response = new OutboundMessageResponse();
 
   private String message = "";
 
@@ -147,7 +143,9 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest {
             smsCommandService,
             trackedEntityTypeService,
             trackedEntityService,
-            enrollmentService);
+            smsEnrollmentService,
+            manager,
+            trackedEntityAttributeValueService);
 
     setUpInstances();
 
@@ -173,8 +171,6 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest {
   @Test
   void testTrackedEntityRegistration() {
     // Mock for trackedEntityService
-    when(trackedEntityService.createTrackedEntity(any(), any())).thenReturn(1L);
-    when(trackedEntityService.getTrackedEntity(anyLong())).thenReturn(trackedEntity);
     when(programService.hasOrgUnit(program, organisationUnit)).thenReturn(true);
 
     // Mock for incomingSmsService
@@ -207,7 +203,7 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest {
   }
 
   private void setUpInstances() {
-    trackedEntityType = createTrackedEntityType('T');
+    TrackedEntityType trackedEntityType = createTrackedEntityType('T');
     organisationUnit = createOrganisationUnit('O');
     program = createProgram('P');
 
@@ -215,22 +211,23 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest {
     user.setPhoneNumber(ORIGINATOR);
     user.setOrganisationUnits(Sets.newHashSet(organisationUnit));
 
-    programTrackedEntityAttribute =
+    ProgramTrackedEntityAttribute programTrackedEntityAttribute =
         createProgramTrackedEntityAttribute(program, trackedEntityAttribute);
     trackedEntityAttribute = createTrackedEntityAttribute('A', ValueType.TEXT);
     program.getProgramAttributes().add(programTrackedEntityAttribute);
     program.getOrganisationUnits().add(organisationUnit);
     program.setTrackedEntityType(trackedEntityType);
 
-    trackedEntity = createTrackedEntity(organisationUnit);
+    TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
     trackedEntity.getTrackedEntityAttributeValues().add(trackedEntityAttributeValue);
     trackedEntity.setOrganisationUnit(organisationUnit);
+    trackedEntity.setTrackedEntityType(trackedEntityType);
 
     trackedEntityAttributeValue =
         createTrackedEntityAttributeValue('A', trackedEntity, trackedEntityAttribute);
     trackedEntityAttributeValue.setValue(ATTRIBUTE_VALUE);
 
-    smsCode = new SMSCode();
+    SMSCode smsCode = new SMSCode();
     smsCode.setCode("attr");
     smsCode.setTrackedEntityAttribute(trackedEntityAttribute);
 

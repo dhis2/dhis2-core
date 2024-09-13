@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.utils.JavaToJson.toJson;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.utils.JavaToJson.toJson;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 
 import java.util.List;
 import java.util.Map;
-import org.hisp.dhis.utils.JavaToJson;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.test.utils.JavaToJson;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 
 /**
  * Base class for testing the {@link DatastoreController} providing helpers to set up entries in the
@@ -42,7 +42,7 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
  *
  * @author Jan Bernitt
  */
-abstract class AbstractDatastoreControllerTest extends DhisControllerConvenienceTest {
+abstract class AbstractDatastoreControllerTest extends H2ControllerIntegrationTestBase {
 
   /**
    * Creates a new entry with the given key and value in the given namespace.

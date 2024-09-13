@@ -33,8 +33,8 @@ import static org.hisp.dhis.event.EventStatus.OVERDUE;
 import static org.hisp.dhis.event.EventStatus.SCHEDULE;
 import static org.hisp.dhis.event.EventStatus.SKIPPED;
 import static org.hisp.dhis.event.EventStatus.VISITED;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import java.util.stream.Stream;

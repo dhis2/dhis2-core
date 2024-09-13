@@ -27,15 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClient.Body;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -45,7 +45,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class GistPostgresControllerTest extends DhisControllerIntegrationTest {
+class GistPostgresControllerTest extends PostgresControllerIntegrationTestBase {
   private String orgUnitId;
 
   private User userA;
@@ -59,13 +59,12 @@ class GistPostgresControllerTest extends DhisControllerIntegrationTest {
     String userGroupId =
         assertStatus(
             HttpStatus.CREATED,
-            POST(
-                "/userGroups/", "{'name':'groupX', 'users':[{'id':'" + getSuperuserUid() + "'}]}"));
+            POST("/userGroups/", "{'name':'groupX', 'users':[{'id':'" + getAdminUid() + "'}]}"));
     assertStatus(
         HttpStatus.OK,
         PATCH(
             "/users/{id}?importReportMode=ERRORS",
-            getSuperuserUid(),
+            getAdminUid(),
             Body("[{'op': 'add', 'path': '/birthday', 'value': '1980-12-12'}]")));
     orgUnitId =
         assertStatus(
@@ -86,11 +85,11 @@ class GistPostgresControllerTest extends DhisControllerIntegrationTest {
   @Test
   void testTransform_Pluck_Multi() {
     JsonObject gist =
-        GET("/users/{uid}/userGroups/gist?fields=name,users::pluck(id,surname)", getSuperuserUid())
+        GET("/users/{uid}/userGroups/gist?fields=name,users::pluck(id,surname)", getAdminUid())
             .content();
     JsonArray users = gist.getArray("userGroups").getObject(0).getArray("users");
     JsonObject user0 = users.getObject(0);
     assertEquals("Surnameadmin", user0.getString("surname").string());
-    assertEquals(getSuperuserUid(), user0.getString("id").string());
+    assertEquals(getAdminUid(), user0.getString("id").string());
   }
 }

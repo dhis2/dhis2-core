@@ -36,12 +36,12 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
@@ -63,7 +63,7 @@ import org.mockito.quality.Strictness;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class AssignAttributeExecutorTest extends DhisConvenienceTest {
+class AssignAttributeExecutorTest extends TestBase {
 
   private static final String TRACKED_ENTITY_ID = "TrackedEntityUid";
 

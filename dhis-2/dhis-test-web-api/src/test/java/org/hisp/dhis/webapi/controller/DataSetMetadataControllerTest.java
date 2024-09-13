@@ -32,9 +32,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.stream.Stream;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.web.WebClient;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.web.WebClient;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -44,7 +44,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 /**
  * @author david mackessy
  */
-class DataSetMetadataControllerTest extends DhisControllerIntegrationTest {
+class DataSetMetadataControllerTest extends PostgresControllerIntegrationTestBase {
 
   @ParameterizedTest
   @MethodSource("defaultCatComboData")

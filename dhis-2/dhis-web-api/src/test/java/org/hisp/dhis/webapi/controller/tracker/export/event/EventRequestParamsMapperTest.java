@@ -29,10 +29,11 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.utils.Assertions.assertContains;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams.FALSE;
 import static org.hisp.dhis.webapi.controller.tracker.export.FieldsParamMapper.FIELD_RELATIONSHIPS;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -55,6 +56,8 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -68,11 +71,10 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
-import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -128,10 +130,10 @@ class EventRequestParamsMapperTest {
   private OrganisationUnit orgUnit;
 
   @BeforeEach
-  public void setUp() {
+  public void setUp() throws ForbiddenException, NotFoundException, BadRequestException {
     User user = new User();
 
-    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+    when(userService.getUserByUsername(null)).thenReturn(user);
 
     program = new Program();
     program.setUid(PROGRAM_UID);
@@ -148,7 +150,8 @@ class EventRequestParamsMapperTest {
     when(organisationUnitService.isInUserHierarchy(user, orgUnit)).thenReturn(true);
 
     TrackedEntity trackedEntity = new TrackedEntity();
-    when(trackedEntityService.getTrackedEntity("qnR1RK4cTIZ")).thenReturn(trackedEntity);
+    when(trackedEntityService.getTrackedEntity("qnR1RK4cTIZ", null, FALSE, false))
+        .thenReturn(trackedEntity);
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
     tea1.setUid(TEA_1_UID);
     TrackedEntityAttribute tea2 = new TrackedEntityAttribute();

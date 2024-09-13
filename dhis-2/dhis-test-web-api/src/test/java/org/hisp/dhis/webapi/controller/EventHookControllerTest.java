@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClient.Body;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -38,8 +38,8 @@ import org.hisp.dhis.common.auth.HttpBasicAuth;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -47,7 +47,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Morten Olav Hansen
  */
-class EventHookControllerTest extends DhisControllerIntegrationTest {
+class EventHookControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void testGetEventHooks() {
     JsonObject eventHooks = GET("/eventHooks").content(HttpStatus.OK);

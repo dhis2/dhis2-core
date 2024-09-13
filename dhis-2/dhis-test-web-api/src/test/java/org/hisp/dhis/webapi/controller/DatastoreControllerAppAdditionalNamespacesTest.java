@@ -27,15 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +47,7 @@ import org.springframework.core.io.ClassPathResource;
  *
  * @author Jan Bernitt
  */
-class DatastoreControllerAppAdditionalNamespacesTest extends DhisControllerConvenienceTest {
+class DatastoreControllerAppAdditionalNamespacesTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private AppManager appManager;
 
@@ -55,9 +55,11 @@ class DatastoreControllerAppAdditionalNamespacesTest extends DhisControllerConve
   void setUp() throws IOException {
     assertEquals(
         AppStatus.OK,
-        appManager.installApp(
-            new ClassPathResource("app/test-app-with-additional-ns.zip").getFile(),
-            "test-app-with-additional-ns.zip"));
+        appManager
+            .installApp(
+                new ClassPathResource("app/test-app-with-additional-ns.zip").getFile(),
+                "test-app-with-additional-ns.zip")
+            .getAppState());
   }
 
   @Test

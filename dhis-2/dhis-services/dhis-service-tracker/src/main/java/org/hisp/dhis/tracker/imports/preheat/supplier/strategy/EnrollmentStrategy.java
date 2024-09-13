@@ -27,35 +27,59 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.supplier.strategy;
 
+import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
+import javax.persistence.EntityManager;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.EnrollmentMapper;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DetachUtils;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
-@RequiredArgsConstructor
 @Component
 @StrategyFor(
     value = org.hisp.dhis.tracker.imports.domain.Enrollment.class,
     mapper = EnrollmentMapper.class)
-public class EnrollmentStrategy implements ClassBasedSupplierStrategy {
-  @Nonnull private final EnrollmentStore enrollmentStore;
+public class EnrollmentStrategy extends HibernateGenericStore<Enrollment>
+    implements ClassBasedSupplierStrategy {
+
+  public EnrollmentStrategy(
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, Enrollment.class, false);
+  }
 
   @Override
   public void add(List<List<String>> splitList, TrackerPreheat preheat) {
     for (List<String> ids : splitList) {
-      List<Enrollment> enrollments = enrollmentStore.getIncludingDeleted(ids);
+      List<Enrollment> enrollments = getIncludingDeleted(ids);
 
       preheat.putEnrollments(
           DetachUtils.detach(
               this.getClass().getAnnotation(StrategyFor.class).mapper(), enrollments));
     }
+  }
+
+  private List<Enrollment> getIncludingDeleted(List<String> uids) {
+    List<Enrollment> enrollments = new ArrayList<>();
+    List<List<String>> uidsPartitions = Lists.partition(uids, 20000);
+
+    for (List<String> uidsPartition : uidsPartitions) {
+      if (!uidsPartition.isEmpty()) {
+        enrollments.addAll(
+            getSession()
+                .createQuery("from Enrollment as e where e.uid in (:uids)", Enrollment.class)
+                .setParameter("uids", uidsPartition)
+                .list());
+      }
+    }
+
+    return enrollments;
   }
 }

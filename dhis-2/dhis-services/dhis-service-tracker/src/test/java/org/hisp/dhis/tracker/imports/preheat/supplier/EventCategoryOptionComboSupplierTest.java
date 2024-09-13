@@ -41,7 +41,6 @@ import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -50,6 +49,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -59,7 +59,7 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest {
+class EventCategoryOptionComboSupplierTest extends TestBase {
 
   private TrackerPreheat preheat;
 

@@ -222,4 +222,8 @@ public class JCloudsStore {
   public BlobRequestSigner getBlobRequestSigner() {
     return blobStoreContext.getSigner();
   }
+
+  public boolean isUsingFileSystem() {
+    return JCLOUDS_PROVIDER_KEY_FILESYSTEM.equals(fileStoreConfig.provider());
+  }
 }

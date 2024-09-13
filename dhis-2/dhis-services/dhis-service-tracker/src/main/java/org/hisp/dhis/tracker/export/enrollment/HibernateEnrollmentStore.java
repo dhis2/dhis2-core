@@ -41,6 +41,7 @@ import java.util.function.Function;
 import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
@@ -54,6 +55,7 @@ import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
@@ -91,15 +93,6 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
     super(entityManager, jdbcTemplate, publisher, Enrollment.class, aclService, true);
   }
 
-  @Override
-  public long countEnrollments(EnrollmentQueryParams params) {
-    String hql = buildCountEnrollmentHql(params);
-
-    Query<Long> query = getTypedQuery(hql);
-
-    return query.getSingleResult().longValue();
-  }
-
   private String buildCountEnrollmentHql(EnrollmentQueryParams params) {
     return buildEnrollmentHql(params)
         .getQuery()
@@ -125,6 +118,14 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
 
     LongSupplier enrollmentCount = () -> countEnrollments(params);
     return getPage(pageParams, query.list(), enrollmentCount);
+  }
+
+  private long countEnrollments(EnrollmentQueryParams params) {
+    String hql = buildCountEnrollmentHql(params);
+
+    Query<Long> query = getTypedQuery(hql);
+
+    return query.getSingleResult().longValue();
   }
 
   private Page<Enrollment> getPage(
@@ -305,5 +306,11 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
   @Override
   public Set<String> getOrderableFields() {
     return ORDERABLE_FIELDS;
+  }
+
+  @Override
+  public void delete(@Nonnull Enrollment enrollment) {
+    enrollment.setStatus(EnrollmentStatus.CANCELLED);
+    super.delete(enrollment);
   }
 }

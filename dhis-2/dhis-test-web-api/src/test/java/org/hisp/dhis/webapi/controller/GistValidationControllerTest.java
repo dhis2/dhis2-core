@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.test.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -73,7 +73,7 @@ class GistValidationControllerTest extends AbstractGistControllerTest {
 
   @Test
   void testValidation_Filter_CanRead_NotAuthorized() {
-    String uid = getSuperuserUid();
+    String uid = getAdminUid();
     switchToGuestUser();
     assertEquals(
         "Filtering by user access in filter `surname:canread:[M5zQapPyTZI]` requires permissions to manage the user M5zQapPyTZI.",
@@ -84,10 +84,10 @@ class GistValidationControllerTest extends AbstractGistControllerTest {
 
   @Test
   void testValidation_Filter_CanAccessMissingPattern() {
-    switchToSuperuser();
+    switchToAdminUser();
     assertEquals(
         "Filter `surname:canaccess:["
-            + getSuperuserUid()
+            + getAdminUid()
             + "]` requires a user ID and an access pattern argument.",
         GET("/users/gist?filter=username:like:admin&filter=surname:canAccess")
             .error(HttpStatus.BAD_REQUEST)
@@ -139,9 +139,9 @@ class GistValidationControllerTest extends AbstractGistControllerTest {
   void testValidation_Access_UserPublicFields() {
     switchToGuestUser();
     JsonObject userLookup =
-        GET("/users/{id}/gist?fields=id,code,surname,firstName", getSuperuserUid()).content();
+        GET("/users/{id}/gist?fields=id,code,surname,firstName", getAdminUid()).content();
     assertTrue(userLookup.has("id", "code", "surname", "firstName"));
-    assertEquals(getSuperuserUid(), userLookup.getString("id").string());
+    assertEquals(getAdminUid(), userLookup.getString("id").string());
     assertEquals("Codeadmin", userLookup.getString("code").string());
     assertEquals("Surnameadmin", userLookup.getString("surname").string());
     assertEquals("FirstNameadmin", userLookup.getString("firstName").string());
@@ -153,16 +153,16 @@ class GistValidationControllerTest extends AbstractGistControllerTest {
     String url = "/users/{id}/gist?fields=id,email";
     assertEquals(
         "Field `email` is not readable as user is not allowed to view objects of type User.",
-        GET(url, getSuperuserUid()).error(HttpStatus.FORBIDDEN).getMessage());
-    switchToSuperuser();
-    assertStatus(HttpStatus.OK, GET(url, getSuperuserUid()));
+        GET(url, getAdminUid()).error(HttpStatus.FORBIDDEN).getMessage());
+    switchToAdminUser();
+    assertStatus(HttpStatus.OK, GET(url, getAdminUid()));
   }
 
   @Test
   void testValidation_Access_UserPublicFields2() {
     switchToGuestUser();
     assertEquals(
-        "admin", GET("/users/{id}/gist?fields=username", getSuperuserUid()).content().string());
+        "admin", GET("/users/{id}/gist?fields=username", getAdminUid()).content().string());
   }
 
   @Test
@@ -171,9 +171,9 @@ class GistValidationControllerTest extends AbstractGistControllerTest {
     String url = "/users/{id}/gist?fields=email,disabled";
     assertEquals(
         "Field `email` is not readable as user is not allowed to view objects of type User.",
-        GET(url, getSuperuserUid()).error(HttpStatus.FORBIDDEN).getMessage());
-    switchToSuperuser();
-    assertStatus(HttpStatus.OK, GET(url, getSuperuserUid()));
+        GET(url, getAdminUid()).error(HttpStatus.FORBIDDEN).getMessage());
+    switchToAdminUser();
+    assertStatus(HttpStatus.OK, GET(url, getAdminUid()));
   }
 
   @Test
@@ -192,7 +192,7 @@ class GistValidationControllerTest extends AbstractGistControllerTest {
     assertEquals(
         "User not allowed to view UserGroup " + userGroupId,
         GET("/userGroups/{id}/users/gist", userGroupId).error(HttpStatus.FORBIDDEN).getMessage());
-    switchToSuperuser();
+    switchToAdminUser();
     assertStatus(HttpStatus.OK, GET("/userGroups/{id}/users/gist", userGroupId));
   }
 }

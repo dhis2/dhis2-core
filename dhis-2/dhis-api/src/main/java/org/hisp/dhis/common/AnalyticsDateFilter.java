@@ -43,6 +43,10 @@ import org.hisp.dhis.analytics.common.CommonRequestParams;
 @Getter
 @RequiredArgsConstructor
 public enum AnalyticsDateFilter {
+  /**
+   * @deprecated use {@link #OCCURRED_DATE} instead. Kept for backward compatibility.
+   */
+  @Deprecated(since = "2.42")
   EVENT_DATE(
       TimeField.EVENT_DATE,
       EventsAnalyticsQueryCriteria::getEventDate,
@@ -58,11 +62,23 @@ public enum AnalyticsDateFilter {
       EventsAnalyticsQueryCriteria::getScheduledDate,
       null,
       CommonRequestParams::getScheduledDate),
+  /**
+   * @deprecated use {@link #OCCURRED_DATE} instead. Kept for backward compatibility.
+   */
+  @Deprecated(since = "2.42")
   INCIDENT_DATE(
       TimeField.INCIDENT_DATE,
+      // Events
       EventsAnalyticsQueryCriteria::getIncidentDate,
+      // Enrollments
       EnrollmentAnalyticsQueryCriteria::getIncidentDate,
+      // TEs
       CommonRequestParams::getIncidentDate),
+  OCCURRED_DATE(
+      TimeField.OCCURRED_DATE,
+      EventsAnalyticsQueryCriteria::getOccurredDate,
+      EnrollmentAnalyticsQueryCriteria::getOccurredDate,
+      CommonRequestParams::getOccurredDate),
   LAST_UPDATED(
       TimeField.LAST_UPDATED,
       EventsAnalyticsQueryCriteria::getLastUpdated,
@@ -76,7 +92,7 @@ public enum AnalyticsDateFilter {
 
   private final Function<EnrollmentAnalyticsQueryCriteria, String> enrollmentExtractor;
 
-  private final Function<CommonRequestParams, Set<String>> teiExtractor;
+  private final Function<CommonRequestParams, Set<String>> trackedEntityExtractor;
 
   public static Optional<AnalyticsDateFilter> of(String dateField) {
     return Arrays.stream(values())
@@ -90,9 +106,5 @@ public enum AnalyticsDateFilter {
 
   public boolean appliesToEvents() {
     return eventExtractor != null;
-  }
-
-  public boolean appliesToTei() {
-    return teiExtractor != null;
   }
 }

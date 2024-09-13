@@ -27,13 +27,12 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.attributeValue;
 import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.attributeValues;
 import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.setIdSchemeFields;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.Set;
+import java.util.Map;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.junit.jupiter.api.Test;
@@ -58,7 +57,8 @@ class EnrollmentMapperTest {
     assertEquals("WTTYiPQDqh1", mapped.getProgram().getUid());
     assertEquals("friendship", mapped.getProgram().getName());
     assertEquals("red", mapped.getProgram().getCode());
-    assertContainsOnly(
-        Set.of(attributeValue("m0GpPuMUfFW", "yellow")), mapped.getProgram().getAttributeValues());
+    assertEquals(
+        AttributeValues.of(Map.of("m0GpPuMUfFW", "yellow")),
+        mapped.getProgram().getAttributeValues());
   }
 }

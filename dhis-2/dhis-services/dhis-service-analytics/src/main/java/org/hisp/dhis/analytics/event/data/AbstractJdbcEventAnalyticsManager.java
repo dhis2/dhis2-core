@@ -402,7 +402,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         String aliasForExists = columnAndAlias.alias + ".exists";
         columns.add((new ColumnAndAlias(columnForExists, aliasForExists)).asSql());
         String columnForStatus =
-            replaceStringBetween(columnAndAlias.column, "select", "from", " psistatus ");
+            replaceStringBetween(columnAndAlias.column, "select", "from", " eventstatus ");
         String aliasForStatus = columnAndAlias.alias + ".status";
         columns.add((new ColumnAndAlias(columnForStatus, aliasForStatus)).asSql());
       }
@@ -733,23 +733,23 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (params.hasEnrollmentProgramIndicatorDimension()) {
         if (EventOutputType.TRACKED_ENTITY_INSTANCE.equals(outputType)
             && params.isProgramRegistration()) {
-          return "count(distinct tei)";
-        } else // EVENT
+          return "count(distinct trackedentity)";
+        } else // ENROLLMENT
         {
-          return "count(pi)";
+          return "count(enrollment)";
         }
       } else {
         if (EventOutputType.TRACKED_ENTITY_INSTANCE.equals(outputType)
             && params.isProgramRegistration()) {
-          return "count(distinct " + quoteAlias("tei") + ")";
+          return "count(distinct " + quoteAlias("trackedentity") + ")";
         } else if (EventOutputType.ENROLLMENT.equals(outputType)) {
           if (params.hasEnrollmentProgramIndicatorDimension()) {
-            return "count(" + quoteAlias("pi") + ")";
+            return "count(" + quoteAlias("enrollment") + ")";
           }
-          return "count(distinct " + quoteAlias("pi") + ")";
+          return "count(distinct " + quoteAlias("enrollment") + ")";
         } else // EVENT
         {
-          return "count(" + quoteAlias("psi") + ")";
+          return "count(" + quoteAlias("event") + ")";
         }
       }
     }
@@ -1008,7 +1008,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     sql =
         "select count("
             + OUTER_SQL_ALIAS
-            + ".pi) as "
+            + ".enrollment) as "
             + COL_VALUE
             + ", "
             + columns

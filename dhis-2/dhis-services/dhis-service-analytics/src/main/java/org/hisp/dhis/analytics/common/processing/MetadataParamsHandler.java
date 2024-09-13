@@ -56,8 +56,8 @@ import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
-import org.hisp.dhis.analytics.tei.TeiRequestParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.MetadataItem;
@@ -90,7 +90,7 @@ public class MetadataParamsHandler {
    */
   public void handle(
       Grid grid,
-      ContextParams<TeiRequestParams, TeiQueryParams> contextParams,
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams,
       User user,
       long rowsCount) {
     CommonRequestParams commonRequest = contextParams.getCommonRaw();
@@ -148,8 +148,8 @@ public class MetadataParamsHandler {
 
   /**
    * Adds an extra entry to metadata items if needed, i.e. if the dimension identifier is a date
-   * dimension which supports custom labels (enrollmentdate, incidentdate, executiondate) and for
-   * any specified dimension identifier that has a prefix.
+   * dimension which supports custom labels (enrollmentdate, occurreddate) and for any specified
+   * dimension identifier that has a prefix.
    *
    * @param dimId the dimension identifier
    * @param items the metadata items
@@ -175,7 +175,7 @@ public class MetadataParamsHandler {
 
   /**
    * Returns the custom label for the given static dimension identifier. Dimension identifier is
-   * dimension which supports custom labels (enrollmentdate, incidentdate, executiondate, ouname)
+   * dimension which supports custom labels (enrollmentdate, occurreddate, ouname)
    *
    * @param dimensionIdentifier the dimension identifier
    * @return the custom label

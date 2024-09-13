@@ -32,9 +32,6 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.DhisConvenienceTest.createProgram;
-import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
-import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
@@ -43,6 +40,9 @@ import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.createProgramIndicator;
+import static org.hisp.dhis.test.TestBase.getDate;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -72,11 +72,11 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -112,11 +112,11 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   @Captor private ArgumentCaptor<String> sql;
 
   private String DEFAULT_COLUMNS =
-      "pi,tei,enrollmentdate,incidentdate,storedby,"
+      "enrollment,trackedentity,enrollmentdate,occurreddate,storedby,"
           + "createdbydisplayname"
           + ","
           + "lastupdatedbydisplayname"
-          + ",lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus";
+          + ",lastupdated,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus";
 
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
@@ -214,9 +214,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid()
             + " where analytics_event_"
             + programA.getUid()
-            + ".psistatus != 'SCHEDULE' and analytics_event_"
+            + ".eventstatus != 'SCHEDULE' and analytics_event_"
             + programA.getUid()
-            + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + ".enrollment = ax.enrollment and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
             + "' order by occurreddate desc, created desc  limit 1 )";
 
@@ -250,7 +250,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     String dataElementUid = dataElementA.getUid();
 
     String expected =
-        "select pi,tei,enrollmentdate,incidentdate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,"
+        "select enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,"
             + "ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"quarterly\",ax.\"ou\","
             + "(select \""
             + dataElementUid
@@ -258,9 +258,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programUid
             + " where analytics_event_"
             + programUid
-            + ".psistatus != 'SCHEDULE' and analytics_event_"
+            + ".eventstatus != 'SCHEDULE' and analytics_event_"
             + programUid
-            + ".pi = ax.pi and ps = '"
+            + ".enrollment = ax.enrollment and ps = '"
             + repeatableProgramStage.getUid()
             + "' order by occurreddate desc, created desc offset 1 limit 1 ) "
             + "as \""
@@ -274,9 +274,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programUid
             + " where analytics_event_"
             + programUid
-            + ".psistatus != 'SCHEDULE' and analytics_event_"
+            + ".eventstatus != 'SCHEDULE' and analytics_event_"
             + programUid
-            + ".pi = ax.pi and ps = '"
+            + ".enrollment = ax.enrollment and ps = '"
             + programStageUid
             + "' order by occurreddate desc, created desc offset 1 limit 1 )) "
             + "as \""
@@ -284,14 +284,14 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + "[-1]."
             + dataElementUid
             + ".exists\""
-            + ",(select psistatus "
+            + ",(select eventstatus "
             + "from analytics_event_"
             + programUid
             + " where analytics_event_"
             + programUid
-            + ".psistatus != 'SCHEDULE' and analytics_event_"
+            + ".eventstatus != 'SCHEDULE' and analytics_event_"
             + programUid
-            + ".pi = ax.pi and ps = '"
+            + ".enrollment = ax.enrollment and ps = '"
             + programStageUid
             + "' order by occurreddate desc, created desc offset 1 limit 1 ) "
             + "as \""
@@ -322,9 +322,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid()
             + " where analytics_event_"
             + programA.getUid()
-            + ".psistatus != 'SCHEDULE' and analytics_event_"
+            + ".eventstatus != 'SCHEDULE' and analytics_event_"
             + programA.getUid()
-            + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + ".enrollment = ax.enrollment and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
             + "' order by occurreddate desc, created desc  limit 1 )";
 
@@ -398,9 +398,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid()
             + " where analytics_event_"
             + programA.getUid()
-            + ".psistatus != 'SCHEDULE' and analytics_event_"
+            + ".eventstatus != 'SCHEDULE' and analytics_event_"
             + programA.getUid()
-            + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + ".enrollment = ax.enrollment and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
             + "' order by occurreddate desc, created desc  limit 1 )";
 
@@ -427,9 +427,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid()
             + " where analytics_event_"
             + programA.getUid()
-            + ".psistatus != 'SCHEDULE' and analytics_event_"
+            + ".eventstatus != 'SCHEDULE' and analytics_event_"
             + programA.getUid()
-            + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + ".enrollment = ax.enrollment and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
             + "' order by occurreddate desc, created desc  limit 1 )";
 
@@ -448,9 +448,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid()
             + " where analytics_event_"
             + programA.getUid()
-            + ".psistatus != 'SCHEDULE' and analytics_event_"
+            + ".eventstatus != 'SCHEDULE' and analytics_event_"
             + programA.getUid()
-            + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + ".enrollment = ax.enrollment and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
             + "' order by occurreddate desc, created desc  limit 1 )";
 
@@ -468,9 +468,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid()
             + " where analytics_event_"
             + programA.getUid()
-            + ".psistatus != 'SCHEDULE' and analytics_event_"
+            + ".eventstatus != 'SCHEDULE' and analytics_event_"
             + programA.getUid()
-            + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + ".enrollment = ax.enrollment and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
             + "' order by occurreddate desc, created desc  limit 1 )";
 
@@ -498,9 +498,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid()
             + " where analytics_event_"
             + programA.getUid()
-            + ".psistatus != 'SCHEDULE' and analytics_event_"
+            + ".eventstatus != 'SCHEDULE' and analytics_event_"
             + programA.getUid()
-            + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + ".enrollment = ax.enrollment and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
             + "' order by occurreddate desc, created desc  limit 1 )";
 
@@ -519,9 +519,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid()
             + " where analytics_event_"
             + programA.getUid()
-            + ".psistatus != 'SCHEDULE' and analytics_event_"
+            + ".eventstatus != 'SCHEDULE' and analytics_event_"
             + programA.getUid()
-            + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + ".enrollment = ax.enrollment and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
             + "' order by occurreddate desc, created desc  limit 1 )";
 
@@ -548,11 +548,11 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
-  void verifyWithProgramIndicatorAndRelationshipTypeBothSidesTei() {
+  void verifyWithProgramIndicatorAndRelationshipTypeBothSidesTrackedEntity() {
     Date startDate = getDate(2015, 1, 1);
     Date endDate = getDate(2017, 4, 8);
 
-    String piSubquery = "distinct psi";
+    String piSubquery = "distinct event";
 
     ProgramIndicator programIndicatorA = createProgramIndicator('A', programA, "", "");
 
@@ -577,15 +577,15 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + ") FROM analytics_event_"
             + programA.getUid().toLowerCase()
             + " as subax WHERE  "
-            + "subax.tei in (select tei.uid from trackedentity tei "
-            + "LEFT JOIN relationshipitem ri on tei.trackedentityid = ri.trackedentityid  "
+            + "subax.trackedentity in (select te.uid from trackedentity te "
+            + "LEFT JOIN relationshipitem ri on te.trackedentityid = ri.trackedentityid  "
             + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
             + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
             + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
-            + "LEFT JOIN trackedentity tei on tei.trackedentityid = ri2.trackedentityid "
+            + "LEFT JOIN trackedentity te on te.trackedentityid = ri2.trackedentityid "
             + "WHERE rty.relationshiptypeid = "
             + relationshipTypeA.getId()
-            + " AND tei.uid = ax.tei )) as \""
+            + " AND te.uid = ax.trackedentity )) as \""
             + programIndicatorA.getUid()
             + "\"  "
             + "from analytics_enrollment_"
@@ -600,7 +600,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     Date startDate = getDate(2015, 1, 1);
     Date endDate = getDate(2017, 4, 8);
 
-    String piSubquery = "distinct psi";
+    String piSubquery = "distinct event";
 
     ProgramIndicator programIndicatorA = createProgramIndicator('A', programA, "", "");
 
@@ -626,14 +626,14 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + ") FROM analytics_event_"
             + programA.getUid().toLowerCase()
             + " as subax WHERE "
-            + " subax.tei in (select tei.uid from trackedentity tei LEFT JOIN relationshipitem ri on tei.trackedentityid = ri.trackedentityid  "
+            + " subax.trackedentity in (select te.uid from trackedentity te LEFT JOIN relationshipitem ri on te.trackedentityid = ri.trackedentityid  "
             + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
             + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
             + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
-            + "LEFT JOIN enrollment pi on pi.enrollmentid = ri2.enrollmentid WHERE rty.relationshiptypeid "
+            + "LEFT JOIN enrollment en on en.enrollmentid = ri2.enrollmentid WHERE rty.relationshiptypeid "
             + "= "
             + relationshipTypeA.getId()
-            + " AND pi.uid = ax.pi ))"
+            + " AND en.uid = ax.enrollment ))"
             + " as \""
             + programIndicatorA.getUid()
             + "\"  "
@@ -672,11 +672,11 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
-  void verifyWithProgramIndicatorAndRelationshipTypeBothSidesTei2() {
+  void verifyWithProgramIndicatorAndRelationshipTypeBothSidesTrackedEntity2() {
     Date startDate = getDate(2015, 1, 1);
     Date endDate = getDate(2017, 4, 8);
     Program programB = createProgram('B');
-    String piSubquery = "distinct psi";
+    String piSubquery = "distinct event";
 
     ProgramIndicator programIndicatorA = createProgramIndicator('A', programB, "", "");
 
@@ -701,15 +701,15 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + ") FROM analytics_event_"
             + programB.getUid().toLowerCase()
             + " as subax WHERE  "
-            + "subax.tei in (select tei.uid from trackedentity tei "
-            + "LEFT JOIN relationshipitem ri on tei.trackedentityid = ri.trackedentityid  "
+            + "subax.trackedentity in (select te.uid from trackedentity te "
+            + "LEFT JOIN relationshipitem ri on te.trackedentityid = ri.trackedentityid  "
             + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
             + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
             + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
-            + "LEFT JOIN trackedentity tei on tei.trackedentityid = ri2.trackedentityid "
+            + "LEFT JOIN trackedentity te on te.trackedentityid = ri2.trackedentityid "
             + "WHERE rty.relationshiptypeid = "
             + relationshipTypeA.getId()
-            + " AND tei.uid = ax.tei )) as \""
+            + " AND te.uid = ax.trackedentity )) as \""
             + programIndicatorA.getUid()
             + "\"  "
             + "from analytics_enrollment_"
@@ -751,9 +751,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
                 + programA.getUid()
                 + " where analytics_event_"
                 + programA.getUid()
-                + ".psistatus != 'SCHEDULE' and analytics_event_"
+                + ".eventstatus != 'SCHEDULE' and analytics_event_"
                 + programA.getUid()
-                + ".pi = ax.pi and \""
+                + ".enrollment = ax.enrollment and \""
                 + dataElementA.getUid()
                 + "\" is not null and ps = '"
                 + programStage.getUid()
@@ -783,13 +783,13 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
         is(
             "(select json_agg(t1) from (select \""
                 + dataElementA.getUid()
-                + "\", incidentdate, scheduleddate, occurreddate  from analytics_event_"
+                + "\", enrollmentoccurreddate, scheduleddate, occurreddate from analytics_event_"
                 + programB.getUid()
                 + " where analytics_event_"
                 + programB.getUid()
-                + ".psistatus != 'SCHEDULE' and analytics_event_"
+                + ".eventstatus != 'SCHEDULE' and analytics_event_"
                 + programB.getUid()
-                + ".pi = ax.pi and ps = '"
+                + ".enrollment = ax.enrollment and ps = '"
                 + repeatableProgramStage.getUid()
                 + "' and occurreddate >= '2022-01-01'  and occurreddate <= '2022-01-31' order by occurreddate desc, created desc   LIMIT 100 ) as t1)"));
   }
@@ -819,9 +819,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
                 + programB.getUid()
                 + " where analytics_event_"
                 + programB.getUid()
-                + ".psistatus != 'SCHEDULE' and analytics_event_"
+                + ".eventstatus != 'SCHEDULE' and analytics_event_"
                 + programB.getUid()
-                + ".pi = ax.pi and ps = '"
+                + ".enrollment = ax.enrollment and ps = '"
                 + repeatableProgramStage.getUid()
                 + "' order by occurreddate desc, created desc  limit 1 )"));
   }
@@ -853,9 +853,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
                 + eventTableName
                 + " where "
                 + eventTableName
-                + ".pi = "
+                + ".enrollment = "
                 + ANALYTICS_TBL_ALIAS
-                + ".pi "
+                + ".enrollment "
                 + "and "
                 + colName
                 + " is not null  "
@@ -891,9 +891,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
                 + eventTableName
                 + " where "
                 + eventTableName
-                + ".pi = "
+                + ".enrollment = "
                 + ANALYTICS_TBL_ALIAS
-                + ".pi "
+                + ".enrollment "
                 + "and "
                 + colName
                 + " is not null "

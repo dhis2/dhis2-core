@@ -54,7 +54,6 @@ class StatusUpdateValidator implements Validator<Event> {
       case VISITED, ACTIVE, COMPLETED ->
           EventStatus.STATUSES_WITHOUT_DATA_VALUES.contains(toStatus);
         // An event can transition from a STATUSES_WITHOUT_DATA_VALUES to any status
-        // TODO: Is OVERDUE a read-only status?
       case OVERDUE, SKIPPED, SCHEDULE -> false;
     };
   }

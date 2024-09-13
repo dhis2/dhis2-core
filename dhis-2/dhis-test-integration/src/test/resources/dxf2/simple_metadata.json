@@ -10,14 +10,14 @@
   ],
   "users": [
     {
-      "firstName": "admin",
+      "firstName": "metadata admin",
       "created": "2016-02-17T06:14:12.250+0000",
       "organisationUnits": [
         {
           "id": "PdWlltZnVZe"
         }
       ],
-      "surname": "admin",
+      "surname": "metadata admin",
       "lastLogin": "2016-02-17T06:14:12.274+0000",
       "userRoles": [
         {
@@ -30,7 +30,7 @@
       "cogsDimensionConstraints": [],
       "passwordLastUpdated": "2016-02-17T06:14:12.274+0000",
       "catDimensionConstraints": [],
-      "username": "admin",
+      "username": "metadataadmin",
       "selfRegistered": false,
       "attributeValues": [],
       "dataViewOrganisationUnits": [],
@@ -155,7 +155,7 @@
       ],
       "id": "rKLtmQLRMU8",
       "lastUpdated": "2016-02-17T06:14:12.260+0000",
-      "name": "Superuser",
+      "name": "metadata Superuser",
       "dataSets": [],
       "programs": [],
       "created": "2016-02-17T06:14:12.260+0000",

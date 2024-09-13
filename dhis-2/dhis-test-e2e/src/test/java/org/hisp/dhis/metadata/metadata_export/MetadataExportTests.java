@@ -32,12 +32,12 @@ import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.not;
 
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.UserActions;
-import org.hisp.dhis.actions.metadata.MetadataActions;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.utils.DataGenerator;
+import org.hisp.dhis.test.e2e.Constants;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.UserActions;
+import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 

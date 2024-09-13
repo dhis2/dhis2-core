@@ -71,7 +71,7 @@ public class WebMvcMetricsConfig {
 
   @Configuration
   @Conditional(WebMvcMetricsDisabledCondition.class)
-  static class DataSourcePoolMetadataMetricsConfiguration {
+  static class DataSourcePoolMetadataMetricsConfig {
     @Bean
     public PassThroughWebMvcMetricsFilter webMetricsFilter() {
       return new PassThroughWebMvcMetricsFilter();

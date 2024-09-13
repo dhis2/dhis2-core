@@ -28,10 +28,10 @@
 package org.hisp.dhis.metadata.programs;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.metadata.ProgramActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

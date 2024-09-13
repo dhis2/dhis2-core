@@ -35,11 +35,11 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.Logger;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.ResourceTableActions;
-import org.hisp.dhis.actions.SystemActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.config.TestConfiguration;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.ResourceTableActions;
+import org.hisp.dhis.test.e2e.actions.SystemActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.config.TestConfiguration;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 

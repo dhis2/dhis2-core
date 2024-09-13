@@ -33,19 +33,17 @@ import java.util.HashSet;
 import java.util.Set;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class UserDeletionHandlerTest extends SingleSetupIntegrationTestBase {
-  @Autowired private UserService userService;
-
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class UserDeletionHandlerTest extends PostgresIntegrationTestBase {
   @Autowired private OrganisationUnitService organisationUnitService;
-
-  @Override
-  public void setUpTest() {
-    super.userService = userService;
-  }
 
   @Test
   void testDeleteOrganisationUnitCleanUpOUScope() {

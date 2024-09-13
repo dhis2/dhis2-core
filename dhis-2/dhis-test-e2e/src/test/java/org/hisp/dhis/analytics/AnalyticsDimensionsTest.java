@@ -52,17 +52,17 @@ import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.analytics.AnalyticsEnrollmentsActions;
-import org.hisp.dhis.actions.analytics.AnalyticsEventActions;
-import org.hisp.dhis.actions.analytics.AnalyticsTeiActions;
-import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.metadata.TrackedEntityAttributeActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.Program;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.matchers.CustomMatchers;
 import org.hisp.dhis.helpers.matchers.Sorted;
+import org.hisp.dhis.test.e2e.Constants;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEventActions;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsTrackedEntityActions;
+import org.hisp.dhis.test.e2e.actions.metadata.ProgramActions;
+import org.hisp.dhis.test.e2e.actions.metadata.TrackedEntityAttributeActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.dto.Program;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -82,7 +82,7 @@ public class AnalyticsDimensionsTest extends ApiTest {
 
   private AnalyticsEventActions analyticsEventActions;
 
-  private AnalyticsTeiActions analyticsTeiActions;
+  private AnalyticsTrackedEntityActions analyticsTrackedEntityActions;
 
   private TrackedEntityAttributeActions trackedEntityAttributeActions;
 
@@ -94,7 +94,7 @@ public class AnalyticsDimensionsTest extends ApiTest {
     programActions = new ProgramActions();
     analyticsEnrollmentsActions = new AnalyticsEnrollmentsActions();
     analyticsEventActions = new AnalyticsEventActions();
-    analyticsTeiActions = new AnalyticsTeiActions();
+    analyticsTrackedEntityActions = new AnalyticsTrackedEntityActions();
   }
 
   Stream<Arguments> shouldOrder() {
@@ -130,7 +130,7 @@ public class AnalyticsDimensionsTest extends ApiTest {
         .body("dimensions", hasSize(greaterThanOrEqualTo(1)))
         .body("dimensions." + property, Sorted.by(direction));
 
-    analyticsTeiActions
+    analyticsTrackedEntityActions
         .query()
         .getDimensions(trackerProgram.getTrackedEntityType(), queryParamsBuilder)
         .validate()
@@ -290,7 +290,7 @@ public class AnalyticsDimensionsTest extends ApiTest {
             .distinct()
             .collect(Collectors.toList());
 
-    analyticsTeiActions
+    analyticsTrackedEntityActions
         .query()
         .getDimensions(
             Constants.TRACKED_ENTITY_TYPE,
@@ -314,7 +314,7 @@ public class AnalyticsDimensionsTest extends ApiTest {
 
     Set<String> distinctDataElements = new HashSet<>(dataElements);
 
-    analyticsTeiActions
+    analyticsTrackedEntityActions
         .query()
         .getDimensions(
             Constants.TRACKED_ENTITY_TYPE,
@@ -327,7 +327,7 @@ public class AnalyticsDimensionsTest extends ApiTest {
 
   @Test
   void ProgramIndicatorsShouldHavePrefix() {
-    analyticsTeiActions
+    analyticsTrackedEntityActions
         .query()
         .getDimensions(
             Constants.TRACKED_ENTITY_TYPE,

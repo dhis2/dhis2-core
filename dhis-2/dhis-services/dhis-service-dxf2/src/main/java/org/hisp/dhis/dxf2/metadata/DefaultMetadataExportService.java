@@ -1115,13 +1115,10 @@ public class DefaultMetadataExportService implements MetadataExportService {
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       IdentifiableObject identifiableObject) {
     if (identifiableObject == null) return metadata;
-    identifiableObject
-        .getAttributeValues()
-        .forEach(
-            av ->
-                metadata.putValue(
-                    Attribute.class, attributeService.getAttribute(av.getAttribute().getUid())));
-
+    if (identifiableObject.getAttributeValues().isEmpty()) return metadata;
+    List<Attribute> attributes =
+        attributeService.getAttributesByIds(identifiableObject.getAttributeValues().keys());
+    metadata.putValues(Attribute.class, attributes);
     return metadata;
   }
 

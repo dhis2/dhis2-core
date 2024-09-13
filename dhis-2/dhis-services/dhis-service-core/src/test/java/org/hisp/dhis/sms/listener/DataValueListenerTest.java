@@ -45,7 +45,6 @@ import com.google.common.collect.Sets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.ValueType;
@@ -62,7 +61,6 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.SMSSpecialCharacter;
@@ -72,6 +70,7 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.sms.parse.ParserType;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -86,7 +85,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Zubair Asghar.
  */
 @ExtendWith(MockitoExtension.class)
-class DataValueListenerTest extends DhisConvenienceTest {
+class DataValueListenerTest extends TestBase {
   private static final String FETCHED_DATA_VALUE = "fetchedDataValue";
 
   private static final String STORED_BY = "CGhost";
@@ -113,8 +112,6 @@ class DataValueListenerTest extends DhisConvenienceTest {
   private static final String WRONG_FORMAT = "WRONG_FORMAT";
 
   private static final String MORE_THAN_ONE_OU = "MORE_THAN_ONE_OU";
-
-  @Mock private EnrollmentService enrollmentService;
 
   @Mock private CategoryService dataElementCategoryService;
 

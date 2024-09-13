@@ -309,20 +309,20 @@ public class JCloudsAppStorageService implements AppStorageService {
   public void deleteApp(App app) {
     log.info("Deleting app {}", app.getName());
 
-    // Delete all files related to app
-    // fast but deprecated (works for local filestore):
-    jCloudsStore.deleteDirectory(app.getFolderName());
-
-    // slower but works for S3:
-    // delete the manifest file first in case the system crashes during deletion
-    // and the manifest file is not deleted, resulting in an app that can't be installed
-    jCloudsStore.removeBlob(app.getFolderName() + "/manifest.webapp");
-    // Delete all files related to app
-    ListContainerOptions options = prefix(app.getFolderName()).recursive();
-    for (StorageMetadata resource : jCloudsStore.getBlobList(options)) {
-      log.debug("Deleting app file: {}", resource.getName());
-
-      jCloudsStore.removeBlob(resource.getName());
+    if (jCloudsStore.isUsingFileSystem()) {
+      // Delete all files related to app (works for local filestore):
+      jCloudsStore.deleteDirectory(app.getFolderName());
+    } else {
+      // slower but works for S3:
+      // delete the manifest file first in case the system crashes during deletion
+      // and the manifest file is not deleted, resulting in an app that can't be installed
+      jCloudsStore.removeBlob(app.getFolderName() + "manifest.webapp");
+      // Delete all files related to app
+      ListContainerOptions options = prefix(app.getFolderName()).recursive();
+      for (StorageMetadata resource : jCloudsStore.getBlobList(options)) {
+        log.debug("Deleting app file: {}", resource.getName());
+        jCloudsStore.removeBlob(resource.getName());
+      }
     }
     log.info("Deleted app {}", app.getName());
   }

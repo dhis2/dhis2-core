@@ -34,7 +34,6 @@ import static org.hisp.dhis.tracker.imports.validation.Users.USER_12;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4020;
 
 import java.io.IOException;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.TrackerTest;
@@ -43,26 +42,26 @@ import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class RelationshipSecurityImportValidationTest extends TrackerTest {
 
-  @Autowired protected EnrollmentService enrollmentService;
-
   @Autowired private TrackerImportService trackerImportService;
 
-  @Autowired protected UserService _userService;
-
-  @Override
-  protected void initTest() throws IOException {
-    userService = _userService;
+  @BeforeAll
+  void setUp() throws IOException {
     setUpMetadata("tracker/tracker_basic_metadata.json");
-    injectAdminUser();
+
+    User importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
+
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     assertNoErrors(
         trackerImportService.importTracker(
-            new TrackerImportParams(), fromJson("tracker/validations/te_relationship.json")));
+            params, fromJson("tracker/validations/te_relationship.json")));
     manager.flush();
   }
 

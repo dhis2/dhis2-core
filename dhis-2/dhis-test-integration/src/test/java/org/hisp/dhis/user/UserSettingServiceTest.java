@@ -32,25 +32,29 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Locale;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Kiran Prakash
  */
-class UserSettingServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class UserSettingServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private UserSettingService userSettingService;
 
   @Autowired private SystemSettingManager systemSettingManager;
 
-  @Autowired private UserService userService;
-
   private User userA;
 
-  @Override
-  protected void setUpTest() {
+  @BeforeAll
+  void setUp() {
     userSettingService.invalidateCache();
     userA = makeUser("A");
     userA.setUsername("usernameA");

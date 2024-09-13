@@ -29,6 +29,8 @@ package org.hisp.dhis.tracker.export.relationship;
 
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.relationship.Relationship;
@@ -39,11 +41,11 @@ public interface RelationshipService {
 
   /** Get all relationships matching given params. */
   List<Relationship> getRelationships(RelationshipOperationParams params)
-      throws ForbiddenException, NotFoundException;
+      throws ForbiddenException, NotFoundException, BadRequestException;
 
   /** Get a page of relationships matching given params. */
   Page<Relationship> getRelationships(RelationshipOperationParams params, PageParams pageParams)
-      throws ForbiddenException, NotFoundException;
+      throws ForbiddenException, NotFoundException, BadRequestException;
 
   /**
    * Fields the {@link #getRelationships(RelationshipOperationParams)} can order relationships by.
@@ -53,5 +55,12 @@ public interface RelationshipService {
    */
   Set<String> getOrderableFields();
 
-  Relationship getRelationship(String id) throws ForbiddenException, NotFoundException;
+  Relationship getRelationship(String uid) throws ForbiddenException, NotFoundException;
+
+  /**
+   * Get relationships matching given {@code UID}s under the privileges of the currently
+   * authenticated user.
+   */
+  List<Relationship> getRelationships(@Nonnull List<String> uids)
+      throws ForbiddenException, NotFoundException;
 }

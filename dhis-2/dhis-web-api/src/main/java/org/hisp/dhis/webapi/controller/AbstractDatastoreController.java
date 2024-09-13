@@ -47,6 +47,7 @@ import org.hisp.dhis.datastore.DatastoreQuery;
 import org.hisp.dhis.datastore.DatastoreQuery.Field;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.webapi.JsonWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -71,12 +72,12 @@ public abstract class AbstractDatastoreController {
   @FunctionalInterface
   interface DatastoreQueryExecutor {
     boolean getEntries(DatastoreQuery query, Predicate<Stream<DatastoreFields>> transform)
-        throws ConflictException;
+        throws ConflictException, ForbiddenException;
   }
 
   void writeEntries(
       HttpServletResponse response, DatastoreQuery query, DatastoreQueryExecutor runQuery)
-      throws IOException {
+      throws IOException, ForbiddenException {
     response.setContentType(APPLICATION_JSON_VALUE);
     setNoStore(response);
 

@@ -37,7 +37,7 @@ pipeline {
                     gitHelper.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
 
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
-                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml -P -default --update-snapshots -pl -dhis-test-coverage'
+                        sh 'mvn -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml -P -default --update-snapshots -pl -dhis-test-coverage'
                     }
                 }
             }
@@ -168,9 +168,10 @@ pipeline {
                 FLYWAY_REPAIR_BEFORE_MIGRATION = "true"
                 INSTANCE_TTL = "315360000"
                 STARTUP_PROBE_FAILURE_THRESHOLD = "50"
-                LIVENESS_PROBE_TIMEOUT_SECONDS = "3"
-                READINESS_PROBE_TIMEOUT_SECONDS = "3"
+                LIVENESS_PROBE_TIMEOUT_SECONDS = "5"
+                READINESS_PROBE_TIMEOUT_SECONDS = "5"
                 MIN_READY_SECONDS = "240"
+                CORE_RESOURCES_REQUESTS_MEMORY = "2500Mi"
             }
 
             steps {

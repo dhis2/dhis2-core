@@ -27,42 +27,33 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
 import java.util.List;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
-import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienceTest {
+class ProgramNotificationInstanceControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private ProgramNotificationInstanceService programNotificationInstanceService;
-
-  @Autowired private EnrollmentService enrollmentService;
-
-  @Autowired private TrackedEntityService trackedEntityService;
-
-  @Autowired private IdentifiableObjectManager idObjectManager;
 
   private Enrollment enrollment;
 
@@ -77,16 +68,16 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
   @BeforeEach
   void setUp() {
     OrganisationUnit ouA = createOrganisationUnit('A');
-    idObjectManager.save(ouA);
+    manager.save(ouA);
 
     Program prA = createProgram('A', Sets.newHashSet(), ouA);
-    idObjectManager.save(prA);
+    manager.save(prA);
     ProgramStage psA = createProgramStage('A', prA);
-    idObjectManager.save(psA);
+    manager.save(psA);
     TrackedEntity trackedEntityA = createTrackedEntity('A', ouA);
-    trackedEntityService.addTrackedEntity(trackedEntityA);
+    manager.save(trackedEntityA);
     enrollment = createEnrollment(prA, trackedEntityA, ouA);
-    enrollmentService.addEnrollment(enrollment);
+    manager.save(enrollment);
 
     enrollmentNotification1 = new ProgramNotificationInstance();
     enrollmentNotification1.setName("enrollment A notification 1");

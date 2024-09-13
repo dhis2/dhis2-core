@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
-import org.hisp.dhis.random.BeanRandomizer;
+import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.cache.DefaultPreheatCacheService;

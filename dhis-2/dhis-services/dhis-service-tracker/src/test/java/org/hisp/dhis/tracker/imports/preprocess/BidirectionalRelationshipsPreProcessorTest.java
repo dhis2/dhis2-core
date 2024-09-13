@@ -31,8 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -43,7 +43,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class BidirectionalRelationshipsPreProcessorTest extends DhisConvenienceTest {
+class BidirectionalRelationshipsPreProcessorTest extends TestBase {
 
   private static final String RELATIONSHIP_TYPE_UID = "RELATIONSHIP_TYPE";
 

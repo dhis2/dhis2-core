@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -43,18 +44,18 @@ import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.message.FakeMessageSender;
-import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.test.message.FakeMessageSender;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonUser;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -67,9 +68,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
-class UserAccountControllerTest extends DhisControllerConvenienceTest {
+class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
 
-  @Autowired private MessageSender messageSender;
+  @Autowired private FakeMessageSender messageSender;
   @Autowired private SystemSettingManager systemSettingManager;
   @Autowired private PasswordManager passwordEncoder;
   @Autowired private DhisConfigurationProvider configurationProvider;
@@ -77,11 +78,16 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
   private String superUserRoleUid;
 
   @BeforeEach
-  final void setupHere() throws Exception {
-    ((FakeMessageSender) messageSender).clearMessages();
+  final void setupHere() {
+    messageSender.clearMessages();
     configurationProvider
         .getProperties()
         .put(ConfigurationKey.SERVER_BASE_URL.getKey(), "http://localhost:8080");
+  }
+
+  @AfterEach
+  void afterEach() {
+    messageSender.clearMessages();
   }
 
   @Test
@@ -111,7 +117,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
     systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
     clearSecurityContext();
     sendForgotPasswordRequest("wrong@email.com");
-    assertTrue(((FakeMessageSender) messageSender).getAllMessages().isEmpty());
+    assertTrue(messageSender.getAllMessages().isEmpty());
   }
 
   @Test
@@ -121,7 +127,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
     systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
     clearSecurityContext();
     sendForgotPasswordRequest("wrong");
-    List<OutboundMessage> allMessages = ((FakeMessageSender) messageSender).getAllMessages();
+    List<OutboundMessage> allMessages = messageSender.getAllMessages();
     assertTrue(allMessages.isEmpty());
   }
 
@@ -131,7 +137,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
   void testResetPasswordNonUniqueEmail() {
     systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
 
-    switchContextToUser(superUser);
+    switchToAdminUser();
     User userA = createUserWithAuth("userA");
     userA.setEmail("same@email.no");
     User userB = createUserWithAuth("userB");
@@ -139,7 +145,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
 
     clearSecurityContext();
     sendForgotPasswordRequest("wrong");
-    List<OutboundMessage> allMessages = ((FakeMessageSender) messageSender).getAllMessages();
+    List<OutboundMessage> allMessages = messageSender.getAllMessages();
     assertTrue(allMessages.isEmpty());
   }
 
@@ -154,7 +160,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
     userService.updateUser(user);
 
     sendForgotPasswordRequest("testC");
-    List<OutboundMessage> allMessages = ((FakeMessageSender) messageSender).getAllMessages();
+    List<OutboundMessage> allMessages = messageSender.getAllMessages();
     assertTrue(allMessages.isEmpty());
   }
 
@@ -246,7 +252,8 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
         "Username is not specified or invalid",
         POST(
                 "/auth/registration",
-                renderService.toJsonAsString(getRegParamsWithUsername(superUser.getUsername())))
+                renderService.toJsonAsString(
+                    getRegParamsWithUsername(getAdminUser().getUsername())))
             .content(HttpStatus.BAD_REQUEST));
   }
 
@@ -404,23 +411,6 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  @DisplayName("Self registration error when invalid recaptcha input")
-  void selfRegInvalidRecaptchaInput() {
-    systemSettingManager.saveSystemSetting(
-        SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.FALSE);
-
-    assertWebMessage(
-        "Bad Request",
-        400,
-        "ERROR",
-        "Recaptcha validation failed: [invalid-input-secret]",
-        POST(
-                "/auth/registration",
-                renderService.toJsonAsString(getRegParamsWithRecaptcha("secret", RegType.SELF_REG)))
-            .content(HttpStatus.BAD_REQUEST));
-  }
-
-  @Test
   @DisplayName("Self registration error when recaptcha enabled and null input")
   void selfRegRecaptcha() {
     systemSettingManager.saveSystemSetting(
@@ -550,23 +540,6 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  @DisplayName("Invite registration error when invalid recaptcha input")
-  void inviteRegInvalidRecaptchaInput() {
-    systemSettingManager.saveSystemSetting(
-        SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.FALSE);
-
-    assertWebMessage(
-        "Bad Request",
-        400,
-        "ERROR",
-        "Recaptcha validation failed: [invalid-input-secret]",
-        POST(
-                "/auth/invite",
-                renderService.toJsonAsString(getRegParamsWithRecaptcha("secret", RegType.INVITE)))
-            .content(HttpStatus.BAD_REQUEST));
-  }
-
-  @Test
   @DisplayName("Invite registration error when recaptcha enabled and null input")
   void inviteRegRecaptcha() {
     systemSettingManager.saveSystemSetting(
@@ -586,9 +559,9 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
   private OrganisationUnit enableSelfRegistration() {
     OrganisationUnit selfRegOrgUnit = createOrganisationUnit("test org 123");
     manager.save(selfRegOrgUnit);
-    superUser.addOrganisationUnit(selfRegOrgUnit);
+    getAdminUser().addOrganisationUnit(selfRegOrgUnit);
 
-    superUserRoleUid = superUser.getUserRoles().iterator().next().getUid();
+    superUserRoleUid = getAdminUser().getUserRoles().iterator().next().getUid();
     POST("/configuration/selfRegistrationRole", superUserRoleUid).content(HttpStatus.NO_CONTENT);
     POST("/configuration/selfRegistrationOrgUnit", selfRegOrgUnit.getUid())
         .content(HttpStatus.NO_CONTENT);
@@ -629,8 +602,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
   }
 
   private OutboundMessage assertMessageSendTo(String email) {
-    List<OutboundMessage> messagesByEmail =
-        ((FakeMessageSender) messageSender).getMessagesByEmail(email);
+    List<OutboundMessage> messagesByEmail = messageSender.getMessagesByEmail(email);
     assertFalse(messagesByEmail.isEmpty());
     return messagesByEmail.get(0);
   }
@@ -698,7 +670,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
     user.setFirstName("samwise");
     user.setSurname("gamgee");
     user.setPassword("Test123!");
-    user.setUserRoles(superUser.getUserRoles());
+    user.setUserRoles(getAdminUser().getUserRoles());
     user.setIdToken("idToken");
     // This hashed string (when matched with raw password) needs to match the password that the
     // invited user will pass when completing their invited registration.

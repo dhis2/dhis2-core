@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -40,7 +41,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class MaintenanceControllerTest extends DhisControllerConvenienceTest {
+class MaintenanceControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testPruneDataByOrganisationUnit() {

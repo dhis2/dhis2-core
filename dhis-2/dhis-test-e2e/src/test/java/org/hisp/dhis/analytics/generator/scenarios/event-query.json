@@ -13,6 +13,13 @@
       "version": {
         "min": 39
       }
+    },
+    {
+      "name": "financialYear2023Sep",
+      "query": "/api/42/analytics/events/query/IpHINAT79UW?dimension=ou:USER_ORGUNIT,GxdhnY5wmHq&headers=ouname,GxdhnY5wmHq,lastupdated&totalPages=false&lastUpdated=2023Sep&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=EVENT&stage=A03MvHHogjR",
+      "version": {
+        "min": 42
+      }
     }
   ]
 }

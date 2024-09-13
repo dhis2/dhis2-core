@@ -43,8 +43,8 @@ import org.hisp.dhis.security.oidc.provider.GoogleProvider;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.SystemService;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.util.HtmlUtils;
@@ -52,7 +52,7 @@ import org.springframework.web.util.HtmlUtils;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class LoginConfigControllerTest extends DhisControllerIntegrationTest {
+class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired SystemSettingManager systemSettingManager;
   @Autowired SystemService systemService;

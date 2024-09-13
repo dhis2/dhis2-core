@@ -27,14 +27,18 @@
  */
 package org.hisp.dhis.program.message;
 
+import static org.hisp.dhis.changelog.ChangeLogType.READ;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
+
 import java.util.Set;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.trackedentity.ApiTrackedEntityAuditService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -44,7 +48,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 public abstract class DeliveryChannelStrategy {
   @Autowired protected OrganisationUnitService organisationUnitService;
 
-  @Autowired protected TrackedEntityService trackedEntityService;
+  @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private ApiTrackedEntityAuditService apiTrackedEntityAuditService;
 
   // -------------------------------------------------------------------------
   // Abstract methods
@@ -89,11 +95,13 @@ public abstract class DeliveryChannelStrategy {
 
     String uid = message.getRecipients().getTrackedEntity().getUid();
 
-    TrackedEntity te = trackedEntityService.getTrackedEntity(uid);
+    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, uid);
 
-    message.getRecipients().setTrackedEntity(te);
+    apiTrackedEntityAuditService.addTrackedEntityAudit(trackedEntity, getCurrentUsername(), READ);
 
-    return te;
+    message.getRecipients().setTrackedEntity(trackedEntity);
+
+    return trackedEntity;
   }
 
   protected OrganisationUnit getOrganisationUnit(ProgramMessage message) {

@@ -27,15 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.validation.ValidationRuleController} using
  * (mocked) REST requests.
  */
-class ValidationRuleControllerTest extends DhisControllerConvenienceTest {
+class ValidationRuleControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetExpressionDescription() {

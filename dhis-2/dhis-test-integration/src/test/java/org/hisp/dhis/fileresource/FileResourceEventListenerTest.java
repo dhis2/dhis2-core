@@ -41,28 +41,24 @@ import javax.persistence.EntityManager;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
 import org.hisp.dhis.fileresource.hibernate.HibernateFileResourceStore;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.DefaultAuthenticationService;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Luca Cambi
  */
 @ExtendWith(MockitoExtension.class)
-class FileResourceEventListenerTest extends IntegrationTestBase {
+class FileResourceEventListenerTest extends PostgresIntegrationTestBase {
 
   @InjectMocks private FileResourceEventListener fileResourceEventListener;
-
-  @Autowired private UserService _userService;
 
   @Mock FileResourceContentStore fileResourceContentStore;
 
@@ -70,7 +66,6 @@ class FileResourceEventListenerTest extends IntegrationTestBase {
 
   @BeforeEach
   public void init() {
-    userService = _userService;
     createAndAddUser("file_resource_user");
     fileResourceEventListener =
         new FileResourceEventListener(

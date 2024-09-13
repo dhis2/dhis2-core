@@ -61,21 +61,22 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jim Grace
  */
-class ValidationResultStoreTest extends TransactionalIntegrationTest {
+@Transactional
+class ValidationResultStoreTest extends PostgresIntegrationTestBase {
   private static final String ACCESS_NONE = "--------";
 
   private static final String ACCESS_READ = "r-------";
@@ -90,13 +91,9 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
-  @Autowired protected UserGroupAccessService userGroupAccessService;
-
   @Autowired protected UserGroupService userGroupService;
 
   @Autowired protected IdentifiableObjectManager identifiableObjectManager;
-
-  @Autowired private UserService _userService;
 
   // -------------------------------------------------------------------------
   // Supporting data
@@ -177,12 +174,8 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest {
     identifiableObjectManager.updateNoAcl(object);
   }
 
-  // -------------------------------------------------------------------------
-  // Set up/tear down
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() throws Exception {
-    userService = _userService;
+  @BeforeEach
+  void setUp() {
     // ---------------------------------------------------------------------
     // Add supporting data
     // ---------------------------------------------------------------------

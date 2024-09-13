@@ -57,7 +57,6 @@ import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -124,14 +123,6 @@ public class ApiTokenController extends AbstractCrudController<ApiToken> {
     }
 
     return webMessage;
-  }
-
-  @Override
-  @PostMapping(consumes = {"application/xml", "text/xml"})
-  @ResponseBody
-  public WebMessage postXmlObject(HttpServletRequest request)
-      throws HttpRequestMethodNotSupportedException {
-    throw new HttpRequestMethodNotSupportedException(METHOD_TYPE_IS_NOT_SUPPORTED_MSG);
   }
 
   private void validateTokenAttributes(ApiToken token) {

@@ -50,9 +50,9 @@ public class ServiceConfig {
     return provider.getSqlBuilder();
   }
 
-  @Bean("org.hisp.dhis.analytics.TeiAnalyticsTableService")
-  public AnalyticsTableService teiAnalyticsTableManager(
-      @Qualifier("org.hisp.dhis.analytics.TeiAnalyticsTableManager")
+  @Bean("org.hisp.dhis.analytics.TrackedEntityAnalyticsTableService")
+  public AnalyticsTableService trackedEntityAnalyticsTableManager(
+      @Qualifier("org.hisp.dhis.analytics.TrackedEntityAnalyticsTableManager")
           AnalyticsTableManager tableManager,
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
@@ -68,9 +68,9 @@ public class ServiceConfig {
         sqlBuilder);
   }
 
-  @Bean("org.hisp.dhis.analytics.TeiEventsAnalyticsTableService")
-  public AnalyticsTableService teiEventsAnalyticsTableManager(
-      @Qualifier("org.hisp.dhis.analytics.TeiEventsAnalyticsTableManager")
+  @Bean("org.hisp.dhis.analytics.TrackedEntityEventsAnalyticsTableService")
+  public AnalyticsTableService trackedEntityEventsAnalyticsTableManager(
+      @Qualifier("org.hisp.dhis.analytics.TrackedEntityEventsAnalyticsTableManager")
           AnalyticsTableManager tableManager,
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
@@ -86,9 +86,9 @@ public class ServiceConfig {
         sqlBuilder);
   }
 
-  @Bean("org.hisp.dhis.analytics.TeiEnrollmentsAnalyticsTableService")
-  public AnalyticsTableService teiEnrollmentsAnalyticsTableManager(
-      @Qualifier("org.hisp.dhis.analytics.TeiEnrollmentsAnalyticsTableManager")
+  @Bean("org.hisp.dhis.analytics.TrackedEntityEnrollmentsAnalyticsTableService")
+  public AnalyticsTableService trackedEntityEnrollmentsAnalyticsTableManager(
+      @Qualifier("org.hisp.dhis.analytics.TrackedEntityEnrollmentsAnalyticsTableManager")
           AnalyticsTableManager tableManager,
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,

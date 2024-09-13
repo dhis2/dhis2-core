@@ -57,8 +57,8 @@ class TrackedEntityFieldsParamMapper {
   private static TrackedEntityParams initUsingAllOrNoFields(Map<String, FieldPath> roots) {
     TrackedEntityParams params = TrackedEntityParams.FALSE;
 
-    if (roots.containsKey(FieldPreset.ALL)) {
-      FieldPath p = roots.get(FieldPreset.ALL);
+    if (roots.containsKey(FieldPreset.ALL.getName())) {
+      FieldPath p = roots.get(FieldPreset.ALL.getName());
       if (p.isRoot() && !p.isExclude()) {
         params = TrackedEntityParams.TRUE;
       }

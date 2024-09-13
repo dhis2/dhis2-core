@@ -39,6 +39,7 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -81,6 +82,12 @@ public class SchemaController {
   @Qualifier("jsonMapper")
   private final ObjectMapper objectMapper;
 
+  @OpenApi.Response(
+      status = OpenApi.Response.Status.OK,
+      object = {
+        @OpenApi.Property(name = "pager", value = Pager.class),
+        @OpenApi.Property(name = "schemas", value = Schema[].class)
+      })
   @GetMapping
   public ResponseEntity<JsonRoot> getSchemas(
       @RequestParam(defaultValue = "*") List<String> fields) {
@@ -93,6 +100,7 @@ public class SchemaController {
     return ResponseEntity.ok(JsonRoot.of("schemas", objectNodes));
   }
 
+  @OpenApi.Response(Schema.class)
   @GetMapping("/{type}")
   public ResponseEntity<ObjectNode> getSchema(
       @PathVariable String type, @RequestParam(defaultValue = "*") List<String> fields)

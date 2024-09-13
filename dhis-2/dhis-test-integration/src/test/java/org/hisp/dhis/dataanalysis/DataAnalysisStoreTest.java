@@ -44,14 +44,20 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class DataAnalysisStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class DataAnalysisStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataAnalysisStore dataAnalysisStore;
 
@@ -99,11 +105,8 @@ class DataAnalysisStoreTest extends SingleSetupIntegrationTestBase {
 
   private Set<OrganisationUnit> organisationUnits;
 
-  // ----------------------------------------------------------------------
-  // Fixture
-  // ----------------------------------------------------------------------
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     categoryCombo = categoryService.getDefaultCategoryCombo();
     categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
     dataElementA = createDataElement('A', categoryCombo);

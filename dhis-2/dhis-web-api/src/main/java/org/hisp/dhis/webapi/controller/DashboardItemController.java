@@ -37,7 +37,7 @@ import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dashboard.DashboardItemShape;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +78,7 @@ public class DashboardItemController extends AbstractCrudController<DashboardIte
     Dashboard dashboard = dashboardService.getDashboardFromDashboardItem(item);
 
     if (!aclService.canUpdate(currentUser, dashboard)) {
-      throw new UpdateAccessDeniedException(
+      throw new ForbiddenException(
           "You don't have the proper permissions to update this dashboard.");
     }
 

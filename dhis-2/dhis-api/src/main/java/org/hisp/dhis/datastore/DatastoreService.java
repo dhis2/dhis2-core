@@ -37,7 +37,10 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Datastore is a key-value store with namespaces to isolate different collections of key-value
@@ -86,7 +89,7 @@ public interface DatastoreService {
    * @param namespace the namespace to check
    * @return true, if the namespace exists, else false
    */
-  boolean isUsedNamespace(String namespace);
+  boolean isUsedNamespace(String namespace) throws ForbiddenException;
 
   /**
    * Retrieves a list of existing namespaces.
@@ -106,7 +109,7 @@ public interface DatastoreService {
    * @return a list of strings representing the keys from the namespace.
    * @throws AccessDeniedException when user lacks authority for namespace
    */
-  List<String> getKeysInNamespace(String namespace, Date lastUpdated);
+  List<String> getKeysInNamespace(String namespace, Date lastUpdated) throws ForbiddenException;
 
   /**
    * Stream the matching entry fields to a transformer or consumer function.
@@ -121,7 +124,7 @@ public interface DatastoreService {
    * @return the transformed stream
    */
   <T> T getEntries(DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform)
-      throws ConflictException;
+      throws ConflictException, ForbiddenException;
 
   /**
    * Validates and plans a {@link DatastoreQuery}. This might correct or otherwise update the
@@ -140,7 +143,10 @@ public interface DatastoreService {
    * @return the KeyJsonValue matching the key and namespace.
    * @throws AccessDeniedException when user lacks authority for namespace
    */
-  DatastoreEntry getEntry(String namespace, String key);
+  DatastoreEntry getEntry(String namespace, String key) throws ForbiddenException;
+
+  @Transactional(readOnly = true)
+  DatastoreEntry getEntry(String namespace, String key, UserDetails user) throws ForbiddenException;
 
   /**
    * Adds a new entry.
@@ -150,7 +156,8 @@ public interface DatastoreService {
    * @throws IllegalArgumentException when the entry value is not valid JSON
    * @throws AccessDeniedException when user lacks authority for namespace or entry
    */
-  void addEntry(DatastoreEntry entry) throws ConflictException, BadRequestException;
+  void addEntry(DatastoreEntry entry)
+      throws ConflictException, BadRequestException, ForbiddenException;
 
   /**
    * Updates the entry value (path is undefined or empty) or updates the existing value the the
@@ -190,7 +197,7 @@ public interface DatastoreService {
    * @param entry the KeyJsonValue entry to be saved or updated.
    * @throws IllegalArgumentException when the entry value is not valid JSON
    */
-  void saveOrUpdateEntry(DatastoreEntry entry) throws BadRequestException;
+  void saveOrUpdateEntry(DatastoreEntry entry) throws BadRequestException, ForbiddenException;
 
   /**
    * Deletes all entries associated with a given namespace.

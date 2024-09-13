@@ -46,16 +46,21 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jim Grace
  */
-class DataApprovalAuditStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class DataApprovalAuditStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataApprovalAuditStore dataApprovalAuditStore;
 
@@ -66,8 +71,6 @@ class DataApprovalAuditStoreTest extends SingleSetupIntegrationTestBase {
   @Autowired private PeriodService periodService;
 
   @Autowired private CategoryService categoryService;
-
-  @Autowired private UserService _userService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -112,13 +115,8 @@ class DataApprovalAuditStoreTest extends SingleSetupIntegrationTestBase {
 
   private DataApprovalAudit auditB;
 
-  // -------------------------------------------------------------------------
-  // Set up/tear down
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() throws Exception {
-    userService = _userService;
-    //    preCreateInjectAdminUser();
+  @BeforeAll
+  void setUp() {
     // ---------------------------------------------------------------------
     // Add supporting data
     // ---------------------------------------------------------------------

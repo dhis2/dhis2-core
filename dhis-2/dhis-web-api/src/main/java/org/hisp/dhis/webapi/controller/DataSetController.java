@@ -65,6 +65,8 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -204,6 +206,12 @@ public class DataSetController extends AbstractCrudController<DataSet> {
     dataSetService.updateDataSet(dataSet);
   }
 
+  @OpenApi.Response(
+      status = OpenApi.Response.Status.OK,
+      object = {
+        @OpenApi.Property(name = "pager", value = Pager.class),
+        @OpenApi.Property(name = "categoryCombos", value = CategoryCombo[].class)
+      })
   @GetMapping("/{uid}/categoryCombos")
   public ResponseEntity<JsonRoot> getCategoryCombinations(
       @PathVariable("uid") String uid,

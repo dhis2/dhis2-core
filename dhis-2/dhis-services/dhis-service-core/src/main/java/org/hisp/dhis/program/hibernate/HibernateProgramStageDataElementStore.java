@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program.hibernate;
 
+import java.util.Collection;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -73,5 +74,16 @@ public class HibernateProgramStageDataElementStore
         builder,
         newJpaParameters()
             .addPredicate(root -> builder.equal(root.get("dataElement"), dataElement)));
+  }
+
+  @Override
+  public List<ProgramStageDataElement> getAllByDataElement(Collection<DataElement> dataElements) {
+    return getQuery(
+            """
+            from ProgramStageDataElement psde
+            where psde.dataElement in :dataElements
+            """)
+        .setParameter("dataElements", dataElements)
+        .list();
   }
 }

@@ -27,13 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClient.ContentType;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.springframework.http.MediaType.APPLICATION_XML;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -41,18 +38,11 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class IdentifiableObjectControllerTest extends DhisControllerConvenienceTest {
+class IdentifiableObjectControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testPostJsonObject() {
     assertStatus(HttpStatus.METHOD_NOT_ALLOWED, POST("/identifiableObjects/", "{}"));
-  }
-
-  @Test
-  void testPostJsonObject_Xml() {
-    assertStatus(
-        HttpStatus.METHOD_NOT_ALLOWED,
-        POST("/identifiableObjects/", Body("{}"), ContentType(APPLICATION_XML)));
   }
 
   @Test

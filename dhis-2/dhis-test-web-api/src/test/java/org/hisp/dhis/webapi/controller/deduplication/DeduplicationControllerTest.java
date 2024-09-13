@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.deduplication;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -38,13 +38,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.deduplication.DeduplicationStatus;
-import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
+import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,7 +54,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author luca@dhis2.org
  */
-class DeduplicationControllerTest extends DhisControllerConvenienceTest {
+class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
   private static final String ENDPOINT = "/" + "potentialDuplicates/";
 
   @Autowired private IdentifiableObjectManager dbmsManager;
@@ -61,6 +62,7 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
   @Autowired private ObjectMapper objectMapper;
 
   private OrganisationUnit orgUnit;
+  private TrackedEntityType trackedEntityType;
   private TrackedEntity origin;
   private TrackedEntity duplicate1;
   private PotentialDuplicate potentialDuplicate1;
@@ -71,8 +73,13 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
     orgUnit = createOrganisationUnit(CodeGenerator.generateUid());
     dbmsManager.save(orgUnit);
 
+    trackedEntityType = createTrackedEntityType('A');
+    dbmsManager.save(trackedEntityType);
+
     origin = createTrackedEntity(orgUnit);
+    origin.setTrackedEntityType(trackedEntityType);
     duplicate1 = createTrackedEntity(orgUnit);
+    duplicate1.setTrackedEntityType(trackedEntityType);
     TrackedEntity duplicate2 = createTrackedEntity(orgUnit);
 
     dbmsManager.save(origin);
@@ -87,10 +94,11 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void shouldPostPotentialDuplicateWhenTrackedEntitiesExist() throws Exception {
-    TrackedEntity te = createTrackedEntity(orgUnit);
-    dbmsManager.save(te);
+    TrackedEntity trackedEntity = createTrackedEntity(orgUnit);
+    trackedEntity.setTrackedEntityType(trackedEntityType);
+    dbmsManager.save(trackedEntity);
     PotentialDuplicate potentialDuplicate =
-        new PotentialDuplicate(te.getUid(), duplicate1.getUid());
+        new PotentialDuplicate(trackedEntity.getUid(), duplicate1.getUid());
 
     assertStatus(
         HttpStatus.OK, POST(ENDPOINT, objectMapper.writeValueAsString(potentialDuplicate)));

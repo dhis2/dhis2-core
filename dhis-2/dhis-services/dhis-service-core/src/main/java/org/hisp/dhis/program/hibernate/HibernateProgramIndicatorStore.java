@@ -28,12 +28,14 @@
 package org.hisp.dhis.program.hibernate;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -58,5 +60,35 @@ public class HibernateProgramIndicatorStore
 
     return getList(
         builder, newJpaParameters().addPredicate(root -> builder.isNull(root.get("expression"))));
+  }
+
+  @Override
+  public List<ProgramIndicator> getAllWithExpressionContainingStrings(
+      @Nonnull List<String> searchStrings) {
+    String multiLike = SqlUtils.likeAny("pi.expression", searchStrings);
+
+    return getQuery(
+            """
+            select pi from ProgramIndicator pi
+            where %s
+            group by pi
+            """
+                .formatted(multiLike))
+        .getResultList();
+  }
+
+  @Override
+  public List<ProgramIndicator> getAllWithFilterContainingStrings(
+      @Nonnull List<String> searchStrings) {
+    String multiLike = SqlUtils.likeAny("pi.filter", searchStrings);
+
+    return getQuery(
+            """
+            select pi from ProgramIndicator pi
+            where %s
+            group by pi
+            """
+                .formatted(multiLike))
+        .getResultList();
   }
 }

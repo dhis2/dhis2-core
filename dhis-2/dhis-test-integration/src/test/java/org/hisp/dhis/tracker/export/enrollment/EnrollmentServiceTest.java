@@ -34,15 +34,16 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
-import static org.hisp.dhis.utils.Assertions.assertContains;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -52,12 +53,13 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -67,24 +69,25 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.test.utils.RelationshipUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class EnrollmentServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private EnrollmentService enrollmentService;
 
   @Autowired protected UserService _userService;
-
-  @Autowired private org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -124,10 +127,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   private OrganisationUnit orgUnitChildA;
 
-  @Override
-  protected void setUpTest() throws Exception {
-    //    userService = _userService;
-    //    admin = preCreateInjectAdminUser();
+  @BeforeEach
+  void setUp() {
     admin = getAdminUser();
 
     orgUnitA = createOrganisationUnit('A');
@@ -250,27 +251,24 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     relationshipA.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationshipA));
     manager.save(relationshipA, false);
 
-    enrollmentA =
-        apiEnrollmentService.enrollTrackedEntity(
-            trackedEntityA, programA, new Date(), new Date(), orgUnitA);
+    enrollmentA = createEnrollment(programA, trackedEntityA, orgUnitA);
+    manager.save(enrollmentA, false);
     eventA = createEvent(programStageA, enrollmentA, orgUnitA);
     eventA.setOccurredDate(incidentDate);
     manager.save(eventA);
     enrollmentA.setEvents(Set.of(eventA));
     enrollmentA.setRelationshipItems(Set.of(from, to));
-    manager.save(enrollmentA, false);
+    manager.update(enrollmentA);
 
-    enrollmentB =
-        apiEnrollmentService.enrollTrackedEntity(
-            trackedEntityB, programB, new Date(), new Date(), orgUnitB);
+    enrollmentB = createEnrollment(programB, trackedEntityB, orgUnitB);
+    manager.save(enrollmentB);
 
-    enrollmentChildA =
-        apiEnrollmentService.enrollTrackedEntity(
-            trackedEntityChildA, programA, new Date(), new Date(), orgUnitChildA);
+    enrollmentChildA = createEnrollment(programA, trackedEntityChildA, orgUnitChildA);
+    manager.save(enrollmentChildA);
 
     enrollmentGrandchildA =
-        apiEnrollmentService.enrollTrackedEntity(
-            trackedEntityGrandchildA, programA, new Date(), new Date(), orgUnitGrandchildA);
+        createEnrollment(programA, trackedEntityGrandchildA, orgUnitGrandchildA);
+    manager.save(enrollmentGrandchildA);
 
     injectSecurityContextUser(user);
   }
@@ -448,7 +446,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldGetEnrollmentsWhenUserHasReadAccessToProgramAndSearchScopeAccessToOrgUnit()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
 
     manager.updateNoAcl(programA);
@@ -469,7 +467,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldGetEnrollmentsWhenUserHasReadAccessToProgramAndNoOrgUnitNorOrgUnitModeSpecified()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
 
     manager.updateNoAcl(programA);
@@ -490,7 +488,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldGetEnrollmentsInCaptureScopeIfOrgUnitModeCapture()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
 
     manager.updateNoAcl(programA);
@@ -508,7 +506,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldGetEnrollmentWhenEnrollmentsAndOtherParamsAreSpecified()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
 
     manager.updateNoAcl(programA);
@@ -528,7 +526,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldGetEnrollmentsByTrackedEntityWhenUserHasAccessToTrackedEntityType()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
     manager.updateNoAcl(programA);
 
@@ -547,7 +545,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldReturnEnrollmentIfEnrollmentWasUpdatedBeforePassedDateAndTime()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     Date oneHourBeforeLastUpdated = oneHourBefore(enrollmentA.getLastUpdated());
 
     EnrollmentOperationParams operationParams =
@@ -564,7 +562,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldReturnEmptyIfEnrollmentWasUpdatedAfterPassedDateAndTime()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     Date oneHourAfterLastUpdated = oneHourAfter(enrollmentA.getLastUpdated());
 
     EnrollmentOperationParams operationParams =
@@ -581,7 +579,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldReturnEnrollmentIfEnrollmentStartedBeforePassedDateAndTime()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
     Date oneHourBeforeEnrollmentDate = oneHourBefore(enrollmentA.getEnrollmentDate());
 
@@ -600,7 +598,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldReturnEmptyIfEnrollmentStartedAfterPassedDateAndTime()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
     Date oneHourAfterEnrollmentDate = oneHourAfter(enrollmentA.getEnrollmentDate());
 
@@ -619,7 +617,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldReturnEnrollmentIfEnrollmentEndedAfterPassedDateAndTime()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
     Date oneHourAfterEnrollmentDate = oneHourAfter(enrollmentA.getEnrollmentDate());
 
@@ -638,7 +636,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldReturnEmptyIfEnrollmentEndedBeforePassedDateAndTime()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
     Date oneHourBeforeEnrollmentDate = oneHourBefore(enrollmentA.getEnrollmentDate());
 
@@ -657,7 +655,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldReturnAllAccessibleEnrollmentsInTheSystemWhenModeAllAndUserAuthorized()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     injectSecurityContextUser(authorizedUser);
 
     EnrollmentOperationParams operationParams =
@@ -675,9 +673,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
         EnrollmentOperationParams.builder().orgUnitMode(ALL).build();
 
     BadRequestException exception =
-        Assertions.assertThrows(
+        assertThrows(
             BadRequestException.class, () -> enrollmentService.getEnrollments(operationParams));
-    Assertions.assertEquals(
+    assertEquals(
         "Current user is not authorized to query across all organisation units",
         exception.getMessage());
   }
@@ -693,16 +691,16 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
             .build();
 
     ForbiddenException exception =
-        Assertions.assertThrows(
+        assertThrows(
             ForbiddenException.class, () -> enrollmentService.getEnrollments(operationParams));
-    Assertions.assertEquals(
+    assertEquals(
         String.format("Organisation unit is not part of the search scope: %s", orgUnitA.getUid()),
         exception.getMessage());
   }
 
   @Test
   void shouldReturnAllEnrollmentsWhenOrgUnitModeAllAndUserAuthorized()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     injectSecurityContextUser(admin);
 
     EnrollmentOperationParams operationParams =
@@ -715,7 +713,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldReturnAllDescendantsOfSelectedOrgUnitWhenOrgUnitModeDescendants()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
@@ -731,7 +729,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldReturnChildrenOfRootOrgUnitWhenOrgUnitModeChildren()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
@@ -745,7 +743,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldReturnChildrenOfRequestedOrgUnitWhenOrgUnitModeChildren()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
@@ -761,7 +759,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   @Test
   void
       shouldReturnAllChildrenOfRequestedOrgUnitsWhenOrgUnitModeChildrenAndMultipleOrgUnitsRequested()
-          throws ForbiddenException, BadRequestException {
+          throws ForbiddenException, BadRequestException, NotFoundException {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
@@ -773,6 +771,69 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     assertContainsOnly(
         List.of(enrollmentA.getUid(), enrollmentChildA.getUid(), enrollmentGrandchildA.getUid()),
         uids(enrollments));
+  }
+
+  @Test
+  void shouldFailWhenRequestingListOfEnrollmentsAndAtLeastOneNotAccessible() {
+    injectSecurityContextUser(admin);
+    programA.getSharing().setPublicAccess("rw------");
+    manager.update(programA);
+
+    injectSecurityContextUser(authorizedUser);
+    ForbiddenException exception =
+        assertThrows(
+            ForbiddenException.class,
+            () ->
+                enrollmentService.getEnrollments(
+                    List.of(enrollmentA.getUid(), enrollmentB.getUid())));
+    assertContains(
+        String.format("User has no data read access to program: %s", programA.getUid()),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldGetAllCompletedEnrollments()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    Enrollment enrollmentC = createEnrollment(programA, trackedEntityA, orgUnitA);
+    enrollmentC.setStatus(EnrollmentStatus.COMPLETED);
+    manager.save(enrollmentC, false);
+    Enrollment enrollmentD = createEnrollment(programA, trackedEntityA, orgUnitA);
+    enrollmentD.setStatus(EnrollmentStatus.COMPLETED);
+    manager.save(enrollmentD, false);
+
+    List<Enrollment> enrollments =
+        enrollmentService.getEnrollments(
+            trackedEntityA.getUid(), programA, EnrollmentStatus.COMPLETED);
+    assertContainsOnly(List.of(enrollmentC, enrollmentD), enrollments);
+  }
+
+  @Test
+  void shouldGetAllActiveEnrollments()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    List<Enrollment> enrollments =
+        enrollmentService.getEnrollments(
+            trackedEntityA.getUid(), programA, EnrollmentStatus.ACTIVE);
+
+    assertContainsOnly(List.of(enrollmentA), enrollments);
+  }
+
+  @Test
+  void shouldNotDeleteNoteWhenDeletingEnrollment() throws ForbiddenException, NotFoundException {
+    Note note = new Note();
+    note.setCreator(CodeGenerator.generateUid());
+    note.setNoteText("text");
+    manager.save(note);
+    enrollmentA.setNotes(List.of(note));
+
+    manager.save(enrollmentA);
+
+    assertNotNull(enrollmentService.getEnrollment(enrollmentA.getUid()));
+
+    manager.delete(enrollmentA);
+
+    assertThrows(
+        NotFoundException.class, () -> enrollmentService.getEnrollment(enrollmentA.getUid()));
+    assertTrue(manager.exists(Note.class, note.getUid()));
   }
 
   private static List<String> attributeUids(Enrollment enrollment) {

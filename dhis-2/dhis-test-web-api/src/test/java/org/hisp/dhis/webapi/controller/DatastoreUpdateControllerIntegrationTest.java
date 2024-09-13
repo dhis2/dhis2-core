@@ -27,17 +27,18 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.HttpStatus.NOT_FOUND;
-import static org.hisp.dhis.web.HttpStatus.OK;
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.HttpStatus.NOT_FOUND;
+import static org.hisp.dhis.test.web.HttpStatus.OK;
+import static org.hisp.dhis.test.web.WebClient.Body;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -48,10 +49,10 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class DatastoreUpdateControllerIntegrationTest extends DhisControllerIntegrationTest {
+class DatastoreUpdateControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
 
-  @Override
-  protected void beforeEach() {
+  @BeforeEach
+  void setUp() {
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     currentUserDetails.setId(0L);
     clearSecurityContext();

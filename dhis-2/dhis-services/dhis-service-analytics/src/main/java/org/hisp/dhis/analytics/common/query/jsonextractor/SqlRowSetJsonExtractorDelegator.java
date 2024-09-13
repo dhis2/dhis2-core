@@ -33,7 +33,7 @@ import static java.util.Comparator.nullsFirst;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isDataElement;
-import static org.hisp.dhis.analytics.tei.query.context.querybuilder.OffsetHelper.getItemBasedOnOffset;
+import static org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.OffsetHelper.getItemBasedOnOffset;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.feedback.ErrorCode.E7250;
 

@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static java.util.Arrays.asList;
 import static org.hisp.dhis.appmanager.AndroidSettingsApp.AUTHORITY;
 import static org.hisp.dhis.appmanager.AndroidSettingsApp.NAMESPACE;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -40,12 +40,14 @@ import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
 import org.hisp.dhis.datastore.DatastoreService;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonDatastoreValue;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
-import org.hisp.dhis.webapi.json.domain.JsonDatastoreValue;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -56,7 +58,7 @@ import org.springframework.core.io.ClassPathResource;
  *
  * @author Jan Bernitt
  */
-class DatastoreControllerIntegrationTest extends DhisControllerIntegrationTest {
+class DatastoreControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private AppManager appManager;
 
@@ -66,8 +68,8 @@ class DatastoreControllerIntegrationTest extends DhisControllerIntegrationTest {
    */
   @Autowired private DatastoreService service;
 
-  @Override
-  protected void beforeEach() {
+  @BeforeEach
+  void setUp() {
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     currentUserDetails.setId(0L);
     clearSecurityContext();
@@ -88,7 +90,9 @@ class DatastoreControllerIntegrationTest extends DhisControllerIntegrationTest {
   void testUpdateKeyJsonValue_App() throws IOException {
     assertEquals(
         AppStatus.OK,
-        appManager.installApp(new ClassPathResource("app/test-app.zip").getFile(), "test-app.zip"));
+        appManager
+            .installApp(new ClassPathResource("app/test-app.zip").getFile(), "test-app.zip")
+            .getAppState());
     // by default we are an app manager
     switchToNewUser("app-admin", Authorities.M_DHIS_WEB_APP_MANAGEMENT.toString());
 
@@ -144,8 +148,8 @@ class DatastoreControllerIntegrationTest extends DhisControllerIntegrationTest {
   }
 
   @Test
-  void testUpdateKeyJsonValue_ProtectedNamespaceWithSharing() {
-    switchContextToUser(superUser);
+  void testUpdateKeyJsonValue_ProtectedNamespaceWithSharing() throws ForbiddenException {
+    switchToAdminUser();
 
     setUpNamespaceProtectionWithSharing(
         "pets", DatastoreNamespaceProtection.ProtectionType.HIDDEN, "pets-admin");
@@ -163,7 +167,7 @@ class DatastoreControllerIntegrationTest extends DhisControllerIntegrationTest {
     assertEquals(
         "Access denied for key 'cat' in namespace 'pets'",
         PUT("/dataStore/pets/cat", "[]").error(HttpStatus.FORBIDDEN).getMessage());
-    switchToSuperuser();
+    switchToAdminUser();
     assertStatus(HttpStatus.OK, PUT("/dataStore/pets/cat", "[]"));
   }
 

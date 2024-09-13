@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -39,13 +39,13 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.web.WebClient;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.web.WebClient;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonEnrollment;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +58,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author David Mackessy
  */
-class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest {
+class ProgramControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private ObjectMapper jsonMapper;
 
@@ -89,7 +89,7 @@ class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest {
   }
 
   @Test
-  void testCopyProgramEnrollments() {
+  void shouldNotCopyTrackerProgramEnrollmentsWhenCopyingProgram() {
     OrganisationUnit orgUnit = orgUnitService.getOrganisationUnit(ORG_UNIT_UID);
     User user = createAndAddUser(true, "user", Set.of(orgUnit), Set.of(orgUnit));
     injectSecurityContextUser(user);
@@ -109,24 +109,24 @@ class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest {
     POST(
             "/tracker?async=false",
             """
-{
-  "trackedEntities": [
-    {
-      "trackedEntityType": "TEType10000",
-      "orgUnit": "%s",
-      "enrollments": [
-        {
-          "program": "PrZMWi7rBga",
-          "orgUnit": "%s",
-          "status": "ACTIVE",
-          "enrolledAt": "2023-06-16",
-          "occurredAt': "2023-06-16"
-        }
-      ]
-    }
-  ]
-}
-"""
+              {
+              "trackedEntities": [
+              {
+                "trackedEntityType": "TEType10000",
+                "orgUnit": "%s",
+                "enrollments": [
+                  {
+                    "program": "PrZMWi7rBga",
+                    "orgUnit": "%s",
+                    "status": "ACTIVE",
+                    "enrolledAt": "2023-06-16",
+                    "occurredAt': "2023-06-16"
+                  }
+                ]
+              }
+              ]
+              }
+              """
                 .formatted(ORG_UNIT_UID, ORG_UNIT_UID))
         .content(HttpStatus.OK);
 
@@ -146,7 +146,7 @@ class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest {
             .filter(enrollment -> enrollment.getProgram().equals(PROGRAM_UID))
             .collect(Collectors.toSet());
 
-    assertEquals(2, enrollments.size());
+    assertEquals(1, enrollments.size());
     assertEquals(1, originalProgramEnrollments.size());
   }
 
@@ -155,7 +155,7 @@ class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest {
     User userWithPublicAuths =
         switchToNewUser("test1", "F_PROGRAM_PUBLIC_ADD", "F_PROGRAM_INDICATOR_PUBLIC_ADD");
 
-    switchToSuperuser();
+    switchToAdminUser();
     manager.save(userWithPublicAuths);
     PUT(
             "/programs/" + PROGRAM_UID,
@@ -192,7 +192,7 @@ class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest {
     User userWithPublicAuths =
         switchToNewUser("test1", "F_PROGRAM_PUBLIC_ADD", "F_PROGRAM_INDICATOR_PUBLIC_ADD");
 
-    switchToSuperuser();
+    switchToAdminUser();
     manager.save(userWithPublicAuths);
     PUT(
             "/programs/" + PROGRAM_UID,
@@ -229,7 +229,7 @@ class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest {
     User userWithPublicAuths =
         switchToNewUser("test1", "F_PROGRAM_PUBLIC_ADD", "F_PROGRAM_INDICATOR_PUBLIC_ADD");
 
-    switchToSuperuser();
+    switchToAdminUser();
     manager.save(userWithPublicAuths);
     PUT(
             "/programs/" + PROGRAM_UID,

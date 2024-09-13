@@ -88,7 +88,6 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -96,6 +95,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -157,10 +157,12 @@ class JdbcEventStore implements EventStore {
   private static final String COLUMN_EVENT_UID = "ev_uid";
   private static final String COLUMN_PROGRAM_UID = "p_uid";
   private static final String COLUMN_PROGRAM_STAGE_UID = "ps_uid";
+  private static final String COLUMN_PROGRAM_STAGE_NAME = "ps_name";
   private static final String COLUMN_ENROLLMENT_UID = "en_uid";
   private static final String COLUMN_ENROLLMENT_STATUS = "en_status";
   private static final String COLUMN_ENROLLMENT_DATE = "en_enrollmentdate";
   private static final String COLUMN_ORG_UNIT_UID = "orgunit_uid";
+  private static final String COLUMN_ORG_UNIT_CODE = "orgunit_code";
   private static final String COLUMN_TRACKEDENTITY_UID = "te_uid";
   private static final String COLUMN_EVENT_OCCURRED_DATE = "ev_occurreddate";
   private static final String COLUMN_ENROLLMENT_FOLLOWUP = "en_followup";
@@ -302,8 +304,10 @@ class JdbcEventStore implements EventStore {
               enrollment.setTrackedEntity(te);
               OrganisationUnit ou = new OrganisationUnit();
               ou.setUid(resultSet.getString(COLUMN_ORG_UNIT_UID));
+              ou.setCode(resultSet.getString(COLUMN_ORG_UNIT_CODE));
               ProgramStage ps = new ProgramStage();
               ps.setUid(resultSet.getString("ps_identifier"));
+              ps.setName(resultSet.getString(COLUMN_PROGRAM_STAGE_NAME));
               event.setDeleted(resultSet.getBoolean(COLUMN_EVENT_DELETED));
 
               enrollment.setStatus(
@@ -756,10 +760,15 @@ class JdbcEventStore implements EventStore {
             .append(", ")
             .append("ou.uid as ")
             .append(COLUMN_ORG_UNIT_UID)
+            .append(", ")
+            .append("ou.code as ")
+            .append(COLUMN_ORG_UNIT_CODE)
             .append(", p.uid as ")
             .append(COLUMN_PROGRAM_UID)
             .append(", ps.uid as ")
             .append(COLUMN_PROGRAM_STAGE_UID)
+            .append(", ps.name as ")
+            .append(COLUMN_PROGRAM_STAGE_NAME)
             .append(", ")
             .append("ev.eventid as ")
             .append(COLUMN_EVENT_ID)

@@ -47,17 +47,20 @@ import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
-import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.BeforeEach;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class CsvMetadataImportTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class CsvMetadataImportTest extends PostgresIntegrationTestBase {
   @Autowired private DataElementService dataElementService;
 
   @Autowired private OptionService optionService;
@@ -72,13 +75,8 @@ class CsvMetadataImportTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
-  @Autowired private UserService _userService;
-
-  @BeforeEach
-  void setUp() {
-    userService = _userService;
-  }
-
+  // TODO(DHIS2-17768 platform) this import is run as a super user, create a different user if you
+  // need to
   @Test
   void testOrgUnitImport() throws Exception {
     ImportReport importReport =
@@ -92,7 +90,6 @@ class CsvMetadataImportTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testOrgUnitImport_SuperUser() throws Exception {
-    createAndInjectAdminUser();
     ImportReport importReport =
         runImport(
             "metadata/organisationUnits.csv",

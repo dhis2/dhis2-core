@@ -27,22 +27,14 @@
  */
 package org.hisp.dhis.tracker.imports.sms;
 
-import java.util.Date;
+import java.util.List;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipEntity;
-import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.relationship.RelationshipService;
+import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -54,14 +46,18 @@ import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.RelationshipSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.Relationship;
+import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -70,20 +66,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Component("org.hisp.dhis.tracker.sms.RelationshipSMSListener")
 @Transactional
 public class RelationshipSMSListener extends CompressionSMSListener {
-  private enum RelationshipDir {
-    FROM,
-    TO
-  }
-
-  private final EventService eventService;
-
-  private final RelationshipService relationshipService;
-
   private final RelationshipTypeService relationshipTypeService;
 
-  private final TrackedEntityService trackedEntityService;
-
-  private final EnrollmentService enrollmentService;
+  private final TrackerImportService trackerImportService;
 
   public RelationshipSMSListener(
       IncomingSmsService incomingSmsService,
@@ -96,11 +81,8 @@ public class RelationshipSMSListener extends CompressionSMSListener {
       CategoryService categoryService,
       DataElementService dataElementService,
       IdentifiableObjectManager identifiableObjectManager,
-      EventService eventService,
-      RelationshipService relationshipService,
       RelationshipTypeService relationshipTypeService,
-      TrackedEntityService trackedEntityService,
-      EnrollmentService enrollmentService) {
+      TrackerImportService trackerImportService) {
     super(
         incomingSmsService,
         smsSender,
@@ -112,11 +94,8 @@ public class RelationshipSMSListener extends CompressionSMSListener {
         categoryService,
         dataElementService,
         identifiableObjectManager);
-    this.relationshipService = relationshipService;
     this.relationshipTypeService = relationshipTypeService;
-    this.trackedEntityService = trackedEntityService;
-    this.enrollmentService = enrollmentService;
-    this.eventService = eventService;
+    this.trackerImportService = trackerImportService;
   }
 
   @Override
@@ -124,79 +103,49 @@ public class RelationshipSMSListener extends CompressionSMSListener {
       throws SMSProcessingException {
     RelationshipSmsSubmission subm = (RelationshipSmsSubmission) submission;
 
-    Uid fromid = subm.getFrom();
-    Uid toid = subm.getTo();
-    Uid typeid = subm.getRelationshipType();
-
-    RelationshipType relType = relationshipTypeService.getRelationshipType(typeid.getUid());
-
+    RelationshipType relType =
+        relationshipTypeService.getRelationshipType(subm.getRelationshipType().getUid());
     if (relType == null) {
-      throw new SMSProcessingException(SmsResponse.INVALID_RELTYPE.set(typeid));
+      throw new SMSProcessingException(SmsResponse.INVALID_RELTYPE.set(subm.getRelationshipType()));
     }
 
-    RelationshipItem fromItem = createRelationshipItem(user, relType, RelationshipDir.FROM, fromid);
-    RelationshipItem toItem = createRelationshipItem(user, relType, RelationshipDir.TO, toid);
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .importStrategy(TrackerImportStrategy.CREATE)
+            .userId(
+                user.getUid()) // SMS processing is done inside a job executed as the user that sent
+            // the SMS. We might want to remove the params user in favor of the currentUser set on
+            // the thread.
+            .build();
+    TrackerObjects trackerObjects =
+        TrackerObjects.builder()
+            .relationships(
+                List.of(
+                    Relationship.builder()
+                        .relationshipType(MetadataIdentifier.ofUid(relType))
+                        .relationship(
+                            subm.getRelationship() != null ? subm.getRelationship().getUid() : null)
+                        .from(relationshipItem(relType.getFromConstraint(), subm.getFrom()))
+                        .to(relationshipItem(relType.getToConstraint(), subm.getTo()))
+                        .build()))
+            .build();
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    Relationship rel = new Relationship();
-
-    // If we aren't given a Uid for the relationship, it will be
-    // auto-generated
-    if (subm.getRelationship() != null) {
-      rel.setUid(subm.getRelationship().getUid());
+    if (Status.OK == importReport.getStatus()) {
+      return SmsResponse.SUCCESS;
     }
 
-    rel.setRelationshipType(relType);
-    rel.setFrom(fromItem);
-    rel.setTo(toItem);
-    rel.setCreated(new Date());
-    rel.setLastUpdated(new Date());
-
-    // TODO: Are there values we need to account for in relationships?
-
-    relationshipService.addRelationship(rel);
-
-    return SmsResponse.SUCCESS;
+    // TODO(DHIS2-18003) we need to map tracker import report errors/warnings to an sms
+    return SmsResponse.UNKNOWN_ERROR;
   }
 
-  private RelationshipItem createRelationshipItem(
-      User user, RelationshipType relType, RelationshipDir dir, Uid objId) {
-    RelationshipItem relItem = new RelationshipItem();
-    RelationshipEntity fromEnt = relType.getFromConstraint().getRelationshipEntity();
-    RelationshipEntity toEnt = relType.getFromConstraint().getRelationshipEntity();
-    RelationshipEntity relEnt = dir == RelationshipDir.FROM ? fromEnt : toEnt;
-
-    switch (relEnt) {
-      case TRACKED_ENTITY_INSTANCE:
-        TrackedEntity te = trackedEntityService.getTrackedEntity(objId.getUid());
-        if (te == null) {
-          throw new SMSProcessingException(SmsResponse.INVALID_TEI.set(objId));
-        }
-        relItem.setTrackedEntity(te);
-        break;
-
-      case PROGRAM_INSTANCE:
-        Enrollment enrollment;
-        try {
-          enrollment = enrollmentService.getEnrollment(objId.getUid(), UserDetails.fromUser(user));
-        } catch (ForbiddenException | NotFoundException e) {
-          throw new SMSProcessingException(SmsResponse.INVALID_ENROLL.set(objId));
-        }
-
-        relItem.setEnrollment(enrollment);
-        break;
-
-      case PROGRAM_STAGE_INSTANCE:
-        Event event;
-        try {
-          event = eventService.getEvent(UID.of(objId.getUid()), UserDetails.fromUser(user));
-        } catch (NotFoundException | ForbiddenException e) {
-          throw new SMSProcessingException(SmsResponse.INVALID_EVENT.set(objId));
-        }
-        relItem.setEvent(event);
-        break;
-    }
-
-    return relItem;
+  private RelationshipItem relationshipItem(RelationshipConstraint constraint, Uid uid) {
+    return switch (constraint.getRelationshipEntity()) {
+      case TRACKED_ENTITY_INSTANCE ->
+          RelationshipItem.builder().trackedEntity(uid.getUid()).build();
+      case PROGRAM_INSTANCE -> RelationshipItem.builder().enrollment(uid.getUid()).build();
+      case PROGRAM_STAGE_INSTANCE -> RelationshipItem.builder().event(uid.getUid()).build();
+    };
   }
 
   @Override

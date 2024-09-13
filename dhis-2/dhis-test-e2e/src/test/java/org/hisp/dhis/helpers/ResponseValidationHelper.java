@@ -31,7 +31,7 @@ import static org.hamcrest.CoreMatchers.isA;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.apache.http.HttpStatus;
-import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>

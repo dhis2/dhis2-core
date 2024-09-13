@@ -47,6 +47,7 @@ import org.hisp.dhis.datastore.DatastoreQuery;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -137,7 +138,7 @@ public class UserDatastoreController extends AbstractDatastoreController {
       @RequestParam(required = false, defaultValue = "false") boolean includeAll,
       DatastoreParams params,
       HttpServletResponse response)
-      throws IOException, ConflictException {
+      throws IOException, ConflictException, ForbiddenException {
     DatastoreQuery query =
         service.plan(
             DatastoreQuery.builder()

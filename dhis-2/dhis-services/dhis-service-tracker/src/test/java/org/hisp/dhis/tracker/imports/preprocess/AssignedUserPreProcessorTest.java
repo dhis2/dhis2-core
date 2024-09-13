@@ -37,7 +37,7 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.hamcrest.MatcherAssert;
-import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.User;
@@ -50,7 +50,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class AssignedUserPreProcessorTest extends DhisConvenienceTest {
+class AssignedUserPreProcessorTest extends TestBase {
   private static final String UID = "User uid";
 
   private static final String USERNAME = "Username";

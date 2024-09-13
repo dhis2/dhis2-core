@@ -41,12 +41,12 @@ import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
+class PostgreSqlBuilderIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private JdbcTemplate jdbcTemplate;
 
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();

@@ -38,7 +38,6 @@ import org.hisp.dhis.user.UserStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
@@ -55,7 +54,6 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
  */
 @Configuration
 @Order(910)
-@ComponentScan(basePackages = {"org.hisp.dhis"})
 @EnableWebSecurity
 public class AuthenticationProviderConfig {
   @Autowired private DhisConfigurationProvider configurationProvider;

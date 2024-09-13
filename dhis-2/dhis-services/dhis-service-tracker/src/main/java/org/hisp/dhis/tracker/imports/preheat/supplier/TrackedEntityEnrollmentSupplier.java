@@ -118,13 +118,13 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
     if (trackerObjects.getEnrollments().isEmpty()) return;
 
     for (List<String> trackedEntityListSubList : trackedEntities) {
-      queryTeiAndAddToMap(trackedEntityToEnrollmentMap, trackedEntityListSubList, programList);
+      queryTeAndAddToMap(trackedEntityToEnrollmentMap, trackedEntityListSubList, programList);
     }
 
     preheat.setTrackedEntityToEnrollmentMap(trackedEntityToEnrollmentMap);
   }
 
-  private void queryTeiAndAddToMap(
+  private void queryTeAndAddToMap(
       Map<String, List<Enrollment>> trackedEntityToEnrollmentMap,
       List<String> trackedEntityListSubList,
       List<String> programList) {

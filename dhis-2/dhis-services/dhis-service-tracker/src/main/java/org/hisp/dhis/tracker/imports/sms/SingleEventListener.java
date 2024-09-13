@@ -34,19 +34,24 @@ import java.util.Set;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
+import org.hisp.dhis.sms.listener.SMSProcessingException;
 import org.hisp.dhis.sms.parse.ParserType;
+import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.system.util.SmsUtils;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -64,7 +69,7 @@ public class SingleEventListener extends RegisterSMSListener {
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       EnrollmentService enrollmentService,
-      TrackedEntityDataValueChangeLogService dataValueAuditService,
+      EventChangeLogService eventChangeLogService,
       FileResourceService fileResourceService,
       DhisConfigurationProvider config,
       IdentifiableObjectManager identifiableObjectManager,
@@ -75,7 +80,7 @@ public class SingleEventListener extends RegisterSMSListener {
         incomingSmsService,
         smsSender,
         enrollmentService,
-        dataValueAuditService,
+        eventChangeLogService,
         fileResourceService,
         config,
         identifiableObjectManager);
@@ -101,9 +106,16 @@ public class SingleEventListener extends RegisterSMSListener {
       SMSCommand smsCommand,
       IncomingSms sms,
       Set<OrganisationUnit> ous) {
-    List<Enrollment> enrollments =
-        new ArrayList<>(
-            enrollmentService.getEnrollments(smsCommand.getProgram(), EnrollmentStatus.ACTIVE));
+    List<Enrollment> enrollments;
+    try {
+      enrollments =
+          new ArrayList<>(
+              enrollmentService.getEnrollments(
+                  null, smsCommand.getProgram(), EnrollmentStatus.ACTIVE));
+    } catch (ForbiddenException | BadRequestException | NotFoundException e) {
+      // TODO(tracker) Find a better error message for these exceptions
+      throw new SMSProcessingException(SmsResponse.UNKNOWN_ERROR);
+    }
 
     register(enrollments, commandValuePairs, smsCommand, sms, ous);
   }
