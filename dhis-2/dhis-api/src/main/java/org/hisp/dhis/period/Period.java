@@ -33,7 +33,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.text.SimpleDateFormat;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
@@ -75,7 +74,7 @@ public class Period extends BaseDimensionalItemObject {
     }
     ZoneId zoneId = ZoneId.systemDefault();
     Function<Date, ZonedDateTime> toZonedDate =
-        date -> ZonedDateTime.ofInstant(date.toInstant(), zoneId).with(LocalTime.MIN);
+        date -> ZonedDateTime.ofInstant(date.toInstant(), zoneId);
     ZonedDateTime from = start == null ? null : toZonedDate.apply(start);
     ZonedDateTime to = end == null ? null : toZonedDate.apply(end);
     ZonedDateTime sample = toZonedDate.apply(checked);

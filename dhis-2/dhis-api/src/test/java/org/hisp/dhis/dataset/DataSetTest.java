@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataset;
 
+import static org.hisp.dhis.util.DateUtils.addDays;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -138,14 +139,6 @@ class DataSetTest {
 
     // 60 hours is 2.5 days (60 / 24) which is too much
     assertIsLocked(true, period -> addDays(period.getEndDate(), 2.5));
-  }
-
-  public static Date addDays(Date date, double days) {
-    // Use double precision to calculate milliseconds for fractional days
-    final long millisPerDay = 24 * 60 * 60 * 1000;
-    long additionalMillis = (long) (days * millisPerDay);
-    // Add milliseconds to the base date
-    return new Date(date.getTime() + additionalMillis);
   }
 
   private static void assertIsLocked(boolean expected, Function<Period, Date> actual) {
