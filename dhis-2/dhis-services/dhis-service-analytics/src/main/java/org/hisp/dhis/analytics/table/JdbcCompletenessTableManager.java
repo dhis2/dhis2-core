@@ -34,6 +34,7 @@ import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.BOOLEAN;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
+import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
@@ -281,7 +282,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     columns.add(
         AnalyticsTableColumn.builder()
             .name("value")
-            .dataType(DATE)
+            .dataType(TIMESTAMP)
             .valueType(FACT)
             .selectExpression("cdr.date as value")
             .build());
@@ -304,7 +305,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
       sql +=
           replace(
               "and pe.startdate >= '${fromDate}'",
-              Map.of("fromDate", DateUtils.toMediumDate(params.getFromDate())));
+              Map.of("fromDate", DateUtils.toLongDate(params.getFromDate())));
     }
 
     return jdbcTemplate.queryForList(sql, Integer.class);
