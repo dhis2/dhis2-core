@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.program.notification;
 
+import static org.hisp.dhis.program.notification.BaseNotificationParam.DEFAULT_PAGE;
+import static org.hisp.dhis.program.notification.BaseNotificationParam.DEFAULT_PAGE_SIZE;
+
 import java.math.BigInteger;
 import java.util.List;
 import javax.persistence.EntityManager;
@@ -176,12 +179,8 @@ public class DefaultProgramNotificationTemplateStore
     }
 
     if (!param.isSkipPaging()) {
-      int page =
-          param.getPage() != null ? param.getPage() : ProgramNotificationTemplateParam.DEFAULT_PAGE;
-      int pageSize =
-          param.getPageSize() != null
-              ? param.getPageSize()
-              : ProgramNotificationTemplateParam.DEFAULT_PAGE_SIZE;
+      int page = param.getPage() != null ? param.getPage() : DEFAULT_PAGE;
+      int pageSize = param.getPageSize() != null ? param.getPageSize() : DEFAULT_PAGE_SIZE;
 
       query.setFirstResult((page - 1) * pageSize);
       query.setMaxResults(pageSize);
