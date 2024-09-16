@@ -40,7 +40,7 @@ import lombok.NoArgsConstructor;
 public class BaseNotificationParam {
   public static final int DEFAULT_PAGE_SIZE = 50;
 
-  public static final int DEFAULT_PAGE = 0;
+  public static final int DEFAULT_PAGE = 1;
 
   private Integer page;
 
