@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.program.notification;
 
-import static org.hisp.dhis.program.notification.ProgramNotificationTemplateParam.DEFAULT_PAGE;
-import static org.hisp.dhis.program.notification.ProgramNotificationTemplateParam.DEFAULT_PAGE_SIZE;
+import static org.hisp.dhis.program.notification.BaseNotificationParam.DEFAULT_PAGE;
+import static org.hisp.dhis.program.notification.BaseNotificationParam.DEFAULT_PAGE_SIZE;
 
 import java.math.BigInteger;
 import java.util.List;
