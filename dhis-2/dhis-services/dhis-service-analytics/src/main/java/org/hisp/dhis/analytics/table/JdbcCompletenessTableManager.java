@@ -33,12 +33,13 @@ import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.BOOLEAN;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
-import static org.hisp.dhis.db.model.DataType.DATE;
-import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
+import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
+
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -257,7 +258,10 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
   private List<AnalyticsTableColumn> getColumns() {
     String idColAlias = "concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',ao.uid) as id ";
-    String timelyDateDiff = "EXTRACT(EPOCH FROM (cdr.date - ps.enddate)) / (24 * 60 * 60)";
+    int secondsInDay = (int) (24L * 60 * 60);
+
+    //The timeliness clock can only start ticking at the
+    String timelyDateDiff = format("(EXTRACT(EPOCH FROM (cdr.date - ps.enddate)) - {}) / {}", secondsInDay,secondsInDay);
     String timelyAlias = "((" + timelyDateDiff + ") <= ds.timelydays) as timely";
 
     List<AnalyticsTableColumn> columns = new ArrayList<>();
@@ -279,6 +283,12 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             .dataType(BOOLEAN)
             .selectExpression(timelyAlias)
             .build());
+    columns.add(
+            AnalyticsTableColumn.builder()
+                    .name("timelydaysdiff")
+                    .dataType(DOUBLE)
+                    .selectExpression(timelyDateDiff)
+                    .build());
     columns.add(
         AnalyticsTableColumn.builder()
             .name("value")
