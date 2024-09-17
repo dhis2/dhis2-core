@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.program.notification;
 
+import static org.hisp.dhis.program.notification.BaseNotificationParam.DEFAULT_PAGE;
+import static org.hisp.dhis.program.notification.BaseNotificationParam.DEFAULT_PAGE_SIZE;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -41,9 +44,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-
-import static org.hisp.dhis.program.notification.BaseNotificationParam.DEFAULT_PAGE;
-import static org.hisp.dhis.program.notification.BaseNotificationParam.DEFAULT_PAGE_SIZE;
 
 /**
  * @author Zubair Asghar
@@ -79,12 +79,11 @@ public class HibernateProgramNotificationInstanceStore
             .addOrder(root -> builder.desc(root.get("created")));
 
     if (!params.isSkipPaging()) {
-        int page = params.getPage() != null ? params.getPage() : DEFAULT_PAGE;
-        int pageSize = params.getPageSize() != null ? params.getPageSize() : DEFAULT_PAGE_SIZE;
+      int page = params.getPage() != null ? params.getPage() : DEFAULT_PAGE;
+      int pageSize = params.getPageSize() != null ? params.getPageSize() : DEFAULT_PAGE_SIZE;
 
-        jpaParameters.setFirstResult((page - 1) * pageSize);
-        jpaParameters.setMaxResults(pageSize);
-
+      jpaParameters.setFirstResult((page - 1) * pageSize);
+      jpaParameters.setMaxResults(pageSize);
     }
 
     return getList(builder, jpaParameters);
