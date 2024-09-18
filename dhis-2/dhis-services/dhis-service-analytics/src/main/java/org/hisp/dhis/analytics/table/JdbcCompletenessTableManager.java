@@ -33,7 +33,6 @@ import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.BOOLEAN;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
-import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
