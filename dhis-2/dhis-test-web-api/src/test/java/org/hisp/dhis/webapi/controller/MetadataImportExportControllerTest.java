@@ -478,9 +478,9 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
   }
 
   /**
-   * After upgrading Spring 6.1 this test failed. The reasons is because the
-   * DataElementDeletionHandler use a JDBC template to execute the query and this query doesn't see
-   * the changes made in the main test transaction. In result, deletion event is not vetoed.
+   * After upgrading Spring 6.1 this test failed. The reason is the DataElementDeletionHandler use a
+   * JDBC template to execute the exists query and this query doesn't see the changes made in the
+   * main test transaction. In result, deletion event is not vetoed.
    */
   @Disabled
   @DisplayName(

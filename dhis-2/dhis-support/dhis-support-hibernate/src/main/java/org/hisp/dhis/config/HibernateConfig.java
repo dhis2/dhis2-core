@@ -105,11 +105,6 @@ public class HibernateConfig {
     return new HibernateDbmsManager(jdbcTemplate, entityManager, cacheManager);
   }
 
-  //  @Bean
-  //  public BeanFactoryPostProcessor entityManagerBeanDefinitionRegistrarPostProcessor() {
-  //    return new EntityManagerBeanDefinitionRegistrarPostProcessor();
-  //  }
-
   @Bean
   public EntityManager sharedEntityManager(EntityManagerFactory emf) {
     return SharedEntityManagerCreator.createSharedEntityManager(emf);
@@ -125,7 +120,6 @@ public class HibernateConfig {
     LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
     factory.setJpaVendorAdapter(adapter);
     factory.setPersistenceProviderClass(HibernatePersistenceProvider.class);
-    //    factory.setPersistenceUnitManager(persistenceUnitManager);
     factory.setDataSource(dataSource);
     factory.setPackagesToScan("org.hisp.dhis");
     factory.setMappingResources(loadResources());
@@ -133,28 +127,10 @@ public class HibernateConfig {
     factory.afterPropertiesSet();
     return factory.getObject();
   }
-
-  //
-  //  @Bean
-  //  public PersistenceUnitManager persistenceUnitManager(@Qualifier("actualDataSource") DataSource
-  // dataSource) {
-  //    DhisPersistenceUnitInfo.builder().
-  //        nonJtaDataSource(dataSource)
-  //    .build();
-  //
-  //    DefaultPersistenceUnitManager manager = new DefaultPersistenceUnitManager();
-  //    manager.setDefaultDataSource(dataSource);
-  //    manager.setMappingResources(loadResources());
-  //    manager.setValidationMode(ValidationMode.AUTO);
-  //    manager.setPackagesToScan("org.hisp.dhis");
-  //    manager.setSharedCacheMode(SharedCacheMode.ENABLE_SELECTIVE);
-  //    manager.afterPropertiesSet();
-  //    return manager;
-  //  }
-
+  
   /**
    * If return true, hibernate will generate the DDL for the database. This is used by h2-test.
-   * @param dhisConfig {@link DhisConfigurationProvider
+   * @param dhisConfig {@link DhisConfigurationProvider}
    * @return TRUE if connection.schema is not set to none
    */
   private boolean shouldGenerateDDL(DhisConfigurationProvider dhisConfig) {
