@@ -142,6 +142,7 @@ public class DefaultDataQueryService implements DataQueryService {
     }
 
     return params
+        .withOptionSetSelectionMode(request.getOptionSetSelectionMode())
         .withStartDate(request.getStartDate())
         .withEndDate(request.getEndDate())
         .withOrder(request.getOrder())

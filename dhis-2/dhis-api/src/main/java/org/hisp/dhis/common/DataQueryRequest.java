@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.Set;
 import lombok.Getter;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.OptionSetSelectionMode;
 import org.hisp.dhis.analytics.SortOrder;
 
 @Getter
@@ -42,6 +43,8 @@ public class DataQueryRequest {
   protected Set<String> filter;
 
   protected AggregationType aggregationType;
+
+  protected OptionSetSelectionMode optionSetSelectionMode;
 
   protected String measureCriteria;
 
@@ -134,6 +137,11 @@ public class DataQueryRequest {
 
     public DataQueryRequestBuilder aggregationType(AggregationType aggregationType) {
       this.request.aggregationType = aggregationType;
+      return this;
+    }
+
+    public DataQueryRequestBuilder optionSetSelectionMode(OptionSetSelectionMode optionSetSelectionMode) {
+      this.request.optionSetSelectionMode = optionSetSelectionMode;
       return this;
     }
 
@@ -294,6 +302,7 @@ public class DataQueryRequest {
 
     public DataQueryRequestBuilder fromCriteria(AggregateAnalyticsQueryCriteria criteria) {
       this.request.aggregationType = criteria.getAggregationType();
+      this.request.optionSetSelectionMode = criteria.getOptionSetSelectionMode();
       this.request.approvalLevel = criteria.getApprovalLevel();
       this.request.completedOnly = criteria.isCompletedOnly();
       this.request.dimension = criteria.getDimension();
