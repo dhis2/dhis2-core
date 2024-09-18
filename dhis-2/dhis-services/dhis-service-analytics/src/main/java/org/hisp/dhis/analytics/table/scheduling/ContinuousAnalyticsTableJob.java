@@ -31,6 +31,7 @@ import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +43,6 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
@@ -68,7 +68,7 @@ public class ContinuousAnalyticsTableJob implements Job {
 
   private final AnalyticsTableGenerator analyticsTableGenerator;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingManager settingManager;
 
   private final TableInfoReader tableInfoReader;
 
@@ -112,7 +112,7 @@ public class ContinuousAnalyticsTableJob implements Job {
         analyticsTableGenerator.generateAnalyticsTables(params, progress);
       } finally {
         Date nextUpdate = DateUtils.getNextDate(fullUpdateHourOfDay, startTime);
-        systemSettingManager.saveSystemSetting(SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, nextUpdate);
+        settingManager.saveSystemSettings(Map.of("keyNextAnalyticsTableUpdate", nextUpdate.toString()));
         log.info("Next full analytics table update: '{}'", toLongDate(nextUpdate));
       }
     } else {
@@ -144,10 +144,9 @@ public class ContinuousAnalyticsTableJob implements Job {
   boolean runFullUpdate(Date startTime) {
     Objects.requireNonNull(startTime);
 
-    Date nextFullUpdate =
-        systemSettingManager.getSystemSetting(SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, Date.class);
+    Date nextFullUpdate = settingManager.getCurrentSettings().getNextAnalyticsTableUpdate();
 
-    return nextFullUpdate == null || startTime.after(nextFullUpdate);
+    return startTime.after(nextFullUpdate);
   }
 
   private boolean checkJobOutliersConsistency(ContinuousAnalyticsJobParameters parameters) {

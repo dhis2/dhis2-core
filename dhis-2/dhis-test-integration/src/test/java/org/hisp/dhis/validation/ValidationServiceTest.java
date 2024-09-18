@@ -86,6 +86,7 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -1651,7 +1652,7 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
   void testInstructionTranslation() {
     createUserAndInjectSecurityContext(true);
     Locale locale = Locale.FRENCH;
-    CurrentUserUtil.setUserSetting(UserSettingKey.DB_LOCALE, locale);
+    UserSettings.overrideCurrentUserSettings(Map.of("keyDbLocale", locale.toString()));
 
     useDataValue(dataElementA, periodA, sourceA, "10");
     useDataValue(dataElementB, periodA, sourceA, "20");

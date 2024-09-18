@@ -71,8 +71,8 @@ import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -115,7 +115,7 @@ public class DataValueController {
 
   private final DataValueService dataValueService;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final InputUtils inputUtils;
 
@@ -228,21 +228,12 @@ public class DataValueController {
 
     DataValueCategoryDto attribute = dataValue.getAttribute();
 
-    boolean strictPeriods =
-        systemSettingManager.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_PERIODS);
-
-    boolean strictCategoryOptionCombos =
-        systemSettingManager.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS);
-
-    boolean strictOrgUnits =
-        systemSettingManager.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS);
-
-    boolean requireCategoryOptionCombo =
-        systemSettingManager.getBoolSetting(SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO);
-
-    FileResourceRetentionStrategy retentionStrategy =
-        systemSettingManager.getSystemSetting(
-            SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.class);
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    boolean strictPeriods = settings.getDataImportStrictDataSetInputPeriods();
+    boolean strictCategoryOptionCombos = settings.getDataImportStrictCategoryOptionCombos();
+    boolean strictOrgUnits = settings.getDataImportStrictOrganisationUnits();
+    boolean requireCategoryOptionCombo = settings.getDataImportRequireCategoryOptionCombo();
+    FileResourceRetentionStrategy retentionStrategy = settings.getFileResourceRetentionStrategy();
 
     // ---------------------------------------------------------------------
     // Input validation
@@ -470,12 +461,10 @@ public class DataValueController {
       DataValueQueryParams params,
       @OpenApi.Param({UID.class, DataSet.class}) @RequestParam(required = false) String ds,
       @RequestParam(required = false) boolean force,
-      @CurrentUser UserDetails currentUser,
-      HttpServletResponse response)
+      @CurrentUser UserDetails currentUser, SystemSettings settings)
       throws WebMessageException {
     FileResourceRetentionStrategy retentionStrategy =
-        systemSettingManager.getSystemSetting(
-            SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.class);
+        settings.getFileResourceRetentionStrategy();
 
     // ---------------------------------------------------------------------
     // Input validation

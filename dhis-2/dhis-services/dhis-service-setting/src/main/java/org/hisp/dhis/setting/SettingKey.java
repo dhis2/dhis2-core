@@ -40,6 +40,7 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.stream.Stream;
 import lombok.Getter;
+import lombok.ToString;
 import org.apache.commons.lang3.LocaleUtils;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
@@ -57,6 +58,7 @@ import org.hisp.dhis.security.LoginPageLayout;
  * @author Lars Helge Overland
  */
 @Getter
+@ToString
 public enum SettingKey {
   UI_LOCALE("keyUiLocale", LocaleManager.DEFAULT_LOCALE, Locale.class),
   DB_LOCALE("keyDbLocale", Locale.class),
@@ -66,11 +68,13 @@ public enum SettingKey {
       "keyAnalysisDigitGroupSeparator", DigitGroupSeparator.SPACE, DigitGroupSeparator.class),
   CURRENT_DOMAIN_TYPE("keyCurrentDomainType"),
   TRACKER_DASHBOARD_LAYOUT("keyTrackerDashboardLayout"),
+
   APPLICATION_TITLE("applicationTitle", "DHIS 2", String.class, false, true),
   APPLICATION_INTRO("keyApplicationIntro", true),
   APPLICATION_NOTIFICATION("keyApplicationNotification", true),
   APPLICATION_FOOTER("keyApplicationFooter", true),
   APPLICATION_RIGHT_FOOTER("keyApplicationRightFooter", true),
+
   FLAG("keyFlag", "dhis2", String.class),
   FLAG_IMAGE("keyFlagImage"),
   START_MODULE("startModule", "dhis-web-dashboard", String.class),
@@ -296,20 +300,11 @@ public enum SettingKey {
   ;
 
   private final String name;
-
   private final Serializable defaultValue;
-
   private final Class<? extends Serializable> clazz;
-
   private final boolean confidential;
-
   private final boolean translatable;
 
-  private static final ImmutableSet<String> NAMES = getNameSet();
-
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
 
   SettingKey(String name) {
     this(name, null, String.class, false, false);
@@ -335,10 +330,6 @@ public enum SettingKey {
     this.confidential = confidential;
     this.translatable = translatable;
   }
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
 
   public static Optional<SettingKey> getByName(String name) {
     for (SettingKey setting : SettingKey.values()) {
@@ -388,27 +379,4 @@ public enum SettingKey {
     return value;
   }
 
-  public static Set<String> getNames() {
-    return NAMES;
-  }
-
-  private static ImmutableSet<String> getNameSet() {
-    return ImmutableSet.copyOf(
-        Stream.of(SettingKey.values()).map(SettingKey::getName).collect(toSet()));
-  }
-
-  // -------------------------------------------------------------------------
-  // Getters
-  // -------------------------------------------------------------------------
-
-  @Override
-  public String toString() {
-    return new StringJoiner(", ", SettingKey.class.getSimpleName() + "[", "]")
-        .add("name='" + name + "'")
-        .add("defaultValue=" + defaultValue)
-        .add("clazz=" + clazz)
-        .add("confidential=" + confidential)
-        .add("translatable=" + translatable)
-        .toString();
-  }
 }

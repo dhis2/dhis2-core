@@ -32,6 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -108,18 +110,6 @@ class SystemSettingStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetSystemSetting() {
-    systemSettingStore.save(settingA);
-    systemSettingStore.save(settingB);
-    SystemSetting s = systemSettingStore.getByName("Setting1");
-    assertNotNull(s);
-    assertEquals("Setting1", s.getName());
-    assertEquals("Value1", s.getDisplayValue());
-    s = systemSettingStore.getByName("Setting3");
-    assertNull(s);
-  }
-
-  @Test
   void testGetAllSystemSettings() {
     List<SystemSetting> settings = systemSettingStore.getAll();
     assertNotNull(settings);
@@ -129,5 +119,17 @@ class SystemSettingStoreTest extends PostgresIntegrationTestBase {
     settings = systemSettingStore.getAll();
     assertNotNull(settings);
     assertEquals(2, settings.size());
+  }
+
+  @Test
+  void testGetAllSystemSettingsAsMap() {
+    Map<String, String> settings = systemSettingStore.getAllSettings();
+    assertNotNull(settings);
+    assertEquals(0, settings.size());
+    systemSettingStore.save(settingA);
+    systemSettingStore.save(settingB);
+    settings = systemSettingStore.getAllSettings();
+    assertNotNull(settings);
+    assertEquals(Map.of("Setting1", "Value1", "Setting2", "Value2"), settings);
   }
 }

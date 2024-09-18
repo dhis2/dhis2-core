@@ -28,9 +28,13 @@
 package org.hisp.dhis.dxf2.metadata.jobs;
 
 import static java.lang.String.format;
+import static java.util.Map.entry;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -47,7 +51,6 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
@@ -79,7 +82,7 @@ public class MetadataSyncJob implements Job {
     DATA_PUSH_SUMMARY, GET_METADATAVERSION, GET_METADATAVERSIONSLIST, METADATA_SYNC, VERSION_KEY
   };
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingManager settingManager;
 
   private final RetryTemplate retryTemplate;
 
@@ -201,14 +204,14 @@ public class MetadataSyncJob implements Job {
 
     if (version != null) {
       MetadataVersion metadataVersion = (MetadataVersion) version;
-      systemSettingManager.saveSystemSetting(
-          SettingKey.METADATA_FAILED_VERSION, metadataVersion.getName());
-      systemSettingManager.saveSystemSetting(SettingKey.METADATA_LAST_FAILED_TIME, new Date());
+      settingManager.saveSystemSettings(Map.ofEntries(
+          entry("keyMetadataFailedVersion", metadataVersion.getName()),
+          entry("keyMetadataLastFailedTime", new Date().toString())));
     }
   }
 
   private void clearFailedVersionSettings() {
-    systemSettingManager.deleteSystemSetting(SettingKey.METADATA_FAILED_VERSION);
-    systemSettingManager.deleteSystemSetting(SettingKey.METADATA_LAST_FAILED_TIME);
+    settingManager.deleteSystemSettings(
+        Set.of("keyMetadataFailedVersion", "keyMetadataLastFailedTime"));
   }
 }

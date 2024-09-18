@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import java.util.Map;
 import java.util.Properties;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -45,6 +46,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.util.HtmlUtils;
@@ -67,39 +69,39 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
-  void shouldGetLoginConfig() {
+  void shouldGetLoginConfig() throws Exception {
 
     addGoogleProvider("testClientId");
 
-    systemSettingManager.saveSystemSetting(SettingKey.APPLICATION_TITLE, "DHIS2");
+    systemSettingManager.saveSystemSettings(Map.of("applicationTitle", "DHIS2"));
     systemSettingManager.saveSystemSettingTranslation(
-        SettingKey.APPLICATION_TITLE, "no", "Distrikstshelsesinformasjonssystem versjon 2");
+        "applicationTitle", "no", "Distrikstshelsesinformasjonssystem versjon 2");
 
-    systemSettingManager.saveSystemSetting(SettingKey.LOGIN_POPUP, "<html>TEXT</html>");
+    systemSettingManager.saveSystemSettings(Map.of("loginPopup", "<html>TEXT</html>"));
     systemSettingManager.saveSystemSettingTranslation(
-        SettingKey.LOGIN_POPUP, "no", "<html>tekst</html>");
+        "loginPopup", "no", "<html>tekst</html>");
 
-    systemSettingManager.saveSystemSetting(SettingKey.APPLICATION_FOOTER, "APPLICATION_FOOTER");
+    systemSettingManager.saveSystemSettings(Map.of("keyApplicationFooter", "APPLICATION_FOOTER"));
     systemSettingManager.saveSystemSettingTranslation(
-        SettingKey.APPLICATION_FOOTER, "no", "Søknadsbunntekst");
+        "keyApplicationFooter", "no", "Søknadsbunntekst");
 
-    systemSettingManager.saveSystemSetting(
-        SettingKey.APPLICATION_RIGHT_FOOTER, "APPLICATION_RIGHT_FOOTER");
+    systemSettingManager.saveSystemSettings(Map.of(
+        "keyApplicationRightFooter", "APPLICATION_RIGHT_FOOTER"));
     systemSettingManager.saveSystemSettingTranslation(
-        SettingKey.APPLICATION_RIGHT_FOOTER, "no", "Høyre søknadsbunntekst");
+        "keyApplicationRightFooter", "no", "Høyre søknadsbunntekst");
 
-    systemSettingManager.saveSystemSetting(SettingKey.APPLICATION_INTRO, "APPLICATION_INTRO");
+    systemSettingManager.saveSystemSettings(Map.of("keyApplicationIntro", "APPLICATION_INTRO"));
     systemSettingManager.saveSystemSettingTranslation(
-        SettingKey.APPLICATION_INTRO, "no", "Søknadsintroduksjon");
+        "keyApplicationIntro", "no", "Søknadsintroduksjon");
 
-    systemSettingManager.saveSystemSetting(
-        SettingKey.APPLICATION_NOTIFICATION, "APPLICATION_NOTIFICATION");
+    systemSettingManager.saveSystemSettings(Map.of(
+        "keyApplicationNotification", "APPLICATION_NOTIFICATION"));
     systemSettingManager.saveSystemSettingTranslation(
-        SettingKey.APPLICATION_NOTIFICATION, "no", "Søknadsmelding");
+        "keyApplicationNotification", "no", "Søknadsmelding");
 
-    systemSettingManager.saveSystemSetting(SettingKey.FLAG, "FLAG_IMAGE");
-    systemSettingManager.saveSystemSetting(SettingKey.USE_CUSTOM_LOGO_FRONT, true);
-    systemSettingManager.saveSystemSetting(SettingKey.CUSTOM_TOP_MENU_LOGO, true);
+    systemSettingManager.saveSystemSettings(Map.of("keyFlag", "FLAG_IMAGE"));
+    systemSettingManager.saveSystemSettings(Map.of("keyUseCustomLogoFront", "true"));
+    systemSettingManager.saveSystemSettings(Map.of("keyCustomTopMenuLogo", "true"));
 
     JsonObject responseDefaultLocale = GET("/loginConfig").content();
     JsonObject responseNorwegianLocale = GET("/loginConfig?locale=no").content();
@@ -168,10 +170,11 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testLoginPageLayout() {
+    @Language("html")
     String template =
         """
             <!DOCTYPE HTML>
-            <html class="loginPage" dir="ltr">
+            <html class="loginPage" dir="ltr" lang="en">
             <head>
             <title>DHIS 2 Demo</title>
             <meta name="description" content="DHIS 2">

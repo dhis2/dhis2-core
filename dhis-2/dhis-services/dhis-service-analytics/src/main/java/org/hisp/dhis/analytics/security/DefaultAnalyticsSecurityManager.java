@@ -58,7 +58,7 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
@@ -75,7 +75,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
 
   private final DataApprovalLevelService approvalLevelService;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final DimensionService dimensionService;
 
@@ -238,7 +238,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    boolean hideUnapprovedData = systemSettingManager.hideUnapprovedDataInAnalytics();
+    boolean hideUnapprovedData = settingsProvider.getCurrentSettings().isHideUnapprovedDataInAnalytics();
     boolean canViewUnapprovedData = currentUser.isAuthorized(F_VIEW_UNAPPROVED_DATA);
 
     if (hideUnapprovedData) {

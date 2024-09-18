@@ -51,8 +51,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.SystemUser;
@@ -97,7 +96,7 @@ public class DefaultMessageService implements MessageService {
 
   private final I18nManager i18nManager;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final List<MessageSender> messageSenders;
 
@@ -229,7 +228,7 @@ public class DefaultMessageService implements MessageService {
   @Async
   @Transactional
   public void asyncSendSystemErrorNotification(@Nonnull String subject, @Nonnull Throwable t) {
-    String title = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
+    String title = settingsProvider.getCurrentSettings().getApplicationTitle();
     String baseUrl = configurationProvider.getServerBaseUrl();
 
     String text =

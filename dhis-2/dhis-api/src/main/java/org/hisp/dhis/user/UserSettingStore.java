@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.user;
 
+import org.hisp.dhis.common.GenericStore;
+
 import java.util.List;
 
-public interface UserSettingStore {
+public interface UserSettingStore extends GenericStore<UserSetting> {
   /**
    * Adds a UserSetting.
    *

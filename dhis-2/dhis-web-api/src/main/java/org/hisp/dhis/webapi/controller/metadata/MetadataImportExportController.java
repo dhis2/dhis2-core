@@ -47,7 +47,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.StreamUtils;
-import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.csv.CsvImportClass;
 import org.hisp.dhis.dxf2.csv.CsvImportOptions;
 import org.hisp.dhis.dxf2.csv.CsvImportService;
@@ -191,13 +190,7 @@ public class MetadataImportExportController {
   }
 
   @GetMapping
-  public ResponseEntity<MetadataExportParams> getMetadata(
-      @RequestParam(required = false, defaultValue = "false") boolean translate,
-      @RequestParam(required = false) String locale,
-      @RequestParam(defaultValue = "false") boolean download) {
-    if (translate) {
-      setTranslationParams(new TranslateParams(true, locale));
-    }
+  public ResponseEntity<MetadataExportParams> getMetadata() {
 
     MetadataExportParams params =
         metadataExportService.getParamsFromMap(contextService.getParameterValuesMap());
@@ -272,15 +265,4 @@ public class MetadataImportExportController {
     return jobConfigurationReport(config);
   }
 
-  private void setTranslationParams(TranslateParams translateParams) {
-    Locale dbLocale = getLocaleWithDefault(translateParams);
-    CurrentUserUtil.setUserSetting(UserSettingKey.DB_LOCALE, dbLocale);
-  }
-
-  private Locale getLocaleWithDefault(TranslateParams translateParams) {
-    return translateParams.isTranslate()
-        ? translateParams.getLocaleWithDefault(
-            (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE))
-        : null;
-  }
 }

@@ -29,7 +29,6 @@ package org.hisp.dhis.sms.config;
 
 import static org.hisp.dhis.commons.util.TextUtils.LN;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.io.Serializable;
@@ -41,6 +40,8 @@ import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -50,8 +51,7 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
@@ -73,6 +73,7 @@ import org.springframework.util.concurrent.ListenableFuture;
 @Slf4j
 @Component("smsMessageSender")
 @Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
+@RequiredArgsConstructor
 public class SmsMessageSender implements MessageSender {
   private static final String NO_CONFIG = "No default gateway configured";
 
@@ -88,39 +89,10 @@ public class SmsMessageSender implements MessageSender {
   // -------------------------------------------------------------------------
 
   private final GatewayAdministrationService gatewayAdminService;
-
   private final List<SmsGateway> smsGateways;
-
   private final UserSettingService userSettingService;
-
   private final OutboundSmsService outboundSmsService;
-
-  private final SystemSettingManager systemSettingManager;
-
-  public SmsMessageSender(
-      GatewayAdministrationService gatewayAdminService,
-      List<SmsGateway> smsGateways,
-      UserSettingService userSettingService,
-      OutboundSmsService outboundSmsService,
-      SystemSettingManager systemSettingManager) {
-
-    Preconditions.checkNotNull(gatewayAdminService);
-    Preconditions.checkNotNull(smsGateways);
-    Preconditions.checkNotNull(outboundSmsService);
-    Preconditions.checkNotNull(userSettingService);
-    Preconditions.checkState(!smsGateways.isEmpty());
-    Preconditions.checkNotNull(systemSettingManager);
-
-    this.gatewayAdminService = gatewayAdminService;
-    this.smsGateways = smsGateways;
-    this.userSettingService = userSettingService;
-    this.outboundSmsService = outboundSmsService;
-    this.systemSettingManager = systemSettingManager;
-  }
-
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
+  private final SystemSettingsProvider settingsProvider;
 
   @Override
   public OutboundMessageResponse sendMessage(
@@ -258,8 +230,7 @@ public class SmsMessageSender implements MessageSender {
                 .map(Integer::parseInt)
                 .orElseGet(
                     () ->
-                        systemSettingManager.getSystemSetting(
-                            SettingKey.SMS_MAX_LENGTH, Integer.class))) {
+                        settingsProvider.getCurrentSettings().getSmsMaxLength())) {
           return new OutboundMessageResponse(
               GatewayResponse.SMS_TEXT_MESSAGE_TOO_LONG.getResponseMessage(),
               GatewayResponse.SMS_TEXT_MESSAGE_TOO_LONG,

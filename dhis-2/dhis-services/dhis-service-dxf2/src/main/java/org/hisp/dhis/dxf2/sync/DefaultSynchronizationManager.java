@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.sync;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,8 +50,8 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
@@ -71,7 +72,7 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
   private final DataValueService dataValueService;
   private final MetadataImportService importService;
   private final SchemaService schemaService;
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingManager settingManager;
   private final RestTemplate restTemplate;
   private final ObjectMapper jsonMapper;
 
@@ -81,7 +82,7 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
 
   @Override
   public AvailabilityStatus isRemoteServerAvailable() {
-    return SyncUtils.isRemoteServerAvailable(systemSettingManager, restTemplate);
+    return SyncUtils.isRemoteServerAvailable(settingManager.getCurrentSettings(), restTemplate);
   }
 
   @Override
@@ -93,11 +94,10 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
       return null;
     }
 
-    String url =
-        systemSettingManager.getStringSetting(SettingKey.REMOTE_INSTANCE_URL)
-            + SyncEndpoint.DATA_VALUE_SETS.getPath();
-    String username = systemSettingManager.getStringSetting(SettingKey.REMOTE_INSTANCE_USERNAME);
-    String password = systemSettingManager.getStringSetting(SettingKey.REMOTE_INSTANCE_PASSWORD);
+    SystemSettings settings = settingManager.getCurrentSettings();
+    String url = settings.getRemoteInstanceUrl() + SyncEndpoint.DATA_VALUE_SETS.getPath();
+    String username = settings.getRemoteInstanceUsername();
+    String password = settings.getRemoteInstancePassword();
 
     SystemInstance instance = new SystemInstance(url, username, password);
 
@@ -118,11 +118,9 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
     // ---------------------------------------------------------------------
     final Date startTime = new Date();
     final Date lastSuccessTime =
-        SyncUtils.getLastSyncSuccess(
-            systemSettingManager, SettingKey.LAST_SUCCESSFUL_DATA_VALUE_SYNC);
+        settingManager.getCurrentSettings().getLastSuccessfulDataSynch();
     final Date skipChangedBefore =
-        systemSettingManager.getDateSetting(
-            SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE);
+        settingManager.getCurrentSettings().getSyncSkipSyncForDataChangedBefore();
     final Date lastUpdatedAfter =
         lastSuccessTime.after(skipChangedBefore) ? lastSuccessTime : skipChangedBefore;
     final int objectsToSynchronize =
@@ -131,8 +129,7 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
     log.info("DataValues last changed before " + skipChangedBefore + " will not be synchronized.");
 
     if (objectsToSynchronize == 0) {
-      SyncUtils.setLastSyncSuccess(
-          systemSettingManager, SettingKey.LAST_SUCCESSFUL_DATA_VALUE_SYNC, startTime);
+      settingManager.saveSystemSettings(Map.of("keyLastSuccessfulDataSynch", startTime.toString()));
       log.debug("Skipping data values push, no new or updated data values");
 
       ImportCount importCount = new ImportCount(0, 0, 0, 0);
@@ -160,7 +157,7 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
               lastUpdatedAfter, request.getBody(), new IdSchemes());
         };
 
-    final int maxSyncAttempts = systemSettingManager.getIntSetting(SettingKey.MAX_SYNC_ATTEMPTS);
+    final int maxSyncAttempts = settingManager.getCurrentSettings().getSyncMaxAttempts();
 
     Optional<AbstractWebMessageResponse> responseSummary =
         SyncUtils.runSyncRequest(

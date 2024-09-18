@@ -47,8 +47,7 @@ import org.hisp.dhis.query.operators.TokenOperator;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserSettingKey;
 import org.springframework.stereotype.Component;
@@ -60,7 +59,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DefaultQueryPlanner implements QueryPlanner {
   private final SchemaService schemaService;
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   @Override
   public QueryPlan planQuery(Query query) {
@@ -305,7 +304,6 @@ public class DefaultQueryPlanner implements QueryPlanner {
         .setLocale(
             CurrentUserUtil.getUserSetting(
                 UserSettingKey.DB_LOCALE,
-                systemSettingManager.getSystemSetting(
-                    SettingKey.DB_LOCALE, LocaleManager.DEFAULT_LOCALE)));
+                settingsProvider.getCurrentSettings().getDbLocale()));
   }
 }

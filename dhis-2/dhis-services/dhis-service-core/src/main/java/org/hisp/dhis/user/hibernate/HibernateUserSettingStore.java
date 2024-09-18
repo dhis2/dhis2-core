@@ -31,8 +31,11 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingStore;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,21 +43,12 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Lars Helge Overland
  */
 @Repository("org.hisp.dhis.user.UserSettingStore")
-public class HibernateUserSettingStore implements UserSettingStore {
+public class HibernateUserSettingStore extends HibernateGenericStore<UserSetting> implements UserSettingStore {
   private static final boolean CACHEABLE = true;
 
-  private EntityManager entityManager;
-
-  public HibernateUserSettingStore(EntityManager entityManager) {
-    this.entityManager = entityManager;
+  public HibernateUserSettingStore(EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, UserSetting.class, true);
   }
-
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-  // -------------------------------------------------------------------------
-  // UserSettingStore implementation
-  // -------------------------------------------------------------------------
 
   @Override
   public void addUserSetting(UserSetting userSetting) {
@@ -73,17 +67,12 @@ public class HibernateUserSettingStore implements UserSettingStore {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public UserSetting getUserSetting(String username, String name) {
-    Query<UserSetting> query =
-        getSession()
-            .createQuery(
-                "from UserSetting us where us.user.username = :username and us.name = :name");
-    query.setParameter("username", username);
-    query.setParameter("name", name);
-    query.setCacheable(CACHEABLE);
-
-    return query.uniqueResult();
+    String hql = "from UserSetting us where us.user.username = :username and us.name = :name";
+    return getQuery(hql)
+        .setParameter("username", username)
+        .setParameter("name", name)
+        .uniqueResult();
   }
 
   @Override

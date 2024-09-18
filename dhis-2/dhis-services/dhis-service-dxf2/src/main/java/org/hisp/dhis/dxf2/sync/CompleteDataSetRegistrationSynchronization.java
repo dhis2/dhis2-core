@@ -28,14 +28,16 @@
 package org.hisp.dhis.dxf2.sync;
 
 import java.util.Date;
+import java.util.Map;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -50,7 +52,7 @@ import org.springframework.web.client.RestTemplate;
 @AllArgsConstructor
 public class CompleteDataSetRegistrationSynchronization
     implements DataSynchronizationWithoutPaging {
-  private final SystemSettingManager settings;
+  private final SystemSettingManager settingManager;
 
   private final RestTemplate restTemplate;
 
@@ -81,7 +83,7 @@ public class CompleteDataSetRegistrationSynchronization
   @Override
   public SynchronizationResult synchronizeData(JobProgress progress) {
     progress.startingProcess("Starting Complete data set registration synchronization job.");
-    if (!SyncUtils.testServerAvailability(settings, restTemplate).isAvailable()) {
+    if (!SyncUtils.testServerAvailability(settingManager.getCurrentSettings(), restTemplate).isAvailable()) {
       String msg =
           "Complete data set registration synchronization failed. Remote server is unavailable.";
       progress.failedProcess(msg);
@@ -99,20 +101,18 @@ public class CompleteDataSetRegistrationSynchronization
             this::createContext);
 
     if (context.getObjectsToSynchronize() == 0) {
-      SyncUtils.setLastSyncSuccess(
-          settings,
-          SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC,
-          context.getStartTime());
+      settingManager.saveSystemSettings(
+          Map.of(
+              "keyLastCompleteDataSetRegistrationSyncSuccess", context.getStartTime().toString()));
       String msg = "Skipping completeness synchronization, no new or updated data";
       progress.completedProcess(msg);
       return SynchronizationResult.success(msg);
     }
 
     if (runSync(context, progress)) {
-      SyncUtils.setLastSyncSuccess(
-          settings,
-          SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC,
-          context.getStartTime());
+      settingManager.saveSystemSettings(
+          Map.of(
+              "keyLastCompleteDataSetRegistrationSyncSuccess", context.getStartTime().toString()));
       String msg = "Complete data set registration synchronization is done.";
       progress.completedProcess(msg);
       return SynchronizationResult.success(msg);
@@ -124,11 +124,9 @@ public class CompleteDataSetRegistrationSynchronization
   }
 
   private CompleteDataSetRegistrationSynchronizationContext createContext() {
-    Date lastSuccessTime =
-        SyncUtils.getLastSyncSuccess(
-            settings, SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC);
-    Date skipChangedBefore =
-        settings.getDateSetting(SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE);
+    SystemSettings settings = settingManager.getCurrentSettings();
+    Date lastSuccessTime = settings.getLastCompleteDataSetRegistrationSyncSuccess();
+    Date skipChangedBefore = settings.getSyncSkipSyncForDataChangedBefore();
     Date lastUpdatedAfter =
         lastSuccessTime.after(skipChangedBefore) ? lastSuccessTime : skipChangedBefore;
     int objectsToSynchronize =
@@ -176,7 +174,7 @@ public class CompleteDataSetRegistrationSynchronization
         };
 
     return SyncUtils.sendSyncRequest(
-        settings,
+        settingManager.getCurrentSettings(),
         restTemplate,
         requestCallback,
         instance,

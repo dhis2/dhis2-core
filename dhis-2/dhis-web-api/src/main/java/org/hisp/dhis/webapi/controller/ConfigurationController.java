@@ -54,8 +54,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.util.ObjectUtils;
@@ -89,8 +88,6 @@ public class ConfigurationController {
   @Autowired private PeriodService periodService;
 
   @Autowired private RenderService renderService;
-
-  @Autowired private SystemSettingManager systemSettingManager;
 
   @Autowired private AppManager appManager;
 
@@ -384,13 +381,13 @@ public class ConfigurationController {
   }
 
   @GetMapping("/remoteServerUrl")
-  public @ResponseBody String getRemoteServerUrl(Model model, HttpServletRequest request) {
-    return systemSettingManager.getStringSetting(SettingKey.REMOTE_INSTANCE_URL);
+  public @ResponseBody String getRemoteServerUrl(SystemSettings settings) {
+    return settings.getRemoteInstanceUrl();
   }
 
   @GetMapping("/remoteServerUsername")
-  public @ResponseBody String getRemoteServerUsername(Model model, HttpServletRequest request) {
-    return systemSettingManager.getStringSetting(SettingKey.REMOTE_INSTANCE_USERNAME);
+  public @ResponseBody String getRemoteServerUsername(SystemSettings settings) {
+    return settings.getRemoteInstanceUsername();
   }
 
   @GetMapping("/facilityOrgUnitGroupSet")

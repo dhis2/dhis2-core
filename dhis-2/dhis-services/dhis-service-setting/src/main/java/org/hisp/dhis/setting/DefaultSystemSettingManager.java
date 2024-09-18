@@ -27,22 +27,27 @@
  */
 package org.hisp.dhis.setting;
 
-import static java.util.stream.Collectors.toMap;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
+import static org.hisp.dhis.setting.SystemSettings.isConfidential;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
-import com.google.common.collect.Lists;
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import javax.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IndirectTransactional;
-import org.hisp.dhis.system.util.SerializableOptional;
+import org.hisp.dhis.common.NonTransactional;
+import org.hisp.dhis.datastore.DatastoreEntry;
+import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
+import org.hisp.dhis.datastore.DatastoreService;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.SystemUser;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
-import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,180 +63,106 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class DefaultSystemSettingManager implements SystemSettingManager {
 
-  private static final Map<String, SettingKey> NAME_KEY_MAP =
-      Map.copyOf(
-          Lists.newArrayList(SettingKey.values()).stream()
-              .collect(toMap(SettingKey::getName, e -> e)));
+  /**
+   * The namespace used to store settings translations in the datastore.
+   */
+  private static final String NS = "settings-translations";
 
-  /** Cache for system settings. Does not accept nulls. Disabled during test phase. */
-  private final Cache<SerializableOptional> settingCache;
+  private final DatastoreService datastore;
 
+  @PostConstruct
+  private void init() {
+    // Note: this uses a protection to prevent direct access
+    // but from within this service it datastore is read-accessed as SystemUser
+    datastore.addProtection(
+        new DatastoreNamespaceProtection(
+            NS, RESTRICTED, Authorities.F_SYSTEM_SETTING.name()));
+  }
+
+  /**
+   * This is a per thread cache of the settings
+   */
+  private final ThreadLocal<SystemSettings> currentSettings = new ThreadLocal<>();
   private final SystemSettingStore systemSettingStore;
-  private final PBEStringEncryptor pbeStringEncryptor;
+  private final @Qualifier("tripleDesStringEncryptor") PBEStringEncryptor pbeStringEncryptor;
   private final TransactionTemplate transactionTemplate;
 
-  public DefaultSystemSettingManager(
-      SystemSettingStore systemSettingStore,
-      @Qualifier("tripleDesStringEncryptor") PBEStringEncryptor pbeStringEncryptor,
-      CacheProvider cacheProvider,
-      TransactionTemplate transactionTemplate) {
-
-    this.systemSettingStore = systemSettingStore;
-    this.pbeStringEncryptor = pbeStringEncryptor;
-    this.settingCache = cacheProvider.createSystemSettingCache();
-    this.transactionTemplate = transactionTemplate;
-  }
+  private SystemSettings allSettings;
 
   @Override
-  @Transactional
-  public void saveSystemSetting(SettingKey key, Serializable value) {
-    settingCache.invalidate(key.getName());
-
-    SystemSetting setting = systemSettingStore.getByName(key.getName());
-
-    if (isConfidential(key.getName())) {
-      value = pbeStringEncryptor.encrypt(value.toString());
-    }
-
-    if (setting == null) {
-      setting = new SystemSetting();
-
-      setting.setName(key.getName());
-      setting.setDisplayValue(value);
-
-      systemSettingStore.save(setting);
-    } else {
-      setting.setDisplayValue(value);
-
-      systemSettingStore.update(setting);
-    }
+  @NonTransactional
+  public void clearCurrentSettings() {
+    currentSettings.remove();
   }
 
-  @Override
-  @Transactional
-  public void saveSystemSettingTranslation(SettingKey key, String locale, String translation) {
-    SystemSetting setting = systemSettingStore.getByName(key.getName());
-
-    if (setting == null && !translation.isEmpty()) {
-      throw new IllegalStateException("No entry found for key: " + key.getName());
-    }
-    if (setting != null) {
-      if (translation.isEmpty()) {
-        setting.getTranslations().remove(locale);
-      } else {
-        setting.getTranslations().put(locale, translation);
-      }
-
-      settingCache.invalidate(key.getName());
-      systemSettingStore.update(setting);
-    }
-  }
-
-  @Override
-  @Transactional
-  public void deleteSystemSetting(SettingKey key) {
-    SystemSetting setting = systemSettingStore.getByName(key.getName());
-
-    if (setting != null) {
-      settingCache.invalidate(key.getName());
-
-      systemSettingStore.delete(setting);
-    }
-  }
-
-  /**
-   * Note: No transaction for this method, transaction is instead initiated at the store level
-   * behind the cache to avoid the transaction overhead for cache hits.
-   */
   @Override
   @IndirectTransactional
-  @SuppressWarnings("unchecked")
-  public <T extends Serializable> T getSystemSetting(SettingKey key, T defaultValue) {
-    SerializableOptional value =
-        settingCache.get(key.getName(), k -> getSystemSettingOptional(k, defaultValue));
-
-    return defaultIfNull((T) value.get(), defaultValue);
+  public SystemSettings getCurrentSettings() {
+    SystemSettings res = currentSettings.get();
+    if (res == null) {
+      res = getAllSettings();
+      currentSettings.set(res);
+    }
+    return res;
   }
 
-  /**
-   * Get system setting {@link SerializableOptional}. The return object is never null in order to
-   * cache requests for system settings which have no value or default value.
-   *
-   * @param name the system setting name.
-   * @param defaultValue the default value for the system setting.
-   * @return an optional system setting value.
-   */
-  private SerializableOptional getSystemSettingOptional(String name, Serializable defaultValue) {
-    Serializable displayValue = getSettingDisplayValue(name);
-
-    if (displayValue != null) {
-      if (isConfidential(name)) {
-        try {
-          return SerializableOptional.of(pbeStringEncryptor.decrypt((String) displayValue));
-        } catch (ClassCastException | EncryptionOperationNotPossibleException e) {
-          log.warn("Could not decrypt system setting '" + name + "'");
-          return SerializableOptional.empty();
-        }
-      }
-      return SerializableOptional.of(displayValue);
-    }
-    return SerializableOptional.of(defaultValue);
+  private SystemSettings getAllSettings() {
+    if (allSettings != null) return allSettings;
+    Map<String, String> values = transactionTemplate.execute(status -> systemSettingStore.getAllSettings());
+    allSettings = SystemSettings.of(values == null ? Map.of() : values, pbeStringEncryptor::decrypt);
+    return allSettings;
   }
 
-  private Serializable getSettingDisplayValue(String name) {
-    SystemSetting setting =
-        transactionTemplate.execute(status -> systemSettingStore.getByName(name));
-
-    if (setting != null && setting.hasValue()) {
-      return setting.getDisplayValue();
+  @Override
+  @Transactional
+  public void saveSystemSettings(Map<String, String> settings) {
+    if (settings.isEmpty()) return;
+    for (Map.Entry<String, String> e : settings.entrySet()) {
+      String name = e.getKey();
+      String value = e.getValue();
+      if (isConfidential(name))
+        value = pbeStringEncryptor.encrypt(value);
+      systemSettingStore.save(new SystemSetting(name, value));
     }
+    allSettings = null; // invalidate
+  }
 
-    return null;
+  @Override
+  @Transactional
+  public void deleteSystemSettings(Set<String> names) {
+    systemSettingStore.delete(names);
+  }
+
+  @Override
+  @Transactional
+  public void saveSystemSettingTranslation(String key, String locale, String translation) throws ForbiddenException, BadRequestException {
+    String datastoreKey = getDatastoreKey(key, locale);
+    if (translation == null || translation.isEmpty()) {
+      datastore.deleteEntry(new DatastoreEntry(NS, datastoreKey), getCurrentUserDetails());
+    } else {
+      DatastoreEntry entry = new DatastoreEntry(NS, datastoreKey, translation);
+      datastore.saveOrUpdateEntry(entry, getCurrentUserDetails());
+    }
   }
 
   @Override
   @Transactional(readOnly = true)
-  public Optional<String> getSystemSettingTranslation(SettingKey key, String locale) {
-    SystemSetting setting = systemSettingStore.getByName(key.getName());
-
-    if (setting != null) {
-      return setting.getTranslation(locale);
+  public Optional<String> getSystemSettingTranslation(String key, String locale)  {
+    DatastoreEntry entry = null;
+    try {
+      entry = datastore.getEntry(NS, getDatastoreKey(key, locale), new SystemUser());
+    } catch (ForbiddenException e) {
+      // this should never happen as we use SuperUser
+      // but, we really don't want to propagate the exception
+      throw new RuntimeException(e);
     }
-
-    return Optional.empty();
+    return entry == null ? Optional.empty() : Optional.ofNullable(entry.getValue());
   }
 
-  @Override
-  @IndirectTransactional
-  public Map<String, Serializable> getSystemSettings(Collection<SettingKey> keys) {
-    Map<String, Serializable> map = new HashMap<>();
-    for (SettingKey setting : keys) {
-      Serializable value = getSystemSetting(setting, setting.getClazz());
-      if (value != null) map.put(setting.getName(), value);
-    }
-    return map;
-  }
-
-  @Override
-  public void invalidateCache() {
-    settingCache.invalidateAll();
-  }
-
-  // -------------------------------------------------------------------------
-  // Specific methods
-  // -------------------------------------------------------------------------
-
-  @Override
-  public boolean isConfidential(String name) {
-    SettingKey key = NAME_KEY_MAP.get(name);
-    return key != null && key.isConfidential();
-  }
-
-  @Override
-  public boolean isTranslatable(final String name) {
-    SettingKey key = NAME_KEY_MAP.get(name);
-    return key != null && key.isTranslatable();
+  private static String getDatastoreKey(String key, String locale) {
+    return key+":"+locale;
   }
 }

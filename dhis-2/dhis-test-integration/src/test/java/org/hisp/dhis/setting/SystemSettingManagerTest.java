@@ -29,9 +29,6 @@ package org.hisp.dhis.setting;
 
 import static org.hisp.dhis.setting.SettingKey.APPLICATION_INTRO;
 import static org.hisp.dhis.setting.SettingKey.APPLICATION_NOTIFICATION;
-import static org.hisp.dhis.setting.SettingKey.APPLICATION_TITLE;
-import static org.hisp.dhis.setting.SettingKey.EMAIL_HOST_NAME;
-import static org.hisp.dhis.setting.SettingKey.EMAIL_PASSWORD;
 import static org.hisp.dhis.setting.SettingKey.EMAIL_PORT;
 import static org.hisp.dhis.setting.SettingKey.HELP_PAGE_LINK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,10 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Collection;
-import java.util.Set;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -57,65 +51,43 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class SystemSettingManagerTest extends PostgresIntegrationTestBase {
 
-  @Autowired private SystemSettingManager systemSettingManager;
-
-  @BeforeAll
-  void setUp() {
-    systemSettingManager.invalidateCache();
-  }
+  @Autowired private SystemSettingManager settingManager;
 
   @Test
   void testSaveGetSetting() {
-    systemSettingManager.saveSystemSetting(APPLICATION_INTRO, "valueA");
-    systemSettingManager.saveSystemSetting(APPLICATION_NOTIFICATION, "valueB");
-    assertEquals("valueA", systemSettingManager.getStringSetting(APPLICATION_INTRO));
-    assertEquals("valueB", systemSettingManager.getStringSetting(APPLICATION_NOTIFICATION));
+    settingManager.saveSystemSetting(APPLICATION_INTRO, "valueA");
+    settingManager.saveSystemSetting(APPLICATION_NOTIFICATION, "valueB");
+    assertEquals("valueA", settingManager.getStringSetting(APPLICATION_INTRO));
+    assertEquals("valueB", settingManager.getStringSetting(APPLICATION_NOTIFICATION));
   }
 
   @Test
   void testSaveGetSettingWithDefault() {
-    assertEquals(EMAIL_PORT.getDefaultValue(), systemSettingManager.getIntegerSetting(EMAIL_PORT));
+    assertEquals(EMAIL_PORT.getDefaultValue(), settingManager.getCurrentSettings().getEmailPort());
   }
 
   @Test
   void testSaveGetDeleteSetting() {
-    assertNull(systemSettingManager.getStringSetting(APPLICATION_INTRO));
+    assertNull(settingManager.getStringSetting(APPLICATION_INTRO));
     assertEquals(
-        HELP_PAGE_LINK.getDefaultValue(), systemSettingManager.getStringSetting(HELP_PAGE_LINK));
-    systemSettingManager.saveSystemSetting(APPLICATION_INTRO, "valueA");
-    systemSettingManager.saveSystemSetting(HELP_PAGE_LINK, "valueB");
-    assertEquals("valueA", systemSettingManager.getStringSetting(APPLICATION_INTRO));
-    assertEquals("valueB", systemSettingManager.getStringSetting(HELP_PAGE_LINK));
-    systemSettingManager.deleteSystemSetting(APPLICATION_INTRO);
-    assertNull(systemSettingManager.getStringSetting(APPLICATION_INTRO));
-    assertEquals("valueB", systemSettingManager.getStringSetting(HELP_PAGE_LINK));
-    systemSettingManager.deleteSystemSetting(HELP_PAGE_LINK);
-    assertNull(systemSettingManager.getStringSetting(APPLICATION_INTRO));
+        HELP_PAGE_LINK.getDefaultValue(), settingManager.getStringSetting(HELP_PAGE_LINK));
+    settingManager.saveSystemSetting(APPLICATION_INTRO, "valueA");
+    settingManager.saveSystemSetting(HELP_PAGE_LINK, "valueB");
+    assertEquals("valueA", settingManager.getStringSetting(APPLICATION_INTRO));
+    assertEquals("valueB", settingManager.getStringSetting(HELP_PAGE_LINK));
+    settingManager.deleteSystemSetting(APPLICATION_INTRO);
+    assertNull(settingManager.getStringSetting(APPLICATION_INTRO));
+    assertEquals("valueB", settingManager.getStringSetting(HELP_PAGE_LINK));
+    settingManager.deleteSystemSetting(HELP_PAGE_LINK);
+    assertNull(settingManager.getStringSetting(APPLICATION_INTRO));
     assertEquals(
-        HELP_PAGE_LINK.getDefaultValue(), systemSettingManager.getStringSetting(HELP_PAGE_LINK));
-  }
-
-  @Test
-  void testGetSystemSettingsByCollection() {
-    Collection<SettingKey> keys =
-        Set.of(SettingKey.APPLICATION_TITLE, SettingKey.APPLICATION_INTRO);
-    systemSettingManager.saveSystemSetting(APPLICATION_TITLE, "valueA");
-    systemSettingManager.saveSystemSetting(APPLICATION_INTRO, "valueB");
-    assertEquals(2, systemSettingManager.getSystemSettings(keys).size());
-  }
-
-  @Test
-  void testIsConfidential() {
-    assertTrue(EMAIL_PASSWORD.isConfidential());
-    assertTrue(systemSettingManager.isConfidential(EMAIL_PASSWORD.getName()));
-    assertFalse(EMAIL_HOST_NAME.isConfidential());
-    assertFalse(systemSettingManager.isConfidential(EMAIL_HOST_NAME.getName()));
+        HELP_PAGE_LINK.getDefaultValue(), settingManager.getStringSetting(HELP_PAGE_LINK));
   }
 
   @Test
   void testGetBoolean() {
-    systemSettingManager.saveSystemSetting(
+    settingManager.saveSystemSetting(
         SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.valueOf("true"));
-    assertTrue(systemSettingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES));
+    assertTrue(settingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES));
   }
 }

@@ -33,8 +33,6 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.OTHER;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_ANALYTICS_EXPLAIN;
-import static org.hisp.dhis.setting.SettingKey.ANALYSIS_RELATIVE_PERIOD;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_EXCEL;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_HTML;
@@ -70,7 +68,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.util.PeriodCriteriaUtils;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
@@ -110,7 +108,7 @@ public class EventQueryAnalyticsController {
 
   @Nonnull private final DimensionMapperService dimensionMapperService;
 
-  @Nonnull private final SystemSettingManager systemSettingManager;
+  @Nonnull private final SystemSettingsProvider settingsProvider;
 
   @GetMapping(
       value = "/count/{program}",
@@ -320,11 +318,10 @@ public class EventQueryAnalyticsController {
       DhisApiVersion apiVersion,
       boolean analyzeOnly,
       EndpointAction endpointAction) {
-    criteria.definePageSize(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT));
+    criteria.definePageSize(settingsProvider.getCurrentSettings().getAnalyticsMaxLimit());
 
     PeriodCriteriaUtils.defineDefaultPeriodForCriteria(
-        criteria,
-        systemSettingManager.getSystemSetting(ANALYSIS_RELATIVE_PERIOD, RelativePeriodEnum.class));
+        criteria, settingsProvider.getCurrentSettings().getAnalysisRelativePeriod());
 
     EventDataQueryRequest request =
         EventDataQueryRequest.builder()

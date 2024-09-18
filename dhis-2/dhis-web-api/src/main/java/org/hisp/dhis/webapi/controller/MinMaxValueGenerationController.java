@@ -47,8 +47,8 @@ import org.hisp.dhis.minmax.MinMaxValueParams;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -80,12 +80,10 @@ public class MinMaxValueGenerationController {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
-  @Autowired private SystemSettingManager systemSettingManager;
-
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
   @RequiresAuthority(anyOf = F_GENERATE_MIN_MAX_VALUES)
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void generateMinMaxValue(@RequestBody MinMaxValueParams minMaxValueParams)
+  public void generateMinMaxValue(@RequestBody MinMaxValueParams minMaxValueParams, SystemSettings settings)
       throws WebMessageException {
     List<String> dataSets = minMaxValueParams.getDataSets();
     String organisationUnitId = minMaxValueParams.getOrganisationUnit();
@@ -107,10 +105,9 @@ public class MinMaxValueGenerationController {
       dataElements.addAll(dataSet.getDataElements());
     }
 
-    Double factor =
-        this.systemSettingManager.getSystemSetting(SettingKey.FACTOR_OF_DEVIATION, Double.class);
+    double factor = settings.getFactorOfDeviation();
 
-    this.minMaxDataAnalysisService.generateMinMaxValues(organisationUnit, dataElements, factor);
+    minMaxDataAnalysisService.generateMinMaxValues(organisationUnit, dataElements, factor);
   }
 
   @DeleteMapping("/{ou}")

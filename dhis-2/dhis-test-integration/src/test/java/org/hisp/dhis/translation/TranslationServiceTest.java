@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -59,6 +60,7 @@ import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserService;
@@ -88,7 +90,7 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
     this.userService = injectUserService;
     createUserAndInjectSecurityContext(true);
     locale = Locale.FRENCH;
-    CurrentUserUtil.setUserSetting(UserSettingKey.DB_LOCALE, locale);
+    UserSettings.overrideCurrentUserSettings(Map.of("keyDbLocale", locale.toString()));
   }
 
   @Test

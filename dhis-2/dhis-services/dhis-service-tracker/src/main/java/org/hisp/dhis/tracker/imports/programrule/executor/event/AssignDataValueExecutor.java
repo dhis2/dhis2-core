@@ -36,8 +36,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -52,7 +51,7 @@ import org.hisp.dhis.tracker.imports.validation.ValidationCode;
  */
 @RequiredArgsConstructor
 public class AssignDataValueExecutor implements RuleActionExecutor<Event> {
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final UID ruleUid;
 
@@ -70,7 +69,7 @@ public class AssignDataValueExecutor implements RuleActionExecutor<Event> {
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
     Boolean canOverwrite =
-        systemSettingManager.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE);
+        settingsProvider.getCurrentSettings().getRuleEngineAssignOverwrite();
 
     DataElement dataElement = bundle.getPreheat().getDataElement(dataElementUid.getValue());
 

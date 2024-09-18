@@ -56,7 +56,7 @@ public interface DatastoreService {
 
   /**
    * @param namespace to check
-   * @return the protection used or {@null} when unprotected
+   * @return the protection used or {@code null} when unprotected
    */
   @CheckForNull
   DatastoreNamespaceProtection getProtection(@Nonnull String namespace);
@@ -143,6 +143,7 @@ public interface DatastoreService {
    * @return the KeyJsonValue matching the key and namespace.
    * @throws AccessDeniedException when user lacks authority for namespace
    */
+  @CheckForNull
   DatastoreEntry getEntry(String namespace, String key) throws ForbiddenException;
 
   @Transactional(readOnly = true)
@@ -191,13 +192,17 @@ public interface DatastoreService {
    */
   void deleteEntry(DatastoreEntry entry);
 
+  void deleteEntry(DatastoreEntry entry, UserDetails user);
+
   /**
    * Adds a new KeyJsonValue entry or updates the entry if the namespace and key already exists.
    *
-   * @param entry the KeyJsonValue entry to be saved or updated.
+   * @param entry to be saved or updated
    * @throws IllegalArgumentException when the entry value is not valid JSON
    */
   void saveOrUpdateEntry(DatastoreEntry entry) throws BadRequestException, ForbiddenException;
+
+  void saveOrUpdateEntry(DatastoreEntry entry, UserDetails user) throws BadRequestException, ForbiddenException;
 
   /**
    * Deletes all entries associated with a given namespace.

@@ -34,8 +34,6 @@ import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_ANALYTICS_EXPLAIN;
-import static org.hisp.dhis.setting.SettingKey.ANALYSIS_RELATIVE_PERIOD;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_EXCEL;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_HTML;
@@ -67,9 +65,9 @@ import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.period.PeriodDataProvider;
-import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.util.PeriodCriteriaUtils;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
@@ -104,7 +102,7 @@ public class EnrollmentQueryAnalyticsController {
 
   @Nonnull private DimensionMapperService dimensionMapperService;
 
-  @Nonnull private final SystemSettingManager systemSettingManager;
+  @Nonnull private final SystemSettingsProvider settingsProvider;
 
   @Nonnull private final PeriodDataProvider periodDataProvider;
 
@@ -259,7 +257,8 @@ public class EnrollmentQueryAnalyticsController {
       DhisApiVersion apiVersion,
       boolean analyzeOnly,
       EndpointAction endpointAction) {
-    criteria.definePageSize(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT));
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    criteria.definePageSize(settings.getAnalyticsMaxLimit());
 
     if (endpointAction == QUERY) {
       AnalyticsPeriodCriteriaUtils.defineDefaultPeriodForCriteria(
@@ -269,8 +268,7 @@ public class EnrollmentQueryAnalyticsController {
     } else {
       PeriodCriteriaUtils.defineDefaultPeriodForCriteria(
           criteria,
-          systemSettingManager.getSystemSetting(
-              ANALYSIS_RELATIVE_PERIOD, RelativePeriodEnum.class));
+          settings.getAnalysisRelativePeriod());
     }
 
     EventDataQueryRequest request =

@@ -45,11 +45,13 @@ import org.hisp.dhis.fieldfiltering.FieldPathConverter;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
+import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.MetadataExportParamsMessageConverter;
@@ -108,13 +110,18 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
           Pattern.compile("/api/(\\d\\d/)?completeDataSetRegistrations(.xml)?(.+)?"));
 
   @Autowired
-  public CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
+  private CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
 
-  @Autowired public DefaultRequestInfoService requestInfoService;
+  @Autowired
+  private CurrentSystemSettingsHandlerMethodArgumentResolver currentSystemSettingsHandlerMethodArgumentResolver;
+
+  @Autowired private DefaultRequestInfoService requestInfoService;
 
   @Autowired private UserSettingService userSettingService;
 
   @Autowired private AuthorityInterceptor authorityInterceptor;
+
+  @Autowired private SystemSettingsInterceptor settingsInterceptor;
 
   @Autowired
   @Qualifier("jsonMapper")
@@ -170,6 +177,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
     resolvers.add(dhisApiVersionHandlerMethodArgumentResolver());
     resolvers.add(currentUserHandlerMethodArgumentResolver);
+    resolvers.add(currentSystemSettingsHandlerMethodArgumentResolver);
   }
 
   @Bean
@@ -263,9 +271,10 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
-    registry.addInterceptor(new UserContextInterceptor(userSettingService));
+    registry.addInterceptor(new UserContextInterceptor());
     registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
     registry.addInterceptor(authorityInterceptor);
+    registry.addInterceptor(settingsInterceptor);
   }
 
   @Override

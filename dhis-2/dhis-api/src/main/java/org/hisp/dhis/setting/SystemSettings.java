@@ -1,0 +1,681 @@
+package org.hisp.dhis.setting;
+
+import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
+import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
+import org.hisp.dhis.common.DigitGroupSeparator;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.common.cache.Cacheability;
+import org.hisp.dhis.fileresource.FileResourceRetentionStrategy;
+import org.hisp.dhis.i18n.locale.LocaleManager;
+import org.hisp.dhis.jsontree.JsonMap;
+import org.hisp.dhis.jsontree.JsonPrimitive;
+import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.security.LoginPageLayout;
+
+import javax.annotation.Nonnull;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.UnaryOperator;
+
+/**
+ * A complete set of system settings.
+ *
+ * <p>{@link SystemSettings} are immutable value objects. An interface is used to decouple any using code from the
+ * implementation and to allow mocking.
+ * <p>
+ * General principles for all settings:
+ * 1. settings are key-value pairs with simple values (strings, booleans, numbers)
+ * 2. settings are never null/undefined (define a default in case they are not set)
+ * 3. settings are an open set (no predefined set of names)
+ * 4. confidential setting values are write only from web API perspective (except for ALL admin)
+ *
+ * @author Jan Bernitt
+ */
+@OpenApi.Ignore
+public interface SystemSettings extends Settings {
+
+  @Nonnull
+  static SystemSettings of(@Nonnull Map<String, String> settings) {
+    return LazySettings.of(SystemSettings.class, settings);
+  }
+
+  @Nonnull
+  static SystemSettings of(@Nonnull Map<String, String> settings, @Nonnull UnaryOperator<String> decoder) {
+    return LazySettings.of(SystemSettings.class, settings, decoder);
+  }
+
+  /**
+   * Note that there is no deeper meaning to the logic except that this correctly identifies
+   * existing settings that were confidential. In addition to that a new general rule was added that
+   * any setting that starts with a minus is confidential.
+   *
+   * @param name a settings name
+   * @return true if the setting is private and its value should not be exposed in APIs unless a
+   *     user has the proper authority
+   */
+  static boolean isConfidential(@Nonnull String name) {
+    return name.startsWith("-")
+        || name.endsWith("password")
+        || name.endsWith("secret")
+        || name.startsWith("recaptcha");
+  }
+
+  /*
+  settings used in core
+   */
+
+  default Locale getUiLocale() {
+    return asLocale("keyUiLocale", LocaleManager.DEFAULT_LOCALE);
+  }
+
+  default Locale getDbLocale() {
+    return asLocale("keyDbLocale", LocaleManager.DEFAULT_LOCALE);
+  }
+
+  default DisplayProperty getAnalysisDisplayProperty() {
+    return asEnum("keyAnalysisDisplayProperty", DisplayProperty.NAME);
+  }
+
+  default DigitGroupSeparator getAnalysisDigitGroupSeparator() {
+    return asEnum("keyAnalysisDigitGroupSeparator", DigitGroupSeparator.SPACE);
+  }
+
+  default String getCurrentDomainType() {
+    return asString("keyCurrentDomainType", "");
+  }
+
+  default String getTrackerDashboardLayout() {
+    return asString("keyTrackerDashboardLayout", "");
+  }
+
+  default String getApplicationTitle() {
+    return asString("applicationTitle", "DHIS 2");
+  }
+
+  default String getApplicationIntro() {
+    return asString("keyApplicationIntro", "");
+  }
+
+  default String getApplicationNotification() {
+    return asString("keyApplicationNotification", "");
+  }
+
+  default String getApplicationFooter() {
+    return asString("keyApplicationFooter", "");
+  }
+
+  default String getApplicationRightFooter() {
+    return asString("keyApplicationRightFooter", "");
+  }
+
+  default String getFlag() {
+    return asString("keyFlag", "dhis2");
+  }
+
+  default String getFlagImage() {
+    return asString("keyFlagImage", "");
+  }
+
+  default String getStartModule() {
+    return asString("startModule", "dhis-web-dashboard");
+  }
+
+  default boolean getStartModuleEnableLightweight() {
+    return asBoolean("startModuleEnableLightweight", false);
+  }
+
+  default double getFactorOfDeviation() {
+    return asDouble("factorDeviation", 2d);
+  }
+
+  default String getEmailHostName() {
+    return asString("keyEmailHostName", "");
+  }
+
+  default int getEmailPort() {
+    return asInt("keyEmailPort", 587);
+  }
+
+  default String getEmailUsername() {
+    return asString("keyEmailUsername", "");
+  }
+
+  default boolean getEmailTls() {
+    return asBoolean("keyEmailTls", true);
+  }
+
+  default String getEmailSender() {
+    return asString("keyEmailSender", "");
+  }
+
+  default String getEmailPassword() {
+    return asString("keyEmailPassword", "");
+  }
+
+  default int getMinPasswordLength() {
+    return asInt("minPasswordLength", 8);
+  }
+
+  default int getMaxPasswordLength() {
+    return asInt("maxPasswordLength", 72);
+  }
+
+  default int getSmsMaxLength() {
+    return asInt("keySmsMaxLength", 1071);
+  }
+
+  default CacheStrategy getCacheStrategy() {
+    return asEnum("keyCacheStrategy", CacheStrategy.CACHE_1_MINUTE);
+  }
+
+  default Cacheability getCacheability() {
+    return asEnum("keyCacheability", Cacheability.PUBLIC);
+  }
+
+  default AnalyticsFinancialYearStartKey getAnalyticsFinancialYearStart() {
+    return asEnum("analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER);
+  }
+
+  default String getPhoneNumberAreaCode() {
+    return asString("phoneNumberAreaCode", "");
+  }
+
+  default boolean getMultiOrganisationUnitForms() {
+    return asBoolean("multiOrganisationUnitForms", false);
+  }
+
+  default boolean getAccountRecoveryEnabled() {
+    return asBoolean("keyAccountRecovery", false);
+  }
+
+  default boolean getLockMultipleFailedLogins() {
+    return asBoolean("keyLockMultipleFailedLogins", false);
+  }
+
+  default String getGoogleAnalyticsUA() {
+    return asString("googleAnalyticsUA", "");
+  }
+
+  default int getCredentialsExpires() {
+    return asInt("credentialsExpires", 0);
+  }
+
+  default boolean getCredentialsExpiryAlert() {
+    return asBoolean("credentialsExpiryAlert", false);
+  }
+
+  default int getCredentialsExpiresReminderInDays() {
+    return asInt("credentialsExpiresReminderInDays", 28);
+  }
+
+  default int getAccountExpiresInDays() {
+    return asInt("accountExpiresInDays", 7);
+  }
+
+  default boolean getAccountExpiryAlert() {
+    return asBoolean("accountExpiryAlert", false);
+  }
+
+  default boolean getSelfRegistrationNoRecaptcha() {
+    return asBoolean("keySelfRegistrationNoRecaptcha", false);
+  }
+
+  default String getRecaptchaSecret() {
+    return asString("recaptchaSecret", "");
+  }
+
+  default String getRecaptchaSite() {
+    //TODO make sure the defaults are decoded...
+    return asString("recaptchaSite", "6LcVwT0UAAAAAAkO_EGPiYOiymIszZUeHfqWIYX5");
+  }
+
+  default boolean getCanGrantOwnUserRoles() {
+    return asBoolean("keyCanGrantOwnUserAuthorityGroups", false);
+  }
+
+  default int getIgnoreAnalyticsApprovalYearThreshold() {
+    return asInt("keyIgnoreAnalyticsApprovalYearThreshold", -1);
+  }
+
+  default int getAnalyticsMaxLimit() {
+    return asInt("keyAnalyticsMaxLimit", 100000);
+  }
+
+  default boolean getIncludeZeroValuesInAnalytics() {
+    return asBoolean("keyIncludeZeroValuesInAnalytics", false);
+  }
+
+  default int getSqlViewMaxLimit() {
+    return asInt("keySqlViewMaxLimit", -1);
+  }
+
+  default boolean getRespectMetaDataStartEndDatesInAnalyticsTableExport() {
+    return asBoolean("keyRespectMetaDataStartEndDatesInAnalyticsTableExport", false);
+  }
+
+  default boolean getSkipDataTypeValidationInAnalyticsTableExport() {
+    return asBoolean("keySkipDataTypeValidationInAnalyticsTableExport", false);
+  }
+
+  default int getParallelJobsInAnalyticsTableExport() {
+    return asInt("keyParallelJobsInAnalyticsTableExport", -1);
+  }
+
+  default boolean getCustomLoginPageLogo() {
+    return asBoolean("keyCustomLoginPageLogo", false);
+  }
+
+  default boolean getCustomTopMenuLogo() {
+    return asBoolean("keyCustomTopMenuLogo", false);
+  }
+
+  default int getDatabaseServerCpus() {
+    return asInt("keyDatabaseServerCpus", 0);
+  }
+
+  default String getLastSuccessfulAnalyticsTablesRuntime() {
+    //TODO duration ms?
+    return asString("keyLastSuccessfulAnalyticsTablesRuntime", "");
+  }
+
+  default String getLastSuccessfulLatestAnalyticsPartitionRuntime() {
+    //TODO duration ms?
+    return asString("keyLastSuccessfulLatestAnalyticsPartitionRuntime", "");
+  }
+
+  default Date getLastMonitoringRun() {
+    //TODO new default 0 - check usages
+    return asDate("keyLastMonitoringRun", new Date(0L));
+  }
+
+  default Date getLastSuccessfulDataSynch() {
+    return asDate("keyLastSuccessfulDataSynch", new Date(0L));
+  }
+
+  default Date getLastSuccessfulEventsDataSynch() {
+    return asDate("keyLastSuccessfulEventsDataSynch", new Date(0L));
+  }
+
+  default Date getLastCompleteDataSetRegistrationSyncSuccess() {
+    return asDate("keyLastCompleteDataSetRegistrationSyncSuccess", new Date(0L));
+  }
+
+  default Date getSyncSkipSyncForDataChangedBefore() {
+    return asDate("syncSkipSyncForDataChangedBefore", new Date(0L));
+  }
+
+  default Date getLastSuccessfulAnalyticsTablesUpdate() {
+    //TODO new default 0 - check usages
+    return asDate("keyLastSuccessfulAnalyticsTablesUpdate", new Date(0L));
+  }
+
+  default Date getLastSuccessfulLatestAnalyticsPartitionUpdate() {
+    //TODO new default 0 - check usages
+    return asDate("keyLastSuccessfulLatestAnalyticsPartitionUpdate", new Date(0L));
+  }
+
+  default Date getLastSuccessfulResourceTablesUpdate() {
+    //TODO new default 0 - check usages
+    return asDate("keyLastSuccessfulResourceTablesUpdate", new Date(0L));
+  }
+
+  default Date getLastSuccessfulSystemMonitoringPush() {
+    //TODO new default 0 - check usages
+    return asDate("keyLastSuccessfulSystemMonitoringPush", new Date(0L));
+  }
+
+  default Date getLastSuccessfulMonitoring() {
+    //TODO new default 0 - check usages
+    return asDate("keyLastSuccessfulMonitoring", new Date(0L));
+  }
+
+  default Date getNextAnalyticsTableUpdate() {
+    //TODO new default 0 - check usages
+    return asDate("keyNextAnalyticsTableUpdate", new Date(0L));
+  }
+
+  default String getHelpPageLink() {
+    return asString("helpPageLink", "https://dhis2.github.io/dhis2-docs/master/en/user/html/dhis2_user_manual_en.html");
+  }
+
+  default boolean getAcceptanceRequiredForApproval() {
+    return asBoolean("keyAcceptanceRequiredForApproval", false);
+  }
+
+  default String getSystemNotificationsEmail() {
+    return asString("keySystemNotificationsEmail", "");
+  }
+
+  default RelativePeriodEnum getAnalysisRelativePeriod() {
+    return asEnum("keyAnalysisRelativePeriod", RelativePeriodEnum.LAST_12_MONTHS);
+  }
+
+  default boolean getRequireAddToView() {
+    return asBoolean("keyRequireAddToView", false);
+  }
+
+  default boolean getAllowObjectAssignment() {
+    return asBoolean("keyAllowObjectAssignment", false);
+  }
+
+  default boolean getUseCustomLogoFront() {
+    return asBoolean("keyUseCustomLogoFront", false);
+  }
+
+  default boolean getUseCustomLogoBanner() {
+    return asBoolean("keyUseCustomLogoBanner", false);
+  }
+
+  default String getMetaDataRepoUrl() {
+    return asString("keyMetaDataRepoUrl", "https://raw.githubusercontent.com/dhis2/dhis2-metadata-repo/master/repo/221/index.json");
+  }
+
+  default boolean getDataImportStrictPeriods() {
+    return asBoolean("keyDataImportStrictPeriods", false);
+  }
+
+  default boolean getDataImportStrictDataElements() {
+    return asBoolean("keyDataImportStrictDataElements", false);
+  }
+
+  default boolean getDataImportStrictCategoryOptionCombos() {
+    return asBoolean("keyDataImportStrictCategoryOptionCombos", false);
+  }
+
+  default boolean getDataImportStrictOrganisationUnits() {
+    return asBoolean("keyDataImportStrictOrganisationUnits", false);
+  }
+
+  default boolean getDataImportStrictAttributeOptionCombos() {
+    return asBoolean("keyDataImportStrictAttributeOptionCombos", false);
+  }
+
+  default boolean getDataImportRequireCategoryOptionCombo() {
+    return asBoolean("keyDataImportRequireCategoryOptionCombo", false);
+  }
+
+  default boolean getDataImportRequireAttributeOptionCombo() {
+    return asBoolean("keyDataImportRequireAttributeOptionCombo", false);
+  }
+
+  default boolean getDataImportStrictDataSetApproval() {
+    return asBoolean("keyDataImportStrictDataSetApproval", true);
+  }
+
+  default boolean getDataImportStrictDataSetLocking() {
+    return asBoolean("keyDataImportStrictDataSetLocking", true);
+  }
+
+  default boolean getDataImportStrictDataSetInputPeriods() {
+    return asBoolean("keyDataImportStrictDataSetInputPeriods", true);
+  }
+
+  default String getCustomJs() {
+    return asString("keyCustomJs", "");
+  }
+
+  default String getCustomCss() {
+    return asString("keyCustomCss", "");
+  }
+
+  default String getCalendar() {
+    return asString("keyCalendar", "iso8601");
+  }
+
+  default String getDateFormat() {
+    return asString("keyDateFormat", "yyyy-MM-dd");
+  }
+
+  default String getStyle() {
+    return asString("keyStyle", "light_blue/light_blue.css");
+  }
+
+  default String getRemoteInstanceUrl() {
+    return asString("keyRemoteInstanceUrl", "");
+  }
+
+  default String getRemoteInstanceUsername() {
+    return asString("keyRemoteInstanceUsername", "");
+  }
+
+  default String getRemoteInstancePassword() {
+    return asString("keyRemoteInstancePassword", "");
+  }
+
+  default String getGoogleMapsApiKey() {
+    return asString("keyGoogleMapsApiKey", "");
+  }
+
+  default String getBingMapsApiKey() {
+    return asString("keyBingMapsApiKey", "");
+  }
+
+  default Date getLastMetaDataSyncSuccess() {
+    //TODO new default 0 - check usages
+    return asDate("keyLastMetaDataSyncSuccess", new Date(0));
+  }
+
+  default boolean getVersionEnabled() {
+    return asBoolean("keyVersionEnabled", false);
+  }
+
+  default String getMetadataFailedVersion() {
+    return asString("keyMetadataFailedVersion", "");
+  }
+
+  default Date getMetadataLastFailedTime() {
+    //TODO new default 0 - check usages
+    return asDate("keyMetadataLastFailedTime", new Date(0L));
+  }
+
+  default Date getLastSuccessfulScheduledProgramNotifications() {
+    //TODO new default 0 - check usages
+    return asDate("keyLastSuccessfulScheduledProgramNotifications", new Date(0L));
+  }
+
+  default Date getLastSuccessfulScheduledDataSetNotifications() {
+    return asDate("keyLastSuccessfulScheduledDataSetNotifications", new Date(0L));
+  }
+
+  default String getRemoteMetadataVersion() {
+    return asString("keyRemoteMetadataVersion", "");
+  }
+
+  default String getSystemMetadataVersion() {
+    return asString("keySystemMetadataVersion", "");
+  }
+
+  default boolean getStopMetadataSync() {
+    return asBoolean("keyStopMetadataSync", false);
+  }
+
+  default FileResourceRetentionStrategy getFileResourceRetentionStrategy() {
+    return asEnum("keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE);
+  }
+
+  default int getSyncMaxRemoteServerAvailabilityCheckAttempts() {
+    return asInt("syncMaxRemoteServerAvailabilityCheckAttempts", 3);
+  }
+
+  default int getSyncMaxAttempts() {
+    return asInt("syncMaxAttempts", 3);
+  }
+
+  default int getSyncDelayBetweenRemoteServerAvailabilityCheckAttempts() {
+    return asInt("syncDelayBetweenRemoteServerAvailabilityCheckAttempts", 500);
+  }
+
+  default Date getLastSuccessfulDataStatistics() {
+    //TODO new default 0 - check usages
+    return asDate("lastSuccessfulDataStatistics", new Date(0L));
+  }
+
+  default boolean getHideDailyPeriods() {
+    return asBoolean("keyHideDailyPeriods", false);
+  }
+
+  default boolean getHideWeeklyPeriods() {
+    return asBoolean("keyHideWeeklyPeriods", false);
+  }
+
+  default boolean getHideBiWeeklyPeriods() {
+    return asBoolean("keyHideBiWeeklyPeriods", false);
+  }
+
+  default boolean getHideMonthlyPeriods() {
+    return asBoolean("keyHideMonthlyPeriods", false);
+  }
+
+  default boolean getHideBiMonthlyPeriods() {
+    return asBoolean("keyHideBiMonthlyPeriods", false);
+  }
+
+  default boolean getGatherAnalyticalObjectStatisticsInDashboardViews() {
+    return asBoolean("keyGatherAnalyticalObjectStatisticsInDashboardViews", false);
+  }
+
+  default boolean getCountPassiveDashboardViewsInUsageAnalytics() {
+    return asBoolean("keyCountPassiveDashboardViewsInUsageAnalytics", false);
+  }
+
+  default boolean getDashboardContextMenuItemSwitchViewType() {
+    return asBoolean("keyDashboardContextMenuItemSwitchViewType", true);
+  }
+
+  default boolean getDashboardContextMenuItemOpenInRelevantApp() {
+    return asBoolean("keyDashboardContextMenuItemOpenInRelevantApp", true);
+  }
+
+  default boolean getDashboardContextMenuItemShowInterpretationsAndDetails() {
+    return asBoolean("keyDashboardContextMenuItemShowInterpretationsAndDetails", true);
+  }
+
+  default boolean getDashboardContextMenuItemViewFullscreen() {
+    return asBoolean("keyDashboardContextMenuItemViewFullscreen", true);
+  }
+
+  default String getDefaultBaseMap() {
+    return asString("keyDefaultBaseMap", "");
+  }
+
+  default boolean getRuleEngineAssignOverwrite() {
+    return asBoolean("ruleEngineAssignOverwrite", false);
+  }
+
+  /**
+   * @return A job that has not been updating its "alive" timestamp for this number of minutes is reset to
+   * initial state of being scheduled by the heartbeat job. The run that was in progress is
+   * considered a failed run.
+   */
+  default int getJobsRescheduleAfterMinutes() {
+    return asInt("jobsRescheduleAfterMinutes", 10);
+  }
+
+  /**
+   * @return A job that only runs once (typical an import or manual request) is deleted after this number of
+   * minutes after it is finished by the heartbeat job.
+   */
+  default int getJobsCleanupAfterMinutes() {
+    return asInt("jobsCleanupAfterMinutes", 24 * 60);
+  }
+
+  /**
+   * @return The maximum number of hours a CRON based job may trigger on the same day after it has missed
+   * its intended time of the day to trigger. If time has passed past this point the execution for
+   * that day is skipped, and it will trigger on the intended time the day after.
+   */
+  default int getJobsMaxCronDelayHours() {
+    return asInt("jobsMaxCronDelayHours", JobConfiguration.MAX_CRON_DELAY_HOURS);
+  }
+
+  /**
+   * @return A job running with a smaller delay than the given value is logged on debug level instead of
+   * info to not spam the logs.
+   */
+  default int getJobsLogDebugBelowSeconds() {
+    return asInt("jobsLogDebugBelowSeconds", 180);
+  }
+
+  /**
+   * @return Progressive caching factor for the analytics API. To enable, the {@link
+   * #getAnalyticsCacheTtlMode()} must be set to PROGRESSIVE.
+   */
+  default int getAnalyticsCacheProgressiveTtlFactor() {
+    return asInt("keyAnalyticsCacheProgressiveTtlFactor", 160);
+  }
+
+  /**
+   * @return The cache time to live value for the analytics API. */
+  default AnalyticsCacheTtlMode getAnalyticsCacheTtlMode() {
+    return asEnum("keyAnalyticsCacheTtlMode", AnalyticsCacheTtlMode.FIXED);
+  }
+
+  /** @return The offset of years used during period generation during the analytics export process. */
+  default int getAnalyticsPeriodYearsOffset() {
+    return asInt("keyAnalyticsPeriodYearsOffset", -1);
+  }
+
+  /**
+   * @deprecated use {@link #getTrackedEntityMaxLimit()} instead
+   */
+  @Deprecated(forRemoval = true, since = "2.41")
+  default int getTrackedEntityInstanceMaxLimit() {
+    return asInt("KeyTrackedEntityInstanceMaxLimit", 50000);
+  }
+
+  /**
+   * @return Max tracked entity records that can be retrieved from database. */
+  default int getTrackedEntityMaxLimit() {
+    return asInt("KeyTrackedEntityMaxLimit", 50000);
+  }
+
+  default String getLoginPopup() {
+    //TODO also translateable!
+    return asString("loginPopup", "");
+  }
+
+  default String getHtmlPushAnalyticsUrl() {
+    return asString("keyHtmlPushAnalyticsUrl", "");
+  }
+
+  /**
+   * @return The layout of the LoginPage, value is the enum {@link LoginPageLayout} */
+  default LoginPageLayout getLoginPageLayout() {
+    return asEnum("loginPageLayout", LoginPageLayout.DEFAULT);
+  }
+
+  /**
+   * @return The HTML string which is used for displaying LoginPage when {@link #getLoginPageLayout()} is {@link LoginPageLayout#CUSTOM}. */
+  default String getLoginPageTemplate() {
+    return asString("loginPageTemplate", "");
+  }
+
+  /**
+   * @return The app to serve as the global app shell. Global app shell is disabled if this is NULL or if
+   * the app does not exist *
+   */
+  default String getGlobalShellAppName() {
+    return asString("globalShellAppName", "global-app-shell");
+  }
+
+  /*
+
+   Combinators based on several settings
+
+   */
+
+  default boolean isEmailConfigured() {
+    return !getEmailHostName().isBlank() && getEmailUsername().isBlank();
+  }
+
+  default boolean isHideUnapprovedDataInAnalytics() {
+    // -1 means approval is disabled
+    return getIgnoreAnalyticsApprovalYearThreshold() >= 0;
+  }
+}
+

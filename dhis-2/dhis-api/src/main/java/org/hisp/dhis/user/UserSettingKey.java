@@ -45,25 +45,25 @@ import org.hisp.dhis.common.DisplayProperty;
  */
 @Getter
 public enum UserSettingKey {
-  STYLE("keyStyle", UserSettings::getStyle),
+  STYLE("keyStyle", UserSettingsDto::getStyle),
   MESSAGE_EMAIL_NOTIFICATION(
       "keyMessageEmailNotification",
-      UserSettings::getMessageEmailNotification,
+      UserSettingsDto::getMessageEmailNotification,
       true,
       Boolean.class),
   MESSAGE_SMS_NOTIFICATION(
-      "keyMessageSmsNotification", UserSettings::getMessageSmsNotification, true, Boolean.class),
-  UI_LOCALE("keyUiLocale", UserSettings::getUiLocale, Locale.class),
-  DB_LOCALE("keyDbLocale", UserSettings::getDbLocale, Locale.class),
+      "keyMessageSmsNotification", UserSettingsDto::getMessageSmsNotification, true, Boolean.class),
+  UI_LOCALE("keyUiLocale", UserSettingsDto::getUiLocale, Locale.class),
+  DB_LOCALE("keyDbLocale", UserSettingsDto::getDbLocale, Locale.class),
   ANALYSIS_DISPLAY_PROPERTY(
       "keyAnalysisDisplayProperty",
-      UserSettings::getAnalysisDisplayProperty,
+      UserSettingsDto::getAnalysisDisplayProperty,
       DisplayProperty.class),
-  TRACKER_DASHBOARD_LAYOUT("keyTrackerDashboardLayout", UserSettings::getTrackerDashboardLayout);
+  TRACKER_DASHBOARD_LAYOUT("keyTrackerDashboardLayout", UserSettingsDto::getTrackerDashboardLayout);
 
   private final String name;
 
-  private Function<UserSettings, ? extends Serializable> getter;
+  private Function<UserSettingsDto, ? extends Serializable> getter;
 
   private final Serializable defaultValue;
 
@@ -78,17 +78,17 @@ public enum UserSettingKey {
   // Constructors
   // -------------------------------------------------------------------------
 
-  UserSettingKey(String name, Function<UserSettings, String> getter) {
+  UserSettingKey(String name, Function<UserSettingsDto, String> getter) {
     this(name, getter, null, String.class);
   }
 
   <T extends Serializable> UserSettingKey(
-      String name, Function<UserSettings, T> getter, Class<T> clazz) {
+      String name, Function<UserSettingsDto, T> getter, Class<T> clazz) {
     this(name, getter, null, clazz);
   }
 
   <T extends Serializable> UserSettingKey(
-      String name, Function<UserSettings, T> getter, T defaultValue, Class<T> clazz) {
+      String name, Function<UserSettingsDto, T> getter, T defaultValue, Class<T> clazz) {
     this.name = name;
     this.getter = getter;
     this.defaultValue = defaultValue;

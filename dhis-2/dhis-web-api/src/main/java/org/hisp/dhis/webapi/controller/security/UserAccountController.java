@@ -46,7 +46,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.HiddenNotFoundException;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.PasswordValidationResult;
@@ -87,16 +87,15 @@ public class UserAccountController {
 
   private final UserService userService;
   private final UserAccountService userAccountService;
-  private final SystemSettingManager systemSettingManager;
   private final PasswordValidationService passwordValidationService;
   private final DhisConfigurationProvider configurationProvider;
 
   @PostMapping("/forgotPassword")
   @ResponseStatus(HttpStatus.OK)
-  public void forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest)
+  public void forgotPassword(@RequestBody ForgotPasswordRequest request, SystemSettings settings)
       throws HiddenNotFoundException, ConflictException, ForbiddenException {
 
-    if (!systemSettingManager.accountRecoveryEnabled()) {
+    if (!settings.getAccountRecoveryEnabled()) {
       throw new ConflictException("Account recovery is not enabled");
     }
 
@@ -105,7 +104,7 @@ public class UserAccountController {
       throw new ConflictException("Server base URL is not configured");
     }
 
-    User user = getUser(forgotPasswordRequest.getEmailOrUsername());
+    User user = getUser(request.getEmailOrUsername());
 
     checkRecoveryLock(user.getUsername());
 
@@ -125,15 +124,15 @@ public class UserAccountController {
 
   @PostMapping("/passwordReset")
   @ResponseStatus(HttpStatus.OK)
-  public void resetPassword(@RequestBody ResetPasswordRequest resetRequest)
+  public void resetPassword(@RequestBody ResetPasswordRequest request, SystemSettings settings)
       throws ConflictException, BadRequestException {
 
-    if (!systemSettingManager.accountRecoveryEnabled()) {
+    if (!settings.getAccountRecoveryEnabled()) {
       throw new ConflictException("Account recovery is not enabled");
     }
 
-    String token = resetRequest.getToken();
-    String newPassword = resetRequest.getNewPassword();
+    String token = request.getToken();
+    String newPassword = request.getNewPassword();
 
     if (StringUtils.isBlank(token)) {
       throw new BadRequestException("Token is required");

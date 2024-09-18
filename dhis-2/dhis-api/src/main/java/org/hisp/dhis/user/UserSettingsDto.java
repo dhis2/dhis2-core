@@ -25,59 +25,57 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.common;
+package org.hisp.dhis.user;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Locale;
-import org.apache.commons.lang3.StringUtils;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.OpenApi;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * User Settings transfer object for settings as defined by {@link UserSettingKey}.
+ *
+ * @author Jan Bernitt
  */
-@OpenApi.Shared
-public class TranslateParams {
-  private boolean translate = true;
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString
+@JacksonXmlRootElement(localName = "settings", namespace = DxfNamespaces.DXF_2_0)
+@OpenApi.Shared(name = "UserSettings")
+public class UserSettingsDto {
+  @JsonAlias("keyStyle")
+  @JsonProperty
+  private String style;
 
-  private String locale;
+  @JsonAlias("keyMessageEmailNotification")
+  @JsonProperty
+  private Boolean messageEmailNotification;
 
-  public TranslateParams() {}
+  @JsonAlias("keyMessageSmsNotification")
+  @JsonProperty
+  private Boolean messageSmsNotification;
 
-  public TranslateParams(boolean translate) {
-    this.translate = translate;
-  }
+  @JsonAlias("keyUiLocale")
+  @JsonProperty
+  private Locale uiLocale;
 
-  public TranslateParams(boolean translate, String locale) {
-    this.translate = translate;
-    this.locale = locale;
-  }
+  @JsonAlias("keyDbLocale")
+  @JsonProperty
+  private Locale dbLocale;
 
-  public boolean isTranslate() {
-    return translate || !StringUtils.isEmpty(locale);
-  }
+  @JsonAlias("keyAnalysisDisplayProperty")
+  @JsonProperty
+  private DisplayProperty analysisDisplayProperty;
 
-  public void setTranslate(boolean translate) {
-    this.translate = translate;
-  }
-
-  public Locale getLocaleWithDefault(Locale defaultLocale) {
-    Locale locale = getLocale();
-    return locale != null ? locale : defaultLocale;
-  }
-
-  public Locale getLocale() {
-    try {
-      return Locale.forLanguageTag(locale);
-    } catch (Exception ignored) {
-    }
-
-    return null;
-  }
-
-  public void setLocale(String locale) {
-    this.locale = locale;
-  }
-
-  public boolean defaultLocale() {
-    return StringUtils.isEmpty(locale);
-  }
+  @JsonAlias("keyTrackerDashboardLayout")
+  @JsonProperty
+  private String trackerDashboardLayout;
 }

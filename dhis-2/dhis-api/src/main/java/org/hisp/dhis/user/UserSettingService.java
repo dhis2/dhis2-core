@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.user;
 
+import org.hisp.dhis.setting.UserSettings;
+
 import java.io.Serializable;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -39,11 +40,6 @@ import java.util.Set;
  * @author Torgeir Lorange Ostby
  */
 public interface UserSettingService {
-  String ID = UserSettingService.class.getName();
-
-  // -------------------------------------------------------------------------
-  // UserSettings
-  // -------------------------------------------------------------------------
 
   /**
    * Saves the key/value pair as a user setting connected to the currently logged in user.
@@ -51,7 +47,7 @@ public interface UserSettingService {
    * @param key the user setting key.
    * @param value the setting value.
    */
-  void saveUserSetting(UserSettingKey key, Serializable value);
+  void saveUserSetting(String key, String value);
 
   /**
    * Saves the name/value pair as a user setting connected to user.
@@ -60,29 +56,22 @@ public interface UserSettingService {
    * @param value the setting value.
    * @param user the user.
    */
-  void saveUserSetting(UserSettingKey key, Serializable value, User user);
+  void saveUserSetting(String key, String value, UserDetails user);
 
   /**
-   * Updates all non-null settings in the {@link UserSettings} collection.
+   * Updates all non-null settings in the {@link UserSettingsDto} collection.
    *
    * @param settings settings to store, maybe null
    * @param user owner/target of the settings
    */
-  void saveUserSettings(UserSettings settings, User user);
+  void saveUserSettings(UserSettingsDto settings, UserDetails user);
 
   /**
    * Deletes a UserSetting.
    *
-   * @param userSetting the UserSetting to delete.
+   * @param key the UserSetting to delete.
    */
-  void deleteUserSetting(UserSetting userSetting);
-
-  /**
-   * Deletes the user setting with the given name.
-   *
-   * @param key the user setting key.
-   */
-  void deleteUserSetting(UserSettingKey key);
+  void deleteUserSetting(String key);
 
   /**
    * Deletes the user setting with the given name for the given user.
@@ -90,7 +79,20 @@ public interface UserSettingService {
    * @param key the user setting key.
    * @param user the user.
    */
-  void deleteUserSetting(UserSettingKey key, String username);
+  void deleteUserSetting(String key, UserDetails user);
+
+  /**
+   * Note that a user's setting including fallbacks can and should be accessed via {@link
+   * UserSettings#getCurrentSettings()} for the current user or for any other particular user use
+   * {@link UserDetails#getUserSettings()}.
+   *
+   * <p>This method is just suitable when building composed settings with fallbacks or when fallback
+   * explicitly are not wanted, e.g. to make a copy of a user's settings.
+   *
+   * @param user the user for whom to fetch settings
+   * @return the user's setting as stored in DB without any fallbacks applied
+   */
+  UserSettings getSettings(UserDetails user);
 
   /**
    * Returns the value of the user setting specified by the given name.
@@ -115,7 +117,7 @@ public interface UserSettingService {
    * @param user the User.
    * @return a List of UserSettings.
    */
-  List<UserSetting> getUserSettings(User user);
+  UserSettingsDto getUserSettings(String username);
 
   /**
    * Returns all specified user settings. If any user settings have not been set, system settings
@@ -126,9 +128,6 @@ public interface UserSettingService {
    */
   Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap(
       User user, Set<UserSettingKey> userSettingKeys, boolean useFallback);
-
-  /** Invalidates in-memory caches. */
-  void invalidateCache();
 
   /**
    * Returns all user settings for currently logged in user. Setting will not be included in map if

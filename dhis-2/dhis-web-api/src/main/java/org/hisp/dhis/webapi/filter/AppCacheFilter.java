@@ -42,6 +42,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.i18n.ui.locale.UserSettingLocaleManager;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -82,7 +83,7 @@ public class AppCacheFilter implements Filter {
       writer.println("# User: " + CurrentUserUtil.getCurrentUsername());
       writer.println("# User UI Language: " + localeManager.getCurrentLocale());
       writer.println(
-          "# User DB Language: " + userSettingService.getUserSetting(UserSettingKey.DB_LOCALE));
+          "# User DB Language: " + UserSettings.getCurrentSettings().getUserDbLocale());
       writer.println("# Calendar: " + systemInfo.getCalendar());
     }
   }

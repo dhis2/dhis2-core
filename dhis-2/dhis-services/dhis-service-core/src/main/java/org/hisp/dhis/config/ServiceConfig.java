@@ -29,18 +29,11 @@ package org.hisp.dhis.config;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.DefaultResourceBundleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.DefaultOutboundMessageBatchService;
-import org.hisp.dhis.setting.DefaultStyleManager;
-import org.hisp.dhis.setting.StyleManager;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.UserSettingService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,21 +50,6 @@ public class ServiceConfig {
     ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
     threadPoolTaskScheduler.setPoolSize(25);
     return threadPoolTaskScheduler;
-  }
-
-  @Bean("org.hisp.dhis.setting.StyleManager")
-  public StyleManager styleManager(
-      SystemSettingManager systemSettingManager,
-      UserSettingService userSettingService,
-      I18nManager i18nManager) {
-    SortedMap<String, String> styles = new TreeMap<>();
-    styles.put("light_blue", "light_blue/light_blue.css");
-    styles.put("green", "green/green.css");
-    styles.put("myanmar", "myanmar/myanmar.css");
-    styles.put("vietnam", "vietnam/vietnam.css");
-    styles.put("india", "india/india.css");
-
-    return new DefaultStyleManager(systemSettingManager, userSettingService, styles, i18nManager);
   }
 
   @Bean("org.hisp.dhis.outboundmessage.OutboundMessageService")

@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.sync;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
-import java.util.Date;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.common.ImportSummariesResponseExtractor;
@@ -40,8 +39,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -69,7 +67,7 @@ public class SyncUtils {
   /**
    * Sends a synchronization request to the {@code syncUrl} and analyzes the returned summary
    *
-   * @param systemSettingManager Reference to SystemSettingManager
+   * @param settings current settings
    * @param restTemplate Spring Rest Template instance
    * @param requestCallback Request callback
    * @param instance SystemInstance of remote system
@@ -77,12 +75,12 @@ public class SyncUtils {
    * @return True if sync was successful, false otherwise
    */
   static boolean sendSyncRequest(
-      SystemSettingManager systemSettingManager,
+      SystemSettings settings,
       RestTemplate restTemplate,
       RequestCallback requestCallback,
       SystemInstance instance,
       SyncEndpoint endpoint) {
-    final int maxSyncAttempts = systemSettingManager.getIntSetting(SettingKey.MAX_SYNC_ATTEMPTS);
+    final int maxSyncAttempts = settings.getSyncMaxAttempts();
     Optional<AbstractWebMessageResponse> responseSummaries =
         runSyncRequest(
             restTemplate, requestCallback, endpoint.getKlass(), instance.getUrl(), maxSyncAttempts);
@@ -213,39 +211,36 @@ public class SyncUtils {
   /**
    * Checks the availability of remote server.
    *
-   * @param systemSettingManager Reference to SystemSettingManager
+   * @param settings current settings
    * @param restTemplate Reference to RestTemplate
    * @return AvailabilityStatus that says whether the server is available or not
    */
   static AvailabilityStatus testServerAvailability(
-      SystemSettingManager systemSettingManager, RestTemplate restTemplate) {
-    final int maxAttempts =
-        systemSettingManager.getIntSetting(
-            SettingKey.MAX_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS);
+      SystemSettings settings, RestTemplate restTemplate) {
+    final int maxAttempts = settings.getSyncMaxRemoteServerAvailabilityCheckAttempts();
     final int delayBetweenAttempts =
-        systemSettingManager.getIntSetting(
-            SettingKey.DELAY_BETWEEN_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS);
+        settings.getSyncDelayBetweenRemoteServerAvailabilityCheckAttempts();
 
-    return SyncUtils.testServerAvailabilityWithRetries(
-        systemSettingManager, restTemplate, maxAttempts, delayBetweenAttempts);
+    return testServerAvailabilityWithRetries(
+        settings, restTemplate, maxAttempts, delayBetweenAttempts);
   }
 
   /**
    * Checks the availability of remote server. In case of error it tries {@code maxAttempts} of time
    * with a {@code delaybetweenAttempts} delay between retries before giving up.
    *
-   * @param systemSettingManager Reference to SystemSettingManager
+   * @param settings current settings
    * @param restTemplate Reference to RestTemplate
    * @param maxAttempts Specifies how many retries are done in case of error
    * @param delayBetweenAttempts Specifies delay between retries
    * @return AvailabilityStatus that says whether the server is available or not
    */
   private static AvailabilityStatus testServerAvailabilityWithRetries(
-      SystemSettingManager systemSettingManager,
+      SystemSettings settings,
       RestTemplate restTemplate,
       int maxAttempts,
       long delayBetweenAttempts) {
-    AvailabilityStatus serverStatus = isRemoteServerAvailable(systemSettingManager, restTemplate);
+    AvailabilityStatus serverStatus = isRemoteServerAvailable(settings, restTemplate);
 
     for (int i = 1; i < maxAttempts; i++) {
       if (serverStatus.isAvailable()) {
@@ -261,7 +256,7 @@ public class SyncUtils {
         Thread.currentThread().interrupt();
       }
 
-      serverStatus = isRemoteServerAvailable(systemSettingManager, restTemplate);
+      serverStatus = isRemoteServerAvailable(settings, restTemplate);
     }
 
     log.error("Remote server is not available. Details: " + serverStatus);
@@ -271,20 +266,20 @@ public class SyncUtils {
   /**
    * Checks the availability of remote server
    *
-   * @param systemSettingManager Reference to SystemSettingManager
+   * @param settings current settings
    * @param restTemplate Reference to RestTemplate
    * @return AvailabilityStatus that says whether the server is available or not
    */
   public static AvailabilityStatus isRemoteServerAvailable(
-      SystemSettingManager systemSettingManager, RestTemplate restTemplate) {
-    if (!isRemoteServerConfigured(systemSettingManager)) {
+      SystemSettings settings, RestTemplate restTemplate) {
+    if (!isRemoteServerConfigured(settings)) {
       return new AvailabilityStatus(
           false, "Remote server is not configured", HttpStatus.BAD_GATEWAY);
     }
 
-    String url = systemSettingManager.getStringSetting(SettingKey.REMOTE_INSTANCE_URL) + PING_PATH;
-    String username = systemSettingManager.getStringSetting(SettingKey.REMOTE_INSTANCE_USERNAME);
-    String password = systemSettingManager.getStringSetting(SettingKey.REMOTE_INSTANCE_PASSWORD);
+    String url = settings.getRemoteInstanceUrl() + PING_PATH;
+    String username = settings.getRemoteInstanceUsername();
+    String password = settings.getRemoteInstancePassword();
 
     log.debug(String.format("Remote server ping URL: %s, username: %s", url, username));
 
@@ -325,10 +320,10 @@ public class SyncUtils {
   }
 
   /** Indicates whether a remote server has been properly configured. */
-  private static boolean isRemoteServerConfigured(SystemSettingManager systemSettingManager) {
-    String url = systemSettingManager.getStringSetting(SettingKey.REMOTE_INSTANCE_URL);
-    String username = systemSettingManager.getStringSetting(SettingKey.REMOTE_INSTANCE_USERNAME);
-    String password = systemSettingManager.getStringSetting(SettingKey.REMOTE_INSTANCE_PASSWORD);
+  private static boolean isRemoteServerConfigured(SystemSettings settings) {
+    String url = settings.getRemoteInstanceUrl();
+    String username = settings.getRemoteInstanceUsername();
+    String password = settings.getRemoteInstancePassword();
 
     if (isEmpty(url)) {
       log.info("Remote server URL not set");
@@ -351,30 +346,6 @@ public class SyncUtils {
   }
 
   /**
-   * Sets the time of the last successful synchronization operation for given settingKey.
-   *
-   * @param systemSettingManager SystemSettingManager
-   * @param settingKey SettingKey specifying the sync operation that was successfully done
-   * @param time The date and time of last successful sync
-   */
-  public static void setLastSyncSuccess(
-      SystemSettingManager systemSettingManager, SettingKey settingKey, Date time) {
-    systemSettingManager.saveSystemSetting(settingKey, time);
-  }
-
-  /**
-   * Return the time of last successful synchronization operation for given settingKey.
-   *
-   * @param systemSettingManager Reference to SystemSettingManager
-   * @param settingKey SettingKey specifying the sync operation that was successfully done
-   * @return The date and time of last successful sync
-   */
-  public static Date getLastSyncSuccess(
-      SystemSettingManager systemSettingManager, SettingKey settingKey) {
-    return systemSettingManager.getDateSetting(settingKey);
-  }
-
-  /**
    * Checks the status of given importSummary and returns true if fine. False otherwise.
    *
    * @param summary ImportSummary to check
@@ -390,10 +361,10 @@ public class SyncUtils {
     return true;
   }
 
-  static SystemInstance getRemoteInstance(SystemSettingManager settings, SyncEndpoint endpoint) {
-    String username = settings.getStringSetting(SettingKey.REMOTE_INSTANCE_USERNAME);
-    String password = settings.getStringSetting(SettingKey.REMOTE_INSTANCE_PASSWORD);
-    String syncUrl = settings.getStringSetting(SettingKey.REMOTE_INSTANCE_URL) + endpoint.getPath();
+  static SystemInstance getRemoteInstance(SystemSettings settings, SyncEndpoint endpoint) {
+    String username = settings.getRemoteInstanceUsername();
+    String password = settings.getRemoteInstancePassword();
+    String syncUrl = settings.getRemoteInstanceUrl() + endpoint.getPath();
 
     return new SystemInstance(syncUrl, username, password);
   }

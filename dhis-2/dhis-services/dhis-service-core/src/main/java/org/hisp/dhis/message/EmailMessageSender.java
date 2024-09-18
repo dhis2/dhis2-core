@@ -53,8 +53,8 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.User;
@@ -88,7 +88,7 @@ public class EmailMessageSender implements MessageSender {
   // Dependencies
   // -------------------------------------------------------------------------
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final UserSettingService userSettingService;
 
@@ -360,12 +360,12 @@ public class EmailMessageSender implements MessageSender {
   }
 
   private String getPrefixedSubject(String subject) {
-    String title = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
+    String title = settingsProvider.getCurrentSettings().getApplicationTitle();
     return "[" + title + "] " + subject;
   }
 
   private String getEmailName() {
-    String appTitle = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
+    String appTitle = settingsProvider.getCurrentSettings().getApplicationTitle();
     appTitle =
         ObjectUtils.firstNonNull(
             StringUtils.trimToNull(emailNameEncode(appTitle)), DEFAULT_APPLICATION_TITLE);
@@ -381,12 +381,13 @@ public class EmailMessageSender implements MessageSender {
   }
 
   private EmailConfiguration getEmailConfiguration() {
-    String hostName = systemSettingManager.getStringSetting(SettingKey.EMAIL_HOST_NAME);
-    String username = systemSettingManager.getStringSetting(SettingKey.EMAIL_USERNAME);
-    String password = systemSettingManager.getStringSetting(SettingKey.EMAIL_PASSWORD);
-    String from = systemSettingManager.getStringSetting(SettingKey.EMAIL_SENDER);
-    int port = systemSettingManager.getIntSetting(SettingKey.EMAIL_PORT);
-    boolean tls = systemSettingManager.getBoolSetting(SettingKey.EMAIL_TLS);
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    String hostName = settings.getEmailHostName();
+    String username = settings.getEmailUsername();
+    String password = settings.getEmailPassword();
+    String from = settings.getEmailSender();
+    int port = settings.getEmailPort();
+    boolean tls = settings.getEmailTls();
 
     return new EmailConfiguration(hostName, username, password, from, port, tls);
   }

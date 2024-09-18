@@ -74,8 +74,7 @@ public class CurrentUserUtil {
   /**
    * Get details about the currently authenticated user
    *
-   * @return CurrentUserDetails representing the authenticated user, or null if the user is
-   *     unauthenticated
+   * @return CurrentUserDetails representing the authenticated user
    */
   @Nonnull
   public static UserDetails getCurrentUserDetails() {
@@ -156,26 +155,6 @@ public class CurrentUserUtil {
     Map<String, Serializable> userSettings = currentUser.getUserSettings();
     Serializable setting = userSettings.get(key.getName());
     return setting != null ? (T) setting : defaultValue;
-  }
-
-  /**
-   * Set the value of the user setting referred to by 'key'
-   *
-   * @param key the key of the user setting
-   * @param value the value to set
-   */
-  public static void setUserSetting(UserSettingKey key, Serializable value) {
-    setUserSettingInternal(key.getName(), value);
-  }
-
-  private static void setUserSettingInternal(String key, Serializable value) {
-    UserDetails currentUser = getCurrentUserDetails();
-    Map<String, Serializable> userSettings = currentUser.getUserSettings();
-    if (value != null) {
-      userSettings.put(key, value);
-    } else {
-      userSettings.remove(key);
-    }
   }
 
   public static boolean hasCurrentUser() {

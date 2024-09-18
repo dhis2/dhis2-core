@@ -206,7 +206,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
    *
    * <p>It is not initialised when loading a user from the database.
    */
-  private transient UserSettings settings;
+  private transient UserSettingsDto settings;
 
   /** User's verified email. */
   private String verifiedEmail;
@@ -629,11 +629,11 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Property(access = Property.Access.WRITE_ONLY)
-  public UserSettings getSettings() {
+  public UserSettingsDto getSettings() {
     return settings;
   }
 
-  public void setSettings(UserSettings settings) {
+  public void setSettings(UserSettingsDto settings) {
     this.settings = settings;
   }
 

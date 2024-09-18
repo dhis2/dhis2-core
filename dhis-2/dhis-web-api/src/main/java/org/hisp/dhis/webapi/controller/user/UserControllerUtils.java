@@ -35,6 +35,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Set;
+
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -42,24 +44,21 @@ import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Jim Grace
  */
 @Component
+@RequiredArgsConstructor
 public class UserControllerUtils {
-  @Autowired private DataApprovalService dataApprovalService;
 
-  @Autowired private DataApprovalLevelService dataApprovalLevelService;
-
-  @Autowired private AclService aclService;
-
-  @Autowired private SystemSettingManager systemSettingManager;
+  private final DataApprovalService dataApprovalService;
+  private final DataApprovalLevelService dataApprovalLevelService;
+  private final AclService aclService;
+  private final SystemSettingsProvider settingsProvider;
 
   /**
    * Gets the data approval workflows a user can see, including the workflow levels accessible to
@@ -120,7 +119,7 @@ public class UserControllerUtils {
     boolean canAccept = user.isAuthorized(F_ACCEPT_DATA_LOWER_LEVELS);
 
     boolean acceptConfigured =
-        systemSettingManager.getBoolSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL);
+        settingsProvider.getCurrentSettings().getAcceptanceRequiredForApproval();
 
     int lowestUserOrgUnitLevel = getLowsetUserOrgUnitLevel(user);
 

@@ -54,7 +54,8 @@ import java.util.Date;
 import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheability;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,7 +66,8 @@ import org.springframework.http.CacheControl;
 @ExtendWith(MockitoExtension.class)
 class WebCacheTest {
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsProvider settingsProvider;
+  @Mock private SystemSettings settings;
 
   @Mock private AnalyticsCacheSettings analyticsCacheSettings;
 
@@ -73,7 +75,8 @@ class WebCacheTest {
 
   @BeforeEach
   public void setUp() {
-    webCache = new WebCache(systemSettingManager, analyticsCacheSettings);
+    webCache = new WebCache(settingsProvider, analyticsCacheSettings);
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
   }
 
   @Test
@@ -302,8 +305,7 @@ class WebCacheTest {
   }
 
   private void givenCacheStartegy(CacheStrategy theCacheStrategySet) {
-    when(systemSettingManager.getSystemSetting(CACHE_STRATEGY, CacheStrategy.class))
-        .thenReturn(theCacheStrategySet);
+    when(settings.getCacheStrategy())        .thenReturn(theCacheStrategySet);
   }
 
   private void givenCacheabilityPublic() {
@@ -311,7 +313,7 @@ class WebCacheTest {
   }
 
   private void givenCacheability(Cacheability cacheability) {
-    when(systemSettingManager.getSystemSetting(CACHEABILITY, Cacheability.class))
+    when(settings.getCacheability())
         .thenReturn(cacheability);
   }
 }

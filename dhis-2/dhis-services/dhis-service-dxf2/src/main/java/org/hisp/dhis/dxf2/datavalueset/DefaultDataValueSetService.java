@@ -102,8 +102,8 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.callable.CategoryOptionComboAclCallable;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.system.callable.PeriodCallable;
@@ -152,7 +152,7 @@ public class DefaultDataValueSetService implements DataValueSetService {
 
   private final DataValueSetStore dataValueSetStore;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final LockExceptionStore lockExceptionStore;
 
@@ -1072,7 +1072,7 @@ public class DefaultDataValueSetService implements DataValueSetService {
             && currentUserDetails.isAuthorized(Authorities.F_SKIP_DATA_IMPORT_AUDIT.name());
     boolean skipAudit = (options.isSkipAudit() && hasSkipAuditAuth) || !auditEnabled;
 
-    SystemSettingManager settings = systemSettingManager;
+    SystemSettings settings = settingsProvider.getCurrentSettings();
 
     IdScheme dataElementIdScheme =
         createIdScheme(
@@ -1111,34 +1111,34 @@ public class DefaultDataValueSetService implements DataValueSetService {
         .skipExistingCheck(options.isSkipExistingCheck())
         .strictPeriods(
             options.isStrictPeriods()
-                || settings.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_PERIODS))
+                || settings.getDataImportStrictPeriods())
         .strictDataElements(
             options.isStrictDataElements()
-                || settings.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_DATA_ELEMENTS))
+                || settings.getDataImportStrictDataElements())
         .strictCategoryOptionCombos(
             options.isStrictCategoryOptionCombos()
-                || settings.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS))
+                || settings.getDataImportStrictCategoryOptionCombos())
         .strictAttrOptionCombos(
             options.isStrictAttributeOptionCombos()
-                || settings.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS))
+                || settings.getDataImportStrictAttributeOptionCombos())
         .strictOrgUnits(
             options.isStrictOrganisationUnits()
-                || settings.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS))
+                || settings.getDataImportStrictOrganisationUnits())
         .strictDataSetApproval(
             options.isStrictDataSetApproval()
-                || settings.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_DATA_SET_APPROVAL))
+                || settings.getDataImportStrictDataSetApproval())
         .strictDataSetLocking(
             options.isStrictDataSetLocking()
-                || settings.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_DATA_SET_LOCKING))
+                || settings.getDataImportStrictDataSetLocking())
         .strictDataSetInputPeriods(
             options.isStrictDataSetInputPeriods()
-                || settings.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_DATA_SET_INPUT_PERIODS))
+                || settings.getDataImportStrictDataSetInputPeriods())
         .requireCategoryOptionCombo(
             options.isRequireCategoryOptionCombo()
-                || settings.getBoolSetting(SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO))
+                || settings.getDataImportRequireCategoryOptionCombo())
         .requireAttrOptionCombo(
             options.isRequireAttributeOptionCombo()
-                || settings.getBoolSetting(SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO))
+                || settings.getDataImportRequireAttributeOptionCombo())
         .forceDataInput(
             inputUtils.canForceDataInput(UserDetails.fromUser(currentUser), options.isForce()))
 

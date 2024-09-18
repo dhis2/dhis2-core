@@ -55,7 +55,6 @@ class UserSettingServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() {
-    userSettingService.invalidateCache();
     userA = makeUser("A");
     userA.setUsername("usernameA");
     userService.addUser(userA);

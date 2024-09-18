@@ -39,14 +39,16 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
+
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.SerializableOptional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Nonnull;
 
 /**
  * Declare transactions on individual methods. The get-methods do not have transactions declared,
@@ -55,52 +57,32 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Torgeir Lorange Ostby
  */
-@Service("org.hisp.dhis.user.UserSettingService")
+@Service
+@RequiredArgsConstructor
 public class DefaultUserSettingService implements UserSettingService {
-  private static final Map<String, SettingKey> NAME_SETTING_KEY_MAP =
-      Sets.newHashSet(SettingKey.values()).stream()
-          .collect(Collectors.toMap(SettingKey::getName, s -> s));
-
-  /** Cache for user settings. Does not accept nulls. Disabled during test phase. */
-  private final Cache<SerializableOptional> userSettingCache;
 
   private final UserSettingStore userSettingStore;
+  private final SystemSettingsProvider settingsProvider;
 
-  private final SystemSettingManager systemSettingManager;
-
-  public DefaultUserSettingService(
-      CacheProvider cacheProvider,
-      UserSettingStore userSettingStore,
-      SystemSettingManager systemSettingManager) {
-    checkNotNull(cacheProvider);
-    checkNotNull(userSettingStore);
-    checkNotNull(systemSettingManager);
-
-    this.userSettingStore = userSettingStore;
-    this.systemSettingManager = systemSettingManager;
-    this.userSettingCache = cacheProvider.createUserSettingCache();
+  @Override
+  @Transactional
+  public void saveUserSetting(String key, String value) {
+    saveUserSetting(key, value, CurrentUserUtil.getCurrentUserDetails());
   }
 
   @Override
   @Transactional
-  public void saveUserSetting(UserSettingKey key, Serializable value) {
+  public void saveUserSetting(String key, String value, @Nonnull UserDetails user) {
+
     Long userId = CurrentUserUtil.getCurrentUserDetails().getId();
-    User user = new User();
-    user.setId(userId);
-    saveUserSetting(key, value, user);
-  }
+    User u = new User();
+    u.setId(userId);
 
-  @Override
-  @Transactional
-  public void saveUserSetting(UserSettingKey key, Serializable value, User user) {
-    if (user == null) {
-      return;
-    }
-    userSettingCache.invalidate(getCacheKey(key.getName(), user.getUsername()));
+    userSettingStore.save(new UserSetting(user, key, value));
     UserSetting userSetting = userSettingStore.getUserSetting(user.getUsername(), key.getName());
 
     if (userSetting == null) {
-      userSetting = new UserSetting(user, key.getName(), value);
+      userSetting = ;
       userSettingStore.addUserSetting(userSetting);
     } else {
       userSetting.setValue(value);
@@ -111,7 +93,7 @@ public class DefaultUserSettingService implements UserSettingService {
 
   @Override
   @Transactional
-  public void saveUserSettings(UserSettings settings, User user) {
+  public void saveUserSettings(UserSettingsDto settings, User user) {
     if (settings == null) {
       return; // nothing to do
     }
@@ -194,7 +176,7 @@ public class DefaultUserSettingService implements UserSettingService {
               SettingKey setting = systemSettingKey.get();
               result.put(
                   userSettingKey.getName(),
-                  systemSettingManager.getSystemSetting(setting, setting.getClazz()));
+                  settingsProvider.getCurrentSettings().get.getSystemSetting(setting, setting.getClazz()));
             } else {
               result.put(userSettingKey.getName(), null);
             }
@@ -218,11 +200,6 @@ public class DefaultUserSettingService implements UserSettingService {
         defaultUserSettings.stream().filter(x -> !userSettings.contains(x)).toList());
 
     return userSettings;
-  }
-
-  @Override
-  public void invalidateCache() {
-    userSettingCache.invalidateAll();
   }
 
   @Override

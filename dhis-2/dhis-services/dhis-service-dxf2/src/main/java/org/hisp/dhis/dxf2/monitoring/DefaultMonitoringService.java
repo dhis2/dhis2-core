@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.monitoring;
 
 import java.util.Date;
+import java.util.Map;
 import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
@@ -67,7 +67,7 @@ public class DefaultMonitoringService implements MonitoringService {
 
   private final DhisConfigurationProvider config;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingManager settingManager;
 
   private final RestTemplate restTemplate;
 
@@ -151,9 +151,8 @@ public class DefaultMonitoringService implements MonitoringService {
       return;
     }
 
-    if (response != null && sc != null && sc.is2xxSuccessful()) {
-      systemSettingManager.saveSystemSetting(
-          SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH, startTime);
+    if (sc.is2xxSuccessful()) {
+      settingManager.saveSystemSettings(Map.of("keyLastSuccessfulSystemMonitoringPush", startTime.toString()));
 
       log.debug(String.format("Monitoring request successfully sent, URL: %s", target.getUrl()));
     } else {

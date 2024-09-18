@@ -66,7 +66,6 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.common.OrderParams;
-import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -461,14 +460,9 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
       @OpenApi.Param(PropertyNames.class) @PathVariable("property") String pvProperty,
       @RequestParam Map<String, String> rpParameters,
-      TranslateParams translateParams,
       @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
-
-    if (!"translations".equals(pvProperty)) {
-      setTranslationParams(translateParams);
-    }
 
     if (!aclService.canRead(currentUser, getEntityClass())) {
       throw new ForbiddenException(
@@ -655,18 +649,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
   // --------------------------------------------------------------------------
   // Helpers
   // --------------------------------------------------------------------------
-
-  protected final void setTranslationParams(TranslateParams translateParams) {
-    Locale dbLocale = getLocaleWithDefault(translateParams);
-    CurrentUserUtil.setUserSetting(UserSettingKey.DB_LOCALE, dbLocale);
-  }
-
-  private Locale getLocaleWithDefault(TranslateParams translateParams) {
-    return translateParams.isTranslate()
-        ? translateParams.getLocaleWithDefault(
-            (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE))
-        : null;
-  }
 
   protected final Pagination getPaginationData(WebOptions options) {
     return PaginationUtils.getPaginationData(options);

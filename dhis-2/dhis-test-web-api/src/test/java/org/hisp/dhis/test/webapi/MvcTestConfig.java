@@ -47,11 +47,13 @@ import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.test.message.FakeMessageSender;
 import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
+import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.MetadataExportParamsMessageConverter;
@@ -105,8 +107,13 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
   @Autowired private AuthorityInterceptor authorityInterceptor;
 
+  @Autowired private SystemSettingsInterceptor settingsInterceptor;
+
   @Autowired
   private CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
+
+  @Autowired
+  private CurrentSystemSettingsHandlerMethodArgumentResolver currentSystemSettingsHandlerMethodArgumentResolver;
 
   @Autowired
   @Qualifier("jsonMapper")
@@ -133,9 +140,10 @@ public class MvcTestConfig implements WebMvcConfigurer {
     addInterceptors(registry);
     registry.addInterceptor(new ConversionServiceExposingInterceptor(mvcConversionService));
     registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));
-    registry.addInterceptor(new UserContextInterceptor(userSettingService));
+    registry.addInterceptor(new UserContextInterceptor());
     registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
     registry.addInterceptor(authorityInterceptor);
+    registry.addInterceptor(settingsInterceptor);
     mapping.setInterceptors(registry.getInterceptors().toArray());
 
     CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
@@ -207,7 +215,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
     registry.addInterceptor(new ConversionServiceExposingInterceptor(mvcConversionService));
     registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));
 
-    registry.addInterceptor(new UserContextInterceptor(userSettingService));
+    registry.addInterceptor(new UserContextInterceptor());
     registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
     registry.addInterceptor(authorityInterceptor);
   }
@@ -274,6 +282,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
     resolvers.add(dhisApiVersionHandlerMethodArgumentResolver());
     resolvers.add(currentUserHandlerMethodArgumentResolver);
+    resolvers.add(currentSystemSettingsHandlerMethodArgumentResolver);
   }
 
   @Bean

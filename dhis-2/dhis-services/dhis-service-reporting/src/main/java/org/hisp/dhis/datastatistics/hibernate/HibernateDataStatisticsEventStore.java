@@ -29,7 +29,6 @@ package org.hisp.dhis.datastatistics.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.hisp.dhis.setting.SettingKey.COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS;
 import static org.hisp.dhis.system.util.SqlUtils.escape;
 import static org.hisp.dhis.util.DateUtils.asSqlDate;
 
@@ -45,7 +44,7 @@ import org.hisp.dhis.datastatistics.DataStatisticsEventStore;
 import org.hisp.dhis.datastatistics.DataStatisticsEventType;
 import org.hisp.dhis.datastatistics.FavoriteStatistics;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -61,22 +60,22 @@ import org.springframework.util.Assert;
 @Repository("org.hisp.dhis.datastatistics.DataStatisticsEventStore")
 public class HibernateDataStatisticsEventStore extends HibernateGenericStore<DataStatisticsEvent>
     implements DataStatisticsEventStore {
-  private final SystemSettingManager systemSettingManager;
 
+  private final SystemSettingsProvider settingsProvider;
   private final UserSettingService userSettingService;
 
   public HibernateDataStatisticsEventStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       UserSettingService userSettingService) {
     super(entityManager, jdbcTemplate, publisher, DataStatisticsEvent.class, false);
 
-    checkNotNull(systemSettingManager);
+    checkNotNull(settingsProvider);
     checkNotNull(userSettingService);
 
-    this.systemSettingManager = systemSettingManager;
+    this.settingsProvider = settingsProvider;
     this.userSettingService = userSettingService;
   }
 
@@ -202,7 +201,7 @@ public class HibernateDataStatisticsEventStore extends HibernateGenericStore<Dat
             + "from datastatisticsevent dse "
             + "where dse.favoriteuid = ?";
 
-    if (!systemSettingManager.getBoolSetting(COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS)) {
+    if (!settingsProvider.getCurrentSettings().getCountPassiveDashboardViewsInUsageAnalytics()) {
       sql +=
           " and dse.eventtype != '" + DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW.name() + "'";
     }

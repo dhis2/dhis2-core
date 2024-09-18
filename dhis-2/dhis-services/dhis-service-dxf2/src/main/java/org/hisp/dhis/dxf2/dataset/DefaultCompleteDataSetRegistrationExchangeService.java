@@ -78,7 +78,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -119,7 +119,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
   private final BatchHandlerFactory batchHandlerFactory;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final CategoryService categoryService;
 
@@ -396,7 +396,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     ImportConfig cfg =
         new ImportConfig(
-            this.systemSettingManager, this.categoryService, completeRegistrations, importOptions);
+            settingsProvider.getCurrentSettings(), this.categoryService, completeRegistrations, importOptions);
 
     // ---------------------------------------------------------------------
     // Set up meta-data

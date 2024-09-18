@@ -89,8 +89,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.filter.UserRoleCanIssueFilter;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
@@ -118,7 +117,7 @@ public class DefaultUserService implements UserService {
   private final UserStore userStore;
   private final UserGroupService userGroupService;
   private final UserRoleStore userRoleStore;
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
   private final PasswordManager passwordManager;
   private final AclService aclService;
   private final OrganisationUnitService organisationUnitService;
@@ -143,7 +142,7 @@ public class DefaultUserService implements UserService {
       UserStore userStore,
       UserGroupService userGroupService,
       UserRoleStore userRoleStore,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       CacheProvider cacheProvider,
       PasswordManager passwordManager,
       AclService aclService,
@@ -153,7 +152,7 @@ public class DefaultUserService implements UserService {
     checkNotNull(userStore);
     checkNotNull(userGroupService);
     checkNotNull(userRoleStore);
-    checkNotNull(systemSettingManager);
+    checkNotNull(settingsProvider);
     checkNotNull(passwordManager);
     checkNotNull(aclService);
     checkNotNull(organisationUnitService);
@@ -168,7 +167,7 @@ public class DefaultUserService implements UserService {
     this.userStore = userStore;
     this.userGroupService = userGroupService;
     this.userRoleStore = userRoleStore;
-    this.systemSettingManager = systemSettingManager;
+    this.settingsProvider = settingsProvider;
     this.passwordManager = passwordManager;
     this.userDisplayNameCache = cacheProvider.createUserDisplayNameCache();
     this.aclService = aclService;
@@ -344,7 +343,7 @@ public class DefaultUserService implements UserService {
   private void handleUserQueryParams(UserQueryParams params) {
     boolean canSeeOwnRoles =
         params.isCanSeeOwnRoles()
-            || systemSettingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES);
+            || settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
     params.setDisjointRoles(!canSeeOwnRoles);
 
     if (!params.hasUser()) {
@@ -551,7 +550,7 @@ public class DefaultUserService implements UserService {
     User user = getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     boolean canGrantOwnUserRoles =
-        systemSettingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES);
+        settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
 
     FilterUtils.filter(userRoles, new UserRoleCanIssueFilter(user, canGrantOwnUserRoles));
   }
@@ -654,7 +653,7 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public boolean userNonExpired(User user) {
-    int credentialsExpires = systemSettingManager.credentialsExpires();
+    int credentialsExpires = settingsProvider.getCurrentSettings().getCredentialsExpires();
 
     if (credentialsExpires == 0) {
       return true;
@@ -736,7 +735,7 @@ public class DefaultUserService implements UserService {
     Set<UserRole> userRoles = user.getUserRoles();
 
     boolean canGrantOwnUserRoles =
-        systemSettingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES);
+        settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
 
     if (userRoles != null) {
       List<UserRole> roles =
@@ -1126,7 +1125,7 @@ public class DefaultUserService implements UserService {
 
     RestoreType restoreType = restoreOptions.getRestoreType();
 
-    String applicationTitle = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
+    String applicationTitle = settingsProvider.getCurrentSettings().getApplicationTitle();
 
     if (applicationTitle == null || applicationTitle.isEmpty()) {
       applicationTitle = DEFAULT_APPLICATION_TITLE;
@@ -1287,7 +1286,7 @@ public class DefaultUserService implements UserService {
   }
 
   private boolean isNotBlockOnFailedLogins() {
-    return !systemSettingManager.getBoolSetting(SettingKey.LOCK_MULTIPLE_FAILED_LOGINS);
+    return !settingsProvider.getCurrentSettings().getLockMultipleFailedLogins();
   }
 
   @Override
@@ -1300,7 +1299,7 @@ public class DefaultUserService implements UserService {
       user.setUsername(username);
     }
 
-    int minPasswordLength = systemSettingManager.getIntSetting(SettingKey.MIN_PASSWORD_LENGTH);
+    int minPasswordLength = settingsProvider.getCurrentSettings().getMinPasswordLength();
     char[] plaintextPassword = PasswordGenerator.generateValidPassword(minPasswordLength);
 
     user.setSurname(StringUtils.isEmpty(user.getSurname()) ? TBD_NAME : user.getSurname());
@@ -1448,7 +1447,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   public boolean canView(String type) {
-    boolean requireAddToView = systemSettingManager.getBoolSetting(SettingKey.REQUIRE_ADD_TO_VIEW);
+    boolean requireAddToView = settingsProvider.getCurrentSettings().getRequireAddToView();
 
     return !requireAddToView || (canCreatePrivate(type) || canCreatePublic(type));
   }
@@ -1495,7 +1494,7 @@ public class DefaultUserService implements UserService {
   public RecaptchaResponse verifyRecaptcha(String key, String remoteIp) throws IOException {
     MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 
-    params.add("secret", systemSettingManager.getStringSetting(SettingKey.RECAPTCHA_SECRET));
+    params.add("secret", settingsProvider.getCurrentSettings().getRecaptchaSecret());
     params.add("response", key);
     params.add("remoteip", remoteIp);
 
@@ -1530,7 +1529,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   public boolean sendEmailVerificationToken(User user, String token, String requestUrl) {
-    String applicationTitle = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
+    String applicationTitle = settingsProvider.getCurrentSettings().getApplicationTitle();
     if (applicationTitle == null || applicationTitle.isEmpty()) {
       applicationTitle = DEFAULT_APPLICATION_TITLE;
     }

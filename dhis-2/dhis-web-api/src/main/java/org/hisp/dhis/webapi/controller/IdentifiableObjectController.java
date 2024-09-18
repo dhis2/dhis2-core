@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static java.lang.String.format;
 
 import java.util.Optional;
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -50,6 +51,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/api/identifiableObjects")
 public class IdentifiableObjectController extends AbstractCrudController<IdentifiableObject> {
 
+  @Nonnull
   @Override
   @SuppressWarnings("unchecked")
   public IdentifiableObject getEntity(String uid, WebOptions options) throws NotFoundException {

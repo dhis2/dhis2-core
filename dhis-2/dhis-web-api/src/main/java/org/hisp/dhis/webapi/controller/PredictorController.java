@@ -36,7 +36,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.util.Date;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.expression.ExpressionService;
@@ -82,8 +81,7 @@ public class PredictorController extends AbstractCrudController<Predictor> {
   public WebMessage runPredictor(
       @PathVariable("uid") String uid,
       @RequestParam Date startDate,
-      @RequestParam Date endDate,
-      TranslateParams translateParams) {
+      @RequestParam Date endDate) {
     Predictor predictor = predictorService.getPredictor(uid);
 
     try {
@@ -105,7 +103,7 @@ public class PredictorController extends AbstractCrudController<Predictor> {
   @RequiresAuthority(anyOf = F_PREDICTOR_RUN)
   @ResponseBody
   public WebMessage runPredictors(
-      @RequestParam Date startDate, @RequestParam Date endDate, TranslateParams translateParams) {
+      @RequestParam Date startDate, @RequestParam Date endDate) {
     int count = 0;
 
     List<Predictor> allPredictors = predictorService.getAllPredictors();

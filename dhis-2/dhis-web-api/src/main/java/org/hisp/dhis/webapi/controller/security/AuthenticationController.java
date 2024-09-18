@@ -38,8 +38,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationEnrolmentException;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -99,7 +98,7 @@ public class AuthenticationController {
   @Autowired private AuthenticationManager authenticationManager;
 
   @Autowired private DhisConfigurationProvider dhisConfig;
-  @Autowired private SystemSettingManager settingManager;
+  @Autowired private SystemSettingsProvider settingsProvider;
   @Autowired private RequestCache requestCache;
   @Autowired private SessionRegistry sessionRegistry;
   @Autowired private UserService userService;
@@ -217,7 +216,7 @@ public class AuthenticationController {
 
   private String getRedirectUrl(HttpServletRequest request, HttpServletResponse response) {
     String redirectUrl =
-        request.getContextPath() + "/" + settingManager.getStringSetting(SettingKey.START_MODULE);
+        request.getContextPath() + "/" + settingsProvider.getCurrentSettings().getStartModule();
 
     if (!redirectUrl.endsWith("/")) {
       redirectUrl += "/";

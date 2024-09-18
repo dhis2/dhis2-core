@@ -33,12 +33,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Locale;
+import java.util.Map;
+
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
@@ -147,13 +147,13 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
   void testSearchTokenWithNullLocale() {
     setUpTranslation();
     doInTransaction(
-        () -> systemSettingManager.saveSystemSetting(SettingKey.DB_LOCALE, Locale.ENGLISH));
-    systemSettingManager.invalidateCache();
+        () -> systemSettingManager.saveSystemSettings(Map.of("keyDbLocale", Locale.ENGLISH.toString())));
+    systemSettingManager.clearCurrentSettings();
     assertEquals(
         Locale.ENGLISH,
-        systemSettingManager.getSystemSetting(SettingKey.DB_LOCALE, LocaleManager.DEFAULT_LOCALE));
+        systemSettingManager.getCurrentSettings().getDbLocale());
 
-    User userA = createAndAddUser("userA", (OrganisationUnit) null, "ALL");
+    User userA = createAndAddUser("userA", null, "ALL");
     injectSecurityContextUser(userA);
     userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, null);
 

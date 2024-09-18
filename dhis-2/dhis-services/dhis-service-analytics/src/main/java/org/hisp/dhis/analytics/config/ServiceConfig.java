@@ -35,7 +35,7 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilderProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,14 +57,14 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager,
+        settingsProvider,
         sqlBuilder);
   }
 
@@ -75,14 +75,14 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager,
+        settingsProvider,
         sqlBuilder);
   }
 
@@ -93,14 +93,14 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager,
+        settingsProvider,
         sqlBuilder);
   }
 
@@ -111,14 +111,14 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager,
+        settingsProvider,
         sqlBuilder);
   }
 
@@ -129,14 +129,14 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager,
+        settingsProvider,
         sqlBuilder);
   }
 
@@ -147,14 +147,14 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager,
+        settingsProvider,
         sqlBuilder);
   }
 
@@ -165,14 +165,14 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager,
+        settingsProvider,
         sqlBuilder);
   }
 
@@ -183,14 +183,14 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager,
+        settingsProvider,
         sqlBuilder);
   }
 
@@ -201,14 +201,14 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager,
+        settingsProvider,
         sqlBuilder);
   }
 
@@ -219,14 +219,14 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager,
+        settingsProvider,
         sqlBuilder);
   }
 
@@ -237,14 +237,14 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager,
+        settingsProvider,
         sqlBuilder);
   }
 }

@@ -70,7 +70,6 @@ import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -258,13 +257,12 @@ public class UserController extends AbstractCrudController<User> {
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
       @OpenApi.Param(OpenApi.PropertyNames.class) @PathVariable("property") String pvProperty,
       @RequestParam Map<String, String> rpParameters,
-      TranslateParams translateParams,
       @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
     if (!"dataApprovalWorkflows".equals(pvProperty)) {
       return super.getObjectProperty(
-          pvUid, pvProperty, rpParameters, translateParams, currentUser, response);
+          pvUid, pvProperty, rpParameters, currentUser, response);
     }
 
     User user = userService.getUser(pvUid);

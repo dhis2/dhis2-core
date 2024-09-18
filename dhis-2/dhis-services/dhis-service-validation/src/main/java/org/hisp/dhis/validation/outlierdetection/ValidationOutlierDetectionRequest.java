@@ -34,8 +34,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.stereotype.Component;
 
 /** OutlierDetectionRequest validator. */
@@ -44,7 +43,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class ValidationOutlierDetectionRequest {
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   /**
    * Validates the given request.
@@ -71,7 +70,9 @@ public class ValidationOutlierDetectionRequest {
 
     int maxLimit =
         isAnalytics
-            ? systemSettingManager.getSystemSetting(SettingKey.ANALYTICS_MAX_LIMIT, Integer.class)
+            ? settingsProvider
+                .getCurrentSettings()
+                .getAnalyticsMaxLimit()
             : 500;
     ErrorMessage errorMessage = getErrorMessage(request, maxLimit);
 

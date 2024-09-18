@@ -72,6 +72,10 @@ public class DatastoreEntry extends BaseIdentifiableObject {
     this(namespace, key, null, false);
   }
 
+  public DatastoreEntry(String namespace, String key, String value) {
+    this(namespace, key, value, false);
+  }
+
   public DatastoreEntry(String namespace, String key, String value, boolean encrypted) {
     this.namespace = namespace;
     this.key = key;
