@@ -286,12 +286,6 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             .build());
     columns.add(
         AnalyticsTableColumn.builder()
-            .name("timelydaysdiff")
-            .dataType(DOUBLE)
-            .selectExpression(timelyDateDiff)
-            .build());
-    columns.add(
-        AnalyticsTableColumn.builder()
             .name("value")
             .dataType(TIMESTAMP)
             .valueType(FACT)
