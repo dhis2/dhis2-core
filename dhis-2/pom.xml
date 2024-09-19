@@ -9,8 +9,7 @@
 
   <description>DHIS2 is a free and open-source software platform for collecting, managing, analyzing, and sharing data.
     It supports online and offline data capture via web and mobile devices, and includes built-in features for data validation and visualization.
-    The generic DHIS2 data model supports both routine aggregate/statistical data collection and individual/event data, a
-    nd can be applied to use cases in any sector, allowing decentralized access to data throughout an organizational hierarchy.
+    The generic DHIS2 data model supports both routine aggregate/statistical data collection and individual/event data, and can be applied to use cases in any sector, allowing decentralized access to data throughout an organizational hierarchy.
     DHIS2 is fully customizable through the user interface without the need for coding skills,
     and can be extended with custom applications, scripts, and integrations.
     Each DHIS2 instance and the data stored within it are locally owned and managed.
@@ -59,7 +58,7 @@
   <properties>
     <!-- Build Properties -->
     <rootDir/>
-    <!-- Custom source directory property, as <build><sourceDirectory> cannot 
+    <!-- Custom source directory property, as <build><sourceDirectory> cannot
       be set in a profile. See https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 -->
     <sourceDir>${project.basedir}/src/main/java</sourceDir>
 
@@ -74,7 +73,7 @@
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <surefireArgLine>-Xmx2024m</surefireArgLine>
 
-    <!-- Needed so we can disable running tests when the default profile 
+    <!-- Needed so we can disable running tests when the default profile
       is used (activated by default). It does not honor -DskipTests otherwise https://maven.apache.org/surefire/maven-surefire-plugin/examples/skipping-tests.html -->
     <skipTests>false</skipTests>
 
@@ -224,6 +223,7 @@
     <!-- Maven plugin versions -->
     <maven-surefire-plugin.version>3.5.0</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+    <maven-exec-plugin.version>3.4.1</maven-exec-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.5.0</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.10.0</maven-javadoc-plugin.version>
@@ -1664,8 +1664,8 @@
         <version>${mockito.version}</version>
         <scope>test</scope>
       </dependency>
-      <!-- Depend only on mockito-inline (includes mockito-core already) 
-        if you must use mockStatic (can you rewrite your code, so it's not necessary 
+      <!-- Depend only on mockito-inline (includes mockito-core already)
+        if you must use mockStatic (can you rewrite your code, so it's not necessary
         ;)), otherwise depend on mockito-core only -->
       <dependency>
         <groupId>org.mockito</groupId>
@@ -1724,9 +1724,9 @@
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
           </exclusion>
-          <!-- 
+          <!--
             Junit 4 cannot be excluded yet, because of this issue
-            https://github.com/testcontainers/testcontainers-java/issues/970 
+            https://github.com/testcontainers/testcontainers-java/issues/970
           -->
           <!--
           <exclusion>
@@ -1914,6 +1914,11 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>${maven-surefire-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>${maven-exec-plugin.version}</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
