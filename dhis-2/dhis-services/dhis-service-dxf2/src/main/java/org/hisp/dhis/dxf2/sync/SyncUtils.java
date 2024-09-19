@@ -300,7 +300,7 @@ public class SyncUtils {
       response = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
       sc = response.getStatusCode();
     } catch (HttpClientErrorException | HttpServerErrorException ex) {
-      sc = HttpStatus.resolve(ex.getStatusCode().value());
+      sc = HttpUtils.resolve(ex.getStatusCode());
       st = ex.getStatusText();
     } catch (ResourceAccessException ex) {
       return new AvailabilityStatus(false, "Network is unreachable", HttpStatus.BAD_GATEWAY);

@@ -77,6 +77,7 @@ import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
+import org.hisp.dhis.system.util.HttpUtils;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateForbiddenException;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
@@ -453,21 +454,21 @@ public class CrudControllerAdvice {
   @ResponseBody
   public WebMessage httpStatusCodeExceptionHandler(HttpStatusCodeException ex) {
     return createWebMessage(
-        ex.getMessage(), Status.ERROR, HttpStatus.resolve(ex.getStatusCode().value()));
+        ex.getMessage(), Status.ERROR, HttpUtils.resolve(ex.getStatusCode()));
   }
 
   @ExceptionHandler(HttpClientErrorException.class)
   @ResponseBody
   public WebMessage httpClientErrorExceptionHandler(HttpClientErrorException ex) {
     return createWebMessage(
-        ex.getMessage(), Status.ERROR, HttpStatus.resolve(ex.getStatusCode().value()));
+        ex.getMessage(), Status.ERROR, HttpUtils.resolve(ex.getStatusCode()));
   }
 
   @ExceptionHandler(HttpServerErrorException.class)
   @ResponseBody
   public WebMessage httpServerErrorExceptionHandler(HttpServerErrorException ex) {
     return createWebMessage(
-        ex.getMessage(), Status.ERROR, HttpStatus.resolve(ex.getStatusCode().value()));
+        ex.getMessage(), Status.ERROR, HttpUtils.resolve(ex.getStatusCode()));
   }
 
   @ExceptionHandler(HttpRequestMethodNotSupportedException.class)

@@ -79,6 +79,7 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.system.util.HttpUtils;
 import org.hisp.dhis.webapi.openapi.Api.Parameter.In;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.springframework.http.HttpStatus;
@@ -426,7 +427,7 @@ final class ApiExtractor {
     List<HttpStatus> statuses =
         response.status().length == 0
             ? defaultStatuses
-            : stream(response.status()).map(s -> HttpStatus.resolve(s.getCode())).toList();
+            : stream(response.status()).map(s -> HttpUtils.resolve(s.getCode())).toList();
     Set<Api.Header> headers =
         stream(response.headers())
             .map(

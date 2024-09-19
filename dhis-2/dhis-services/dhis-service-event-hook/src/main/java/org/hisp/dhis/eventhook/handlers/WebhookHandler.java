@@ -39,6 +39,7 @@ import org.hisp.dhis.eventhook.Event;
 import org.hisp.dhis.eventhook.EventHook;
 import org.hisp.dhis.eventhook.Handler;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
+import org.hisp.dhis.system.util.HttpUtils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -82,7 +83,7 @@ public class WebhookHandler implements Handler {
       log.info(
           "EventHook '{}' response status '{}' and body: {}",
           eventHook.getUid(),
-          HttpStatus.resolve(response.getStatusCode().value()).name(),
+          HttpUtils.resolve(response.getStatusCode()).name(),
           response.getBody());
     } catch (RestClientException ex) {
       log.error(ex.getMessage());

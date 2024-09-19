@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
+import org.hisp.dhis.system.util.HttpUtils;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -105,15 +106,15 @@ public abstract class SmsGateway {
     try {
       response = restTemplate.exchange(urlTemplate, httpMethod, request, klass);
 
-      statusCode = HttpStatus.resolve(response.getStatusCode().value());
+      statusCode = HttpUtils.resolve(response.getStatusCode());
     } catch (HttpClientErrorException ex) {
       log.error("Sms request client error", ex);
 
-      statusCode = HttpStatus.resolve(ex.getStatusCode().value());
+      statusCode = HttpUtils.resolve(ex.getStatusCode());
     } catch (HttpServerErrorException ex) {
       log.error("Sms request server error", ex);
 
-      statusCode = HttpStatus.resolve(ex.getStatusCode().value());
+      statusCode = HttpUtils.resolve(ex.getStatusCode());
     } catch (Exception ex) {
       log.error("Sms request error", ex);
 

@@ -53,6 +53,8 @@ import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.util.Timeout;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 
 /**
  * This class has the utility methods to invoke REST endpoints for various HTTP methods.
@@ -228,10 +230,30 @@ public class HttpUtils {
   }
 
   /**
-   * Processes the HttpResponse to create a DHisHttpResponse object.
-   *
-   * @throws IOException </pre>
+   * Method to resolve the HttpStatus from the HttpStatusCode.
+   * @param httpStatusCode
+   * @return HttpStatus or INTERNAL_SERVER_ERROR if not found.
    */
+  public static HttpStatus resolve(HttpStatusCode httpStatusCode) {
+    HttpStatus httpStatus = HttpUtils.resolve(httpStatusCode.value());
+    return httpStatus != null ? httpStatus : HttpStatus.INTERNAL_SERVER_ERROR;
+  }
+
+  /**
+   * Method to resolve the HttpStatus from the Integer HttpStatus Code.
+   * @param httpStatusCode
+   * @return HttpStatus or INTERNAL_SERVER_ERROR if not found.
+   */
+  public static HttpStatus resolve(Integer httpStatusCode) {
+    HttpStatus httpStatus = HttpStatus.resolve(httpStatusCode);
+    return httpStatus != null ? httpStatus : HttpStatus.INTERNAL_SERVER_ERROR;
+  }
+
+    /**
+     * Processes the HttpResponse to create a DHisHttpResponse object.
+     *
+     * @throws IOException </pre>
+     */
   private static DhisHttpResponse processResponse(
       String requestURL, String username, HttpResponse response) throws Exception {
     DhisHttpResponse dhisHttpResponse;

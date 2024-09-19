@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.system.util.HttpUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 
@@ -74,7 +75,7 @@ public class AvailabilityStatus {
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getStatusPhrase() {
-    return httpStatus != null ? HttpStatus.resolve(httpStatus.value()).getReasonPhrase() : null;
+    return httpStatus != null ? HttpUtils.resolve(httpStatus).getReasonPhrase() : null;
   }
 
   @Override
