@@ -121,7 +121,7 @@
                 <goals>
                   <goal>exec</goal>
                 </goals>
-                <phase>package</phase>
+                <phase>generate-resources</phase>
               </execution>
             </executions>
           </plugin>
