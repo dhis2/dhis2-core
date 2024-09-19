@@ -26,8 +26,8 @@
       <id>local</id>
       <activation>
         <property>
-          <name>env.CI</name>
-          <value>false</value>
+          <name>!env.CI</name>
+          <!-- Activates when CI is not defined -->
         </property>
       </activation>
       <build>
