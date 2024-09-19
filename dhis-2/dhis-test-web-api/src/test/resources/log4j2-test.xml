@@ -51,8 +51,8 @@
                 <AppenderRef ref="console"/>
         </Logger>-->
 
-<!--         <Logger name="org.springframework.orm.jpa" level="debug">-->
-<!--             <AppenderRef ref="console"/>-->
-<!--         </Logger>-->
+         <Logger name="org.springframework.orm.jpa" level="debug">
+             <AppenderRef ref="console"/>
+         </Logger>
     </Loggers>
 </Configuration>

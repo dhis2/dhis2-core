@@ -119,6 +119,7 @@ public class HibernateConfig {
     adapter.setGenerateDdl(shouldGenerateDDL(dhisConfig));
     LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
     factory.setJpaVendorAdapter(adapter);
+    factory.setPersistenceUnitName("dhis");
     factory.setPersistenceProviderClass(HibernatePersistenceProvider.class);
     factory.setDataSource(dataSource);
     factory.setPackagesToScan("org.hisp.dhis");
@@ -127,9 +128,10 @@ public class HibernateConfig {
     factory.afterPropertiesSet();
     return factory.getObject();
   }
-  
+
   /**
    * If return true, hibernate will generate the DDL for the database. This is used by h2-test.
+   *
    * @param dhisConfig {@link DhisConfigurationProvider}
    * @return TRUE if connection.schema is not set to none
    */
