@@ -60,7 +60,7 @@ function create_rolling_tags() {
   )"
 
   if [[ "$major" -gt "$latest_major_version" ]] || \
-     [[ "$minor" -gt "$latest_minor_version" && "$major" -eq "$latest_major_version" ]] || \
+     [[ "$minor" -gt "$latest_minor_version" ]] || \
      [[ "$patch" -ge "$latest_patch_version" && "$minor" -eq "$latest_minor_version" ]]; then
     echo "New major, new minor or new/existing patch for the latest minor version, creating M.m and M tags."
     rolling_tags+=(
