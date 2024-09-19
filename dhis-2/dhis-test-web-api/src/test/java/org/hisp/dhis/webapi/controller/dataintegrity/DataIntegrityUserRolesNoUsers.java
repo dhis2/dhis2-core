@@ -30,10 +30,13 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.Test;
 
+@Slf4j
 class DataIntegrityUserRolesNoUsers extends AbstractDataIntegrityIntegrationTest {
   private static final String CHECK_NAME = "user_roles_with_no_users";
 
@@ -43,6 +46,9 @@ class DataIntegrityUserRolesNoUsers extends AbstractDataIntegrityIntegrationTest
 
   @Test
   void testUserRolesNoUsers() {
+    JsonMixed content = GET("/userRoles").content();
+    System.out.println("davlog: " + content.string());
+    log.error("davlog: " + content.string());
     userRoleUid =
         assertStatus(
             HttpStatus.CREATED,
