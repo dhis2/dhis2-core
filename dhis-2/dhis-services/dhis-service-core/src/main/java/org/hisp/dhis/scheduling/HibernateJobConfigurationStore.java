@@ -29,7 +29,6 @@ package org.hisp.dhis.scheduling;
 
 import static java.lang.Math.max;
 import static java.util.stream.Collectors.toSet;
-import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.EntityManager;
@@ -270,7 +269,7 @@ public class HibernateJobConfigurationStore
   }
 
   @Override
-  @Transactional(propagation = REQUIRES_NEW)
+  @Transactional
   public boolean tryExecuteNow(@Nonnull String jobId) {
     String sql =
         """
