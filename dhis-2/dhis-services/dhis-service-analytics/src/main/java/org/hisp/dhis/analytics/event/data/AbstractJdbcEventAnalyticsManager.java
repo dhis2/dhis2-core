@@ -61,7 +61,6 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
-import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -533,7 +532,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         .map(RepeatableStageParams::getDimension);
   }
 
-  @Transactional(readOnly = true, propagation = REQUIRES_NEW)
+  @Transactional(readOnly = true)
   public Grid getAggregatedEventData(EventQueryParams params, Grid grid, int maxLimit) {
     String aggregateClause = getAggregateClause(params);
 
