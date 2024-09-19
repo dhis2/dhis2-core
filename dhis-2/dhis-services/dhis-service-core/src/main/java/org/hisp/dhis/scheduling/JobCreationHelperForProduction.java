@@ -34,6 +34,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeType;
 
@@ -49,12 +50,12 @@ public class JobCreationHelperForProduction implements JobCreationHelper {
   private final JobConfigurationStore jobConfigurationStore;
   private final FileResourceService fileResourceService;
 
-  @Transactional
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public String create(JobConfiguration config) throws ConflictException {
     return createFromConfig(config, jobConfigurationStore);
   }
 
-  @Transactional
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public String create(JobConfiguration config, MimeType contentType, InputStream content)
       throws ConflictException {
     return createFromConfigAndInputStream(

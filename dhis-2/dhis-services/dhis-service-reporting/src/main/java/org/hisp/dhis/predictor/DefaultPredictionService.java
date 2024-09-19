@@ -87,6 +87,7 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -235,7 +236,7 @@ public class DefaultPredictionService implements PredictionService {
   // run might create a new period for a prediction and a subsequent run might
   // use the BatchHandler because it is thought to be a pre-exising period,
   // but the BatchHandler outside the Spring transaction won't see the period.
-  @Transactional
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void predictSimple(
       Predictor predictor, Date startDate, Date endDate, PredictionSummary predictionSummary) {
     Expression generator = predictor.getGenerator();
