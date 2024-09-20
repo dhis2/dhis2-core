@@ -51,7 +51,7 @@ async function main(opts = {}) {
     }
 
     try {
-        await mkdir(target_path)
+        await mkdir(target_path, { recursive: true })
     } catch (err) {
         if (err.code === 'EEXIST') {
             console.log(`[bundle] ${target_path} exists already`)
