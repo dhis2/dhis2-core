@@ -8,16 +8,16 @@ on:
   push:
     branches:
       - master
-      - '2.3[1-9]'
-      - '2.4[0-9]'
+      - "2.3[1-9]"
+      - "2.4[0-9]"
   pull_request:
     branches:
       - master
-      - '2.3[1-9]'
-      - '2.4[0-9]'
+      - "2.3[1-9]"
+      - "2.4[0-9]"
 concurrency:
-    group: ${{ github.workflow}}-${{ github.ref }}
-    cancel-in-progress: true
+  group: ${{ github.workflow}}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   sonarqube:
     runs-on: ubuntu-latest
@@ -40,11 +40,11 @@ jobs:
           PR: ${{ github.event.number }}
         if: github.event_name == 'pull_request'
         run: |
-          mvn -f dhis-2/pom.xml clean install --threads 2C --batch-mode --update-snapshots --no-transfer-progress -DskipTests
+          mvn -f dhis-2/pom.xml clean verify --threads 2C --batch-mode --update-snapshots --no-transfer-progress -DskipTests
           mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.internal.analysis.dbd=false --batch-mode --no-transfer-progress -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }} -Dsonar.projectKey=dhis2_dhis2-core
 
       - name: Analyse long-living branch
         if: github.event_name != 'pull_request'
         run: |
-          mvn -f dhis-2/pom.xml clean install --threads 2C --batch-mode --update-snapshots --no-transfer-progress -DskipTests
+          mvn -f dhis-2/pom.xml clean verify --threads 2C --batch-mode --update-snapshots --no-transfer-progress -DskipTests
           mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.internal.analysis.dbd=false --batch-mode --no-transfer-progress -Dsonar.branch.name=${GITHUB_REF#refs/heads/} -Dsonar.projectKey=dhis2_dhis2-core

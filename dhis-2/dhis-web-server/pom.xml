@@ -15,18 +15,11 @@
   <properties>
     <rootDir>../</rootDir>
     <build.time>${maven.build.timestamp}</build.time>
-    <mainClass>org.hisp.dhis.web.tomcat.Main</mainClass>
     <tomcat.version>9.0.90</tomcat.version>
     <spring-boot-maven-plugin.version>3.3.3</spring-boot-maven-plugin.version>
-    <env>default</env>
   </properties>
 
   <dependencies>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-web-apps</artifactId>
-      <type>war</type>
-    </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-web-api</artifactId>
@@ -58,20 +51,8 @@
       <version>${tomcat.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-servlet</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-server</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>javax.media</groupId>
-      <artifactId>jai_imageio</artifactId>
     </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
@@ -104,16 +85,8 @@
       <type>jar</type>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-util</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-web</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-context</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -122,14 +95,6 @@
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.security</groupId>
-      <artifactId>spring-security-web</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -159,107 +124,166 @@
           <groupId>com.google.cloud.tools</groupId>
           <artifactId>jib-maven-plugin</artifactId>
           <version>${jib.version}</version>
+          <configuration>
+            <container>
+              <environment>
+                <!-- default DHIS2 web application context to / but allow for customization -->
+                <CATALINA_OPTS>-Dcontext.path=""</CATALINA_OPTS>
+              </environment>
+              <labels>
+                <DHIS2_VERSION>${project.version}</DHIS2_VERSION>
+              </labels>
+              <appRoot>/usr/local/tomcat/webapps/ROOT</appRoot>
+            </container>
+            <pluginExtensions>
+              <pluginExtension>
+                <implementation>com.google.cloud.tools.jib.maven.extension.ownership.JibOwnershipExtension</implementation>
+                <configuration implementation="com.google.cloud.tools.jib.maven.extension.ownership.Configuration">
+                  <!-- Jib will create /opt/dhis2 owned by root by default.
+                DHIS2_HOME needs to be writeable by the process running Tomcat -->
+                  <rules>
+                    <rule>
+                      <glob>/opt/dhis2</glob>
+                      <ownership>${jib.container.user}:${jib.container.user}</ownership>
+                    </rule>
+                    <rule>
+                      <glob>/opt/dhis2/**</glob>
+                      <ownership>${jib.container.user}:${jib.container.user}</ownership>
+                    </rule>
+                  </rules>
+                </configuration>
+              </pluginExtension>
+            </pluginExtensions>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>com.google.cloud.tools</groupId>
+              <artifactId>jib-ownership-extension-maven</artifactId>
+              <version>0.1.0</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-war-plugin</artifactId>
+          <version>${maven-war-plugin.version}</version>
+          <configuration>
+            <failOnMissingWebXml>false</failOnMissingWebXml>
+            <!-- this template is only needed by bundle-apps.js to generate the dhis-web-apps/index.html -->
+            <packagingExcludes>dhis-web-apps/template.html</packagingExcludes>
+            <archive>
+              <compress>true</compress>
+            </archive>
+          </configuration>
         </plugin>
       </plugins>
     </pluginManagement>
-    <plugins>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <goals>
-              <goal>unpack</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-web-apps</artifactId>
-                  <version>${project.version}</version>
-                  <type>war</type>
-                  <includes>**/*</includes>
-                </artifactItem>
-              </artifactItems>
-              <outputDirectory>${project.build.directory}/classes/static</outputDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-war-plugin</artifactId>
-        <version>${maven-war-plugin.version}</version>
-        <configuration>
-          <failOnMissingWebXml>false</failOnMissingWebXml>
-          <archiveClasses>true</archiveClasses>
-          <dependentWarExcludes>**/web.xml</dependentWarExcludes>
-          <archive>
-            <compress>${useWarCompression}</compress>
-          </archive>
-          <packagingExcludes>dhis-web-*/**</packagingExcludes>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>com.google.cloud.tools</groupId>
-        <artifactId>jib-maven-plugin</artifactId>
-        <version>${jib.version}</version>
-        <configuration>
-          <container>
-            <environment>
-              <!-- default DHIS2 web application context to / but allow for customization -->
-              <CATALINA_OPTS>-Dcontext.path=""</CATALINA_OPTS>
-            </environment>
-            <labels>
-              <DHIS2_VERSION>${project.version}</DHIS2_VERSION>
-            </labels>
-            <appRoot>/usr/local/tomcat/webapps/ROOT</appRoot>
-          </container>
-          <pluginExtensions>
-            <pluginExtension>
-              <implementation>com.google.cloud.tools.jib.maven.extension.ownership.JibOwnershipExtension</implementation>
-              <configuration implementation="com.google.cloud.tools.jib.maven.extension.ownership.Configuration">
-                <!-- Jib will create /opt/dhis2 owned by root by default.
-                DHIS2_HOME needs to be writeable by the process running Tomcat -->
-                <rules>
-                  <rule>
-                    <glob>/opt/dhis2</glob>
-                    <ownership>${jib.container.user}:${jib.container.user}</ownership>
-                  </rule>
-                  <rule>
-                    <glob>/opt/dhis2/**</glob>
-                    <ownership>${jib.container.user}:${jib.container.user}</ownership>
-                  </rule>
-                </rules>
-              </configuration>
-            </pluginExtension>
-          </pluginExtensions>
-        </configuration>
-        <dependencies>
-          <dependency>
-            <groupId>com.google.cloud.tools</groupId>
-            <artifactId>jib-ownership-extension-maven</artifactId>
-            <version>0.1.0</version>
-          </dependency>
-        </dependencies>
-      </plugin>
-
-    </plugins>
-
   </build>
 
   <profiles>
+    <!-- nodejs is downloaded locally to clone bundled apps -->
     <profile>
-      <id>default</id>
+      <id>local</id>
       <activation>
-        <!-- This profile activates when no 'activeProfile' property is specified -->
         <property>
-          <name>!activeProfile</name>
+          <!-- Activates when CI is not defined -->
+          <name>!env.CI</name>
         </property>
       </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.github.eirslett</groupId>
+            <artifactId>frontend-maven-plugin</artifactId>
+            <version>1.15.0</version>
+            <configuration>
+              <installDirectory>target</installDirectory>
+              <environmentVariables>
+                <BUILD_DIR>${project.build.directory}/classes/static</BUILD_DIR>
+                <ARTIFACT_ID>dhis-web-apps</ARTIFACT_ID>
+                <APPS>./apps-to-bundle.json</APPS>
+                <DEFAULT_BRANCH>master</DEFAULT_BRANCH>
+              </environmentVariables>
+            </configuration>
+            <executions>
+              <execution>
+                <id>install node and npm</id>
+                <goals>
+                  <goal>install-node-and-npm</goal>
+                </goals>
+                <phase>generate-resources</phase>
+                <configuration>
+                  <nodeVersion>v20.17.0</nodeVersion>
+                </configuration>
+              </execution>
+              <execution>
+                <id>npm install</id>
+                <goals>
+                  <goal>npm</goal>
+                </goals>
+                <phase>generate-resources</phase>
+              </execution>
+              <execution>
+                <id>bundle-apps</id>
+                <goals>
+                  <goal>npm</goal>
+                </goals>
+                <phase>generate-resources</phase>
+                <configuration>
+                  <arguments>run bundle-apps</arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- nodejs is present on CI (GitHub, Jenkins) to clone bundled apps -->
+    <profile>
+      <id>ci</id>
+      <activation>
+        <property>
+          <name>env.CI</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <configuration>
+              <executable>npm</executable>
+              <arguments>
+                <argument>run</argument>
+                <argument>bundle-apps</argument>
+              </arguments>
+              <environmentVariables>
+                <BUILD_DIR>${project.build.directory}/classes/static</BUILD_DIR>
+                <ARTIFACT_ID>dhis-web-apps</ARTIFACT_ID>
+                <APPS>./apps-to-bundle.json</APPS>
+                <DEFAULT_BRANCH>master</DEFAULT_BRANCH>
+              </environmentVariables>
+            </configuration>
+            <executions>
+              <execution>
+                <id>bundle-apps</id>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <phase>generate-resources</phase>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-war-plugin</artifactId>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>embedded</id>
       <build>
         <plugins>
           <plugin>
@@ -273,12 +297,6 @@
               <layers>
                 <enabled>false</enabled>
               </layers>
-              <excludes>
-                <exclude>
-                  <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-web-apps</artifactId>
-                </exclude>
-              </excludes>
             </configuration>
             <executions>
               <execution>
@@ -334,6 +352,14 @@
                 </platforms>
               </from>
             </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>build</goal>
+                </goals>
+                <phase>package</phase>
+              </execution>
+            </executions>
           </plugin>
         </plugins>
       </build>
@@ -360,159 +386,5 @@
         </plugins>
       </build>
     </profile>
-
-    <profile>
-      <id>no-boot</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-maven-plugin</artifactId>
-            <version>${spring-boot-maven-plugin.version}</version>
-            <executions>
-              <execution>
-                <id>boot-war</id>
-                <!-- here there must be the same identifier as defined in <build><plugins> section -->
-                <phase>none</phase>
-                <!-- this disables plugin -->
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>jetty</id>
-      <activation/>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-shade-plugin</artifactId>
-            <version>3.6.0</version>
-            <executions>
-              <execution>
-                <id>rebuild</id>
-                <goals>
-                  <goal>shade</goal>
-                </goals>
-                <phase>package</phase>
-                <configuration>
-                  <createDependencyReducedPom>false</createDependencyReducedPom>
-                  <artifactSet>
-                    <includes>
-                      <include>*:*</include>
-                    </includes>
-                  </artifactSet>
-                  <filters>
-                    <filter>
-                      <artifact>*:*</artifact>
-                      <excludes>
-                        <exclude>META-INF/*.SF</exclude>
-                        <exclude>META-INF/*.DSA</exclude>
-                        <exclude>META-INF/*.RSA</exclude>
-
-                        <exclude>META-INF/VERSION.txt</exclude>
-                        <exclude>META-INF/LICENSE.txt</exclude>
-                        <exclude>META-INF/notice.txt</exclude>
-                      </excludes>
-                    </filter>
-
-                    <!-- exclude the MANIFEST.MF entries that will cause problems -->
-                    <filter>
-                      <artifact>javax.annotation:*</artifact>
-                      <excludes>
-                        <exclude>META-INF/MANIFEST.MF</exclude>
-                      </excludes>
-                    </filter>
-                    <filter>
-                      <artifact>javax.servlet:*</artifact>
-                      <excludes>
-                        <exclude>META-INF/MANIFEST.MF</exclude>
-                      </excludes>
-                    </filter>
-                    <filter>
-                      <artifact>javax.websocket:*</artifact>
-                      <excludes>
-                        <exclude>META-INF/MANIFEST.MF</exclude>
-                      </excludes>
-                    </filter>
-                    <filter>
-                      <artifact>org.eclipse.jetty:*</artifact>
-                      <excludes>
-                        <exclude>META-INF/MANIFEST.MF</exclude>
-                      </excludes>
-                    </filter>
-                    <filter>
-                      <artifact>org.eclipse.jetty.websocket:*</artifact>
-                      <excludes>
-                        <exclude>META-INF/MANIFEST.MF</exclude>
-                      </excludes>
-                    </filter>
-                    <filter>
-                      <artifact>org.ow2.asm:*</artifact>
-                      <excludes>
-                        <exclude>META-INF/MANIFEST.MF</exclude>
-                      </excludes>
-                    </filter>
-                  </filters>
-                  <transformers>
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                      <manifestEntries>
-                        <Main-Class>${mainClass}</Main-Class>
-                        <Specification-Title>${project.artifactId}</Specification-Title>
-                        <Specification-Version>${project.version}</Specification-Version>
-                        <Specification-Vendor-Id>${project.groupId}</Specification-Vendor-Id>
-                        <Implementation-Title>${project.artifactId}</Implementation-Title>
-                        <Implementation-Version>${project.version}</Implementation-Version>
-                        <Implementation-Vendor-Id>${project.groupId}</Implementation-Vendor-Id>
-                      </manifestEntries>
-                    </transformer>
-
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-
-                    <!--Spring -->
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                      <resource>META-INF/spring.handlers</resource>
-                    </transformer>
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                      <resource>META-INF/spring.schemas</resource>
-                    </transformer>
-
-                    <!-- Need to make sure jClouds providers play nicely -->
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                      <resource>META-INF/services/org.jclouds.apis.ApiMetadata</resource>
-                    </transformer>
-
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                      <resource>META-INF/services/javax.imageio.spi.ImageInputStreamSpi</resource>
-                    </transformer>
-
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                      <resource>META-INF/services/javax.imageio.spi.ImageOutputStreamSpi</resource>
-                    </transformer>
-
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                      <resource>META-INF/services/javax.imageio.spi.ImageReaderSpi</resource>
-                    </transformer>
-
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                      <resource>META-INF/services/javax.imageio.spi.ImageWriterSpi</resource>
-                    </transformer>
-
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                      <resource>META-INF/services/com.sun.media.imageioimpl.stream.ChannelImageInputStreamSpi</resource>
-                    </transformer>
-
-                  </transformers>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
   </profiles>
-
 </project>
