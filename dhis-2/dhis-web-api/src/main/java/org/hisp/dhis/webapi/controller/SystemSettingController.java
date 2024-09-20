@@ -32,10 +32,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.security.Authorities.F_SYSTEM_SETTING;
 import static org.springframework.http.CacheControl.noCache;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
-import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -46,6 +43,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -101,7 +99,11 @@ public class SystemSettingController {
 
   @PostMapping(
       value = "/{key}",
-      consumes = {APPLICATION_JSON_VALUE, TEXT_PLAIN_VALUE, TEXT_HTML_VALUE})
+      consumes = {
+        ContextUtils.CONTENT_TYPE_JSON,
+        ContextUtils.CONTENT_TYPE_TEXT,
+        ContextUtils.CONTENT_TYPE_HTML
+      })
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
   public WebMessage setSystemSettingOrTranslation(
