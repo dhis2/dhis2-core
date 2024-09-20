@@ -141,8 +141,7 @@ public class TrackerImportController {
 
     byte[] jsonInput = jsonMapper.writeValueAsBytes(trackerObjects);
 
-    jobSchedulerService.executeNow(
-        jobConfigurationService.create(config, contentType, new ByteArrayInputStream(jsonInput)));
+    jobSchedulerService.createThenExecute(config, contentType, new ByteArrayInputStream(jsonInput));
     String jobId = config.getUid();
     String location = ContextUtils.getRootPath(request) + "/tracker/jobs/" + jobId;
     return ok(TRACKER_JOB_ADDED)
