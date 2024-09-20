@@ -63,6 +63,7 @@ import org.springframework.http.HttpStatusCode;
  */
 @Slf4j
 public class HttpUtils {
+
   private static final String CONTENT_TYPE_ZIP = "application/gzip";
 
   /**
@@ -231,6 +232,7 @@ public class HttpUtils {
 
   /**
    * Method to resolve the HttpStatus from the HttpStatusCode.
+   *
    * @param httpStatusCode
    * @return HttpStatus or INTERNAL_SERVER_ERROR if not found.
    */
@@ -241,6 +243,7 @@ public class HttpUtils {
 
   /**
    * Method to resolve the HttpStatus from the Integer HttpStatus Code.
+   *
    * @param httpStatusCode
    * @return HttpStatus or INTERNAL_SERVER_ERROR if not found.
    */
@@ -249,11 +252,11 @@ public class HttpUtils {
     return httpStatus != null ? httpStatus : HttpStatus.INTERNAL_SERVER_ERROR;
   }
 
-    /**
-     * Processes the HttpResponse to create a DHisHttpResponse object.
-     *
-     * @throws IOException </pre>
-     */
+  /**
+   * Processes the HttpResponse to create a DHisHttpResponse object.
+   *
+   * @throws IOException </pre>
+   */
   private static DhisHttpResponse processResponse(
       String requestURL, String username, HttpResponse response) throws Exception {
     DhisHttpResponse dhisHttpResponse;
