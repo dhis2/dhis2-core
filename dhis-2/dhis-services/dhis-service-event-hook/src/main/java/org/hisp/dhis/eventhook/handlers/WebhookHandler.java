@@ -42,7 +42,6 @@ import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.hisp.dhis.system.util.HttpUtils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;

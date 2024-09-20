@@ -286,7 +286,7 @@ public class HibernateJobConfigurationStore
         """;
     return nativeSynchronizedQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
   }
-  
+
   @Override
   public boolean executeNow(@Nonnull String jobId) {
     String sql =

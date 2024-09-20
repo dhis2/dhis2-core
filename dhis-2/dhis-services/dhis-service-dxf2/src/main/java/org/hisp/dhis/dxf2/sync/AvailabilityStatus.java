@@ -32,7 +32,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.system.util.HttpUtils;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 
 /**

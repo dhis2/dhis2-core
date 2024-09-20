@@ -158,7 +158,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms> {
     JobConfiguration jobConfig = new JobConfiguration(SMS_INBOUND_PROCESSING);
     jobConfig.setJobParameters(new SmsInboundProcessingJobParameters(smsUid));
     jobConfig.setExecutedBy(user.getUid());
-//    jobSchedulerService.executeNow(jobConfigurationService.create(jobConfig));
+    //    jobSchedulerService.executeNow(jobConfigurationService.create(jobConfig));
     jobSchedulerService.createThenExecute(jobConfig);
 
     return ok("Received SMS: " + smsUid);
