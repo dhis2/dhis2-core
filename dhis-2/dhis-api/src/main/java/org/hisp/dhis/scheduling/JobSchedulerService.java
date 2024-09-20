@@ -99,6 +99,7 @@ public interface JobSchedulerService {
 
   /**
    * Creates a new job configuration in a separate transaction.
+   *
    * @param jobConfiguration
    * @return
    * @throws ConflictException
@@ -109,6 +110,7 @@ public interface JobSchedulerService {
 
   /**
    * Executes a job configuration in a separate transaction.
+   *
    * @param jobId
    * @throws NotFoundException
    * @throws ConflictException
