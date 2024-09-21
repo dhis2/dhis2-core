@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.dbms;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.StatelessSession;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.springframework.orm.jpa.EntityManagerFactoryUtils;

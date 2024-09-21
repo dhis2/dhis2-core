@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.user.hibernate;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.List;
-import javax.persistence.EntityManager;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hisp.dhis.user.UserSetting;
@@ -43,11 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class HibernateUserSettingStore implements UserSettingStore {
   private static final boolean CACHEABLE = true;
 
-  private EntityManager entityManager;
-
-  public HibernateUserSettingStore(EntityManager entityManager) {
-    this.entityManager = entityManager;
-  }
+  private @PersistenceContext EntityManager entityManager;
 
   // -------------------------------------------------------------------------
   // Dependencies

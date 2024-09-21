@@ -34,6 +34,7 @@ import static org.imgscalr.Scalr.resize;
 
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
+import jakarta.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,7 +46,6 @@ import java.util.List;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.fileupload.FileItem;
@@ -70,7 +70,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.InvalidMimeTypeException;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 /**
  * @author Lars Helge Overland

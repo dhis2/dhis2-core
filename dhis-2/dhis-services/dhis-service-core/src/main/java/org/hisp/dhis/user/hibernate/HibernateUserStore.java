@@ -32,6 +32,11 @@ import static java.lang.String.format;
 import static java.time.ZoneId.systemDefault;
 import static java.util.stream.Collectors.toMap;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaUpdate;
+import jakarta.persistence.criteria.Root;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -51,11 +56,6 @@ import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaUpdate;
-import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.QueryHints;
@@ -453,7 +453,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
             builder.equal(user.get(DISABLED_COLUMN), false),
             builder.lessThanOrEqualTo(user.get("lastLogin"), inactiveSince)));
     update.set(DISABLED_COLUMN, true);
-    return getSession().createQuery(update).executeUpdate();
+    return entityManager.createQuery(update).executeUpdate();
   }
 
   @Override

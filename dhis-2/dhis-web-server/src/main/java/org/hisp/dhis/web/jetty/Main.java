@@ -30,12 +30,11 @@ package org.hisp.dhis.web.jetty;
 import static org.hisp.dhis.webapi.servlet.DhisWebApiWebAppInitializer.setupServlets;
 import static org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME;
 
+import jakarta.servlet.DispatcherType;
 import java.security.Security;
 import java.util.EnumSet;
-import javax.servlet.DispatcherType;
-import org.eclipse.jetty.server.handler.ContextHandler;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.FilterHolder;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.hisp.dhis.system.startup.StartupListener;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.context.ContextLoaderListener;
@@ -93,9 +92,7 @@ public class Main extends EmbeddedJettyBase {
         "/*",
         EnumSet.allOf(DispatcherType.class));
 
-    ContextHandler.Context context = contextHandler.getServletContext();
-
-    setupServlets(context, webApplicationContext);
+    setupServlets(contextHandler.getServletContext(), webApplicationContext);
 
     return contextHandler;
   }

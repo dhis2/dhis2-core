@@ -29,13 +29,13 @@ package org.hisp.dhis.datavalue.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
@@ -94,19 +94,19 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
   public void deleteDataValueAudits(OrganisationUnit organisationUnit) {
     String hql = "delete from DataValueAudit d where d.organisationUnit = :unit";
 
-    getSession().createQuery(hql).setParameter("unit", organisationUnit).executeUpdate();
+    entityManager.createQuery(hql).setParameter("unit", organisationUnit).executeUpdate();
   }
 
   @Override
   public void deleteDataValueAudits(DataElement dataElement) {
     String hql = "delete from DataValueAudit d where d.dataElement = :dataElement";
 
-    getSession().createQuery(hql).setParameter("dataElement", dataElement).executeUpdate();
+    entityManager.createQuery(hql).setParameter("dataElement", dataElement).executeUpdate();
   }
 
   @Override
   public List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params) {
-    CriteriaBuilder builder = getSession().getCriteriaBuilder();
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
     JpaQueryParameters<DataValueAudit> queryParams =
         newJpaParameters()
@@ -124,7 +124,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
 
   @Override
   public int countDataValueAudits(DataValueAuditQueryParams params) {
-    CriteriaBuilder builder = getSession().getCriteriaBuilder();
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
     List<Function<Root<DataValueAudit>, Predicate>> predicates =
         getDataValueAuditPredicates(builder, params);

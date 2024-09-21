@@ -28,9 +28,9 @@
 package org.hisp.dhis.tracker.imports.preheat.supplier.strategy;
 
 import com.google.common.collect.Lists;
+import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
-import javax.persistence.EntityManager;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;

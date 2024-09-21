@@ -40,10 +40,10 @@ import java.util.Set;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.message.FakeMessageSender;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
@@ -58,11 +58,11 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class AccountControllerTest extends PostgresControllerIntegrationTestBase {
   @Autowired private SystemSettingManager systemSettingManager;
-  @Autowired private FakeMessageSender messageSender;
+  @Autowired private MessageSender emailMessageSender;
 
   @AfterEach
   void afterEach() {
-    messageSender.clearMessages();
+    emailMessageSender.clearMessages();
   }
 
   @Test
@@ -336,7 +336,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   private OutboundMessage assertMessageSendTo(String email) {
-    List<OutboundMessage> messagesByEmail = messageSender.getMessagesByEmail(email);
+    List<OutboundMessage> messagesByEmail = emailMessageSender.getMessagesByEmail(email);
     assertFalse(messagesByEmail.isEmpty());
     return messagesByEmail.get(0);
   }

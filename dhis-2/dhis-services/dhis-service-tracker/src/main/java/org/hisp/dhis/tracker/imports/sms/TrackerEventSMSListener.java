@@ -65,7 +65,6 @@ import org.hisp.dhis.user.UserService;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,7 +75,7 @@ public class TrackerEventSMSListener extends CompressionSMSListener {
 
   public TrackerEventSMSListener(
       IncomingSmsService incomingSmsService,
-      @Qualifier("smsMessageSender") MessageSender smsSender,
+      MessageSender smsMessageSender,
       UserService userService,
       TrackedEntityTypeService trackedEntityTypeService,
       TrackedEntityAttributeService trackedEntityAttributeService,
@@ -88,7 +87,7 @@ public class TrackerEventSMSListener extends CompressionSMSListener {
       TrackerImportService trackerImportService) {
     super(
         incomingSmsService,
-        smsSender,
+        smsMessageSender,
         userService,
         trackedEntityTypeService,
         trackedEntityAttributeService,

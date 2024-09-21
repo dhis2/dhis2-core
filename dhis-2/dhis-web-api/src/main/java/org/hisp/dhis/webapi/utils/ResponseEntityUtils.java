@@ -33,9 +33,9 @@ import static org.apache.commons.lang3.StringUtils.strip;
 import static org.apache.commons.lang3.StringUtils.trim;
 
 import com.google.common.net.HttpHeaders;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

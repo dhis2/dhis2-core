@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.category.hibernate;
 
+import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Set;
-import javax.persistence.EntityManager;
 import org.hibernate.NonUniqueResultException;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
@@ -136,8 +136,8 @@ public class HibernateCategoryOptionComboStore
 
   @Override
   public void deleteNoRollBack(CategoryOptionCombo categoryOptionCombo) {
-    ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent(categoryOptionCombo);
-    event.setShouldRollBack(false);
+    ObjectDeletionRequestedEvent event =
+        new ObjectDeletionRequestedEvent(categoryOptionCombo, false);
 
     publisher.publishEvent(event);
 

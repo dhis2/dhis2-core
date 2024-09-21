@@ -27,19 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import io.prometheus.client.CollectorRegistry;
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 import io.prometheus.client.exporter.common.TextFormat;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.io.UncheckedIOException;
-import java.io.Writer;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * @author Luciano Fiandesio
@@ -49,19 +47,17 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class PrometheusScrapeEndpointController {
-  private final CollectorRegistry collectorRegistry;
+  private final PrometheusMeterRegistry prometheusRegistry;
 
-  public PrometheusScrapeEndpointController(CollectorRegistry collectorRegistry) {
-    this.collectorRegistry = collectorRegistry;
+  public PrometheusScrapeEndpointController(PrometheusMeterRegistry prometheusRegistry) {
+    this.prometheusRegistry = prometheusRegistry;
   }
 
   @GetMapping(value = "/metrics", produces = TextFormat.CONTENT_TYPE_004)
-  @ResponseBody
-  public String scrape() {
+  public void scrape(HttpServletResponse response) {
     try {
-      Writer writer = new StringWriter();
-      TextFormat.write004(writer, this.collectorRegistry.metricFamilySamples());
-      return writer.toString();
+      response.setContentType(TextFormat.CONTENT_TYPE_004);
+      prometheusRegistry.scrape(response.getOutputStream());
     } catch (IOException ex) {
       // This never happens since StringWriter::write() doesn't throw
       // IOException

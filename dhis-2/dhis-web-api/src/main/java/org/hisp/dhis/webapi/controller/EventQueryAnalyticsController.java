@@ -43,9 +43,9 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.Rectangle;

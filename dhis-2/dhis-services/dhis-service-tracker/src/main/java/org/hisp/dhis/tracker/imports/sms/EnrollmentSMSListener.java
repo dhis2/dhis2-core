@@ -76,7 +76,6 @@ import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeV
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -96,7 +95,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
 
   public EnrollmentSMSListener(
       IncomingSmsService incomingSmsService,
-      @Qualifier("smsMessageSender") MessageSender smsSender,
+      MessageSender smsMessageSender,
       UserService userService,
       TrackedEntityTypeService trackedEntityTypeService,
       TrackedEntityAttributeService trackedEntityAttributeService,
@@ -116,7 +115,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
       SMSEnrollmentService smsEnrollmentService) {
     super(
         incomingSmsService,
-        smsSender,
+        smsMessageSender,
         userService,
         trackedEntityTypeService,
         trackedEntityAttributeService,

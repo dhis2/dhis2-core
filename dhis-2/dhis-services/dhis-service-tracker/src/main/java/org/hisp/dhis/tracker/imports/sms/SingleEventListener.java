@@ -53,7 +53,6 @@ import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,7 +66,7 @@ public class SingleEventListener extends RegisterSMSListener {
       CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      @Qualifier("smsMessageSender") MessageSender smsSender,
+      MessageSender smsMessageSender,
       EnrollmentService enrollmentService,
       EventChangeLogService eventChangeLogService,
       FileResourceService fileResourceService,
@@ -78,7 +77,7 @@ public class SingleEventListener extends RegisterSMSListener {
         dataElementCategoryService,
         userService,
         incomingSmsService,
-        smsSender,
+        smsMessageSender,
         enrollmentService,
         eventChangeLogService,
         fileResourceService,

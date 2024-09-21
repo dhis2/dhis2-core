@@ -16,7 +16,7 @@
     <rootDir>../</rootDir>
     <build.time>${maven.build.timestamp}</build.time>
     <mainClass>org.hisp.dhis.web.tomcat.Main</mainClass>
-    <tomcat.version>9.0.90</tomcat.version>
+    <tomcat.version>10.1.28</tomcat.version>
     <spring-boot-maven-plugin.version>3.3.3</spring-boot-maven-plugin.version>
     <env>default</env>
   </properties>
@@ -58,8 +58,8 @@
       <version>${tomcat.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-servlet</artifactId>
+      <groupId>org.eclipse.jetty.ee10</groupId>
+      <artifactId>jetty-ee10-servlet</artifactId>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
@@ -120,8 +120,8 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>

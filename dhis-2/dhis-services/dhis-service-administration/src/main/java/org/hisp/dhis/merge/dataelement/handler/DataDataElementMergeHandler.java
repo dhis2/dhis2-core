@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.merge.dataelement.handler;
 
+import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -35,7 +36,6 @@ import java.util.Map;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataelement.DataElement;

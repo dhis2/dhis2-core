@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.PostConstruct;
 import org.hisp.dhis.node.types.RootNode;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -42,10 +41,13 @@ import org.springframework.stereotype.Service;
 @Service("org.hisp.dhis.node.NodeService")
 public class DefaultNodeService implements NodeService {
 
-  @Autowired(required = false)
-  private List<NodeSerializer> nodeSerializers;
+  private final List<NodeSerializer> nodeSerializers;
 
   private Map<String, NodeSerializer> nodeSerializerMap = Map.of();
+
+  public DefaultNodeService(List<NodeSerializer> nodeSerializers) {
+    this.nodeSerializers = nodeSerializers;
+  }
 
   @PostConstruct
   private void init() {

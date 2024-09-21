@@ -41,7 +41,6 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
@@ -49,8 +48,7 @@ import org.springframework.stereotype.Component;
 public class SendScheduledMessageJob implements Job {
   private final OutboundSmsService outboundSmsService;
 
-  @Qualifier("smsMessageSender")
-  private final MessageSender smsSender;
+  private final MessageSender smsMessageSender;
 
   // -------------------------------------------------------------------------
   // Implementation
@@ -65,7 +63,7 @@ public class SendScheduledMessageJob implements Job {
   public void execute(JobConfiguration config, JobProgress progress) {
     progress.startingProcess("Starting to send outbound messages");
     progress.startingStage("Validating environment setup");
-    if (!smsSender.isConfigured()) {
+    if (!smsMessageSender.isConfigured()) {
       progress.failedStage("SMS gateway configuration does not exist, job aborted");
       return;
     }
@@ -94,7 +92,8 @@ public class SendScheduledMessageJob implements Job {
           outboundSms -> {
             outboundSms.setDate(new Date());
             outboundSms.setStatus(OutboundSmsStatus.SENT);
-            smsSender.sendMessage(null, outboundSms.getMessage(), outboundSms.getRecipients());
+            smsMessageSender.sendMessage(
+                null, outboundSms.getMessage(), outboundSms.getRecipients());
           });
     }
   }

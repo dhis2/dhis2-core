@@ -37,6 +37,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.sql.Date;
+import org.hisp.dhis.message.EmailMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -57,7 +58,7 @@ class AccountExpiryAlertJobTest {
 
   private final UserService userService = mock(UserService.class);
 
-  private final MessageSender messageSender = mock(MessageSender.class);
+  private final MessageSender messageSender = mock(EmailMessageSender.class);
 
   private final SystemSettingManager settingManager = mock(SystemSettingManager.class);
 

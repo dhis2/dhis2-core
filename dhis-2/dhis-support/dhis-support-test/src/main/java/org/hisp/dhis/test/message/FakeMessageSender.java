@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,116 +27,14 @@
  */
 package org.hisp.dhis.test.message;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singleton;
-import static java.util.Collections.unmodifiableList;
-import static java.util.concurrent.CompletableFuture.completedFuture;
-import static java.util.stream.Collectors.toSet;
-
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Future;
-import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
-import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
-import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
-import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
-import org.hisp.dhis.user.User;
-import org.springframework.scheduling.annotation.AsyncResult;
-import org.springframework.util.concurrent.ListenableFuture;
 
-/**
- * A {@link MessageSender} used in test setup that pretends to send messages and that gives access
- * to the messages "send" to an email using {@link #getMessagesByEmail(String)}.
- *
- * @author Jan Bernitt
- */
-public class FakeMessageSender implements MessageSender {
-  private final Map<String, List<OutboundMessage>> sendMessagesByRecipient = new HashMap<>();
+public interface FakeMessageSender extends MessageSender {
+  List<OutboundMessage> getMessagesByEmail(String recipient);
 
-  public List<OutboundMessage> getMessagesByEmail(String recipient) {
-    return unmodifiableList(sendMessagesByRecipient.getOrDefault(recipient, emptyList()));
-  }
+  void clearMessages();
 
-  public void clearMessages() {
-    sendMessagesByRecipient.clear();
-  }
-
-  public List<OutboundMessage> getAllMessages() {
-    return sendMessagesByRecipient.values().stream().flatMap(List::stream).toList();
-  }
-
-  @Override
-  public OutboundMessageResponse sendMessage(
-      String subject,
-      String text,
-      String footer,
-      User sender,
-      Set<User> recipients,
-      boolean forceSend) {
-    return sendMessage(
-        subject,
-        text + (footer == null ? "" : "\n[" + footer + "]"),
-        recipients.stream().map(User::getEmail).collect(toSet()));
-  }
-
-  @Override
-  public Future<OutboundMessageResponse> sendMessageAsync(
-      String subject,
-      String text,
-      String footer,
-      User sender,
-      Set<User> recipients,
-      boolean forceSend) {
-    return completedFuture(sendMessage(subject, text, footer, sender, recipients, forceSend));
-  }
-
-  @Override
-  public OutboundMessageResponse sendMessage(String subject, String text, Set<String> recipients) {
-    OutboundMessage message = new OutboundMessage(subject, text, recipients);
-    for (String recipient : recipients) {
-      sendMessagesByRecipient.computeIfAbsent(recipient, key -> new ArrayList<>()).add(message);
-    }
-    OutboundMessageResponse response = new OutboundMessageResponse();
-    response.setOk(true);
-    response.setAsync(false);
-    response.setDescription(subject + ":" + text);
-    response.setResponseObject(EmailResponse.SENT);
-    return response;
-  }
-
-  @Override
-  public OutboundMessageResponse sendMessage(String subject, String text, String recipient) {
-    return sendMessage(subject, text, singleton(recipient));
-  }
-
-  @Override
-  public OutboundMessageResponseSummary sendMessageBatch(OutboundMessageBatch batch) {
-    for (OutboundMessage msg : batch.getMessages()) {
-      sendMessage(msg.getSubject(), msg.getText(), msg.getRecipients());
-    }
-    OutboundMessageResponseSummary summary = new OutboundMessageResponseSummary();
-    int n = batch.getMessages().size();
-    summary.setSent(n);
-    summary.setTotal(n);
-    summary.setBatchStatus(OutboundMessageBatchStatus.COMPLETED);
-    summary.setChannel(batch.getDeliveryChannel());
-    return summary;
-  }
-
-  @Override
-  public ListenableFuture<OutboundMessageResponseSummary> sendMessageBatchAsync(
-      OutboundMessageBatch batch) {
-    return new AsyncResult<>(sendMessageBatch(batch));
-  }
-
-  @Override
-  public boolean isConfigured() {
-    return true;
-  }
+  List<OutboundMessage> getAllMessages();
 }

@@ -31,10 +31,10 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.net.HttpHeaders;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.hisp.dhis.render.RenderService;
 import org.springframework.beans.factory.annotation.Autowired;

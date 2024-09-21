@@ -32,8 +32,8 @@ import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;

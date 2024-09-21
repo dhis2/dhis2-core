@@ -36,8 +36,8 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_HTML;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.analytics.outlier.data.OutlierQueryParams;
 import org.hisp.dhis.analytics.outlier.data.OutlierQueryParser;

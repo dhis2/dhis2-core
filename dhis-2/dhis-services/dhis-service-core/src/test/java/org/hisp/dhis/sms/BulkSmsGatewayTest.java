@@ -52,6 +52,7 @@ import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.test.TestBase;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -186,10 +187,11 @@ class BulkSmsGatewayTest extends TestBase {
   }
 
   @Test
+  @DisplayName("Should return GatewayResponse.FAILED if the client exception is not handled")
   void testException() {
     when(restTemplate.exchange(
             any(String.class), any(HttpMethod.class), any(HttpEntity.class), eq(String.class)))
-        .thenThrow(HttpClientErrorException.class);
+        .thenThrow(new HttpClientErrorException(HttpStatus.URI_TOO_LONG));
 
     OutboundMessageResponse status2 =
         bulkSmsGateway.send(SUBJECT, MESSAGE, recipients, smsGatewayConfig);

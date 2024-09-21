@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.view;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Locale;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.web.accept.PathExtensionContentNegotiationStrategy;

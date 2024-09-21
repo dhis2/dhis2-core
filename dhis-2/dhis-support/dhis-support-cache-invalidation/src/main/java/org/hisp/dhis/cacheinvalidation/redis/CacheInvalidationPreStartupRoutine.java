@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceUnit;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;

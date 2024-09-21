@@ -32,6 +32,12 @@ import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -41,12 +47,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
@@ -107,7 +107,7 @@ class HibernatePotentialDuplicateStore
 
     countCriteriaQuery.where(getQueryPredicates(query, cb, root));
 
-    TypedQuery<Long> relationshipTypedQuery = getSession().createQuery(countCriteriaQuery);
+    TypedQuery<Long> relationshipTypedQuery = entityManager.createQuery(countCriteriaQuery);
 
     return relationshipTypedQuery.getSingleResult().intValue();
   }
@@ -130,7 +130,7 @@ class HibernatePotentialDuplicateStore
                         : cb.desc(root.get(order.getField())))
             .toList());
 
-    TypedQuery<PotentialDuplicate> relationshipTypedQuery = getSession().createQuery(cq);
+    TypedQuery<PotentialDuplicate> relationshipTypedQuery = entityManager.createQuery(cq);
 
     if (criteria.isPagingRequest()) {
       relationshipTypedQuery.setFirstResult(criteria.getFirstResult());

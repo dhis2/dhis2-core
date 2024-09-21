@@ -32,9 +32,9 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
+import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Set;
-import javax.persistence.EntityManager;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -82,7 +82,7 @@ public class HibernateDataApprovalAuditStore extends HibernateGenericStore<DataA
   public void deleteDataApprovalAudits(OrganisationUnit organisationUnit) {
     String hql = "delete from DataApprovalAudit d where d.organisationUnit = :unit";
 
-    getSession().createQuery(hql).setParameter("unit", organisationUnit).executeUpdate();
+    entityManager.createQuery(hql).setParameter("unit", organisationUnit).executeUpdate();
   }
 
   @Override

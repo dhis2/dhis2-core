@@ -31,9 +31,9 @@ import static org.hisp.dhis.security.Authorities.F_MOBILE_SENDSMS;
 import static org.hisp.dhis.security.Authorities.F_SEND_EMAIL;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;

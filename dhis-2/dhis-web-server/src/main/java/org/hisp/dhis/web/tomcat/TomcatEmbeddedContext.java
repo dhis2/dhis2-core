@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.web.tomcat;
 
+import jakarta.servlet.ServletException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Stream;
-import javax.servlet.ServletException;
 import lombok.Setter;
 import org.apache.catalina.Container;
 import org.apache.catalina.Manager;

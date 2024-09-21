@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.program.hibernate;
 
-import com.vladmihalcea.hibernate.type.array.StringArrayType;
+import io.hypersistence.utils.hibernate.type.array.StringArrayType;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.List;
 import java.util.function.Function;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.dataelement.DataElement;

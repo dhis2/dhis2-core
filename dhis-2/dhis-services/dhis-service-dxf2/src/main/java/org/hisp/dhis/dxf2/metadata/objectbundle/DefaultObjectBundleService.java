@@ -33,10 +33,10 @@ import static org.hisp.dhis.eventhook.EventUtils.metadataCreate;
 import static org.hisp.dhis.eventhook.EventUtils.metadataDelete;
 import static org.hisp.dhis.eventhook.EventUtils.metadataUpdate;
 
+import jakarta.persistence.EntityManager;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;

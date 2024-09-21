@@ -1141,6 +1141,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testFilterSharingEmptyTrue() {
     String userId = getCurrentUser().getUid();
+    // first create an object which can be shared
     String programId =
         assertStatus(
             HttpStatus.CREATED,
@@ -1162,6 +1163,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testFilterSharingEmptyFalse() {
     String userId = getCurrentUser().getUid();
+    // first create an object which can be shared
     String programId =
         assertStatus(
             HttpStatus.CREATED,
@@ -1182,6 +1184,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testFilterSharingEqTrue() {
     String userId = getCurrentUser().getUid();
+    // first create an object which can be shared
     String programId =
         assertStatus(
             HttpStatus.CREATED,
@@ -1202,6 +1205,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testFilterSharingGt() {
     String userId = getCurrentUser().getUid();
+    // first create an object which can be shared
     String programId =
         assertStatus(
             HttpStatus.CREATED,
@@ -1222,6 +1226,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testFilterSharingLt() {
     String userId = getCurrentUser().getUid();
+    // first create an object which can be shared
     String programId =
         assertStatus(
             HttpStatus.CREATED,

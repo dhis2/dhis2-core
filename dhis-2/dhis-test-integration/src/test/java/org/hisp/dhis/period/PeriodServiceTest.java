@@ -32,10 +32,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import jakarta.persistence.EntityManagerFactory;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import javax.persistence.EntityManagerFactory;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;

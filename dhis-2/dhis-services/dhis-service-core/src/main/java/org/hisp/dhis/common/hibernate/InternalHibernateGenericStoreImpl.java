@@ -29,19 +29,18 @@ package org.hisp.dhis.common.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Session;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.common.adapter.Sharing_;
@@ -314,8 +313,7 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     query.where(builder.equal(root.get("uid"), userUid));
     query.select(builder.array(root.get("uid"), root.join("groups", JoinType.LEFT).get("uid")));
 
-    Session session = getSession();
-    List<Object[]> results = session.createQuery(query).getResultList();
+    List<Object[]> results = entityManager.createQuery(query).getResultList();
 
     CurrentUserGroupInfo currentUserGroupInfo = new CurrentUserGroupInfo();
     currentUserGroupInfo.setUserUID(userUid);

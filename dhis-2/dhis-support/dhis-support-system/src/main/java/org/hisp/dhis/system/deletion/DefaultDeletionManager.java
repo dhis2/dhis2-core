@@ -87,14 +87,14 @@ public class DefaultDeletionManager implements DeletionManager {
 
   @Override
   @Transactional
-  @EventListener(condition = "#event.shouldRollBack")
+  @EventListener(condition = "#event.rollback")
   public void onDeletion(ObjectDeletionRequestedEvent event) {
     deleteObjects(event.getSource());
   }
 
   @Override
   @Transactional(noRollbackFor = DeleteNotAllowedException.class)
-  @EventListener(condition = "!#event.shouldRollBack")
+  @EventListener(condition = "!#event.rollback")
   public void onDeletionWithoutRollBack(ObjectDeletionRequestedEvent event) {
     deleteObjects(event.getSource());
   }

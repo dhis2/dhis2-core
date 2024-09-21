@@ -33,10 +33,10 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.sqlview.SqlView.getCriteria;
 
 import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridResponse;

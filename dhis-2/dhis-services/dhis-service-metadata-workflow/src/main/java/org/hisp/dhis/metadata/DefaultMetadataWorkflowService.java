@@ -31,10 +31,10 @@ import static org.hisp.dhis.util.JsonUtils.jsonToObject;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.NoResultException;
 import java.util.Date;
 import java.util.List;
 import javax.annotation.PostConstruct;
-import javax.persistence.NoResultException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObject;

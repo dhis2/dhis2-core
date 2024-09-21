@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.hibernate.dialect;
 
-import com.vladmihalcea.hibernate.type.array.StringArrayType;
+import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import java.sql.Types;
 import org.hibernate.boot.model.TypeContributions;
 import org.hibernate.dialect.H2Dialect;

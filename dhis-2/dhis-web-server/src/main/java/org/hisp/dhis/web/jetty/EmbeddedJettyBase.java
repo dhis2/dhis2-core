@@ -37,15 +37,14 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
-import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.springframework.core.io.ClassPathResource;
 
@@ -68,8 +67,8 @@ public abstract class EmbeddedJettyBase {
     Server server = new Server(threadPool);
     server.addBean(new org.eclipse.jetty.util.thread.ScheduledExecutorScheduler());
 
-    HandlerList handlers = new HandlerList();
-    handlers.setHandlers(new Handler[] {getServletContextHandler(), new DefaultHandler()});
+    ContextHandlerCollection handlers = new ContextHandlerCollection();
+    handlers.setHandlers(getServletContextHandler(), new DefaultHandler());
     server.setHandler(handlers);
 
     final HttpConfiguration httpConfig = getHttpConfiguration();

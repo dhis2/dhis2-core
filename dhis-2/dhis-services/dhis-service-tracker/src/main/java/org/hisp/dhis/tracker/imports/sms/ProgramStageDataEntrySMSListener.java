@@ -64,7 +64,6 @@ import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -89,7 +88,7 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
       CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      @Qualifier("smsMessageSender") MessageSender smsSender,
+      MessageSender smsMessageSender,
       EnrollmentService enrollmentService,
       EventChangeLogService eventChangeLogService,
       FileResourceService fileResourceService,
@@ -102,7 +101,7 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
         dataElementCategoryService,
         userService,
         incomingSmsService,
-        smsSender,
+        smsMessageSender,
         enrollmentService,
         eventChangeLogService,
         fileResourceService,

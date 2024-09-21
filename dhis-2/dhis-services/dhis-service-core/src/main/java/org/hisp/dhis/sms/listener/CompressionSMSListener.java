@@ -90,7 +90,7 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
 
   public CompressionSMSListener(
       IncomingSmsService incomingSmsService,
-      MessageSender smsSender,
+      MessageSender smsMessageSender,
       UserService userService,
       TrackedEntityTypeService trackedEntityTypeService,
       TrackedEntityAttributeService trackedEntityAttributeService,
@@ -99,7 +99,7 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
       CategoryService categoryService,
       DataElementService dataElementService,
       IdentifiableObjectManager manager) {
-    super(incomingSmsService, smsSender);
+    super(incomingSmsService, smsMessageSender);
     this.userService = userService;
     this.trackedEntityTypeService = trackedEntityTypeService;
     this.trackedEntityAttributeService = trackedEntityAttributeService;

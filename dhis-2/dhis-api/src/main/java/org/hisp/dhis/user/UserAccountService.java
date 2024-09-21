@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.user;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import javax.servlet.http.HttpServletRequest;
 import org.hisp.dhis.common.auth.RegistrationParams;
 import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;

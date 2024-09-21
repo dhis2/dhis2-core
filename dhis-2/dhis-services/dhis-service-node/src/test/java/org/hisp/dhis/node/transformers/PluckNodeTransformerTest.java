@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.node.transformers;
 
+import jakarta.persistence.EntityManagerFactory;
 import java.util.Collections;
-import javax.persistence.EntityManagerFactory;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.node.Node;

@@ -30,11 +30,11 @@ package org.hisp.dhis.webapi.controller.security;
 import static org.hisp.dhis.security.Authorities.F_IMPERSONATE_USER;
 import static org.hisp.dhis.security.Authorities.F_PREVIOUS_IMPERSONATOR_AUTHORITY;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;

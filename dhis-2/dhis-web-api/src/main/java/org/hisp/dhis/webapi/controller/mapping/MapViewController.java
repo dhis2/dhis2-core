@@ -30,10 +30,10 @@ package org.hisp.dhis.webapi.controller.mapping;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import javax.imageio.ImageIO;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.Defaults;

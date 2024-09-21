@@ -34,7 +34,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.metadata.MetadataValidationException;

@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.program.notification;
 
+import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
-import javax.persistence.EntityManager;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;

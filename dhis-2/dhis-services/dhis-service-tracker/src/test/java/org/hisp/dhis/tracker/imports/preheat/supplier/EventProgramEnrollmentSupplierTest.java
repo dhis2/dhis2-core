@@ -31,9 +31,9 @@ import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import static org.hisp.dhis.program.ProgramType.WITH_REGISTRATION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.TestBase;

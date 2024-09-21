@@ -63,7 +63,6 @@ import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -81,11 +80,11 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
       CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      @Qualifier("smsMessageSender") MessageSender smsSender,
+      MessageSender smsMessageSender,
       DataValueService dataValueService,
       SMSCommandService smsCommandService,
       CompleteDataSetRegistrationService registrationService) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
+    super(dataElementCategoryService, userService, incomingSmsService, smsMessageSender);
     this.dataValueService = dataValueService;
     this.smsCommandService = smsCommandService;
     this.registrationService = registrationService;
@@ -293,7 +292,7 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
       reportBack = command.getSuccessMessage();
     }
 
-    smsSender.sendMessage(null, reportBack, sender);
+    smsMessageSender.sendMessage(null, reportBack, sender);
   }
 
   public Period getPeriod(String periodName, PeriodType periodType)

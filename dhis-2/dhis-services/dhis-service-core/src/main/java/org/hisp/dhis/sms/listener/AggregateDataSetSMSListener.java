@@ -61,7 +61,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,7 +76,7 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
 
   public AggregateDataSetSMSListener(
       IncomingSmsService incomingSmsService,
-      @Qualifier("smsMessageSender") MessageSender smsSender,
+      MessageSender smsMessageSender,
       UserService userService,
       TrackedEntityTypeService trackedEntityTypeService,
       TrackedEntityAttributeService trackedEntityAttributeService,
@@ -91,7 +90,7 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
       IdentifiableObjectManager identifiableObjectManager) {
     super(
         incomingSmsService,
-        smsSender,
+        smsMessageSender,
         userService,
         trackedEntityTypeService,
         trackedEntityAttributeService,

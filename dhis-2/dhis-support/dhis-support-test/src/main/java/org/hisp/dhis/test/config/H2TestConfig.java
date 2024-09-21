@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,7 +64,6 @@ public class H2TestConfig {
   }
 
   @Bean(name = {"dataSource", "analyticsDataSource"})
-  @Primary
   public DataSource actualDataSource(DhisConfigurationProvider config)
       throws SQLException, PropertyVetoException {
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);

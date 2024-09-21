@@ -31,9 +31,9 @@ import static com.google.common.collect.Sets.newHashSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;

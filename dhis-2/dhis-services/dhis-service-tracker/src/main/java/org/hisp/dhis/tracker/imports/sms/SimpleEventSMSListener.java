@@ -63,7 +63,6 @@ import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,7 +73,7 @@ public class SimpleEventSMSListener extends EventSavingSMSListener {
 
   public SimpleEventSMSListener(
       IncomingSmsService incomingSmsService,
-      @Qualifier("smsMessageSender") MessageSender smsSender,
+      MessageSender smsMessageSender,
       UserService userService,
       TrackedEntityTypeService trackedEntityTypeService,
       TrackedEntityAttributeService trackedEntityAttributeService,
@@ -90,7 +89,7 @@ public class SimpleEventSMSListener extends EventSavingSMSListener {
       IdentifiableObjectManager identifiableObjectManager) {
     super(
         incomingSmsService,
-        smsSender,
+        smsMessageSender,
         userService,
         trackedEntityTypeService,
         trackedEntityAttributeService,

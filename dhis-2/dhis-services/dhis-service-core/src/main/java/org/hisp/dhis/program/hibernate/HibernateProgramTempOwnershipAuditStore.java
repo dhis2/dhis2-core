@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program.hibernate;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.program.ProgramTempOwnershipAudit;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditStore;

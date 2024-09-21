@@ -35,9 +35,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
+import jakarta.persistence.EntityManager;
 import java.util.Collections;
 import java.util.List;
-import javax.persistence.EntityManager;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;

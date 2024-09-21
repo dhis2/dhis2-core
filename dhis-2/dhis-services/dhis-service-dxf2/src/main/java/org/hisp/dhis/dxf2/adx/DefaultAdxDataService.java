@@ -34,6 +34,7 @@ import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 
 import com.google.common.collect.Sets;
+import jakarta.persistence.EntityManagerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -53,7 +54,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManagerFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;

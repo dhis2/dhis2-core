@@ -97,7 +97,7 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
 
   protected EventSavingSMSListener(
       IncomingSmsService incomingSmsService,
-      MessageSender smsSender,
+      MessageSender smsMessageSender,
       UserService userService,
       TrackedEntityTypeService trackedEntityTypeService,
       TrackedEntityAttributeService trackedEntityAttributeService,
@@ -112,7 +112,7 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
       DhisConfigurationProvider config) {
     super(
         incomingSmsService,
-        smsSender,
+        smsMessageSender,
         userService,
         trackedEntityTypeService,
         trackedEntityAttributeService,

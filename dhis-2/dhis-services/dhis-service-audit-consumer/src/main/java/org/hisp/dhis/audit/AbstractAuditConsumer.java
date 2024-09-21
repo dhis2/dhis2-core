@@ -28,8 +28,8 @@
 package org.hisp.dhis.audit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.jms.TextMessage;
 import java.io.IOException;
-import javax.jms.TextMessage;
 import lombok.extern.slf4j.Slf4j;
 
 /**

@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.security.apikey;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;

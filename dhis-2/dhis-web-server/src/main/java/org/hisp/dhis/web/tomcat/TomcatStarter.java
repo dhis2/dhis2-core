@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.web.tomcat;
 
+import jakarta.servlet.ServletContainerInitializer;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
 import java.util.Set;
-import javax.servlet.ServletContainerInitializer;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.webapi.servlet.DhisWebApiWebAppInitializer;
 

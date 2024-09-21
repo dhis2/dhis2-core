@@ -28,10 +28,10 @@
 package org.hisp.dhis.tracker.acl;
 
 import com.google.common.collect.Iterables;
+import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import javax.persistence.EntityManager;
 import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.program.Program;

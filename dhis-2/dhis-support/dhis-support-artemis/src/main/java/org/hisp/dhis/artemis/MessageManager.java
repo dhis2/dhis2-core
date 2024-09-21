@@ -30,6 +30,7 @@ package org.hisp.dhis.artemis;
 import org.apache.activemq.artemis.jms.client.ActiveMQQueue;
 import org.apache.activemq.artemis.jms.client.ActiveMQTopic;
 import org.hisp.dhis.render.RenderService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
 
@@ -45,7 +46,9 @@ public class MessageManager {
   private final RenderService renderService;
 
   public MessageManager(
-      JmsTemplate jmsTopicTemplate, JmsTemplate jmsQueueTemplate, RenderService renderService) {
+      @Qualifier("jmsTopicTemplate") JmsTemplate jmsTopicTemplate,
+      @Qualifier("jmsQueueTemplate") JmsTemplate jmsQueueTemplate,
+      RenderService renderService) {
     this.jmsTopicTemplate = jmsTopicTemplate;
     this.jmsQueueTemplate = jmsQueueTemplate;
     this.renderService = renderService;

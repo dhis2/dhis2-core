@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.common.hibernate;
 
+import jakarta.persistence.EntityManager;
 import java.util.Date;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;

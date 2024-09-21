@@ -31,9 +31,9 @@ import static org.hisp.dhis.security.Authorities.F_LEGEND_SET_DELETE;
 import static org.hisp.dhis.security.Authorities.F_LEGEND_SET_PRIVATE_ADD;
 import static org.hisp.dhis.security.Authorities.F_LEGEND_SET_PUBLIC_ADD;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.note;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.security.acl.AclService;

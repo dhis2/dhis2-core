@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.dxf2.adx;
 
+import jakarta.persistence.EntityManagerFactory;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.concurrent.Callable;
-import javax.persistence.EntityManagerFactory;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
