@@ -53,6 +53,7 @@ public interface UserSettingService {
    * @return the user's setting as stored in DB **without** any fallbacks applied. If no such user
    *     exists an empty {@link UserSettings} is returned.
    */
+  @Nonnull
   UserSettings getSettings(@Nonnull String username);
 
   /**

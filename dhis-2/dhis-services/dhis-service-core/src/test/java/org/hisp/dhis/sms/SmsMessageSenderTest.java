@@ -100,7 +100,7 @@ class SmsMessageSenderTest {
 
   @Mock private SystemSettingsProvider settingsProvider;
 
-  @Mock private SystemSettings systemSettings;
+  @Mock private SystemSettings settings;
 
   private SmsGatewayConfig smsGatewayConfig;
 
@@ -147,9 +147,6 @@ class SmsMessageSenderTest {
             userSettingService,
             outboundSmsService,
             settingsProvider);
-
-    when(userSettingService.getSettings(anyString())).thenReturn(userSettings);
-    when(settingsProvider.getCurrentSettings()).thenReturn(systemSettings);
   }
 
   private void mockGateway() {
@@ -167,8 +164,8 @@ class SmsMessageSenderTest {
 
   @Test
   void testSendMessageWithGatewayConfig() {
-
-    when(systemSettings.getSmsMaxLength()).thenReturn(maxSmsLength);
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(settings.getSmsMaxLength()).thenReturn(maxSmsLength);
 
     // stub for GateAdministrationService
     when(gatewayAdministrationService.getDefaultGateway()).thenReturn(smsGatewayConfig);
@@ -221,7 +218,9 @@ class SmsMessageSenderTest {
 
   @Test
   void testSendMessageWithListOfUsers() {
-    when(systemSettings.getSmsMaxLength()).thenReturn(maxSmsLength);
+    when(userSettingService.getSettings(anyString())).thenReturn(userSettings);
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(settings.getSmsMaxLength()).thenReturn(maxSmsLength);
 
     when(gatewayAdministrationService.getDefaultGateway()).thenReturn(smsGatewayConfig);
     when(userSettings.getUserMessageSmsNotification()).thenReturn(true);
@@ -249,6 +248,7 @@ class SmsMessageSenderTest {
 
   @Test
   void testSendMessageWithUserSMSSettingsDisabled() {
+    when(userSettingService.getSettings(anyString())).thenReturn(userSettings);
     when(userSettings.getUserMessageSmsNotification()).thenReturn(false);
 
     OutboundMessageResponse status =
@@ -261,7 +261,8 @@ class SmsMessageSenderTest {
 
   @Test
   void testSendMessageWithSingleRecipient() {
-    when(systemSettings.getSmsMaxLength()).thenReturn(maxSmsLength);
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(settings.getSmsMaxLength()).thenReturn(maxSmsLength);
 
     when(bulkSmsGateway.accept(any())).thenReturn(true);
     when(gatewayAdministrationService.getDefaultGateway()).thenReturn(smsGatewayConfig);
@@ -276,7 +277,8 @@ class SmsMessageSenderTest {
 
   @Test
   void testSendMessageFailed() {
-    when(systemSettings.getSmsMaxLength()).thenReturn(maxSmsLength);
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(settings.getSmsMaxLength()).thenReturn(maxSmsLength);
 
     // stub for GateAdministrationService
     when(gatewayAdministrationService.getDefaultGateway()).thenReturn(smsGatewayConfig);
@@ -296,7 +298,8 @@ class SmsMessageSenderTest {
   @SuppressWarnings("unchecked")
   @Test
   void testNumberNormalization() {
-    when(systemSettings.getSmsMaxLength()).thenReturn(maxSmsLength);
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(settings.getSmsMaxLength()).thenReturn(maxSmsLength);
 
     // stub for GateAdministrationService
     when(gatewayAdministrationService.getDefaultGateway()).thenReturn(smsGatewayConfig);
@@ -326,7 +329,8 @@ class SmsMessageSenderTest {
   @SuppressWarnings("unchecked")
   @Test
   void testSendMessageWithMaxRecipients() {
-    when(systemSettings.getSmsMaxLength()).thenReturn(maxSmsLength);
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(settings.getSmsMaxLength()).thenReturn(maxSmsLength);
 
     when(gatewayAdministrationService.getDefaultGateway()).thenReturn(smsGatewayConfig);
     mockGateway();
@@ -353,7 +357,8 @@ class SmsMessageSenderTest {
 
   @Test
   void testSendMessageWithSmsLengthGreaterThanDefaultMaxSmsLength() {
-    when(systemSettings.getSmsMaxLength()).thenReturn(maxSmsLength);
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(settings.getSmsMaxLength()).thenReturn(maxSmsLength);
 
     when(gatewayAdministrationService.getDefaultGateway()).thenReturn(smsGatewayConfig);
     mockGateway();
@@ -379,7 +384,7 @@ class SmsMessageSenderTest {
 
     assertFalse(status.isOk());
     assertEquals(GatewayResponse.SMS_TEXT_MESSAGE_TOO_LONG, status.getResponseObject());
-    verify(systemSettings, times(0)).getSmsMaxLength();
+    verify(settings, times(0)).getSmsMaxLength();
   }
 
   @Test
@@ -569,19 +574,24 @@ class SmsMessageSenderTest {
 
     User userA = new User();
     userA.setPhoneNumber("47401111111");
+    userA.setUsername("A");
 
     User userB = new User();
     userB.setPhoneNumber("47402222222");
+    userB.setUsername("B");
 
     User userC = new User();
     userC.setPhoneNumber("47403333333");
+    userC.setUsername("C");
 
     User userD = new User();
     userD.setPhoneNumber("47404444444");
+    userD.setUsername("D");
 
     users = Sets.newHashSet(userA, userB, userC, userD);
     sender = new User();
     sender.setPhoneNumber("4740555555");
+    sender.setUsername("SendeR");
   }
 
   private void responseForFailedBatch() {

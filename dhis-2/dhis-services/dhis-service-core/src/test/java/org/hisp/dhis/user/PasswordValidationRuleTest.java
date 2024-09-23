@@ -102,7 +102,6 @@ class PasswordValidationRuleTest {
     parameterValidationRule = new UserParameterValidationRule();
     historyValidationRule = new PasswordHistoryValidationRule(passwordEncoder, userService);
     mandatoryValidationRule = new PasswordMandatoryValidationRule();
-    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
   }
 
   @Test
@@ -166,6 +165,7 @@ class PasswordValidationRuleTest {
 
   @Test
   void testLengthValidationRule() {
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     when(settings.getMinPasswordLength()).thenReturn(MIN_LENGTH);
     when(settings.getMaxPasswordLength()).thenReturn(MAX_LENGTH);
 

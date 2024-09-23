@@ -53,6 +53,7 @@ public class DefaultUserSettingService implements UserSettingService {
   private final UserStore userStore;
   private final UserSettingStore userSettingStore;
 
+  @Nonnull
   @Override
   @Transactional
   public UserSettings getSettings(@Nonnull String username) {

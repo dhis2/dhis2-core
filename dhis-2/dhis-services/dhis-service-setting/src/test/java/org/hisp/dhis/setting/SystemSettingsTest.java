@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
+import org.hisp.dhis.jsontree.JsonBoolean;
 import org.hisp.dhis.jsontree.JsonInteger;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonPrimitive;
@@ -78,10 +79,16 @@ class SystemSettingsTest {
     SystemSettings settings = SystemSettings.of(Map.of("applicationTitle", "Hello World"));
     JsonMap<? extends JsonPrimitive> asJson = settings.toJson();
     // it does contain the custom value
-    assertEquals("Hello World", asJson.get("applicationTitle").as(JsonString.class).string());
-    // but also all defaults (test one)
-    assertEquals(
-        -1, asJson.get("keyParallelJobsInAnalyticsTableExport").as(JsonInteger.class).intValue());
+    JsonPrimitive stringValue = asJson.get("applicationTitle");
+    assertTrue(stringValue.isString());
+    assertEquals("Hello World", stringValue.as(JsonString.class).string());
+    // but also all defaults (test some)
+    JsonPrimitive intValue = asJson.get("keyParallelJobsInAnalyticsTableExport");
+    assertTrue(intValue.isNumber());
+    assertEquals(-1, intValue.as(JsonInteger.class).intValue());
+    JsonPrimitive booleanValue = asJson.get("startModuleEnableLightweight");
+    assertTrue(booleanValue.isBoolean());
+    assertFalse(booleanValue.as(JsonBoolean.class).booleanValue());
     // except none of the confidential ones
     CONFIDENTIAL_KEYS.forEach(key -> assertFalse(asJson.exists(key)));
   }
