@@ -38,6 +38,7 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class UserSettingDeletionHandler extends DeletionHandler {
+
   private final UserSettingService userSettingService;
 
   @Override
@@ -46,12 +47,6 @@ public class UserSettingDeletionHandler extends DeletionHandler {
   }
 
   private void deleteUser(User user) {
-    Iterator<UserSetting> settings = userSettingService.getUserSettings(user).iterator();
-
-    while (settings.hasNext()) {
-      UserSetting setting = settings.next();
-      settings.remove();
-      userSettingService.deleteUserSetting(setting);
-    }
+    userSettingService.deleteAllUserSettings(user.getUsername());
   }
 }

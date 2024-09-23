@@ -94,6 +94,7 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
@@ -106,8 +107,6 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
-import org.hisp.dhis.user.UserSetting;
-import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
@@ -420,7 +419,7 @@ public class UserController extends AbstractCrudController<User> {
   @ResponseBody
   public WebMessage replicateUser(
       @PathVariable String uid, HttpServletRequest request, HttpServletResponse response)
-      throws IOException, ForbiddenException, ConflictException {
+      throws IOException, ForbiddenException, ConflictException, NotFoundException {
     User existingUser = userService.getUser(uid);
     if (existingUser == null) {
       return conflict("User not found: " + uid);
@@ -487,13 +486,8 @@ public class UserController extends AbstractCrudController<User> {
     // Replicate user settings
     // ---------------------------------------------------------------------
 
-    List<UserSetting> settings = userSettingService.getUserSettings(existingUser);
-    for (UserSetting setting : settings) {
-      Optional<UserSettingKey> key = UserSettingKey.getByName(setting.getName());
-      key.ifPresent(
-          userSettingKey ->
-              userSettingService.saveUserSetting(userSettingKey, setting.getValue(), userReplica));
-    }
+    UserSettings settings = userSettingService.getSettings(existingUser.getUsername());
+    userSettingService.saveUserSettings(settings.toMap(), userReplica.getUsername());
 
     return created("User replica created")
         .setLocation(UserSchemaDescriptor.API_ENDPOINT + "/" + userReplica.getUid());

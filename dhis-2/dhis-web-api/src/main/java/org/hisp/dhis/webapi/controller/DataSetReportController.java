@@ -48,9 +48,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.grid.GridUtils;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -166,7 +165,7 @@ public class DataSetReportController {
         dataSetReportService.getDataSetReportAsGrid(
             dataSet, periods, orgUnit, filter, selectedUnitOnly);
     GridUtils.toPdf(
-        CurrentUserUtil.getUserSetting(UserSettingKey.DB_LOCALE),
+        UserSettings.getCurrentSettings().getUserDbLocale(),
         grids,
         response.getOutputStream());
   }

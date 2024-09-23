@@ -52,6 +52,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.SystemUser;
@@ -59,7 +60,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
@@ -502,13 +502,11 @@ public class DefaultMessageService implements MessageService {
       return StringUtils.EMPTY;
     }
 
-    Locale locale =
-        (Locale)
-            userSettingService.getUserSetting(
-                UserSettingKey.UI_LOCALE,
-                conversation.getCreatedBy() == null
-                    ? null
-                    : conversation.getCreatedBy().getUsername());
+    UserDetails userDetails = conversation.getCreatedBy() == null
+        ? CurrentUserUtil.getCurrentUserDetails()
+        : userService.createUserDetails(conversation.getCreatedBy());
+
+    Locale locale = userDetails.getUserSettings().getUserUiLocale();
 
     locale = ObjectUtils.firstNonNull(locale, LocaleManager.DEFAULT_LOCALE);
 

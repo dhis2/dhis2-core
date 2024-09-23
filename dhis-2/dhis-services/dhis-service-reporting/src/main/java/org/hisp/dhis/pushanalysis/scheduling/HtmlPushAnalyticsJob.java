@@ -45,7 +45,6 @@ import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -139,10 +138,7 @@ public class HtmlPushAnalyticsJob implements Job {
   private String substituteUrl(String urlTemplate, String username) {
     String url = urlTemplate.replace("{username}", username);
     if (url.contains("{locale}")) {
-      Locale locale =
-          (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE, username);
-      if (locale == null)
-        locale = (Locale) userSettingService.getUserSetting(UserSettingKey.UI_LOCALE, username);
+      Locale locale = userSettingService.getSettings(username).getUserLocale();
       url = url.replace("{locale}", locale == null ? "" : locale.toLanguageTag());
     }
     return url;

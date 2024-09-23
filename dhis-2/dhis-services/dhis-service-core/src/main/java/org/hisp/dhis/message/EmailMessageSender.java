@@ -58,7 +58,7 @@ import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.context.annotation.Scope;
@@ -137,9 +137,9 @@ public class EmailMessageSender implements MessageSender {
       for (User user : users) {
         boolean doSend =
             forceSend
-                || (Boolean)
-                    userSettingService.getUserSetting(
-                        UserSettingKey.MESSAGE_EMAIL_NOTIFICATION, user.getUsername());
+                || userSettingService
+                    .getSettings(user.getUsername())
+                    .getUserMessageEmailNotification();
 
         if (doSend && ValidationUtils.emailIsValid(user.getEmail())) {
           if (isEmailValid(user.getEmail())) {

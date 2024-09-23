@@ -35,6 +35,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.setting.UserSettings;
 import org.springframework.security.core.GrantedAuthority;
 
 /**
@@ -167,8 +168,8 @@ public class SystemUser implements UserDetails {
 
   @Nonnull
   @Override
-  public Map<String, Serializable> getUserSettings() {
-    return Map.of();
+  public UserSettings getUserSettings() {
+    return UserSettings.of(Map.of());
   }
 
   @Nonnull

@@ -43,7 +43,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -95,10 +94,10 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
 
   @Test
   @DisplayName("Search by token should use translations column instead of default columns")
-  void testSearchByToken() {
+  void testSearchByToken() throws Exception {
     setUpTranslation();
     User userA = createAndAddUser("userA", (OrganisationUnit) null, "ALL");
-    userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, Locale.FRENCH, userA);
+    userSettingService.saveUserSetting("keyDbLocale", Locale.FRENCH.toString(), userA.getUsername());
 
     injectSecurityContextUser(userService.getUserByUsername(userA.getUsername()));
 
@@ -155,7 +154,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
 
     User userA = createAndAddUser("userA", null, "ALL");
     injectSecurityContextUser(userA);
-    userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, null);
+    userSettingService.saveUserSetting("keyDbLocale", null);
 
     assertTrue(
         GET("/dataSets?filter=identifiable:token:testToken")
@@ -180,10 +179,10 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
   @Test
   @DisplayName(
       "Search by token should use default properties if the translation value does not exist or does not match the search token")
-  void testSearchTokenWithFallback() {
+  void testSearchTokenWithFallback() throws Exception {
     setUpTranslation();
     User userA = createAndAddUser("userA", (OrganisationUnit) null, "ALL");
-    userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, Locale.FRENCH, userA);
+    userSettingService.saveUserSetting("keyDbLocale", Locale.FRENCH.toString(), userA.getUsername());
 
     injectSecurityContextUser(userService.getUserByUsername(userA.getUsername()));
 

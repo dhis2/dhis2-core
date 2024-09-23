@@ -56,11 +56,11 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitLevelComparator;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilter;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -266,8 +266,7 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
     Integer levels = maxLevels != null ? (rootLevel + maxLevels - 1) : null;
 
     SortProperty orderBy =
-        SortProperty.fromValue(
-            userSettingService.getUserSetting(UserSettingKey.ANALYSIS_DISPLAY_PROPERTY).toString());
+        SortProperty.fromValue(UserSettings.getCurrentSettings().getUserAnalysisDisplayProperty().toString());
 
     OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
     params.setParents(Sets.newHashSet(organisationUnit));

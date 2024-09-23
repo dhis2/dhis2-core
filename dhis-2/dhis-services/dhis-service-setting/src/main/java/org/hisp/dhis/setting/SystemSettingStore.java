@@ -46,8 +46,8 @@ public interface SystemSettingStore extends GenericStore<SystemSetting> {
   Map<String, String> getAllSettings();
 
   /**
-   * @param name the setting to delete
+   * @param keys the setting to delete
    * @return number of settings that were deleted
    */
-  int delete(Set<String> name);
+  int delete(Set<String> keys);
 }

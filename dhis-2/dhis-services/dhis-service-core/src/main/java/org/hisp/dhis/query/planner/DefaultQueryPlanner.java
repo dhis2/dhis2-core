@@ -48,8 +48,7 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.setting.UserSettings;
 import org.springframework.stereotype.Component;
 
 /**
@@ -301,9 +300,6 @@ public class DefaultQueryPlanner implements QueryPlanner {
   private void setQueryPathLocale(Restriction restriction) {
     restriction
         .getQueryPath()
-        .setLocale(
-            CurrentUserUtil.getUserSetting(
-                UserSettingKey.DB_LOCALE,
-                settingsProvider.getCurrentSettings().getDbLocale()));
+        .setLocale(UserSettings.getCurrentSettings().getUserDbLocale());
   }
 }

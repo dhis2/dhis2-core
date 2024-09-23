@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.user;
 
-import java.io.Serializable;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -68,7 +66,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
         null,
         null,
         null,
-        new HashMap<>(),
+        UserSettings.of(Map.of()),
         true);
   }
 
@@ -90,7 +88,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
         null,
         null,
         null,
-        new HashMap<>(),
+        UserSettings.of(Map.of()),
         false);
   }
 
@@ -102,7 +100,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
       @CheckForNull Set<String> orgUnitUids,
       @CheckForNull Set<String> searchOrgUnitUids,
       @CheckForNull Set<String> dataViewUnitUids,
-      @CheckForNull Map<String, Serializable> settings) {
+      @Nonnull UserSettings settings) {
     return createUserDetails(
         user,
         accountNonLocked,
@@ -122,7 +120,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
       @CheckForNull Set<String> orgUnitUids,
       @CheckForNull Set<String> searchOrgUnitUids,
       @CheckForNull Set<String> dataViewUnitUids,
-      @CheckForNull Map<String, Serializable> settings,
+      @Nonnull UserSettings settings,
       boolean loadOrgUnits) {
 
     if (user == null) {
@@ -151,7 +149,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
             .isSuper(user.isSuper())
             .userRoleIds(setOfIds(user.getUserRoles()))
             .userGroupIds(user.getUid() == null ? Set.of() : setOfIds(user.getGroups()))
-            .userSettings(settings == null ? new HashMap<>() : new HashMap<>(settings));
+            .userSettings(settings);
 
     if (loadOrgUnits) {
 

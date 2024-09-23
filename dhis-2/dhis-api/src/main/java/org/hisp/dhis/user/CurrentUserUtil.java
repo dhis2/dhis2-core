@@ -27,12 +27,9 @@
  */
 package org.hisp.dhis.user;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -121,40 +118,6 @@ public class CurrentUserUtil {
   public static Boolean hasAnyAuthority(Collection<String> candidateAuthorities) {
     List<String> currentUserAuthorities = getCurrentUserAuthorities();
     return candidateAuthorities.stream().anyMatch(currentUserAuthorities::contains);
-  }
-
-  /**
-   * Return the value of the user setting referred to by 'key'
-   *
-   * @param key the key of the user setting
-   * @return the value of the user setting
-   */
-  @Nullable
-  @SuppressWarnings("unchecked")
-  public static <T> T getUserSetting(UserSettingKey key) {
-    if (!hasCurrentUser()) {
-      return null;
-    }
-    UserDetails currentUser = getCurrentUserDetails();
-    return (T) currentUser.getUserSettings().get(key.getName());
-  }
-
-  /**
-   * Return the value of the user setting referred to by 'key'.
-   *
-   * @param defaultValue the default value to return if the setting value is null.
-   * @param key the key of the user setting
-   * @return the value of the user setting
-   */
-  @SuppressWarnings("unchecked")
-  public static <T> T getUserSetting(UserSettingKey key, @Nonnull T defaultValue) {
-    if (!hasCurrentUser()) {
-      return defaultValue;
-    }
-    UserDetails currentUser = getCurrentUserDetails();
-    Map<String, Serializable> userSettings = currentUser.getUserSettings();
-    Serializable setting = userSettings.get(key.getName());
-    return setting != null ? (T) setting : defaultValue;
   }
 
   public static boolean hasCurrentUser() {

@@ -1,5 +1,9 @@
 package org.hisp.dhis.setting;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +12,7 @@ import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonPrimitive;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -44,15 +49,13 @@ import static java.lang.Character.toUpperCase;
 @Slf4j
 @ToString
 @EqualsAndHashCode
+@JsonSerialize(using = LazySettings.SettingsSerializer.class)
 final class LazySettings implements SystemSettings, UserSettings {
 
-  private static final Map<String, Serializable> DEFAULTS = extractDefaults();
+  private static final LazySettings EMPTY_USER_SETTINGS = of(UserSettings.class, Map.of());
+  private static final LazySettings EMPTY_SYSTEM_SETTINGS = of(SystemSettings.class, Map.of());
 
-  static LazySettings of(Class<? extends Settings> type, @Nonnull Settings base, @Nonnull Map<String, String> settings) {
-    Map<String, String> merged = new HashMap<>(base.toMap());
-    merged.putAll(settings);
-    return of (type, merged);
-  }
+  private static final Map<String, Serializable> DEFAULTS = extractDefaults();
 
   @Nonnull
   static LazySettings of(Class<? extends Settings> type, @Nonnull Map<String, String> settings) {
@@ -60,6 +63,10 @@ final class LazySettings implements SystemSettings, UserSettings {
   }
   @Nonnull
   static LazySettings of(Class<? extends Settings> type, @Nonnull Map<String, String> settings, @Nonnull UnaryOperator<String> decoder) {
+    if (settings.isEmpty()) {
+      if (type == UserSettings.class) return EMPTY_USER_SETTINGS;
+      if (type == SystemSettings.class) return EMPTY_SYSTEM_SETTINGS;
+    }
     // sorts alphabetically which is essential for the binary search lookup used
     TreeMap<String, String> from =
         settings instanceof TreeMap<String, String> tm ? tm : new TreeMap<>(settings);
@@ -76,6 +83,7 @@ final class LazySettings implements SystemSettings, UserSettings {
   private final Class<? extends Settings> type;
   private final String[] keys;
   private final String[] rawValues;
+  @ToString.Exclude
   @EqualsAndHashCode.Exclude
   private final Serializable[] typedValues;
 
@@ -216,6 +224,18 @@ final class LazySettings implements SystemSettings, UserSettings {
               declaringClass );
     } catch ( Exception ex ) {
       throw new RuntimeException(ex);
+    }
+  }
+
+  public class SettingsSerializer extends JsonSerializer<Settings> {
+
+    @Override
+    public void serialize(Settings value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+      if (value == null) {
+        gen.writeNull();
+      } else {
+        gen.writeRawValue(value.toJson().toJson());
+      }
     }
   }
 }

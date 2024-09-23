@@ -29,13 +29,11 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.security.Authorities.F_SYSTEM_SETTING;
-import static org.hisp.dhis.user.CurrentUserUtil.getUserSetting;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -54,9 +52,9 @@ import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSetting;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.stereotype.Controller;
@@ -130,8 +128,8 @@ public class SystemSettingController {
   }
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
-  public JsonMap<? extends JsonValue> getSystemSettingsJson() {
-    return settingManager.getCurrentSettings().toJson();
+  public SystemSettings getSystemSettingsJson() {
+    return settingManager.getCurrentSettings();
   }
 
   @Deprecated(since = "2.42", forRemoval = true)
@@ -155,7 +153,6 @@ public class SystemSettingController {
     settingManager.deleteSystemSettings(keys == null ? Set.of() : keys);
   }
 
-
   /*
 
   Translations (should be replaced by using the datastore directly)
@@ -167,7 +164,7 @@ public class SystemSettingController {
       @PathVariable("key") String key,
       @RequestParam("locale") String locale) {
     if (locale == null || locale.isEmpty())
-      locale = getUserSetting(UserSettingKey.UI_LOCALE, Locale.ENGLISH).getLanguage();
+      locale = UserSettings.getCurrentSettings().getUserUiLocale().getLanguage();
     return settingManager.getSystemSettingTranslation(key, locale).orElse("");
   }
 

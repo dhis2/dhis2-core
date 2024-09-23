@@ -58,7 +58,6 @@ import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
@@ -209,11 +208,7 @@ public class SmsMessageSender implements MessageSender {
   // -------------------------------------------------------------------------
 
   private boolean isQualifiedReceiver(User user) {
-    Serializable userSetting =
-        userSettingService.getUserSetting(
-            UserSettingKey.MESSAGE_SMS_NOTIFICATION, user.getUsername());
-
-    return userSetting != null ? (Boolean) userSetting : false;
+    return userSettingService.getSettings(user.getUsername()).getUserMessageSmsNotification();
   }
 
   private OutboundMessageResponse sendMessage(

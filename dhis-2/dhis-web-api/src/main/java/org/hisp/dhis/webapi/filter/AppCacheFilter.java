@@ -46,7 +46,6 @@ import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.springframework.beans.factory.annotation.Autowired;
 

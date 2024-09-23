@@ -29,6 +29,6 @@ final class CurrentUserSettings {
   }
 
   static void overrideCurrentSettings(Map<String, String> settings) {
-    CURRENT_USER_SETTINGS.set(UserSettings.of(getCurrentSettings(), settings));
+    CURRENT_USER_SETTINGS.set(getCurrentSettings().withOverlay(settings));
   }
 }

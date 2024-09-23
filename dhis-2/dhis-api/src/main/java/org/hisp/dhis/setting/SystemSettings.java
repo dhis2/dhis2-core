@@ -37,7 +37,7 @@ import java.util.function.UnaryOperator;
  * @author Jan Bernitt
  */
 @OpenApi.Ignore
-public interface SystemSettings extends Settings {
+public non-sealed interface SystemSettings extends Settings {
 
   @Nonnull
   static SystemSettings of(@Nonnull Map<String, String> settings) {

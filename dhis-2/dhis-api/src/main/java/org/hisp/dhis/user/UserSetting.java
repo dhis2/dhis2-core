@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.user;
 
+import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -41,6 +43,8 @@ import java.io.Serializable;
 @Getter
 @ToString
 @EqualsAndHashCode
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserSetting  {
 
   @Setter
@@ -53,14 +57,6 @@ public class UserSetting  {
 
   @EqualsAndHashCode.Exclude
   private String value;
-
-  public UserSetting() {}
-
-  public UserSetting(@Nonnull User user, @Nonnull String name, String value) {
-    this.user = user;
-    this.name = name;
-    this.value = value;
-  }
 
   public boolean hasValue() {
     return value != null;

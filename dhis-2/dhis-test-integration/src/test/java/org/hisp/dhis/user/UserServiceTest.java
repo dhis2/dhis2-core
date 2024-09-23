@@ -335,7 +335,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testManagedGroups() {
-    systemSettingManager.saveSystemSetting(CAN_GRANT_OWN_USER_ROLES, true);
+    systemSettingManager.saveSystemSettings(Map.of("keyCanGrantOwnUserAuthorityGroups", "true"));
     // TODO find way to override in parameters
     User userA = addUser("A");
     User userB = addUser("B");
@@ -379,7 +379,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetByPhoneNumber() {
-    systemSettingManager.saveSystemSetting(CAN_GRANT_OWN_USER_ROLES, true);
+    systemSettingManager.saveSystemSettings(Map.of("keyCanGrantOwnUserAuthorityGroups", "true"));
     addUser("A", user -> user.setPhoneNumber("73647271"));
     User userB = addUser("B", user -> user.setPhoneNumber("23452134"));
     addUser("C", user -> user.setPhoneNumber("14543232"));
@@ -596,7 +596,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testFindNotifiableUsersWithLastLoginBetween() {
+  void testFindNotifiableUsersWithLastLoginBetween() throws Exception {
     ZonedDateTime now = ZonedDateTime.now();
     Date oneMonthsAgo = Date.from(now.minusMonths(1).toInstant());
     Date twoMonthsAgo = Date.from(now.minusMonths(2).toInstant());
@@ -612,10 +612,10 @@ class UserServiceTest extends PostgresIntegrationTestBase {
         });
     addUser("C", User::setLastLogin, twentyTwoDaysAgo);
     addUser("D");
-    userSettingService.saveUserSetting(UserSettingKey.UI_LOCALE, Locale.CANADA, userA);
+    userSettingService.saveUserSetting("keyUiLocale", Locale.CANADA.toString(), userA.getUsername());
     // the point of setting this setting is to see that the query does not
     // get confused by other setting existing for the same user
-    userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, Locale.FRANCE, userA);
+    userSettingService.saveUserSetting("keyDbLocale", Locale.FRANCE.toString(), userA.getUsername());
 
     Map<String, Optional<Locale>> users =
         userService.findNotifiableUsersWithLastLoginBetween(threeMonthAgo, twoMonthsAgo);

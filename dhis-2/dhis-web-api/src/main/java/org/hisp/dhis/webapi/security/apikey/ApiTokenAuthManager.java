@@ -39,6 +39,8 @@ import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
 import org.hisp.dhis.security.apikey.ApiTokenDeletedEvent;
 import org.hisp.dhis.security.apikey.ApiTokenService;
+import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -63,8 +65,8 @@ public class ApiTokenAuthManager implements AuthenticationManager {
   private final OrganisationUnitService organisationUnitService;
   private final UserService userService;
   private final UserStore userStore;
-
   private final UserSettingService userSettingService;
+  private final SystemSettingsProvider settingsProvider;
 
   private final Cache<ApiTokenAuthenticationToken> apiTokenCache;
 
@@ -74,13 +76,14 @@ public class ApiTokenAuthManager implements AuthenticationManager {
       CacheProvider cacheProvider,
       @Lazy UserService userService,
       UserSettingService userSettingService,
-      OrganisationUnitService organisationUnitService) {
+      OrganisationUnitService organisationUnitService,
+      SystemSettingsProvider settingsProvider) {
     this.userService = userService;
     this.userStore = userStore;
     this.apiTokenService = apiTokenService;
     this.userSettingService = userSettingService;
     this.organisationUnitService = organisationUnitService;
-
+    this.settingsProvider = settingsProvider;
     this.apiTokenCache = cacheProvider.createApiKeyCache();
   }
 
@@ -144,7 +147,10 @@ public class ApiTokenAuthManager implements AuthenticationManager {
           ApiTokenErrors.invalidToken("The API token is disabled, locked or 2FA is enabled."));
     }
 
-    Map<String, Serializable> userSettings = userSettingService.getUserSettingsAsMap(user);
+    UserSettings userSettings =
+        userSettingService
+            .getSettings(user.getUsername())
+            .withOverlay(settingsProvider.getCurrentSettings().toMap());
 
     List<String> organisationUnitsUidsByUser =
         organisationUnitService.getOrganisationUnitsUidsByUser(user.getUsername());

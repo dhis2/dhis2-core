@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -42,6 +44,7 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -157,7 +160,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
 
     preheatService.connectReferences(user, bundle.getPreheat(), bundle.getPreheatIdentifier());
     getSession().update(user);
-    userSettingService.saveUserSettings(user.getSettings(), user);
+    updateUserSettings(user);
   }
 
   @Override
@@ -202,7 +205,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
       getSession().update(persistedUser);
     }
 
-    userSettingService.saveUserSettings(persistedUser.getSettings(), persistedUser);
+    updateUserSettings(persistedUser);
 
     if (Boolean.TRUE.equals(invalidateSessions)) {
       userService.invalidateUserSessions(persistedUser.getUid());
@@ -290,6 +293,17 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
                   roles.add(persistedRole);
                 }
               });
+    }
+  }
+
+  private void updateUserSettings(User user) {
+    Map<String, String> settings = user.getSettings();
+    if (settings == null) return;
+    try {
+      userSettingService.saveUserSettings(settings, user.getUsername());
+    } catch (NotFoundException ex) {
+      // we know the user exists so this should never happen
+      throw new NoSuchElementException(ex);
     }
   }
 }

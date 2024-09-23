@@ -63,6 +63,8 @@ import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.interpretation.InterpretationService;
+import org.hisp.dhis.jsontree.JsonPrimitive;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.NodeUtils;
@@ -76,6 +78,7 @@ import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
@@ -84,7 +87,6 @@ import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -153,34 +155,30 @@ public class MeController {
 
   @Nonnull private ApiTokenService apiTokenService;
 
-  private static final Set<UserSettingKey> USER_SETTING_KEYS =
-      new HashSet<>(Sets.newHashSet(UserSettingKey.values()));
-
   @GetMapping
   @OpenApi.Response(MeDto.class)
   public @ResponseBody ResponseEntity<JsonNode> getCurrentUser(
       @CurrentUser(required = true) User user,
       @RequestParam(defaultValue = "*") List<String> fields) {
 
+    UserDetails userDetails = UserDetails.fromUser(user);
+
     if (fieldsContains("access", fields)) {
       Access access = aclService.getAccess(user, user);
       user.setAccess(access);
     }
 
-    Map<String, Serializable> userSettings =
-        userSettingService.getUserSettingsWithFallbackByUserAsMap(user, USER_SETTING_KEYS, true);
-
     List<String> programs =
         programService.getCurrentUserPrograms().stream().map(IdentifiableObject::getUid).toList();
 
     List<String> dataSets =
-        dataSetService.getUserDataRead(UserDetails.fromUser(user)).stream()
+        dataSetService.getUserDataRead(userDetails).stream()
             .map(IdentifiableObject::getUid)
             .toList();
 
     List<ApiToken> patTokens = apiTokenService.getAllOwning(user);
 
-    MeDto meDto = new MeDto(user, userSettings, programs, dataSets, patTokens);
+    MeDto meDto = new MeDto(user, userDetails.getUserSettings(), programs, dataSets, patTokens);
     determineUserImpersonation(meDto);
 
     var params = org.hisp.dhis.fieldfiltering.FieldFilterParams.of(meDto, fields);
@@ -290,33 +288,15 @@ public class MeController {
   }
 
   @GetMapping(value = "/settings", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Map<String, Serializable>> getSettings(
-      @CurrentUser(required = true) User currentUser) {
-    Map<String, Serializable> userSettings =
-        userSettingService.getUserSettingsWithFallbackByUserAsMap(
-            currentUser, USER_SETTING_KEYS, true);
-
-    return ResponseEntity.ok().cacheControl(noStore()).body(userSettings);
+  public UserSettings getSettings(
+      @CurrentUser(required = true) UserDetails currentUser) {
+    return currentUser.getUserSettings();
   }
 
   @GetMapping(value = "/settings/{key}", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Serializable> getSetting(
-      @PathVariable String key, @CurrentUser(required = true) User currentUser)
-      throws ConflictException, NotFoundException {
-    Optional<UserSettingKey> keyEnum = UserSettingKey.getByName(key);
-
-    if (keyEnum.isEmpty()) {
-      throw new ConflictException("Key is not supported: " + key);
-    }
-
-    Serializable value =
-        userSettingService.getUserSetting(keyEnum.get(), currentUser.getUsername());
-
-    if (value == null) {
-      throw new NotFoundException("User setting not found for key: " + key);
-    }
-
-    return ResponseEntity.ok().cacheControl(noStore()).body(value);
+  public JsonValue getSetting(
+      @PathVariable String key, @CurrentUser(required = true) UserDetails currentUser) {
+    return currentUser.getUserSettings().toJson().get(key);
   }
 
   @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)

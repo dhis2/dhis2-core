@@ -90,6 +90,7 @@ import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.filter.UserRoleCanIssueFilter;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
@@ -938,7 +939,10 @@ public class DefaultUserService implements UserService {
               username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked));
     }
 
-    Map<String, Serializable> userSettings = userSettingService.getUserSettingsAsMap(user);
+    UserSettings userSettings =
+        userSettingService
+            .getSettings(user.getUsername())
+            .withOverlay(settingsProvider.getCurrentSettings().toMap());
 
     List<String> organisationUnitsUidsByUser =
         organisationUnitService.getOrganisationUnitsUidsByUser(user.getUsername());
@@ -1141,12 +1145,7 @@ public class DefaultUserService implements UserService {
     vars.put("welcomeMessage", persistedUser.getWelcomeMessage());
 
     I18n i18n =
-        i18nManager.getI18n(
-            ObjectUtils.firstNonNull(
-                (Locale)
-                    userSettingService.getUserSetting(
-                        UserSettingKey.UI_LOCALE, persistedUser.getUsername()),
-                LocaleManager.DEFAULT_LOCALE));
+        i18nManager.getI18n(userSettingService.getSettings(persistedUser.getUsername()).getUserUiLocale());
 
     vars.put("i18n", i18n);
 
@@ -1541,11 +1540,7 @@ public class DefaultUserService implements UserService {
     vars.put("username", user.getUsername());
     vars.put("email", user.getEmail());
     I18n i18n =
-        i18nManager.getI18n(
-            ObjectUtils.firstNonNull(
-                (Locale)
-                    userSettingService.getUserSetting(UserSettingKey.UI_LOCALE, user.getUsername()),
-                LocaleManager.DEFAULT_LOCALE));
+        i18nManager.getI18n(userSettingService.getSettings(user.getUsername()).getUserUiLocale());
     vars.put("i18n", i18n);
 
     VelocityManager vm = new VelocityManager();

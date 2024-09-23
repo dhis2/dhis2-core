@@ -46,12 +46,13 @@ import static java.util.stream.Collectors.toMap;
 /**
  * @author Lars Helge Overland
  */
-@Repository("org.hisp.dhis.setting.SystemSettingStore")
+@Repository
 public class HibernateSystemSettingStore extends HibernateGenericStore<SystemSetting>
     implements SystemSettingStore {
+
   public HibernateSystemSettingStore(
       EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
-    super(entityManager, jdbcTemplate, publisher, SystemSetting.class, true);
+    super(entityManager, jdbcTemplate, publisher, SystemSetting.class, false);
   }
 
   @Nonnull
@@ -64,10 +65,10 @@ public class HibernateSystemSettingStore extends HibernateGenericStore<SystemSet
   }
 
   @Override
-  public int delete(Set<String> names) {
-    if (names.isEmpty()) return 0;
+  public int delete(Set<String> keys) {
+    if (keys.isEmpty()) return 0;
     String sql = "delete from systemsetting where name in :name";
-    return nativeSynchronizedQuery(sql).setParameterList("name", names).executeUpdate();
+    return nativeSynchronizedQuery(sql).setParameterList("name", keys).executeUpdate();
   }
 
   /**

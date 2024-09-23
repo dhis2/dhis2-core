@@ -39,9 +39,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
-import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Component;
 
 import static java.util.Map.entry;
@@ -83,13 +81,9 @@ public class DefaultStyleManager implements StyleManager {
 
   @Override
   public String getCurrentStyle() {
-    if (CurrentUserUtil.hasCurrentUser()) {
-      String style = (String) userSettingService.getUserSetting(UserSettingKey.STYLE);
-      //TODO this fallback will already be implied in the user style
-      return ObjectUtils.firstNonNull(style, getSystemStyle());
-    } else {
-      return getSystemStyle();
-    }
+    if (CurrentUserUtil.hasCurrentUser())
+      return UserSettings.getCurrentSettings().getUserStyle();
+    return getSystemStyle();
   }
 
   @Override

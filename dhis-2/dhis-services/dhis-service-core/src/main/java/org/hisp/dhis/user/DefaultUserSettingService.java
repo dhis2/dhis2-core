@@ -29,24 +29,17 @@ package org.hisp.dhis.user;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.collect.Sets;
-import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.NoSuchElementException;
 
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.util.SerializableOptional;
+import org.hisp.dhis.common.IndirectTransactional;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.setting.UserSettings;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.Nonnull;
 
@@ -61,226 +54,55 @@ import javax.annotation.Nonnull;
 @RequiredArgsConstructor
 public class DefaultUserSettingService implements UserSettingService {
 
+  private final UserStore userStore;
   private final UserSettingStore userSettingStore;
-  private final SystemSettingsProvider settingsProvider;
 
   @Override
   @Transactional
-  public void saveUserSetting(String key, String value) {
-    saveUserSetting(key, value, CurrentUserUtil.getCurrentUserDetails());
+  public UserSettings getSettings(@Nonnull String username) {
+    //Note: this does **not** use transaction template as we always need a TX when this is called
+    return UserSettings.of(userSettingStore.getAllSettings(username));
   }
 
   @Override
   @Transactional
-  public void saveUserSetting(String key, String value, @Nonnull UserDetails user) {
-
-    Long userId = CurrentUserUtil.getCurrentUserDetails().getId();
-    User u = new User();
-    u.setId(userId);
-
-    userSettingStore.save(new UserSetting(user, key, value));
-    UserSetting userSetting = userSettingStore.getUserSetting(user.getUsername(), key.getName());
-
-    if (userSetting == null) {
-      userSetting = ;
-      userSettingStore.addUserSetting(userSetting);
-    } else {
-      userSetting.setValue(value);
-
-      userSettingStore.updateUserSetting(userSetting);
+  public void saveUserSetting(@Nonnull String key, String value) {
+    try {
+      saveUserSetting(key, value, CurrentUserUtil.getCurrentUsername());
+    } catch (NotFoundException ex) {
+      // we know the user exists so this should never happen
+      throw new NoSuchElementException(ex);
     }
   }
 
   @Override
   @Transactional
-  public void saveUserSettings(UserSettingsDto settings, User user) {
-    if (settings == null) {
-      return; // nothing to do
-    }
-    for (UserSettingKey key : UserSettingKey.values()) {
-      Serializable value = key.getGetter().apply(settings);
-      if (value != null) {
-        saveUserSetting(key, value, user);
+  public void saveUserSetting(@Nonnull String key, String value, @Nonnull String username) throws NotFoundException {
+    Map<String, String> map = new HashMap<>(); // needed because of null
+    map.put(key, value);
+    saveUserSettings(map, username);
+  }
+
+  @Override
+  @Transactional
+  public void saveUserSettings(@Nonnull Map<String, String> settings, @Nonnull String username) throws NotFoundException {
+    User user = userStore.getUserByUsername(username);
+    if (user == null) throw new NotFoundException("%s with username %s could not be found.".formatted(User.class.getSimpleName(), username));
+    for (Map.Entry<String, String> e : settings.entrySet()) {
+      String value = e.getValue();
+      UserSetting setting = new UserSetting(user, e.getKey(), value);
+      if (value == null || value.isEmpty()) {
+        userSettingStore.delete(setting);
+      } else {
+        userSettingStore.save(setting);
       }
     }
   }
 
   @Override
   @Transactional
-  public void deleteUserSetting(UserSetting userSetting) {
-    userSettingCache.invalidate(
-        getCacheKey(userSetting.getName(), userSetting.getUser().getUsername()));
-
-    userSettingStore.deleteUserSetting(userSetting);
+  public void deleteAllUserSettings(@Nonnull String username) {
+    userSettingStore.deleteAll(username);
   }
 
-  @Override
-  @Transactional
-  public void deleteUserSetting(UserSettingKey key) {
-    String currentUsername = CurrentUserUtil.getCurrentUsername();
-    UserSetting setting = userSettingStore.getUserSetting(currentUsername, key.getName());
-    if (setting != null) {
-      deleteUserSetting(setting);
-    }
-  }
-
-  @Override
-  @Transactional
-  public void deleteUserSetting(UserSettingKey key, String username) {
-    UserSetting setting = userSettingStore.getUserSetting(username, key.getName());
-
-    if (setting != null) {
-      deleteUserSetting(setting);
-    }
-  }
-
-  /**
-   * Note: No transaction for this method, transaction is instead initiated at the store level
-   * behind the cache to avoid the transaction overhead for cache hits.
-   */
-  @Override
-  @Transactional(readOnly = true)
-  public Serializable getUserSetting(UserSettingKey key) {
-    return getUserSetting(key, Optional.empty()).get();
-  }
-
-  /**
-   * Note: No transaction for this method, transaction is instead initiated at the store level
-   * behind the cache to avoid the transaction overhead for cache hits.
-   */
-  @Override
-  @Transactional(readOnly = true)
-  public Serializable getUserSetting(UserSettingKey key, String username) {
-    return getUserSetting(key, Optional.ofNullable(username)).get();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap(
-      User user, Set<UserSettingKey> userSettingKeys, boolean useFallback) {
-    Map<String, Serializable> result = new HashMap<>();
-    getUserSettings(user).stream()
-        .filter(
-            userSetting ->
-                userSetting != null
-                    && userSetting.getName() != null
-                    && userSetting.getValue() != null)
-        .forEach(userSetting -> result.put(userSetting.getName(), userSetting.getValue()));
-
-    userSettingKeys.forEach(
-        userSettingKey -> {
-          if (!result.containsKey(userSettingKey.getName())) {
-            Optional<SettingKey> systemSettingKey = SettingKey.getByName(userSettingKey.getName());
-
-            if (useFallback && systemSettingKey.isPresent()) {
-              SettingKey setting = systemSettingKey.get();
-              result.put(
-                  userSettingKey.getName(),
-                  settingsProvider.getCurrentSettings().get.getSystemSetting(setting, setting.getClazz()));
-            } else {
-              result.put(userSettingKey.getName(), null);
-            }
-          }
-        });
-
-    return result;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<UserSetting> getUserSettings(User user) {
-    if (user == null) {
-      return new ArrayList<>();
-    }
-
-    List<UserSetting> userSettings = userSettingStore.getAllUserSettings(user.getUsername());
-    Set<UserSetting> defaultUserSettings = UserSettingKey.getDefaultUserSettings(user);
-
-    userSettings.addAll(
-        defaultUserSettings.stream().filter(x -> !userSettings.contains(x)).toList());
-
-    return userSettings;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Map<String, Serializable> getUserSettingsAsMap(User user) {
-    Set<UserSettingKey> userSettingKeys =
-        Stream.of(UserSettingKey.values()).collect(Collectors.toSet());
-
-    return getUserSettingsWithFallbackByUserAsMap(user, userSettingKeys, false);
-  }
-
-  // -------------------------------------------------------------------------
-  // Private methods
-  // -------------------------------------------------------------------------
-
-  /**
-   * Returns a user setting optional. If the user settings does not have a value or default value, a
-   * corresponding system setting will be looked up.
-   *
-   * @param key the user setting key.
-   * @param username an optional {@link String}.
-   * @return an optional user setting value.
-   */
-  private SerializableOptional getUserSetting(UserSettingKey key, Optional<String> username) {
-    if (key == null) {
-      return SerializableOptional.empty();
-    }
-
-    boolean isAuthenticated = CurrentUserUtil.hasCurrentUser();
-    if (username.isEmpty() && !isAuthenticated) {
-      username = Optional.of("system");
-    } else if (username.isEmpty()) {
-      username = Optional.of(CurrentUserUtil.getCurrentUsername());
-    }
-
-    String realUsername = username.get();
-    String cacheKey = getCacheKey(key.getName(), realUsername);
-
-    SerializableOptional result =
-        userSettingCache.get(cacheKey, c -> getUserSettingOptional(key, realUsername));
-
-    if (!result.isPresent() && NAME_SETTING_KEY_MAP.containsKey(key.getName())) {
-      SettingKey settingKey = NAME_SETTING_KEY_MAP.get(key.getName());
-      return SerializableOptional.of(
-          systemSettingManager.getSystemSetting(settingKey, settingKey.getClazz()));
-    } else {
-      return result;
-    }
-  }
-
-  /**
-   * Get user setting optional. If the user setting exists and has a value, the value is returned.
-   * If not, the default value for the key is returned, if not present, an empty optional is
-   * returned. The return object is never null in order to cache requests for system settings which
-   * have no value or default value.
-   *
-   * @param key the user setting key.
-   * @param username the username of the user.
-   * @return an optional user setting value.
-   */
-  private SerializableOptional getUserSettingOptional(UserSettingKey key, String username) {
-    if (username == null) {
-      return SerializableOptional.empty();
-    }
-
-    UserSetting setting = userSettingStore.getUserSettingTx(username, key.getName());
-
-    Serializable value =
-        setting != null && setting.hasValue() ? setting.getValue() : key.getDefaultValue();
-
-    return SerializableOptional.of(value);
-  }
-
-  /**
-   * Returns the cache key for the given setting name and username.
-   *
-   * @param settingName the setting name.
-   * @param username the username.
-   * @return the cache key.
-   */
-  private String getCacheKey(String settingName, String username) {
-    return settingName + DimensionalObject.ITEM_SEP + username;
-  }
 }

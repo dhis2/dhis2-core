@@ -42,8 +42,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.jsontree.JsonMap;
-import org.hisp.dhis.jsontree.JsonPrimitive;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -78,7 +77,7 @@ public class UserSettingController {
   private final UserService userService;
 
   @GetMapping
-  public JsonMap<? extends JsonPrimitive> getAllUserSettings(
+  public UserSettings getAllUserSettings(
       @RequestParam(required = false, defaultValue = "true") boolean useFallback,
       @RequestParam(value = "user", required = false) String username,
       @OpenApi.Param({UID.class, User.class}) @RequestParam(value = "userId", required = false)
@@ -89,8 +88,7 @@ public class UserSettingController {
     response.setHeader(
         ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue());
 
-    UserSettings settings = getUserSettings(userId, username, useFallback);
-    return settings.toJson();
+    return getUserSettings(userId, username, useFallback);
   }
 
   @OpenApi.Response(String.class)
@@ -120,14 +118,16 @@ public class UserSettingController {
           String userId,
       @RequestParam(required = false) String value,
       @RequestBody(required = false) String valuePayload)
-      throws ForbiddenException, ConflictException {
+      throws ForbiddenException, ConflictException, NotFoundException {
 
     String newValue = firstNonNull(value, valuePayload);
 
     if (isEmpty(newValue))
       throw new ConflictException("You need to specify a new value");
 
-    userSettingService.saveUserSetting(key, newValue, getUser(userId, username));
+    if (username == null)
+      username = getUser(userId, username).getUsername();
+    userSettingService.saveUserSetting(key, newValue, username);
 
     return ok("User setting saved");
   }
@@ -137,8 +137,11 @@ public class UserSettingController {
       @PathVariable(value = "key") String key,
       @RequestParam(value = "user", required = false) String username,
       @OpenApi.Param({UID.class, User.class}) @RequestParam(value = "userId", required = false)
-          String userId) throws ForbiddenException, ConflictException {
-    userSettingService.deleteUserSetting(key, getUser(userId, username));
+          String userId)
+      throws ForbiddenException, ConflictException, NotFoundException {
+    if (username == null)
+      username = getUser(userId, username).getUsername();
+    userSettingService.saveUserSetting(key, null, username);
   }
 
   /**
@@ -176,6 +179,6 @@ public class UserSettingController {
     UserDetails user = getUser(userId, username);
     return useFallback
         ? user.getUserSettings()
-        : userSettingService.getSettings(user);
+        : userSettingService.getSettings(user.getUsername());
   }
 }

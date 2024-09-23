@@ -16,7 +16,7 @@ import java.util.Set;
  * @author Jan Bernitt
  * @since 2.42
  */
-public interface Settings {
+public sealed interface Settings permits UserSettings, SystemSettings{
 
   /**
    * Note that this only entails the names that have a defined value in the database. Settings that

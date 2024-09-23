@@ -59,8 +59,6 @@ import static org.hisp.dhis.dataitem.query.shared.StatementUtil.addIlikeReplacin
 import static org.hisp.dhis.feedback.ErrorCode.E2014;
 import static org.hisp.dhis.feedback.ErrorCode.E2016;
 import static org.hisp.dhis.query.operators.TokenUtils.getTokens;
-import static org.hisp.dhis.user.UserSettingKey.DB_LOCALE;
-import static org.hisp.dhis.user.UserSettingKey.UI_LOCALE;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_IN;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DISPLAY_NAME_ILIKE;
@@ -90,6 +88,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataitem.query.QueryableDataItem;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.dataitem.Filter;
@@ -253,8 +252,7 @@ public class FilteringHelper {
   public static void setFilteringParams(
       Set<String> filters, WebOptions options, MapSqlParameterSource paramsMap, User currentUser) {
     Locale currentLocale =
-        ObjectUtils.defaultIfNull(
-            CurrentUserUtil.getUserSetting(DB_LOCALE), CurrentUserUtil.getUserSetting(UI_LOCALE));
+        UserSettings.getCurrentSettings().getUserLocale();
 
     if (currentLocale != null && isNotBlank(currentLocale.getLanguage())) {
       paramsMap.addValue(LOCALE, trimToEmpty(currentLocale.getLanguage()));

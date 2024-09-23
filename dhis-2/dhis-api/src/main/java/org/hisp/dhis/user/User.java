@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -206,7 +207,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
    *
    * <p>It is not initialised when loading a user from the database.
    */
-  private transient UserSettingsDto settings;
+  private transient Map<String, String> settings;
 
   /** User's verified email. */
   private String verifiedEmail;
@@ -629,11 +630,11 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Property(access = Property.Access.WRITE_ONLY)
-  public UserSettingsDto getSettings() {
+  public Map<String, String> getSettings() {
     return settings;
   }
 
-  public void setSettings(UserSettingsDto settings) {
+  public void setSettings(Map<String, String> settings) {
     this.settings = settings;
   }
 

@@ -3,6 +3,8 @@ package org.hisp.dhis.setting;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 
+import javax.annotation.Nonnull;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -25,7 +27,7 @@ import java.util.Map;
  * @author Jan Bernitt
  * @since 2.42
  */
-public interface UserSettings extends Settings {
+public non-sealed interface UserSettings extends Settings {
 
   /**
    * An immutable per thread instance for the current user's settings.
@@ -66,12 +68,36 @@ public interface UserSettings extends Settings {
     CurrentUserSettings.overrideCurrentSettings(settings);
   }
 
-  static UserSettings of(UserSettings base, Map<String, String> settings) {
-    return LazySettings.of(UserSettings.class, base, settings);
-  }
-
   static UserSettings of(Map<String, String> settings) {
     return LazySettings.of(UserSettings.class, settings);
+  }
+
+  /**
+   * Union.
+   *
+   * @param settings entries for the union
+   * @return a new {@link UserSettings} instance with all entries of this instance and the provided settings map
+   */
+  default UserSettings withOverlay(Map<String, String> settings) {
+      Map<String, String> merged = new HashMap<>(toMap());
+      merged.putAll(settings);
+      return UserSettings.of(merged);
+  }
+
+  /**
+   * @param settings fallback entries
+   * @return a new {@link UserSettings} instance with values using fallback if they were not defined
+   */
+  default UserSettings withFallback(Map<String, String> settings) {
+    Map<String, String> original = toMap();
+    Map<String, String> merged = new HashMap<>(original);
+    //FIXME the set of keys iterated here must be all keys of UserSettings
+    for (String key : original.keySet()) {
+      String value = settings.get(key);
+      if (value != null)
+        merged.put(key, value);
+    }
+    return UserSettings.of(merged);
   }
 
   default String getUserStyle() {
@@ -94,6 +120,10 @@ public interface UserSettings extends Settings {
     return asLocale("keyDbLocale", LocaleManager.DEFAULT_LOCALE);
   }
 
+  default Locale getUserLocale() {
+    return keys().contains("keyDbLocale") ? getUserDbLocale() : getUserUiLocale();
+  }
+
   default DisplayProperty getUserAnalysisDisplayProperty() {
     return asEnum("keyAnalysisDisplayProperty", DisplayProperty.NAME);
   }
@@ -101,4 +131,5 @@ public interface UserSettings extends Settings {
   default String getUserTrackerDashboardLayout() {
     return asString("keyTrackerDashboardLayout", "");
   }
+
 }

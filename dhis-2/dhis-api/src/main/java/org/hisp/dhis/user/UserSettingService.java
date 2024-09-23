@@ -27,59 +27,19 @@
  */
 package org.hisp.dhis.user;
 
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.setting.UserSettings;
 
-import java.io.Serializable;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import java.util.Map;
-import java.util.Set;
 
 /**
- * The main interface for working with user settings. Implementation need to get the current user
- * from {@link CurrentUserUtil}.
+ * The main interface for working with user settings.
  *
- * @author Torgeir Lorange Ostby
+ * @author Jan Bernitt
  */
 public interface UserSettingService {
-
-  /**
-   * Saves the key/value pair as a user setting connected to the currently logged in user.
-   *
-   * @param key the user setting key.
-   * @param value the setting value.
-   */
-  void saveUserSetting(String key, String value);
-
-  /**
-   * Saves the name/value pair as a user setting connected to user.
-   *
-   * @param key the user setting key.
-   * @param value the setting value.
-   * @param user the user.
-   */
-  void saveUserSetting(String key, String value, UserDetails user);
-
-  /**
-   * Updates all non-null settings in the {@link UserSettingsDto} collection.
-   *
-   * @param settings settings to store, maybe null
-   * @param user owner/target of the settings
-   */
-  void saveUserSettings(UserSettingsDto settings, UserDetails user);
-
-  /**
-   * Deletes a UserSetting.
-   *
-   * @param key the UserSetting to delete.
-   */
-  void deleteUserSetting(String key);
-
-  /**
-   * Deletes the user setting with the given name for the given user.
-   *
-   * @param key the user setting key.
-   * @param user the user.
-   */
-  void deleteUserSetting(String key, UserDetails user);
 
   /**
    * Note that a user's setting including fallbacks can and should be accessed via {@link
@@ -89,51 +49,43 @@ public interface UserSettingService {
    * <p>This method is just suitable when building composed settings with fallbacks or when fallback
    * explicitly are not wanted, e.g. to make a copy of a user's settings.
    *
-   * @param user the user for whom to fetch settings
-   * @return the user's setting as stored in DB without any fallbacks applied
+   * @param username the user for whom to fetch settings
+   * @return the user's setting as stored in DB **without** any fallbacks applied. If no such user
+   *     exists an empty {@link UserSettings} is returned.
    */
-  UserSettings getSettings(UserDetails user);
+  UserSettings getSettings(@Nonnull String username);
 
   /**
-   * Returns the value of the user setting specified by the given name.
+   * Saves the key/value pair as a user setting for the current user
    *
    * @param key the user setting key.
-   * @return the value corresponding to the named user setting, or null if there is no match.
+   * @param value the setting value, null or empty to delete
    */
-  Serializable getUserSetting(UserSettingKey key);
+  void saveUserSetting(@Nonnull String key, @CheckForNull String value);
 
   /**
-   * Returns the value of the user setting specified by the given name.
+   * Saves the name/value pair as a user setting connected to user.
    *
    * @param key the user setting key.
-   * @param username the user.
-   * @return the value corresponding to the named user setting, or null if there is no match.
+   * @param value the setting value, null or empty to delete
+   * @param username owner/target of the settings update
    */
-  Serializable getUserSetting(UserSettingKey key, String username);
+  void saveUserSetting(@Nonnull String key, @CheckForNull String value, @Nonnull String username) throws NotFoundException;
 
   /**
-   * Retrieves UserSettings for the given User.
+   * Updates all settings in the provided collection.
    *
-   * @param user the User.
-   * @return a List of UserSettings.
+   * @param settings settings to store, null or empty values are deleted
+   * @param username owner/target of the settings update
    */
-  UserSettingsDto getUserSettings(String username);
+  void saveUserSettings(@Nonnull Map<String, String> settings, @Nonnull String username) throws NotFoundException;
 
   /**
-   * Returns all specified user settings. If any user settings have not been set, system settings
-   * will be used as a fallback.
+   * Deletes all settings of a user.
+   * If no such user exists this has no effect.
    *
-   * @param userSettingKeys the set of user settings to retrieve
-   * @return a map of setting names and their values
+   * @param username owner/target of the settings deletion
    */
-  Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap(
-      User user, Set<UserSettingKey> userSettingKeys, boolean useFallback);
+  void deleteAllUserSettings(@Nonnull String username);
 
-  /**
-   * Returns all user settings for currently logged in user. Setting will not be included in map if
-   * its value is null.
-   *
-   * @return a map of setting names and their values
-   */
-  Map<String, Serializable> getUserSettingsAsMap(User user);
 }

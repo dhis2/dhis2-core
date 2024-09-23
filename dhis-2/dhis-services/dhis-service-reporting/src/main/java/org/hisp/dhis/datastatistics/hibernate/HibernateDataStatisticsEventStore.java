@@ -45,8 +45,7 @@ import org.hisp.dhis.datastatistics.DataStatisticsEventType;
 import org.hisp.dhis.datastatistics.FavoriteStatistics;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.setting.UserSettings;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
@@ -62,21 +61,16 @@ public class HibernateDataStatisticsEventStore extends HibernateGenericStore<Dat
     implements DataStatisticsEventStore {
 
   private final SystemSettingsProvider settingsProvider;
-  private final UserSettingService userSettingService;
 
   public HibernateDataStatisticsEventStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      SystemSettingsProvider settingsProvider,
-      UserSettingService userSettingService) {
+      SystemSettingsProvider settingsProvider) {
     super(entityManager, jdbcTemplate, publisher, DataStatisticsEvent.class, false);
 
     checkNotNull(settingsProvider);
-    checkNotNull(userSettingService);
-
     this.settingsProvider = settingsProvider;
-    this.userSettingService = userSettingService;
   }
 
   @Override
@@ -137,11 +131,7 @@ public class HibernateDataStatisticsEventStore extends HibernateGenericStore<Dat
     Assert.notNull(eventType, "Data statistics event type cannot be null");
     Assert.notNull(sortOrder, "Sort order cannot be null");
 
-    final Locale currentLocale =
-        (Locale)
-            defaultIfNull(
-                userSettingService.getUserSetting(UserSettingKey.DB_LOCALE),
-                userSettingService.getUserSetting(UserSettingKey.UI_LOCALE));
+    Locale currentLocale = UserSettings.getCurrentSettings().getUserLocale();
 
     String sql =
         "select c.uid, views, (case when value is not null then value else c.name end) as name, c.created"
