@@ -38,7 +38,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodTypePopulator;
 import org.hisp.dhis.scheduling.JobScheduler;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.startup.ConfigurationPopulator;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
 import org.hisp.dhis.startup.I18nLocalePopulator;
@@ -107,7 +107,7 @@ public class StartupConfig {
   }
 
   @Bean("org.hisp.dhis.startup.SettingUpgrader")
-  public SettingUpgrader settingUpgrader(SystemSettingManager settingManager) {
+  public SettingUpgrader settingUpgrader(SystemSettingsService settingManager) {
     SettingUpgrader upgrader = new SettingUpgrader(settingManager);
     upgrader.setRunlevel(14);
     upgrader.setName("SettingUpgrader");

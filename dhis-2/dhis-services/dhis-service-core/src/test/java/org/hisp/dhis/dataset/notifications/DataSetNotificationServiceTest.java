@@ -69,7 +69,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.UserSettingService;
 import org.junit.jupiter.api.BeforeEach;
@@ -133,7 +133,7 @@ class DataSetNotificationServiceTest extends TestBase {
 
   @Mock private UserSettingService userSettingService;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsService systemSettingsService;
 
   @Mock private DhisConfigurationProvider configurationProvider;
 

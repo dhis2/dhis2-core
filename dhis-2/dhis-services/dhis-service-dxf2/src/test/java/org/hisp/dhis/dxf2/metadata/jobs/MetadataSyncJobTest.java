@@ -42,7 +42,7 @@ import org.hisp.dhis.scheduling.JobProgress.Status;
 import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.RecordingJobProgress;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.user.SystemUser;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -54,7 +54,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class MetadataSyncJobTest {
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsService systemSettingsService;
   @Mock private MetadataVersionService metadataVersionService;
   @Mock private MetadataVersionDelegate metadataVersionDelegate;
 
@@ -76,7 +76,7 @@ class MetadataSyncJobTest {
     RecordingJobProgress jobProgress = new RecordingJobProgress(config);
 
     MetadataSyncPreProcessor preProcessor =
-        new MetadataSyncPreProcessor(systemSettingManager, null, null, null, null);
+        new MetadataSyncPreProcessor(systemSettingsService, null, null, null, null);
 
     // when
     preProcessor.setUp(null, jobProgress);
@@ -99,7 +99,7 @@ class MetadataSyncJobTest {
 
     MetadataSyncPreProcessor preProcessor =
         new MetadataSyncPreProcessor(
-            systemSettingManager, metadataVersionService, metadataVersionDelegate, null, null);
+            systemSettingsService, metadataVersionService, metadataVersionDelegate, null, null);
 
     MetadataVersion mdVersion = new MetadataVersion("test", VersionType.BEST_EFFORT);
     when(metadataVersionService.getCurrentVersion()).thenReturn(mdVersion);
@@ -125,7 +125,7 @@ class MetadataSyncJobTest {
 
     MetadataSyncPreProcessor preProcessor =
         new MetadataSyncPreProcessor(
-            systemSettingManager, metadataVersionService, metadataVersionDelegate, null, null);
+            systemSettingsService, metadataVersionService, metadataVersionDelegate, null, null);
 
     MetadataVersion mdVersion = new MetadataVersion("test", VersionType.BEST_EFFORT);
     when(metadataVersionDelegate.getMetaDataDifference(mdVersion)).thenReturn(List.of());

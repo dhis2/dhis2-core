@@ -43,8 +43,6 @@ import static org.hisp.dhis.common.cache.CacheStrategy.NO_CACHE;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.common.cache.Cacheability.PRIVATE;
 import static org.hisp.dhis.common.cache.Cacheability.PUBLIC;
-import static org.hisp.dhis.setting.SettingKey.CACHEABILITY;
-import static org.hisp.dhis.setting.SettingKey.CACHE_STRATEGY;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.CacheControl.maxAge;

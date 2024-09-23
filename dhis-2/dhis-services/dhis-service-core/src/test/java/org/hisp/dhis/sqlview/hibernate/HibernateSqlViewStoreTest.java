@@ -36,7 +36,7 @@ import static org.mockito.Mockito.verify;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,7 +54,8 @@ class HibernateSqlViewStoreTest {
   @Mock JdbcTemplate readOnlyJdbcTemplate;
   @Mock ApplicationEventPublisher publisher;
   @Mock AclService aclService;
-  @Mock SystemSettingManager systemSettingManager;
+  @Mock
+  SystemSettingsService systemSettingsService;
   @Mock Grid grid;
   HibernateSqlViewStore store;
 
@@ -67,7 +68,7 @@ class HibernateSqlViewStoreTest {
             publisher,
             aclService,
             readOnlyJdbcTemplate,
-            systemSettingManager);
+            systemSettingsService);
   }
 
   @Test

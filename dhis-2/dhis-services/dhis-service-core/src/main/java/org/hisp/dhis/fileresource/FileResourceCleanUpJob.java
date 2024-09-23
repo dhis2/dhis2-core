@@ -41,7 +41,6 @@ import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.stereotype.Component;
 

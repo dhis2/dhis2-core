@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -47,8 +48,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.security.PasswordManager;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.message.FakeMessageSender;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
@@ -71,7 +71,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private FakeMessageSender messageSender;
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService systemSettingsService;
   @Autowired private PasswordManager passwordEncoder;
   @Autowired private DhisConfigurationProvider configurationProvider;
 
@@ -93,7 +93,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   @DisplayName("Happy path for forgot password with username as input")
   void testResetPasswordOkUsername() {
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    systemSettingsService.saveSystemSetting("keyAccountRecovery", "true");
     User user = switchToNewUser("testA");
     clearSecurityContext();
     sendForgotPasswordRequest(user.getUsername());
@@ -103,7 +103,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   @DisplayName("Happy path for forgot password with email as input")
   void testResetPasswordOkEmail() {
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    systemSettingsService.saveSystemSetting("keyAccountRecovery", "true");
     User user = switchToNewUser("testB");
     clearSecurityContext();
     sendForgotPasswordRequest(user.getEmail());
@@ -114,7 +114,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @DisplayName(
       "Send wrong/non-existent email, should return OK to avoid email enumeration and not send any email")
   void testResetPasswordWrongEmail() {
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    systemSettingsService.saveSystemSetting("keyAccountRecovery", "true");
     clearSecurityContext();
     sendForgotPasswordRequest("wrong@email.com");
     assertTrue(messageSender.getAllMessages().isEmpty());
@@ -124,7 +124,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @DisplayName(
       "Send wrong/non-existent username, should return OK to avoid username enumeration and not send any email")
   void testResetPasswordWrongUsername() {
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    systemSettingsService.saveSystemSetting("keyAccountRecovery", "true");
     clearSecurityContext();
     sendForgotPasswordRequest("wrong");
     List<OutboundMessage> allMessages = messageSender.getAllMessages();
@@ -135,7 +135,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @DisplayName(
       "Send non-unique email, should return OK to avoid username enumeration and not send any email")
   void testResetPasswordNonUniqueEmail() {
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    systemSettingsService.saveSystemSetting("keyAccountRecovery", "true");
 
     switchToAdminUser();
     User userA = createUserWithAuth("userA");
@@ -153,7 +153,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @DisplayName(
       "Try to reset password for external auth user, should return OK to avoid username enumeration and not send any email")
   void testResetPasswordExternalAuthUser() {
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    systemSettingsService.saveSystemSetting("keyAccountRecovery", "true");
     clearSecurityContext();
     User user = switchToNewUser("testC");
     user.setExternalAuth(true);
@@ -167,7 +167,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testResetPasswordNoBaseUrl() {
     configurationProvider.getProperties().put(ConfigurationKey.SERVER_BASE_URL.getKey(), "");
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    systemSettingsService.saveSystemSetting("keyAccountRecovery", "true");
     clearSecurityContext();
     POST("/auth/forgotPassword", "{'emailOrUsername':'%s'}".formatted("userA"))
         .content(HttpStatus.CONFLICT);
@@ -413,8 +413,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   @DisplayName("Self registration error when recaptcha enabled and null input")
   void selfRegRecaptcha() {
-    systemSettingManager.saveSystemSetting(
-        SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.FALSE);
+    systemSettingsService.saveSystemSetting("keySelfRegistrationNoRecaptcha", "false");
 
     assertWebMessage(
         "Bad Request",
@@ -542,8 +541,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   @DisplayName("Invite registration error when recaptcha enabled and null input")
   void inviteRegRecaptcha() {
-    systemSettingManager.saveSystemSetting(
-        SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.FALSE);
+    systemSettingsService.saveSystemSetting("keySelfRegistrationNoRecaptcha", "false");
 
     assertWebMessage(
         "Bad Request",
@@ -569,7 +567,8 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   private void disableRecaptcha() {
-    systemSettingManager.saveSystemSetting(SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.TRUE);
+    systemSettingsService.saveSystemSetting("keySelfRegistrationNoRecaptcha", "true");
+
   }
 
   private static Stream<Arguments> passwordData() {

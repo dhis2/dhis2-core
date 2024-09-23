@@ -37,6 +37,8 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1310;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -52,8 +54,7 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -78,7 +79,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
 
   @Autowired private ProgramRuleVariableService programRuleVariableService;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService systemSettingsService;
 
   private Program program;
 
@@ -199,7 +200,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
       shouldImportWithWarningWhenDataElementWithDifferentValueIsAssignedByAssignRuleAndOverwriteKeyIsTrue()
           throws IOException {
     assignProgramRule();
-    systemSettingManager.saveSystemSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE, true);
+    systemSettingsService.saveSystemSetting("ruleEngineAssignOverwrite", "true");
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
         fromJson("tracker/programrule/event_update_datavalue_different_value.json");
@@ -215,7 +216,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
       shouldImportWithWarningWhenDataElementWithDifferentAndEmptyValueIsAssignedByAssignRuleAndOverwriteKeyIsTrue()
           throws IOException {
     assignProgramRule();
-    systemSettingManager.saveSystemSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE, true);
+    systemSettingsService.saveSystemSetting("ruleEngineAssignOverwrite", "true");
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
         fromJson("tracker/programrule/event_update_datavalue_empty_value.json");

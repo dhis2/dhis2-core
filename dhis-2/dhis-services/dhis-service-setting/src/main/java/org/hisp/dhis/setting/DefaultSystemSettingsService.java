@@ -31,9 +31,12 @@ import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionTyp
 import static org.hisp.dhis.setting.SystemSettings.isConfidential;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +48,6 @@ import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.SystemUser;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -69,7 +71,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DefaultSystemSettingManager implements SystemSettingManager {
+public class DefaultSystemSettingsService implements SystemSettingsService {
 
   /**
    * The namespace used to store settings translations in the datastore.
@@ -129,7 +131,13 @@ public class DefaultSystemSettingManager implements SystemSettingManager {
 
   @Override
   @Transactional
-  public void saveSystemSettings(Map<String, String> settings) {
+  public void saveSystemSetting(@Nonnull String key, @CheckForNull String value) {
+    saveSystemSettings(mapOf(key, value));
+  }
+
+  @Override
+  @Transactional
+  public void saveSystemSettings(@Nonnull Map<String, String> settings) {
     if (settings.isEmpty()) return;
     for (Map.Entry<String, String> e : settings.entrySet()) {
       String name = e.getKey();
@@ -147,14 +155,14 @@ public class DefaultSystemSettingManager implements SystemSettingManager {
 
   @Override
   @Transactional
-  public void deleteSystemSettings(Set<String> names) {
+  public void deleteSystemSettings(@Nonnull Set<String> names) {
     if (systemSettingStore.delete(names) > 0)
       allSettings = null; // invalidate
   }
 
   @Override
   @Transactional
-  public void saveSystemSettingTranslation(String key, String locale, String translation) throws ForbiddenException, BadRequestException {
+  public void saveSystemSettingTranslation(@Nonnull String key, @Nonnull String locale, String translation) throws ForbiddenException, BadRequestException {
     String datastoreKey = getDatastoreKey(key, locale);
     if (translation == null || translation.isEmpty()) {
       datastore.deleteEntry(new DatastoreEntry(NS, datastoreKey), getCurrentUserDetails());
@@ -166,7 +174,7 @@ public class DefaultSystemSettingManager implements SystemSettingManager {
 
   @Override
   @Transactional(readOnly = true)
-  public Optional<String> getSystemSettingTranslation(String key, String locale)  {
+  public Optional<String> getSystemSettingTranslation(@Nonnull String key, @Nonnull String locale)  {
     DatastoreEntry entry = null;
     try {
       entry = datastore.getEntry(NS, getDatastoreKey(key, locale), new SystemUser());
@@ -185,5 +193,12 @@ public class DefaultSystemSettingManager implements SystemSettingManager {
    */
   private static String getDatastoreKey(String key, String locale) {
     return key+":"+locale;
+  }
+
+  private static Map<String, String> mapOf(@Nonnull String key, @CheckForNull String value) {
+    if (value != null) return Map.of(key, value);
+    Map<String, String> map = new HashMap<>(); // needed because of null
+    map.put(key, null);
+    return map;
   }
 }

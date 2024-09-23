@@ -42,6 +42,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -62,8 +63,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -94,7 +94,7 @@ class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTest
 
   @Autowired protected IdentifiableObjectManager identifiableObjectManager;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService systemSettingsService;
 
   @Autowired protected UserGroupService userGroupService;
 
@@ -624,14 +624,16 @@ class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTest
     dataSetService.addDataSet(dataSetB);
 
     // System settings
-    systemSettingManager.saveSystemSetting(SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD, 0);
-    systemSettingManager.saveSystemSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, true);
+    systemSettingsService.saveSystemSettings(
+        Map.ofEntries(
+            Map.entry("keyIgnoreAnalyticsApprovalYearThreshold", "0"),
+            Map.entry("keyAcceptanceRequiredForApproval", "true")));
   }
 
   @AfterEach
   void tearDown() {
-    systemSettingManager.saveSystemSetting(SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD, -1);
-    systemSettingManager.saveSystemSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, false);
+    systemSettingsService.deleteSystemSettings(
+        Set.of("keyIgnoreAnalyticsApprovalYearThreshold", "keyAcceptanceRequiredForApproval"));
     DataApprovalPermissionsEvaluator.invalidateCache();
   }
 

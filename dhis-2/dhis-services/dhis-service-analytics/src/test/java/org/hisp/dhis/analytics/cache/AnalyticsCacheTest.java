@@ -42,7 +42,7 @@ import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,14 +55,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class AnalyticsCacheTest {
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsService systemSettingsService;
 
   @Mock private DefaultCacheProvider cacheProvider;
 
   @Test
   void returnSameObjectAfterModifyCachedObject() {
     // arrange
-    AnalyticsCacheSettings settings = new AnalyticsCacheSettings(systemSettingManager);
+    AnalyticsCacheSettings settings = new AnalyticsCacheSettings(systemSettingsService);
 
     CacheBuilder<Grid> cacheBuilder = new SimpleCacheBuilder<>();
 

@@ -69,7 +69,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingService;
@@ -119,7 +119,7 @@ class DataQueryServiceDimensionItemKeywordTest {
 
   @Mock private UserSettingService userSettingService;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsService systemSettingsService;
 
   @Mock private AclService aclService;
 
@@ -133,7 +133,7 @@ class DataQueryServiceDimensionItemKeywordTest {
         new DimensionalObjectProducer(
             idObjectManager,
             organisationUnitService,
-            systemSettingManager,
+            systemSettingsService,
             i18nManager,
             dimensionService,
             aclService);

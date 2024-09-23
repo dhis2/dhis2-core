@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -159,12 +159,12 @@ class SystemSettingControllerTest extends H2ControllerIntegrationTestBase {
     assertStatus(HttpStatus.OK, POST("/systemSettings/keyUiLocale?value=de"));
     JsonObject setting = GET("/systemSettings").content(HttpStatus.OK);
     assertTrue(setting.isObject());
-    stream(SettingKey.values())
-        .filter(key -> !key.isConfidential() && key.getDefaultValue() != null)
-        .forEach(key -> assertTrue(setting.get(key.getName()).exists(), key.getName()));
-    stream(SettingKey.values())
-        .filter(SettingKey::isConfidential)
-        .forEach(key -> assertFalse(setting.get(key.getName()).exists(), key.getName()));
+    SystemSettings.keysWithDefaults().stream()
+        .filter(key -> !SystemSettings.isConfidential(key))
+        .forEach(key -> assertTrue(setting.get(key).exists(), "expected "+key));
+    SystemSettings.keysWithDefaults().stream()
+        .filter(SystemSettings::isConfidential)
+        .forEach(key -> assertFalse(setting.get(key).exists(), key+" is confidential and should not be exposed"));
   }
 
   @Test

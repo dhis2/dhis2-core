@@ -56,15 +56,9 @@ class SystemSettingStoreTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
-    settingA = new SystemSetting();
-    settingA.setName("Setting1");
-    settingA.setDisplayValue("Value1");
-    settingB = new SystemSetting();
-    settingB.setName("Setting2");
-    settingB.setDisplayValue("Value2");
-    settingC = new SystemSetting();
-    settingC.setName("Setting3");
-    settingC.setDisplayValue("Value3");
+    settingA = new SystemSetting("Setting1", "Value1");
+    settingB = new SystemSetting("Setting2", "Value2");
+    settingC = new SystemSetting("Setting3", "Value3");
   }
 
   @Test
@@ -76,13 +70,12 @@ class SystemSettingStoreTest extends PostgresIntegrationTestBase {
     settingA = systemSettingStore.get(idA);
     assertNotNull(settingA);
     assertEquals("Setting1", settingA.getName());
-    assertEquals("Value1", settingA.getDisplayValue());
-    settingA.setDisplayValue("Value1.1");
-    systemSettingStore.update(settingA);
+    assertEquals("Value1", settingA.getValue());
+    systemSettingStore.save(new SystemSetting(settingA.getName(), "Value1.1"));
     settingA = systemSettingStore.get(idA);
     assertNotNull(settingA);
     assertEquals("Setting1", settingA.getName());
-    assertEquals("Value1.1", settingA.getDisplayValue());
+    assertEquals("Value1.1", settingA.getValue());
   }
 
   @Test
@@ -90,11 +83,10 @@ class SystemSettingStoreTest extends PostgresIntegrationTestBase {
     systemSettingStore.save(settingA);
     long id = settingA.getId();
     settingA = systemSettingStore.get(id);
-    assertEquals("Value1", settingA.getDisplayValue());
-    settingA.setDisplayValue("Value2");
-    systemSettingStore.update(settingA);
+    assertEquals("Value1", settingA.getValue());
+    systemSettingStore.save(new SystemSetting(settingA.getName(), "Value2"));
     settingA = systemSettingStore.get(id);
-    assertEquals("Value2", settingA.getDisplayValue());
+    assertEquals("Value2", settingA.getValue());
   }
 
   @Test

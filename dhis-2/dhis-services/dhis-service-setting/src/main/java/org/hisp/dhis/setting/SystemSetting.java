@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.setting;
 
+import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

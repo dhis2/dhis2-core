@@ -58,7 +58,7 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -100,7 +100,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
             idObjectManager,
             mock(OrganisationUnitService.class),
             mock(CategoryService.class),
-            mock(SystemSettingManager.class),
+            mock(SystemSettingsService.class),
             mock(DataApprovalLevelService.class),
             mock(ResourceTableService.class),
             mock(AnalyticsTableHookService.class),

@@ -41,8 +41,7 @@ import org.hisp.dhis.security.LoginPageLayout;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.oidc.provider.GoogleProvider;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
@@ -56,7 +55,8 @@ import org.springframework.web.util.HtmlUtils;
  */
 class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
 
-  @Autowired SystemSettingManager systemSettingManager;
+  @Autowired
+  SystemSettingsService systemSettingsService;
   @Autowired SystemService systemService;
   @Autowired DhisOidcProviderRepository dhisOidcProviderRepository;
 
@@ -73,35 +73,35 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
 
     addGoogleProvider("testClientId");
 
-    systemSettingManager.saveSystemSettings(Map.of("applicationTitle", "DHIS2"));
-    systemSettingManager.saveSystemSettingTranslation(
+    systemSettingsService.saveSystemSetting("applicationTitle", "DHIS2");
+    systemSettingsService.saveSystemSettingTranslation(
         "applicationTitle", "no", "Distrikstshelsesinformasjonssystem versjon 2");
 
-    systemSettingManager.saveSystemSettings(Map.of("loginPopup", "<html>TEXT</html>"));
-    systemSettingManager.saveSystemSettingTranslation(
+    systemSettingsService.saveSystemSetting("loginPopup", "<html>TEXT</html>");
+    systemSettingsService.saveSystemSettingTranslation(
         "loginPopup", "no", "<html>tekst</html>");
 
-    systemSettingManager.saveSystemSettings(Map.of("keyApplicationFooter", "APPLICATION_FOOTER"));
-    systemSettingManager.saveSystemSettingTranslation(
+    systemSettingsService.saveSystemSetting("keyApplicationFooter", "APPLICATION_FOOTER");
+    systemSettingsService.saveSystemSettingTranslation(
         "keyApplicationFooter", "no", "Søknadsbunntekst");
 
-    systemSettingManager.saveSystemSettings(Map.of(
-        "keyApplicationRightFooter", "APPLICATION_RIGHT_FOOTER"));
-    systemSettingManager.saveSystemSettingTranslation(
+    systemSettingsService.saveSystemSetting(
+        "keyApplicationRightFooter", "APPLICATION_RIGHT_FOOTER");
+    systemSettingsService.saveSystemSettingTranslation(
         "keyApplicationRightFooter", "no", "Høyre søknadsbunntekst");
 
-    systemSettingManager.saveSystemSettings(Map.of("keyApplicationIntro", "APPLICATION_INTRO"));
-    systemSettingManager.saveSystemSettingTranslation(
+    systemSettingsService.saveSystemSetting("keyApplicationIntro", "APPLICATION_INTRO");
+    systemSettingsService.saveSystemSettingTranslation(
         "keyApplicationIntro", "no", "Søknadsintroduksjon");
 
-    systemSettingManager.saveSystemSettings(Map.of(
-        "keyApplicationNotification", "APPLICATION_NOTIFICATION"));
-    systemSettingManager.saveSystemSettingTranslation(
+    systemSettingsService.saveSystemSetting(
+        "keyApplicationNotification", "APPLICATION_NOTIFICATION");
+    systemSettingsService.saveSystemSettingTranslation(
         "keyApplicationNotification", "no", "Søknadsmelding");
 
-    systemSettingManager.saveSystemSettings(Map.of("keyFlag", "FLAG_IMAGE"));
-    systemSettingManager.saveSystemSettings(Map.of("keyUseCustomLogoFront", "true"));
-    systemSettingManager.saveSystemSettings(Map.of("keyCustomTopMenuLogo", "true"));
+    systemSettingsService.saveSystemSetting("keyFlag", "FLAG_IMAGE");
+    systemSettingsService.saveSystemSetting("keyUseCustomLogoFront", "true");
+    systemSettingsService.saveSystemSetting("keyCustomTopMenuLogo", "true");
 
     JsonObject responseDefaultLocale = GET("/loginConfig").content();
     JsonObject responseNorwegianLocale = GET("/loginConfig?locale=no").content();
@@ -194,13 +194,14 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void testRecaptchaSite() {
     JsonObject response = GET("/loginConfig").content();
+    //FIXME?? encoding of defaults?
     assertEquals(
-        SettingKey.RECAPTCHA_SITE.getDefaultValue(),
-        response.getString(SettingKey.RECAPTCHA_SITE.getName()).string());
-    POST("/systemSettings/" + SettingKey.RECAPTCHA_SITE.getName(), "test_recaptcha_stie")
+        "6LcVwT0UAAAAAAkO_EGPiYOiymIszZUeHfqWIYX5",
+        response.getString("recaptchaSite").string());
+    POST("/systemSettings/recaptchaSite", "test_recaptcha_stie")
         .content(HttpStatus.OK);
     response = GET("/loginConfig").content();
     assertEquals(
-        "test_recaptcha_stie", response.getString(SettingKey.RECAPTCHA_SITE.getName()).string());
+        "test_recaptcha_stie", response.getString("recaptchaSite").string());
   }
 }

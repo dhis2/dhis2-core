@@ -39,7 +39,7 @@ import org.hisp.dhis.security.LoginConfigResponse;
 import org.hisp.dhis.security.LoginOidcProvider;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.webapi.controller.Server;
@@ -59,7 +59,7 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class LoginConfigController {
 
-  private final SystemSettingManager settingManager;
+  private final SystemSettingsService settingManager;
   private final ConfigurationService configurationService;
   private final SystemService systemService;
   private final DhisOidcProviderRepository oidcProviderRepository;

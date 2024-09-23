@@ -52,8 +52,8 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.test.TestBase;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -88,7 +88,8 @@ class EventQueryValidatorTest extends TestBase {
 
   private OptionSet osA;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsProvider settingsProvider;
+  @Mock private SystemSettings settings;
 
   @Mock private QueryValidator queryValidator;
 
@@ -112,6 +113,8 @@ class EventQueryValidatorTest extends TestBase {
     lsA = createLegendSet('A');
 
     osA = new OptionSet("OptionSetA", ValueType.TEXT);
+
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
   }
 
   @Test
@@ -389,7 +392,7 @@ class EventQueryValidatorTest extends TestBase {
 
   @Test
   void validateErrorMaxLimit() {
-    when(systemSettingManager.getIntSetting(SettingKey.ANALYTICS_MAX_LIMIT)).thenReturn(100);
+    when(settings.getAnalyticsMaxLimit()).thenReturn(100);
 
     EventQueryParams params =
         new EventQueryParams.Builder()

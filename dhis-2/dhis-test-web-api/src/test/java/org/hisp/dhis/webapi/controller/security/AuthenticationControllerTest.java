@@ -34,8 +34,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Calendar;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import java.util.Map;
+
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.AuthenticationApiTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonLoginResponse;
@@ -54,7 +55,8 @@ import org.springframework.security.core.session.SessionRegistry;
  */
 class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
-  @Autowired SystemSettingManager systemSettingManager;
+  @Autowired
+  SystemSettingsService systemSettingsService;
   @Autowired private SessionRegistry sessionRegistry;
 
   @Test
@@ -126,7 +128,7 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
   @Test
   void testLoginWithLockedUser() {
-    systemSettingManager.saveSystemSetting(SettingKey.LOCK_MULTIPLE_FAILED_LOGINS, true);
+    systemSettingsService.saveSystemSetting("keyLockMultipleFailedLogins", "true");
 
     User admin = userService.getUserByUsername("admin");
     userService.updateUser(admin);
@@ -162,7 +164,7 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
   @Test
   void testLoginWithCredentialsExpiredUser() {
-    systemSettingManager.saveSystemSetting(SettingKey.CREDENTIALS_EXPIRES, 1);
+    systemSettingsService.saveSystemSetting("credentialsExpires", "1");
 
     User admin = userService.getUserByUsername("admin");
 

@@ -55,8 +55,7 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.message.FakeMessageSender;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
@@ -88,7 +87,7 @@ import org.springframework.security.core.session.SessionRegistry;
 class UserControllerTest extends H2ControllerIntegrationTestBase {
   @Autowired private FakeMessageSender messageSender;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService systemSettingsService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -278,7 +277,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testUpdateRolesWithNoAllAndCanAssignRoles() {
 
-    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
+    systemSettingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", "true");
 
     JsonImportSummary response = updateRolesNonAllAdmin();
 
@@ -297,7 +296,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testUpdateRolesWithNoAllAndNoCanAssignRoles() {
 
-    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.FALSE);
+    systemSettingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", "false");
 
     JsonImportSummary response = updateRolesNonAllAdmin();
 
@@ -395,7 +394,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testChangeOrgUnitLevelGivesAccessError() {
-    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
+    systemSettingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", "true");
 
     OrganisationUnit orgA = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(orgA);
@@ -436,7 +435,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void updateUserHasAccessToUpdateGroups() {
-    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
+    systemSettingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", "true");
 
     UserRole roleB = createUserRole("ROLE_B", "F_USER_ADD", "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS");
     userService.addUserRole(roleB);

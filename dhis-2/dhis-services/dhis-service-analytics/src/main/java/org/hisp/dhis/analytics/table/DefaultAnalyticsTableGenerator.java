@@ -48,7 +48,7 @@ import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.cache.OutliersCache;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.stereotype.Service;
 
@@ -63,7 +63,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
   private final ResourceTableService resourceTableService;
 
-  private final SystemSettingManager settingManager;
+  private final SystemSettingsService settingManager;
 
   private final AnalyticsCache analyticsCache;
 
@@ -159,6 +159,6 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
     resourceTableService.createAllSqlViews(progress);
 
-    settingManager.saveSystemSettings(Map.of("keyLastSuccessfulResourceTablesUpdate", new Date().toString()));
+    settingManager.saveSystemSetting("keyLastSuccessfulResourceTablesUpdate", new Date().toString());
   }
 }

@@ -41,6 +41,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 /**
@@ -77,10 +78,8 @@ public class DefaultUserSettingService implements UserSettingService {
 
   @Override
   @Transactional
-  public void saveUserSetting(@Nonnull String key, String value, @Nonnull String username) throws NotFoundException {
-    Map<String, String> map = new HashMap<>(); // needed because of null
-    map.put(key, value);
-    saveUserSettings(map, username);
+  public void saveUserSetting(@Nonnull String key,  @CheckForNull String value, @Nonnull String username) throws NotFoundException {
+    saveUserSettings(mapOf(key, value), username);
   }
 
   @Override
@@ -105,4 +104,10 @@ public class DefaultUserSettingService implements UserSettingService {
     userSettingStore.deleteAll(username);
   }
 
+  private static Map<String, String> mapOf(@Nonnull String key, @CheckForNull String value) {
+    if (value != null) return Map.of(key, value);
+    Map<String, String> map = new HashMap<>(); // needed because of null
+    map.put(key, null);
+    return map;
+  }
 }

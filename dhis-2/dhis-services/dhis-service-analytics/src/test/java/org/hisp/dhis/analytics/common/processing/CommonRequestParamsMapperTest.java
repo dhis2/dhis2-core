@@ -66,7 +66,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -75,7 +75,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /** Unit tests for {@link CommonRequestParamsParser}. */
 @ExtendWith(MockitoExtension.class)
 class CommonRequestParamsMapperTest {
-  @Mock SystemSettingManager systemSettingManager;
+  @Mock
+  SystemSettingsService systemSettingsService;
 
   @Mock private DataQueryService dataQueryService;
 
@@ -140,7 +141,7 @@ class CommonRequestParamsMapperTest {
     // When
     CommonParsedParams params =
         new CommonRequestParamsParser(
-                systemSettingManager,
+            systemSettingsService,
                 dataQueryService,
                 eventDataQueryService,
                 programService,
@@ -240,7 +241,7 @@ class CommonRequestParamsMapperTest {
     // When
     CommonParsedParams params =
         new CommonRequestParamsParser(
-                systemSettingManager,
+            systemSettingsService,
                 dataQueryService,
                 eventDataQueryService,
                 programService,
@@ -364,7 +365,7 @@ class CommonRequestParamsMapperTest {
     // When
     CommonParsedParams params =
         new CommonRequestParamsParser(
-                systemSettingManager,
+            systemSettingsService,
                 dataQueryService,
                 eventDataQueryService,
                 programService,
@@ -420,7 +421,7 @@ class CommonRequestParamsMapperTest {
 
     CommonRequestParamsParser commonRequestParamsParser =
         new CommonRequestParamsParser(
-            systemSettingManager,
+            systemSettingsService,
             dataQueryService,
             eventDataQueryService,
             programService,
@@ -506,7 +507,7 @@ class CommonRequestParamsMapperTest {
     // When
     CommonParsedParams params =
         new CommonRequestParamsParser(
-                systemSettingManager,
+            systemSettingsService,
                 dataQueryService,
                 eventDataQueryService,
                 programService,
@@ -565,7 +566,7 @@ class CommonRequestParamsMapperTest {
 
     CommonRequestParamsParser commonRequestParamsParser =
         new CommonRequestParamsParser(
-            systemSettingManager,
+            systemSettingsService,
             dataQueryService,
             eventDataQueryService,
             programService,
@@ -667,7 +668,7 @@ class CommonRequestParamsMapperTest {
     // When
     CommonParsedParams params =
         new CommonRequestParamsParser(
-                systemSettingManager,
+            systemSettingsService,
                 dataQueryService,
                 eventDataQueryService,
                 programService,

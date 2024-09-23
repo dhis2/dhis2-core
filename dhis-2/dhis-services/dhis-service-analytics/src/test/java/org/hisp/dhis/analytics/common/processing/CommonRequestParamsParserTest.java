@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -43,11 +42,14 @@ import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class CommonRequestParamsParserTest {
-  private SystemSettingManager systemSettingManager = mock(SystemSettingManager.class);
+  private SystemSettingsProvider settingsProvider = mock(SystemSettingsProvider.class);
+  private SystemSettings settings = mock(SystemSettings.class);
 
   private DataQueryService dataQueryService = mock(DataQueryService.class);
 
@@ -60,15 +62,20 @@ class CommonRequestParamsParserTest {
 
   private final CommonRequestParamsParser commonRequestParamsParser =
       new CommonRequestParamsParser(
-          systemSettingManager,
+          settingsProvider,
           dataQueryService,
           eventDataQueryService,
           programService,
           dimensionIdentifierConverter);
 
+  @BeforeEach
+  void setUp() {
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+  }
+
   @Test
   void testPaginationPagingTruePageSizeHigherThanMaxLimit() {
-    when(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT)).thenReturn(1000);
+    when(settings.getAnalyticsMaxLimit()).thenReturn(1000);
     CommonRequestParams request = new CommonRequestParams().withPaging(true).withPageSize(10000);
     CommonParsedParams parsed = commonRequestParamsParser.parse(request);
     assertEquals(1000, parsed.getPagingParams().getPageSize());
@@ -77,7 +84,7 @@ class CommonRequestParamsParserTest {
 
   @Test
   void testPaginationPagingTruePageSizeLowerThanMaxLimit() {
-    when(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT)).thenReturn(1000);
+    when(settings.getAnalyticsMaxLimit()).thenReturn(1000);
     CommonRequestParams request = new CommonRequestParams().withPaging(true).withPageSize(100);
     CommonParsedParams parsed = commonRequestParamsParser.parse(request);
     assertEquals(100, parsed.getPagingParams().getPageSize());
@@ -86,7 +93,7 @@ class CommonRequestParamsParserTest {
 
   @Test
   void testUnlimitedMaxLimit0() {
-    when(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT)).thenReturn(0);
+    when(settings.getAnalyticsMaxLimit()).thenReturn(0);
     CommonRequestParams request = new CommonRequestParams().withPaging(false);
     CommonParsedParams parsed = commonRequestParamsParser.parse(request);
     assertFalse(parsed.getPagingParams().isPaging());
@@ -94,7 +101,7 @@ class CommonRequestParamsParserTest {
 
   @Test
   void testUnlimitedIgnoreLimit() {
-    when(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT)).thenReturn(100);
+    when(settings.getAnalyticsMaxLimit()).thenReturn(100);
     CommonRequestParams request = new CommonRequestParams().withIgnoreLimit(true).withPaging(false);
     CommonParsedParams parsed = commonRequestParamsParser.parse(request);
     assertFalse(parsed.getPagingParams().isPaging());
@@ -102,7 +109,7 @@ class CommonRequestParamsParserTest {
 
   @Test
   void testPagingFalseAndPageSizeGreaterThanMaxLimit() {
-    when(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT)).thenReturn(100);
+    when(settings.getAnalyticsMaxLimit()).thenReturn(100);
     CommonRequestParams request = new CommonRequestParams().withPageSize(150).withPaging(false);
     CommonParsedParams parsed = commonRequestParamsParser.parse(request);
     assertFalse(parsed.getPagingParams().isPaging());
@@ -112,7 +119,7 @@ class CommonRequestParamsParserTest {
 
   @Test
   void testPagingFalseAndPageSizeLowerThanMaxLimit() {
-    when(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT)).thenReturn(100);
+    when(settings.getAnalyticsMaxLimit()).thenReturn(100);
     CommonRequestParams request = new CommonRequestParams().withPageSize(50).withPaging(false);
     CommonParsedParams parsed = commonRequestParamsParser.parse(request);
     assertFalse(parsed.getPagingParams().isPaging());
@@ -124,7 +131,7 @@ class CommonRequestParamsParserTest {
   void testPagingFalseAndNoMaxLimit() {
     int unlimited = 0;
 
-    when(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT)).thenReturn(unlimited);
+    when(settings.getAnalyticsMaxLimit()).thenReturn(unlimited);
     CommonRequestParams request = new CommonRequestParams().withPageSize(50).withPaging(false);
     CommonParsedParams parsed = commonRequestParamsParser.parse(request);
     assertFalse(parsed.getPagingParams().isPaging());
@@ -136,7 +143,7 @@ class CommonRequestParamsParserTest {
   void testPagingTrueAndNoMaxLimit() {
     int unlimited = 0;
 
-    when(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT)).thenReturn(unlimited);
+    when(settings.getAnalyticsMaxLimit()).thenReturn(unlimited);
     CommonRequestParams request = new CommonRequestParams().withPageSize(50).withPaging(true);
     CommonParsedParams parsed = commonRequestParamsParser.parse(request);
     assertTrue(parsed.getPagingParams().isPaging());

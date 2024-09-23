@@ -47,8 +47,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.user.SystemUser;
 import org.springframework.stereotype.Component;
 
@@ -94,7 +93,7 @@ public class JobScheduler implements Runnable, JobRunner {
 
   private final JobService jobService;
   private final JobSchedulerLoopService service;
-  private final SystemSettingManager settingsProvider;
+  private final SystemSettingsService settingsProvider;
   private final ExecutorService workers = Executors.newCachedThreadPool();
   private final Map<JobType, Queue<String>> continuousJobsByType = new ConcurrentHashMap<>();
 

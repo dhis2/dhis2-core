@@ -39,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
@@ -53,7 +53,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
 
   @Autowired private UserSettingService userSettingService;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService systemSettingsService;
 
   @Test
   void testGetNonAccessibleObject() {
@@ -146,11 +146,11 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
   void testSearchTokenWithNullLocale() {
     setUpTranslation();
     doInTransaction(
-        () -> systemSettingManager.saveSystemSettings(Map.of("keyDbLocale", Locale.ENGLISH.toString())));
-    systemSettingManager.clearCurrentSettings();
+        () -> systemSettingsService.saveSystemSetting("keyDbLocale", Locale.ENGLISH.toString()));
+    systemSettingsService.clearCurrentSettings();
     assertEquals(
         Locale.ENGLISH,
-        systemSettingManager.getCurrentSettings().getDbLocale());
+        systemSettingsService.getCurrentSettings().getDbLocale());
 
     User userA = createAndAddUser("userA", null, "ALL");
     injectSecurityContextUser(userA);

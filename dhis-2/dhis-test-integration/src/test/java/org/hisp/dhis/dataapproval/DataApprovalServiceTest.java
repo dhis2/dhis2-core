@@ -60,8 +60,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterEach;
@@ -94,7 +93,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired protected DataSetService dataSetService;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService systemSettingsService;
 
   @Autowired private TransactionTemplate transactionTemplate;
 
@@ -3576,7 +3575,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
     Date date = new Date();
     transactionTemplate.execute(
         status -> {
-          systemSettingManager.saveSystemSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, true);
+          systemSettingsService.saveSystemSetting("keyAcceptanceRequiredForApproval", "true");
           setUpCategories();
           createUserAndInjectSecurityContext(
               singleton(organisationUnitA),
@@ -4109,7 +4108,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
             userA);
     transactionTemplate.execute(
         status -> {
-          systemSettingManager.saveSystemSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, true);
+          systemSettingsService.saveSystemSetting("keyAcceptanceRequiredForApproval", "true");
           createUserAndInjectSecurityContext(singleton(organisationUnitA), false, AUTH_APPR_LEVEL);
           dataApprovalStore.addDataApproval(dataApprovalA);
           dataApprovalStore.addDataApproval(dataApprovalB);

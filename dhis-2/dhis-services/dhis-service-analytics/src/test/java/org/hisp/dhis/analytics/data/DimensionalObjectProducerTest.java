@@ -43,7 +43,6 @@ import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.feedback.ErrorCode.E7124;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_DATASET;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_PROGRAM;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_FINANCIAL_YEAR_START;
 import static org.hisp.dhis.test.TestBase.createCategory;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createIndicator;
@@ -69,7 +68,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.analytics.common.processing.MetadataDimensionsHandler;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
@@ -96,7 +94,8 @@ import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
@@ -123,7 +122,8 @@ class DimensionalObjectProducerTest {
 
   @Mock private DimensionService dimensionService;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsProvider settingsProvider;
+  @Mock private SystemSettings settings;
 
   @Mock private AclService aclService;
 
@@ -135,11 +135,12 @@ class DimensionalObjectProducerTest {
 
   @BeforeEach
   public void setUp() {
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     target =
         new DimensionalObjectProducer(
             idObjectManager,
             organisationUnitService,
-            systemSettingManager,
+            settingsProvider,
             i18nManager,
             dimensionService,
             aclService);
@@ -399,8 +400,7 @@ class DimensionalObjectProducerTest {
   void testGetPeriodDimensions() {
     List<String> itemsUid = List.of("LAST_YEAR:LAST_UPDATED", "LAST_5_YEARS:SCHEDULED_DATE");
 
-    when(systemSettingManager.getSystemSetting(
-            ANALYTICS_FINANCIAL_YEAR_START, AnalyticsFinancialYearStartKey.class))
+    when(settings.getAnalyticsFinancialYearStart())
         .thenReturn(FINANCIAL_YEAR_APRIL);
     when(i18nManager.getI18nFormat()).thenReturn(i18nFormat);
     when(i18nManager.getI18n()).thenReturn(i18n);
@@ -445,8 +445,7 @@ class DimensionalObjectProducerTest {
   void testGetPeriodDimensionForNonIsoPeriod() {
     List<String> itemsUid = List.of("2021-05-01_2021-06-01:LAST_UPDATED");
 
-    when(systemSettingManager.getSystemSetting(
-            ANALYTICS_FINANCIAL_YEAR_START, AnalyticsFinancialYearStartKey.class))
+    when(settings.getAnalyticsFinancialYearStart())
         .thenReturn(FINANCIAL_YEAR_APRIL);
     when(i18nManager.getI18nFormat()).thenReturn(i18nFormat);
 

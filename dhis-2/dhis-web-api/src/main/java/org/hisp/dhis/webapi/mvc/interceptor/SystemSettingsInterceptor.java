@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.mvc.interceptor;
 
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 @RequiredArgsConstructor
 public class SystemSettingsInterceptor implements HandlerInterceptor {
 
-  private final SystemSettingManager settingManager;
+  private final SystemSettingsService settingManager;
 
   @Override
   public boolean preHandle(@Nonnull HttpServletRequest request, @Nonnull HttpServletResponse response, @Nonnull Object handler) throws Exception {

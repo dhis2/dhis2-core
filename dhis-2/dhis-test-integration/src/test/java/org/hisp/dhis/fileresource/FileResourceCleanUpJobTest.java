@@ -50,8 +50,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.joda.time.DateTime;
@@ -75,7 +74,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
 
   private FileResourceCleanUpJob cleanUpJob;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService systemSettingsService;
 
   @Autowired private FileResourceService fileResourceService;
 
@@ -108,7 +107,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   public void init() {
     cleanUpJob =
         new FileResourceCleanUpJob(
-            fileResourceService, systemSettingManager, fileResourceContentStore);
+            fileResourceService, systemSettingsService, fileResourceContentStore);
 
     period = createPeriod(PeriodType.getPeriodTypeByName("Monthly"), new Date(), new Date());
     periodService.addPeriod(period);
@@ -118,8 +117,8 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   void testNoRetention() {
     when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(true);
 
-    systemSettingManager.saveSystemSetting(
-        SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.NONE);
+    systemSettingsService.saveSystemSetting(
+        "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE.name());
 
     content = "filecontentA".getBytes();
     dataValueA = createFileResourceDataValue('A', content);
@@ -136,8 +135,8 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   void testRetention() {
     when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(true);
 
-    systemSettingManager.saveSystemSetting(
-        SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.THREE_MONTHS);
+    systemSettingsService.saveSystemSetting(
+        "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.THREE_MONTHS.name());
 
     content = "filecontentA".getBytes(StandardCharsets.UTF_8);
     dataValueA = createFileResourceDataValue('A', content);
@@ -171,8 +170,8 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   void testOrphan() {
     when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(false);
 
-    systemSettingManager.saveSystemSetting(
-        SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.NONE);
+    systemSettingsService.saveSystemSetting(
+        "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE.name());
 
     content = "filecontentA".getBytes(StandardCharsets.UTF_8);
     FileResource fileResourceA = createFileResource('A', content);
@@ -207,8 +206,8 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   @Disabled
   @Test
   void testFalsePositive() {
-    systemSettingManager.saveSystemSetting(
-        SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.THREE_MONTHS);
+    systemSettingsService.saveSystemSetting(
+        "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.THREE_MONTHS.name());
 
     content = "externalA".getBytes();
     ExternalFileResource ex = createExternal('A', content);
@@ -228,8 +227,8 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   @Disabled
   @Test
   void testFailedUpload() {
-    systemSettingManager.saveSystemSetting(
-        SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.THREE_MONTHS);
+    systemSettingsService.saveSystemSetting(
+        "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.THREE_MONTHS.name());
 
     content = "externalA".getBytes();
     ExternalFileResource ex = createExternal('A', content);

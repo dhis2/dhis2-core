@@ -31,7 +31,6 @@ import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toSet;
-import static org.hisp.dhis.setting.SettingKey.CAN_GRANT_OWN_USER_ROLES;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -60,7 +59,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.PasswordManager;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -83,7 +82,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService systemSettingsService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
@@ -335,7 +334,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testManagedGroups() {
-    systemSettingManager.saveSystemSettings(Map.of("keyCanGrantOwnUserAuthorityGroups", "true"));
+    systemSettingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", "true");
     // TODO find way to override in parameters
     User userA = addUser("A");
     User userB = addUser("B");
@@ -379,7 +378,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetByPhoneNumber() {
-    systemSettingManager.saveSystemSettings(Map.of("keyCanGrantOwnUserAuthorityGroups", "true"));
+    systemSettingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", "true");
     addUser("A", user -> user.setPhoneNumber("73647271"));
     User userB = addUser("B", user -> user.setPhoneNumber("23452134"));
     addUser("C", user -> user.setPhoneNumber("14543232"));

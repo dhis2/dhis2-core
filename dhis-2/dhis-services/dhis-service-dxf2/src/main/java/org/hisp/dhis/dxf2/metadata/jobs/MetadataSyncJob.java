@@ -51,7 +51,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
@@ -82,7 +82,7 @@ public class MetadataSyncJob implements Job {
     DATA_PUSH_SUMMARY, GET_METADATAVERSION, GET_METADATAVERSIONSLIST, METADATA_SYNC, VERSION_KEY
   };
 
-  private final SystemSettingManager settingManager;
+  private final SystemSettingsService settingManager;
 
   private final RetryTemplate retryTemplate;
 

@@ -51,8 +51,7 @@ import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -69,7 +68,7 @@ class MetadataSyncPreProcessorTest extends PostgresIntegrationTestBase {
 
   @Autowired private SynchronizationManager synchronizationManager;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService systemSettingsService;
 
   @Autowired private MetadataSyncPreProcessor metadataSyncPreProcessor;
 
@@ -246,8 +245,8 @@ class MetadataSyncPreProcessorTest extends PostgresIntegrationTestBase {
     List<MetadataVersion> expectedListOfVersions =
         metadataSyncPreProcessor.handleMetadataVersionsList(
             mockRetryContext, currentVersion, JobProgress.noop());
-    verify(systemSettingManager)
-        .saveSystemSetting(SettingKey.REMOTE_METADATA_VERSION, version4.getName());
+    verify(systemSettingsService)
+        .saveSystemSetting("keyRemoteMetadataVersion", version4.getName());
     assertEquals(3, expectedListOfVersions.size());
   }
 }

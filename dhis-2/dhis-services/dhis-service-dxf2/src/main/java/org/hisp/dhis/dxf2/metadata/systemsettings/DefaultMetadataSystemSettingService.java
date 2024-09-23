@@ -28,7 +28,7 @@
 package org.hisp.dhis.dxf2.metadata.systemsettings;
 
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.springframework.stereotype.Service;
 
@@ -44,7 +44,7 @@ import java.util.Map;
 @Service
 public class DefaultMetadataSystemSettingService implements MetadataSystemSettingService {
 
-  private final SystemSettingManager settingManager;
+  private final SystemSettingsService settingManager;
 
   @Override
   public String getRemoteInstanceUserName() {
@@ -83,7 +83,7 @@ public class DefaultMetadataSystemSettingService implements MetadataSystemSettin
 
   @Override
   public void setSystemMetadataVersion(String versionName) {
-    settingManager.saveSystemSettings(Map.of("keySystemMetadataVersion", versionName));
+    settingManager.saveSystemSetting("keySystemMetadataVersion", versionName);
   }
 
   @Override

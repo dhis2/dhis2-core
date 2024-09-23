@@ -52,7 +52,7 @@ import org.hisp.dhis.analytics.resolver.ExpressionResolvers;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -80,7 +80,7 @@ abstract class AnalyticsServiceBaseTest {
 
   @Mock private OrganisationUnitService organisationUnitService;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsService systemSettingsService;
 
   @Mock protected EventAnalyticsService eventAnalyticsService;
 
@@ -116,7 +116,7 @@ abstract class AnalyticsServiceBaseTest {
             resolvers,
             expressionService,
             queryPlanner,
-            systemSettingManager,
+            systemSettingsService,
             analyticsManager,
             organisationUnitService,
             executionPlanStore);

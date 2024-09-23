@@ -43,7 +43,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
@@ -68,7 +68,7 @@ public class ContinuousAnalyticsTableJob implements Job {
 
   private final AnalyticsTableGenerator analyticsTableGenerator;
 
-  private final SystemSettingManager settingManager;
+  private final SystemSettingsService settingManager;
 
   private final TableInfoReader tableInfoReader;
 
@@ -112,7 +112,7 @@ public class ContinuousAnalyticsTableJob implements Job {
         analyticsTableGenerator.generateAnalyticsTables(params, progress);
       } finally {
         Date nextUpdate = DateUtils.getNextDate(fullUpdateHourOfDay, startTime);
-        settingManager.saveSystemSettings(Map.of("keyNextAnalyticsTableUpdate", nextUpdate.toString()));
+        settingManager.saveSystemSetting("keyNextAnalyticsTableUpdate", nextUpdate.toString());
         log.info("Next full analytics table update: '{}'", toLongDate(nextUpdate));
       }
     } else {

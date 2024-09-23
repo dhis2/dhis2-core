@@ -30,34 +30,37 @@ package org.hisp.dhis.setting;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 /**
- * @author Stian Strandli
- * @author Lars Helge Overland
+ * @author Jan Bernitt (refactored version)
  */
-public interface SystemSettingManager extends SystemSettingsProvider {
+public interface SystemSettingsService extends SystemSettingsProvider {
 
   /**
    * Called at the start of a new request to ensure fresh view of the settings
    */
   void clearCurrentSettings();
 
+  void saveSystemSetting(@Nonnull String key, @CheckForNull String value);
+
   /**
    * Saves the given system setting key and value.
    *
-   * @param settings the new values
+   * @param settings the new values, null or empty values delete the setting
    */
-  void saveSystemSettings(Map<String, String> settings);
+  void saveSystemSettings(@Nonnull Map<String, String> settings);
 
   /**
    * Deletes the system setting with the given name.
    *
    * @param names of the system setting to delete
    */
-  void deleteSystemSettings(Set<String> names);
+  void deleteSystemSettings(@Nonnull Set<String> names);
 
   /**
    * Saves the translation for given setting key and locale if given setting key is translatable. If
@@ -66,9 +69,9 @@ public interface SystemSettingManager extends SystemSettingsProvider {
    *
    * @param key of the related setting
    * @param locale locale of the translation (should be a language tag)
-   * @param translation Actual translation
+   * @param translation translation text, null or empty to delete
    */
-  void saveSystemSettingTranslation(String key, String locale, String translation) throws ForbiddenException, BadRequestException;
+  void saveSystemSettingTranslation(@Nonnull String key, @Nonnull String locale, @CheckForNull String translation) throws ForbiddenException, BadRequestException;
 
   /**
    * Returns the translation for given setting key and locale or empty Optional if no translation is
@@ -78,6 +81,6 @@ public interface SystemSettingManager extends SystemSettingsProvider {
    * @param locale Locale of required translation
    * @return The Optional with the actual translation or empty Optional
    */
-  Optional<String> getSystemSettingTranslation(String key, String locale);
+  Optional<String> getSystemSettingTranslation(@Nonnull String key, @Nonnull String locale);
 
 }

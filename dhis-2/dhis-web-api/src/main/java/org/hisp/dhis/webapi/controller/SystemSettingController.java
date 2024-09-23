@@ -47,10 +47,9 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonPrimitive;
-import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSetting;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.CurrentUser;
@@ -78,14 +77,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @AllArgsConstructor
 public class SystemSettingController {
 
-  private final SystemSettingManager settingManager;
+  private final SystemSettingsService settingManager;
 
   @PostMapping(value = "/{key}")
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
   public WebMessage setSystemSettingPlain(
       @PathVariable("key") String key, @RequestParam(value = "value") String value) {
-    settingManager.saveSystemSettings(Map.of(key, value));
+    settingManager.saveSystemSetting(key, value);
     return ok("System setting '" + key + "' set to value '" + value + "'.");
   }
 

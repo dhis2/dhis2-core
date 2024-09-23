@@ -69,7 +69,7 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.UserService;
@@ -99,7 +99,7 @@ class DataValueSetServiceImportTest {
 
   @Mock private DataValueSetStore dataValueSetStore;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsService systemSettingsService;
 
   @Mock private LockExceptionStore lockExceptionStore;
 

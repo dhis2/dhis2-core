@@ -31,7 +31,7 @@ import static java.util.Map.entry;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -54,7 +54,8 @@ class SyncUtilsTest extends PostgresIntegrationTestBase {
 
   private static final String URL = "https://localhost:8080";
 
-  @Autowired SystemSettingManager settingManager;
+  @Autowired
+  SystemSettingsService settingManager;
 
   @Test
   void getRemoteInstanceTest() {

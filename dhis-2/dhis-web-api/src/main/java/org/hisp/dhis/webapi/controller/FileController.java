@@ -44,7 +44,7 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSetting;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -68,7 +68,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequiredArgsConstructor
 public class FileController {
 
-  private final SystemSettingManager settingManager;
+  private final SystemSettingsService settingManager;
   private final ContextUtils contextUtils;
 
   // -------------------------------------------------------------------------
@@ -94,7 +94,7 @@ public class FileController {
   @ResponseStatus(HttpStatus.OK)
   public WebMessage postCustomScript(@RequestBody String content) {
     if (content != null) {
-      settingManager.saveSystemSettings(Map.of("keyCustomJs", content));
+      settingManager.saveSystemSetting("keyCustomJs", content);
       return ok("Custom script created");
     }
     return null;
@@ -133,7 +133,7 @@ public class FileController {
   @ResponseStatus(HttpStatus.OK)
   public WebMessage postCustomStyle(@RequestBody String content) {
     if (content != null) {
-      settingManager.saveSystemSettings(Map.of("keyCustomCss", content));
+      settingManager.saveSystemSetting("keyCustomCss", content);
       return ok("Custom style created");
     }
     return null;

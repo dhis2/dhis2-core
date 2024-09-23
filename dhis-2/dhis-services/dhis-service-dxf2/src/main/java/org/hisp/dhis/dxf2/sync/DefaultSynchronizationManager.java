@@ -50,7 +50,7 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -72,7 +72,7 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
   private final DataValueService dataValueService;
   private final MetadataImportService importService;
   private final SchemaService schemaService;
-  private final SystemSettingManager settingManager;
+  private final SystemSettingsService settingManager;
   private final RestTemplate restTemplate;
   private final ObjectMapper jsonMapper;
 
@@ -129,7 +129,7 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
     log.info("DataValues last changed before " + skipChangedBefore + " will not be synchronized.");
 
     if (objectsToSynchronize == 0) {
-      settingManager.saveSystemSettings(Map.of("keyLastSuccessfulDataSynch", startTime.toString()));
+      settingManager.saveSystemSetting("keyLastSuccessfulDataSynch", startTime.toString());
       log.debug("Skipping data values push, no new or updated data values");
 
       ImportCount importCount = new ImportCount(0, 0, 0, 0);

@@ -88,8 +88,8 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.validation.ValidationResult;
@@ -222,7 +222,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsProvider settingsProvider;
 
   private Date processStartTime;
 
@@ -263,12 +263,10 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
     Date tenSecondsFromNow =
         Date.from(LocalDateTime.now().plusSeconds(10).atZone(ZoneId.systemDefault()).toInstant());
 
+    SystemSettings settings = settingsProvider.getCurrentSettings();
     assertNull(
-        systemSettingManager.getSystemSetting(
-            SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, Date.class));
-    assertNull(
-        systemSettingManager.getSystemSetting(
-            SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, Date.class));
+        settings.getLastSuccessfulResourceTablesUpdate());
+    assertNull( settings.getLastSuccessfulAnalyticsTablesUpdate());
     processStartTime = new Date();
     // Generate analytics tables
     analyticsTableGenerator.generateAnalyticsTables(
@@ -1581,13 +1579,10 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
   @Test
   void resourceTablesTimestampUpdated() {
 
-    Date tableLastUpdated =
-        systemSettingManager.getSystemSetting(
-            SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, Date.class);
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    Date tableLastUpdated = settings.getNextAnalyticsTableUpdate();
     assertNotEquals(null, tableLastUpdated);
-    Date resourceTablesUpdated =
-        systemSettingManager.getSystemSetting(
-            SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, Date.class);
+    Date resourceTablesUpdated = settings.getLastSuccessfulResourceTablesUpdate();
     assertNotEquals(null, resourceTablesUpdated);
     assertTrue(
         tableLastUpdated.compareTo(processStartTime) > 0,

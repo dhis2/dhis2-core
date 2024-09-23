@@ -30,20 +30,20 @@ package org.hisp.dhis.startup;
 
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 
 @RequiredArgsConstructor
 public class SettingUpgrader extends AbstractStartupRoutine {
 
-  private final SystemSettingManager settingManager;
+  private final SystemSettingsService settingManager;
 
   @Override
   public void execute() throws Exception {
     String startModule = settingManager.getCurrentSettings().getStartModule();
 
     if ("dhis-web-dashboard-integration".equals(startModule)) {
-      settingManager.saveSystemSettings(Map.of("startModule", "dhis-web-dashboard"));
+      settingManager.saveSystemSetting("startModule", "dhis-web-dashboard");
     }
   }
 }

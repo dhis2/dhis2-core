@@ -77,7 +77,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.quick.JdbcConfiguration;
@@ -105,7 +105,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
 
   @Mock private CategoryService categoryService;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsService systemSettingsService;
 
   @Mock private DataApprovalLevelService dataApprovalLevelService;
 
@@ -154,7 +154,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
             idObjectManager,
             organisationUnitService,
             categoryService,
-            systemSettingManager,
+            systemSettingsService,
             dataApprovalLevelService,
             resourceTableService,
             tableHookService,

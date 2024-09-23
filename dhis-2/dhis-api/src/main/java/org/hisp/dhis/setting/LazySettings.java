@@ -57,10 +57,15 @@ final class LazySettings implements SystemSettings, UserSettings {
 
   private static final Map<String, Serializable> DEFAULTS = extractDefaults();
 
+  static Set<String> keysWithDefaults(Class<? extends Settings> type) {
+    return Set.of(); //FIXME
+  }
+
   @Nonnull
   static LazySettings of(Class<? extends Settings> type, @Nonnull Map<String, String> settings) {
     return of(type, settings, UnaryOperator.identity());
   }
+
   @Nonnull
   static LazySettings of(Class<? extends Settings> type, @Nonnull Map<String, String> settings, @Nonnull UnaryOperator<String> decoder) {
     if (settings.isEmpty()) {

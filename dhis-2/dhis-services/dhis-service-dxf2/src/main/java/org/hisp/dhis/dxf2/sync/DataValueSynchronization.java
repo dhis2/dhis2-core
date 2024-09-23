@@ -40,7 +40,7 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.springframework.http.MediaType;
@@ -59,7 +59,7 @@ public class DataValueSynchronization implements DataSynchronizationWithPaging {
 
   private final DataValueSetService dataValueSetService;
 
-  private final SystemSettingManager settingManager;
+  private final SystemSettingsService settingManager;
 
   private final RestTemplate restTemplate;
 
@@ -110,7 +110,7 @@ public class DataValueSynchronization implements DataSynchronizationWithPaging {
 
     if (runSyncWithPaging(context, progress)) {
       progress.completedProcess("SUCCESS! DataValueSynchronization job is done.");
-      settingManager.saveSystemSettings(Map.of("keyLastSuccessfulDataSynch", context.getStartTime().toString()));
+      settingManager.saveSystemSetting("keyLastSuccessfulDataSynch", context.getStartTime().toString());
       return SynchronizationResult.success("DataValueSynchronization done.");
     }
 

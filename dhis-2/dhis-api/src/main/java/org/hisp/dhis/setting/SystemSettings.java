@@ -49,6 +49,11 @@ public non-sealed interface SystemSettings extends Settings {
     return LazySettings.of(SystemSettings.class, settings, decoder);
   }
 
+  @Nonnull
+  static Set<String> keysWithDefaults() {
+    return LazySettings.keysWithDefaults(SystemSettings.class);
+  }
+
   /**
    * Note that there is no deeper meaning to the logic except that this correctly identifies
    * existing settings that were confidential. In addition to that a new general rule was added that

@@ -50,7 +50,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -101,7 +101,7 @@ class DataApprovalStoreIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private CacheProvider cacheProvider;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService systemSettingsService;
 
   @Autowired private DbmsManager dbmsManager;
 
@@ -154,7 +154,7 @@ class DataApprovalStoreIntegrationTest extends PostgresIntegrationTestBase {
             periodService,
             periodStore,
             categoryService,
-            systemSettingManager,
+            systemSettingsService,
             userService);
 
     // ---------------------------------------------------------------------

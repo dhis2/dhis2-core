@@ -47,7 +47,7 @@ import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
@@ -60,7 +60,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class MetadataSyncPreProcessor {
-  private final SystemSettingManager settingManager;
+  private final SystemSettingsService settingManager;
 
   private final MetadataVersionService metadataVersionService;
 
@@ -73,7 +73,7 @@ public class MetadataSyncPreProcessor {
   public void setUp(MetadataRetryContext context, JobProgress progress) {
     progress.startingProcess("Setting up metadata synchronisation");
     progress.runStage(
-        () -> settingManager.saveSystemSettings(Map.of("keyVersionEnabled", "true")));
+        () -> settingManager.saveSystemSetting("keyVersionEnabled", "true"));
     progress.completedProcess("finished setting up metadata synchronisation");
   }
 
@@ -109,8 +109,8 @@ public class MetadataSyncPreProcessor {
       MetadataVersion latestVersion = getLatestVersion(versions);
       assert latestVersion != null;
 
-      settingManager.saveSystemSettings(Map.of(
-          "keyRemoteMetadataVersion", latestVersion.getName()));
+      settingManager.saveSystemSetting(
+          "keyRemoteMetadataVersion", latestVersion.getName());
       progress.completedProcess("Remote system is at version: " + latestVersion.getName());
       return versions;
     } catch (MetadataVersionServiceException e) {
