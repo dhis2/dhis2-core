@@ -27,13 +27,16 @@
  */
 package org.hisp.dhis.program.notification;
 
+import static org.hisp.dhis.program.notification.BaseNotificationParam.DEFAULT_PAGE;
+import static org.hisp.dhis.program.notification.BaseNotificationParam.DEFAULT_PAGE_SIZE;
+
 import java.math.BigInteger;
 import java.util.List;
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
@@ -46,6 +49,7 @@ import org.springframework.stereotype.Repository;
 public class DefaultProgramNotificationTemplateStore
     extends HibernateIdentifiableObjectStore<ProgramNotificationTemplate>
     implements ProgramNotificationTemplateStore {
+  private static final String DEFAULT_ORDER = " programnotificationtemplateid desc ";
   private static final String NOTIFICATION_RECIPIENT = "recipient";
 
   private static final String PROGRAM_ID = "pid";
@@ -124,27 +128,63 @@ public class DefaultProgramNotificationTemplateStore
 
   @Override
   public int countProgramNotificationTemplates(ProgramNotificationTemplateParam param) {
-    Query query =
-        nativeSynchronizedQuery(
-            "select count(*) from programnotificationtemplate where programstageid = :psid or  programid = :pid");
-    query.setParameter(
-        PROGRAM_STAGE_ID, param.hasProgramStage() ? param.getProgramStage().getId() : 0);
-    query.setParameter(PROGRAM_ID, param.hasProgram() ? param.getProgram().getId() : 0);
+    StringBuilder sql = new StringBuilder("select count(*) from programnotificationtemplate ");
+    SqlHelper sqlHelper = new SqlHelper();
 
-    return ((Number) query.getSingleResult()).intValue();
+    if (param.hasProgram()) {
+      sql.append(sqlHelper.whereAnd()).append(" programid = :programId");
+    }
+
+    if (param.hasProgramStage()) {
+      sql.append(sqlHelper.whereAnd()).append(" programstageid = :programStageId");
+    }
+
+    NativeQuery<Number> query = nativeSynchronizedQuery(sql.toString());
+
+    if (param.hasProgram()) {
+      query.setParameter("programId", param.getProgram().getId());
+    }
+
+    if (param.hasProgramStage()) {
+      query.setParameter("programStageId", param.getProgramStage().getId());
+    }
+    return query.getSingleResult().intValue();
   }
 
   @Override
   public List<ProgramNotificationTemplate> getProgramNotificationTemplates(
       ProgramNotificationTemplateParam param) {
-    NativeQuery<ProgramNotificationTemplate> query =
-        nativeSynchronizedTypedQuery(
-            "select * from programnotificationtemplate where programstageid = :psid or  programid = :pid");
+    SqlHelper sqlHelper = new SqlHelper();
 
-    query.setParameter(
-        PROGRAM_STAGE_ID, param.hasProgramStage() ? param.getProgramStage().getId() : 0);
-    query.setParameter(PROGRAM_ID, param.hasProgram() ? param.getProgram().getId() : 0);
+    StringBuilder sql = new StringBuilder("select * from programnotificationtemplate ");
 
+    if (param.hasProgram()) {
+      sql.append(sqlHelper.whereAnd()).append(" programid = :programId ");
+    }
+
+    if (param.hasProgramStage()) {
+      sql.append(sqlHelper.whereAnd()).append(" programstageid = :programStageId ");
+    }
+
+    sql.append(" ORDER BY ").append(DEFAULT_ORDER);
+
+    NativeQuery<ProgramNotificationTemplate> query = nativeSynchronizedTypedQuery(sql.toString());
+
+    if (param.hasProgram()) {
+      query.setParameter("programId", param.getProgram().getId());
+    }
+
+    if (param.hasProgramStage()) {
+      query.setParameter("programStageId", param.getProgramStage().getId());
+    }
+
+    if (!param.isSkipPaging()) {
+      int page = param.getPage() != null ? param.getPage() : DEFAULT_PAGE;
+      int pageSize = param.getPageSize() != null ? param.getPageSize() : DEFAULT_PAGE_SIZE;
+
+      query.setFirstResult((page - 1) * pageSize);
+      query.setMaxResults(pageSize);
+    }
     return query.getResultList();
   }
 }
