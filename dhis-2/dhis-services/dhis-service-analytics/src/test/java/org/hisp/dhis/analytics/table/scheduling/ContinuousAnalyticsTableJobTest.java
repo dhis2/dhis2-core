@@ -62,8 +62,7 @@ class ContinuousAnalyticsTableJobTest {
   public void beforeEach() {
     when(settingsService.getCurrentSettings()).thenReturn(settings);
     job =
-        new ContinuousAnalyticsTableJob(
-            analyticsTableGenerator, settingsService, tableInfoReader);
+        new ContinuousAnalyticsTableJob(analyticsTableGenerator, settingsService, tableInfoReader);
   }
 
   @Test

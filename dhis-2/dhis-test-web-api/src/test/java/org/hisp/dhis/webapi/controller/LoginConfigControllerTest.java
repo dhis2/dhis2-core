@@ -79,11 +79,9 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
     settingsService.saveSystemSettingTranslation("loginPopup", "no", "<html>tekst</html>");
 
     settingsService.saveSystemSetting("keyApplicationFooter", "APPLICATION_FOOTER");
-    settingsService.saveSystemSettingTranslation(
-        "keyApplicationFooter", "no", "Søknadsbunntekst");
+    settingsService.saveSystemSettingTranslation("keyApplicationFooter", "no", "Søknadsbunntekst");
 
-    settingsService.saveSystemSetting(
-        "keyApplicationRightFooter", "APPLICATION_RIGHT_FOOTER");
+    settingsService.saveSystemSetting("keyApplicationRightFooter", "APPLICATION_RIGHT_FOOTER");
     settingsService.saveSystemSettingTranslation(
         "keyApplicationRightFooter", "no", "Høyre søknadsbunntekst");
 
@@ -91,8 +89,7 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
     settingsService.saveSystemSettingTranslation(
         "keyApplicationIntro", "no", "Søknadsintroduksjon");
 
-    settingsService.saveSystemSetting(
-        "keyApplicationNotification", "APPLICATION_NOTIFICATION");
+    settingsService.saveSystemSetting("keyApplicationNotification", "APPLICATION_NOTIFICATION");
     settingsService.saveSystemSettingTranslation(
         "keyApplicationNotification", "no", "Søknadsmelding");
 

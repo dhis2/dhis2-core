@@ -154,8 +154,7 @@ class DataStatisticsEventStoreTest extends PostgresIntegrationTestBase {
     final FavoriteStatistics activeDashboardStats =
         dataStatisticsService.getFavoriteStatistics(DASHBOARD_UID);
 
-    settingsService.saveSystemSetting(
-        "keyCountPassiveDashboardViewsInUsageAnalytics", "true");
+    settingsService.saveSystemSetting("keyCountPassiveDashboardViewsInUsageAnalytics", "true");
     final FavoriteStatistics activePlusPassiveDashboardStats =
         dataStatisticsService.getFavoriteStatistics(DASHBOARD_UID);
 

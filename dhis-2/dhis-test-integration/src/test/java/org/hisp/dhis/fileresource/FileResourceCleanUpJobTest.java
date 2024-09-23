@@ -106,8 +106,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   @BeforeEach
   public void init() {
     cleanUpJob =
-        new FileResourceCleanUpJob(
-            fileResourceService, settingsService, fileResourceContentStore);
+        new FileResourceCleanUpJob(fileResourceService, settingsService, fileResourceContentStore);
 
     period = createPeriod(PeriodType.getPeriodTypeByName("Monthly"), new Date(), new Date());
     periodService.addPeriod(period);
