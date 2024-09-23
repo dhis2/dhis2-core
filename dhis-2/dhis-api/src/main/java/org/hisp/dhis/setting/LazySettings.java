@@ -81,14 +81,16 @@ import org.hisp.dhis.jsontree.JsonValue;
 @JsonSerialize(using = LazySettings.SettingsSerializer.class)
 final class LazySettings implements SystemSettings, UserSettings {
 
-  private static final LazySettings EMPTY_USER_SETTINGS = of(UserSettings.class, Map.of());
-  private static final LazySettings EMPTY_SYSTEM_SETTINGS = of(SystemSettings.class, Map.of());
-
   private static final Set<String> CONFIDENTIAL_KEYS = new HashSet<>();
   private static final Map<String, Serializable> DEFAULTS_SYSTEM_SETTINGS =
       extractDefaults(SystemSettings.class);
   private static final Map<String, Serializable> DEFAULTS_USER_SETTINGS =
       extractDefaults(SystemSettings.class);
+
+  private static final LazySettings EMPTY_USER_SETTINGS =
+      new LazySettings(UserSettings.class, new String[0], new String[0]);
+  private static final LazySettings EMPTY_SYSTEM_SETTINGS =
+      new LazySettings(SystemSettings.class, new String[0], new String[0]);
 
   static Set<String> keysWithDefaults(Class<? extends Settings> type) {
     if (type == SystemSettings.class) return Set.copyOf(DEFAULTS_SYSTEM_SETTINGS.keySet());
