@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.converter;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -40,6 +41,7 @@ import java.util.Set;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -93,14 +95,11 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest {
 
   private ProgramStageInstance psi;
 
-  private DataElement dataElement;
-
   private org.hisp.dhis.user.User user;
 
   @BeforeEach
   void setUpTest() {
     converter = new EventTrackerConverterService(notesConverterService);
-    dataElement = createDataElement('D');
     user = makeUser("U");
     programStage = createProgramStage('A', 1);
     programStage.setUid(PROGRAM_STAGE_UID);
@@ -129,7 +128,7 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest {
   }
 
   @Test
-  void testToProgramStageInstance() {
+  void shouldConvertFromEventWithNullCompletedDataWhenStatusIsActive() {
     setUpMocks();
 
     DataElement dataElement = new DataElement();
@@ -137,29 +136,124 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest {
     when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElement.getUid())))
         .thenReturn(dataElement);
 
-    User user = User.builder().username(USERNAME).build();
+    org.hisp.dhis.tracker.domain.Event event =
+        event(dataValue(MetadataIdentifier.ofUid(dataElement.getUid()), "value"));
 
-    DataValue dataValue = new DataValue();
-    dataValue.setValue("value");
-    dataValue.setCreatedBy(user);
-    dataValue.setUpdatedBy(user);
-    dataValue.setCreatedAt(Instant.now());
-    dataValue.setStoredBy(USERNAME);
-    dataValue.setUpdatedAt(Instant.now());
-    dataValue.setDataElement(MetadataIdentifier.ofUid(dataElement.getUid()));
-    Event event = event(dataValue);
+    ProgramStageInstance result = converter.from(preheat, event);
 
-    ProgramStageInstance programStageInstance = converter.from(preheat, event);
+    assertNotNull(result);
+    assertNotNull(result.getProgramStage());
+    assertNotNull(result.getProgramStage().getProgram());
+    assertNotNull(result.getOrganisationUnit());
+    assertEquals(PROGRAM_UID, result.getProgramStage().getProgram().getUid());
+    assertEquals(PROGRAM_STAGE_UID, result.getProgramStage().getUid());
+    assertEquals(ORGANISATION_UNIT_UID, result.getOrganisationUnit().getUid());
+    assertNull(result.getCompletedBy());
+    assertNull(result.getCompletedDate());
+    Set<EventDataValue> eventDataValues = result.getEventDataValues();
+    eventDataValues.forEach(
+        e -> {
+          assertEquals(USERNAME, e.getCreatedByUserInfo().getUsername());
+          assertEquals(USERNAME, e.getLastUpdatedByUserInfo().getUsername());
+        });
+  }
 
-    assertNotNull(programStageInstance);
-    assertNotNull(programStageInstance.getProgramStage());
-    assertNotNull(programStageInstance.getProgramStage().getProgram());
-    assertNotNull(programStageInstance.getOrganisationUnit());
-    assertEquals(PROGRAM_UID, programStageInstance.getProgramStage().getProgram().getUid());
-    assertEquals(PROGRAM_STAGE_UID, programStageInstance.getProgramStage().getUid());
-    assertEquals(ORGANISATION_UNIT_UID, programStageInstance.getOrganisationUnit().getUid());
-    assertEquals(ORGANISATION_UNIT_UID, programStageInstance.getOrganisationUnit().getUid());
-    Set<EventDataValue> eventDataValues = programStageInstance.getEventDataValues();
+  @Test
+  void shouldConvertFromEventWithCompletedDataWhenStatusIsCompleted() {
+    setUpMocks();
+
+    DataElement dataElement = new DataElement();
+    dataElement.setUid(CodeGenerator.generateUid());
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElement.getUid())))
+        .thenReturn(dataElement);
+    when(preheat.getUsername()).thenReturn(USERNAME);
+
+    org.hisp.dhis.tracker.domain.Event event =
+        event(dataValue(MetadataIdentifier.ofUid(dataElement.getUid()), "value"));
+    event.setStatus(EventStatus.COMPLETED);
+
+    ProgramStageInstance result = converter.from(preheat, event);
+
+    assertNotNull(result);
+    assertNotNull(result.getProgramStage());
+    assertNotNull(result.getProgramStage().getProgram());
+    assertNotNull(result.getOrganisationUnit());
+    assertEquals(PROGRAM_UID, result.getProgramStage().getProgram().getUid());
+    assertEquals(PROGRAM_STAGE_UID, result.getProgramStage().getUid());
+    assertEquals(ORGANISATION_UNIT_UID, result.getOrganisationUnit().getUid());
+    assertNotNull(result.getCompletedDate());
+    assertEquals(USERNAME, result.getCompletedBy());
+    Set<EventDataValue> eventDataValues = result.getEventDataValues();
+    eventDataValues.forEach(
+        e -> {
+          assertEquals(USERNAME, e.getCreatedByUserInfo().getUsername());
+          assertEquals(USERNAME, e.getLastUpdatedByUserInfo().getUsername());
+        });
+  }
+
+  @Test
+  void shouldConvertFromExistingEventWithNullCompletedDataWhenStatusIsActive() {
+    setUpMocks();
+
+    DataElement dataElement = new DataElement();
+    dataElement.setUid(CodeGenerator.generateUid());
+    String eventUid = CodeGenerator.generateUid();
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElement.getUid())))
+        .thenReturn(dataElement);
+    psi.setStatus(EventStatus.COMPLETED);
+    when(preheat.getEvent(eventUid)).thenReturn(psi);
+
+    org.hisp.dhis.tracker.domain.Event event =
+        event(eventUid, dataValue(MetadataIdentifier.ofUid(dataElement.getUid()), "value"));
+
+    ProgramStageInstance result = converter.from(preheat, event);
+
+    assertNotNull(result);
+    assertNotNull(result.getProgramStage());
+    assertNotNull(result.getProgramStage().getProgram());
+    assertNotNull(result.getOrganisationUnit());
+    assertEquals(PROGRAM_UID, result.getProgramStage().getProgram().getUid());
+    assertEquals(PROGRAM_STAGE_UID, result.getProgramStage().getUid());
+    assertEquals(ORGANISATION_UNIT_UID, result.getOrganisationUnit().getUid());
+    assertNull(result.getCompletedBy());
+    assertNull(result.getCompletedDate());
+    Set<EventDataValue> eventDataValues = result.getEventDataValues();
+    eventDataValues.forEach(
+        e -> {
+          assertEquals(USERNAME, e.getCreatedByUserInfo().getUsername());
+          assertEquals(USERNAME, e.getLastUpdatedByUserInfo().getUsername());
+        });
+  }
+
+  @Test
+  void shouldConvertFromExistingEventWithCompletedDataWhenStatusIsCompleted() {
+    setUpMocks();
+
+    DataElement dataElement = new DataElement();
+    dataElement.setUid(CodeGenerator.generateUid());
+    String eventUid = CodeGenerator.generateUid();
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElement.getUid())))
+        .thenReturn(dataElement);
+    when(preheat.getUsername()).thenReturn(USERNAME);
+    psi.setStatus(EventStatus.ACTIVE);
+    when(preheat.getEvent(eventUid)).thenReturn(psi);
+
+    org.hisp.dhis.tracker.domain.Event event =
+        event(eventUid, dataValue(MetadataIdentifier.ofUid(dataElement.getUid()), "value"));
+    event.setStatus(EventStatus.COMPLETED);
+
+    ProgramStageInstance result = converter.from(preheat, event);
+
+    assertNotNull(result);
+    assertNotNull(result.getProgramStage());
+    assertNotNull(result.getProgramStage().getProgram());
+    assertNotNull(result.getOrganisationUnit());
+    assertEquals(PROGRAM_UID, result.getProgramStage().getProgram().getUid());
+    assertEquals(PROGRAM_STAGE_UID, result.getProgramStage().getUid());
+    assertEquals(ORGANISATION_UNIT_UID, result.getOrganisationUnit().getUid());
+    assertNotNull(result.getCompletedDate());
+    assertEquals(USERNAME, result.getCompletedBy());
+    Set<EventDataValue> eventDataValues = result.getEventDataValues();
     eventDataValues.forEach(
         e -> {
           assertEquals(USERNAME, e.getCreatedByUserInfo().getUsername());
@@ -296,13 +390,12 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest {
     eventDataValue.setAutoFields();
     eventDataValue.setCreated(today);
     eventDataValue.setValue("sample-value");
-    eventDataValue.setDataElement(dataElement.getUid());
     eventDataValue.setStoredBy(user.getUsername());
     eventDataValue.setCreatedByUserInfo(UserInfoSnapshot.from(user));
     eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
     psi.getEventDataValues().add(eventDataValue);
 
-    Event event = converter.to(psi);
+    org.hisp.dhis.tracker.domain.Event event = converter.to(this.psi);
 
     assertEquals(PROGRAM_INSTANCE_UID, event.getEnrollment());
     assertEquals(event.getStoredBy(), user.getUsername());
@@ -310,11 +403,12 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest {
         .getDataValues()
         .forEach(
             e -> {
-              assertEquals(DateUtils.fromInstant(e.getCreatedAt()), psi.getCreated());
+              assertEquals(DateUtils.fromInstant(e.getCreatedAt()), this.psi.getCreated());
               assertEquals(
-                  e.getUpdatedBy().getUsername(), psi.getLastUpdatedByUserInfo().getUsername());
+                  e.getUpdatedBy().getUsername(),
+                  this.psi.getLastUpdatedByUserInfo().getUsername());
               assertEquals(
-                  e.getUpdatedBy().getUsername(), psi.getCreatedByUserInfo().getUsername());
+                  e.getUpdatedBy().getUsername(), this.psi.getCreatedByUserInfo().getUsername());
             });
   }
 
@@ -355,14 +449,14 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest {
   }
 
   private DataValue dataValue(MetadataIdentifier dataElement, String value) {
-    User user = User.builder().username(USERNAME).build();
+    User trackerUser = User.builder().username(USERNAME).build();
 
     return DataValue.builder()
         .dataElement(dataElement)
         .value(value)
         .providedElsewhere(true)
-        .createdBy(user)
-        .updatedBy(user)
+        .createdBy(trackerUser)
+        .updatedBy(trackerUser)
         .createdAt(Instant.now())
         .storedBy(USERNAME)
         .updatedAt(Instant.now())
