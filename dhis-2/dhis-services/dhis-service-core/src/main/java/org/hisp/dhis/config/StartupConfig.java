@@ -107,8 +107,8 @@ public class StartupConfig {
   }
 
   @Bean("org.hisp.dhis.startup.SettingUpgrader")
-  public SettingUpgrader settingUpgrader(SystemSettingsService settingManager) {
-    SettingUpgrader upgrader = new SettingUpgrader(settingManager);
+  public SettingUpgrader settingUpgrader(SystemSettingsService settingsService) {
+    SettingUpgrader upgrader = new SettingUpgrader(settingsService);
     upgrader.setRunlevel(14);
     upgrader.setName("SettingUpgrader");
     upgrader.setSkipInTests(true);

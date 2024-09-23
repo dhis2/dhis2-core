@@ -50,13 +50,13 @@ import org.springframework.transaction.annotation.Transactional;
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
 class MetadataSystemSettingServiceTest extends PostgresIntegrationTestBase {
-  @Autowired SystemSettingsService systemSettingsService;
+  @Autowired SystemSettingsService settingsService;
 
   @Autowired DefaultMetadataSystemSettingService metadataSystemSettingService;
 
   @BeforeEach
   public void setup() {
-    systemSettingsService.saveSystemSettings(
+    settingsService.saveSystemSettings(
         Map.ofEntries(
             entry("keyRemoteInstanceUrl", "http://localhost:9080"),
             entry("keyRemoteInstanceUsername", "username"),
@@ -121,7 +121,7 @@ class MetadataSystemSettingServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testShouldReturnFalseIfStopMetadataSyncSettingValueIsNull() {
-    systemSettingsService.deleteSystemSettings(Set.of("keyStopMetadataSync"));
+    settingsService.deleteSystemSettings(Set.of("keyStopMetadataSync"));
     boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting();
 
     assertFalse(stopMetadataSync);

@@ -58,15 +58,15 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class LoginConfigController {
 
-  private final SystemSettingsService settingManager;
+  private final SystemSettingsService settingsService;
   private final ConfigurationService configurationService;
   private final SystemService systemService;
   private final DhisOidcProviderRepository oidcProviderRepository;
 
   private String getTranslatableString(String key, String locale) {
-    return settingManager
+    return settingsService
         .getSystemSettingTranslation(key, locale)
-        .orElseGet(() -> settingManager.getCurrentSettings().asString(key, ""));
+        .orElseGet(() -> settingsService.getCurrentSettings().asString(key, ""));
   }
 
   @GetMapping()

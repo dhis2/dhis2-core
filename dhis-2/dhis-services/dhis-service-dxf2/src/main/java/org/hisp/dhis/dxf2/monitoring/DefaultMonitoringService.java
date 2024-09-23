@@ -66,7 +66,7 @@ public class DefaultMonitoringService implements MonitoringService {
 
   private final DhisConfigurationProvider config;
 
-  private final SystemSettingsService settingManager;
+  private final SystemSettingsService settingsService;
 
   private final RestTemplate restTemplate;
 
@@ -151,7 +151,7 @@ public class DefaultMonitoringService implements MonitoringService {
     }
 
     if (sc.is2xxSuccessful()) {
-      settingManager.saveSystemSetting(
+      settingsService.saveSystemSetting(
           "keyLastSuccessfulSystemMonitoringPush", startTime.toString());
 
       log.debug(String.format("Monitoring request successfully sent, URL: %s", target.getUrl()));

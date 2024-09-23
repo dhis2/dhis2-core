@@ -87,7 +87,7 @@ import org.springframework.security.core.session.SessionRegistry;
 class UserControllerTest extends H2ControllerIntegrationTestBase {
   @Autowired private FakeMessageSender messageSender;
 
-  @Autowired private SystemSettingsService systemSettingsService;
+  @Autowired private SystemSettingsService settingsService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -277,7 +277,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testUpdateRolesWithNoAllAndCanAssignRoles() {
 
-    systemSettingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", "true");
+    settingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", "true");
 
     JsonImportSummary response = updateRolesNonAllAdmin();
 
@@ -296,7 +296,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testUpdateRolesWithNoAllAndNoCanAssignRoles() {
 
-    systemSettingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", "false");
+    settingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", "false");
 
     JsonImportSummary response = updateRolesNonAllAdmin();
 
@@ -394,7 +394,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testChangeOrgUnitLevelGivesAccessError() {
-    systemSettingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", "true");
+    settingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", "true");
 
     OrganisationUnit orgA = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(orgA);
@@ -435,7 +435,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void updateUserHasAccessToUpdateGroups() {
-    systemSettingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", "true");
+    settingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", "true");
 
     UserRole roleB = createUserRole("ROLE_B", "F_USER_ADD", "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS");
     userService.addUserRole(roleB);

@@ -56,7 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Jan Bernitt
  */
 class AccountControllerTest extends PostgresControllerIntegrationTestBase {
-  @Autowired private SystemSettingsService systemSettingsService;
+  @Autowired private SystemSettingsService settingsService;
   @Autowired private FakeMessageSender messageSender;
 
   @AfterEach
@@ -90,7 +90,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testRecoverAccount_UsernameNotExist() {
-    systemSettingsService.saveSystemSetting("keyAccountRecovery", "true");
+    settingsService.saveSystemSetting("keyAccountRecovery", "true");
     clearSecurityContext();
     assertWebMessage(
         "Conflict",
@@ -102,7 +102,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testRecoverAccount_NotValidEmail() {
-    systemSettingsService.saveSystemSetting("keyAccountRecovery", "true");
+    settingsService.saveSystemSetting("keyAccountRecovery", "true");
     clearSecurityContext();
     assertWebMessage(
         "Conflict",
@@ -116,14 +116,14 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void testRecoverAccount_OK() {
     switchToNewUser("test");
-    systemSettingsService.saveSystemSetting("keyAccountRecovery", "true");
+    settingsService.saveSystemSetting("keyAccountRecovery", "true");
     clearSecurityContext();
     POST("/account/recovery?username=test").content(HttpStatus.OK);
   }
 
   @Test
   void testCreateAccount() {
-    systemSettingsService.saveSystemSetting("keySelfRegistrationNoRecaptcha", "true");
+    settingsService.saveSystemSetting("keySelfRegistrationNoRecaptcha", "true");
     assertWebMessage(
         "Bad Request",
         400,

@@ -133,7 +133,7 @@ class DataSetNotificationServiceTest extends TestBase {
 
   @Mock private UserSettingService userSettingService;
 
-  @Mock private SystemSettingsService systemSettingsService;
+  @Mock private SystemSettingsService settingsService;
 
   @Mock private DhisConfigurationProvider configurationProvider;
 

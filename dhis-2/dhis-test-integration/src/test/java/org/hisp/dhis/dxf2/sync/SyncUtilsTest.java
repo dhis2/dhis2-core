@@ -53,18 +53,18 @@ class SyncUtilsTest extends PostgresIntegrationTestBase {
 
   private static final String URL = "https://localhost:8080";
 
-  @Autowired SystemSettingsService settingManager;
+  @Autowired SystemSettingsService settingsService;
 
   @Test
   void getRemoteInstanceTest() {
-    settingManager.saveSystemSettings(
+    settingsService.saveSystemSettings(
         Map.ofEntries(
             entry("keyRemoteInstanceUsername", USERNAME),
             entry("keyRemoteInstancePassword", PASSWORD),
             entry("keyRemoteInstanceUrl", URL)));
     SystemInstance systemInstance =
         SyncUtils.getRemoteInstance(
-            settingManager.getCurrentSettings(), SyncEndpoint.DATA_VALUE_SETS);
+            settingsService.getCurrentSettings(), SyncEndpoint.DATA_VALUE_SETS);
     assertThat(systemInstance.getUsername(), is(USERNAME));
     assertThat(systemInstance.getPassword(), is(PASSWORD));
     assertThat(systemInstance.getUrl(), is(URL + SyncEndpoint.DATA_VALUE_SETS.getPath()));

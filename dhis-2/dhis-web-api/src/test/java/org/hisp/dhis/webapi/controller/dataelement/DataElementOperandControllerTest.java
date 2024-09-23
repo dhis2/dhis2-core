@@ -112,7 +112,7 @@ class DataElementOperandControllerTest {
 
   @Mock private CategoryService dataElementCategoryService;
 
-  @Mock private SystemSettingsService systemSettingsService;
+  @Mock private SystemSettingsService settingsService;
 
   @Mock private UserService userService;
 
@@ -131,7 +131,7 @@ class DataElementOperandControllerTest {
     QueryService _queryService =
         new DefaultQueryService(
             new DefaultJpaQueryParser(schemaService),
-            new DefaultQueryPlanner(schemaService, systemSettingsService),
+            new DefaultQueryPlanner(schemaService, settingsService),
             mock(JpaCriteriaQueryEngine.class),
             new InMemoryQueryEngine<>(schemaService, mock(AclService.class)));
     // Use "spy" on queryService, because we want a partial mock: we only

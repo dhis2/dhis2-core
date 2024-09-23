@@ -101,7 +101,7 @@ class DataApprovalStoreIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private CacheProvider cacheProvider;
 
-  @Autowired private SystemSettingsService systemSettingsService;
+  @Autowired private SystemSettingsService settingsService;
 
   @Autowired private DbmsManager dbmsManager;
 
@@ -154,7 +154,7 @@ class DataApprovalStoreIntegrationTest extends PostgresIntegrationTestBase {
             periodService,
             periodStore,
             categoryService,
-            systemSettingsService,
+            settingsService,
             userService);
 
     // ---------------------------------------------------------------------

@@ -58,7 +58,7 @@ public class DataValueSynchronization implements DataSynchronizationWithPaging {
 
   private final DataValueSetService dataValueSetService;
 
-  private final SystemSettingsService settingManager;
+  private final SystemSettingsService settingsService;
 
   private final RestTemplate restTemplate;
 
@@ -85,7 +85,7 @@ public class DataValueSynchronization implements DataSynchronizationWithPaging {
   @Override
   public SynchronizationResult synchronizeData(int pageSize, JobProgress progress) {
     progress.startingProcess("Starting DataValueSynchronization job");
-    if (!SyncUtils.testServerAvailability(settingManager.getCurrentSettings(), restTemplate)
+    if (!SyncUtils.testServerAvailability(settingsService.getCurrentSettings(), restTemplate)
         .isAvailable()) {
       String msg = "DataValueSynchronization failed. Remote server is unavailable.";
       progress.failedProcess(msg);
@@ -110,7 +110,7 @@ public class DataValueSynchronization implements DataSynchronizationWithPaging {
 
     if (runSyncWithPaging(context, progress)) {
       progress.completedProcess("SUCCESS! DataValueSynchronization job is done.");
-      settingManager.saveSystemSetting(
+      settingsService.saveSystemSetting(
           "keyLastSuccessfulDataSynch", context.getStartTime().toString());
       return SynchronizationResult.success("DataValueSynchronization done.");
     }
@@ -121,7 +121,7 @@ public class DataValueSynchronization implements DataSynchronizationWithPaging {
   }
 
   private DataValueSynchronisationContext createContext(final int pageSize) {
-    SystemSettings settings = settingManager.getCurrentSettings();
+    SystemSettings settings = settingsService.getCurrentSettings();
     final Date lastSuccessTime = settings.getLastSuccessfulDataSynch();
     final Date skipChangedBefore = settings.getSyncSkipSyncForDataChangedBefore();
     Date lastUpdatedAfter =
@@ -181,7 +181,7 @@ public class DataValueSynchronization implements DataSynchronizationWithPaging {
         };
 
     return SyncUtils.sendSyncRequest(
-        settingManager.getCurrentSettings(),
+        settingsService.getCurrentSettings(),
         restTemplate,
         requestCallback,
         instance,

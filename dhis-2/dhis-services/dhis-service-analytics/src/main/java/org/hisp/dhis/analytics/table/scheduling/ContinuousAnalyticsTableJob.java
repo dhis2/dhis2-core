@@ -67,7 +67,7 @@ public class ContinuousAnalyticsTableJob implements Job {
 
   private final AnalyticsTableGenerator analyticsTableGenerator;
 
-  private final SystemSettingsService settingManager;
+  private final SystemSettingsService settingsService;
 
   private final TableInfoReader tableInfoReader;
 
@@ -111,7 +111,7 @@ public class ContinuousAnalyticsTableJob implements Job {
         analyticsTableGenerator.generateAnalyticsTables(params, progress);
       } finally {
         Date nextUpdate = DateUtils.getNextDate(fullUpdateHourOfDay, startTime);
-        settingManager.saveSystemSetting("keyNextAnalyticsTableUpdate", nextUpdate.toString());
+        settingsService.saveSystemSetting("keyNextAnalyticsTableUpdate", nextUpdate.toString());
         log.info("Next full analytics table update: '{}'", toLongDate(nextUpdate));
       }
     } else {
@@ -143,7 +143,7 @@ public class ContinuousAnalyticsTableJob implements Job {
   boolean runFullUpdate(Date startTime) {
     Objects.requireNonNull(startTime);
 
-    Date nextFullUpdate = settingManager.getCurrentSettings().getNextAnalyticsTableUpdate();
+    Date nextFullUpdate = settingsService.getCurrentSettings().getNextAnalyticsTableUpdate();
 
     return startTime.after(nextFullUpdate);
   }

@@ -94,7 +94,7 @@ class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTest
 
   @Autowired protected IdentifiableObjectManager identifiableObjectManager;
 
-  @Autowired private SystemSettingsService systemSettingsService;
+  @Autowired private SystemSettingsService settingsService;
 
   @Autowired protected UserGroupService userGroupService;
 
@@ -624,7 +624,7 @@ class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTest
     dataSetService.addDataSet(dataSetB);
 
     // System settings
-    systemSettingsService.saveSystemSettings(
+    settingsService.saveSystemSettings(
         Map.ofEntries(
             Map.entry("keyIgnoreAnalyticsApprovalYearThreshold", "0"),
             Map.entry("keyAcceptanceRequiredForApproval", "true")));
@@ -632,7 +632,7 @@ class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTest
 
   @AfterEach
   void tearDown() {
-    systemSettingsService.deleteSystemSettings(
+    settingsService.deleteSystemSettings(
         Set.of("keyIgnoreAnalyticsApprovalYearThreshold", "keyAcceptanceRequiredForApproval"));
     DataApprovalPermissionsEvaluator.invalidateCache();
   }

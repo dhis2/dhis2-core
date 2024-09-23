@@ -54,7 +54,7 @@ class HibernateSqlViewStoreTest {
   @Mock JdbcTemplate readOnlyJdbcTemplate;
   @Mock ApplicationEventPublisher publisher;
   @Mock AclService aclService;
-  @Mock SystemSettingsService systemSettingsService;
+  @Mock SystemSettingsService settingsService;
   @Mock Grid grid;
   HibernateSqlViewStore store;
 
@@ -67,7 +67,7 @@ class HibernateSqlViewStoreTest {
             publisher,
             aclService,
             readOnlyJdbcTemplate,
-            systemSettingsService);
+            settingsService);
   }
 
   @Test

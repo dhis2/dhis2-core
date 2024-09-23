@@ -70,7 +70,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 class ContextUtilsTest extends WebSpringTestBase {
   @Autowired private ContextUtils contextUtils;
 
-  @Autowired private SystemSettingsService systemSettingsService;
+  @Autowired private SystemSettingsService settingsService;
 
   private HttpServletResponse response;
 
@@ -124,7 +124,7 @@ class ContextUtilsTest extends WebSpringTestBase {
 
   @Test
   void testConfigureResponseRespectsCacheStrategyInSystemSetting() {
-    systemSettingsService.saveSystemSetting("keyCacheStrategy", CACHE_1_HOUR.toString());
+    settingsService.saveSystemSetting("keyCacheStrategy", CACHE_1_HOUR.toString());
 
     contextUtils.configureResponse(response, null, RESPECT_SYSTEM_SETTING, null, false);
 
@@ -134,11 +134,11 @@ class ContextUtilsTest extends WebSpringTestBase {
   @Test
   void testConfigureResponseReturnsCorrectCacheabilityInHeader() {
     // Set to public; is default
-    systemSettingsService.saveSystemSetting("keyCacheability", PUBLIC.name());
+    settingsService.saveSystemSetting("keyCacheability", PUBLIC.name());
     contextUtils.configureResponse(response, null, CACHE_1_HOUR, null, false);
     assertEquals("max-age=3600, public", response.getHeader("Cache-Control"));
     // Set to private
-    systemSettingsService.saveSystemSetting("keyCacheability", PRIVATE.name());
+    settingsService.saveSystemSetting("keyCacheability", PRIVATE.name());
     response.reset();
     contextUtils.configureResponse(response, null, CACHE_1_HOUR, null, false);
     assertEquals("max-age=3600, private", response.getHeader("Cache-Control"));
@@ -150,7 +150,7 @@ class ContextUtilsTest extends WebSpringTestBase {
     dateBeforeToday.add(YEAR, -5);
     DataQueryParams params = newBuilder().withEndDate(dateBeforeToday.getTime()).build();
     // Progressive caching is not enabled
-    systemSettingsService.saveSystemSetting("keyAnalyticsCacheTtlMode", FIXED.name());
+    settingsService.saveSystemSetting("keyAnalyticsCacheTtlMode", FIXED.name());
     response.reset();
     contextUtils.configureAnalyticsResponse(
         response, null, CACHE_1_HOUR, null, false, params.getLatestEndDate());
@@ -165,7 +165,7 @@ class ContextUtilsTest extends WebSpringTestBase {
     dateBeforeToday.add(YEAR, -5);
     DataQueryParams params = newBuilder().withEndDate(dateBeforeToday.getTime()).build();
     // Progressive caching is not enabled
-    systemSettingsService.saveSystemSettings(
+    settingsService.saveSystemSettings(
         Map.ofEntries(
             Map.entry("keyAnalyticsCacheTtlMode", PROGRESSIVE.name()),
             Map.entry("keyAnalyticsCacheProgressiveTtlFactor", "10")));
@@ -188,7 +188,7 @@ class ContextUtilsTest extends WebSpringTestBase {
     long timeToLive = DAYS.between(dateBeforeToday.toInstant(), now()) * ttlFactor;
     DataQueryParams params = newBuilder().withEndDate(dateBeforeToday.getTime()).build();
     // Progressive caching is not enabled
-    systemSettingsService.saveSystemSettings(
+    settingsService.saveSystemSettings(
         Map.ofEntries(
             Map.entry("keyAnalyticsCacheTtlMode", PROGRESSIVE.name()),
             Map.entry("keyAnalyticsCacheProgressiveTtlFactor", "" + ttlFactor)));

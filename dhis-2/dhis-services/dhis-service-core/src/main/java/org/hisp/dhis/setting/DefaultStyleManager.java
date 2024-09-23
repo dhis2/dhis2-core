@@ -53,7 +53,7 @@ public class DefaultStyleManager implements StyleManager {
   private static final String SEPARATOR = "/";
   private static final String SYSTEM_SEPARATOR = File.separator;
 
-  private final SystemSettingsService systemSettingsService;
+  private final SystemSettingsService settingsService;
   private final UserSettingService userSettingService;
   private final I18nManager i18nManager;
 
@@ -72,7 +72,7 @@ public class DefaultStyleManager implements StyleManager {
 
   @Override
   public void setSystemStyle(String style) {
-    systemSettingsService.saveSystemSetting("keyStyle", style);
+    settingsService.saveSystemSetting("keyStyle", style);
   }
 
   @Override
@@ -88,7 +88,7 @@ public class DefaultStyleManager implements StyleManager {
 
   @Override
   public String getSystemStyle() {
-    return systemSettingsService.getCurrentSettings().getStyle();
+    return settingsService.getCurrentSettings().getStyle();
   }
 
   @Override

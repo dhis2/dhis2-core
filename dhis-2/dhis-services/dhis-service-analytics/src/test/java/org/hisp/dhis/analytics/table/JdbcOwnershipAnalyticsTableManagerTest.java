@@ -105,7 +105,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
 
   @Mock private CategoryService categoryService;
 
-  @Mock private SystemSettingsService systemSettingsService;
+  @Mock private SystemSettingsService settingsService;
 
   @Mock private DataApprovalLevelService dataApprovalLevelService;
 
@@ -154,7 +154,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
             idObjectManager,
             organisationUnitService,
             categoryService,
-            systemSettingsService,
+            settingsService,
             dataApprovalLevelService,
             resourceTableService,
             tableHookService,

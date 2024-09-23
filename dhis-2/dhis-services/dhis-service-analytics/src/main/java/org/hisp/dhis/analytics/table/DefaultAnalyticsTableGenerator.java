@@ -63,7 +63,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
   private final ResourceTableService resourceTableService;
 
-  private final SystemSettingsService settingManager;
+  private final SystemSettingsService settingsService;
 
   private final AnalyticsCache analyticsCache;
 
@@ -75,7 +75,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
   public void generateAnalyticsTables(AnalyticsTableUpdateParams params0, JobProgress progress) {
     Clock clock = new Clock(log).startClock();
     Date lastSuccessfulUpdate =
-        settingManager.getCurrentSettings().getLastSuccessfulAnalyticsTablesUpdate();
+        settingsService.getCurrentSettings().getLastSuccessfulAnalyticsTablesUpdate();
 
     Set<AnalyticsTableType> availableTypes =
         analyticsTableServices.stream()
@@ -119,14 +119,14 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
   private void updateLastSuccessfulSystemSettings(AnalyticsTableUpdateParams params, Clock clock) {
     if (params.isLatestUpdate()) {
-      settingManager.saveSystemSettings(
+      settingsService.saveSystemSettings(
           Map.ofEntries(
               entry(
                   "keyLastSuccessfulLatestAnalyticsPartitionUpdate",
                   params.getStartTime().toString()),
               entry("keyLastSuccessfulLatestAnalyticsPartitionRuntime", clock.time())));
     } else {
-      settingManager.saveSystemSettings(
+      settingsService.saveSystemSettings(
           Map.ofEntries(
               entry("keyLastSuccessfulAnalyticsTablesUpdate", params.getStartTime().toString()),
               entry("keyLastSuccessfulAnalyticsTablesRuntime", clock.time())));
@@ -163,7 +163,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
     resourceTableService.createAllSqlViews(progress);
 
-    settingManager.saveSystemSetting(
+    settingsService.saveSystemSetting(
         "keyLastSuccessfulResourceTablesUpdate", new Date().toString());
   }
 }

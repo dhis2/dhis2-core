@@ -42,7 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 class SystemSettingManagerTest extends PostgresIntegrationTestBase {
 
-  private final SystemSettingsService settingManager;
+  private final SystemSettingsService settingsService;
 
   // TODO new tests
 }

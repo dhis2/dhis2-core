@@ -39,7 +39,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @RequiredArgsConstructor
 public class SystemSettingsInterceptor implements HandlerInterceptor {
 
-  private final SystemSettingsService settingManager;
+  private final SystemSettingsService settingsService;
 
   @Override
   public boolean preHandle(
@@ -47,7 +47,7 @@ public class SystemSettingsInterceptor implements HandlerInterceptor {
       @Nonnull HttpServletResponse response,
       @Nonnull Object handler)
       throws Exception {
-    settingManager.clearCurrentSettings();
+    settingsService.clearCurrentSettings();
     // Note: if settings are used in this request they will be initialised on first access
     return true;
   }
@@ -59,6 +59,6 @@ public class SystemSettingsInterceptor implements HandlerInterceptor {
       @Nonnull Object handler,
       Exception ex)
       throws Exception {
-    settingManager.clearCurrentSettings();
+    settingsService.clearCurrentSettings();
   }
 }

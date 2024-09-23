@@ -80,7 +80,7 @@ abstract class AnalyticsServiceBaseTest {
 
   @Mock private OrganisationUnitService organisationUnitService;
 
-  @Mock private SystemSettingsService systemSettingsService;
+  @Mock private SystemSettingsService settingsService;
 
   @Mock protected EventAnalyticsService eventAnalyticsService;
 
@@ -116,7 +116,7 @@ abstract class AnalyticsServiceBaseTest {
             resolvers,
             expressionService,
             queryPlanner,
-            systemSettingsService,
+            settingsService,
             analyticsManager,
             organisationUnitService,
             executionPlanStore);

@@ -65,7 +65,7 @@ import org.springframework.retry.support.RetryTemplate;
 class MetadataSyncJobParametersTest {
   private static final JobProgress JOB_PROGRESS = JobProgress.noop();
 
-  @Mock private SystemSettingsService systemSettingsService;
+  @Mock private SystemSettingsService settingsService;
 
   @Mock private RetryTemplate retryTemplate;
 
@@ -98,7 +98,7 @@ class MetadataSyncJobParametersTest {
 
     metadataSyncJob =
         new MetadataSyncJob(
-            systemSettingsService,
+            settingsService,
             retryTemplate,
             metadataSyncPreProcessor,
             metadataSyncPostProcessor,

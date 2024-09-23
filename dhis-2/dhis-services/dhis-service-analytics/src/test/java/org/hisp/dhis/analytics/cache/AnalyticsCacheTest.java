@@ -55,14 +55,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class AnalyticsCacheTest {
-  @Mock private SystemSettingsService systemSettingsService;
+  @Mock private SystemSettingsService settingsService;
 
   @Mock private DefaultCacheProvider cacheProvider;
 
   @Test
   void returnSameObjectAfterModifyCachedObject() {
     // arrange
-    AnalyticsCacheSettings settings = new AnalyticsCacheSettings(systemSettingsService);
+    AnalyticsCacheSettings settings = new AnalyticsCacheSettings(settingsService);
 
     CacheBuilder<Grid> cacheBuilder = new SimpleCacheBuilder<>();
 

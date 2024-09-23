@@ -99,7 +99,7 @@ class DataValueSetServiceImportTest {
 
   @Mock private DataValueSetStore dataValueSetStore;
 
-  @Mock private SystemSettingsService systemSettingsService;
+  @Mock private SystemSettingsService settingsService;
 
   @Mock private LockExceptionStore lockExceptionStore;
 

@@ -47,7 +47,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ContinuousAnalyticsTableJobTest {
   @Mock private AnalyticsTableGenerator analyticsTableGenerator;
 
-  @Mock private SystemSettingsService systemSettingsService;
+  @Mock private SystemSettingsService settingsService;
   @Mock private SystemSettings settings;
 
   @Mock private TableInfoReader tableInfoReader;
@@ -60,10 +60,10 @@ class ContinuousAnalyticsTableJobTest {
 
   @BeforeEach
   public void beforeEach() {
-    when(systemSettingsService.getCurrentSettings()).thenReturn(settings);
+    when(settingsService.getCurrentSettings()).thenReturn(settings);
     job =
         new ContinuousAnalyticsTableJob(
-            analyticsTableGenerator, systemSettingsService, tableInfoReader);
+            analyticsTableGenerator, settingsService, tableInfoReader);
   }
 
   @Test

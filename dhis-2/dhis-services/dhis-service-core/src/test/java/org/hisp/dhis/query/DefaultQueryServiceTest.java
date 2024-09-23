@@ -66,11 +66,11 @@ class DefaultQueryServiceTest {
 
   @Mock private SchemaService schemaService;
 
-  @Mock private SystemSettingsService systemSettingsService;
+  @Mock private SystemSettingsService settingsService;
 
   @BeforeEach
   public void setUp() {
-    QueryPlanner queryPlanner = new DefaultQueryPlanner(schemaService, systemSettingsService);
+    QueryPlanner queryPlanner = new DefaultQueryPlanner(schemaService, settingsService);
     subject =
         new DefaultQueryService(
             queryParser, queryPlanner, criteriaQueryEngine, inMemoryQueryEngine);

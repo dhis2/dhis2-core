@@ -68,7 +68,7 @@ class MetadataSyncPreProcessorTest extends PostgresIntegrationTestBase {
 
   @Autowired private SynchronizationManager synchronizationManager;
 
-  @Autowired private SystemSettingsService systemSettingsService;
+  @Autowired private SystemSettingsService settingsService;
 
   @Autowired private MetadataSyncPreProcessor metadataSyncPreProcessor;
 
@@ -245,7 +245,7 @@ class MetadataSyncPreProcessorTest extends PostgresIntegrationTestBase {
     List<MetadataVersion> expectedListOfVersions =
         metadataSyncPreProcessor.handleMetadataVersionsList(
             mockRetryContext, currentVersion, JobProgress.noop());
-    verify(systemSettingsService).saveSystemSetting("keyRemoteMetadataVersion", version4.getName());
+    verify(settingsService).saveSystemSetting("keyRemoteMetadataVersion", version4.getName());
     assertEquals(3, expectedListOfVersions.size());
   }
 }

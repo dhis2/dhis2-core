@@ -54,7 +54,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class MetadataSyncJobTest {
 
-  @Mock private SystemSettingsService systemSettingsService;
+  @Mock private SystemSettingsService settingsService;
   @Mock private MetadataVersionService metadataVersionService;
   @Mock private MetadataVersionDelegate metadataVersionDelegate;
 
@@ -76,7 +76,7 @@ class MetadataSyncJobTest {
     RecordingJobProgress jobProgress = new RecordingJobProgress(config);
 
     MetadataSyncPreProcessor preProcessor =
-        new MetadataSyncPreProcessor(systemSettingsService, null, null, null, null);
+        new MetadataSyncPreProcessor(settingsService, null, null, null, null);
 
     // when
     preProcessor.setUp(null, jobProgress);
@@ -99,7 +99,7 @@ class MetadataSyncJobTest {
 
     MetadataSyncPreProcessor preProcessor =
         new MetadataSyncPreProcessor(
-            systemSettingsService, metadataVersionService, metadataVersionDelegate, null, null);
+            settingsService, metadataVersionService, metadataVersionDelegate, null, null);
 
     MetadataVersion mdVersion = new MetadataVersion("test", VersionType.BEST_EFFORT);
     when(metadataVersionService.getCurrentVersion()).thenReturn(mdVersion);
@@ -125,7 +125,7 @@ class MetadataSyncJobTest {
 
     MetadataSyncPreProcessor preProcessor =
         new MetadataSyncPreProcessor(
-            systemSettingsService, metadataVersionService, metadataVersionDelegate, null, null);
+            settingsService, metadataVersionService, metadataVersionDelegate, null, null);
 
     MetadataVersion mdVersion = new MetadataVersion("test", VersionType.BEST_EFFORT);
     when(metadataVersionDelegate.getMetaDataDifference(mdVersion)).thenReturn(List.of());

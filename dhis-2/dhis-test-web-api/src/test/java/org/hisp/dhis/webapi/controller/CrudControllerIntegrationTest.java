@@ -51,7 +51,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
 
   @Autowired private UserSettingService userSettingService;
 
-  @Autowired private SystemSettingsService systemSettingsService;
+  @Autowired private SystemSettingsService settingsService;
 
   @Test
   void testGetNonAccessibleObject() {
@@ -145,9 +145,9 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
   void testSearchTokenWithNullLocale() {
     setUpTranslation();
     doInTransaction(
-        () -> systemSettingsService.saveSystemSetting("keyDbLocale", Locale.ENGLISH.toString()));
-    systemSettingsService.clearCurrentSettings();
-    assertEquals(Locale.ENGLISH, systemSettingsService.getCurrentSettings().getDbLocale());
+        () -> settingsService.saveSystemSetting("keyDbLocale", Locale.ENGLISH.toString()));
+    settingsService.clearCurrentSettings();
+    assertEquals(Locale.ENGLISH, settingsService.getCurrentSettings().getDbLocale());
 
     User userA = createAndAddUser("userA", null, "ALL");
     injectSecurityContextUser(userA);

@@ -34,14 +34,14 @@ import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 @RequiredArgsConstructor
 public class SettingUpgrader extends AbstractStartupRoutine {
 
-  private final SystemSettingsService settingManager;
+  private final SystemSettingsService settingsService;
 
   @Override
   public void execute() throws Exception {
-    String startModule = settingManager.getCurrentSettings().getStartModule();
+    String startModule = settingsService.getCurrentSettings().getStartModule();
 
     if ("dhis-web-dashboard-integration".equals(startModule)) {
-      settingManager.saveSystemSetting("startModule", "dhis-web-dashboard");
+      settingsService.saveSystemSetting("startModule", "dhis-web-dashboard");
     }
   }
 }

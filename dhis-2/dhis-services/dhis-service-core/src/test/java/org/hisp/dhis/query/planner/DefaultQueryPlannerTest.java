@@ -61,11 +61,11 @@ class DefaultQueryPlannerTest {
 
   @Mock private SchemaService schemaService;
 
-  @Mock private SystemSettingsService systemSettingsService;
+  @Mock private SystemSettingsService settingsService;
 
   @BeforeEach
   public void setUp() {
-    this.subject = new DefaultQueryPlanner(schemaService, systemSettingsService);
+    this.subject = new DefaultQueryPlanner(schemaService, settingsService);
   }
 
   @Test

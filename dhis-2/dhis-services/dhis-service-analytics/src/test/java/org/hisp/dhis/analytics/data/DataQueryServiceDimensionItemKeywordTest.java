@@ -119,7 +119,7 @@ class DataQueryServiceDimensionItemKeywordTest {
 
   @Mock private UserSettingService userSettingService;
 
-  @Mock private SystemSettingsService systemSettingsService;
+  @Mock private SystemSettingsService settingsService;
 
   @Mock private AclService aclService;
 
@@ -133,7 +133,7 @@ class DataQueryServiceDimensionItemKeywordTest {
         new DimensionalObjectProducer(
             idObjectManager,
             organisationUnitService,
-            systemSettingsService,
+            settingsService,
             i18nManager,
             dimensionService,
             aclService);

@@ -74,7 +74,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
 
   private FileResourceCleanUpJob cleanUpJob;
 
-  @Autowired private SystemSettingsService systemSettingsService;
+  @Autowired private SystemSettingsService settingsService;
 
   @Autowired private FileResourceService fileResourceService;
 
@@ -107,7 +107,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   public void init() {
     cleanUpJob =
         new FileResourceCleanUpJob(
-            fileResourceService, systemSettingsService, fileResourceContentStore);
+            fileResourceService, settingsService, fileResourceContentStore);
 
     period = createPeriod(PeriodType.getPeriodTypeByName("Monthly"), new Date(), new Date());
     periodService.addPeriod(period);
@@ -117,7 +117,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   void testNoRetention() {
     when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(true);
 
-    systemSettingsService.saveSystemSetting(
+    settingsService.saveSystemSetting(
         "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE.name());
 
     content = "filecontentA".getBytes();
@@ -135,7 +135,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   void testRetention() {
     when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(true);
 
-    systemSettingsService.saveSystemSetting(
+    settingsService.saveSystemSetting(
         "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.THREE_MONTHS.name());
 
     content = "filecontentA".getBytes(StandardCharsets.UTF_8);
@@ -170,7 +170,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   void testOrphan() {
     when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(false);
 
-    systemSettingsService.saveSystemSetting(
+    settingsService.saveSystemSetting(
         "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE.name());
 
     content = "filecontentA".getBytes(StandardCharsets.UTF_8);
@@ -206,7 +206,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   @Disabled
   @Test
   void testFalsePositive() {
-    systemSettingsService.saveSystemSetting(
+    settingsService.saveSystemSetting(
         "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.THREE_MONTHS.name());
 
     content = "externalA".getBytes();
@@ -227,7 +227,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   @Disabled
   @Test
   void testFailedUpload() {
-    systemSettingsService.saveSystemSetting(
+    settingsService.saveSystemSetting(
         "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.THREE_MONTHS.name());
 
     content = "externalA".getBytes();

@@ -55,7 +55,7 @@ class UserAccountServiceTest {
   @Mock private UserService userService;
   @Mock private ConfigurationService configService;
   @Mock private TwoFactorAuthenticationProvider twoFactorAuthProvider;
-  @Mock private SystemSettingsService systemSettingsService;
+  @Mock private SystemSettingsService settingsService;
   @Mock private PasswordValidationService passwordValidationService;
 
   @BeforeEach
@@ -65,7 +65,7 @@ class UserAccountServiceTest {
             userService,
             configService,
             twoFactorAuthProvider,
-            systemSettingsService,
+            settingsService,
             passwordValidationService);
   }
 
@@ -80,7 +80,7 @@ class UserAccountServiceTest {
     recaptchaResponse.setSuccess(false);
     recaptchaResponse.setErrorCodes(List.of("invalid challenge received"));
 
-    when(systemSettingsService.getCurrentSettings())
+    when(settingsService.getCurrentSettings())
         .thenReturn(SystemSettings.of(Map.of("keySelfRegistrationNoRecaptcha", "false")));
     when(userService.verifyRecaptcha("invalid-key", "ip1")).thenReturn(recaptchaResponse);
 
@@ -104,7 +104,7 @@ class UserAccountServiceTest {
     recaptchaResponse.setSuccess(false);
     recaptchaResponse.setErrorCodes(List.of("invalid challenge received"));
 
-    when(systemSettingsService.getCurrentSettings())
+    when(settingsService.getCurrentSettings())
         .thenReturn(SystemSettings.of(Map.of("keySelfRegistrationNoRecaptcha", "false")));
     when(userService.verifyRecaptcha("invalid-key", "ip1")).thenReturn(recaptchaResponse);
 

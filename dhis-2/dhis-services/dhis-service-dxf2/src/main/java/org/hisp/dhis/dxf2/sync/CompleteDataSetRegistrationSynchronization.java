@@ -50,7 +50,7 @@ import org.springframework.web.client.RestTemplate;
 @AllArgsConstructor
 public class CompleteDataSetRegistrationSynchronization
     implements DataSynchronizationWithoutPaging {
-  private final SystemSettingsService settingManager;
+  private final SystemSettingsService settingsService;
 
   private final RestTemplate restTemplate;
 
@@ -81,7 +81,7 @@ public class CompleteDataSetRegistrationSynchronization
   @Override
   public SynchronizationResult synchronizeData(JobProgress progress) {
     progress.startingProcess("Starting Complete data set registration synchronization job.");
-    if (!SyncUtils.testServerAvailability(settingManager.getCurrentSettings(), restTemplate)
+    if (!SyncUtils.testServerAvailability(settingsService.getCurrentSettings(), restTemplate)
         .isAvailable()) {
       String msg =
           "Complete data set registration synchronization failed. Remote server is unavailable.";
@@ -100,7 +100,7 @@ public class CompleteDataSetRegistrationSynchronization
             this::createContext);
 
     if (context.getObjectsToSynchronize() == 0) {
-      settingManager.saveSystemSetting(
+      settingsService.saveSystemSetting(
           "keyLastCompleteDataSetRegistrationSyncSuccess", context.getStartTime().toString());
       String msg = "Skipping completeness synchronization, no new or updated data";
       progress.completedProcess(msg);
@@ -108,7 +108,7 @@ public class CompleteDataSetRegistrationSynchronization
     }
 
     if (runSync(context, progress)) {
-      settingManager.saveSystemSetting(
+      settingsService.saveSystemSetting(
           "keyLastCompleteDataSetRegistrationSyncSuccess", context.getStartTime().toString());
       String msg = "Complete data set registration synchronization is done.";
       progress.completedProcess(msg);
@@ -121,7 +121,7 @@ public class CompleteDataSetRegistrationSynchronization
   }
 
   private CompleteDataSetRegistrationSynchronizationContext createContext() {
-    SystemSettings settings = settingManager.getCurrentSettings();
+    SystemSettings settings = settingsService.getCurrentSettings();
     Date lastSuccessTime = settings.getLastCompleteDataSetRegistrationSyncSuccess();
     Date skipChangedBefore = settings.getSyncSkipSyncForDataChangedBefore();
     Date lastUpdatedAfter =
@@ -171,7 +171,7 @@ public class CompleteDataSetRegistrationSynchronization
         };
 
     return SyncUtils.sendSyncRequest(
-        settingManager.getCurrentSettings(),
+        settingsService.getCurrentSettings(),
         restTemplate,
         requestCallback,
         instance,

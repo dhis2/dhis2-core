@@ -49,7 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 class SecurityServiceTest extends PostgresIntegrationTestBase {
   @Autowired private PasswordManager passwordManager;
 
-  @Autowired private SystemSettingsService systemSettingsService;
+  @Autowired private SystemSettingsService settingsService;
 
   private User userA;
 
@@ -63,7 +63,7 @@ class SecurityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testUserAuthenticationLockout() {
-    systemSettingsService.saveSystemSetting("keyLockMultipleFailedLogins", "true");
+    settingsService.saveSystemSetting("keyLockMultipleFailedLogins", "true");
     String username = "dr_evil";
     userService.registerFailedLogin(username);
     assertFalse(userService.isLocked(username));
@@ -77,12 +77,12 @@ class SecurityServiceTest extends PostgresIntegrationTestBase {
     assertTrue(userService.isLocked(username));
     userService.registerSuccessfulLogin(username);
     assertFalse(userService.isLocked(username));
-    systemSettingsService.deleteSystemSettings(Set.of("keyLockMultipleFailedLogins"));
+    settingsService.deleteSystemSettings(Set.of("keyLockMultipleFailedLogins"));
   }
 
   @Test
   void testRecoveryAttemptLocked() {
-    systemSettingsService.saveSystemSetting("keyLockMultipleFailedLogins", "true");
+    settingsService.saveSystemSetting("keyLockMultipleFailedLogins", "true");
     String username = "dr_evil";
     userService.registerRecoveryAttempt(username);
     assertFalse(userService.isRecoveryLocked(username));
@@ -96,7 +96,7 @@ class SecurityServiceTest extends PostgresIntegrationTestBase {
     assertFalse(userService.isRecoveryLocked(username));
     userService.registerRecoveryAttempt(username);
     assertTrue(userService.isRecoveryLocked(username));
-    systemSettingsService.deleteSystemSettings(Set.of("keyLockMultipleFailedLogins"));
+    settingsService.deleteSystemSettings(Set.of("keyLockMultipleFailedLogins"));
   }
 
   @Test

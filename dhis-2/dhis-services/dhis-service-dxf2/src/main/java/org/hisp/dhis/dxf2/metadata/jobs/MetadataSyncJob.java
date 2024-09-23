@@ -81,7 +81,7 @@ public class MetadataSyncJob implements Job {
     DATA_PUSH_SUMMARY, GET_METADATAVERSION, GET_METADATAVERSIONSLIST, METADATA_SYNC, VERSION_KEY
   };
 
-  private final SystemSettingsService settingManager;
+  private final SystemSettingsService settingsService;
 
   private final RetryTemplate retryTemplate;
 
@@ -203,7 +203,7 @@ public class MetadataSyncJob implements Job {
 
     if (version != null) {
       MetadataVersion metadataVersion = (MetadataVersion) version;
-      settingManager.saveSystemSettings(
+      settingsService.saveSystemSettings(
           Map.ofEntries(
               entry("keyMetadataFailedVersion", metadataVersion.getName()),
               entry("keyMetadataLastFailedTime", new Date().toString())));
@@ -211,7 +211,7 @@ public class MetadataSyncJob implements Job {
   }
 
   private void clearFailedVersionSettings() {
-    settingManager.deleteSystemSettings(
+    settingsService.deleteSystemSettings(
         Set.of("keyMetadataFailedVersion", "keyMetadataLastFailedTime"));
   }
 }

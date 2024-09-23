@@ -77,7 +77,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
 
   @Autowired private ProgramRuleVariableService programRuleVariableService;
 
-  @Autowired private SystemSettingsService systemSettingsService;
+  @Autowired private SystemSettingsService settingsService;
 
   private Program program;
 
@@ -198,7 +198,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
       shouldImportWithWarningWhenDataElementWithDifferentValueIsAssignedByAssignRuleAndOverwriteKeyIsTrue()
           throws IOException {
     assignProgramRule();
-    systemSettingsService.saveSystemSetting("ruleEngineAssignOverwrite", "true");
+    settingsService.saveSystemSetting("ruleEngineAssignOverwrite", "true");
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
         fromJson("tracker/programrule/event_update_datavalue_different_value.json");
@@ -214,7 +214,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
       shouldImportWithWarningWhenDataElementWithDifferentAndEmptyValueIsAssignedByAssignRuleAndOverwriteKeyIsTrue()
           throws IOException {
     assignProgramRule();
-    systemSettingsService.saveSystemSetting("ruleEngineAssignOverwrite", "true");
+    settingsService.saveSystemSetting("ruleEngineAssignOverwrite", "true");
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
         fromJson("tracker/programrule/event_update_datavalue_empty_value.json");

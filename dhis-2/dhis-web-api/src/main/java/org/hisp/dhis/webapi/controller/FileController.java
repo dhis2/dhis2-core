@@ -66,7 +66,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequiredArgsConstructor
 public class FileController {
 
-  private final SystemSettingsService settingManager;
+  private final SystemSettingsService settingsService;
   private final ContextUtils contextUtils;
 
   // -------------------------------------------------------------------------
@@ -93,7 +93,7 @@ public class FileController {
   @ResponseStatus(HttpStatus.OK)
   public WebMessage postCustomScript(@RequestBody String content) {
     if (content != null) {
-      settingManager.saveSystemSetting("keyCustomJs", content);
+      settingsService.saveSystemSetting("keyCustomJs", content);
       return ok("Custom script created");
     }
     return null;
@@ -103,7 +103,7 @@ public class FileController {
   @RequiresAuthority(anyOf = F_INSERT_CUSTOM_JS_CSS)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void removeCustomScript() {
-    settingManager.deleteSystemSettings(Set.of("keyCustomJs"));
+    settingsService.deleteSystemSettings(Set.of("keyCustomJs"));
   }
 
   // -------------------------------------------------------------------------
@@ -133,7 +133,7 @@ public class FileController {
   @ResponseStatus(HttpStatus.OK)
   public WebMessage postCustomStyle(@RequestBody String content) {
     if (content != null) {
-      settingManager.saveSystemSetting("keyCustomCss", content);
+      settingsService.saveSystemSetting("keyCustomCss", content);
       return ok("Custom style created");
     }
     return null;
@@ -143,6 +143,6 @@ public class FileController {
   @RequiresAuthority(anyOf = F_INSERT_CUSTOM_JS_CSS)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void removeCustomStyle() {
-    settingManager.deleteSystemSettings(Set.of("keyCustomCss"));
+    settingsService.deleteSystemSettings(Set.of("keyCustomCss"));
   }
 }

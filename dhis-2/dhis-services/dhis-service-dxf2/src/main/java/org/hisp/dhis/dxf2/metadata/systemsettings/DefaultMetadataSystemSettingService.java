@@ -42,7 +42,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class DefaultMetadataSystemSettingService implements MetadataSystemSettingService {
 
-  private final SystemSettingsService settingManager;
+  private final SystemSettingsService settingsService;
 
   @Override
   public String getRemoteInstanceUserName() {
@@ -81,7 +81,7 @@ public class DefaultMetadataSystemSettingService implements MetadataSystemSettin
 
   @Override
   public void setSystemMetadataVersion(String versionName) {
-    settingManager.saveSystemSetting("keySystemMetadataVersion", versionName);
+    settingsService.saveSystemSetting("keySystemMetadataVersion", versionName);
   }
 
   @Override
@@ -95,6 +95,6 @@ public class DefaultMetadataSystemSettingService implements MetadataSystemSettin
   }
 
   private SystemSettings getSettings() {
-    return settingManager.getCurrentSettings();
+    return settingsService.getCurrentSettings();
   }
 }

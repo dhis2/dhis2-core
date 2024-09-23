@@ -55,7 +55,7 @@ class DataStatisticsEventStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private DashboardService dashboardService;
 
-  @Autowired private SystemSettingsService systemSettingsService;
+  @Autowired private SystemSettingsService settingsService;
 
   @Autowired private DataStatisticsService dataStatisticsService;
 
@@ -154,7 +154,7 @@ class DataStatisticsEventStoreTest extends PostgresIntegrationTestBase {
     final FavoriteStatistics activeDashboardStats =
         dataStatisticsService.getFavoriteStatistics(DASHBOARD_UID);
 
-    systemSettingsService.saveSystemSetting(
+    settingsService.saveSystemSetting(
         "keyCountPassiveDashboardViewsInUsageAnalytics", "true");
     final FavoriteStatistics activePlusPassiveDashboardStats =
         dataStatisticsService.getFavoriteStatistics(DASHBOARD_UID);

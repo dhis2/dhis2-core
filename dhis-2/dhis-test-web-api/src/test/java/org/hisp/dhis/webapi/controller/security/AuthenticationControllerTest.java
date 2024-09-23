@@ -53,7 +53,7 @@ import org.springframework.security.core.session.SessionRegistry;
  */
 class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
-  @Autowired SystemSettingsService systemSettingsService;
+  @Autowired SystemSettingsService settingsService;
   @Autowired private SessionRegistry sessionRegistry;
 
   @Test
@@ -125,7 +125,7 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
   @Test
   void testLoginWithLockedUser() {
-    systemSettingsService.saveSystemSetting("keyLockMultipleFailedLogins", "true");
+    settingsService.saveSystemSetting("keyLockMultipleFailedLogins", "true");
 
     User admin = userService.getUserByUsername("admin");
     userService.updateUser(admin);
@@ -161,7 +161,7 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
   @Test
   void testLoginWithCredentialsExpiredUser() {
-    systemSettingsService.saveSystemSetting("credentialsExpires", "1");
+    settingsService.saveSystemSetting("credentialsExpires", "1");
 
     User admin = userService.getUserByUsername("admin");
 

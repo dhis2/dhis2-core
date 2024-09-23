@@ -77,14 +77,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @AllArgsConstructor
 public class SystemSettingController {
 
-  private final SystemSettingsService settingManager;
+  private final SystemSettingsService settingsService;
 
   @PostMapping(value = "/{key}")
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
   public WebMessage setSystemSettingPlain(
       @PathVariable("key") String key, @RequestParam(value = "value") String value) {
-    settingManager.saveSystemSetting(key, value);
+    settingsService.saveSystemSetting(key, value);
     return ok("System setting '" + key + "' set to value '" + value + "'.");
   }
 
@@ -118,7 +118,7 @@ public class SystemSettingController {
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
   public WebMessage setSystemSettingsJson(@RequestBody Map<String, String> settings) {
-    settingManager.saveSystemSettings(settings);
+    settingsService.saveSystemSettings(settings);
     return ok("System settings imported");
   }
 
@@ -128,33 +128,33 @@ public class SystemSettingController {
       throws ForbiddenException {
     if (SystemSettings.isConfidential(key) && !currentUser.isSuper())
       throw new ForbiddenException("Setting is marked as confidential");
-    return settingManager.getCurrentSettings().asString(key, "");
+    return settingsService.getCurrentSettings().asString(key, "");
   }
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public SystemSettings getSystemSettingsJson() {
-    return settingManager.getCurrentSettings();
+    return settingsService.getCurrentSettings();
   }
 
   @Deprecated(since = "2.42", forRemoval = true)
   @GetMapping(value = "/{key}", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody JsonMap<? extends JsonPrimitive> getSystemSettingJson(
       @PathVariable("key") String key) {
-    return settingManager.getCurrentSettings().toJson();
+    return settingsService.getCurrentSettings().toJson();
   }
 
   @DeleteMapping("/{key}")
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseStatus(value = NO_CONTENT)
   public void removeSystemSetting(@PathVariable("key") String key) {
-    settingManager.deleteSystemSettings(Set.of(key));
+    settingsService.deleteSystemSettings(Set.of(key));
   }
 
   @DeleteMapping(params = "key")
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseStatus(value = NO_CONTENT)
   public void removeSystemSetting(@RequestParam("key") Set<String> keys) {
-    settingManager.deleteSystemSettings(keys == null ? Set.of() : keys);
+    settingsService.deleteSystemSettings(keys == null ? Set.of() : keys);
   }
 
   /*
@@ -168,7 +168,7 @@ public class SystemSettingController {
       @PathVariable("key") String key, @RequestParam("locale") String locale) {
     if (locale == null || locale.isEmpty())
       locale = UserSettings.getCurrentSettings().getUserUiLocale().getLanguage();
-    return settingManager.getSystemSettingTranslation(key, locale).orElse("");
+    return settingsService.getSystemSettingTranslation(key, locale).orElse("");
   }
 
   @PostMapping(value = "/{key}", params = "locale", consumes = TEXT_PLAIN_VALUE)
@@ -181,7 +181,7 @@ public class SystemSettingController {
       @RequestBody(required = false) String valuePayload)
       throws ForbiddenException, BadRequestException {
     if (value == null) value = valuePayload;
-    settingManager.saveSystemSettingTranslation(key, locale, value);
+    settingsService.saveSystemSettingTranslation(key, locale, value);
     return ok(
         "Translation for system setting '%s' and locale: '%s' set to: '%s'"
             .formatted(key, locale, value));
@@ -193,6 +193,6 @@ public class SystemSettingController {
   public void removeSystemSettingTranslation(
       @PathVariable("key") String key, @RequestParam("locale") String locale)
       throws ForbiddenException, BadRequestException {
-    settingManager.saveSystemSettingTranslation(key, locale, StringUtils.EMPTY);
+    settingsService.saveSystemSettingTranslation(key, locale, StringUtils.EMPTY);
   }
 }
