@@ -71,7 +71,8 @@ public non-sealed interface UserSettings extends Settings {
    *
    * @return an immutable instance of the current user's settings. It explicitly defines settings
    *     stored for the user as well as settings defined for the system in case they are not defined
-   *     for the user.
+   *     for the user. If no user is present in the context the {@link UserSettings} are empty (and
+   *     do not reflect any {@link SystemSettings} as fallback).
    */
   static UserSettings getCurrentSettings() {
     return CurrentUserSettings.getCurrentSettings();
@@ -106,6 +107,19 @@ public non-sealed interface UserSettings extends Settings {
   }
 
   /**
+   * @param settings fallback entries
+   * @return a new {@link UserSettings} instance with values using fallback if they were not defined
+   */
+  default UserSettings withFallback(Map<String, String> settings) {
+    Map<String, String> original = toMap();
+    Map<String, String> merged = new HashMap<>(original);
+    for (String key : keysWithDefaults()) {
+      merged.putIfAbsent(key, settings.get(key));
+    }
+    return UserSettings.of(merged);
+  }
+
+  /**
    * Union.
    *
    * @param settings entries for the union
@@ -115,21 +129,6 @@ public non-sealed interface UserSettings extends Settings {
   default UserSettings withOverlay(Map<String, String> settings) {
     Map<String, String> merged = new HashMap<>(toMap());
     merged.putAll(settings);
-    return UserSettings.of(merged);
-  }
-
-  /**
-   * @param settings fallback entries
-   * @return a new {@link UserSettings} instance with values using fallback if they were not defined
-   */
-  default UserSettings withFallback(Map<String, String> settings) {
-    Map<String, String> original = toMap();
-    Map<String, String> merged = new HashMap<>(original);
-    // FIXME the set of keys iterated here must be all keys of UserSettings
-    for (String key : original.keySet()) {
-      String value = settings.get(key);
-      if (value != null) merged.put(key, value);
-    }
     return UserSettings.of(merged);
   }
 

@@ -148,7 +148,7 @@ public class ApiTokenAuthManager implements AuthenticationManager {
     UserSettings userSettings =
         userSettingService
             .getSettings(user.getUsername())
-            .withOverlay(settingsProvider.getCurrentSettings().toMap());
+            .withFallback(settingsProvider.getCurrentSettings().toMap());
 
     List<String> organisationUnitsUidsByUser =
         organisationUnitService.getOrganisationUnitsUidsByUser(user.getUsername());

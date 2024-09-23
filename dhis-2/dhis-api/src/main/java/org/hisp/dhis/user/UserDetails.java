@@ -251,6 +251,11 @@ public interface UserDetails extends org.springframework.security.core.userdetai
 
   boolean isAuthorized(@Nonnull Authorities auth);
 
+  /**
+   * @return the effective settings for the user, this includes {@link
+   *     org.hisp.dhis.setting.SystemSettings} as fallback as they were when the {@link UserDetails}
+   *     instance was created
+   */
   @Nonnull
   UserSettings getUserSettings();
 

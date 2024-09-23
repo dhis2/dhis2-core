@@ -58,7 +58,6 @@ import org.hisp.dhis.attribute.AttributeValuesDeserializer;
 import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.annotation.Description;
-import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Include;
@@ -335,10 +334,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
    * @return a translated value.
    */
   protected String getTranslation(String translationKey, String defaultValue) {
-    Locale locale =
-        CurrentUserUtil.hasCurrentUser()
-            ? UserSettings.getCurrentSettings().getUserDbLocale()
-            : LocaleManager.DEFAULT_LOCALE;
+    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
 
     final String defaultTranslation = defaultValue != null ? defaultValue.trim() : null;
 
