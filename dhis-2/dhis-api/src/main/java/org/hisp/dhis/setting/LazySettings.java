@@ -44,7 +44,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -56,8 +56,11 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.LocaleUtils;
+import org.hisp.dhis.jsontree.Json;
+import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonPrimitive;
+import org.hisp.dhis.jsontree.JsonValue;
 
 /**
  * {@link SystemSettings} or {@link UserSettings} represented by a set of keys and their values.
@@ -81,10 +84,20 @@ final class LazySettings implements SystemSettings, UserSettings {
   private static final LazySettings EMPTY_USER_SETTINGS = of(UserSettings.class, Map.of());
   private static final LazySettings EMPTY_SYSTEM_SETTINGS = of(SystemSettings.class, Map.of());
 
-  private static final Map<String, Serializable> DEFAULTS = extractDefaults();
+  private static final Set<String> CONFIDENTIAL_KEYS = new HashSet<>();
+  private static final Map<String, Serializable> DEFAULTS_SYSTEM_SETTINGS =
+      extractDefaults(SystemSettings.class);
+  private static final Map<String, Serializable> DEFAULTS_USER_SETTINGS =
+      extractDefaults(SystemSettings.class);
 
   static Set<String> keysWithDefaults(Class<? extends Settings> type) {
-    return Set.of(); // FIXME
+    if (type == SystemSettings.class) return Set.copyOf(DEFAULTS_SYSTEM_SETTINGS.keySet());
+    if (type == UserSettings.class) return Set.copyOf(DEFAULTS_USER_SETTINGS.keySet());
+    return Set.of();
+  }
+
+  static boolean isConfidential(@Nonnull String key) {
+    return CONFIDENTIAL_KEYS.contains(key);
   }
 
   @Nonnull
@@ -191,8 +204,34 @@ final class LazySettings implements SystemSettings, UserSettings {
 
   @Override
   public JsonMap<? extends JsonPrimitive> toJson() {
-    // TODO
-    return null;
+    Map<String, Serializable> defaults =
+        type == SystemSettings.class ? DEFAULTS_SYSTEM_SETTINGS : DEFAULTS_USER_SETTINGS;
+    return JsonValue.of(
+            JsonBuilder.createObject(
+                obj -> {
+                  // add values explicitly contained in this set
+                  for (int i = 0; i < keys.length; i++) {
+                    String key = keys[i];
+                    if (!isConfidential(key)) obj.addMember(key, toPrimitive(rawValues[i]).node());
+                  }
+                  // add defaults as defined in accessor methods
+                  Set<String> ignore = Set.of(keys);
+                  for (Map.Entry<String, Serializable> e : defaults.entrySet()) {
+                    String key = e.getKey();
+                    if (!ignore.contains(key) && !isConfidential(key)) {
+                      obj.addMember(key, toPrimitive(e.getValue()).node());
+                    }
+                  }
+                }))
+        .asMap(JsonPrimitive.class);
+  }
+
+  private JsonPrimitive toPrimitive(Object value) {
+    if (value == null) return Json.ofNull();
+    if (value instanceof Number n) return Json.of(n);
+    if (value instanceof Boolean b) return Json.of(b);
+    if (value instanceof Enum<?> e) return Json.of(e.name());
+    return Json.of(value.toString());
   }
 
   private int indexOf(String key) {
@@ -239,16 +278,36 @@ final class LazySettings implements SystemSettings, UserSettings {
     return Date.from(LocalDateTime.parse(raw).atZone(ZoneId.systemDefault()).toInstant());
   }
 
-  private static Map<String, Serializable> extractDefaults() {
-    Map<String, Serializable> defaults = new HashMap<>();
-    Proxy.newProxyInstance(
-        ClassLoader.getSystemClassLoader(),
-        new Class[] {SystemSettings.class},
-        (proxy, method, args) -> {
-          if (method.isDefault())
-            return getDefaultMethodHandle(method).bindTo(proxy).invokeWithArguments(args);
-          return null;
-        });
+  private static Map<String, Serializable> extractDefaults(Class<? extends Settings> type) {
+    Map<String, Serializable> defaults = new TreeMap<>();
+    Method[] lastDefault = new Method[1];
+    Object instance =
+        Proxy.newProxyInstance(
+            ClassLoader.getSystemClassLoader(),
+            new Class[] {type},
+            (proxy, method, args) -> {
+              if (method.isDefault()) {
+                lastDefault[0] = method;
+                return getDefaultMethodHandle(method).bindTo(proxy).invokeWithArguments(args);
+              }
+              if (args.length == 2) {
+                String key = (String) args[0];
+                Serializable defaultValue = (Serializable) args[1];
+                defaults.put(key, defaultValue);
+                if (lastDefault[0].isAnnotationPresent(Confidential.class))
+                  CONFIDENTIAL_KEYS.add(key);
+              }
+              return args[1];
+            });
+    for (Method m : type.getDeclaredMethods()) {
+      if (m.isDefault() && m.getParameterCount() == 0) {
+        try {
+          m.invoke(instance);
+        } catch (Exception ex) {
+          log.warn("Failed to extract setting default for method: %s".formatted(m.getName()), ex);
+        }
+      }
+    }
     return Map.copyOf(defaults);
   }
 
@@ -266,7 +325,7 @@ final class LazySettings implements SystemSettings, UserSettings {
     }
   }
 
-  public class SettingsSerializer extends JsonSerializer<Settings> {
+  public static class SettingsSerializer extends JsonSerializer<Settings> {
 
     @Override
     public void serialize(Settings value, JsonGenerator gen, SerializerProvider serializers)

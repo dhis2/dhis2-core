@@ -27,21 +27,65 @@
  */
 package org.hisp.dhis.setting;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.hisp.dhis.jsontree.JsonInteger;
+import org.hisp.dhis.jsontree.JsonMap;
+import org.hisp.dhis.jsontree.JsonPrimitive;
+import org.hisp.dhis.jsontree.JsonString;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests the basics of {@link SystemSettings}.
+ *
+ * @author Jan Bernitt
+ * @since 2.42
+ */
 class SystemSettingsTest {
+
+  private static final List<String> CONFIDENTIAL_KEYS =
+      List.of("keyEmailPassword", "keyRemoteInstancePassword", "recaptchaSite", "recaptchaSecret");
 
   @Test
   void testIsConfidential() {
-    List<String> confidential =
-        List.of(
-            "keyEmailPassword", "keyRemoteInstancePassword", "recaptchaSite", "recaptchaSecret");
-    confidential.forEach(key -> assertTrue(SystemSettings.isConfidential(key)));
+
+    CONFIDENTIAL_KEYS.forEach(
+        key ->
+            assertTrue(
+                SystemSettings.isConfidential(key), "%s should be confidential".formatted(key)));
 
     assertFalse(SystemSettings.isConfidential("keyEmailHostName"));
+  }
+
+  @Test
+  void testKeysWithDefaults() {
+    Set<String> keys = SystemSettings.keysWithDefaults();
+    assertEquals(135, keys.size());
+    // just check some at random
+    assertTrue(keys.contains("syncSkipSyncForDataChangedBefore"));
+    assertTrue(keys.contains("keyTrackerDashboardLayout"));
+  }
+
+  @Test
+  void testToJson() {
+    SystemSettings settings = SystemSettings.of(Map.of("applicationTitle", "Hello World"));
+    JsonMap<? extends JsonPrimitive> asJson = settings.toJson();
+    // it does contain the custom value
+    assertEquals("Hello World", asJson.get("applicationTitle").as(JsonString.class).string());
+    // but also all defaults (test one)
+    assertEquals(
+        -1, asJson.get("keyParallelJobsInAnalyticsTableExport").as(JsonInteger.class).intValue());
+    // except none of the confidential ones
+    CONFIDENTIAL_KEYS.forEach(key -> assertFalse(asJson.exists(key)));
+  }
+
+  @Test
+  void testKeys() {
+    assertEquals(Set.of("a", "b"), SystemSettings.of(Map.of("a", "1", "b", "2")).keys());
   }
 }

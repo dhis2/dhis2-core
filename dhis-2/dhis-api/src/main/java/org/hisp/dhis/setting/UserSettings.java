@@ -30,6 +30,8 @@ package org.hisp.dhis.setting;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 
@@ -92,6 +94,11 @@ public non-sealed interface UserSettings extends Settings {
    */
   static void overrideCurrentUserSettings(Map<String, String> settings) {
     CurrentUserSettings.overrideCurrentSettings(settings);
+  }
+
+  @Nonnull
+  static Set<String> keysWithDefaults() {
+    return LazySettings.keysWithDefaults(UserSettings.class);
   }
 
   static UserSettings of(Map<String, String> settings) {

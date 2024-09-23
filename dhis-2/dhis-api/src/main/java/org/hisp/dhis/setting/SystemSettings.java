@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.setting;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
@@ -62,6 +66,10 @@ import org.hisp.dhis.security.LoginPageLayout;
 @OpenApi.Ignore
 public non-sealed interface SystemSettings extends Settings {
 
+  @Target(ElementType.METHOD)
+  @Retention(RetentionPolicy.RUNTIME)
+  @interface Confidential {}
+
   @Nonnull
   static SystemSettings of(@Nonnull Map<String, String> settings) {
     return LazySettings.of(SystemSettings.class, settings);
@@ -79,19 +87,12 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   /**
-   * Note that there is no deeper meaning to the logic except that this correctly identifies
-   * existing settings that were confidential. In addition to that a new general rule was added that
-   * any setting that starts with a minus is confidential.
-   *
-   * @param name a settings name
+   * @param key a settings name
    * @return true if the setting is private and its value should not be exposed in APIs unless a
    *     user has the proper authority
    */
-  static boolean isConfidential(@Nonnull String name) {
-    return name.startsWith("-")
-        || name.endsWith("password")
-        || name.endsWith("secret")
-        || name.startsWith("recaptcha");
+  static boolean isConfidential(@Nonnull String key) {
+    return LazySettings.isConfidential(key);
   }
 
   /*
@@ -182,6 +183,7 @@ public non-sealed interface SystemSettings extends Settings {
     return asString("keyEmailSender", "");
   }
 
+  @Confidential
   default String getEmailPassword() {
     return asString("keyEmailPassword", "");
   }
@@ -255,10 +257,12 @@ public non-sealed interface SystemSettings extends Settings {
     return asBoolean("keySelfRegistrationNoRecaptcha", false);
   }
 
+  @Confidential
   default String getRecaptchaSecret() {
     return asString("recaptchaSecret", "");
   }
 
+  @Confidential
   default String getRecaptchaSite() {
     // TODO make sure the defaults are decoded...
     return asString("recaptchaSite", "6LcVwT0UAAAAAAkO_EGPiYOiymIszZUeHfqWIYX5");
@@ -477,6 +481,7 @@ public non-sealed interface SystemSettings extends Settings {
     return asString("keyRemoteInstanceUsername", "");
   }
 
+  @Confidential
   default String getRemoteInstancePassword() {
     return asString("keyRemoteInstancePassword", "");
   }
