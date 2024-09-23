@@ -34,15 +34,11 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
@@ -57,13 +53,11 @@ import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.interpretation.InterpretationService;
-import org.hisp.dhis.jsontree.JsonPrimitive;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.node.NodeService;
@@ -288,8 +282,7 @@ public class MeController {
   }
 
   @GetMapping(value = "/settings", produces = APPLICATION_JSON_VALUE)
-  public UserSettings getSettings(
-      @CurrentUser(required = true) UserDetails currentUser) {
+  public UserSettings getSettings(@CurrentUser(required = true) UserDetails currentUser) {
     return currentUser.getUserSettings();
   }
 

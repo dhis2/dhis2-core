@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.user;
 
-import java.util.Iterator;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;

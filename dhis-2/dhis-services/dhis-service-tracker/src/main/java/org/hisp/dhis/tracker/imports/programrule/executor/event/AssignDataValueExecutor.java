@@ -68,8 +68,7 @@ public class AssignDataValueExecutor implements RuleActionExecutor<Event> {
 
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
-    Boolean canOverwrite =
-        settingsProvider.getCurrentSettings().getRuleEngineAssignOverwrite();
+    Boolean canOverwrite = settingsProvider.getCurrentSettings().getRuleEngineAssignOverwrite();
 
     DataElement dataElement = bundle.getPreheat().getDataElement(dataElementUid.getValue());
 

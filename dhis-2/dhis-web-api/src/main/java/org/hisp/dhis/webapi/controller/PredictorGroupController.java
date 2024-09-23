@@ -33,7 +33,6 @@ import static org.hisp.dhis.security.Authorities.F_PREDICTOR_RUN;
 
 import java.util.Date;
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.predictor.PredictionService;
@@ -64,9 +63,7 @@ public class PredictorGroupController extends AbstractCrudController<PredictorGr
   @RequiresAuthority(anyOf = F_PREDICTOR_RUN)
   @ResponseBody
   public WebMessage runPredictorGroup(
-      @PathVariable("uid") String uid,
-      @RequestParam Date startDate,
-      @RequestParam Date endDate) {
+      @PathVariable("uid") String uid, @RequestParam Date startDate, @RequestParam Date endDate) {
     try {
       PredictionSummary predictionSummary =
           predictionService.predictAll(startDate, endDate, null, List.of(uid), JobProgress.noop());

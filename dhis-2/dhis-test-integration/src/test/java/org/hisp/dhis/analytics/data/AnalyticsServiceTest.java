@@ -264,9 +264,8 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
         Date.from(LocalDateTime.now().plusSeconds(10).atZone(ZoneId.systemDefault()).toInstant());
 
     SystemSettings settings = settingsProvider.getCurrentSettings();
-    assertNull(
-        settings.getLastSuccessfulResourceTablesUpdate());
-    assertNull( settings.getLastSuccessfulAnalyticsTablesUpdate());
+    assertNull(settings.getLastSuccessfulResourceTablesUpdate());
+    assertNull(settings.getLastSuccessfulAnalyticsTablesUpdate());
     processStartTime = new Date();
     // Generate analytics tables
     analyticsTableGenerator.generateAnalyticsTables(

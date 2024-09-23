@@ -79,9 +79,7 @@ public class PredictorController extends AbstractCrudController<Predictor> {
   @RequiresAuthority(anyOf = F_PREDICTOR_RUN)
   @ResponseBody
   public WebMessage runPredictor(
-      @PathVariable("uid") String uid,
-      @RequestParam Date startDate,
-      @RequestParam Date endDate) {
+      @PathVariable("uid") String uid, @RequestParam Date startDate, @RequestParam Date endDate) {
     Predictor predictor = predictorService.getPredictor(uid);
 
     try {
@@ -102,8 +100,7 @@ public class PredictorController extends AbstractCrudController<Predictor> {
       method = {RequestMethod.POST, RequestMethod.PUT})
   @RequiresAuthority(anyOf = F_PREDICTOR_RUN)
   @ResponseBody
-  public WebMessage runPredictors(
-      @RequestParam Date startDate, @RequestParam Date endDate) {
+  public WebMessage runPredictors(@RequestParam Date startDate, @RequestParam Date endDate) {
     int count = 0;
 
     List<Predictor> allPredictors = predictorService.getAllPredictors();

@@ -268,14 +268,10 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
       when(aclService.canDataWrite(CurrentUserUtil.getCurrentUserDetails(), categoryOptionB))
           .thenReturn(true);
 
-      when(settings.getDataImportStrictPeriods())
-          .thenReturn(false);
-      when(settings.getDataImportStrictAttributeOptionCombos())
-          .thenReturn(false);
-      when(settings.getDataImportStrictOrganisationUnits())
-          .thenReturn(false);
-      when(settings.getDataImportRequireAttributeOptionCombo())
-          .thenReturn(false);
+      when(settings.getDataImportStrictPeriods()).thenReturn(false);
+      when(settings.getDataImportStrictAttributeOptionCombos()).thenReturn(false);
+      when(settings.getDataImportStrictOrganisationUnits()).thenReturn(false);
+      when(settings.getDataImportRequireAttributeOptionCombo()).thenReturn(false);
 
       user.setOrganisationUnits(Collections.singleton(createOrganisationUnit('A')));
 

@@ -400,8 +400,7 @@ class DimensionalObjectProducerTest {
   void testGetPeriodDimensions() {
     List<String> itemsUid = List.of("LAST_YEAR:LAST_UPDATED", "LAST_5_YEARS:SCHEDULED_DATE");
 
-    when(settings.getAnalyticsFinancialYearStart())
-        .thenReturn(FINANCIAL_YEAR_APRIL);
+    when(settings.getAnalyticsFinancialYearStart()).thenReturn(FINANCIAL_YEAR_APRIL);
     when(i18nManager.getI18nFormat()).thenReturn(i18nFormat);
     when(i18nManager.getI18n()).thenReturn(i18n);
 
@@ -445,8 +444,7 @@ class DimensionalObjectProducerTest {
   void testGetPeriodDimensionForNonIsoPeriod() {
     List<String> itemsUid = List.of("2021-05-01_2021-06-01:LAST_UPDATED");
 
-    when(settings.getAnalyticsFinancialYearStart())
-        .thenReturn(FINANCIAL_YEAR_APRIL);
+    when(settings.getAnalyticsFinancialYearStart()).thenReturn(FINANCIAL_YEAR_APRIL);
     when(i18nManager.getI18nFormat()).thenReturn(i18nFormat);
 
     BaseDimensionalObject dimensionalObject = target.getPeriodDimension(itemsUid, new Date());

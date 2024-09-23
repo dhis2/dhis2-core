@@ -81,7 +81,6 @@ import java.util.Objects;
 import java.util.Set;
 import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -89,7 +88,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataitem.query.QueryableDataItem;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.setting.UserSettings;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.dataitem.Filter;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -251,8 +249,7 @@ public class FilteringHelper {
    */
   public static void setFilteringParams(
       Set<String> filters, WebOptions options, MapSqlParameterSource paramsMap, User currentUser) {
-    Locale currentLocale =
-        UserSettings.getCurrentSettings().getUserLocale();
+    Locale currentLocale = UserSettings.getCurrentSettings().getUserLocale();
 
     if (currentLocale != null && isNotBlank(currentLocale.getLanguage())) {
       paramsMap.addValue(LOCALE, trimToEmpty(currentLocale.getLanguage()));

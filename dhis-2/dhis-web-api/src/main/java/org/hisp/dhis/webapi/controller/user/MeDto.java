@@ -28,19 +28,15 @@
 package org.hisp.dhis.webapi.controller.user;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.jsontree.JsonMap;
-import org.hisp.dhis.jsontree.JsonPrimitive;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.apikey.ApiToken;

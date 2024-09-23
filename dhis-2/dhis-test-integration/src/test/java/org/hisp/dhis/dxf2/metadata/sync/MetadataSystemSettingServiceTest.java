@@ -32,6 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -42,27 +44,24 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Map;
-import java.util.Set;
-
 /**
  * @author anilkumk
  */
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
 class MetadataSystemSettingServiceTest extends PostgresIntegrationTestBase {
-  @Autowired
-  SystemSettingsService systemSettingsService;
+  @Autowired SystemSettingsService systemSettingsService;
 
   @Autowired DefaultMetadataSystemSettingService metadataSystemSettingService;
 
   @BeforeEach
   public void setup() {
-    systemSettingsService.saveSystemSettings(Map.ofEntries(
-        entry("keyRemoteInstanceUrl", "http://localhost:9080"),
-        entry("keyRemoteInstanceUsername","username" ),
-        entry("keyRemoteInstancePassword", "password"),
-        entry( "keyStopMetadataSync", "true")));
+    systemSettingsService.saveSystemSettings(
+        Map.ofEntries(
+            entry("keyRemoteInstanceUrl", "http://localhost:9080"),
+            entry("keyRemoteInstanceUsername", "username"),
+            entry("keyRemoteInstancePassword", "password"),
+            entry("keyStopMetadataSync", "true")));
   }
 
   @Test

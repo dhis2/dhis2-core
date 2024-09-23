@@ -224,8 +224,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   @Transactional(readOnly = true)
   public List<JobConfiguration> getStaleConfigurations(int staleForSeconds) {
     if (staleForSeconds <= 0) {
-      staleForSeconds =
-          60 * settingsProvider.getCurrentSettings().getJobsRescheduleAfterMinutes();
+      staleForSeconds = 60 * settingsProvider.getCurrentSettings().getJobsRescheduleAfterMinutes();
     }
     return jobConfigurationStore.getStaleConfigurations(staleForSeconds);
   }

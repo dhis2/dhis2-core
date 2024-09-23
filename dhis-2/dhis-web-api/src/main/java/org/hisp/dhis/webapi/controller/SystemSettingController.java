@@ -49,8 +49,8 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonPrimitive;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSetting;
-import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
@@ -88,7 +88,9 @@ public class SystemSettingController {
     return ok("System setting '" + key + "' set to value '" + value + "'.");
   }
 
-  @PostMapping(value = "/{key}", consumes = { TEXT_HTML_VALUE, TEXT_PLAIN_VALUE })
+  @PostMapping(
+      value = "/{key}",
+      consumes = {TEXT_HTML_VALUE, TEXT_PLAIN_VALUE})
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
   public WebMessage setSystemSettingPlainBody(
@@ -99,14 +101,16 @@ public class SystemSettingController {
   @PostMapping(value = "/{key}", consumes = APPLICATION_JSON_VALUE)
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
-  public WebMessage setSystemSettingJson(
-      @PathVariable( "key") String key, @RequestBody String value) throws ConflictException {
+  public WebMessage setSystemSettingJson(@PathVariable("key") String key, @RequestBody String value)
+      throws ConflictException {
     JsonMixed json = JsonMixed.of(value);
-    String plain = switch (json.node().getType()) {
-      case STRING -> json.string();
-      case OBJECT, ARRAY -> throw new ConflictException("A setting must be a simple JSON value");
-      default -> json.toJson();
-    };
+    String plain =
+        switch (json.node().getType()) {
+          case STRING -> json.string();
+          case OBJECT, ARRAY ->
+              throw new ConflictException("A setting must be a simple JSON value");
+          default -> json.toJson();
+        };
     return setSystemSettingPlain(key, plain);
   }
 
@@ -120,7 +124,8 @@ public class SystemSettingController {
 
   @GetMapping(value = "/{key}", produces = TEXT_PLAIN_VALUE)
   public @ResponseBody String getSystemSettingPlain(
-      @PathVariable("key") String key, @CurrentUser UserDetails currentUser) throws ForbiddenException {
+      @PathVariable("key") String key, @CurrentUser UserDetails currentUser)
+      throws ForbiddenException {
     if (SystemSettings.isConfidential(key) && !currentUser.isSuper())
       throw new ForbiddenException("Setting is marked as confidential");
     return settingManager.getCurrentSettings().asString(key, "");
@@ -141,14 +146,14 @@ public class SystemSettingController {
   @DeleteMapping("/{key}")
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseStatus(value = NO_CONTENT)
-  public void removeSystemSetting(@PathVariable("key") String key ) {
+  public void removeSystemSetting(@PathVariable("key") String key) {
     settingManager.deleteSystemSettings(Set.of(key));
   }
 
   @DeleteMapping(params = "key")
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseStatus(value = NO_CONTENT)
-  public void removeSystemSetting(@RequestParam("key") Set<String> keys ) {
+  public void removeSystemSetting(@RequestParam("key") Set<String> keys) {
     settingManager.deleteSystemSettings(keys == null ? Set.of() : keys);
   }
 
@@ -160,8 +165,7 @@ public class SystemSettingController {
 
   @GetMapping(value = "/{key}", params = "locale", produces = TEXT_PLAIN_VALUE)
   public @ResponseBody String getSystemSettingTranslation(
-      @PathVariable("key") String key,
-      @RequestParam("locale") String locale) {
+      @PathVariable("key") String key, @RequestParam("locale") String locale) {
     if (locale == null || locale.isEmpty())
       locale = UserSettings.getCurrentSettings().getUserUiLocale().getLanguage();
     return settingManager.getSystemSettingTranslation(key, locale).orElse("");
@@ -174,9 +178,9 @@ public class SystemSettingController {
       @PathVariable("key") String key,
       @RequestParam("locale") String locale,
       @RequestParam("value") String value,
-      @RequestBody(required = false) String valuePayload) throws ForbiddenException, BadRequestException {
-    if (value == null)
-      value = valuePayload;
+      @RequestBody(required = false) String valuePayload)
+      throws ForbiddenException, BadRequestException {
+    if (value == null) value = valuePayload;
     settingManager.saveSystemSettingTranslation(key, locale, value);
     return ok(
         "Translation for system setting '%s' and locale: '%s' set to: '%s'"
@@ -187,8 +191,8 @@ public class SystemSettingController {
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseStatus(value = NO_CONTENT)
   public void removeSystemSettingTranslation(
-      @PathVariable("key") String key,
-      @RequestParam("locale") String locale) throws ForbiddenException, BadRequestException {
-      settingManager.saveSystemSettingTranslation(key, locale, StringUtils.EMPTY);
+      @PathVariable("key") String key, @RequestParam("locale") String locale)
+      throws ForbiddenException, BadRequestException {
+    settingManager.saveSystemSettingTranslation(key, locale, StringUtils.EMPTY);
   }
 }

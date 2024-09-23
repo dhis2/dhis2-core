@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.security.oidc;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;

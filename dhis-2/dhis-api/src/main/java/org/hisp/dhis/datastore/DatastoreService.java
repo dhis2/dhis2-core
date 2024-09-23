@@ -202,7 +202,8 @@ public interface DatastoreService {
    */
   void saveOrUpdateEntry(DatastoreEntry entry) throws BadRequestException, ForbiddenException;
 
-  void saveOrUpdateEntry(DatastoreEntry entry, UserDetails user) throws BadRequestException, ForbiddenException;
+  void saveOrUpdateEntry(DatastoreEntry entry, UserDetails user)
+      throws BadRequestException, ForbiddenException;
 
   /**
    * Deletes all entries associated with a given namespace.

@@ -51,7 +51,6 @@ import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
 import org.hisp.dhis.dxf2.pdfform.PdfFormFontSettings;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.security.RequiresAuthority;

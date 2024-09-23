@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.user;
 
-import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.setting.UserSettings;
-
+import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import java.util.Map;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.setting.UserSettings;
 
 /**
  * The main interface for working with user settings.
@@ -70,7 +69,8 @@ public interface UserSettingService {
    * @param value the setting value, null or empty to delete
    * @param username owner/target of the settings update
    */
-  void saveUserSetting(@Nonnull String key, @CheckForNull String value, @Nonnull String username) throws NotFoundException;
+  void saveUserSetting(@Nonnull String key, @CheckForNull String value, @Nonnull String username)
+      throws NotFoundException;
 
   /**
    * Updates all settings in the provided collection.
@@ -78,14 +78,13 @@ public interface UserSettingService {
    * @param settings settings to store, null or empty values are deleted
    * @param username owner/target of the settings update
    */
-  void saveUserSettings(@Nonnull Map<String, String> settings, @Nonnull String username) throws NotFoundException;
+  void saveUserSettings(@Nonnull Map<String, String> settings, @Nonnull String username)
+      throws NotFoundException;
 
   /**
-   * Deletes all settings of a user.
-   * If no such user exists this has no effect.
+   * Deletes all settings of a user. If no such user exists this has no effect.
    *
    * @param username owner/target of the settings deletion
    */
   void deleteAllUserSettings(@Nonnull String username);
-
 }

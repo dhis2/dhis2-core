@@ -28,16 +28,14 @@
 package org.hisp.dhis.dxf2.sync;
 
 import java.util.Date;
-import java.util.Map;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -83,7 +81,8 @@ public class CompleteDataSetRegistrationSynchronization
   @Override
   public SynchronizationResult synchronizeData(JobProgress progress) {
     progress.startingProcess("Starting Complete data set registration synchronization job.");
-    if (!SyncUtils.testServerAvailability(settingManager.getCurrentSettings(), restTemplate).isAvailable()) {
+    if (!SyncUtils.testServerAvailability(settingManager.getCurrentSettings(), restTemplate)
+        .isAvailable()) {
       String msg =
           "Complete data set registration synchronization failed. Remote server is unavailable.";
       progress.failedProcess(msg);
@@ -102,7 +101,7 @@ public class CompleteDataSetRegistrationSynchronization
 
     if (context.getObjectsToSynchronize() == 0) {
       settingManager.saveSystemSetting(
-              "keyLastCompleteDataSetRegistrationSyncSuccess", context.getStartTime().toString());
+          "keyLastCompleteDataSetRegistrationSyncSuccess", context.getStartTime().toString());
       String msg = "Skipping completeness synchronization, no new or updated data";
       progress.completedProcess(msg);
       return SynchronizationResult.success(msg);
@@ -110,7 +109,7 @@ public class CompleteDataSetRegistrationSynchronization
 
     if (runSync(context, progress)) {
       settingManager.saveSystemSetting(
-              "keyLastCompleteDataSetRegistrationSyncSuccess", context.getStartTime().toString());
+          "keyLastCompleteDataSetRegistrationSyncSuccess", context.getStartTime().toString());
       String msg = "Complete data set registration synchronization is done.";
       progress.completedProcess(msg);
       return SynchronizationResult.success(msg);

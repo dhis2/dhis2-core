@@ -298,8 +298,6 @@ public class DefaultQueryPlanner implements QueryPlanner {
    * @param restriction the {@link Restriction} which contains the query path.
    */
   private void setQueryPathLocale(Restriction restriction) {
-    restriction
-        .getQueryPath()
-        .setLocale(UserSettings.getCurrentSettings().getUserDbLocale());
+    restriction.getQueryPath().setLocale(UserSettings.getCurrentSettings().getUserDbLocale());
   }
 }

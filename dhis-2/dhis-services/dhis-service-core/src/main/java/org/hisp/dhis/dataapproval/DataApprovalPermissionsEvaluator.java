@@ -110,8 +110,7 @@ class DataApprovalPermissionsEvaluator {
 
     ev.user = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    ev.acceptanceRequiredForApproval =
-        settings.getAcceptanceRequiredForApproval();
+    ev.acceptanceRequiredForApproval = settings.getAcceptanceRequiredForApproval();
     boolean hideUnapprovedData = settings.isHideUnapprovedDataInAnalytics();
 
     ev.authorizedToApprove = ev.user.isAuthorized(F_APPROVE_DATA);

@@ -66,7 +66,6 @@ import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.period.PeriodDataProvider;
-import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
@@ -272,8 +271,7 @@ public class EnrollmentAggregateAnalyticsController {
           analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
     } else {
       PeriodCriteriaUtils.defineDefaultPeriodForCriteria(
-          criteria,
-          settings.getAnalysisRelativePeriod());
+          criteria, settings.getAnalysisRelativePeriod());
     }
 
     EventDataQueryRequest request =

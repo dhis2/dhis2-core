@@ -27,22 +27,16 @@
  */
 package org.hisp.dhis.user;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
-
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.setting.UserSettings;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
-
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 
 /**
  * Declare transactions on individual methods. The get-methods do not have transactions declared,
@@ -61,7 +55,7 @@ public class DefaultUserSettingService implements UserSettingService {
   @Override
   @Transactional
   public UserSettings getSettings(@Nonnull String username) {
-    //Note: this does **not** use transaction template as we always need a TX when this is called
+    // Note: this does **not** use transaction template as we always need a TX when this is called
     return UserSettings.of(userSettingStore.getAllSettings(username));
   }
 
@@ -78,15 +72,21 @@ public class DefaultUserSettingService implements UserSettingService {
 
   @Override
   @Transactional
-  public void saveUserSetting(@Nonnull String key,  @CheckForNull String value, @Nonnull String username) throws NotFoundException {
+  public void saveUserSetting(
+      @Nonnull String key, @CheckForNull String value, @Nonnull String username)
+      throws NotFoundException {
     saveUserSettings(mapOf(key, value), username);
   }
 
   @Override
   @Transactional
-  public void saveUserSettings(@Nonnull Map<String, String> settings, @Nonnull String username) throws NotFoundException {
+  public void saveUserSettings(@Nonnull Map<String, String> settings, @Nonnull String username)
+      throws NotFoundException {
     User user = userStore.getUserByUsername(username);
-    if (user == null) throw new NotFoundException("%s with username %s could not be found.".formatted(User.class.getSimpleName(), username));
+    if (user == null)
+      throw new NotFoundException(
+          "%s with username %s could not be found."
+              .formatted(User.class.getSimpleName(), username));
     for (Map.Entry<String, String> e : settings.entrySet()) {
       String value = e.getValue();
       UserSetting setting = new UserSetting(user, e.getKey(), value);

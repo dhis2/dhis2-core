@@ -66,7 +66,6 @@ import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.grid.GridUtils;

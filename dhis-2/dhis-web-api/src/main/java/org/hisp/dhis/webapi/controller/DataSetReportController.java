@@ -165,9 +165,7 @@ public class DataSetReportController {
         dataSetReportService.getDataSetReportAsGrid(
             dataSet, periods, orgUnit, filter, selectedUnitOnly);
     GridUtils.toPdf(
-        UserSettings.getCurrentSettings().getUserDbLocale(),
-        grids,
-        response.getOutputStream());
+        UserSettings.getCurrentSettings().getUserDbLocale(), grids, response.getOutputStream());
   }
 
   // -------------------------------------------------------------------------

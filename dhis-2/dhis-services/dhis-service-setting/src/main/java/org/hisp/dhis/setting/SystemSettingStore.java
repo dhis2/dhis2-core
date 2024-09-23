@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.setting;
 
-import org.hisp.dhis.common.GenericStore;
-
-import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.GenericStore;
 
 /**
  * @author Lars Helge Overland

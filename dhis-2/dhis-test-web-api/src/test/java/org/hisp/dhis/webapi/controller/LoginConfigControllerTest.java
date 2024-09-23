@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import java.util.Map;
 import java.util.Properties;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -55,8 +54,7 @@ import org.springframework.web.util.HtmlUtils;
  */
 class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
 
-  @Autowired
-  SystemSettingsService systemSettingsService;
+  @Autowired SystemSettingsService systemSettingsService;
   @Autowired SystemService systemService;
   @Autowired DhisOidcProviderRepository dhisOidcProviderRepository;
 
@@ -78,8 +76,7 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
         "applicationTitle", "no", "Distrikstshelsesinformasjonssystem versjon 2");
 
     systemSettingsService.saveSystemSetting("loginPopup", "<html>TEXT</html>");
-    systemSettingsService.saveSystemSettingTranslation(
-        "loginPopup", "no", "<html>tekst</html>");
+    systemSettingsService.saveSystemSettingTranslation("loginPopup", "no", "<html>tekst</html>");
 
     systemSettingsService.saveSystemSetting("keyApplicationFooter", "APPLICATION_FOOTER");
     systemSettingsService.saveSystemSettingTranslation(
@@ -194,14 +191,11 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void testRecaptchaSite() {
     JsonObject response = GET("/loginConfig").content();
-    //FIXME?? encoding of defaults?
+    // FIXME?? encoding of defaults?
     assertEquals(
-        "6LcVwT0UAAAAAAkO_EGPiYOiymIszZUeHfqWIYX5",
-        response.getString("recaptchaSite").string());
-    POST("/systemSettings/recaptchaSite", "test_recaptcha_stie")
-        .content(HttpStatus.OK);
+        "6LcVwT0UAAAAAAkO_EGPiYOiymIszZUeHfqWIYX5", response.getString("recaptchaSite").string());
+    POST("/systemSettings/recaptchaSite", "test_recaptcha_stie").content(HttpStatus.OK);
     response = GET("/loginConfig").content();
-    assertEquals(
-        "test_recaptcha_stie", response.getString("recaptchaSite").string());
+    assertEquals("test_recaptcha_stie", response.getString("recaptchaSite").string());
   }
 }

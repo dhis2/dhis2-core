@@ -81,9 +81,7 @@ public class OutlierRequestValidator {
 
   private ErrorMessage validateForErrorMessage(OutlierRequest request, boolean isAnalytics) {
     int maxLimit =
-        isAnalytics
-            ? settingsProvider.getCurrentSettings().getAnalyticsMaxLimit()
-            : DEFAULT_LIMIT;
+        isAnalytics ? settingsProvider.getCurrentSettings().getAnalyticsMaxLimit() : DEFAULT_LIMIT;
     ErrorMessage errorMessage = getErrorMessage(request, maxLimit);
 
     if (errorMessage != null) {

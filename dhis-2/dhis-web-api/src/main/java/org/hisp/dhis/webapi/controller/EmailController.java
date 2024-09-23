@@ -35,7 +35,6 @@ import static org.hisp.dhis.system.util.ValidationUtils.emailIsValid;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Set;
-
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -96,7 +95,7 @@ public class EmailController {
       throws ConflictException {
     checkEmailSettings();
 
-    if (! emailIsValid(settings.getSystemNotificationsEmail()))
+    if (!emailIsValid(settings.getSystemNotificationsEmail()))
       throw new ConflictException(
           "Could not send email, system notification email address not set or not valid");
 

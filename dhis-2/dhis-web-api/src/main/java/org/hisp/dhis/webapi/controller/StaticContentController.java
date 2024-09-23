@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
@@ -50,13 +49,11 @@ import static org.springframework.util.MimeTypeUtils.IMAGE_PNG;
 import static org.springframework.util.MimeTypeUtils.parseMimeType;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
@@ -140,7 +137,8 @@ public class StaticContentController {
     throw new WebMessageException(notFound("No custom file found."));
   }
 
-  private static boolean isUseCustomFile(String key, SystemSettings settings) throws NotFoundException {
+  private static boolean isUseCustomFile(String key, SystemSettings settings)
+      throws NotFoundException {
     return switch (key) {
       case "logo_banner" -> settings.getUseCustomLogoBanner();
       case "logo_front" -> settings.getUseCustomLogoFront();
@@ -157,7 +155,10 @@ public class StaticContentController {
   @GetMapping("/{key}")
   @ResponseStatus(OK)
   public void getStaticContent(
-      @PathVariable("key") String key, HttpServletRequest request, HttpServletResponse response, SystemSettings settings)
+      @PathVariable("key") String key,
+      HttpServletRequest request,
+      HttpServletResponse response,
+      SystemSettings settings)
       throws WebMessageException, NotFoundException {
 
     if (!isUseCustomFile(key, settings)) // Serve default

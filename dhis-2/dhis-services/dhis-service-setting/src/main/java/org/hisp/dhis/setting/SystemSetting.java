@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.setting;
 
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -35,9 +34,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * A system setting, for use in store layer only.
- */
+/** A system setting, for use in store layer only. */
 @Slf4j
 @Setter
 @Getter
@@ -48,7 +45,6 @@ public class SystemSetting {
 
   private long id;
 
-  @EqualsAndHashCode.Include
-  private final String name;
+  @EqualsAndHashCode.Include private final String name;
   private final String value;
 }

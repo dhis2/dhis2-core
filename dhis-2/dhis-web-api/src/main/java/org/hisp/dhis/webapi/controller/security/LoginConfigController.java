@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.security;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -39,8 +38,8 @@ import org.hisp.dhis.security.LoginConfigResponse;
 import org.hisp.dhis.security.LoginOidcProvider;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
-import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.webapi.controller.Server;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;

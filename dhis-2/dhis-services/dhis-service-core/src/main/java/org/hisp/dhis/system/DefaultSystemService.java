@@ -104,8 +104,7 @@ public class DefaultSystemService implements SystemService, InitializingBean {
     SystemSettings settings = settingsProvider.getCurrentSettings();
 
     TimeZone tz = Calendar.getInstance().getTimeZone();
-    Date lastAnalyticsTableSuccess =
-        settings.getLastSuccessfulAnalyticsTablesUpdate();
+    Date lastAnalyticsTableSuccess = settings.getLastSuccessfulAnalyticsTablesUpdate();
     Date lastAnalyticsTablePartitionSuccess =
         settings.getLastSuccessfulLatestAnalyticsPartitionUpdate();
 

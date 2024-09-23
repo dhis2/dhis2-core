@@ -275,8 +275,7 @@ public class EventAggregateAnalyticsController {
     criteria.definePageSize(settings.getAnalyticsMaxLimit());
 
     PeriodCriteriaUtils.defineDefaultPeriodForCriteria(
-        criteria,
-        settings.getAnalysisRelativePeriod());
+        criteria, settings.getAnalysisRelativePeriod());
 
     EventDataQueryRequest request =
         EventDataQueryRequest.builder()

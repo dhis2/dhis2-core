@@ -93,7 +93,8 @@ public class TwoFactorController {
   @OpenApi.Response(byte[].class)
   @GetMapping(value = "/qrCode", produces = APPLICATION_OCTET_STREAM_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public void generateQRCode(@CurrentUser User currentUser, HttpServletResponse response, SystemSettings settings)
+  public void generateQRCode(
+      @CurrentUser User currentUser, HttpServletResponse response, SystemSettings settings)
       throws IOException, WebMessageException {
     if (currentUser == null) {
       throw new WebMessageException(conflict(ErrorCode.E3027.getMessage(), ErrorCode.E3027));

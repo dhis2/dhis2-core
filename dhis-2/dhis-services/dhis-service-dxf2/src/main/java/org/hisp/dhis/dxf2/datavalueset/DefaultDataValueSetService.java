@@ -1109,12 +1109,9 @@ public class DefaultDataValueSetService implements DataValueSetService {
                 : options.getImportStrategy())
         .dryRun(data.getDryRun() != null ? data.getDryRun() : options.isDryRun())
         .skipExistingCheck(options.isSkipExistingCheck())
-        .strictPeriods(
-            options.isStrictPeriods()
-                || settings.getDataImportStrictPeriods())
+        .strictPeriods(options.isStrictPeriods() || settings.getDataImportStrictPeriods())
         .strictDataElements(
-            options.isStrictDataElements()
-                || settings.getDataImportStrictDataElements())
+            options.isStrictDataElements() || settings.getDataImportStrictDataElements())
         .strictCategoryOptionCombos(
             options.isStrictCategoryOptionCombos()
                 || settings.getDataImportStrictCategoryOptionCombos())
@@ -1122,14 +1119,11 @@ public class DefaultDataValueSetService implements DataValueSetService {
             options.isStrictAttributeOptionCombos()
                 || settings.getDataImportStrictAttributeOptionCombos())
         .strictOrgUnits(
-            options.isStrictOrganisationUnits()
-                || settings.getDataImportStrictOrganisationUnits())
+            options.isStrictOrganisationUnits() || settings.getDataImportStrictOrganisationUnits())
         .strictDataSetApproval(
-            options.isStrictDataSetApproval()
-                || settings.getDataImportStrictDataSetApproval())
+            options.isStrictDataSetApproval() || settings.getDataImportStrictDataSetApproval())
         .strictDataSetLocking(
-            options.isStrictDataSetLocking()
-                || settings.getDataImportStrictDataSetLocking())
+            options.isStrictDataSetLocking() || settings.getDataImportStrictDataSetLocking())
         .strictDataSetInputPeriods(
             options.isStrictDataSetInputPeriods()
                 || settings.getDataImportStrictDataSetInputPeriods())

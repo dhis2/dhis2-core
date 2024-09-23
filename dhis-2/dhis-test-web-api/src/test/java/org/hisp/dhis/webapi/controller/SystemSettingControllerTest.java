@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static java.util.Arrays.stream;
 import static org.hisp.dhis.test.web.WebClient.Accept;
 import static org.hisp.dhis.test.web.WebClient.Body;
 import static org.hisp.dhis.test.web.WebClient.ContentType;
@@ -161,10 +160,13 @@ class SystemSettingControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue(setting.isObject());
     SystemSettings.keysWithDefaults().stream()
         .filter(key -> !SystemSettings.isConfidential(key))
-        .forEach(key -> assertTrue(setting.get(key).exists(), "expected "+key));
+        .forEach(key -> assertTrue(setting.get(key).exists(), "expected " + key));
     SystemSettings.keysWithDefaults().stream()
         .filter(SystemSettings::isConfidential)
-        .forEach(key -> assertFalse(setting.get(key).exists(), key+" is confidential and should not be exposed"));
+        .forEach(
+            key ->
+                assertFalse(
+                    setting.get(key).exists(), key + " is confidential and should not be exposed"));
   }
 
   @Test

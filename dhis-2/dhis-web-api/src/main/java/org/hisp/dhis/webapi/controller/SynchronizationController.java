@@ -100,6 +100,7 @@ public class SynchronizationController {
   @GetMapping(value = "/metadataRepo", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody String getMetadataRepoIndex() {
     return restTemplate.getForObject(
-        "https://raw.githubusercontent.com/dhis2/dhis2-metadata-repo/master/repo/221/index.json", String.class);
+        "https://raw.githubusercontent.com/dhis2/dhis2-metadata-repo/master/repo/221/index.json",
+        String.class);
   }
 }

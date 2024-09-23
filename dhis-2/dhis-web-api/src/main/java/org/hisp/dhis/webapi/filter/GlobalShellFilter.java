@@ -45,7 +45,6 @@ import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-
 /**
  * @author Austin McGee <austin@dhis2.org>
  */
@@ -67,10 +66,11 @@ public class GlobalShellFilter extends OncePerRequestFilter {
 
   @Override
   protected void doFilterInternal(
-      @Nonnull HttpServletRequest request, @Nonnull HttpServletResponse response, @Nonnull FilterChain chain)
+      @Nonnull HttpServletRequest request,
+      @Nonnull HttpServletResponse response,
+      @Nonnull FilterChain chain)
       throws IOException, ServletException {
-    String globalShellAppName =
-        settingsProvider.getCurrentSettings().getGlobalShellAppName();
+    String globalShellAppName = settingsProvider.getCurrentSettings().getGlobalShellAppName();
     if (globalShellAppName.isEmpty() || !appManager.exists(globalShellAppName)) {
       chain.doFilter(request, response);
       return;

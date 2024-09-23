@@ -31,6 +31,7 @@ import static java.util.Map.entry;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
+import java.util.Map;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
@@ -38,8 +39,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Map;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
@@ -54,8 +53,7 @@ class SyncUtilsTest extends PostgresIntegrationTestBase {
 
   private static final String URL = "https://localhost:8080";
 
-  @Autowired
-  SystemSettingsService settingManager;
+  @Autowired SystemSettingsService settingManager;
 
   @Test
   void getRemoteInstanceTest() {
@@ -65,7 +63,8 @@ class SyncUtilsTest extends PostgresIntegrationTestBase {
             entry("keyRemoteInstancePassword", PASSWORD),
             entry("keyRemoteInstanceUrl", URL)));
     SystemInstance systemInstance =
-        SyncUtils.getRemoteInstance(settingManager.getCurrentSettings(), SyncEndpoint.DATA_VALUE_SETS);
+        SyncUtils.getRemoteInstance(
+            settingManager.getCurrentSettings(), SyncEndpoint.DATA_VALUE_SETS);
     assertThat(systemInstance.getUsername(), is(USERNAME));
     assertThat(systemInstance.getPassword(), is(PASSWORD));
     assertThat(systemInstance.getUrl(), is(URL + SyncEndpoint.DATA_VALUE_SETS.getPath()));

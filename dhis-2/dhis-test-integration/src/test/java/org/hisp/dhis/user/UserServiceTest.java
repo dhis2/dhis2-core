@@ -611,10 +611,12 @@ class UserServiceTest extends PostgresIntegrationTestBase {
         });
     addUser("C", User::setLastLogin, twentyTwoDaysAgo);
     addUser("D");
-    userSettingService.saveUserSetting("keyUiLocale", Locale.CANADA.toString(), userA.getUsername());
+    userSettingService.saveUserSetting(
+        "keyUiLocale", Locale.CANADA.toString(), userA.getUsername());
     // the point of setting this setting is to see that the query does not
     // get confused by other setting existing for the same user
-    userSettingService.saveUserSetting("keyDbLocale", Locale.FRANCE.toString(), userA.getUsername());
+    userSettingService.saveUserSetting(
+        "keyDbLocale", Locale.FRANCE.toString(), userA.getUsername());
 
     Map<String, Optional<Locale>> users =
         userService.findNotifiableUsersWithLastLoginBetween(threeMonthAgo, twoMonthsAgo);

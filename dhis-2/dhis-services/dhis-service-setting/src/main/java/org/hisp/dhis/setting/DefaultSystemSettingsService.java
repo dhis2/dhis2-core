@@ -73,9 +73,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 @RequiredArgsConstructor
 public class DefaultSystemSettingsService implements SystemSettingsService {
 
-  /**
-   * The namespace used to store settings translations in the datastore.
-   */
+  /** The namespace used to store settings translations in the datastore. */
   private static final String NS = "settings-translations";
 
   private final DatastoreService datastore;
@@ -85,14 +83,12 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
     // Note: this uses a protection to prevent direct access
     // but from within this service it datastore is read-accessed as SystemUser
     datastore.addProtection(
-        new DatastoreNamespaceProtection(
-            NS, RESTRICTED, Authorities.F_SYSTEM_SETTING.name()));
+        new DatastoreNamespaceProtection(NS, RESTRICTED, Authorities.F_SYSTEM_SETTING.name()));
   }
 
-  /**
-   * This is a per thread cache of the settings
-   */
+  /** This is a per thread cache of the settings */
   private final ThreadLocal<SystemSettings> currentSettings = new ThreadLocal<>();
+
   private final SystemSettingStore systemSettingStore;
   private final @Qualifier("tripleDesStringEncryptor") PBEStringEncryptor pbeStringEncryptor;
   private final TransactionTemplate transactionTemplate;
@@ -124,8 +120,10 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
    */
   private SystemSettings getAllSettings() {
     if (allSettings != null) return allSettings;
-    Map<String, String> values = transactionTemplate.execute(status -> systemSettingStore.getAllSettings());
-    allSettings = SystemSettings.of(values == null ? Map.of() : values, pbeStringEncryptor::decrypt);
+    Map<String, String> values =
+        transactionTemplate.execute(status -> systemSettingStore.getAllSettings());
+    allSettings =
+        SystemSettings.of(values == null ? Map.of() : values, pbeStringEncryptor::decrypt);
     return allSettings;
   }
 
@@ -156,13 +154,14 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
   @Override
   @Transactional
   public void deleteSystemSettings(@Nonnull Set<String> names) {
-    if (systemSettingStore.delete(names) > 0)
-      allSettings = null; // invalidate
+    if (systemSettingStore.delete(names) > 0) allSettings = null; // invalidate
   }
 
   @Override
   @Transactional
-  public void saveSystemSettingTranslation(@Nonnull String key, @Nonnull String locale, String translation) throws ForbiddenException, BadRequestException {
+  public void saveSystemSettingTranslation(
+      @Nonnull String key, @Nonnull String locale, String translation)
+      throws ForbiddenException, BadRequestException {
     String datastoreKey = getDatastoreKey(key, locale);
     if (translation == null || translation.isEmpty()) {
       datastore.deleteEntry(new DatastoreEntry(NS, datastoreKey), getCurrentUserDetails());
@@ -174,7 +173,7 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
 
   @Override
   @Transactional(readOnly = true)
-  public Optional<String> getSystemSettingTranslation(@Nonnull String key, @Nonnull String locale)  {
+  public Optional<String> getSystemSettingTranslation(@Nonnull String key, @Nonnull String locale) {
     DatastoreEntry entry = null;
     try {
       entry = datastore.getEntry(NS, getDatastoreKey(key, locale), new SystemUser());
@@ -192,7 +191,7 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
    * @return the key used in the datastore for a system setting tranaslation
    */
   private static String getDatastoreKey(String key, String locale) {
-    return key+":"+locale;
+    return key + ":" + locale;
   }
 
   private static Map<String, String> mapOf(@Nonnull String key, @CheckForNull String value) {

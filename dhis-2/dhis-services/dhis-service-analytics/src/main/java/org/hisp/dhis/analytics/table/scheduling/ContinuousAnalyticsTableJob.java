@@ -31,7 +31,6 @@ import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.Date;
-import java.util.Map;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

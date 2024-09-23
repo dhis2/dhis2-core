@@ -82,8 +82,8 @@ public class AnalyticsTableSettings {
   }
 
   /**
-   * Returns the years' offset defined for the period generation
-   * configured by {@link SystemSettings#getAnalyticsPeriodYearsOffset()}
+   * Returns the years' offset defined for the period generation configured by {@link
+   * SystemSettings#getAnalyticsPeriodYearsOffset()}
    *
    * @return the offset defined in system settings, or null if nothing is set.
    */

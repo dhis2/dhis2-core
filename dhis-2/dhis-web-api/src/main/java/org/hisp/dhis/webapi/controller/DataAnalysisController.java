@@ -441,7 +441,8 @@ public class DataAnalysisController {
         filename,
         false);
 
-    GridUtils.toPdf(UserSettings.getCurrentSettings().getUserDbLocale(), grid, response.getOutputStream());
+    GridUtils.toPdf(
+        UserSettings.getCurrentSettings().getUserDbLocale(), grid, response.getOutputStream());
   }
 
   @GetMapping("/report.xls")

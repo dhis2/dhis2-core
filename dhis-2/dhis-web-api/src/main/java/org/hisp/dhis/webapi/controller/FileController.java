@@ -33,10 +33,8 @@ import static org.hisp.dhis.security.Authorities.F_INSERT_CUSTOM_JS_CSS;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.Writer;
-import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpServletResponse;
-
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -44,8 +42,8 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSetting;
-import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpStatus;
@@ -77,7 +75,8 @@ public class FileController {
 
   @OpenApi.Response(Serializable.class)
   @GetMapping("/script")
-  public void getCustomScript(HttpServletResponse response, Writer writer, SystemSettings settings) throws IOException {
+  public void getCustomScript(HttpServletResponse response, Writer writer, SystemSettings settings)
+      throws IOException {
     contextUtils.configureResponse(
         response, ContextUtils.CONTENT_TYPE_JAVASCRIPT, CacheStrategy.CACHE_TWO_WEEKS);
 
@@ -116,7 +115,8 @@ public class FileController {
    */
   @OpenApi.Response(Serializable.class)
   @GetMapping(value = {"/style", "/style/external"})
-  public void getCustomStyle(HttpServletResponse response, Writer writer, SystemSettings settings) throws IOException {
+  public void getCustomStyle(HttpServletResponse response, Writer writer, SystemSettings settings)
+      throws IOException {
     contextUtils.configureResponse(
         response, ContextUtils.CONTENT_TYPE_CSS, CacheStrategy.CACHE_TWO_WEEKS);
 

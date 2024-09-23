@@ -270,10 +270,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   @Override
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     SystemSettings settings = settingsProvider.getCurrentSettings();
-    boolean skipDataTypeValidation =
-        settings.getSkipDataTypeValidationInAnalyticsTableExport();
-    boolean includeZeroValues =
-        settings.getIncludeZeroValuesInAnalytics();
+    boolean skipDataTypeValidation = settings.getSkipDataTypeValidationInAnalyticsTableExport();
+    boolean includeZeroValues = settings.getIncludeZeroValuesInAnalytics();
 
     String doubleDataType = sqlBuilder.dataTypeDouble();
     String numericClause =
@@ -337,7 +335,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     String tableName = partition.getName();
     String valTypes = quotedCommaDelimitedString(ObjectUtils.asStringList(valueTypes));
     boolean respectStartEndDates =
-        settingsProvider.getCurrentSettings().getRespectMetaDataStartEndDatesInAnalyticsTableExport();
+        settingsProvider
+            .getCurrentSettings()
+            .getRespectMetaDataStartEndDatesInAnalyticsTableExport();
     String approvalSelectExpression = getApprovalSelectExpression(partition.getYear());
     String approvalClause = getApprovalJoinClause(partition.getYear());
     String partitionClause = getPartitionClause(partition);
@@ -722,8 +722,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     SystemSettings settings = settingsProvider.getCurrentSettings();
     boolean setting = settings.isHideUnapprovedDataInAnalytics();
     boolean levels = !dataApprovalLevelService.getAllDataApprovalLevels().isEmpty();
-    int maxYears =
-        settings.getIgnoreAnalyticsApprovalYearThreshold();
+    int maxYears = settings.getIgnoreAnalyticsApprovalYearThreshold();
 
     log.debug(
         "Hide approval setting: {}, approval levels exists: {}, max years threshold: {}",

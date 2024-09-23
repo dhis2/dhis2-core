@@ -119,13 +119,17 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
   private void updateLastSuccessfulSystemSettings(AnalyticsTableUpdateParams params, Clock clock) {
     if (params.isLatestUpdate()) {
-      settingManager.saveSystemSettings(Map.ofEntries(
-          entry("keyLastSuccessfulLatestAnalyticsPartitionUpdate", params.getStartTime().toString()),
-          entry("keyLastSuccessfulLatestAnalyticsPartitionRuntime", clock.time())));
+      settingManager.saveSystemSettings(
+          Map.ofEntries(
+              entry(
+                  "keyLastSuccessfulLatestAnalyticsPartitionUpdate",
+                  params.getStartTime().toString()),
+              entry("keyLastSuccessfulLatestAnalyticsPartitionRuntime", clock.time())));
     } else {
-      settingManager.saveSystemSettings(Map.ofEntries(
-          entry("keyLastSuccessfulAnalyticsTablesUpdate", params.getStartTime().toString()),
-          entry("keyLastSuccessfulAnalyticsTablesRuntime", clock.time())));
+      settingManager.saveSystemSettings(
+          Map.ofEntries(
+              entry("keyLastSuccessfulAnalyticsTablesUpdate", params.getStartTime().toString()),
+              entry("keyLastSuccessfulAnalyticsTablesRuntime", clock.time())));
     }
   }
 
@@ -159,6 +163,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
     resourceTableService.createAllSqlViews(progress);
 
-    settingManager.saveSystemSetting("keyLastSuccessfulResourceTablesUpdate", new Date().toString());
+    settingManager.saveSystemSetting(
+        "keyLastSuccessfulResourceTablesUpdate", new Date().toString());
   }
 }

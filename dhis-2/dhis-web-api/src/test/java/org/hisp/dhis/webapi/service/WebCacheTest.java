@@ -303,7 +303,7 @@ class WebCacheTest {
   }
 
   private void givenCacheStartegy(CacheStrategy theCacheStrategySet) {
-    when(settings.getCacheStrategy())        .thenReturn(theCacheStrategySet);
+    when(settings.getCacheStrategy()).thenReturn(theCacheStrategySet);
   }
 
   private void givenCacheabilityPublic() {
@@ -311,7 +311,6 @@ class WebCacheTest {
   }
 
   private void givenCacheability(Cacheability cacheability) {
-    when(settings.getCacheability())
-        .thenReturn(cacheability);
+    when(settings.getCacheability()).thenReturn(cacheability);
   }
 }

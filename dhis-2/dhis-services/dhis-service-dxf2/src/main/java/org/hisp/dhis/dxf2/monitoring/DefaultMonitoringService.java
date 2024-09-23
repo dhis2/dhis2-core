@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.monitoring;
 
 import java.util.Date;
-import java.util.Map;
 import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -152,7 +151,8 @@ public class DefaultMonitoringService implements MonitoringService {
     }
 
     if (sc.is2xxSuccessful()) {
-      settingManager.saveSystemSetting("keyLastSuccessfulSystemMonitoringPush", startTime.toString());
+      settingManager.saveSystemSetting(
+          "keyLastSuccessfulSystemMonitoringPush", startTime.toString());
 
       log.debug(String.format("Monitoring request successfully sent, URL: %s", target.getUrl()));
     } else {

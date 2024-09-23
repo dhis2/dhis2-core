@@ -396,7 +396,10 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     ImportConfig cfg =
         new ImportConfig(
-            settingsProvider.getCurrentSettings(), this.categoryService, completeRegistrations, importOptions);
+            settingsProvider.getCurrentSettings(),
+            this.categoryService,
+            completeRegistrations,
+            importOptions);
 
     // ---------------------------------------------------------------------
     // Set up meta-data

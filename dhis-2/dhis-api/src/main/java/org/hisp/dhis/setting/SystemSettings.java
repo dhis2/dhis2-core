@@ -1,5 +1,38 @@
+/*
+ * Copyright (c) 2004-2024, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.setting;
 
+import java.util.Date;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.UnaryOperator;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.common.DigitGroupSeparator;
@@ -9,30 +42,20 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheability;
 import org.hisp.dhis.fileresource.FileResourceRetentionStrategy;
 import org.hisp.dhis.i18n.locale.LocaleManager;
-import org.hisp.dhis.jsontree.JsonMap;
-import org.hisp.dhis.jsontree.JsonPrimitive;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.LoginPageLayout;
 
-import javax.annotation.Nonnull;
-import java.util.Date;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.UnaryOperator;
-
 /**
  * A complete set of system settings.
  *
- * <p>{@link SystemSettings} are immutable value objects. An interface is used to decouple any using code from the
- * implementation and to allow mocking.
- * <p>
- * General principles for all settings:
- * 1. settings are key-value pairs with simple values (strings, booleans, numbers)
- * 2. settings are never null/undefined (define a default in case they are not set)
- * 3. settings are an open set (no predefined set of names)
- * 4. confidential setting values are write only from web API perspective (except for ALL admin)
+ * <p>{@link SystemSettings} are immutable value objects. An interface is used to decouple any using
+ * code from the implementation and to allow mocking.
+ *
+ * <p>General principles for all settings: 1. settings are key-value pairs with simple values
+ * (strings, booleans, numbers) 2. settings are never null/undefined (define a default in case they
+ * are not set) 3. settings are an open set (no predefined set of names) 4. confidential setting
+ * values are write only from web API perspective (except for ALL admin)
  *
  * @author Jan Bernitt
  */
@@ -45,7 +68,8 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   @Nonnull
-  static SystemSettings of(@Nonnull Map<String, String> settings, @Nonnull UnaryOperator<String> decoder) {
+  static SystemSettings of(
+      @Nonnull Map<String, String> settings, @Nonnull UnaryOperator<String> decoder) {
     return LazySettings.of(SystemSettings.class, settings, decoder);
   }
 
@@ -183,7 +207,8 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   default AnalyticsFinancialYearStartKey getAnalyticsFinancialYearStart() {
-    return asEnum("analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER);
+    return asEnum(
+        "analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER);
   }
 
   default String getPhoneNumberAreaCode() {
@@ -235,7 +260,7 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   default String getRecaptchaSite() {
-    //TODO make sure the defaults are decoded...
+    // TODO make sure the defaults are decoded...
     return asString("recaptchaSite", "6LcVwT0UAAAAAAkO_EGPiYOiymIszZUeHfqWIYX5");
   }
 
@@ -284,17 +309,17 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   default String getLastSuccessfulAnalyticsTablesRuntime() {
-    //TODO duration ms?
+    // TODO duration ms?
     return asString("keyLastSuccessfulAnalyticsTablesRuntime", "");
   }
 
   default String getLastSuccessfulLatestAnalyticsPartitionRuntime() {
-    //TODO duration ms?
+    // TODO duration ms?
     return asString("keyLastSuccessfulLatestAnalyticsPartitionRuntime", "");
   }
 
   default Date getLastMonitoringRun() {
-    //TODO new default 0 - check usages
+    // TODO new default 0 - check usages
     return asDate("keyLastMonitoringRun", new Date(0L));
   }
 
@@ -315,37 +340,39 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   default Date getLastSuccessfulAnalyticsTablesUpdate() {
-    //TODO new default 0 - check usages
+    // TODO new default 0 - check usages
     return asDate("keyLastSuccessfulAnalyticsTablesUpdate", new Date(0L));
   }
 
   default Date getLastSuccessfulLatestAnalyticsPartitionUpdate() {
-    //TODO new default 0 - check usages
+    // TODO new default 0 - check usages
     return asDate("keyLastSuccessfulLatestAnalyticsPartitionUpdate", new Date(0L));
   }
 
   default Date getLastSuccessfulResourceTablesUpdate() {
-    //TODO new default 0 - check usages
+    // TODO new default 0 - check usages
     return asDate("keyLastSuccessfulResourceTablesUpdate", new Date(0L));
   }
 
   default Date getLastSuccessfulSystemMonitoringPush() {
-    //TODO new default 0 - check usages
+    // TODO new default 0 - check usages
     return asDate("keyLastSuccessfulSystemMonitoringPush", new Date(0L));
   }
 
   default Date getLastSuccessfulMonitoring() {
-    //TODO new default 0 - check usages
+    // TODO new default 0 - check usages
     return asDate("keyLastSuccessfulMonitoring", new Date(0L));
   }
 
   default Date getNextAnalyticsTableUpdate() {
-    //TODO new default 0 - check usages
+    // TODO new default 0 - check usages
     return asDate("keyNextAnalyticsTableUpdate", new Date(0L));
   }
 
   default String getHelpPageLink() {
-    return asString("helpPageLink", "https://dhis2.github.io/dhis2-docs/master/en/user/html/dhis2_user_manual_en.html");
+    return asString(
+        "helpPageLink",
+        "https://dhis2.github.io/dhis2-docs/master/en/user/html/dhis2_user_manual_en.html");
   }
 
   default boolean getAcceptanceRequiredForApproval() {
@@ -377,7 +404,9 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   default String getMetaDataRepoUrl() {
-    return asString("keyMetaDataRepoUrl", "https://raw.githubusercontent.com/dhis2/dhis2-metadata-repo/master/repo/221/index.json");
+    return asString(
+        "keyMetaDataRepoUrl",
+        "https://raw.githubusercontent.com/dhis2/dhis2-metadata-repo/master/repo/221/index.json");
   }
 
   default boolean getDataImportStrictPeriods() {
@@ -461,7 +490,7 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   default Date getLastMetaDataSyncSuccess() {
-    //TODO new default 0 - check usages
+    // TODO new default 0 - check usages
     return asDate("keyLastMetaDataSyncSuccess", new Date(0));
   }
 
@@ -474,12 +503,12 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   default Date getMetadataLastFailedTime() {
-    //TODO new default 0 - check usages
+    // TODO new default 0 - check usages
     return asDate("keyMetadataLastFailedTime", new Date(0L));
   }
 
   default Date getLastSuccessfulScheduledProgramNotifications() {
-    //TODO new default 0 - check usages
+    // TODO new default 0 - check usages
     return asDate("keyLastSuccessfulScheduledProgramNotifications", new Date(0L));
   }
 
@@ -516,7 +545,7 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   default Date getLastSuccessfulDataStatistics() {
-    //TODO new default 0 - check usages
+    // TODO new default 0 - check usages
     return asDate("lastSuccessfulDataStatistics", new Date(0L));
   }
 
@@ -573,34 +602,34 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   /**
-   * @return A job that has not been updating its "alive" timestamp for this number of minutes is reset to
-   * initial state of being scheduled by the heartbeat job. The run that was in progress is
-   * considered a failed run.
+   * @return A job that has not been updating its "alive" timestamp for this number of minutes is
+   *     reset to initial state of being scheduled by the heartbeat job. The run that was in
+   *     progress is considered a failed run.
    */
   default int getJobsRescheduleAfterMinutes() {
     return asInt("jobsRescheduleAfterMinutes", 10);
   }
 
   /**
-   * @return A job that only runs once (typical an import or manual request) is deleted after this number of
-   * minutes after it is finished by the heartbeat job.
+   * @return A job that only runs once (typical an import or manual request) is deleted after this
+   *     number of minutes after it is finished by the heartbeat job.
    */
   default int getJobsCleanupAfterMinutes() {
     return asInt("jobsCleanupAfterMinutes", 24 * 60);
   }
 
   /**
-   * @return The maximum number of hours a CRON based job may trigger on the same day after it has missed
-   * its intended time of the day to trigger. If time has passed past this point the execution for
-   * that day is skipped, and it will trigger on the intended time the day after.
+   * @return The maximum number of hours a CRON based job may trigger on the same day after it has
+   *     missed its intended time of the day to trigger. If time has passed past this point the
+   *     execution for that day is skipped, and it will trigger on the intended time the day after.
    */
   default int getJobsMaxCronDelayHours() {
     return asInt("jobsMaxCronDelayHours", JobConfiguration.MAX_CRON_DELAY_HOURS);
   }
 
   /**
-   * @return A job running with a smaller delay than the given value is logged on debug level instead of
-   * info to not spam the logs.
+   * @return A job running with a smaller delay than the given value is logged on debug level
+   *     instead of info to not spam the logs.
    */
   default int getJobsLogDebugBelowSeconds() {
     return asInt("jobsLogDebugBelowSeconds", 180);
@@ -608,19 +637,22 @@ public non-sealed interface SystemSettings extends Settings {
 
   /**
    * @return Progressive caching factor for the analytics API. To enable, the {@link
-   * #getAnalyticsCacheTtlMode()} must be set to PROGRESSIVE.
+   *     #getAnalyticsCacheTtlMode()} must be set to PROGRESSIVE.
    */
   default int getAnalyticsCacheProgressiveTtlFactor() {
     return asInt("keyAnalyticsCacheProgressiveTtlFactor", 160);
   }
 
   /**
-   * @return The cache time to live value for the analytics API. */
+   * @return The cache time to live value for the analytics API.
+   */
   default AnalyticsCacheTtlMode getAnalyticsCacheTtlMode() {
     return asEnum("keyAnalyticsCacheTtlMode", AnalyticsCacheTtlMode.FIXED);
   }
 
-  /** @return The offset of years used during period generation during the analytics export process. */
+  /**
+   * @return The offset of years used during period generation during the analytics export process.
+   */
   default int getAnalyticsPeriodYearsOffset() {
     return asInt("keyAnalyticsPeriodYearsOffset", -1);
   }
@@ -634,13 +666,14 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   /**
-   * @return Max tracked entity records that can be retrieved from database. */
+   * @return Max tracked entity records that can be retrieved from database.
+   */
   default int getTrackedEntityMaxLimit() {
     return asInt("KeyTrackedEntityMaxLimit", 50000);
   }
 
   default String getLoginPopup() {
-    //TODO also translateable!
+    // TODO also translateable!
     return asString("loginPopup", "");
   }
 
@@ -649,20 +682,23 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   /**
-   * @return The layout of the LoginPage, value is the enum {@link LoginPageLayout} */
+   * @return The layout of the LoginPage, value is the enum {@link LoginPageLayout}
+   */
   default LoginPageLayout getLoginPageLayout() {
     return asEnum("loginPageLayout", LoginPageLayout.DEFAULT);
   }
 
   /**
-   * @return The HTML string which is used for displaying LoginPage when {@link #getLoginPageLayout()} is {@link LoginPageLayout#CUSTOM}. */
+   * @return The HTML string which is used for displaying LoginPage when {@link
+   *     #getLoginPageLayout()} is {@link LoginPageLayout#CUSTOM}.
+   */
   default String getLoginPageTemplate() {
     return asString("loginPageTemplate", "");
   }
 
   /**
-   * @return The app to serve as the global app shell. Global app shell is disabled if this is NULL or if
-   * the app does not exist *
+   * @return The app to serve as the global app shell. Global app shell is disabled if this is NULL
+   *     or if the app does not exist *
    */
   default String getGlobalShellAppName() {
     return asString("globalShellAppName", "global-app-shell");
@@ -670,9 +706,9 @@ public non-sealed interface SystemSettings extends Settings {
 
   /*
 
-   Combinators based on several settings
+  Combinators based on several settings
 
-   */
+  */
 
   default boolean isEmailConfigured() {
     return !getEmailHostName().isBlank() && getEmailUsername().isBlank();
@@ -683,4 +719,3 @@ public non-sealed interface SystemSettings extends Settings {
     return getIgnoreAnalyticsApprovalYearThreshold() >= 0;
   }
 }
-

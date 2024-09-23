@@ -27,21 +27,19 @@
  */
 package org.hisp.dhis.setting.hibernate;
 
+import static java.util.stream.Collectors.toMap;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
-
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.setting.SystemSetting;
 import org.hisp.dhis.setting.SystemSettingStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toMap;
 
 /**
  * @author Lars Helge Overland
@@ -61,7 +59,7 @@ public class HibernateSystemSettingStore extends HibernateGenericStore<SystemSet
   public Map<String, String> getAllSettings() {
     String sql = "select name, value from systemsetting";
     Stream<Object[]> res = nativeSynchronizedQuery(sql).stream();
-    return res.collect(toMap(row -> (String)row[0], row -> unquote((String)row[1])));
+    return res.collect(toMap(row -> (String) row[0], row -> unquote((String) row[1])));
   }
 
   @Override
@@ -72,8 +70,8 @@ public class HibernateSystemSettingStore extends HibernateGenericStore<SystemSet
   }
 
   /**
-   * In the past the value was converted from and to JSON before set in the object
-   * so this removes the quotes of a JSON string in case they are still present.
+   * In the past the value was converted from and to JSON before set in the object so this removes
+   * the quotes of a JSON string in case they are still present.
    */
   private static String unquote(String str) {
     return str == null || str.isEmpty() || (!str.startsWith("\"") && str.endsWith("\""))

@@ -28,7 +28,6 @@
 package org.hisp.dhis.datastatistics.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.hisp.dhis.system.util.SqlUtils.escape;
 import static org.hisp.dhis.util.DateUtils.asSqlDate;
 

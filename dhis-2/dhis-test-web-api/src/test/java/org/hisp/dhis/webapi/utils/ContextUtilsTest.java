@@ -124,8 +124,7 @@ class ContextUtilsTest extends WebSpringTestBase {
 
   @Test
   void testConfigureResponseRespectsCacheStrategyInSystemSetting() {
-    systemSettingsService.saveSystemSetting(
-        "keyCacheStrategy", CACHE_1_HOUR.toString());
+    systemSettingsService.saveSystemSetting("keyCacheStrategy", CACHE_1_HOUR.toString());
 
     contextUtils.configureResponse(response, null, RESPECT_SYSTEM_SETTING, null, false);
 
@@ -166,9 +165,10 @@ class ContextUtilsTest extends WebSpringTestBase {
     dateBeforeToday.add(YEAR, -5);
     DataQueryParams params = newBuilder().withEndDate(dateBeforeToday.getTime()).build();
     // Progressive caching is not enabled
-    systemSettingsService.saveSystemSettings(Map.ofEntries(
-        Map.entry("keyAnalyticsCacheTtlMode", PROGRESSIVE.name()),
-        Map.entry("keyAnalyticsCacheProgressiveTtlFactor", "10")));
+    systemSettingsService.saveSystemSettings(
+        Map.ofEntries(
+            Map.entry("keyAnalyticsCacheTtlMode", PROGRESSIVE.name()),
+            Map.entry("keyAnalyticsCacheProgressiveTtlFactor", "10")));
     response.reset();
     contextUtils.configureAnalyticsResponse(
         response, null, overriddenCacheStrategy, null, false, params.getLatestEndDate());
@@ -188,9 +188,10 @@ class ContextUtilsTest extends WebSpringTestBase {
     long timeToLive = DAYS.between(dateBeforeToday.toInstant(), now()) * ttlFactor;
     DataQueryParams params = newBuilder().withEndDate(dateBeforeToday.getTime()).build();
     // Progressive caching is not enabled
-    systemSettingsService.saveSystemSettings(Map.ofEntries(
-        Map.entry("keyAnalyticsCacheTtlMode", PROGRESSIVE.name()),
-        Map.entry("keyAnalyticsCacheProgressiveTtlFactor", ""+ttlFactor)));
+    systemSettingsService.saveSystemSettings(
+        Map.ofEntries(
+            Map.entry("keyAnalyticsCacheTtlMode", PROGRESSIVE.name()),
+            Map.entry("keyAnalyticsCacheProgressiveTtlFactor", "" + ttlFactor)));
     response.reset();
     contextUtils.configureAnalyticsResponse(
         response, null, respectSystemSetting, null, false, params.getLatestEndDate());

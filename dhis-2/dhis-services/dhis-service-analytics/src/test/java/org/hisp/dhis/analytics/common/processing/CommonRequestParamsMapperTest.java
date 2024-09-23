@@ -75,8 +75,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /** Unit tests for {@link CommonRequestParamsParser}. */
 @ExtendWith(MockitoExtension.class)
 class CommonRequestParamsMapperTest {
-  @Mock
-  SystemSettingsService systemSettingsService;
+  @Mock SystemSettingsService systemSettingsService;
 
   @Mock private DataQueryService dataQueryService;
 
@@ -141,7 +140,7 @@ class CommonRequestParamsMapperTest {
     // When
     CommonParsedParams params =
         new CommonRequestParamsParser(
-            systemSettingsService,
+                systemSettingsService,
                 dataQueryService,
                 eventDataQueryService,
                 programService,
@@ -241,7 +240,7 @@ class CommonRequestParamsMapperTest {
     // When
     CommonParsedParams params =
         new CommonRequestParamsParser(
-            systemSettingsService,
+                systemSettingsService,
                 dataQueryService,
                 eventDataQueryService,
                 programService,
@@ -365,7 +364,7 @@ class CommonRequestParamsMapperTest {
     // When
     CommonParsedParams params =
         new CommonRequestParamsParser(
-            systemSettingsService,
+                systemSettingsService,
                 dataQueryService,
                 eventDataQueryService,
                 programService,
@@ -507,7 +506,7 @@ class CommonRequestParamsMapperTest {
     // When
     CommonParsedParams params =
         new CommonRequestParamsParser(
-            systemSettingsService,
+                systemSettingsService,
                 dataQueryService,
                 eventDataQueryService,
                 programService,
@@ -668,7 +667,7 @@ class CommonRequestParamsMapperTest {
     // When
     CommonParsedParams params =
         new CommonRequestParamsParser(
-            systemSettingsService,
+                systemSettingsService,
                 dataQueryService,
                 eventDataQueryService,
                 programService,

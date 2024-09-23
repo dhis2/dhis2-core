@@ -46,7 +46,6 @@ import static org.springframework.util.MimeTypeUtils.IMAGE_JPEG;
 import static org.springframework.util.MimeTypeUtils.IMAGE_PNG;
 
 import com.google.gson.JsonObject;
-import java.util.Map;
 import java.util.Optional;
 import org.hisp.dhis.fileresource.JCloudsFileResourceContentStore;
 import org.hisp.dhis.setting.SystemSettingsService;

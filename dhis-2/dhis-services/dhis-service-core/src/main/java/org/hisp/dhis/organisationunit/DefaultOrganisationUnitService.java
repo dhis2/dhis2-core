@@ -266,7 +266,8 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
     Integer levels = maxLevels != null ? (rootLevel + maxLevels - 1) : null;
 
     SortProperty orderBy =
-        SortProperty.fromValue(UserSettings.getCurrentSettings().getUserAnalysisDisplayProperty().toString());
+        SortProperty.fromValue(
+            UserSettings.getCurrentSettings().getUserAnalysisDisplayProperty().toString());
 
     OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
     params.setParents(Sets.newHashSet(organisationUnit));

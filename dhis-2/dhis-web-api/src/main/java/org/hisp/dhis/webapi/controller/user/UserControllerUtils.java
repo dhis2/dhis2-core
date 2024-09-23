@@ -35,7 +35,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Set;
-
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;

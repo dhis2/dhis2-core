@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -568,7 +567,6 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
 
   private void disableRecaptcha() {
     systemSettingsService.saveSystemSetting("keySelfRegistrationNoRecaptcha", "true");
-
   }
 
   private static Stream<Arguments> passwordData() {

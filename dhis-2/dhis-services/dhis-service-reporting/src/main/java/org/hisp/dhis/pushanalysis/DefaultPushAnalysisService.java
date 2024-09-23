@@ -252,8 +252,7 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
     DateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
     itemHtml.put("date", dateFormat.format(Calendar.getInstance().getTime()));
     itemHtml.put("instanceBaseUrl", dhisConfigurationProvider.getServerBaseUrl());
-    itemHtml.put(
-        "instanceName", settingsProvider.getCurrentSettings().getApplicationTitle());
+    itemHtml.put("instanceName", settingsProvider.getCurrentSettings().getApplicationTitle());
 
     // ----------------------------------------------------------------------
     // Set up template context, including pre-processed dashboard items

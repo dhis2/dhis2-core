@@ -113,7 +113,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   private CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
 
   @Autowired
-  private CurrentSystemSettingsHandlerMethodArgumentResolver currentSystemSettingsHandlerMethodArgumentResolver;
+  private CurrentSystemSettingsHandlerMethodArgumentResolver
+      currentSystemSettingsHandlerMethodArgumentResolver;
 
   @Autowired private DefaultRequestInfoService requestInfoService;
 

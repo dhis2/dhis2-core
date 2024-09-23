@@ -124,8 +124,7 @@ public class WebCache {
    * @param cacheControl where cacheability will be set.
    */
   private void setCacheabilityFor(CacheControl cacheControl) {
-    Cacheability cacheability =
-        settingsProvider.getCurrentSettings().getCacheability();
+    Cacheability cacheability = settingsProvider.getCurrentSettings().getCacheability();
 
     if (PUBLIC == cacheability) {
       cacheControl.cachePublic();

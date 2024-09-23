@@ -34,8 +34,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Calendar;
-import java.util.Map;
-
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.AuthenticationApiTestBase;
@@ -55,8 +53,7 @@ import org.springframework.security.core.session.SessionRegistry;
  */
 class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
-  @Autowired
-  SystemSettingsService systemSettingsService;
+  @Autowired SystemSettingsService systemSettingsService;
   @Autowired private SessionRegistry sessionRegistry;
 
   @Test

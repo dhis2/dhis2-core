@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Set;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -43,9 +44,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Map;
-import java.util.Set;
 
 @Transactional
 class SecurityServiceTest extends PostgresIntegrationTestBase {

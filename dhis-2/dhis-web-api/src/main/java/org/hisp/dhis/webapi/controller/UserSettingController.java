@@ -122,11 +122,9 @@ public class UserSettingController {
 
     String newValue = firstNonNull(value, valuePayload);
 
-    if (isEmpty(newValue))
-      throw new ConflictException("You need to specify a new value");
+    if (isEmpty(newValue)) throw new ConflictException("You need to specify a new value");
 
-    if (username == null)
-      username = getUser(userId, username).getUsername();
+    if (username == null) username = getUser(userId, username).getUsername();
     userSettingService.saveUserSetting(key, newValue, username);
 
     return ok("User setting saved");
@@ -139,8 +137,7 @@ public class UserSettingController {
       @OpenApi.Param({UID.class, User.class}) @RequestParam(value = "userId", required = false)
           String userId)
       throws ForbiddenException, ConflictException, NotFoundException {
-    if (username == null)
-      username = getUser(userId, username).getUsername();
+    if (username == null) username = getUser(userId, username).getUsername();
     userSettingService.saveUserSetting(key, null, username);
   }
 
@@ -154,14 +151,12 @@ public class UserSettingController {
    * @return the user found with uid or username, or current user if no uid or username was
    *     specified
    */
-  private UserDetails getUser(String uid, String username) throws ConflictException, ForbiddenException {
+  private UserDetails getUser(String uid, String username)
+      throws ConflictException, ForbiddenException {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    if (uid == null && username == null)
-      return currentUser;
+    if (uid == null && username == null) return currentUser;
 
-    User user = uid != null
-        ? userService.getUser(uid)
-        : userService.getUserByUsername(username);
+    User user = uid != null ? userService.getUser(uid) : userService.getUserByUsername(username);
 
     if (user == null)
       throw new ConflictException("Could not find user '" + firstNonNull(uid, username) + "'");
@@ -175,7 +170,8 @@ public class UserSettingController {
     return UserDetails.fromUser(user);
   }
 
-  private UserSettings getUserSettings(String userId, String username, boolean useFallback) throws ConflictException, ForbiddenException {
+  private UserSettings getUserSettings(String userId, String username, boolean useFallback)
+      throws ConflictException, ForbiddenException {
     UserDetails user = getUser(userId, username);
     return useFallback
         ? user.getUserSettings()

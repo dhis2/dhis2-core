@@ -461,10 +461,10 @@ public class DataValueController {
       DataValueQueryParams params,
       @OpenApi.Param({UID.class, DataSet.class}) @RequestParam(required = false) String ds,
       @RequestParam(required = false) boolean force,
-      @CurrentUser UserDetails currentUser, SystemSettings settings)
+      @CurrentUser UserDetails currentUser,
+      SystemSettings settings)
       throws WebMessageException {
-    FileResourceRetentionStrategy retentionStrategy =
-        settings.getFileResourceRetentionStrategy();
+    FileResourceRetentionStrategy retentionStrategy = settings.getFileResourceRetentionStrategy();
 
     // ---------------------------------------------------------------------
     // Input validation

@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.startup;
 
-
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;

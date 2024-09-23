@@ -1,17 +1,38 @@
+/*
+ * Copyright (c) 2004-2024, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.setting;
+
+import static java.lang.Character.toUpperCase;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.LocaleUtils;
-import org.hisp.dhis.jsontree.JsonMap;
-import org.hisp.dhis.jsontree.JsonPrimitive;
-
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandle;
@@ -30,8 +51,13 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
-
-import static java.lang.Character.toUpperCase;
+import javax.annotation.Nonnull;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.LocaleUtils;
+import org.hisp.dhis.jsontree.JsonMap;
+import org.hisp.dhis.jsontree.JsonPrimitive;
 
 /**
  * {@link SystemSettings} or {@link UserSettings} represented by a set of keys and their values.
@@ -58,7 +84,7 @@ final class LazySettings implements SystemSettings, UserSettings {
   private static final Map<String, Serializable> DEFAULTS = extractDefaults();
 
   static Set<String> keysWithDefaults(Class<? extends Settings> type) {
-    return Set.of(); //FIXME
+    return Set.of(); // FIXME
   }
 
   @Nonnull
@@ -67,7 +93,10 @@ final class LazySettings implements SystemSettings, UserSettings {
   }
 
   @Nonnull
-  static LazySettings of(Class<? extends Settings> type, @Nonnull Map<String, String> settings, @Nonnull UnaryOperator<String> decoder) {
+  static LazySettings of(
+      Class<? extends Settings> type,
+      @Nonnull Map<String, String> settings,
+      @Nonnull UnaryOperator<String> decoder) {
     if (settings.isEmpty()) {
       if (type == UserSettings.class) return EMPTY_USER_SETTINGS;
       if (type == SystemSettings.class) return EMPTY_SYSTEM_SETTINGS;
@@ -88,9 +117,7 @@ final class LazySettings implements SystemSettings, UserSettings {
   private final Class<? extends Settings> type;
   private final String[] keys;
   private final String[] rawValues;
-  @ToString.Exclude
-  @EqualsAndHashCode.Exclude
-  private final Serializable[] typedValues;
+  @ToString.Exclude @EqualsAndHashCode.Exclude private final Serializable[] typedValues;
 
   private LazySettings(Class<? extends Settings> type, String[] keys, String[] values) {
     this.type = type;
@@ -164,7 +191,7 @@ final class LazySettings implements SystemSettings, UserSettings {
 
   @Override
   public JsonMap<? extends JsonPrimitive> toJson() {
-    //TODO
+    // TODO
     return null;
   }
 
@@ -182,7 +209,8 @@ final class LazySettings implements SystemSettings, UserSettings {
   }
 
   @Nonnull
-  private <T extends Serializable> T parsed(String key, @Nonnull T defaultValue, Function<String, T> parse) {
+  private <T extends Serializable> T parsed(
+      String key, @Nonnull T defaultValue, Function<String, T> parse) {
     int i = indexOf(key);
     String raw = rawValues[i];
     if (raw == null || raw.isEmpty()) {
@@ -195,7 +223,10 @@ final class LazySettings implements SystemSettings, UserSettings {
     } catch (Exception ex) {
       log.warn(
           "Setting {} has a raw value that cannot be parsed successfully as a {}; using default {}: {}",
-          key, defaultValue.getClass().getSimpleName(), defaultValue, raw);
+          key,
+          defaultValue.getClass().getSimpleName(),
+          defaultValue,
+          raw);
       // fall-through and use the default value
     }
     typedValues[i] = res;
@@ -214,20 +245,23 @@ final class LazySettings implements SystemSettings, UserSettings {
         ClassLoader.getSystemClassLoader(),
         new Class[] {SystemSettings.class},
         (proxy, method, args) -> {
-          if (method.isDefault()) return getDefaultMethodHandle(method).bindTo(proxy).invokeWithArguments( args );
+          if (method.isDefault())
+            return getDefaultMethodHandle(method).bindTo(proxy).invokeWithArguments(args);
           return null;
         });
     return Map.copyOf(defaults);
   }
 
-  private static MethodHandle getDefaultMethodHandle(Method method ) {
+  private static MethodHandle getDefaultMethodHandle(Method method) {
     try {
       Class<?> declaringClass = method.getDeclaringClass();
       return MethodHandles.lookup()
-          .findSpecial( declaringClass, method.getName(),
-              MethodType.methodType( method.getReturnType(), method.getParameterTypes() ),
-              declaringClass );
-    } catch ( Exception ex ) {
+          .findSpecial(
+              declaringClass,
+              method.getName(),
+              MethodType.methodType(method.getReturnType(), method.getParameterTypes()),
+              declaringClass);
+    } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
   }
@@ -235,7 +269,8 @@ final class LazySettings implements SystemSettings, UserSettings {
   public class SettingsSerializer extends JsonSerializer<Settings> {
 
     @Override
-    public void serialize(Settings value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+    public void serialize(Settings value, JsonGenerator gen, SerializerProvider serializers)
+        throws IOException {
       if (value == null) {
         gen.writeNull();
       } else {

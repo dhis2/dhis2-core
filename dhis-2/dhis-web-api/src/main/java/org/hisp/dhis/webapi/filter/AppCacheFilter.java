@@ -81,8 +81,7 @@ public class AppCacheFilter implements Filter {
       writer.println("# DHIS2 " + systemInfo.getVersion() + " r" + systemInfo.getRevision());
       writer.println("# User: " + CurrentUserUtil.getCurrentUsername());
       writer.println("# User UI Language: " + localeManager.getCurrentLocale());
-      writer.println(
-          "# User DB Language: " + UserSettings.getCurrentSettings().getUserDbLocale());
+      writer.println("# User DB Language: " + UserSettings.getCurrentSettings().getUserDbLocale());
       writer.println("# Calendar: " + systemInfo.getCalendar());
     }
   }

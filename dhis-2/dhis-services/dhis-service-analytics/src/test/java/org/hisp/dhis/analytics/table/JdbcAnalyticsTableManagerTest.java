@@ -215,7 +215,8 @@ class JdbcAnalyticsTableManagerTest {
     queryResp.add(Map.of("dataelementid", 1));
 
     when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
-    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate()).thenReturn(lastLatestPartitionUpdate);
+    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
+        .thenReturn(lastLatestPartitionUpdate);
     when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
     when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
 
@@ -249,10 +250,8 @@ class JdbcAnalyticsTableManagerTest {
             .withLatestPartition()
             .build();
 
-    when(settings.getLastSuccessfulResourceTablesUpdate())
-        .thenReturn(new Date(0L));
-    when(settings.getLastSuccessfulAnalyticsTablesUpdate())
-        .thenReturn(new Date(0L));
+    when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(new Date(0L));
     when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
         .thenReturn(lastLatestPartitionUpdate);
     assertThrows(IllegalArgumentException.class, () -> subject.getAnalyticsTables(params));

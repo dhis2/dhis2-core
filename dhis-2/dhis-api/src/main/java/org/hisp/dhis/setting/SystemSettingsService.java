@@ -27,23 +27,20 @@
  */
 package org.hisp.dhis.setting;
 
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
-
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 
 /**
  * @author Jan Bernitt (refactored version)
  */
 public interface SystemSettingsService extends SystemSettingsProvider {
 
-  /**
-   * Called at the start of a new request to ensure fresh view of the settings
-   */
+  /** Called at the start of a new request to ensure fresh view of the settings */
   void clearCurrentSettings();
 
   void saveSystemSetting(@Nonnull String key, @CheckForNull String value);
@@ -71,7 +68,9 @@ public interface SystemSettingsService extends SystemSettingsProvider {
    * @param locale locale of the translation (should be a language tag)
    * @param translation translation text, null or empty to delete
    */
-  void saveSystemSettingTranslation(@Nonnull String key, @Nonnull String locale, @CheckForNull String translation) throws ForbiddenException, BadRequestException;
+  void saveSystemSettingTranslation(
+      @Nonnull String key, @Nonnull String locale, @CheckForNull String translation)
+      throws ForbiddenException, BadRequestException;
 
   /**
    * Returns the translation for given setting key and locale or empty Optional if no translation is
@@ -82,5 +81,4 @@ public interface SystemSettingsService extends SystemSettingsProvider {
    * @return The Optional with the actual translation or empty Optional
    */
   Optional<String> getSystemSettingTranslation(@Nonnull String key, @Nonnull String locale);
-
 }

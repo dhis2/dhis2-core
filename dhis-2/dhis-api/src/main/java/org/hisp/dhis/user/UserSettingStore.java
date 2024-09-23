@@ -27,12 +27,10 @@
  */
 package org.hisp.dhis.user;
 
-import org.hisp.dhis.common.GenericStore;
-
-import javax.annotation.Nonnull;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.GenericStore;
 
 public interface UserSettingStore extends GenericStore<UserSetting> {
 
@@ -49,5 +47,4 @@ public interface UserSettingStore extends GenericStore<UserSetting> {
   int delete(String username, Set<String> keys);
 
   int deleteAll(String username);
-
 }

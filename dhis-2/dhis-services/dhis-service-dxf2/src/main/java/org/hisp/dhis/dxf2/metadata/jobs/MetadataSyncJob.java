@@ -34,7 +34,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -204,9 +203,10 @@ public class MetadataSyncJob implements Job {
 
     if (version != null) {
       MetadataVersion metadataVersion = (MetadataVersion) version;
-      settingManager.saveSystemSettings(Map.ofEntries(
-          entry("keyMetadataFailedVersion", metadataVersion.getName()),
-          entry("keyMetadataLastFailedTime", new Date().toString())));
+      settingManager.saveSystemSettings(
+          Map.ofEntries(
+              entry("keyMetadataFailedVersion", metadataVersion.getName()),
+              entry("keyMetadataLastFailedTime", new Date().toString())));
     }
   }
 

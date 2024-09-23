@@ -29,11 +29,9 @@ package org.hisp.dhis.webapi.mvc.interceptor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.common.RequestInfo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;

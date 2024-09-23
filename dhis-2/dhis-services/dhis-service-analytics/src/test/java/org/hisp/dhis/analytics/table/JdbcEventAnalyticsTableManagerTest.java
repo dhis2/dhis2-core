@@ -223,8 +223,7 @@ class JdbcEventAnalyticsTableManagerTest {
     List<Map<String, Object>> queryResp = new ArrayList<>();
     queryResp.add(Map.of("dataelementid", 1));
 
-    when(settings.getLastSuccessfulAnalyticsTablesUpdate())
-        .thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
     when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
         .thenReturn(lastLatestPartitionUpdate);
     when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);

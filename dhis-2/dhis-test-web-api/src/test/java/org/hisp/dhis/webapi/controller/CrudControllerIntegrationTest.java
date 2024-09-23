@@ -33,8 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Locale;
-import java.util.Map;
-
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -97,7 +95,8 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
   void testSearchByToken() throws Exception {
     setUpTranslation();
     User userA = createAndAddUser("userA", (OrganisationUnit) null, "ALL");
-    userSettingService.saveUserSetting("keyDbLocale", Locale.FRENCH.toString(), userA.getUsername());
+    userSettingService.saveUserSetting(
+        "keyDbLocale", Locale.FRENCH.toString(), userA.getUsername());
 
     injectSecurityContextUser(userService.getUserByUsername(userA.getUsername()));
 
@@ -148,9 +147,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
     doInTransaction(
         () -> systemSettingsService.saveSystemSetting("keyDbLocale", Locale.ENGLISH.toString()));
     systemSettingsService.clearCurrentSettings();
-    assertEquals(
-        Locale.ENGLISH,
-        systemSettingsService.getCurrentSettings().getDbLocale());
+    assertEquals(Locale.ENGLISH, systemSettingsService.getCurrentSettings().getDbLocale());
 
     User userA = createAndAddUser("userA", null, "ALL");
     injectSecurityContextUser(userA);
@@ -182,7 +179,8 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
   void testSearchTokenWithFallback() throws Exception {
     setUpTranslation();
     User userA = createAndAddUser("userA", (OrganisationUnit) null, "ALL");
-    userSettingService.saveUserSetting("keyDbLocale", Locale.FRENCH.toString(), userA.getUsername());
+    userSettingService.saveUserSetting(
+        "keyDbLocale", Locale.FRENCH.toString(), userA.getUsername());
 
     injectSecurityContextUser(userService.getUserByUsername(userA.getUsername()));
 

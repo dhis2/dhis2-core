@@ -267,8 +267,7 @@ public class EnrollmentQueryAnalyticsController {
           analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
     } else {
       PeriodCriteriaUtils.defineDefaultPeriodForCriteria(
-          criteria,
-          settings.getAnalysisRelativePeriod());
+          criteria, settings.getAnalysisRelativePeriod());
     }
 
     EventDataQueryRequest request =

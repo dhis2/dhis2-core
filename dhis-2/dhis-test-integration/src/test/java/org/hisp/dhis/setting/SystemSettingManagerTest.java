@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.setting;
 
-
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.TestInstance;
@@ -45,5 +44,5 @@ class SystemSettingManagerTest extends PostgresIntegrationTestBase {
 
   private final SystemSettingsService settingManager;
 
-  //TODO new tests
+  // TODO new tests
 }

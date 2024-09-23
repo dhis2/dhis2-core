@@ -27,21 +27,11 @@
  */
 package org.hisp.dhis.setting;
 
-import static java.util.stream.Collectors.toSet;
-
-import com.google.common.collect.ImmutableSet;
 import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
-import java.util.StringJoiner;
-import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.ToString;
-import org.apache.commons.lang3.LocaleUtils;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.common.DigitGroupSeparator;
@@ -305,7 +295,6 @@ public enum SettingKey {
   private final boolean confidential;
   private final boolean translatable;
 
-
   SettingKey(String name) {
     this(name, null, String.class, false, false);
   }
@@ -330,5 +319,4 @@ public enum SettingKey {
     this.confidential = confidential;
     this.translatable = translatable;
   }
-
 }

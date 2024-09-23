@@ -113,7 +113,8 @@ public class MvcTestConfig implements WebMvcConfigurer {
   private CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
 
   @Autowired
-  private CurrentSystemSettingsHandlerMethodArgumentResolver currentSystemSettingsHandlerMethodArgumentResolver;
+  private CurrentSystemSettingsHandlerMethodArgumentResolver
+      currentSystemSettingsHandlerMethodArgumentResolver;
 
   @Autowired
   @Qualifier("jsonMapper")

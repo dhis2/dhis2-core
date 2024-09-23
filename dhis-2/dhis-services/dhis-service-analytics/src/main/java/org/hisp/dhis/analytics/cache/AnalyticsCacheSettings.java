@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.cache;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.Math.max;
 import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.FIXED;
 import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.PROGRESSIVE;
@@ -35,7 +34,6 @@ import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_TWO_WEEKS;
 import static org.hisp.dhis.common.cache.CacheStrategy.NO_CACHE;
 
 import java.util.Date;
-
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -87,11 +85,11 @@ public class AnalyticsCacheSettings {
 
   /**
    * Retrieves the expiration time in seconds based on the system settings based on the {@link
-   * SystemSettings#getCacheStrategy()}. If it says not to cache, return 0 so no
-   * caching will take place. Otherwise return a long time. This is because we flush the analytics
-   * cache after on analytics rebuild. For this purpose, two weeks is considered to be "a long
-   * time". Two weeks is likely to be longer than until the next analytics rebuild, and if it isn't,
-   * this ensures that all cache entries will eventually be aged out.
+   * SystemSettings#getCacheStrategy()}. If it says not to cache, return 0 so no caching will take
+   * place. Otherwise return a long time. This is because we flush the analytics cache after on
+   * analytics rebuild. For this purpose, two weeks is considered to be "a long time". Two weeks is
+   * likely to be longer than until the next analytics rebuild, and if it isn't, this ensures that
+   * all cache entries will eventually be aged out.
    *
    * @see CacheStrategy
    * @return the predefined expiration time set or 0 (ZERO) if nothing is set.

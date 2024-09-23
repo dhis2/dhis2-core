@@ -27,13 +27,11 @@
  */
 package org.hisp.dhis.dxf2.metadata.systemsettings;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.setting.SystemSettingsService;
-import org.hisp.dhis.setting.SystemSettings;
-import org.springframework.stereotype.Service;
-
 import javax.annotation.Nonnull;
-import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
+import org.springframework.stereotype.Service;
 
 /**
  * Provide the endpoints for api calls in metadata versioning

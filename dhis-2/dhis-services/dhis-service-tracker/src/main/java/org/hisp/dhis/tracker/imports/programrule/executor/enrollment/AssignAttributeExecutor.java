@@ -64,8 +64,7 @@ public class AssignAttributeExecutor implements RuleActionExecutor<Enrollment> {
 
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Enrollment enrollment) {
-    Boolean canOverwrite =
-        settingsProvider.getCurrentSettings().getRuleEngineAssignOverwrite();
+    Boolean canOverwrite = settingsProvider.getCurrentSettings().getRuleEngineAssignOverwrite();
     TrackedEntityAttribute attribute =
         bundle.getPreheat().getTrackedEntityAttribute(attributeUid.getValue());
 

@@ -46,7 +46,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -260,8 +259,7 @@ public class UserController extends AbstractCrudController<User> {
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
     if (!"dataApprovalWorkflows".equals(pvProperty)) {
-      return super.getObjectProperty(
-          pvUid, pvProperty, rpParameters, currentUser, response);
+      return super.getObjectProperty(pvUid, pvProperty, rpParameters, currentUser, response);
     }
 
     User user = userService.getUser(pvUid);

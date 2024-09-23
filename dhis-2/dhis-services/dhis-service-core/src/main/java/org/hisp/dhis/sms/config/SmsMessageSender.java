@@ -31,7 +31,6 @@ import static org.hisp.dhis.commons.util.TextUtils.LN;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -40,7 +39,6 @@ import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -223,9 +221,7 @@ public class SmsMessageSender implements MessageSender {
         if (text.length()
             > Optional.ofNullable(gatewayConfig.getMaxSmsLength())
                 .map(Integer::parseInt)
-                .orElseGet(
-                    () ->
-                        settingsProvider.getCurrentSettings().getSmsMaxLength())) {
+                .orElseGet(() -> settingsProvider.getCurrentSettings().getSmsMaxLength())) {
           return new OutboundMessageResponse(
               GatewayResponse.SMS_TEXT_MESSAGE_TOO_LONG.getResponseMessage(),
               GatewayResponse.SMS_TEXT_MESSAGE_TOO_LONG,

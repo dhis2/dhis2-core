@@ -37,8 +37,6 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1310;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.eventdatavalue.EventDataValue;

@@ -68,9 +68,7 @@ public class DataElementGroupController extends AbstractCrudController<DataEleme
 
   @GetMapping("/{uid}/operands")
   public String getOperands(
-      @PathVariable("uid") String uid,
-      @RequestParam Map<String, String> parameters,
-      Model model)
+      @PathVariable("uid") String uid, @RequestParam Map<String, String> parameters, Model model)
       throws NotFoundException {
     WebOptions options = new WebOptions(parameters);
 

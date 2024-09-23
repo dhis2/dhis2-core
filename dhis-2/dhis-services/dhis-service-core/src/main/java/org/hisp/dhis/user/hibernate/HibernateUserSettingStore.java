@@ -27,32 +27,29 @@
  */
 package org.hisp.dhis.user.hibernate;
 
-import java.util.List;
+import static java.util.stream.Collectors.toMap;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
-import org.hibernate.Session;
-import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-
-import static java.util.stream.Collectors.toMap;
 
 /**
  * @author Lars Helge Overland
  */
 @Repository
-public class HibernateUserSettingStore extends HibernateGenericStore<UserSetting> implements UserSettingStore {
+public class HibernateUserSettingStore extends HibernateGenericStore<UserSetting>
+    implements UserSettingStore {
 
-  public HibernateUserSettingStore(EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+  public HibernateUserSettingStore(
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
     super(entityManager, jdbcTemplate, publisher, UserSetting.class, false);
   }
 
@@ -60,18 +57,19 @@ public class HibernateUserSettingStore extends HibernateGenericStore<UserSetting
   @Override
   @SuppressWarnings("unchecked")
   public Map<String, String> getAllSettings(String username) {
-    String sql = """
+    String sql =
+        """
       select name, value from usersetting
       where userinfoid = (select userinfoid from userinfo where username = :user)""";
-    Stream<Object[]> res =
-        nativeSynchronizedQuery(sql).setParameter("user", username).stream();
+    Stream<Object[]> res = nativeSynchronizedQuery(sql).setParameter("user", username).stream();
     return res.collect(toMap(row -> (String) row[0], row -> toString(row[1])));
   }
 
   @Override
   public int delete(String username, Set<String> keys) {
     if (keys.isEmpty()) return 0;
-    String sql = """
+    String sql =
+        """
       delete from usersetting
         where name in :names
         and userinfoid = (select userinfoid from userinfo where username = :user)""";
@@ -83,12 +81,11 @@ public class HibernateUserSettingStore extends HibernateGenericStore<UserSetting
 
   @Override
   public int deleteAll(String username) {
-    String sql = """
+    String sql =
+        """
       delete from usersetting
         where userinfoid = (select userinfoid from userinfo where username = :user)""";
-    return nativeSynchronizedQuery(sql)
-        .setParameter("user", username)
-        .executeUpdate();
+    return nativeSynchronizedQuery(sql).setParameter("user", username).executeUpdate();
   }
 
   /**

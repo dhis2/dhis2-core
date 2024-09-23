@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.setting;
 
+import static java.util.Map.entry;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,15 +36,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
-
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserSettingService;
 import org.springframework.stereotype.Component;
-
-import static java.util.Map.entry;
 
 /**
  * @author Lars Helge Overland
@@ -57,17 +56,19 @@ public class DefaultStyleManager implements StyleManager {
   private final SystemSettingsService systemSettingsService;
   private final UserSettingService userSettingService;
   private final I18nManager i18nManager;
+
   /**
    * Map for styles. The key refers to the user setting key and the value refers to the path to the
    * CSS file of the style relative to /dhis-web-commons/.
    */
-  private final SortedMap<String, String> styles = new TreeMap<>(Map.ofEntries(
-    entry("light_blue", "light_blue/light_blue.css"),
-    entry("green", "green/green.css" ),
-    entry("myanmar", "myanmar/myanmar.css"),
-    entry("vietnam", "vietnam/vietnam.css"),
-    entry("india", "india/india.css")
-  ));
+  private final SortedMap<String, String> styles =
+      new TreeMap<>(
+          Map.ofEntries(
+              entry("light_blue", "light_blue/light_blue.css"),
+              entry("green", "green/green.css"),
+              entry("myanmar", "myanmar/myanmar.css"),
+              entry("vietnam", "vietnam/vietnam.css"),
+              entry("india", "india/india.css")));
 
   @Override
   public void setSystemStyle(String style) {
@@ -81,8 +82,7 @@ public class DefaultStyleManager implements StyleManager {
 
   @Override
   public String getCurrentStyle() {
-    if (CurrentUserUtil.hasCurrentUser())
-      return UserSettings.getCurrentSettings().getUserStyle();
+    if (CurrentUserUtil.hasCurrentUser()) return UserSettings.getCurrentSettings().getUserStyle();
     return getSystemStyle();
   }
 

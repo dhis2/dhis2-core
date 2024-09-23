@@ -37,7 +37,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -263,5 +262,4 @@ public class MetadataImportExportController {
         jobConfigurationService.create(config, contentType, request.getInputStream()));
     return jobConfigurationReport(config);
   }
-
 }

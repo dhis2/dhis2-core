@@ -31,8 +31,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob;
@@ -72,8 +70,7 @@ public class MetadataSyncPreProcessor {
 
   public void setUp(MetadataRetryContext context, JobProgress progress) {
     progress.startingProcess("Setting up metadata synchronisation");
-    progress.runStage(
-        () -> settingManager.saveSystemSetting("keyVersionEnabled", "true"));
+    progress.runStage(() -> settingManager.saveSystemSetting("keyVersionEnabled", "true"));
     progress.completedProcess("finished setting up metadata synchronisation");
   }
 
@@ -109,8 +106,7 @@ public class MetadataSyncPreProcessor {
       MetadataVersion latestVersion = getLatestVersion(versions);
       assert latestVersion != null;
 
-      settingManager.saveSystemSetting(
-          "keyRemoteMetadataVersion", latestVersion.getName());
+      settingManager.saveSystemSetting("keyRemoteMetadataVersion", latestVersion.getName());
       progress.completedProcess("Remote system is at version: " + latestVersion.getName());
       return versions;
     } catch (MetadataVersionServiceException e) {

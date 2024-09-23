@@ -124,7 +124,8 @@ public class AccountController {
   @PostMapping("/recovery")
   @ResponseBody
   @Deprecated(forRemoval = true, since = "2.41")
-  public WebMessage recoverAccount(@RequestParam String username, SystemSettings settings, HttpServletRequest request)
+  public WebMessage recoverAccount(
+      @RequestParam String username, SystemSettings settings, HttpServletRequest request)
       throws WebMessageException {
     if (!settings.getAccountRecoveryEnabled()) {
       return conflict("Account recovery is not enabled");
@@ -173,7 +174,8 @@ public class AccountController {
   @PostMapping("/restore")
   @ResponseBody
   @Deprecated(forRemoval = true, since = "2.41")
-  public WebMessage restoreAccount(@RequestParam String token, @RequestParam String password, SystemSettings settings) {
+  public WebMessage restoreAccount(
+      @RequestParam String token, @RequestParam String password, SystemSettings settings) {
     String[] idAndRestoreToken = userService.decodeEncodedTokens(token);
     String idToken = idAndRestoreToken[0];
 

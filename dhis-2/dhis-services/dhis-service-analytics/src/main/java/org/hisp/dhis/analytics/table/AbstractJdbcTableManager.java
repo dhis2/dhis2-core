@@ -381,10 +381,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected AnalyticsTable getLatestAnalyticsTable(
       AnalyticsTableUpdateParams params, List<AnalyticsTableColumn> columns) {
     SystemSettings settings = settingsProvider.getCurrentSettings();
-    Date lastFullTableUpdate =
-        settings.getLastSuccessfulAnalyticsTablesUpdate();
-    Date lastLatestPartitionUpdate =
-        settings.getLastSuccessfulLatestAnalyticsPartitionUpdate();
+    Date lastFullTableUpdate = settings.getLastSuccessfulAnalyticsTablesUpdate();
+    Date lastLatestPartitionUpdate = settings.getLastSuccessfulLatestAnalyticsPartitionUpdate();
     Date lastAnyTableUpdate = DateUtils.getLatest(lastLatestPartitionUpdate, lastFullTableUpdate);
 
     Assert.notNull(

@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.sync;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.Date;
-import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,8 +49,8 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
@@ -117,8 +116,7 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
     // subsequently part of next synch process without being ignored
     // ---------------------------------------------------------------------
     final Date startTime = new Date();
-    final Date lastSuccessTime =
-        settingManager.getCurrentSettings().getLastSuccessfulDataSynch();
+    final Date lastSuccessTime = settingManager.getCurrentSettings().getLastSuccessfulDataSynch();
     final Date skipChangedBefore =
         settingManager.getCurrentSettings().getSyncSkipSyncForDataChangedBefore();
     final Date lastUpdatedAfter =

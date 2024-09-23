@@ -238,7 +238,8 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    boolean hideUnapprovedData = settingsProvider.getCurrentSettings().isHideUnapprovedDataInAnalytics();
+    boolean hideUnapprovedData =
+        settingsProvider.getCurrentSettings().isHideUnapprovedDataInAnalytics();
     boolean canViewUnapprovedData = currentUser.isAuthorized(F_VIEW_UNAPPROVED_DATA);
 
     if (hideUnapprovedData) {

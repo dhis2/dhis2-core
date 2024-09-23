@@ -31,7 +31,6 @@ import static java.lang.String.format;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import java.util.Date;
-import java.util.Map;
 import java.util.stream.IntStream;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -40,8 +39,8 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -86,7 +85,8 @@ public class DataValueSynchronization implements DataSynchronizationWithPaging {
   @Override
   public SynchronizationResult synchronizeData(int pageSize, JobProgress progress) {
     progress.startingProcess("Starting DataValueSynchronization job");
-    if (!SyncUtils.testServerAvailability(settingManager.getCurrentSettings(), restTemplate).isAvailable()) {
+    if (!SyncUtils.testServerAvailability(settingManager.getCurrentSettings(), restTemplate)
+        .isAvailable()) {
       String msg = "DataValueSynchronization failed. Remote server is unavailable.";
       progress.failedProcess(msg);
       return SynchronizationResult.failure(msg);
@@ -110,7 +110,8 @@ public class DataValueSynchronization implements DataSynchronizationWithPaging {
 
     if (runSyncWithPaging(context, progress)) {
       progress.completedProcess("SUCCESS! DataValueSynchronization job is done.");
-      settingManager.saveSystemSetting("keyLastSuccessfulDataSynch", context.getStartTime().toString());
+      settingManager.saveSystemSetting(
+          "keyLastSuccessfulDataSynch", context.getStartTime().toString());
       return SynchronizationResult.success("DataValueSynchronization done.");
     }
 
@@ -180,6 +181,10 @@ public class DataValueSynchronization implements DataSynchronizationWithPaging {
         };
 
     return SyncUtils.sendSyncRequest(
-        settingManager.getCurrentSettings(), restTemplate, requestCallback, instance, SyncEndpoint.DATA_VALUE_SETS);
+        settingManager.getCurrentSettings(),
+        restTemplate,
+        requestCallback,
+        instance,
+        SyncEndpoint.DATA_VALUE_SETS);
   }
 }

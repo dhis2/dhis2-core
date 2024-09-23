@@ -38,7 +38,6 @@ import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import java.io.IOException;
-import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -79,7 +78,6 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -550,8 +548,7 @@ public class DefaultUserService implements UserService {
   public void canIssueFilter(Collection<UserRole> userRoles) {
     User user = getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    boolean canGrantOwnUserRoles =
-        settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
+    boolean canGrantOwnUserRoles = settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
 
     FilterUtils.filter(userRoles, new UserRoleCanIssueFilter(user, canGrantOwnUserRoles));
   }
@@ -735,8 +732,7 @@ public class DefaultUserService implements UserService {
   private void checkHasAccessToUserRoles(User user, User currentUser, List<ErrorReport> errors) {
     Set<UserRole> userRoles = user.getUserRoles();
 
-    boolean canGrantOwnUserRoles =
-        settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
+    boolean canGrantOwnUserRoles = settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
 
     if (userRoles != null) {
       List<UserRole> roles =
@@ -1145,7 +1141,8 @@ public class DefaultUserService implements UserService {
     vars.put("welcomeMessage", persistedUser.getWelcomeMessage());
 
     I18n i18n =
-        i18nManager.getI18n(userSettingService.getSettings(persistedUser.getUsername()).getUserUiLocale());
+        i18nManager.getI18n(
+            userSettingService.getSettings(persistedUser.getUsername()).getUserUiLocale());
 
     vars.put("i18n", i18n);
 

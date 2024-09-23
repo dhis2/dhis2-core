@@ -58,7 +58,6 @@ import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.context.annotation.Scope;

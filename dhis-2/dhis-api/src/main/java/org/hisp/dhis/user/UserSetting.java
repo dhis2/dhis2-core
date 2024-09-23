@@ -27,15 +27,14 @@
  */
 package org.hisp.dhis.user;
 
+import java.io.Serializable;
+import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
-import javax.annotation.Nonnull;
-import java.io.Serializable;
 
 /**
  * @author Nguyen Hong Duc
@@ -45,18 +44,13 @@ import java.io.Serializable;
 @EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserSetting  {
+public class UserSetting {
 
-  @Setter
-  @Nonnull
-  private User user;
+  @Setter @Nonnull private User user;
 
-  @Setter
-  @Nonnull
-  private String name;
+  @Setter @Nonnull private String name;
 
-  @EqualsAndHashCode.Exclude
-  private String value;
+  @EqualsAndHashCode.Exclude private String value;
 
   public boolean hasValue() {
     return value != null;

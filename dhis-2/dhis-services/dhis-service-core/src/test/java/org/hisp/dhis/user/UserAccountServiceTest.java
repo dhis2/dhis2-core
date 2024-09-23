@@ -34,14 +34,13 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.common.auth.RegistrationParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
-import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -81,7 +80,8 @@ class UserAccountServiceTest {
     recaptchaResponse.setSuccess(false);
     recaptchaResponse.setErrorCodes(List.of("invalid challenge received"));
 
-    when(systemSettingsService.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of("keySelfRegistrationNoRecaptcha", "false")));
+    when(systemSettingsService.getCurrentSettings())
+        .thenReturn(SystemSettings.of(Map.of("keySelfRegistrationNoRecaptcha", "false")));
     when(userService.verifyRecaptcha("invalid-key", "ip1")).thenReturn(recaptchaResponse);
 
     // then
@@ -104,7 +104,8 @@ class UserAccountServiceTest {
     recaptchaResponse.setSuccess(false);
     recaptchaResponse.setErrorCodes(List.of("invalid challenge received"));
 
-    when(systemSettingsService.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of("keySelfRegistrationNoRecaptcha", "false")));
+    when(systemSettingsService.getCurrentSettings())
+        .thenReturn(SystemSettings.of(Map.of("keySelfRegistrationNoRecaptcha", "false")));
     when(userService.verifyRecaptcha("invalid-key", "ip1")).thenReturn(recaptchaResponse);
 
     // then

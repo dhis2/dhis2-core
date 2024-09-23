@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.mvc.interceptor;
 
-
 import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
@@ -69,5 +68,4 @@ public class UserContextInterceptor implements HandlerInterceptor {
     // cleanup: unset for the thread
     UserSettings.clearCurrentUserSettings();
   }
-
 }

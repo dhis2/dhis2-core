@@ -110,17 +110,14 @@ final class ImportConfig {
 
     skipExistingCheck = options.isSkipExistingCheck();
 
-    strictPeriods =
-        options.isStrictPeriods()
-            || settings.getDataImportStrictPeriods();
+    strictPeriods = options.isStrictPeriods() || settings.getDataImportStrictPeriods();
 
     strictAttrOptionCombos =
         options.isStrictAttributeOptionCombos()
             || settings.getDataImportStrictAttributeOptionCombos();
 
     strictOrgUnits =
-        options.isStrictOrganisationUnits()
-            || settings.getDataImportStrictOrganisationUnits();
+        options.isStrictOrganisationUnits() || settings.getDataImportStrictOrganisationUnits();
 
     requireAttrOptionCombos =
         options.isRequireAttributeOptionCombo()

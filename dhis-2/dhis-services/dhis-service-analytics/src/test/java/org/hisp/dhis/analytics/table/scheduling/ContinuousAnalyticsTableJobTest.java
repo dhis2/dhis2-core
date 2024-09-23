@@ -35,8 +35,8 @@ import static org.mockito.Mockito.when;
 import java.util.Date;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.common.TableInfoReader;
-import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -68,8 +68,7 @@ class ContinuousAnalyticsTableJobTest {
 
   @Test
   void testRunFullUpdate() {
-    when(settings.getNextAnalyticsTableUpdate())
-        .thenReturn(dateB);
+    when(settings.getNextAnalyticsTableUpdate()).thenReturn(dateB);
 
     assertFalse(job.runFullUpdate(dateA));
     assertTrue(job.runFullUpdate(dateC));
@@ -77,8 +76,7 @@ class ContinuousAnalyticsTableJobTest {
 
   @Test
   void testRunFullUpdateNullNextUpdate() {
-    when(settings.getNextAnalyticsTableUpdate())
-        .thenReturn(new Date(0L));
+    when(settings.getNextAnalyticsTableUpdate()).thenReturn(new Date(0L));
 
     assertTrue(job.runFullUpdate(dateA));
     assertTrue(job.runFullUpdate(dateC));

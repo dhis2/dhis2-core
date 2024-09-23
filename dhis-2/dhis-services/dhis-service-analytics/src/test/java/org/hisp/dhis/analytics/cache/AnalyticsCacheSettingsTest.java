@@ -105,8 +105,7 @@ class AnalyticsCacheSettingsTest {
     long theExpectedTtl = aTtlFactor * oneDayDiff;
     Date aDateBeforeToday = calculateDateFrom(new Date(), minus(oneDayDiff), DATE);
 
-    when(settings.getAnalyticsCacheProgressiveTtlFactor())
-        .thenReturn(aTtlFactor);
+    when(settings.getAnalyticsCacheProgressiveTtlFactor()).thenReturn(aTtlFactor);
     long expirationTime =
         analyticsCacheSettings.progressiveExpirationTimeOrDefault(aDateBeforeToday);
 
@@ -120,8 +119,7 @@ class AnalyticsCacheSettingsTest {
     long theExpectedTtl = theDefaultTtlFactor * oneDayDiff;
     Date aDateBeforeToday = calculateDateFrom(new Date(), minus(oneDayDiff), DATE);
 
-    when(settings.getAnalyticsCacheProgressiveTtlFactor())
-        .thenReturn(theDefaultTtlFactor);
+    when(settings.getAnalyticsCacheProgressiveTtlFactor()).thenReturn(theDefaultTtlFactor);
     long expirationTime =
         analyticsCacheSettings.progressiveExpirationTimeOrDefault(aDateBeforeToday);
 
@@ -134,8 +132,7 @@ class AnalyticsCacheSettingsTest {
     int oneDayDiff = 1;
     Date aDateBeforeToday = calculateDateFrom(new Date(), minus(oneDayDiff), DATE);
 
-    when(settings.getAnalyticsCacheProgressiveTtlFactor())
-        .thenReturn(aTtlFactor);
+    when(settings.getAnalyticsCacheProgressiveTtlFactor()).thenReturn(aTtlFactor);
 
     assertEquals(1, analyticsCacheSettings.progressiveExpirationTimeOrDefault(aDateBeforeToday));
   }

@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller;
 import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OpenApi;
@@ -58,10 +57,10 @@ public class IndexController {
   private final ContextService contextService;
 
   @GetMapping("/")
-  public void getIndexWithSlash(HttpServletRequest request, HttpServletResponse response, SystemSettings settings)
+  public void getIndexWithSlash(
+      HttpServletRequest request, HttpServletResponse response, SystemSettings settings)
       throws IOException {
-    String redirectUrl =
-        request.getContextPath() + "/" + settings.getStartModule();
+    String redirectUrl = request.getContextPath() + "/" + settings.getStartModule();
 
     if (!redirectUrl.endsWith("/")) {
       redirectUrl += "/";

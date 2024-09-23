@@ -213,8 +213,7 @@ public class DataSetController extends AbstractCrudController<DataSet> {
       })
   @GetMapping("/{uid}/categoryCombos")
   public ResponseEntity<JsonRoot> getCategoryCombinations(
-      @PathVariable("uid") String uid,
-      @RequestParam(defaultValue = "*") List<FieldPath> fields)
+      @PathVariable("uid") String uid, @RequestParam(defaultValue = "*") List<FieldPath> fields)
       throws Exception {
     DataSet dataSet = manager.get(DataSet.class, uid);
 

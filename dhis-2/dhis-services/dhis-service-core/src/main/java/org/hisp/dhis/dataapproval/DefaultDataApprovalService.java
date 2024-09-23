@@ -138,8 +138,7 @@ public class DefaultDataApprovalService implements DataApprovalService {
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    boolean accepted =
-        !settingsProvider.getCurrentSettings().getAcceptanceRequiredForApproval();
+    boolean accepted = !settingsProvider.getCurrentSettings().getAcceptanceRequiredForApproval();
 
     validateAttributeOptionCombos(dataApprovalList);
 
@@ -820,6 +819,9 @@ public class DefaultDataApprovalService implements DataApprovalService {
   /** Makes a DataApprovalPermissionsEvaluator object for the current user. */
   private DataApprovalPermissionsEvaluator makePermissionsEvaluator() {
     return DataApprovalPermissionsEvaluator.makePermissionsEvaluator(
-        userService, idObjectManager, settingsProvider.getCurrentSettings(), dataApprovalLevelService);
+        userService,
+        idObjectManager,
+        settingsProvider.getCurrentSettings(),
+        dataApprovalLevelService);
   }
 }

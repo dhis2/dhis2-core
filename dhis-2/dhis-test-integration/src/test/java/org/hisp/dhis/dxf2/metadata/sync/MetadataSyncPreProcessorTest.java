@@ -245,8 +245,7 @@ class MetadataSyncPreProcessorTest extends PostgresIntegrationTestBase {
     List<MetadataVersion> expectedListOfVersions =
         metadataSyncPreProcessor.handleMetadataVersionsList(
             mockRetryContext, currentVersion, JobProgress.noop());
-    verify(systemSettingsService)
-        .saveSystemSetting("keyRemoteMetadataVersion", version4.getName());
+    verify(systemSettingsService).saveSystemSetting("keyRemoteMetadataVersion", version4.getName());
     assertEquals(3, expectedListOfVersions.size());
   }
 }
