@@ -94,8 +94,8 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
         "keyApplicationNotification", "no", "Søknadsmelding");
 
     settingsService.saveSystemSetting("keyFlag", "FLAG_IMAGE");
-    settingsService.saveSystemSetting("keyUseCustomLogoFront", "true");
-    settingsService.saveSystemSetting("keyCustomTopMenuLogo", "true");
+    settingsService.saveSystemSetting("keyUseCustomLogoFront", true);
+    settingsService.saveSystemSetting("keyCustomTopMenuLogo", true);
 
     JsonObject responseDefaultLocale = GET("/loginConfig").content();
     JsonObject responseNorwegianLocale = GET("/loginConfig?locale=no").content();

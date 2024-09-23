@@ -117,7 +117,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
     when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(true);
 
     settingsService.saveSystemSetting(
-        "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE.name());
+        "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE);
 
     content = "filecontentA".getBytes();
     dataValueA = createFileResourceDataValue('A', content);
@@ -135,7 +135,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
     when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(true);
 
     settingsService.saveSystemSetting(
-        "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.THREE_MONTHS.name());
+        "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.THREE_MONTHS);
 
     content = "filecontentA".getBytes(StandardCharsets.UTF_8);
     dataValueA = createFileResourceDataValue('A', content);
@@ -170,7 +170,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
     when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(false);
 
     settingsService.saveSystemSetting(
-        "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE.name());
+        "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE);
 
     content = "filecontentA".getBytes(StandardCharsets.UTF_8);
     FileResource fileResourceA = createFileResource('A', content);
@@ -206,7 +206,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   @Test
   void testFalsePositive() {
     settingsService.saveSystemSetting(
-        "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.THREE_MONTHS.name());
+        "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.THREE_MONTHS);
 
     content = "externalA".getBytes();
     ExternalFileResource ex = createExternal('A', content);
@@ -227,7 +227,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   @Test
   void testFailedUpload() {
     settingsService.saveSystemSetting(
-        "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.THREE_MONTHS.name());
+        "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.THREE_MONTHS);
 
     content = "externalA".getBytes();
     ExternalFileResource ex = createExternal('A', content);

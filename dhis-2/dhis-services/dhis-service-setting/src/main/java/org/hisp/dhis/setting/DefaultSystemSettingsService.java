@@ -31,7 +31,7 @@ import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionTyp
 import static org.hisp.dhis.setting.SystemSettings.isConfidential;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
-import java.util.HashMap;
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -129,8 +129,8 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
 
   @Override
   @Transactional
-  public void saveSystemSetting(@Nonnull String key, @CheckForNull String value) {
-    saveSystemSettings(mapOf(key, value));
+  public void saveSystemSetting(@Nonnull String key, @CheckForNull Serializable value) {
+    saveSystemSettings(Map.of(key, Settings.valueOf(value)));
   }
 
   @Override
@@ -192,12 +192,5 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
    */
   private static String getDatastoreKey(String key, String locale) {
     return key + ":" + locale;
-  }
-
-  private static Map<String, String> mapOf(@Nonnull String key, @CheckForNull String value) {
-    if (value != null) return Map.of(key, value);
-    Map<String, String> map = new HashMap<>(); // needed because of null
-    map.put(key, null);
-    return map;
   }
 }

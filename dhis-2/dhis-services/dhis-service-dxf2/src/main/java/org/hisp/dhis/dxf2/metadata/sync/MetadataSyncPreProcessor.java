@@ -70,7 +70,7 @@ public class MetadataSyncPreProcessor {
 
   public void setUp(MetadataRetryContext context, JobProgress progress) {
     progress.startingProcess("Setting up metadata synchronisation");
-    progress.runStage(() -> settingsService.saveSystemSetting("keyVersionEnabled", "true"));
+    progress.runStage(() -> settingsService.saveSystemSetting("keyVersionEnabled", true));
     progress.completedProcess("finished setting up metadata synchronisation");
   }
 

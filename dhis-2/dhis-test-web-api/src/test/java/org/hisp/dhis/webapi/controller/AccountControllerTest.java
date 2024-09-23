@@ -90,7 +90,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testRecoverAccount_UsernameNotExist() {
-    settingsService.saveSystemSetting("keyAccountRecovery", "true");
+    settingsService.saveSystemSetting("keyAccountRecovery", true);
     clearSecurityContext();
     assertWebMessage(
         "Conflict",
@@ -102,7 +102,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testRecoverAccount_NotValidEmail() {
-    settingsService.saveSystemSetting("keyAccountRecovery", "true");
+    settingsService.saveSystemSetting("keyAccountRecovery", true);
     clearSecurityContext();
     assertWebMessage(
         "Conflict",
@@ -116,14 +116,14 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void testRecoverAccount_OK() {
     switchToNewUser("test");
-    settingsService.saveSystemSetting("keyAccountRecovery", "true");
+    settingsService.saveSystemSetting("keyAccountRecovery", true);
     clearSecurityContext();
     POST("/account/recovery?username=test").content(HttpStatus.OK);
   }
 
   @Test
   void testCreateAccount() {
-    settingsService.saveSystemSetting("keySelfRegistrationNoRecaptcha", "true");
+    settingsService.saveSystemSetting("keySelfRegistrationNoRecaptcha", true);
     assertWebMessage(
         "Bad Request",
         400,

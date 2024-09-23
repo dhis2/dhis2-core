@@ -48,6 +48,7 @@ import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.cache.OutliersCache;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.setting.Settings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.stereotype.Service;
@@ -123,12 +124,14 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
           Map.ofEntries(
               entry(
                   "keyLastSuccessfulLatestAnalyticsPartitionUpdate",
-                  params.getStartTime().toString()),
+                  Settings.valueOf(params.getStartTime())),
               entry("keyLastSuccessfulLatestAnalyticsPartitionRuntime", clock.time())));
     } else {
       settingsService.saveSystemSettings(
           Map.ofEntries(
-              entry("keyLastSuccessfulAnalyticsTablesUpdate", params.getStartTime().toString()),
+              entry(
+                  "keyLastSuccessfulAnalyticsTablesUpdate",
+                  Settings.valueOf(params.getStartTime())),
               entry("keyLastSuccessfulAnalyticsTablesRuntime", clock.time())));
     }
   }

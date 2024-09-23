@@ -92,7 +92,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   @DisplayName("Happy path for forgot password with username as input")
   void testResetPasswordOkUsername() {
-    settingsService.saveSystemSetting("keyAccountRecovery", "true");
+    settingsService.saveSystemSetting("keyAccountRecovery", true);
     User user = switchToNewUser("testA");
     clearSecurityContext();
     sendForgotPasswordRequest(user.getUsername());
@@ -102,7 +102,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   @DisplayName("Happy path for forgot password with email as input")
   void testResetPasswordOkEmail() {
-    settingsService.saveSystemSetting("keyAccountRecovery", "true");
+    settingsService.saveSystemSetting("keyAccountRecovery", true);
     User user = switchToNewUser("testB");
     clearSecurityContext();
     sendForgotPasswordRequest(user.getEmail());
@@ -113,7 +113,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @DisplayName(
       "Send wrong/non-existent email, should return OK to avoid email enumeration and not send any email")
   void testResetPasswordWrongEmail() {
-    settingsService.saveSystemSetting("keyAccountRecovery", "true");
+    settingsService.saveSystemSetting("keyAccountRecovery", true);
     clearSecurityContext();
     sendForgotPasswordRequest("wrong@email.com");
     assertTrue(messageSender.getAllMessages().isEmpty());
@@ -123,7 +123,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @DisplayName(
       "Send wrong/non-existent username, should return OK to avoid username enumeration and not send any email")
   void testResetPasswordWrongUsername() {
-    settingsService.saveSystemSetting("keyAccountRecovery", "true");
+    settingsService.saveSystemSetting("keyAccountRecovery", true);
     clearSecurityContext();
     sendForgotPasswordRequest("wrong");
     List<OutboundMessage> allMessages = messageSender.getAllMessages();
@@ -134,7 +134,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @DisplayName(
       "Send non-unique email, should return OK to avoid username enumeration and not send any email")
   void testResetPasswordNonUniqueEmail() {
-    settingsService.saveSystemSetting("keyAccountRecovery", "true");
+    settingsService.saveSystemSetting("keyAccountRecovery", true);
 
     switchToAdminUser();
     User userA = createUserWithAuth("userA");
@@ -152,7 +152,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @DisplayName(
       "Try to reset password for external auth user, should return OK to avoid username enumeration and not send any email")
   void testResetPasswordExternalAuthUser() {
-    settingsService.saveSystemSetting("keyAccountRecovery", "true");
+    settingsService.saveSystemSetting("keyAccountRecovery", true);
     clearSecurityContext();
     User user = switchToNewUser("testC");
     user.setExternalAuth(true);
@@ -166,7 +166,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testResetPasswordNoBaseUrl() {
     configurationProvider.getProperties().put(ConfigurationKey.SERVER_BASE_URL.getKey(), "");
-    settingsService.saveSystemSetting("keyAccountRecovery", "true");
+    settingsService.saveSystemSetting("keyAccountRecovery", true);
     clearSecurityContext();
     POST("/auth/forgotPassword", "{'emailOrUsername':'%s'}".formatted("userA"))
         .content(HttpStatus.CONFLICT);
@@ -412,7 +412,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   @DisplayName("Self registration error when recaptcha enabled and null input")
   void selfRegRecaptcha() {
-    settingsService.saveSystemSetting("keySelfRegistrationNoRecaptcha", "false");
+    settingsService.saveSystemSetting("keySelfRegistrationNoRecaptcha", false);
 
     assertWebMessage(
         "Bad Request",
@@ -540,7 +540,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   @DisplayName("Invite registration error when recaptcha enabled and null input")
   void inviteRegRecaptcha() {
-    settingsService.saveSystemSetting("keySelfRegistrationNoRecaptcha", "false");
+    settingsService.saveSystemSetting("keySelfRegistrationNoRecaptcha", false);
 
     assertWebMessage(
         "Bad Request",
@@ -566,7 +566,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   private void disableRecaptcha() {
-    settingsService.saveSystemSetting("keySelfRegistrationNoRecaptcha", "true");
+    settingsService.saveSystemSetting("keySelfRegistrationNoRecaptcha", true);
   }
 
   private static Stream<Arguments> passwordData() {

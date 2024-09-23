@@ -127,7 +127,7 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
     log.info("DataValues last changed before " + skipChangedBefore + " will not be synchronized.");
 
     if (objectsToSynchronize == 0) {
-      settingsService.saveSystemSetting("keyLastSuccessfulDataSynch", startTime.toString());
+      settingsService.saveSystemSetting("keyLastSuccessfulDataSynch", startTime);
       log.debug("Skipping data values push, no new or updated data values");
 
       ImportCount importCount = new ImportCount(0, 0, 0, 0);

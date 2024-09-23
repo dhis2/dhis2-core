@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.user;
 
+import java.io.Serializable;
 import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -60,7 +61,7 @@ public interface UserSettingService {
    * @param key the user setting key.
    * @param value the setting value, null or empty to delete
    */
-  void saveUserSetting(@Nonnull String key, @CheckForNull String value);
+  void saveUserSetting(@Nonnull String key, @CheckForNull Serializable value);
 
   /**
    * Saves the name/value pair as a user setting connected to user.
@@ -69,7 +70,8 @@ public interface UserSettingService {
    * @param value the setting value, null or empty to delete
    * @param username owner/target of the settings update
    */
-  void saveUserSetting(@Nonnull String key, @CheckForNull String value, @Nonnull String username)
+  void saveUserSetting(
+      @Nonnull String key, @CheckForNull Serializable value, @Nonnull String username)
       throws NotFoundException;
 
   /**

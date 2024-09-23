@@ -42,7 +42,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -624,10 +623,8 @@ class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTest
     dataSetService.addDataSet(dataSetB);
 
     // System settings
-    settingsService.saveSystemSettings(
-        Map.ofEntries(
-            Map.entry("keyIgnoreAnalyticsApprovalYearThreshold", "0"),
-            Map.entry("keyAcceptanceRequiredForApproval", "true")));
+    settingsService.saveSystemSetting("keyIgnoreAnalyticsApprovalYearThreshold", 0);
+    settingsService.saveSystemSetting("keyAcceptanceRequiredForApproval", true);
   }
 
   @AfterEach

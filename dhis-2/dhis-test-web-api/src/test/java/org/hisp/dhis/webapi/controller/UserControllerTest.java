@@ -277,7 +277,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testUpdateRolesWithNoAllAndCanAssignRoles() {
 
-    settingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", "true");
+    settingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", true);
 
     JsonImportSummary response = updateRolesNonAllAdmin();
 
@@ -296,7 +296,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testUpdateRolesWithNoAllAndNoCanAssignRoles() {
 
-    settingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", "false");
+    settingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", false);
 
     JsonImportSummary response = updateRolesNonAllAdmin();
 
@@ -394,7 +394,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testChangeOrgUnitLevelGivesAccessError() {
-    settingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", "true");
+    settingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", true);
 
     OrganisationUnit orgA = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(orgA);
@@ -435,7 +435,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void updateUserHasAccessToUpdateGroups() {
-    settingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", "true");
+    settingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", true);
 
     UserRole roleB = createUserRole("ROLE_B", "F_USER_ADD", "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS");
     userService.addUserRole(roleB);

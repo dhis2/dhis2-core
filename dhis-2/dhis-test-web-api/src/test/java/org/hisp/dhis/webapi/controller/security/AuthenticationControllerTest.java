@@ -125,7 +125,7 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
   @Test
   void testLoginWithLockedUser() {
-    settingsService.saveSystemSetting("keyLockMultipleFailedLogins", "true");
+    settingsService.saveSystemSetting("keyLockMultipleFailedLogins", true);
 
     User admin = userService.getUserByUsername("admin");
     userService.updateUser(admin);
@@ -161,7 +161,7 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
   @Test
   void testLoginWithCredentialsExpiredUser() {
-    settingsService.saveSystemSetting("credentialsExpires", "1");
+    settingsService.saveSystemSetting("credentialsExpires", 1);
 
     User admin = userService.getUserByUsername("admin");
 

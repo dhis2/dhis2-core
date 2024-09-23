@@ -334,7 +334,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testManagedGroups() {
-    settingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", "true");
+    settingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", true);
     // TODO find way to override in parameters
     User userA = addUser("A");
     User userB = addUser("B");
@@ -378,7 +378,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetByPhoneNumber() {
-    settingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", "true");
+    settingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", true);
     addUser("A", user -> user.setPhoneNumber("73647271"));
     User userB = addUser("B", user -> user.setPhoneNumber("23452134"));
     addUser("C", user -> user.setPhoneNumber("14543232"));
@@ -611,12 +611,10 @@ class UserServiceTest extends PostgresIntegrationTestBase {
         });
     addUser("C", User::setLastLogin, twentyTwoDaysAgo);
     addUser("D");
-    userSettingService.saveUserSetting(
-        "keyUiLocale", Locale.CANADA.toString(), userA.getUsername());
+    userSettingService.saveUserSetting("keyUiLocale", Locale.CANADA, userA.getUsername());
     // the point of setting this setting is to see that the query does not
     // get confused by other setting existing for the same user
-    userSettingService.saveUserSetting(
-        "keyDbLocale", Locale.FRANCE.toString(), userA.getUsername());
+    userSettingService.saveUserSetting("keyDbLocale", Locale.FRANCE, userA.getUsername());
 
     Map<String, Optional<Locale>> users =
         userService.findNotifiableUsersWithLastLoginBetween(threeMonthAgo, twoMonthsAgo);

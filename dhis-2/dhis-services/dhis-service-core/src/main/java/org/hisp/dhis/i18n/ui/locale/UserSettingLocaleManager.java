@@ -84,7 +84,7 @@ public class UserSettingLocaleManager implements LocaleManager {
 
   @Override
   public void setCurrentLocale(Locale locale) {
-    userSettingService.saveUserSetting("keyUiLocale", locale.toString());
+    userSettingService.saveUserSetting("keyUiLocale", locale);
   }
 
   @Override

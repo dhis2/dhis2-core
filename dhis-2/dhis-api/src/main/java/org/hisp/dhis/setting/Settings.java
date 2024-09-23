@@ -27,10 +27,12 @@
  */
 package org.hisp.dhis.setting;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonPrimitive;
@@ -43,6 +45,17 @@ import org.hisp.dhis.jsontree.JsonPrimitive;
  * @since 2.42
  */
 public sealed interface Settings permits UserSettings, SystemSettings {
+
+  @Nonnull
+  static String valueOf(@CheckForNull Serializable value) {
+    if (value == null) return "";
+    if (value instanceof Date d)
+      return String.valueOf(d.getTime()); // Date.toString() is not lossless and can't be used
+    if (value instanceof Enum<?> e)
+      return e.name(); // just in case toString() was overridden this should be closest to historic
+    // behaviour
+    return value.toString();
+  }
 
   /**
    * Note that this only entails the names that have a defined value in the database. Settings that

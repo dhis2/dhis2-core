@@ -35,6 +35,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hisp.dhis.setting.Settings;
 
 /**
  * @author Nguyen Hong Duc
@@ -63,6 +64,6 @@ public class UserSetting {
    * @param value value from DB
    */
   public void setValue(Serializable value) {
-    this.value = value == null ? null : value.toString();
+    this.value = Settings.valueOf(value);
   }
 }

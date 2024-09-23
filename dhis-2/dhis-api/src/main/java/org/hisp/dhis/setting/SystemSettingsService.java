@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.setting;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -43,7 +44,7 @@ public interface SystemSettingsService extends SystemSettingsProvider {
   /** Called at the start of a new request to ensure fresh view of the settings */
   void clearCurrentSettings();
 
-  void saveSystemSetting(@Nonnull String key, @CheckForNull String value);
+  void saveSystemSetting(@Nonnull String key, @CheckForNull Serializable value);
 
   /**
    * Saves the given system setting key and value.

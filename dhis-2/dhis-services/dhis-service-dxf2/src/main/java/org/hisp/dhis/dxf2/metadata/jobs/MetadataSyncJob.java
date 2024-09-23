@@ -50,6 +50,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
+import org.hisp.dhis.setting.Settings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
@@ -206,7 +207,7 @@ public class MetadataSyncJob implements Job {
       settingsService.saveSystemSettings(
           Map.ofEntries(
               entry("keyMetadataFailedVersion", metadataVersion.getName()),
-              entry("keyMetadataLastFailedTime", new Date().toString())));
+              entry("keyMetadataLastFailedTime", Settings.valueOf(new Date()))));
     }
   }
 

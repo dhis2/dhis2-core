@@ -95,8 +95,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
   void testSearchByToken() throws Exception {
     setUpTranslation();
     User userA = createAndAddUser("userA", (OrganisationUnit) null, "ALL");
-    userSettingService.saveUserSetting(
-        "keyDbLocale", Locale.FRENCH.toString(), userA.getUsername());
+    userSettingService.saveUserSetting("keyDbLocale", Locale.FRENCH, userA.getUsername());
 
     injectSecurityContextUser(userService.getUserByUsername(userA.getUsername()));
 
@@ -144,8 +143,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
   @DisplayName("Search by token should use default properties instead of translations column")
   void testSearchTokenWithNullLocale() {
     setUpTranslation();
-    doInTransaction(
-        () -> settingsService.saveSystemSetting("keyDbLocale", Locale.ENGLISH.toString()));
+    doInTransaction(() -> settingsService.saveSystemSetting("keyDbLocale", Locale.ENGLISH));
     settingsService.clearCurrentSettings();
     assertEquals(Locale.ENGLISH, settingsService.getCurrentSettings().getDbLocale());
 
@@ -179,8 +177,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
   void testSearchTokenWithFallback() throws Exception {
     setUpTranslation();
     User userA = createAndAddUser("userA", (OrganisationUnit) null, "ALL");
-    userSettingService.saveUserSetting(
-        "keyDbLocale", Locale.FRENCH.toString(), userA.getUsername());
+    userSettingService.saveUserSetting("keyDbLocale", Locale.FRENCH, userA.getUsername());
 
     injectSecurityContextUser(userService.getUserByUsername(userA.getUsername()));
 

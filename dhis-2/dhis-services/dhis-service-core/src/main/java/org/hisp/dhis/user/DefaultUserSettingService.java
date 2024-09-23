@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.user;
 
-import java.util.HashMap;
+import java.io.Serializable;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.setting.Settings;
 import org.hisp.dhis.setting.UserSettings;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,7 +62,7 @@ public class DefaultUserSettingService implements UserSettingService {
 
   @Override
   @Transactional
-  public void saveUserSetting(@Nonnull String key, String value) {
+  public void saveUserSetting(@Nonnull String key, Serializable value) {
     try {
       saveUserSetting(key, value, CurrentUserUtil.getCurrentUsername());
     } catch (NotFoundException ex) {
@@ -73,9 +74,9 @@ public class DefaultUserSettingService implements UserSettingService {
   @Override
   @Transactional
   public void saveUserSetting(
-      @Nonnull String key, @CheckForNull String value, @Nonnull String username)
+      @Nonnull String key, @CheckForNull Serializable value, @Nonnull String username)
       throws NotFoundException {
-    saveUserSettings(mapOf(key, value), username);
+    saveUserSettings(Map.of(key, Settings.valueOf(value)), username);
   }
 
   @Override
@@ -102,12 +103,5 @@ public class DefaultUserSettingService implements UserSettingService {
   @Transactional
   public void deleteAllUserSettings(@Nonnull String username) {
     userSettingStore.deleteAll(username);
-  }
-
-  private static Map<String, String> mapOf(@Nonnull String key, @CheckForNull String value) {
-    if (value != null) return Map.of(key, value);
-    Map<String, String> map = new HashMap<>(); // needed because of null
-    map.put(key, null);
-    return map;
   }
 }

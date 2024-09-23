@@ -31,9 +31,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
 import org.hisp.dhis.jsontree.JsonInteger;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonPrimitive;
@@ -87,5 +89,36 @@ class SystemSettingsTest {
   @Test
   void testKeys() {
     assertEquals(Set.of("a", "b"), SystemSettings.of(Map.of("a", "1", "b", "2")).keys());
+  }
+
+  @Test
+  void testAsEnum() {
+    assertEquals(
+        AnalyticsCacheTtlMode.PROGRESSIVE,
+        SystemSettings.of(Map.of("keyAnalyticsCacheTtlMode", "PROGRESSIVE"))
+            .getAnalyticsCacheTtlMode());
+  }
+
+  @Test
+  void testAsInt() {
+    assertEquals(
+        42,
+        SystemSettings.of(Map.of("keyAnalyticsPeriodYearsOffset", "42"))
+            .getAnalyticsPeriodYearsOffset());
+  }
+
+  @Test
+  void testAsBoolean() {
+    assertTrue(
+        SystemSettings.of(Map.of("keyAcceptanceRequiredForApproval", "true"))
+            .getAcceptanceRequiredForApproval());
+  }
+
+  @Test
+  void testAsDate() {
+    SystemSettings settings =
+        SystemSettings.of(
+            Map.of("keyLastSuccessfulResourceTablesUpdate", Settings.valueOf(new Date(123456L))));
+    assertEquals(new Date(123456L), settings.getLastSuccessfulResourceTablesUpdate());
   }
 }

@@ -111,7 +111,7 @@ public class ContinuousAnalyticsTableJob implements Job {
         analyticsTableGenerator.generateAnalyticsTables(params, progress);
       } finally {
         Date nextUpdate = DateUtils.getNextDate(fullUpdateHourOfDay, startTime);
-        settingsService.saveSystemSetting("keyNextAnalyticsTableUpdate", nextUpdate.toString());
+        settingsService.saveSystemSetting("keyNextAnalyticsTableUpdate", nextUpdate);
         log.info("Next full analytics table update: '{}'", toLongDate(nextUpdate));
       }
     } else {

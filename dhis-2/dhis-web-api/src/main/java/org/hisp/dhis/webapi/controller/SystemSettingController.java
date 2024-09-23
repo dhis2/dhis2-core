@@ -44,9 +44,8 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonMixed;
-import org.hisp.dhis.jsontree.JsonPrimitive;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSetting;
 import org.hisp.dhis.setting.SystemSettings;
@@ -138,9 +137,8 @@ public class SystemSettingController {
 
   @Deprecated(since = "2.42", forRemoval = true)
   @GetMapping(value = "/{key}", produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody JsonMap<? extends JsonPrimitive> getSystemSettingJson(
-      @PathVariable("key") String key) {
-    return settingsService.getCurrentSettings().toJson();
+  public @ResponseBody JsonValue getSystemSettingJson(@PathVariable("key") String key) {
+    return settingsService.getCurrentSettings().toJson().get(key);
   }
 
   @DeleteMapping("/{key}")

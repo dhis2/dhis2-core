@@ -3575,7 +3575,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
     Date date = new Date();
     transactionTemplate.execute(
         status -> {
-          settingsService.saveSystemSetting("keyAcceptanceRequiredForApproval", "true");
+          settingsService.saveSystemSetting("keyAcceptanceRequiredForApproval", true);
           setUpCategories();
           createUserAndInjectSecurityContext(
               singleton(organisationUnitA),
@@ -4108,7 +4108,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
             userA);
     transactionTemplate.execute(
         status -> {
-          settingsService.saveSystemSetting("keyAcceptanceRequiredForApproval", "true");
+          settingsService.saveSystemSetting("keyAcceptanceRequiredForApproval", true);
           createUserAndInjectSecurityContext(singleton(organisationUnitA), false, AUTH_APPR_LEVEL);
           dataApprovalStore.addDataApproval(dataApprovalA);
           dataApprovalStore.addDataApproval(dataApprovalB);
