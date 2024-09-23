@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.hisp.dhis.common.DeleteNotAllowedException;
@@ -134,14 +133,26 @@ class ProgramNotificationTemplateServiceTest extends SingleSetupIntegrationTestB
   @Test
   void shouldGetProgramNotificationTemplates() {
     ProgramNotificationTemplateParam param =
-        ProgramNotificationTemplateParam.builder().program(program).build();
+        ProgramNotificationTemplateParam.builder().program(program).page(1).pageSize(3).build();
+
     List<ProgramNotificationTemplate> templates =
         programNotificationTemplateService.getProgramNotificationTemplates(param);
+
     assertFalse(templates.isEmpty());
-    assertEquals(2, templates.size());
-    assertTrue(templates.contains(pnt1));
-    assertTrue(templates.contains(pnt2));
+    assertEquals(List.of(pnt2, pnt1), templates);
     assertFalse(templates.contains(pnt3));
+  }
+
+  @Test
+  void shouldGetProgramNotificationTemplatesWithDefaultPagination() {
+    ProgramNotificationTemplateParam param =
+        ProgramNotificationTemplateParam.builder().program(program).build();
+
+    List<ProgramNotificationTemplate> templates =
+        programNotificationTemplateService.getProgramNotificationTemplates(param);
+
+    assertFalse(templates.isEmpty());
+    assertEquals(List.of(pnt2, pnt1), templates);
   }
 
   @Test
