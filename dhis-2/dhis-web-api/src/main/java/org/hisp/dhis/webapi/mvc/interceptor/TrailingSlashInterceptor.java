@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,10 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.webapi.mvc.interceptor;
 
-public enum TotalAggregationType {
-  NONE,
-  SUM,
-  AVERAGE
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
+
+@Component
+public class TrailingSlashInterceptor implements HandlerInterceptor {
+
+  @Override
+  public boolean preHandle(
+      HttpServletRequest request, HttpServletResponse response, Object handler) {
+
+    String requestURI = request.getRequestURI();
+    String contextPath = request.getContextPath();
+
+    // Ignore API paths
+    if (requestURI.startsWith(contextPath + "/api")) {
+      return true;
+    }
+
+    // Check if the path does not end with '/' or contains .
+    if (!requestURI.endsWith("/") && !requestURI.contains(".")) {
+      String queryString = request.getQueryString();
+      String redirectURI = requestURI + "/";
+      if (queryString != null) {
+        redirectURI += "?" + queryString;
+      }
+      response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+      response.setHeader("Location", redirectURI);
+      return false;
+    }
+
+    return true;
+  }
 }

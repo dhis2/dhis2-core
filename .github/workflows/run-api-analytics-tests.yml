@@ -18,7 +18,7 @@ jobs:
       PR_NUMBER: ${{ github.event.number }}
       DOCKER_CHANNEL: "dhis2/core-pr"
       SIERRA_LEONE_DB_PATH: "/tmp/db/sierra-leone"
-      SIERRA_LEONE_DB_VERSION: "2.39.0.1"
+      SIERRA_LEONE_DB_VERSION: "2.39.6"
 
     runs-on: ubuntu-latest
     if: "contains(github.event.pull_request.labels.*.name, 'run-api-analytics-tests')"
