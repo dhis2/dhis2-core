@@ -118,7 +118,7 @@ class EventExporterTest extends TrackerTest {
         trackerImportService.importTracker(params, fromJson("tracker/event_and_enrollment.json")));
     orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
     programStage = get(ProgramStage.class, "NpsdDv6kKSO");
-    program = programStage.getProgram();
+    program = get(Program.class, "BFcipDERJnf");
     trackedEntity = get(TrackedEntity.class, "dUE514NMOlo");
 
     // to test that events are only returned if the user has read access to ALL COs of an events COC

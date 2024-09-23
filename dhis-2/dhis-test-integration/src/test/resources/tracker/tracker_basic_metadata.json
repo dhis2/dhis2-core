@@ -1192,7 +1192,11 @@
           "id": "QfUVllTs6cS"
         }
       ],
-      "teiSearchOrganisationUnits": [],
+      "teiSearchOrganisationUnits": [
+        {
+          "id": "QfUVllTs6cS"
+        }
+      ],
       "created": "2019-03-25T13:58:35.560",
       "code": "netroms",
       "organisationUnits": [],

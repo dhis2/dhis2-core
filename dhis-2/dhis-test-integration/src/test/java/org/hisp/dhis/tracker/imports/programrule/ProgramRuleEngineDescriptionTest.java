@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.tracker.imports.programrule;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -45,12 +45,13 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
+import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.rules.models.RuleEngineValidationException;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -59,7 +60,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
  * @author Zubair Asghar
  */
 class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase {
-
   private String conditionTextAtt =
       "A{Program_Rule_Variable_Text_Attr} == 'text_att' || d2:hasValue(V{current_date})";
 
@@ -143,7 +143,7 @@ class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private ProgramRuleService programRuleService;
 
-  @BeforeEach
+  @BeforeAll
   void setUp() {
     constantPI = createConstant('P', 3.14);
     constantArea = createConstant('A', 22.1);
