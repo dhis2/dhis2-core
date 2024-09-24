@@ -27,11 +27,9 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.tracker.imports.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.imports.programrule.IssueType.WARNING;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.GEOMETRY_CANT_BE_NULL;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
@@ -75,7 +73,6 @@ public class ValidationUtils {
 
   public static void validateGeometry(
       Reporter reporter, TrackerDto dto, Geometry geometry, FeatureType featureType) {
-    checkNotNull(geometry, GEOMETRY_CANT_BE_NULL);
 
     if (featureType == null) {
       reporter.addError(dto, ValidationCode.E1074);

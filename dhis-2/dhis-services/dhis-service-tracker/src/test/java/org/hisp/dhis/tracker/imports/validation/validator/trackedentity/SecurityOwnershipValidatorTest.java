@@ -40,7 +40,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.List;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -58,6 +57,7 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -88,11 +88,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   @Mock private AclService aclService;
 
-  @Mock private OrganisationUnitService organisationUnitService;
-
   @Mock private TrackerAccessManager trackerAccessManager;
-
-  private User user;
 
   private Reporter reporter;
 
@@ -106,11 +102,12 @@ class SecurityOwnershipValidatorTest extends TestBase {
   public void setUp() {
     when(bundle.getPreheat()).thenReturn(preheat);
 
-    user = makeUser("A");
-    when(bundle.getUser()).thenReturn(user);
-
     organisationUnit = createOrganisationUnit('A');
     organisationUnit.setUid(ORG_UNIT_ID);
+
+    User user = makeUser("A");
+    user.addOrganisationUnit(organisationUnit);
+    when(bundle.getUser()).thenReturn(user);
 
     trackedEntityType = createTrackedEntityType('A');
     trackedEntityType.setUid(TE_TYPE_ID);
@@ -125,8 +122,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new Reporter(idSchemes);
 
-    validator =
-        new SecurityOwnershipValidator(aclService, organisationUnitService, trackerAccessManager);
+    validator = new SecurityOwnershipValidator(aclService, trackerAccessManager);
   }
 
   @Test
@@ -161,7 +157,6 @@ class SecurityOwnershipValidatorTest extends TestBase {
     TrackedEntity te = teWithNoEnrollments();
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
     when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
-    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
 
     validator.validate(reporter, bundle, trackedEntity);
 
@@ -183,8 +178,8 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID)))
         .thenReturn(trackedEntityType);
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE);
-    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
-    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
+    when(aclService.canDataWrite(UserDetails.fromUser(bundle.getUser()), trackedEntityType))
+        .thenReturn(true);
 
     validator.validate(reporter, bundle, trackedEntity);
 
@@ -204,7 +199,6 @@ class SecurityOwnershipValidatorTest extends TestBase {
     TrackedEntity te = teWithDeleteEnrollments();
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
     when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
-    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
 
     validator.validate(reporter, bundle, trackedEntity);
 
@@ -224,9 +218,12 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getUser()).thenReturn(deleteTeiAuthorisedUser());
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
     TrackedEntity te = teWithEnrollments();
+    User user = deleteTeiAuthorisedUser();
+    user.addOrganisationUnit(organisationUnit);
+
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
-    when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
-    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(bundle.getUser()).thenReturn(user);
+    when(trackerAccessManager.canWrite(UserDetails.fromUser(user), te)).thenReturn(List.of());
 
     validator.validate(reporter, bundle, trackedEntity);
 
@@ -267,8 +264,9 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID)))
         .thenReturn(trackedEntityType);
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE);
-    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(false);
-    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
+    User user = makeUser("B");
+    when(bundle.getUser()).thenReturn(user);
+    when(aclService.canDataWrite(UserDetails.fromUser(user), trackedEntityType)).thenReturn(true);
 
     validator.validate(reporter, bundle, trackedEntity);
 

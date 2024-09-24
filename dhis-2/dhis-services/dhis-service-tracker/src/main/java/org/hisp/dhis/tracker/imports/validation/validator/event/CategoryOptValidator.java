@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1056;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1057;
 
 import java.time.Instant;
 import java.util.Date;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.category.CategoryOption;
@@ -45,7 +45,6 @@ import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
@@ -54,21 +53,13 @@ import org.springframework.stereotype.Component;
  */
 @Component("org.hisp.dhis.tracker.imports.validation.validator.event.CategoryOptValidator")
 @Slf4j
+@RequiredArgsConstructor
 class CategoryOptValidator implements Validator<Event> {
   private final I18nManager i18nManager;
-
-  public CategoryOptValidator(I18nManager i18nManager) {
-    checkNotNull(i18nManager);
-    this.i18nManager = i18nManager;
-  }
 
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
     Program program = bundle.getPreheat().getProgram(event.getProgram());
-    checkNotNull(program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL);
-    checkNotNull(bundle.getUser(), TrackerImporterAssertErrors.USER_CANT_BE_NULL);
-    checkNotNull(program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL);
-    checkNotNull(event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL);
 
     TrackerPreheat preheat = bundle.getPreheat();
     CategoryOptionCombo categoryOptionCombo;
@@ -77,9 +68,6 @@ class CategoryOptValidator implements Validator<Event> {
     } else {
       categoryOptionCombo = preheat.getCategoryOptionCombo(event.getAttributeOptionCombo());
     }
-    checkNotNull(
-        categoryOptionCombo, TrackerImporterAssertErrors.CATEGORY_OPTION_COMBO_CANT_BE_NULL);
-
     Date eventDate;
     try {
       eventDate =

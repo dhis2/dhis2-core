@@ -80,21 +80,6 @@ class DefaultValidationServiceTest {
   }
 
   @Test
-  void shouldNotValidateWhenModeIsSkipAndUserIsNull() {
-    bundle =
-        bundleBuilder
-            .validationMode(ValidationMode.SKIP)
-            .user(null)
-            .trackedEntities(trackedEntities(trackedEntity()))
-            .build();
-    service = new DefaultValidationService(validator, ruleEngineValidator);
-
-    service.validate(bundle);
-
-    verifyNoInteractions(validator);
-  }
-
-  @Test
   void shouldNotValidateWhenModeIsSkipAndUserIsASuperUser() {
     bundle =
         bundleBuilder
@@ -131,6 +116,7 @@ class DefaultValidationServiceTest {
         bundleBuilder
             .validationMode(ValidationMode.FAIL_FAST)
             .trackedEntities(trackedEntities(trackedEntity()))
+            .user(superUser())
             .build();
 
     doThrow(new FailFastException(emptyList())).when(validator).validate(any(), any(), any());
@@ -145,7 +131,11 @@ class DefaultValidationServiceTest {
   @Test
   void warningsDoNotInvalidateAndRemoveEntities() {
     TrackedEntity validTrackedEntity = trackedEntity();
-    bundle = bundleBuilder.trackedEntities(trackedEntities(validTrackedEntity)).build();
+    bundle =
+        bundleBuilder
+            .trackedEntities(trackedEntities(validTrackedEntity))
+            .user(superUser())
+            .build();
 
     Validator<TrackerBundle> v1 =
         (r, b, e) -> r.addWarning(validTrackedEntity, ValidationCode.E1120);

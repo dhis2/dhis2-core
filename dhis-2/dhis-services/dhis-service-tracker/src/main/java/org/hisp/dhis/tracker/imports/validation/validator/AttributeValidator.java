@@ -27,14 +27,10 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1077;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1085;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1112;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL;
 
 import java.util.List;
 import java.util.Objects;
@@ -75,9 +71,6 @@ public abstract class AttributeValidator {
       TrackerDto dto,
       Attribute attr,
       TrackedEntityAttribute teAttr) {
-    checkNotNull(attr, ATTRIBUTE_CANT_BE_NULL);
-    checkNotNull(teAttr, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL);
-
     ValueType valueType = teAttr.getValueType();
 
     String error;
@@ -111,9 +104,6 @@ public abstract class AttributeValidator {
 
   public void validateAttributeValue(
       Reporter reporter, TrackerDto trackerDto, TrackedEntityAttribute tea, String value) {
-    checkNotNull(tea, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL);
-    checkNotNull(value, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL);
-
     // Validate value (string) don't exceed the max length
     reporter.addErrorIf(
         () -> value.length() > Constant.MAX_ATTR_VALUE_LENGTH,
@@ -147,8 +137,6 @@ public abstract class AttributeValidator {
       TrackedEntityAttribute trackedEntityAttribute,
       TrackedEntity trackedEntity,
       OrganisationUnit organisationUnit) {
-    checkNotNull(trackedEntityAttribute, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL);
-
     if (Boolean.FALSE.equals(trackedEntityAttribute.isUnique())) return;
 
     List<UniqueAttributeValue> uniqueAttributeValues = preheat.getUniqueAttributeValues();

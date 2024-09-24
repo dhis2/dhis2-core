@@ -27,17 +27,11 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.trackedentity;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1100;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -49,7 +43,6 @@ import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -64,8 +57,6 @@ class SecurityOwnershipValidator
     implements Validator<org.hisp.dhis.tracker.imports.domain.TrackedEntity> {
   @Nonnull private final AclService aclService;
 
-  @Nonnull private final OrganisationUnitService organisationUnitService;
-
   @Nonnull private final TrackerAccessManager trackerAccessManager;
 
   @Override
@@ -74,10 +65,7 @@ class SecurityOwnershipValidator
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity) {
     TrackerImportStrategy strategy = bundle.getStrategy(trackedEntity);
-    User user = bundle.getUser();
-
-    checkNotNull(user, USER_CANT_BE_NULL);
-    checkNotNull(trackedEntity, TRACKED_ENTITY_CANT_BE_NULL);
+    UserDetails user = UserDetails.fromUser(bundle.getUser());
 
     TrackedEntityType trackedEntityType =
         strategy.isUpdateOrDelete()
@@ -96,18 +84,17 @@ class SecurityOwnershipValidator
             : bundle.getPreheat().getOrganisationUnit(trackedEntity.getOrgUnit());
 
     if (strategy.isCreate()) {
-      checkTeTypeWriteAccess(reporter, bundle, trackedEntity, trackedEntityType);
+      checkTeTypeWriteAccess(reporter, trackedEntity, trackedEntityType, user);
     }
 
     if (strategy.isCreate() || strategy.isDelete()) {
-      checkOrgUnitInCaptureScope(reporter, bundle, trackedEntity, organisationUnit);
+      checkOrgUnitInCaptureScope(reporter, trackedEntity, organisationUnit, user);
     }
 
     if (!strategy.isCreate()) {
       TrackedEntity te = bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
-      if (!trackerAccessManager.canWrite(UserDetails.fromUser(bundle.getUser()), te).isEmpty()) {
-        reporter.addError(
-            trackedEntity, ValidationCode.E1003, bundle.getUser().getUid(), te.getUid());
+      if (!trackerAccessManager.canWrite(user, te).isEmpty()) {
+        reporter.addError(trackedEntity, ValidationCode.E1003, user.getUid(), te.getUid());
       }
     }
 
@@ -123,14 +110,9 @@ class SecurityOwnershipValidator
 
   private void checkTeTypeWriteAccess(
       Reporter reporter,
-      TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity,
-      TrackedEntityType trackedEntityType) {
-    User user = bundle.getUser();
-
-    checkNotNull(user, USER_CANT_BE_NULL);
-    checkNotNull(trackedEntityType, TRACKED_ENTITY_TYPE_CANT_BE_NULL);
-
+      TrackedEntityType trackedEntityType,
+      UserDetails user) {
     if (!aclService.canDataWrite(user, trackedEntityType)) {
       reporter.addError(trackedEntity, ValidationCode.E1001, user, trackedEntityType);
     }
@@ -142,13 +124,8 @@ class SecurityOwnershipValidator
   }
 
   private void checkOrgUnitInCaptureScope(
-      Reporter reporter, TrackerBundle bundle, TrackerDto dto, OrganisationUnit orgUnit) {
-    User user = bundle.getUser();
-
-    checkNotNull(user, USER_CANT_BE_NULL);
-    checkNotNull(orgUnit, ORGANISATION_UNIT_CANT_BE_NULL);
-
-    if (!organisationUnitService.isInUserHierarchyCached(user, orgUnit)) {
+      Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit, UserDetails user) {
+    if (!user.isInUserHierarchy(orgUnit.getPath())) {
       reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
     }
   }
