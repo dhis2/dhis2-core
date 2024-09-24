@@ -30,11 +30,17 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
-import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
-import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
-import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_ANALYTICS_EXPLAIN;
+import static org.hisp.dhis.system.grid.GridUtils.toCsv;
+import static org.hisp.dhis.system.grid.GridUtils.toHtml;
+import static org.hisp.dhis.system.grid.GridUtils.toHtmlCss;
+import static org.hisp.dhis.system.grid.GridUtils.toXls;
+import static org.hisp.dhis.system.grid.GridUtils.toXlsx;
+import static org.hisp.dhis.system.grid.GridUtils.toXml;
+import static org.hisp.dhis.util.PeriodCriteriaUtils.defineDefaultPeriodForCriteria;
+import static org.hisp.dhis.webapi.dimension.EnrollmentAnalyticsPrefixStrategy.INSTANCE;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_EXCEL;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_HTML;
@@ -51,29 +57,21 @@ import lombok.SneakyThrows;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
-import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
-import org.hisp.dhis.analytics.util.AnalyticsPeriodCriteriaUtils;
+import org.hisp.dhis.analytics.event.data.EnrollmentAggregateService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.RequestTypeAware;
-import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.grid.GridUtils;
-import org.hisp.dhis.util.PeriodCriteriaUtils;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
-import org.hisp.dhis.webapi.dimension.EnrollmentAnalyticsPrefixStrategy;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.stereotype.Controller;
@@ -83,9 +81,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-/**
- * @author Markus Bekken
- */
 @OpenApi.Document(domain = DataValue.class)
 @Controller
 @ApiVersion({DEFAULT, ALL})
@@ -94,7 +89,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class EnrollmentAggregateAnalyticsController {
   @Nonnull private final EventDataQueryService eventDataQueryService;
 
-  @Nonnull private final EnrollmentAnalyticsService analyticsService;
+  @Nonnull private final EnrollmentAggregateService enrollmentAggregateService;
 
   @Nonnull private final ContextUtils contextUtils;
 
@@ -108,10 +103,6 @@ public class EnrollmentAggregateAnalyticsController {
 
   @Nonnull private final SystemSettingsProvider settingsProvider;
 
-  @Nonnull private final PeriodDataProvider periodDataProvider;
-
-  @Nonnull private final AnalyticsTableSettings analyticsTableSettings;
-
   @RequiresAuthority(anyOf = F_PERFORM_ANALYTICS_EXPLAIN)
   @GetMapping(
       value = "/{program}/explain",
@@ -121,9 +112,9 @@ public class EnrollmentAggregateAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, true, AGGREGATE);
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, true);
 
-    Grid grid = analyticsService.getEnrollments(params);
+    Grid grid = enrollmentAggregateService.getEnrollments(params);
     contextUtils.configureResponse(response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING);
 
     if (params.analyzeOnly()) {
@@ -142,11 +133,11 @@ public class EnrollmentAggregateAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false);
 
     contextUtils.configureResponse(response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING);
 
-    return analyticsService.getEnrollments(params);
+    return enrollmentAggregateService.getEnrollments(params);
   }
 
   @SneakyThrows
@@ -156,12 +147,12 @@ public class EnrollmentAggregateAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false);
 
     contextUtils.configureResponse(
         response, CONTENT_TYPE_XML, RESPECT_SYSTEM_SETTING, "enrollments.xml", false);
-    Grid grid = analyticsService.getEnrollments(params);
-    GridUtils.toXml(grid, response.getOutputStream());
+    Grid grid = enrollmentAggregateService.getEnrollments(params);
+    toXml(grid, response.getOutputStream());
   }
 
   @SneakyThrows
@@ -171,12 +162,12 @@ public class EnrollmentAggregateAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false);
 
     contextUtils.configureResponse(
         response, CONTENT_TYPE_EXCEL, RESPECT_SYSTEM_SETTING, "enrollments.xls", true);
-    Grid grid = analyticsService.getEnrollments(params);
-    GridUtils.toXls(grid, response.getOutputStream());
+    Grid grid = enrollmentAggregateService.getEnrollments(params);
+    toXls(grid, response.getOutputStream());
   }
 
   @SneakyThrows
@@ -186,12 +177,12 @@ public class EnrollmentAggregateAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false);
 
     contextUtils.configureResponse(
         response, CONTENT_TYPE_EXCEL, RESPECT_SYSTEM_SETTING, "enrollments.xlsx", true);
-    Grid grid = analyticsService.getEnrollments(params);
-    GridUtils.toXlsx(grid, response.getOutputStream());
+    Grid grid = enrollmentAggregateService.getEnrollments(params);
+    toXlsx(grid, response.getOutputStream());
   }
 
   @SneakyThrows
@@ -201,12 +192,12 @@ public class EnrollmentAggregateAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false);
 
     contextUtils.configureResponse(
         response, CONTENT_TYPE_CSV, RESPECT_SYSTEM_SETTING, "enrollments.csv", true);
-    Grid grid = analyticsService.getEnrollments(params);
-    GridUtils.toCsv(grid, response.getWriter());
+    Grid grid = enrollmentAggregateService.getEnrollments(params);
+    toCsv(grid, response.getWriter());
   }
 
   @SneakyThrows
@@ -216,12 +207,12 @@ public class EnrollmentAggregateAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false);
 
     contextUtils.configureResponse(
         response, CONTENT_TYPE_HTML, RESPECT_SYSTEM_SETTING, "enrollments.html", false);
-    Grid grid = analyticsService.getEnrollments(params);
-    GridUtils.toHtml(grid, response.getWriter());
+    Grid grid = enrollmentAggregateService.getEnrollments(params);
+    toHtml(grid, response.getWriter());
   }
 
   @SneakyThrows
@@ -231,12 +222,12 @@ public class EnrollmentAggregateAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false);
 
     contextUtils.configureResponse(
         response, CONTENT_TYPE_HTML, RESPECT_SYSTEM_SETTING, "enrollments.html", false);
-    Grid grid = analyticsService.getEnrollments(params);
-    GridUtils.toHtmlCss(grid, response.getWriter());
+    Grid grid = enrollmentAggregateService.getEnrollments(params);
+    toHtmlCss(grid, response.getWriter());
   }
 
   @ResponseBody
@@ -250,7 +241,7 @@ public class EnrollmentAggregateAnalyticsController {
     return dimensionFilteringAndPagingService.pageAndFilter(
         dimensionMapperService.toDimensionResponse(
             enrollmentAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId(programId),
-            EnrollmentAnalyticsPrefixStrategy.INSTANCE),
+            INSTANCE),
         dimensionsCriteria,
         fields);
   }
@@ -259,28 +250,17 @@ public class EnrollmentAggregateAnalyticsController {
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
-      boolean analyzeOnly,
-      EndpointAction endpointAction) {
+      boolean analyzeOnly) {
     SystemSettings settings = settingsProvider.getCurrentSettings();
     criteria.definePageSize(settings.getAnalyticsMaxLimit());
 
-    if (endpointAction == QUERY) {
-      AnalyticsPeriodCriteriaUtils.defineDefaultPeriodForCriteria(
-          criteria,
-          periodDataProvider,
-          analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
-    } else {
-      PeriodCriteriaUtils.defineDefaultPeriodForCriteria(
-          criteria, settings.getAnalysisRelativePeriod());
-    }
+    defineDefaultPeriodForCriteria(criteria, settings.getAnalysisRelativePeriod());
 
     EventDataQueryRequest request =
         EventDataQueryRequest.builder()
             .fromCriteria(
                 (EnrollmentAnalyticsQueryCriteria)
-                    criteria
-                        .withEndpointAction(endpointAction)
-                        .withEndpointItem(RequestTypeAware.EndpointItem.ENROLLMENT))
+                    criteria.withEndpointAction(AGGREGATE).withEndpointItem(ENROLLMENT))
             .program(program)
             .apiVersion(apiVersion)
             .build();

@@ -127,8 +127,8 @@ import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
-import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.EventAggregateService;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
 import org.hisp.dhis.analytics.resolver.ExpressionResolvers;
 import org.hisp.dhis.analytics.util.PeriodOffsetUtils;
@@ -169,7 +169,7 @@ public class DataHandler {
 
   private static final int PERCENT = 100;
 
-  private final EventAnalyticsService eventAnalyticsService;
+  private final EventAggregateService eventAggregatedService;
 
   private final RawAnalyticsManager rawAnalyticsManager;
 
@@ -426,7 +426,7 @@ public class DataHandler {
               .withSkipMeta(true)
               .build();
 
-      Grid eventGrid = eventAnalyticsService.getAggregatedEventData(eventQueryParams);
+      Grid eventGrid = eventAggregatedService.getAggregatedData(eventQueryParams);
 
       grid.addRows(eventGrid);
 
