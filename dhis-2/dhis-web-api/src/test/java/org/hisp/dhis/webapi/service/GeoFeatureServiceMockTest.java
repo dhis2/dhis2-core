@@ -37,6 +37,7 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.geotools.geojson.geom.GeometryJSON;
@@ -46,6 +47,7 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -92,7 +94,13 @@ class GeoFeatureServiceMockTest {
     User user = rnd.nextObject(User.class);
     UserDetails details =
         UserDetails.createUserDetails(
-            user, true, true, new HashSet<>(), new HashSet<>(), new HashSet<>(), null);
+            user,
+            true,
+            true,
+            new HashSet<>(),
+            new HashSet<>(),
+            new HashSet<>(),
+            UserSettings.of(Map.of()));
     injectUserInSecurityContext(details);
 
     DataQueryParams params =
@@ -129,7 +137,13 @@ class GeoFeatureServiceMockTest {
     User user = rnd.nextObject(User.class);
     UserDetails details =
         UserDetails.createUserDetails(
-            user, true, true, new HashSet<>(), new HashSet<>(), new HashSet<>(), null);
+            user,
+            true,
+            true,
+            new HashSet<>(),
+            new HashSet<>(),
+            new HashSet<>(),
+            UserSettings.of(Map.of()));
 
     injectUserInSecurityContext(details);
     DataQueryParams params =

@@ -44,6 +44,7 @@ import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.common.cache.Cacheability.PRIVATE;
 import static org.hisp.dhis.common.cache.Cacheability.PUBLIC;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.CacheControl.maxAge;
 import static org.springframework.http.CacheControl.noCache;
@@ -74,7 +75,7 @@ class WebCacheTest {
   @BeforeEach
   public void setUp() {
     webCache = new WebCache(settingsProvider, analyticsCacheSettings);
-    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    lenient().when(settingsProvider.getCurrentSettings()).thenReturn(settings);
   }
 
   @Test
