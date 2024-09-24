@@ -10,6 +10,7 @@ You'll need the following software to run DHIS2 on your machine:
 
 - Java 17
 - Maven
+- Node.js at least v20 (used to bundle web apps)
 - Tomcat
 
 ## Fork
