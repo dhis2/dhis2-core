@@ -72,16 +72,18 @@ import org.hisp.dhis.common.PasswordGenerator;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
@@ -111,6 +113,8 @@ import org.springframework.web.client.RestTemplate;
 @Lazy
 @Service("org.hisp.dhis.user.UserService")
 public class DefaultUserService implements UserService {
+  private static final long EMAIL_TOKEN_EXPIRY_MILLIS = 3600000;
+
   private final UserStore userStore;
   private final UserGroupService userGroupService;
   private final UserRoleStore userRoleStore;
@@ -345,9 +349,14 @@ public class DefaultUserService implements UserService {
 
     if (!params.hasUser()) {
       // TODO: MAS: Refactor to use userDetails instead of User in params
-      String currentUsername = CurrentUserUtil.getCurrentUsername();
-      User currentUser = getUserByUsername(currentUsername);
-      params.setUser(currentUser);
+      boolean hasCurrentUser = CurrentUserUtil.hasCurrentUser();
+      if (!hasCurrentUser) {
+        params.setUser(null);
+      } else {
+        String currentUsername = CurrentUserUtil.getCurrentUsername();
+        User currentUser = getUserByUsername(currentUsername);
+        params.setUser(currentUser);
+      }
     }
 
     if (params.hasUser() && params.getUser().isSuper()) {
@@ -432,10 +441,6 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public boolean canAddOrUpdateUser(Collection<String> userGroups, User currentUser) {
-    if (currentUser == null) {
-      return false;
-    }
-
     boolean canAdd = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD);
 
     if (canAdd) {
@@ -655,7 +660,7 @@ public class DefaultUserService implements UserService {
       return true;
     }
 
-    if (user == null || user.getPasswordLastUpdated() == null) {
+    if (user.getPasswordLastUpdated() == null) {
       return true;
     }
 
@@ -670,7 +675,7 @@ public class DefaultUserService implements UserService {
 
     List<ErrorReport> errors = new ArrayList<>();
 
-    if (currentUser == null || user == null || currentUser.isSuper()) {
+    if (user == null || currentUser.isSuper()) {
       return errors;
     }
 
@@ -758,7 +763,7 @@ public class DefaultUserService implements UserService {
 
     List<ErrorReport> errors = new ArrayList<>();
 
-    if (currentUser == null || role == null) {
+    if (role == null) {
       return errors;
     }
 
@@ -846,7 +851,7 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional
   public void privilegedTwoFactorDisable(
-      User currentUser, String userUid, Consumer<ErrorReport> errors) {
+      User currentUser, String userUid, Consumer<ErrorReport> errors) throws ForbiddenException {
     User user = getUser(userUid);
     if (user == null) {
       throw new IllegalArgumentException("User not found");
@@ -854,7 +859,7 @@ public class DefaultUserService implements UserService {
 
     if (currentUser.getUid().equals(user.getUid())
         || !canCurrentUserCanModify(currentUser, user, errors)) {
-      throw new UpdateAccessDeniedException(ErrorCode.E3021.getMessage());
+      throw new ForbiddenException(ErrorCode.E3021.getMessage());
     }
 
     resetTwoFactor(user, UserDetails.fromUser(currentUser));
@@ -1008,31 +1013,27 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional
-  public void validateTwoFactorUpdate(boolean before, boolean after, User userToModify) {
+  public void validateTwoFactorUpdate(boolean before, boolean after, User userToModify)
+      throws ForbiddenException {
     if (before == after) {
       return;
     }
 
     if (!before) {
-      throw new UpdateAccessDeniedException(
-          "You can not enable 2FA with this API endpoint, only disable.");
+      throw new ForbiddenException("You can not enable 2FA with this API endpoint, only disable.");
     }
 
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
-    if (currentUserDetails == null) {
-      throw new UpdateAccessDeniedException("No current user in session, can not update user.");
-    }
-
     // Current user can not update their own 2FA settings, must use
     // /2fa/enable or disable API, even if they are admin.
     if (currentUserDetails.getUid().equals(userToModify.getUid())) {
-      throw new UpdateAccessDeniedException(ErrorCode.E3030.getMessage());
+      throw new ForbiddenException(ErrorCode.E3030.getMessage());
     }
 
     // If current user has access to manage this user, they can disable 2FA.
     if (!aclService.canUpdate(currentUserDetails, userToModify)) {
-      throw new UpdateAccessDeniedException(
+      throw new ForbiddenException(
           String.format(
               "User `%s` is not allowed to update object `%s`.",
               currentUserDetails.getUsername(), userToModify));
@@ -1042,8 +1043,7 @@ public class DefaultUserService implements UserService {
 
     if (!canAddOrUpdateUser(getUids(userToModify.getGroups()), currentUser)
         || !currentUserDetails.canModifyUser(userToModify)) {
-      throw new UpdateAccessDeniedException(
-          "You don't have the proper permissions to update this user.");
+      throw new ForbiddenException("You don't have the proper permissions to update this user.");
     }
   }
 
@@ -1516,5 +1516,88 @@ public class DefaultUserService implements UserService {
   public boolean canDataRead(IdentifiableObject identifiableObject) {
     return !aclService.isSupported(identifiableObject)
         || aclService.canDataRead(CurrentUserUtil.getCurrentUserDetails(), identifiableObject);
+  }
+
+  @Override
+  @Transactional
+  public String generateAndSetNewEmailVerificationToken(User user) {
+    String token = CodeGenerator.getRandomSecureToken();
+    String encodedToken = token + "|" + (System.currentTimeMillis() + EMAIL_TOKEN_EXPIRY_MILLIS);
+    user.setEmailVerificationToken(encodedToken);
+    updateUser(user);
+    return token;
+  }
+
+  @Override
+  public boolean sendEmailVerificationToken(User user, String token, String requestUrl) {
+    String applicationTitle = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
+    if (applicationTitle == null || applicationTitle.isEmpty()) {
+      applicationTitle = DEFAULT_APPLICATION_TITLE;
+    }
+
+    Map<String, Object> vars = new HashMap<>();
+    vars.put("applicationTitle", applicationTitle);
+    vars.put("requestUrl", requestUrl + "/api/account/verifyEmail");
+    vars.put("token", token);
+    vars.put("username", user.getUsername());
+    vars.put("email", user.getEmail());
+    I18n i18n =
+        i18nManager.getI18n(
+            ObjectUtils.firstNonNull(
+                (Locale)
+                    userSettingService.getUserSetting(UserSettingKey.UI_LOCALE, user.getUsername()),
+                LocaleManager.DEFAULT_LOCALE));
+    vars.put("i18n", i18n);
+
+    VelocityManager vm = new VelocityManager();
+    String messageBody = vm.render(vars, "verify_email_body_template_" + "v1");
+    String messageSubject = i18n.getString("verify_email_subject");
+
+    OutboundMessageResponse status =
+        emailMessageSender.sendMessage(messageSubject, messageBody, null, null, Set.of(user), true);
+
+    return status.getResponseObject() == EmailResponse.SENT;
+  }
+
+  @Override
+  @Transactional
+  public boolean verifyEmail(String token) {
+    User user = getUserByVerificationToken(token);
+    if (user == null) {
+      return false;
+    }
+    String[] tokenParts = user.getEmailVerificationToken().split("\\|");
+    if (tokenParts.length != 2) {
+      return false;
+    }
+    if (System.currentTimeMillis() > Long.parseLong(tokenParts[1])) {
+      return false;
+    }
+    // Someone else could have verified the same email with another account in the meantime
+    if (getUserByVerifiedEmail(user.getEmail()) != null) {
+      return false;
+    }
+
+    user.setEmailVerificationToken(null);
+    user.setVerifiedEmail(user.getEmail());
+    updateUser(user);
+    return true;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public User getUserByVerificationToken(String token) {
+    return userStore.getUserByVerificationToken(token);
+  }
+
+  @Override
+  public boolean isEmailVerified(User user) {
+    return user.getEmail().equals(user.getVerifiedEmail());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public User getUserByVerifiedEmail(String email) {
+    return userStore.getUserByVerifiedEmail(email);
   }
 }

@@ -82,10 +82,13 @@ class DataIntegrityUsersWithInvalidUsernameControllerTest
     assertEquals(DETAILS_ID_TYPE, details.getIssuesIdType());
     assertEquals(CHECK_NAME, details.getName());
 
-    // There is already an existing user as part of the test setup, thus 5/6 users have bad
-    // usernames
+    // Note that there is already one user which is part of the test class setup.
     JsonDataIntegritySummary summary = getSummary(CHECK_NAME);
-    assertTrue(almostEqual(83.3, summary.getPercentage().doubleValue(), 0.1));
+    assertTrue(
+        almostEqual(
+            (double) 100 * badUsernames.size() / (userService.getUserCount()),
+            summary.getPercentage().doubleValue(),
+            0.1));
     assertEquals(badUsernames.size(), summary.getCount());
   }
 

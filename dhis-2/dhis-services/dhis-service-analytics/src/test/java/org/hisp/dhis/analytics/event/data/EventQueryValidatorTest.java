@@ -135,7 +135,7 @@ class EventQueryValidatorTest extends TestBase {
             .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
             .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
             .withOrganisationUnits(List.of(ouA))
-            .withTimeField(TimeField.INCIDENT_DATE.name())
+            .withTimeField(TimeField.OCCURRED_DATE.name())
             .build();
 
     eventQueryValidator.validate(params);

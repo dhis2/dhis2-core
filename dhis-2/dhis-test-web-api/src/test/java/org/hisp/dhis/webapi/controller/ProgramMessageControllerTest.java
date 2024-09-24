@@ -41,20 +41,16 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.webapi.controller.message.ProgramMessageController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Tests the {@link org.hisp.dhis.webapi.controller.event.ProgramMessageController} using (mocked)
- * REST requests.
+ * Tests the {@link ProgramMessageController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
 class ProgramMessageControllerTest extends H2ControllerIntegrationTestBase {
-
-  @Autowired private TrackedEntityService trackedEntityService;
 
   private Enrollment enrollmentA;
 

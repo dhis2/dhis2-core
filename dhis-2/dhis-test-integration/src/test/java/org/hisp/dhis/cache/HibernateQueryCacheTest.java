@@ -37,7 +37,7 @@ import javax.persistence.TypedQuery;
 import org.hibernate.FlushMode;
 import org.hibernate.SessionFactory;
 import org.hibernate.jpa.QueryHints;
-import org.hisp.dhis.cache.HibernateQueryCacheTest.DhisConfiguration;
+import org.hisp.dhis.cache.HibernateQueryCacheTest.DhisConfig;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.option.OptionSet;
@@ -53,10 +53,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 
-@ContextConfiguration(classes = {DhisConfiguration.class})
+@ContextConfiguration(classes = {DhisConfig.class})
 class HibernateQueryCacheTest extends PostgresIntegrationTestBase {
 
-  static class DhisConfiguration {
+  static class DhisConfig {
     @Bean
     public DhisConfigurationProvider dhisConfigurationProvider() {
       Properties override = new Properties();

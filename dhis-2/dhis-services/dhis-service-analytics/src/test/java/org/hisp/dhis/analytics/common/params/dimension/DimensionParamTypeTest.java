@@ -42,7 +42,7 @@ class DimensionParamTypeTest {
     CommonRequestParams request =
         new CommonRequestParams()
             .withEventDate(of("IpHINAT79UW.LAST_YEAR"))
-            .withIncidentDate(of("LAST_MONTH"))
+            .withOccurredDate(of("LAST_MONTH"))
             .withEnrollmentDate(of("2021-06-30"))
             .withLastUpdated(of("TODAY"))
             .withScheduledDate(of("YESTERDAY"));
@@ -52,7 +52,7 @@ class DimensionParamTypeTest {
         of(
             "IpHINAT79UW.pe:LAST_YEAR:EVENT_DATE",
             "pe:2021-06-30:ENROLLMENT_DATE",
-            "pe:LAST_MONTH:INCIDENT_DATE",
+            "pe:LAST_MONTH:OCCURRED_DATE",
             "pe:YESTERDAY:SCHEDULED_DATE",
             "pe:TODAY:LAST_UPDATED");
 

@@ -38,16 +38,11 @@ public class DefaultEventProgramEnrollmentService implements EventProgramEnrollm
   private final EventProgramEnrollmentStore eventProgramEnrollmentStore;
 
   @Override
-  // TODO(tracker) The CopyService is currently copying enrollments from tracker programs. We need
-  // to discuss if that's correct. Seems to make more sense to copy enrollments from event programs
-  // only.
   public List<Enrollment> getEnrollments(Program program) {
     return eventProgramEnrollmentStore.get(program);
   }
 
   @Override
-  // TODO(tracker) This method gets enrollments from event and tracker programs. This needs a
-  // discussion, enrollments from tracker programs might not be necessary.
   public List<Enrollment> getEnrollments(Program program, EnrollmentStatus enrollmentStatus) {
     return eventProgramEnrollmentStore.get(program, enrollmentStatus);
   }

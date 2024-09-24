@@ -32,12 +32,14 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfile;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileService;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -72,26 +74,35 @@ public class OrgUnitProfileDeletionHandler extends DeletionHandler {
   }
 
   private void handleDataItem(IdentifiableObject dataItem) {
-    OrgUnitProfile profile = orgUnitProfileService.getOrgUnitProfile();
-
-    if (profile.getDataItems().remove(dataItem.getUid())) {
-      orgUnitProfileService.saveOrgUnitProfile(profile);
+    try {
+      OrgUnitProfile profile = orgUnitProfileService.getOrgUnitProfile();
+      if (profile.getDataItems().remove(dataItem.getUid())) {
+        orgUnitProfileService.saveOrgUnitProfile(profile);
+      }
+    } catch (ForbiddenException e) {
+      throw new AccessDeniedException(e.getMessage());
     }
   }
 
   private void deleteAttribute(Attribute attribute) {
-    OrgUnitProfile profile = orgUnitProfileService.getOrgUnitProfile();
-
-    if (profile.getAttributes().remove(attribute.getUid())) {
-      orgUnitProfileService.saveOrgUnitProfile(profile);
+    try {
+      OrgUnitProfile profile = orgUnitProfileService.getOrgUnitProfile();
+      if (profile.getAttributes().remove(attribute.getUid())) {
+        orgUnitProfileService.saveOrgUnitProfile(profile);
+      }
+    } catch (ForbiddenException e) {
+      throw new AccessDeniedException(e.getMessage());
     }
   }
 
   private void deleteOrganisationUnitGroupSet(OrganisationUnitGroupSet groupSet) {
-    OrgUnitProfile profile = orgUnitProfileService.getOrgUnitProfile();
-
-    if (profile.getGroupSets().remove(groupSet.getUid())) {
-      orgUnitProfileService.saveOrgUnitProfile(profile);
+    try {
+      OrgUnitProfile profile = orgUnitProfileService.getOrgUnitProfile();
+      if (profile.getGroupSets().remove(groupSet.getUid())) {
+        orgUnitProfileService.saveOrgUnitProfile(profile);
+      }
+    } catch (ForbiddenException e) {
+      throw new AccessDeniedException(e.getMessage());
     }
   }
 }

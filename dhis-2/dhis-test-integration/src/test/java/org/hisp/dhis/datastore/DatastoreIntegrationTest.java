@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,7 +60,7 @@ class DatastoreIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private DatastoreService datastore;
 
   @BeforeEach
-  void setUp() throws ConflictException, BadRequestException {
+  void setUp() throws ConflictException, BadRequestException, ForbiddenException {
     datastore.deleteNamespace("pets");
 
     addEntry("dog", toJson(false));
@@ -84,14 +85,14 @@ class DatastoreIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   private DatastoreEntry addEntry(String key, String value)
-      throws ConflictException, BadRequestException {
+      throws ConflictException, BadRequestException, ForbiddenException {
     DatastoreEntry entry = new DatastoreEntry("pets", key, value.replace('\'', '"'), false);
     datastore.addEntry(entry);
     return entry;
   }
 
   private DatastoreEntry addPet(String key, String name, int age, List<String> eats)
-      throws ConflictException, BadRequestException {
+      throws ConflictException, BadRequestException, ForbiddenException {
     return addEntry(
         key,
         toJson(
@@ -278,14 +279,15 @@ class DatastoreIntegrationTest extends PostgresIntegrationTestBase {
         .build();
   }
 
-  private List<DatastoreFields> queryAsList(DatastoreQuery query) throws ConflictException {
+  private List<DatastoreFields> queryAsList(DatastoreQuery query)
+      throws ConflictException, ForbiddenException {
     return datastore.getEntries(query, stream -> stream.collect(toList()));
   }
 
   private void assertEntries(String filter, String... expectedKeys) {
     try {
       assertEntries(List.of(expectedKeys), queryAsList(createQuery(filter)));
-    } catch (ConflictException ex) {
+    } catch (ConflictException | ForbiddenException ex) {
       fail(ex);
     }
   }

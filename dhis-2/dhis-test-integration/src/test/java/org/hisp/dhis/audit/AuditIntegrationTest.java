@@ -56,9 +56,8 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,8 +73,6 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private AuditService auditService;
 
   @Autowired private DataElementService dataElementService;
-
-  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 

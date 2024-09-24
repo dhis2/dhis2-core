@@ -120,11 +120,6 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-hibernate</artifactId>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-jdbc</artifactId>
       <scope>compile</scope>
     </dependency>
@@ -331,7 +326,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
-        <!--                Warning:  Unused declared dependencies found:-->
         <configuration>
           <failOnWarning>true</failOnWarning>
           <ignoredNonTestScopedDependencies>

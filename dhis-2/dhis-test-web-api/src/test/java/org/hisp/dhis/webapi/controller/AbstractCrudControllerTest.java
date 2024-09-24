@@ -45,7 +45,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -59,6 +58,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.web.snippets.SomeUserId;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonAttributeValue;
 import org.hisp.dhis.test.webapi.json.domain.JsonError;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonGeoMap;
@@ -119,6 +119,39 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
             "[{'op': 'add', 'path': '/surname', 'value': 'Peter'}]"));
     assertEquals(
         "Peter", GET("/users/{id}", "M5zQapPyTZI").content().as(JsonUser.class).getSurname());
+  }
+
+  @Test
+  @DisplayName("Should not return error when adding an item to collection using PATCH api")
+  void testPatchCollectionItem() {
+    String catOption1 =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/categoryOptions/", "{'name':'CategoryOption1', 'shortName':'CATOPT1'}"));
+
+    String cat =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories/",
+                "{'name':'Category', 'shortName':'CAT','dataDimensionType':'DISAGGREGATION','categoryOptions':[{'id':'"
+                    + catOption1
+                    + "'}]}"));
+
+    String catOption2 =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/categoryOptions/", "{'name':'CategoryOption2', 'shortName':'CATOPT2'}"));
+
+    PATCH(
+            "/categories/" + cat,
+            "[{'op': 'add', 'path': '/categoryOptions/-', 'value': { 'id': '"
+                + catOption2
+                + "' } }]")
+        .content(HttpStatus.OK);
+
+    JsonObject category = GET("/categories/{id}", cat).content();
+    assertEquals(2, category.getArray("categoryOptions").size());
   }
 
   @Test
@@ -1004,15 +1037,15 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     attribute.setDataElementAttribute(true);
     manager.save(attribute);
     DataElement dataElement = createDataElement('A');
-    dataElement.getAttributeValues().add(new AttributeValue("value", attribute));
+    dataElement.addAttributeValue(attribute.getUid(), "value");
     manager.save(dataElement);
 
     JsonList<JsonIdentifiableObject> response =
         GET("/dataElements?fields=id,name,attributeValues", dataElement.getUid())
             .content()
             .getList("dataElements", JsonIdentifiableObject.class);
-    assertEquals(
-        attribute.getUid(), response.get(0).getAttributeValues().get(0).getAttribute().getId());
+    JsonAttributeValue attributeValue0 = response.get(0).getAttributeValues().get(0);
+    assertEquals(attribute.getUid(), attributeValue0.getAttribute().getId());
 
     response =
         GET(
@@ -1020,10 +1053,9 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                 dataElement.getUid())
             .content()
             .getList("dataElements", JsonIdentifiableObject.class);
-    assertEquals(
-        attribute.getUid(), response.get(0).getAttributeValues().get(0).getAttribute().getId());
-    assertEquals(
-        attribute.getName(), response.get(0).getAttributeValues().get(0).getAttribute().getName());
+    attributeValue0 = response.get(0).getAttributeValues().get(0);
+    assertEquals(attribute.getUid(), attributeValue0.getAttribute().getId());
+    assertEquals("AttributeA", attributeValue0.getAttribute().getName());
   }
 
   @Test

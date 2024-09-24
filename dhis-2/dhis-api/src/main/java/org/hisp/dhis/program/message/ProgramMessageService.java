@@ -27,37 +27,15 @@
  */
 package org.hisp.dhis.program.message;
 
-import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 public interface ProgramMessageService {
-  ProgramMessageQueryParams getFromUrl(
-      Set<String> ou,
-      String enrollmentUid,
-      String eventUid,
-      ProgramMessageStatus messageStatus,
-      Integer page,
-      Integer pageSize,
-      Date afterDate,
-      Date beforeDate);
-
-  /**
-   * To check if {@link ProgramMessage message} exists against the given uid.
-   *
-   * @param uid the uid of ProgramMessage.
-   */
-  boolean exists(String uid);
-
-  void currentUserHasAccess(ProgramMessageQueryParams params);
-
-  void validateQueryParameters(ProgramMessageQueryParams params);
-
   /**
    * To validate {@link ProgramMessage message} payload in order to make sure prerequisite values
    * exist before message can be processed.
@@ -78,8 +56,6 @@ public interface ProgramMessageService {
    */
   BatchResponseStatus sendMessages(List<ProgramMessage> programMessages);
 
-  void sendMessagesAsync(List<ProgramMessage> programMessages);
-
   // -------------------------------------------------------------------------
   // GET
   // -------------------------------------------------------------------------
@@ -90,7 +66,8 @@ public interface ProgramMessageService {
 
   List<ProgramMessage> getAllProgramMessages();
 
-  List<ProgramMessage> getProgramMessages(ProgramMessageQueryParams params);
+  List<ProgramMessage> getProgramMessages(ProgramMessageOperationParams params)
+      throws NotFoundException;
 
   // -------------------------------------------------------------------------
   // Save OR Update

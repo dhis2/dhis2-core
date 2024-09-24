@@ -56,6 +56,7 @@ import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.PasswordManager;
@@ -631,7 +632,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDisableTwoFaWithAdminUser() {
+  void testDisableTwoFaWithAdminUser() throws ForbiddenException {
     User userToModify = createAndAddUser("A");
     userService.generateTwoFactorOtpSecretForApproval(userToModify);
     userService.updateUser(userToModify);
@@ -642,7 +643,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDisableTwoFaWithManageUser() {
+  void testDisableTwoFaWithManageUser() throws ForbiddenException {
     User userToModify = createAndAddUser("A");
     userService.generateTwoFactorOtpSecretForApproval(userToModify);
 

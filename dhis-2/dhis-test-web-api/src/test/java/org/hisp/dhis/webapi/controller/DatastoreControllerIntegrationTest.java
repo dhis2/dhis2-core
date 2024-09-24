@@ -40,6 +40,7 @@ import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
 import org.hisp.dhis.datastore.DatastoreService;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
@@ -89,7 +90,9 @@ class DatastoreControllerIntegrationTest extends PostgresControllerIntegrationTe
   void testUpdateKeyJsonValue_App() throws IOException {
     assertEquals(
         AppStatus.OK,
-        appManager.installApp(new ClassPathResource("app/test-app.zip").getFile(), "test-app.zip"));
+        appManager
+            .installApp(new ClassPathResource("app/test-app.zip").getFile(), "test-app.zip")
+            .getAppState());
     // by default we are an app manager
     switchToNewUser("app-admin", Authorities.M_DHIS_WEB_APP_MANAGEMENT.toString());
 
@@ -145,7 +148,7 @@ class DatastoreControllerIntegrationTest extends PostgresControllerIntegrationTe
   }
 
   @Test
-  void testUpdateKeyJsonValue_ProtectedNamespaceWithSharing() {
+  void testUpdateKeyJsonValue_ProtectedNamespaceWithSharing() throws ForbiddenException {
     switchToAdminUser();
 
     setUpNamespaceProtectionWithSharing(

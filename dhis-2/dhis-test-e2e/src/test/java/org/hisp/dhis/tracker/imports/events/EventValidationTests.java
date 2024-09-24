@@ -123,7 +123,7 @@ public class EventValidationTests extends TrackerApiTest {
     response.validateErrorReport().body("errorCode", hasItem("E1082"));
   }
 
-  @CsvSource({"ACTIVE,,OccurredAt date is missing.", "SCHEDULE,,ScheduledAt date is missing."})
+  @CsvSource({"ACTIVE,,occurredAt date is missing.", "SCHEDULE,,ScheduledAt date is missing."})
   @ParameterizedTest
   public void shouldValidateEventProperties(String status, String occurredAt, String error) {
     JsonObject object =

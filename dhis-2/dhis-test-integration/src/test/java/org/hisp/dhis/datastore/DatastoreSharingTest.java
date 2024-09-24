@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -76,7 +77,7 @@ class DatastoreSharingTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetNamespaceKeys_DefaultPublicAccess()
-      throws ConflictException, BadRequestException, JsonProcessingException {
+      throws ConflictException, BadRequestException, JsonProcessingException, ForbiddenException {
     // given
     // 2 existing namespace entries with default public sharing access 'rw------'
     User basicUser = createAndAddUser(false, "basicUser", null);
@@ -105,7 +106,8 @@ class DatastoreSharingTest extends PostgresIntegrationTestBase {
 
   @Test
   @DisplayName("basic user update with default public access")
-  void updateWithDefaultPublicAccess() throws ConflictException, BadRequestException {
+  void updateWithDefaultPublicAccess()
+      throws ConflictException, BadRequestException, ForbiddenException {
     // given an existing entry
     Dog entry = new Dog("1", "Zeus", "Brown");
     addEntry(entry.getId(), entry);
@@ -124,7 +126,7 @@ class DatastoreSharingTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetNamespaceKeys_NoPublicAccess_SuperUser()
-      throws ConflictException, BadRequestException, JsonProcessingException {
+      throws ConflictException, BadRequestException, JsonProcessingException, ForbiddenException {
     // given
     // 2 existing namespace entries with no sharing public access
     User superuser = createAndAddUser(true, "superUser1", null);
@@ -155,7 +157,7 @@ class DatastoreSharingTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetNamespaceKeys_NoPublicAccess_FullUserAccess()
-      throws ConflictException, BadRequestException, JsonProcessingException {
+      throws ConflictException, BadRequestException, JsonProcessingException, ForbiddenException {
     // given
     // 2 existing namespace entries with sharing set to userWithFullAccess & no public access
     User basicUser = createAndAddUser(false, "basicUser", null);
@@ -192,7 +194,7 @@ class DatastoreSharingTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName("user update with no default public access and user has user sharing access")
   void updateWithNoDefaultPublicAccessUserHasAccess()
-      throws ConflictException, BadRequestException, JsonProcessingException {
+      throws ConflictException, BadRequestException, JsonProcessingException, ForbiddenException {
     // given an existing entry with no public access and user has sharing access
     User userWithFullAccess = createAndAddUser(false, "userWithFullAccess", null);
     String arsenal = jsonMapper.writeValueAsString(club("arsenal"));
@@ -213,7 +215,7 @@ class DatastoreSharingTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName("user update with no default public access and user has group sharing access")
   void updateWithNoDefaultPublicAccessUserHasGroupAccess()
-      throws ConflictException, BadRequestException, JsonProcessingException {
+      throws ConflictException, BadRequestException, JsonProcessingException, ForbiddenException {
     // given an existing entry with no public access and user has group sharing access
     User userWithUserGroupAccess = createAndAddUser(false, "userWithUserGroupAccess", null);
     UserGroup userGroup = createUserGroup('a', Set.of(userWithUserGroupAccess));
@@ -240,7 +242,7 @@ class DatastoreSharingTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName("user update with no default public access and user has no user sharing access")
   void updateWithNoDefaultPublicAccessUserHasNoAccess()
-      throws ConflictException, BadRequestException, JsonProcessingException {
+      throws ConflictException, BadRequestException, JsonProcessingException, ForbiddenException {
     // given an existing entry with no public access and user has sharing access
     User userWithNoAccess = createAndAddUser(false, "userWithNoAccess", null);
     String arsenal = jsonMapper.writeValueAsString(club("arsenal"));
@@ -259,7 +261,7 @@ class DatastoreSharingTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetNamespaceKeys_NoPublicAccess_NoUserAccess()
-      throws ConflictException, BadRequestException, JsonProcessingException {
+      throws ConflictException, BadRequestException, JsonProcessingException, ForbiddenException {
     // given
     // 2 existing namespace entries with sharing set to basicUser only & no public access
     User basicUser = createAndAddUser(false, "basicUser", null);
@@ -294,7 +296,7 @@ class DatastoreSharingTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetNamespaceKeys_NoPublicAccess_UserAccessOnOneEntryOnly()
-      throws ConflictException, BadRequestException, JsonProcessingException {
+      throws ConflictException, BadRequestException, JsonProcessingException, ForbiddenException {
     // given
     // 2 existing namespace entries with sharing set to nonSuperUser2 on 1 entry only
     User basicUser = createAndAddUser(false, "basicUser", null);
@@ -328,7 +330,7 @@ class DatastoreSharingTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetNamespaceKeys_NoPublicAccess_FullUserGroupAccess()
-      throws ConflictException, BadRequestException, JsonProcessingException {
+      throws ConflictException, BadRequestException, JsonProcessingException, ForbiddenException {
     UserDetails currentUserDetails1 = CurrentUserUtil.getCurrentUserDetails();
 
     // given
@@ -371,7 +373,7 @@ class DatastoreSharingTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetNamespaceKeys_NoPublicAccess_NoUserGroupAccess()
-      throws ConflictException, BadRequestException, JsonProcessingException {
+      throws ConflictException, BadRequestException, JsonProcessingException, ForbiddenException {
     // given
     // 2 existing namespace entries with sharing set to a specific user group only & no public
     // access
@@ -413,7 +415,7 @@ class DatastoreSharingTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetNamespaceKeys_NoPublicAccess_UserGroupAccessOnOneEntryOnly()
-      throws ConflictException, BadRequestException, JsonProcessingException {
+      throws ConflictException, BadRequestException, JsonProcessingException, ForbiddenException {
     UserDetails currentUserDetails1 = CurrentUserUtil.getCurrentUserDetails();
     // given
     // 2 existing namespace entries with sharing set to userWithSomeAccess on 1 entry only
@@ -452,7 +454,7 @@ class DatastoreSharingTest extends PostgresIntegrationTestBase {
   }
 
   private <T> DatastoreEntry addEntry(String key, T object)
-      throws ConflictException, BadRequestException {
+      throws ConflictException, BadRequestException, ForbiddenException {
     DatastoreEntry entry = new DatastoreEntry(NAMESPACE, key, mapValueToJson(object), false);
     datastoreService.addEntry(entry);
     return entry;

@@ -36,8 +36,15 @@ import java.util.List;
  */
 public interface EventProgramEnrollmentService {
 
-  /** Returns a list of enrollments in the given program. */
+  /**
+   * Returns the list of enrollments in the given program, only if the program is of type {@link
+   * ProgramType#WITHOUT_REGISTRATION}
+   */
   List<Enrollment> getEnrollments(Program program);
 
+  /**
+   * Returns the list of enrollments in the given program and status, only if the program is of type
+   * {@link ProgramType#WITHOUT_REGISTRATION}
+   */
   List<Enrollment> getEnrollments(Program program, EnrollmentStatus enrollmentStatus);
 }

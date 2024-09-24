@@ -41,13 +41,13 @@ import java.util.Map;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
@@ -104,7 +104,7 @@ class OrgUnitProfileServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testSave() {
+  void testSave() throws ForbiddenException {
     OrgUnitProfile orgUnitProfile =
         createOrgUnitProfile(
             Lists.newArrayList("Attribute1", "Attribute2"),
@@ -122,7 +122,7 @@ class OrgUnitProfileServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testUpdateOrgUnitProfile() {
+  void testUpdateOrgUnitProfile() throws ForbiddenException {
     OrgUnitProfile orgUnitProfile =
         createOrgUnitProfile(
             Lists.newArrayList("Attribute1", "Attribute2"),
@@ -145,13 +145,13 @@ class OrgUnitProfileServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetProfileDataWithoutOrgUnitProfile() {
+  void testGetProfileDataWithoutOrgUnitProfile() throws ForbiddenException {
     Attribute attribute = createAttribute('A');
     attribute.setOrganisationUnitAttribute(true);
     manager.save(attribute);
 
     OrganisationUnit orgUnit = createOrganisationUnit("A");
-    orgUnit.getAttributeValues().add(new AttributeValue("testAttributeValue", attribute));
+    orgUnit.addAttributeValue(attribute.getUid(), "testAttributeValue");
     manager.save(orgUnit);
 
     OrganisationUnitGroup group = createOrganisationUnitGroup('A');
@@ -185,13 +185,13 @@ class OrgUnitProfileServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetProfileDataWithOrgUnitProfile() {
+  void testGetProfileDataWithOrgUnitProfile() throws ForbiddenException {
     Attribute attribute = createAttribute('A');
     attribute.setOrganisationUnitAttribute(true);
     manager.save(attribute);
 
     OrganisationUnit orgUnit = createOrganisationUnit("A");
-    orgUnit.getAttributeValues().add(new AttributeValue("testAttributeValue", attribute));
+    orgUnit.addAttributeValue(attribute.getUid(), "testAttributeValue");
     manager.save(orgUnit);
 
     OrganisationUnitGroup group = createOrganisationUnitGroup('A');
@@ -234,7 +234,7 @@ class OrgUnitProfileServiceTest extends PostgresIntegrationTestBase {
     attribute.setOrganisationUnitAttribute(true);
 
     OrganisationUnit orgUnit = createOrganisationUnit("A");
-    orgUnit.getAttributeValues().add(new AttributeValue("testAttributeValue", attribute));
+    orgUnit.addAttributeValue(attribute.getUid(), "testAttributeValue");
 
     OrganisationUnitGroup group = createOrganisationUnitGroup('A');
     group.addOrganisationUnit(orgUnit);
@@ -276,7 +276,7 @@ class OrgUnitProfileServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDeletionHandling() {
+  void testDeletionHandling() throws ForbiddenException {
     OrganisationUnitGroupSet groupSet = createOrganisationUnitGroupSet('A');
 
     manager.save(groupSet);

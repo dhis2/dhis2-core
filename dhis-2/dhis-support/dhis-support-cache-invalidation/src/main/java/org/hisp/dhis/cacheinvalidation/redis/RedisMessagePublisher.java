@@ -32,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 /**
@@ -40,7 +39,6 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-@Profile({"!test-postgres", "!test", "!test-h2", "!cache-invalidation-test"})
 @Conditional(value = CacheInvalidationEnabledConditionNotTestable.class)
 public class RedisMessagePublisher implements CacheInvalidationMessagePublisher {
   @Autowired
@@ -49,7 +47,7 @@ public class RedisMessagePublisher implements CacheInvalidationMessagePublisher 
 
   @Override
   public void publish(String channel, String message) {
-    redisConnection.async().publish(CacheInvalidationConfiguration.CHANNEL_NAME, message);
+    redisConnection.async().publish(CacheInvalidationConfig.CHANNEL_NAME, message);
     log.debug("Published message: " + message);
   }
 }

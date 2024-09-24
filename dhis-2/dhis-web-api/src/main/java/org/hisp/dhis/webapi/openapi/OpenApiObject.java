@@ -32,6 +32,8 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -52,6 +54,7 @@ import org.intellij.lang.annotations.Language;
  * @author Jan Bernitt
  * @since 2.42
  */
+@OpenApi.Kind("OpenAPI document")
 public interface OpenApiObject extends JsonObject {
 
   @Required
@@ -227,11 +230,20 @@ public interface OpenApiObject extends JsonObject {
     }
 
     default String x_group() {
-      return getString("x-group").string();
+      return getString("x-group").string("misc");
     }
 
     default String x_maturity() {
       return getString("x-maturity").string();
+    }
+
+    default String x_since() {
+      return getString("x-since").string();
+    }
+
+    default List<String> x_auth() {
+      JsonArray auth = getArray("x-auth");
+      return auth.isUndefined() || auth.isEmpty() ? List.of() : auth.stringValues();
     }
 
     default List<String> tags() {
@@ -356,6 +368,10 @@ public interface OpenApiObject extends JsonObject {
       return getBoolean("deprecated").booleanValue(false);
     }
 
+    default String x_since() {
+      return getString("x-since").string();
+    }
+
     default SchemaObject schema() {
       return get("schema", SchemaObject.class).resolve();
     }
@@ -471,6 +487,10 @@ public interface OpenApiObject extends JsonObject {
       String type = $type();
       if (type != null) return type;
       return "other";
+    }
+
+    default String x_since() {
+      return getString("x-since").string();
     }
 
     /*

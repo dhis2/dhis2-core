@@ -70,7 +70,6 @@ import javax.xml.xpath.XPathFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -89,7 +88,6 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
-import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.design.Column;
@@ -185,6 +183,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
 import org.hisp.dhis.test.utils.Dxf2NamespaceResolver;
+import org.hisp.dhis.test.utils.RelationshipUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -193,7 +192,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityFilter;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
-import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -783,10 +781,6 @@ public abstract class TestBase {
     attribute.setAutoFields();
 
     return attribute;
-  }
-
-  public static AttributeValue createAttributeValue(Attribute attribute, String value) {
-    return new AttributeValue(value, attribute);
   }
 
   /**
@@ -1840,13 +1834,16 @@ public abstract class TestBase {
       ProgramMessageRecipients recipients,
       ProgramMessageStatus status,
       Set<DeliveryChannel> channels) {
-    return ProgramMessage.builder()
-        .text(text)
-        .subject(subject)
-        .recipients(recipients)
-        .messageStatus(status)
-        .deliveryChannels(channels)
-        .build();
+
+    ProgramMessage pm = new ProgramMessage();
+    pm.setAutoFields();
+    pm.setText(text);
+    pm.setSubject(subject);
+    pm.setRecipients(recipients);
+    pm.setMessageStatus(status);
+    pm.setDeliveryChannels(channels);
+
+    return pm;
   }
 
   public static ProgramIndicator createProgramIndicator(
@@ -2659,21 +2656,6 @@ public abstract class TestBase {
     }
 
     user = userService.getUser(user.getUid());
-
-    CurrentUserGroupInfo currentUserGroupInfo = userService.getCurrentUserGroupInfo(user.getUid());
-    if (user.getGroups().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
-      String msg =
-          String.format(
-              "User '%s' getGroups().size() has %d groups, but  getUserGroupUIDs() returns %d groups!",
-              user.getUsername(),
-              user.getGroups().size(),
-              currentUserGroupInfo.getUserGroupUIDs().size());
-
-      log.error(msg);
-
-      throw new RuntimeException(msg);
-    }
-
     UserDetails userDetails = userService.createUserDetails(user);
 
     injectSecurityContext(userDetails);
@@ -2923,6 +2905,12 @@ public abstract class TestBase {
     return user;
   }
 
+  /**
+   * Used by setupAdminUser() in SpringIntegrationTestExtension.class, to set up the base admin user
+   * for all tests.
+   *
+   * @return the admin user
+   */
   protected User preCreateInjectAdminUser() {
     UserRole role = createUserRole("Superuser", "ALL");
     role.setUid("yrB6vc5Ip3r");

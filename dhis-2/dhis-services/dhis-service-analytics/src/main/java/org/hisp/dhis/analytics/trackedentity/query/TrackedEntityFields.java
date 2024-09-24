@@ -37,6 +37,7 @@ import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.ValueType.REFERENCE;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -76,6 +77,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
  */
 @NoArgsConstructor(access = PRIVATE)
 public class TrackedEntityFields {
+
+  private static final Comparator<TrackedEntityAttribute> CASE_INSENSITIVE_UID_COMPARATOR =
+      (o1, o2) -> o1.getUid().compareToIgnoreCase(o2.getUid());
+
   /**
    * Retrieves all TEAs attributes from the given param encapsulating them into a stream of {@link
    * Field}.
@@ -89,13 +94,9 @@ public class TrackedEntityFields {
     CommonParsedParams parsedParams = contextParams.getCommonParsed();
 
     return Stream.concat(
-            parsedParams.getPrograms().stream()
-                .map(Program::getProgramAttributes)
-                .flatMap(List::stream)
-                .map(ProgramTrackedEntityAttribute::getAttribute)
-                .map(TrackedEntityAttribute::getUid),
-            trackedEntityQueryParams.getTrackedEntityType().getTrackedEntityAttributes().stream()
-                .map(TrackedEntityAttribute::getUid))
+            getProgramAttributes(parsedParams.getPrograms()),
+            getTrackedEntityAttributes(trackedEntityQueryParams.getTrackedEntityType()))
+        .map(TrackedEntityAttribute::getUid)
         .distinct()
         .map(attr -> Field.of(TRACKED_ENTITY_ALIAS, () -> attr, attr));
   }
@@ -111,7 +112,8 @@ public class TrackedEntityFields {
     return programs.stream()
         .map(Program::getProgramAttributes)
         .flatMap(List::stream)
-        .map(ProgramTrackedEntityAttribute::getAttribute);
+        .map(ProgramTrackedEntityAttribute::getAttribute)
+        .sorted(CASE_INSENSITIVE_UID_COMPARATOR);
   }
 
   /**
@@ -123,7 +125,8 @@ public class TrackedEntityFields {
   public static Stream<TrackedEntityAttribute> getTrackedEntityAttributes(
       TrackedEntityType trackedEntityType) {
     if (trackedEntityType != null) {
-      return trackedEntityType.getTrackedEntityAttributes().stream();
+      return trackedEntityType.getTrackedEntityAttributes().stream()
+          .sorted(CASE_INSENSITIVE_UID_COMPARATOR);
     }
 
     return Stream.empty();

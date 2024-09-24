@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.sms.listener;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -88,7 +86,7 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
 
   protected final DataElementService dataElementService;
 
-  protected final IdentifiableObjectManager identifiableObjectManager;
+  protected final IdentifiableObjectManager manager;
 
   public CompressionSMSListener(
       IncomingSmsService incomingSmsService,
@@ -100,7 +98,7 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
       DataElementService dataElementService,
-      IdentifiableObjectManager identifiableObjectManager) {
+      IdentifiableObjectManager manager) {
     super(incomingSmsService, smsSender);
     this.userService = userService;
     this.trackedEntityTypeService = trackedEntityTypeService;
@@ -109,7 +107,7 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
     this.organisationUnitService = organisationUnitService;
     this.categoryService = categoryService;
     this.dataElementService = dataElementService;
-    this.identifiableObjectManager = identifiableObjectManager;
+    this.manager = manager;
   }
 
   @Override
@@ -146,10 +144,6 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
       sendSMSResponse(SmsResponse.READ_ERROR, sms, header.getSubmissionId());
       return;
     }
-
-    // TODO: Can be removed - debugging line to check Sms submissions
-    Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    log.info(String.format("New received Sms submission decoded as: %s", gson.toJson(subm)));
 
     SmsResponse resp;
     try {
@@ -205,7 +199,7 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
 
   private List<SmsMetadata.Id> getTypeUidsBefore(
       Class<? extends IdentifiableObject> klass, Date lastSyncDate) {
-    return identifiableObjectManager.getUidsCreatedBefore(klass, lastSyncDate).stream()
+    return manager.getUidsCreatedBefore(klass, lastSyncDate).stream()
         .map(Id::new)
         .collect(Collectors.toList());
   }

@@ -119,6 +119,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected static final String PREFIX_ORGUNITNAMELEVEL = "namelevel";
 
+  public static final String OU_NAME_HIERARCHY_COLUMN_NAME = "ounamehierarchy";
+
   protected final IdentifiableObjectManager idObjectManager;
 
   protected final OrganisationUnitService organisationUnitService;
@@ -548,7 +550,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                 .collect(Collectors.joining(","))
             + ") as ounamehierarchy";
     return AnalyticsTableColumn.builder()
-        .name("ounamehierarchy")
+        .name(OU_NAME_HIERARCHY_COLUMN_NAME)
         .dataType(TEXT)
         .collation(Collation.C)
         .selectExpression(columnExpression)

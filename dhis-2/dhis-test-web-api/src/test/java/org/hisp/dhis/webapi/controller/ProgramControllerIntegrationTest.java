@@ -89,7 +89,7 @@ class ProgramControllerIntegrationTest extends PostgresControllerIntegrationTest
   }
 
   @Test
-  void testCopyProgramEnrollments() {
+  void shouldNotCopyTrackerProgramEnrollmentsWhenCopyingProgram() {
     OrganisationUnit orgUnit = orgUnitService.getOrganisationUnit(ORG_UNIT_UID);
     User user = createAndAddUser(true, "user", Set.of(orgUnit), Set.of(orgUnit));
     injectSecurityContextUser(user);
@@ -109,24 +109,24 @@ class ProgramControllerIntegrationTest extends PostgresControllerIntegrationTest
     POST(
             "/tracker?async=false",
             """
-{
-  "trackedEntities": [
-    {
-      "trackedEntityType": "TEType10000",
-      "orgUnit": "%s",
-      "enrollments": [
-        {
-          "program": "PrZMWi7rBga",
-          "orgUnit": "%s",
-          "status": "ACTIVE",
-          "enrolledAt": "2023-06-16",
-          "occurredAt': "2023-06-16"
-        }
-      ]
-    }
-  ]
-}
-"""
+              {
+              "trackedEntities": [
+              {
+                "trackedEntityType": "TEType10000",
+                "orgUnit": "%s",
+                "enrollments": [
+                  {
+                    "program": "PrZMWi7rBga",
+                    "orgUnit": "%s",
+                    "status": "ACTIVE",
+                    "enrolledAt": "2023-06-16",
+                    "occurredAt': "2023-06-16"
+                  }
+                ]
+              }
+              ]
+              }
+              """
                 .formatted(ORG_UNIT_UID, ORG_UNIT_UID))
         .content(HttpStatus.OK);
 
@@ -146,7 +146,7 @@ class ProgramControllerIntegrationTest extends PostgresControllerIntegrationTest
             .filter(enrollment -> enrollment.getProgram().equals(PROGRAM_UID))
             .collect(Collectors.toSet());
 
-    assertEquals(2, enrollments.size());
+    assertEquals(1, enrollments.size());
     assertEquals(1, originalProgramEnrollments.size());
   }
 

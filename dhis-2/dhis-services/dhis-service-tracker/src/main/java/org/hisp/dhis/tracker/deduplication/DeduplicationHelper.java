@@ -48,7 +48,6 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
@@ -71,7 +70,6 @@ public class DeduplicationHelper {
   private final EnrollmentService enrollmentService;
 
   private final UserService userService;
-  private final TrackerAccessManager trackerAccessManager;
 
   public String getInvalidReferenceErrors(DeduplicationMergeParams params) {
     TrackedEntity original = params.getOriginal();
@@ -260,11 +258,10 @@ public class DeduplicationHelper {
 
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
-    if (currentUserDetails == null
-        || !(currentUserDetails.getAllAuthorities().contains(ALL.name())
-            || currentUserDetails
-                .getAllAuthorities()
-                .contains(Authorities.F_TRACKED_ENTITY_MERGE.name()))) {
+    if (!(currentUserDetails.getAllAuthorities().contains(ALL.name())
+        || currentUserDetails
+            .getAllAuthorities()
+            .contains(Authorities.F_TRACKED_ENTITY_MERGE.name()))) {
       return "Missing required authority for merging tracked entities.";
     }
 

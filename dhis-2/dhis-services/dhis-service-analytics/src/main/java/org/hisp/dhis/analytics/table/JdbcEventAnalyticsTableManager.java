@@ -31,18 +31,11 @@ import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
-import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
-import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY;
-import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
-import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
-import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
-import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
-import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
@@ -112,196 +105,39 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   protected static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          AnalyticsTableColumn.builder()
-              .name("event")
-              .dataType(CHARACTER_11)
-              .nullable(NOT_NULL)
-              .selectExpression("ev.uid")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("enrollment")
-              .dataType(CHARACTER_11)
-              .nullable(NOT_NULL)
-              .selectExpression("en.uid")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("ps")
-              .dataType(CHARACTER_11)
-              .nullable(NOT_NULL)
-              .selectExpression("ps.uid")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("ao")
-              .dataType(CHARACTER_11)
-              .nullable(NOT_NULL)
-              .selectExpression("ao.uid")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("enrollmentdate")
-              .dataType(TIMESTAMP)
-              .selectExpression("en.enrollmentdate")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("incidentdate")
-              .dataType(TIMESTAMP)
-              .selectExpression("en.occurreddate")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("occurreddate")
-              .dataType(TIMESTAMP)
-              .selectExpression("ev.occurreddate")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("scheduleddate")
-              .dataType(TIMESTAMP)
-              .selectExpression("ev.scheduleddate")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("completeddate")
-              .dataType(TIMESTAMP)
-              .selectExpression("ev.completeddate")
-              .build(),
-          /*
-           * DHIS2-14981: Use the client-side timestamp if available, otherwise
-           * the server-side timestamp. Applies to both created and lastupdated.
-           */
-          AnalyticsTableColumn.builder()
-              .name("created")
-              .dataType(TIMESTAMP)
-              .selectExpression(firstIfNotNullOrElse("ev.createdatclient", "ev.created"))
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("lastupdated")
-              .dataType(TIMESTAMP)
-              .selectExpression(firstIfNotNullOrElse("ev.lastupdatedatclient", "ev.lastupdated"))
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("storedby")
-              .dataType(VARCHAR_255)
-              .selectExpression("ev.storedby")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("createdbyusername")
-              .dataType(VARCHAR_255)
-              .selectExpression("ev.createdbyuserinfo ->> 'username' as createdbyusername")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("createdbyname")
-              .dataType(VARCHAR_255)
-              .selectExpression("ev.createdbyuserinfo ->> 'firstName' as createdbyname")
-              .skipIndex(Skip.SKIP)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("createdbylastname")
-              .dataType(VARCHAR_255)
-              .selectExpression("ev.createdbyuserinfo ->> 'surname' as createdbylastname")
-              .skipIndex(Skip.SKIP)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("createdbydisplayname")
-              .dataType(VARCHAR_255)
-              .selectExpression(getDisplayName("createdbyuserinfo", "ev", "createdbydisplayname"))
-              .skipIndex(Skip.SKIP)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("lastupdatedbyusername")
-              .dataType(VARCHAR_255)
-              .selectExpression("ev.lastupdatedbyuserinfo ->> 'username' as lastupdatedbyusername")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("lastupdatedbyname")
-              .dataType(VARCHAR_255)
-              .selectExpression("ev.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname")
-              .skipIndex(Skip.SKIP)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("lastupdatedbylastname")
-              .dataType(VARCHAR_255)
-              .selectExpression("ev.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname")
-              .skipIndex(Skip.SKIP)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("lastupdatedbydisplayname")
-              .dataType(VARCHAR_255)
-              .selectExpression(
-                  getDisplayName("lastupdatedbyuserinfo", "ev", "lastupdatedbydisplayname"))
-              .skipIndex(Skip.SKIP)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("eventstatus")
-              .dataType(VARCHAR_50)
-              .selectExpression("ev.status")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("enrollmentstatus")
-              .dataType(VARCHAR_50)
-              .selectExpression("en.status")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("evgeometry")
-              .dataType(GEOMETRY)
-              .selectExpression("ev.geometry")
-              .indexType(IndexType.GIST)
-              .build(),
-          // TODO latitude and longitude deprecated in 2.30, remove in 2.33
-          AnalyticsTableColumn.builder()
-              .name("longitude")
-              .dataType(DOUBLE)
-              .selectExpression(
-                  "CASE WHEN 'POINT' = GeometryType(ev.geometry) THEN ST_X(ev.geometry) ELSE null END")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("latitude")
-              .dataType(DOUBLE)
-              .selectExpression(
-                  "CASE WHEN 'POINT' = GeometryType(ev.geometry) THEN ST_Y(ev.geometry) ELSE null END")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("ou")
-              .dataType(CHARACTER_11)
-              .nullable(NOT_NULL)
-              .selectExpression("ou.uid")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("ouname")
-              .dataType(TEXT)
-              .nullable(NOT_NULL)
-              .selectExpression("ou.name")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("oucode")
-              .dataType(TEXT)
-              .selectExpression("ou.code")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("oulevel")
-              .dataType(INTEGER)
-              .selectExpression("ous.level")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("ougeometry")
-              .dataType(GEOMETRY)
-              .selectExpression("ou.geometry")
-              .indexType(IndexType.GIST)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("engeometry")
-              .dataType(GEOMETRY)
-              .selectExpression("en.geometry")
-              .indexType(IndexType.GIST)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("registrationou")
-              .dataType(CHARACTER_11)
-              .nullable(NOT_NULL)
-              .selectExpression("coalesce(registrationou.uid,ou.uid)")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("enrollmentou")
-              .dataType(CHARACTER_11)
-              .nullable(NOT_NULL)
-              .selectExpression("coalesce(enrollmentou.uid,ou.uid)")
-              .build());
+          EventAnalyticsColumn.EVENT,
+          EventAnalyticsColumn.ENROLLMENT,
+          EventAnalyticsColumn.PS,
+          EventAnalyticsColumn.AO,
+          EventAnalyticsColumn.ENROLLMENT_DATE,
+          EventAnalyticsColumn.ENROLLMENT_OCCURRED_DATE,
+          EventAnalyticsColumn.OCCURRED_DATE,
+          EventAnalyticsColumn.SCHEDULED_DATE,
+          EventAnalyticsColumn.COMPLETED_DATE,
+          EventAnalyticsColumn.CREATED,
+          EventAnalyticsColumn.LAST_UPDATED,
+          EventAnalyticsColumn.STOREDBY,
+          EventAnalyticsColumn.CREATED_BY_USERNAME,
+          EventAnalyticsColumn.CREATED_BY_NAME,
+          EventAnalyticsColumn.CREATED_BY_LASTNAME,
+          EventAnalyticsColumn.CREATED_BY_DISPLAYNAME,
+          EventAnalyticsColumn.LAST_UPDATED_BY_USERNAME,
+          EventAnalyticsColumn.LAST_UPDATED_BY_NAME,
+          EventAnalyticsColumn.LAST_UPDATED_BY_LASTNAME,
+          EventAnalyticsColumn.LAST_UPDATED_BY_DISPLAYNAME,
+          EventAnalyticsColumn.EVENT_STATUS,
+          EventAnalyticsColumn.ENROLLMENT_STATUS,
+          EventAnalyticsColumn.EVENT_GEOMETRY,
+          EventAnalyticsColumn.LONGITUDE,
+          EventAnalyticsColumn.LATITUDE,
+          EventAnalyticsColumn.OU,
+          EventAnalyticsColumn.OU_NAME,
+          EventAnalyticsColumn.OU_CODE,
+          EventAnalyticsColumn.OU_LEVEL,
+          EventAnalyticsColumn.OU_GEOMETRY,
+          EventAnalyticsColumn.ENROLLMENT_GEOMETRY,
+          EventAnalyticsColumn.REGISTRATION_OU,
+          EventAnalyticsColumn.ENROLLMENT_OU);
 
   public JdbcEventAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -659,18 +495,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .collect(Collectors.toList()));
 
     if (program.isRegistration()) {
-      columns.add(
-          AnalyticsTableColumn.builder()
-              .name("trackedentity")
-              .dataType(CHARACTER_11)
-              .selectExpression("te.uid")
-              .build());
-      columns.add(
-          AnalyticsTableColumn.builder()
-              .name("tegeometry")
-              .dataType(GEOMETRY)
-              .selectExpression("te.geometry")
-              .build());
+      columns.add(EventAnalyticsColumn.TRACKED_ENTITY);
+      columns.add(EventAnalyticsColumn.TRACKED_ENTITY_GEOMETRY);
     }
 
     return filterDimensionColumns(columns);
@@ -841,18 +667,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .build());
 
     return columns;
-  }
-
-  /**
-   * Returns a SQL expression that returns the first argument if it is not null, otherwise the
-   * second argument.
-   *
-   * @param first the first argument
-   * @param second the second argument
-   * @return a SQL expression
-   */
-  private static String firstIfNotNullOrElse(String first, String second) {
-    return "case when " + first + " is not null then " + first + " else " + second + " end";
   }
 
   private String selectForInsert(DataElement dataElement, String fromType, String dataClause) {

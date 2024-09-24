@@ -54,6 +54,7 @@ import org.hisp.dhis.scheduling.parameters.MockJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
+import org.hisp.dhis.scheduling.parameters.SmsInboundProcessingJobParameters;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.scheduling.parameters.SqlViewUpdateParameters;
 import org.hisp.dhis.scheduling.parameters.TestJobParameters;
@@ -95,6 +96,7 @@ public enum JobType {
   */
   MOCK(MockJobParameters.class),
   SMS_SEND(SmsJobParameters.class),
+  SMS_INBOUND_PROCESSING(SmsInboundProcessingJobParameters.class),
   TRACKER_IMPORT_JOB(),
   TRACKER_IMPORT_NOTIFICATION_JOB(),
   TRACKER_IMPORT_RULE_ENGINE_JOB(),
@@ -238,7 +240,8 @@ public enum JobType {
         || this == ANALYTICS_TABLE
         || this == TRACKER_IMPORT_JOB
         || this == DATA_INTEGRITY
-        || this == DATA_INTEGRITY_DETAILS;
+        || this == DATA_INTEGRITY_DETAILS
+        || this == SMS_INBOUND_PROCESSING;
   }
 
   public boolean hasJobParameters() {

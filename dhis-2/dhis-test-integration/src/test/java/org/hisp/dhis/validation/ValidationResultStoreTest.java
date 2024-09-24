@@ -64,7 +64,6 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
@@ -91,8 +90,6 @@ class ValidationResultStoreTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryService categoryService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
-
-  @Autowired protected UserGroupAccessService userGroupAccessService;
 
   @Autowired protected UserGroupService userGroupService;
 

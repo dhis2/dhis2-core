@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.deduplication;
 
+import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -47,7 +48,6 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
@@ -64,8 +64,6 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
-
-  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private ProgramService programService;
 
@@ -113,13 +111,15 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
             .duplicate(duplicate)
             .build();
     Date lastUpdatedOriginal =
-        trackedEntityService.getTrackedEntity(original.getUid()).getLastUpdated();
+        requireNonNull(manager.get(TrackedEntity.class, original.getUid())).getLastUpdated();
     deduplicationService.autoMerge(deduplicationMergeParams);
     assertEquals(
         deduplicationService.getPotentialDuplicateByUid(potentialDuplicate.getUid()).getStatus(),
         DeduplicationStatus.MERGED);
     assertTrue(
-        trackedEntityService.getTrackedEntity(original.getUid()).getLastUpdated().getTime()
+        requireNonNull(manager.get(TrackedEntity.class, original.getUid()))
+                .getLastUpdated()
+                .getTime()
             > lastUpdatedOriginal.getTime());
   }
 
@@ -170,13 +170,15 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
             .duplicate(duplicate)
             .build();
     Date lastUpdatedOriginal =
-        trackedEntityService.getTrackedEntity(original.getUid()).getLastUpdated();
+        requireNonNull(manager.get(TrackedEntity.class, original.getUid())).getLastUpdated();
     deduplicationService.autoMerge(deduplicationMergeParams);
     assertEquals(
         deduplicationService.getPotentialDuplicateByUid(potentialDuplicate.getUid()).getStatus(),
         DeduplicationStatus.MERGED);
     assertTrue(
-        trackedEntityService.getTrackedEntity(original.getUid()).getLastUpdated().getTime()
+        requireNonNull(manager.get(TrackedEntity.class, original.getUid()))
+                .getLastUpdated()
+                .getTime()
             > lastUpdatedOriginal.getTime());
   }
 

@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import static org.hisp.dhis.changelog.ChangeLogType.READ;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -54,17 +56,16 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityChangeLog;
-import org.hisp.dhis.trackedentity.TrackedEntityChangeLogService;
+import org.hisp.dhis.trackedentity.TrackedEntityAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
+import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
@@ -74,7 +75,6 @@ import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,7 +90,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   private final TrackedEntityTypeService trackedEntityTypeService;
 
-  private final TrackedEntityChangeLogService trackedEntityChangeLogService;
+  private final TrackedEntityAuditService trackedEntityAuditService;
 
   private final TrackerAccessManager trackerAccessManager;
 
@@ -101,8 +101,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private final EnrollmentService enrollmentService;
 
   private final EventService eventService;
-
-  private final AclService aclService;
 
   private final FileResourceService fileResourceService;
 
@@ -211,7 +209,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   @Override
   public TrackedEntity getTrackedEntity(
       String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException, BadRequestException {
+      throws NotFoundException, ForbiddenException {
     Program program = null;
 
     if (StringUtils.isNotEmpty(programIdentifier)) {
@@ -255,7 +253,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       String uid, Program program, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
     TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid);
-    addTrackedEntityAudit(trackedEntity, CurrentUserUtil.getCurrentUsername());
+    trackedEntityAuditService.addTrackedEntityAudit(trackedEntity, getCurrentUsername(), READ);
     if (trackedEntity == null) {
       throw new NotFoundException(TrackedEntity.class, uid);
     }
@@ -288,7 +286,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private TrackedEntity getTrackedEntity(String uid, UserDetails userDetails)
       throws NotFoundException, ForbiddenException {
     TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid);
-    addTrackedEntityAudit(trackedEntity, CurrentUserUtil.getCurrentUsername());
+    trackedEntityAuditService.addTrackedEntityAudit(trackedEntity, getCurrentUsername(), READ);
     if (trackedEntity == null) {
       throw new NotFoundException(TrackedEntity.class, uid);
     }
@@ -446,7 +444,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     RelationshipItem relationshipItem = new RelationshipItem();
 
     TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid);
-    addTrackedEntityAudit(trackedEntity, CurrentUserUtil.getCurrentUsername());
+    trackedEntityAuditService.addTrackedEntityAudit(trackedEntity, getCurrentUsername(), READ);
     if (trackedEntity == null) {
       throw new NotFoundException(TrackedEntity.class, uid);
     }
@@ -479,7 +477,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
         operationParams.getTrackedEntityParams(),
         operationParams.isIncludeDeleted());
 
-    addSearchAudit(trackedEntities, queryParams.getUser());
+    addSearchAudit(trackedEntities);
 
     return trackedEntities;
   }
@@ -503,7 +501,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
         operationParams.getTrackedEntityParams(),
         operationParams.isIncludeDeleted());
 
-    addSearchAudit(trackedEntities, queryParams.getUser());
+    addSearchAudit(trackedEntities);
 
     return ids.withItems(trackedEntities);
   }
@@ -611,37 +609,27 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return to;
   }
 
-  private void addSearchAudit(List<TrackedEntity> trackedEntities, User user) {
+  private void addSearchAudit(List<TrackedEntity> trackedEntities) {
     if (trackedEntities.isEmpty()) {
       return;
     }
-    final String accessedBy =
-        user != null ? user.getUsername() : CurrentUserUtil.getCurrentUsername();
     Map<String, TrackedEntityType> tetMap =
         trackedEntityTypeService.getAllTrackedEntityType().stream()
             .collect(Collectors.toMap(TrackedEntityType::getUid, t -> t));
 
-    List<TrackedEntityChangeLog> auditable =
+    List<TrackedEntityAudit> auditable =
         trackedEntities.stream()
             .filter(Objects::nonNull)
             .filter(te -> te.getTrackedEntityType() != null)
             .filter(te -> tetMap.get(te.getTrackedEntityType().getUid()).isAllowAuditLog())
-            .map(te -> new TrackedEntityChangeLog(te.getUid(), accessedBy, ChangeLogType.SEARCH))
+            .map(
+                te ->
+                    new TrackedEntityAudit(
+                        te.getUid(), CurrentUserUtil.getCurrentUsername(), ChangeLogType.SEARCH))
             .toList();
 
     if (!auditable.isEmpty()) {
-      trackedEntityChangeLogService.addTrackedEntityChangeLog(auditable);
-    }
-  }
-
-  private void addTrackedEntityAudit(TrackedEntity trackedEntity, String username) {
-    if (username != null
-        && trackedEntity != null
-        && trackedEntity.getTrackedEntityType() != null
-        && trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
-      TrackedEntityChangeLog trackedEntityChangeLog =
-          new TrackedEntityChangeLog(trackedEntity.getUid(), username, ChangeLogType.READ);
-      trackedEntityChangeLogService.addTrackedEntityChangeLog(trackedEntityChangeLog);
+      trackedEntityAuditService.addTrackedEntityAudit(auditable);
     }
   }
 

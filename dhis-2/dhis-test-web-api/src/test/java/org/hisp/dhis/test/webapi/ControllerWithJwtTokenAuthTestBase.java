@@ -32,6 +32,7 @@ import javax.sql.DataSource;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.test.config.TestDhisConfigurationProvider;
 import org.hisp.dhis.test.h2.H2SqlFunction;
+import org.hisp.dhis.test.webapi.ControllerWithJwtTokenAuthTestBase.DhisConfig;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,10 +49,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
  */
 @ContextConfiguration(
     inheritLocations = false,
-    classes = {ControllerWithJwtTokenAuthTestBase.DhisConfiguration.class, WebMvcConfig.class})
+    classes = {DhisConfig.class, WebMvcConfig.class})
 public abstract class ControllerWithJwtTokenAuthTestBase extends H2ControllerIntegrationTestBase {
 
-  static class DhisConfiguration {
+  static class DhisConfig {
     @Bean
     public DhisConfigurationProvider dhisConfigurationProvider() {
       return new TestDhisConfigurationProvider("dhisControllerWithJwtTokenAuthTestDhis.conf");

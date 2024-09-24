@@ -40,8 +40,7 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -53,8 +52,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 class PotentialDuplicateStoreTEAVTest extends PostgresIntegrationTestBase {
 
   @Autowired private HibernatePotentialDuplicateStore potentialDuplicateStore;
-
-  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -150,8 +147,8 @@ class PotentialDuplicateStoreTEAVTest extends PostgresIntegrationTestBase {
           // Clear the session so we get new data from the DB for the next
           // queries.
           dbmsManager.clearSession();
-          TrackedEntity _original = trackedEntityService.getTrackedEntity(original.getUid());
-          TrackedEntity _duplicate = trackedEntityService.getTrackedEntity(duplicate.getUid());
+          TrackedEntity _original = manager.get(TrackedEntity.class, original.getUid());
+          TrackedEntity _duplicate = manager.get(TrackedEntity.class, duplicate.getUid());
           assertNotNull(_original);
           assertNotNull(_duplicate);
           assertEquals(3, _original.getTrackedEntityAttributeValues().size());
@@ -166,7 +163,7 @@ class PotentialDuplicateStoreTEAVTest extends PostgresIntegrationTestBase {
                       assertEquals("AttributeA", teav.getValue());
                     }
                   });
-          TrackedEntity _control = trackedEntityService.getTrackedEntity(control.getUid());
+          TrackedEntity _control = manager.get(TrackedEntity.class, control.getUid());
           assertNotNull(_control);
           assertEquals(3, _control.getTrackedEntityAttributeValues().size());
           return null;
@@ -187,8 +184,8 @@ class PotentialDuplicateStoreTEAVTest extends PostgresIntegrationTestBase {
           // Clear the session so we get new data from the DB for the next
           // queries.
           dbmsManager.clearSession();
-          TrackedEntity _original = trackedEntityService.getTrackedEntity(original.getUid());
-          TrackedEntity _duplicate = trackedEntityService.getTrackedEntity(duplicate.getUid());
+          TrackedEntity _original = manager.get(TrackedEntity.class, original.getUid());
+          TrackedEntity _duplicate = manager.get(TrackedEntity.class, duplicate.getUid());
           assertNotNull(_original);
           assertNotNull(_duplicate);
           assertEquals(3, _original.getTrackedEntityAttributeValues().size());
@@ -203,7 +200,7 @@ class PotentialDuplicateStoreTEAVTest extends PostgresIntegrationTestBase {
                       assertEquals("AttributeA", teav.getValue());
                     }
                   });
-          TrackedEntity _control = trackedEntityService.getTrackedEntity(control.getUid());
+          TrackedEntity _control = manager.get(TrackedEntity.class, control.getUid());
           assertNotNull(_control);
           assertEquals(3, _control.getTrackedEntityAttributeValues().size());
           return null;
@@ -224,8 +221,8 @@ class PotentialDuplicateStoreTEAVTest extends PostgresIntegrationTestBase {
           // Clear the session so we get new data from the DB for the next
           // queries.
           dbmsManager.clearSession();
-          TrackedEntity _original = trackedEntityService.getTrackedEntity(original.getUid());
-          TrackedEntity _duplicate = trackedEntityService.getTrackedEntity(duplicate.getUid());
+          TrackedEntity _original = manager.get(TrackedEntity.class, original.getUid());
+          TrackedEntity _duplicate = manager.get(TrackedEntity.class, duplicate.getUid());
           assertNotNull(_original);
           assertNotNull(_duplicate);
           assertEquals(4, _original.getTrackedEntityAttributeValues().size());
@@ -240,7 +237,7 @@ class PotentialDuplicateStoreTEAVTest extends PostgresIntegrationTestBase {
                       assertEquals("AttributeA", teav.getValue());
                     }
                   });
-          TrackedEntity _control = trackedEntityService.getTrackedEntity(control.getUid());
+          TrackedEntity _control = manager.get(TrackedEntity.class, control.getUid());
           assertNotNull(_control);
           assertEquals(3, _control.getTrackedEntityAttributeValues().size());
           return null;

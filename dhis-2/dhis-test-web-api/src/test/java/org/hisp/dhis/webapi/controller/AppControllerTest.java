@@ -44,6 +44,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.config.TestDhisConfigurationProvider;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.webapi.controller.AppControllerTest.DhisConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,11 +59,11 @@ import org.springframework.test.context.ContextConfiguration;
  */
 @ContextConfiguration(
     classes = {
-      AppControllerTest.DhisConfiguration.class,
+      DhisConfig.class,
     })
 class AppControllerTest extends H2ControllerIntegrationTestBase {
 
-  static class DhisConfiguration {
+  static class DhisConfig {
     @Bean
     public DhisConfigurationProvider dhisConfigurationProvider() {
       return new TestDhisConfigurationProvider("appControllerBaseTestDhis.conf");
@@ -96,6 +97,19 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue(response.hasBody());
     String content = response.content("text/html");
     assertTrue(content.contains("<!doctype html>"));
+  }
+
+  @Test
+  void testInstallReturnsAppInfo() throws IOException {
+    var result =
+        appManager.installApp(
+            new ClassPathResource("app/test-app-with-index-html.zip").getFile(),
+            "test-app-with-index-html.zip");
+
+    assertEquals(
+        "31.0.0",
+        result.getVersion(),
+        "the version returned should match the version in the installed zip file");
   }
 
   @Test

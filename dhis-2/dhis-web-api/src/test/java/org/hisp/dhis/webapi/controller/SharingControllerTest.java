@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
+import static org.hisp.dhis.test.TestBase.injectSecurityContext;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
@@ -37,15 +38,17 @@ import static org.mockito.Mockito.when;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.SystemUser;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.security.access.AccessDeniedException;
 
 /**
  * Unit tests for {@link SharingController}.
@@ -63,6 +66,11 @@ class SharingControllerTest {
 
   @InjectMocks private SharingController sharingController;
 
+  @BeforeAll
+  static void setup() {
+    injectSecurityContext(new SystemUser());
+  }
+
   @Test
   void notSystemDefaultMetadataNoAccess() {
     final OrganisationUnit organisationUnit = new OrganisationUnit();
@@ -71,7 +79,7 @@ class SharingControllerTest {
     when(aclService.isClassShareable(eq(OrganisationUnit.class))).thenReturn(true);
     doReturn(organisationUnit).when(manager).getNoAcl(eq(OrganisationUnit.class), eq("kkSjhdhks"));
     assertThrows(
-        AccessDeniedException.class,
+        ForbiddenException.class,
         () -> sharingController.postSharing("organisationUnit", "kkSjhdhks", request));
   }
 
@@ -84,7 +92,7 @@ class SharingControllerTest {
     when(aclService.isClassShareable(eq(Category.class))).thenReturn(true);
     when(manager.getNoAcl(eq(Category.class), eq("kkSjhdhks"))).thenReturn(category);
     assertThrows(
-        AccessDeniedException.class,
+        ForbiddenException.class,
         () -> sharingController.postSharing("category", "kkSjhdhks", request));
   }
 

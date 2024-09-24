@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_ENROLLMENT_GEOMETRY;
+import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_EVENT_GEOMETRY;
+import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_TRACKED_ENTITY_GEOMETRY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -187,7 +190,7 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, params.getOrganisationUnits().size());
     assertEquals(1, params.getItems().size());
     assertEquals(2, params.getFilterPeriods().size());
-    assertEquals(List.of("evgeometry", "ougeometry"), params.getCoordinateFields());
+    assertEquals(List.of("eventgeometry", "ougeometry"), params.getCoordinateFields());
   }
 
   @Test
@@ -251,7 +254,7 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, params.getFilterPeriods().size());
     assertEquals(deA, params.getValue());
     assertEquals(AnalyticsAggregationType.AVERAGE, params.getAggregationType());
-    assertEquals(List.of("evgeometry", "ougeometry"), params.getCoordinateFields());
+    assertEquals(List.of("eventgeometry", "ougeometry"), params.getCoordinateFields());
   }
 
   @Test
@@ -498,16 +501,51 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testGetCoordinateField() {
     assertEquals(
-        List.of("evgeometry"),
+        List.of("eventgeometry"),
         dataQueryService.getCoordinateFields(
             prA.getUid(), EventQueryParams.EVENT_COORDINATE_FIELD, null, false));
     assertEquals(
-        List.of("engeometry"),
+        List.of("enrollmentgeometry"),
         dataQueryService.getCoordinateFields(
             prA.getUid(), EventQueryParams.ENROLLMENT_COORDINATE_FIELD, null, false));
     assertEquals(
-        List.of("evgeometry"),
-        dataQueryService.getCoordinateFields(prA.getUid(), null, "evgeometry", false));
+        List.of("eventgeometry"),
+        dataQueryService.getCoordinateFields(prA.getUid(), null, "eventgeometry", false));
+    assertEquals(
+        List.of(deC.getUid()),
+        dataQueryService.getCoordinateFields(prA.getUid(), deC.getUid(), null, false));
+  }
+
+  @Test
+  void testGetBackwardCompatibleCoordinateField() {
+    final String OLD_COL_NAME_EVENT_GEOMETRY = "psigeometry";
+    final String OLD_COL_NAME_ENROLLMENT_GEOMETRY = "pigeometry";
+    final String OLD_COL_NAME_TRACKED_ENTITY_GEOMETRY = "teigeometry";
+
+    assertEquals(
+        List.of(COL_NAME_EVENT_GEOMETRY),
+        dataQueryService.getCoordinateFields(
+            prA.getUid(), OLD_COL_NAME_EVENT_GEOMETRY, null, false));
+    assertEquals(
+        List.of(COL_NAME_ENROLLMENT_GEOMETRY),
+        dataQueryService.getCoordinateFields(
+            prA.getUid(), OLD_COL_NAME_ENROLLMENT_GEOMETRY, null, false));
+    assertEquals(
+        List.of(COL_NAME_TRACKED_ENTITY_GEOMETRY),
+        dataQueryService.getCoordinateFields(
+            prA.getUid(), OLD_COL_NAME_TRACKED_ENTITY_GEOMETRY, null, false));
+    assertEquals(
+        List.of(COL_NAME_EVENT_GEOMETRY),
+        dataQueryService.getCoordinateFields(
+            prA.getUid(), null, OLD_COL_NAME_EVENT_GEOMETRY, false));
+    assertEquals(
+        List.of(COL_NAME_ENROLLMENT_GEOMETRY),
+        dataQueryService.getCoordinateFields(
+            prA.getUid(), null, OLD_COL_NAME_ENROLLMENT_GEOMETRY, false));
+    assertEquals(
+        List.of(COL_NAME_TRACKED_ENTITY_GEOMETRY),
+        dataQueryService.getCoordinateFields(
+            prA.getUid(), null, OLD_COL_NAME_TRACKED_ENTITY_GEOMETRY, false));
     assertEquals(
         List.of(deC.getUid()),
         dataQueryService.getCoordinateFields(prA.getUid(), deC.getUid(), null, false));

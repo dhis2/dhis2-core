@@ -27,17 +27,15 @@
  */
 package org.hisp.dhis.program;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -50,8 +48,6 @@ import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.message.ProgramMessageStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,12 +58,12 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
+  private static final String MSISDN = "4740332255";
+  private static final String MESSAGE_TEXT = "Hi";
 
   @Autowired private ProgramMessageStore programMessageStore;
 
   @Autowired private OrganisationUnitService orgUnitService;
-
-  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private ProgramService programService;
 
@@ -75,23 +71,18 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private CategoryService categoryService;
-
   private Enrollment enrollmentA;
 
   private final ProgramMessageStatus messageStatus = ProgramMessageStatus.SENT;
 
-  private final Set<DeliveryChannel> channels = new HashSet<>();
+  private final Set<DeliveryChannel> channels = Set.of(DeliveryChannel.SMS);
 
   private ProgramMessageQueryParams params;
 
   private Event eventA;
 
-  private ProgramMessage pmsgA;
-
-  private ProgramMessage pmsgB;
-
-  private ProgramMessage pmsgC;
+  private ProgramMessage programMessageA;
+  private ProgramMessage programMessageB;
 
   private final String notificationTemplate = CodeGenerator.generateUid();
 
@@ -101,183 +92,183 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     OrganisationUnit orgUnitB = createOrganisationUnit('B');
     orgUnitService.addOrganisationUnit(orgUnitA);
     orgUnitService.addOrganisationUnit(orgUnitB);
+
+    // Initialize Program and Program Stage
     Program programA = createProgram('A', new HashSet<>(), orgUnitA);
     programService.addProgram(programA);
+
     ProgramStage stageA = new ProgramStage("StageA", programA);
-    stageA.setSortOrder(1);
     programStageService.saveProgramStage(stageA);
+
     Set<ProgramStage> programStages = new HashSet<>();
     programStages.add(stageA);
     programA.setProgramStages(programStages);
     programService.updateProgram(programA);
+
+    // Initialize Tracked Entities, Enrollment and Event
     TrackedEntity trackedEntityB = createTrackedEntity(orgUnitA);
     manager.save(trackedEntityB);
-    DateTime testDate1 = DateTime.now();
-    testDate1.withTimeAtStartOfDay();
-    testDate1 = testDate1.minusDays(70);
-    Date incidentDate = testDate1.toDate();
-    DateTime testDate2 = DateTime.now();
-    testDate2.withTimeAtStartOfDay();
-    Date enrollmentDate = testDate2.toDate();
-    enrollmentA = new Enrollment(enrollmentDate, incidentDate, trackedEntityB, programA);
-    enrollmentA.setUid("UID-A");
+
+    enrollmentA = new Enrollment(new Date(), new Date(), trackedEntityB, programA);
+    enrollmentA.setUid(CodeGenerator.generateUid());
+
     eventA = createEvent(stageA, enrollmentA, orgUnitA);
-    eventA.setScheduledDate(enrollmentDate);
-    eventA.setUid("UID-A");
-    Set<String> orgUnits = new HashSet<>();
-    orgUnits.add(orgUnitA.getUid());
+    eventA.setScheduledDate(new Date());
+    eventA.setUid(CodeGenerator.generateUid());
+
     TrackedEntity trackedEntityA = createTrackedEntity(orgUnitA);
     manager.save(trackedEntityA);
-    ProgramMessageRecipients recipientsA = new ProgramMessageRecipients();
-    recipientsA.setOrganisationUnit(orgUnitA);
-    recipientsA.setTrackedEntity(trackedEntityA);
-    ProgramMessageRecipients recipientsB = new ProgramMessageRecipients();
-    recipientsB.setOrganisationUnit(orgUnitA);
-    recipientsB.setTrackedEntity(trackedEntityA);
-    ProgramMessageRecipients recipientsC = new ProgramMessageRecipients();
-    recipientsC.setOrganisationUnit(orgUnitA);
-    recipientsC.setTrackedEntity(trackedEntityA);
-    Set<String> phoneNumberListA = new HashSet<>();
-    String msisdn = "4740332255";
-    phoneNumberListA.add(msisdn);
-    recipientsA.setPhoneNumbers(phoneNumberListA);
-    Set<String> phoneNumberListB = new HashSet<>();
-    phoneNumberListB.add(msisdn);
-    recipientsB.setPhoneNumbers(phoneNumberListB);
-    Set<String> phoneNumberListC = new HashSet<>();
-    phoneNumberListC.add(msisdn);
-    recipientsC.setPhoneNumbers(phoneNumberListC);
-    channels.add(DeliveryChannel.SMS);
-    String text = "Hi";
-    pmsgA =
-        ProgramMessage.builder()
-            .subject(text)
-            .text(text)
-            .recipients(recipientsA)
-            .messageStatus(messageStatus)
-            .deliveryChannels(channels)
-            .notificationTemplate(notificationTemplate)
-            .build();
-    pmsgB =
-        ProgramMessage.builder()
-            .subject(text)
-            .text(text)
-            .recipients(recipientsB)
-            .messageStatus(messageStatus)
-            .deliveryChannels(channels)
-            .notificationTemplate(notificationTemplate)
-            .build();
-    pmsgC =
-        ProgramMessage.builder()
-            .subject(text)
-            .text(text)
-            .recipients(recipientsC)
-            .messageStatus(messageStatus)
-            .deliveryChannels(channels)
-            .notificationTemplate(notificationTemplate)
-            .build();
-    String uidA = CodeGenerator.generateCode(10);
-    String uidB = CodeGenerator.generateCode(10);
-    String uidC = CodeGenerator.generateCode(10);
-    pmsgA.setUid(uidA);
-    pmsgB.setUid(uidB);
-    pmsgC.setUid(uidC);
-    params = new ProgramMessageQueryParams();
-    params.setOrganisationUnit(orgUnits);
+
+    ProgramMessageRecipients recipientsA = createRecipients(orgUnitA, trackedEntityA);
+    ProgramMessageRecipients recipientsB = createRecipients(orgUnitA, trackedEntityA);
+
+    programMessageA = createProgramMessage(MESSAGE_TEXT, recipientsA);
+    programMessageB = createProgramMessage(MESSAGE_TEXT, recipientsB);
+
+    params = ProgramMessageQueryParams.builder().build();
   }
 
   @Test
-  void testGetProgramMessage() {
-    programMessageStore.save(pmsgA);
-    Long id = pmsgA.getId();
-    ProgramMessage actual = programMessageStore.get(id.intValue());
-    assertNotNull(id);
-    assertNotNull(actual);
-    assertEquals(actual, pmsgA);
+  void shouldReturnProgramMessageById() {
+    programMessageStore.save(programMessageA);
+
+    ProgramMessage retrievedProgramMessage = programMessageStore.get(programMessageA.getId());
+
+    assertNotNull(retrievedProgramMessage, "The retrieved program message should not be null");
+    assertEquals(
+        programMessageA,
+        retrievedProgramMessage,
+        "The retrieved program message should match the saved program message");
   }
 
   @Test
-  void testGetProgramMessages() {
-    programMessageStore.save(pmsgA);
-    programMessageStore.save(pmsgB);
-    programMessageStore.save(pmsgC);
-    assertTrue(equals(programMessageStore.getAll(), pmsgA, pmsgB, pmsgC));
+  void shouldGetProgramMessages() {
+    programMessageStore.save(programMessageA);
+    programMessageStore.save(programMessageB);
+
+    assertContainsOnly(List.of(programMessageA, programMessageB), programMessageStore.getAll());
   }
 
   @Test
-  void testDeleteProgramMessage() {
-    programMessageStore.save(pmsgA);
-    long pmsgAId = pmsgA.getId();
-    programMessageStore.delete(pmsgA);
-    assertNull(programMessageStore.get(pmsgAId));
-  }
+  void shouldDeleteProgramMessage() {
+    programMessageStore.save(programMessageA);
 
-  @Test
-  void testProgramMessageExists() {
-    programMessageStore.save(pmsgA);
-    programMessageStore.save(pmsgB);
-    assertTrue(programMessageStore.exists(pmsgA.getUid()));
-    assertTrue(programMessageStore.exists(pmsgB.getUid()));
-    assertFalse(programMessageStore.exists("22343"));
-    assertFalse(programMessageStore.exists(null));
+    programMessageStore.delete(programMessageA);
+
+    assertNull(
+        programMessageStore.get(programMessageA.getId()),
+        "The program message should be null after deletion");
   }
 
   @Test
   void testGetProgramMessageByEnrollment() {
     manager.save(enrollmentA);
-    pmsgA.setEnrollment(enrollmentA);
-    pmsgB.setEnrollment(enrollmentA);
-    programMessageStore.save(pmsgA);
-    programMessageStore.save(pmsgB);
+    programMessageA.setEnrollment(enrollmentA);
+    programMessageB.setEnrollment(enrollmentA);
+    programMessageStore.save(programMessageA);
+    programMessageStore.save(programMessageB);
     params.setEnrollment(enrollmentA);
+
     List<ProgramMessage> programMessages = programMessageStore.getProgramMessages(params);
-    assertNotNull(programMessages);
-    assertTrue(equals(programMessages, pmsgA, pmsgB));
-    assertEquals(channels, programMessages.get(0).getDeliveryChannels());
-    assertEquals(enrollmentA, programMessages.get(0).getEnrollment());
+
+    assertContainsOnly(List.of(programMessageA, programMessageB), programMessages);
+    assertEquals(
+        channels,
+        programMessages.get(0).getDeliveryChannels(),
+        "Delivery channels should match for each program message");
+    assertEquals(
+        enrollmentA,
+        programMessages.get(0).getEnrollment(),
+        "Enrollment should match for each program message");
   }
 
   @Test
-  void testGetProgramMessageByEvent() {
+  void shouldGetProgramMessageByEvent() {
     manager.save(enrollmentA);
     manager.save(eventA);
-    pmsgA.setEvent(eventA);
-    pmsgB.setEvent(eventA);
-    programMessageStore.save(pmsgA);
-    programMessageStore.save(pmsgB);
+    programMessageA.setEvent(eventA);
+    programMessageB.setEvent(eventA);
+    programMessageStore.save(programMessageA);
+    programMessageStore.save(programMessageB);
     params.setEvent(eventA);
+
     List<ProgramMessage> programMessages = programMessageStore.getProgramMessages(params);
+
     assertNotNull(programMessages);
-    assertTrue(equals(programMessages, pmsgA, pmsgB));
-    assertEquals(channels, programMessages.get(0).getDeliveryChannels());
-    assertEquals(eventA, programMessages.get(0).getEvent());
+    assertContainsOnly(List.of(programMessageA, programMessageB), programMessages);
+    assertEquals(
+        channels,
+        programMessages.get(0).getDeliveryChannels(),
+        "Delivery channels should match for each program message");
+    assertEquals(
+        eventA, programMessages.get(0).getEvent(), "Event should match for each program message");
   }
 
   @Test
-  void testGetProgramMessageByMessageStatus() {
-    programMessageStore.save(pmsgA);
-    programMessageStore.save(pmsgB);
+  void shouldGetProgramMessageByMessageStatus() {
+    programMessageStore.save(programMessageA);
+    programMessageStore.save(programMessageB);
     params.setMessageStatus(messageStatus);
+
     List<ProgramMessage> programMessages = programMessageStore.getProgramMessages(params);
-    assertNotNull(programMessages);
-    assertTrue(equals(programMessages, pmsgA, pmsgB));
-    assertEquals(channels, programMessages.get(0).getDeliveryChannels());
-    assertEquals(messageStatus, programMessages.get(0).getMessageStatus());
+
+    assertContainsOnly(List.of(programMessageA, programMessageB), programMessages);
+    assertEquals(
+        channels,
+        programMessages.get(0).getDeliveryChannels(),
+        "Delivery channels should match for each program message");
+    assertEquals(
+        messageStatus,
+        programMessages.get(0).getMessageStatus(),
+        "ProgramMessageStatus should match for each program message");
   }
 
   @Test
-  void testGetProgramMessageByMultipleParameters() {
+  void shouldGetProgramMessageByEnrollmentAndStatus() {
     manager.save(enrollmentA);
-    pmsgA.setEnrollment(enrollmentA);
-    pmsgB.setEnrollment(enrollmentA);
-    programMessageStore.save(pmsgA);
-    programMessageStore.save(pmsgB);
+    programMessageA.setEnrollment(enrollmentA);
+    programMessageB.setEnrollment(enrollmentA);
+    programMessageStore.save(programMessageA);
+    programMessageStore.save(programMessageB);
     params.setEnrollment(enrollmentA);
     params.setMessageStatus(messageStatus);
+
     List<ProgramMessage> programMessages = programMessageStore.getProgramMessages(params);
-    assertNotNull(programMessages);
-    assertTrue(equals(programMessages, pmsgA, pmsgB));
-    assertEquals(channels, programMessages.get(0).getDeliveryChannels());
-    assertEquals(enrollmentA, programMessages.get(0).getEnrollment());
+
+    assertContainsOnly(List.of(programMessageA, programMessageB), programMessages);
+    assertEquals(
+        channels,
+        programMessages.get(0).getDeliveryChannels(),
+        "Delivery channels should match for each program message");
+    assertEquals(
+        enrollmentA,
+        programMessages.get(0).getEnrollment(),
+        "Enrollment should match for each program message");
+    assertEquals(
+        messageStatus,
+        programMessages.get(0).getMessageStatus(),
+        "ProgramMessageStatus should match for each program message");
+  }
+
+  private ProgramMessageRecipients createRecipients(
+      OrganisationUnit orgUnit, TrackedEntity trackedEntity) {
+    ProgramMessageRecipients recipients = new ProgramMessageRecipients();
+    recipients.setOrganisationUnit(orgUnit);
+    recipients.setTrackedEntity(trackedEntity);
+    Set<String> phoneNumberList = new HashSet<>();
+    phoneNumberList.add(MSISDN);
+    recipients.setPhoneNumbers(phoneNumberList);
+    return recipients;
+  }
+
+  private ProgramMessage createProgramMessage(String text, ProgramMessageRecipients recipients) {
+    return ProgramMessage.builder()
+        .subject(text)
+        .text(text)
+        .recipients(recipients)
+        .messageStatus(messageStatus)
+        .deliveryChannels(channels)
+        .notificationTemplate(notificationTemplate)
+        .build();
   }
 }

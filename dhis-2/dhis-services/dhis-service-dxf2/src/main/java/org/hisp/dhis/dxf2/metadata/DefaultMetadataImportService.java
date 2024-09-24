@@ -57,7 +57,6 @@ import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -76,7 +75,6 @@ public class DefaultMetadataImportService implements MetadataImportService {
   private final ObjectBundleValidationService objectBundleValidationService;
   private final UserService userService;
   private final AclService aclService;
-  private final Notifier notifier;
 
   @Override
   @Transactional

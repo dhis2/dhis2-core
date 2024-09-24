@@ -44,6 +44,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 
 /**
@@ -162,6 +163,8 @@ public interface UserService {
    * @return the User.
    */
   User getUserByEmail(String email);
+
+  User getUserByVerifiedEmail(String email);
 
   /**
    * Retrieves a collection of User with the given unique identifiers.
@@ -505,7 +508,8 @@ public interface UserService {
    * @param userUid The user UID of the user to disable 2FA for.
    * @param errors A Consumer<ErrorReport> object that will be called if there is an error.
    */
-  void privilegedTwoFactorDisable(User currentUser, String userUid, Consumer<ErrorReport> errors);
+  void privilegedTwoFactorDisable(User currentUser, String userUid, Consumer<ErrorReport> errors)
+      throws ForbiddenException;
 
   /**
    * Checks if the input user can modify the other input user.
@@ -600,7 +604,8 @@ public interface UserService {
    * @param after The state after the update.
    * @param userToModify The user object that is being updated.
    */
-  void validateTwoFactorUpdate(boolean before, boolean after, User userToModify);
+  void validateTwoFactorUpdate(boolean before, boolean after, User userToModify)
+      throws ForbiddenException;
 
   /**
    * Get linked user accounts for the given user
@@ -861,4 +866,28 @@ public interface UserService {
   boolean canDataRead(IdentifiableObject identifiableObject);
 
   CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID);
+
+  /**
+   * Generate a new email verification token for the user and set it on the user object.
+   *
+   * @param user the user
+   * @return the generated token
+   */
+  String generateAndSetNewEmailVerificationToken(User user);
+
+  /**
+   * Send email verification token to the user's email address.
+   *
+   * @param user the user
+   * @param token the verification token
+   * @param requestUrl the request URL
+   * @return true if the email was sent successfully, false otherwise
+   */
+  boolean sendEmailVerificationToken(User user, String token, String requestUrl);
+
+  boolean verifyEmail(String token);
+
+  boolean isEmailVerified(User currentUser);
+
+  User getUserByVerificationToken(String token);
 }

@@ -51,9 +51,9 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class DefaultEventCoordinateService implements EventCoordinateService {
-  public static final String COL_NAME_ENROLLMENT_GEOMETRY = "engeometry";
+  public static final String COL_NAME_ENROLLMENT_GEOMETRY = "enrollmentgeometry";
 
-  public static final String COL_NAME_EVENT_GEOMETRY = "evgeometry";
+  public static final String COL_NAME_EVENT_GEOMETRY = "eventgeometry";
 
   public static final String COL_NAME_TRACKED_ENTITY_GEOMETRY = "tegeometry";
 

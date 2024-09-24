@@ -55,11 +55,11 @@ public interface EnrollmentService {
 
   /** Get all enrollments matching given params. */
   List<Enrollment> getEnrollments(EnrollmentOperationParams params)
-      throws BadRequestException, ForbiddenException;
+      throws BadRequestException, ForbiddenException, NotFoundException;
 
   /** Get a page of enrollments matching given params. */
   Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
-      throws BadRequestException, ForbiddenException;
+      throws BadRequestException, ForbiddenException, NotFoundException;
 
   /**
    * Get event matching given {@code UID} under the privileges the user in the context. This method
@@ -69,7 +69,7 @@ public interface EnrollmentService {
 
   List<Enrollment> getEnrollments(
       String trackedEntityUid, Program program, EnrollmentStatus enrollmentStatus)
-      throws ForbiddenException, BadRequestException;
+      throws ForbiddenException, BadRequestException, NotFoundException;
 
   /**
    * Fields the {@link #getEnrollments(EnrollmentOperationParams)} can order enrollments by.

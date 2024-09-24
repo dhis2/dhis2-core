@@ -34,10 +34,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.test.web.HttpStatus;
@@ -45,7 +47,6 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -57,6 +58,9 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
   private Program program;
   private ProgramNotificationTemplate programTemplate1;
   private ProgramNotificationTemplate programTemplate2;
+  private ProgramNotificationTemplate programTemplate3;
+  private ProgramNotificationTemplate programTemplate4;
+  private ProgramNotificationTemplate programTemplate5;
 
   @BeforeEach
   void setUp() {
@@ -73,8 +77,24 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
     programTemplate2.setMessageTemplate("message 2");
     templateTemplateService.save(programTemplate2);
 
+    programTemplate3 = new ProgramNotificationTemplate();
+    programTemplate3.setName("template 3");
+    programTemplate3.setMessageTemplate("message 3");
+    templateTemplateService.save(programTemplate3);
+
+    programTemplate4 = new ProgramNotificationTemplate();
+    programTemplate4.setName("template 4");
+    programTemplate4.setMessageTemplate("message 4");
+    templateTemplateService.save(programTemplate4);
+
+    programTemplate5 = new ProgramNotificationTemplate();
+    programTemplate5.setName("template 5");
+    programTemplate5.setMessageTemplate("message 5");
+    templateTemplateService.save(programTemplate5);
+
     program = createProgram('A', Set.of(), ouA);
-    program.setNotificationTemplates(Set.of(programTemplate1, programTemplate2));
+    program.setNotificationTemplates(
+        Set.of(programTemplate1, programTemplate2, programTemplate3, programTemplate4));
     idObjectManager.save(program);
   }
 
@@ -88,28 +108,30 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
     JsonList<JsonIdentifiableObject> list =
         page.getList("programNotificationTemplates", JsonIdentifiableObject.class);
     assertContainsOnly(
-        List.of(programTemplate1.getName(), programTemplate2.getName()),
+        List.of(
+            programTemplate1.getName(),
+            programTemplate2.getName(),
+            programTemplate3.getName(),
+            programTemplate4.getName()),
         list.toList(JsonIdentifiableObject::getName));
 
     assertEquals(1, page.getPager().getPage());
     assertEquals(50, page.getPager().getPageSize());
-    assertEquals(2, page.getPager().getTotal());
+    assertEquals(4, page.getPager().getTotal());
     assertEquals(1, page.getPager().getPageCount());
 
     // assert deprecated fields
     assertEquals(1, page.getPage());
     assertEquals(50, page.getPageSize());
-    assertEquals(2, page.getTotal());
+    assertEquals(4, page.getTotal());
     assertEquals(1, page.getPageCount());
   }
 
-  @Disabled(
-      "  TODO(tracker): https://dhis2.atlassian.net/browse/DHIS2-16522 pagination is not implemented in the store")
   @Test
   void shouldGetPaginatedItemsWithNonDefaults() {
     JsonPage page =
         GET(
-                "/programNotificationTemplates/filter?program={uid}&page=2&pageSize=1",
+                "/programNotificationTemplates/filter?program={uid}&page=2&pageSize=2",
                 program.getUid())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
@@ -117,19 +139,19 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
     JsonList<JsonIdentifiableObject> list =
         page.getList("programNotificationTemplates", JsonIdentifiableObject.class);
     assertEquals(
-        1,
+        2,
         list.size(),
         () -> String.format("mismatch in number of expected notification(s), got %s", list));
 
     assertEquals(2, page.getPager().getPage());
-    assertEquals(1, page.getPager().getPageSize());
-    assertEquals(2, page.getPager().getTotal());
+    assertEquals(2, page.getPager().getPageSize());
+    assertEquals(4, page.getPager().getTotal());
     assertEquals(2, page.getPager().getPageCount());
 
     // assert deprecated fields
     assertEquals(2, page.getPage());
-    assertEquals(1, page.getPageSize());
-    assertEquals(2, page.getTotal());
+    assertEquals(2, page.getPageSize());
+    assertEquals(4, page.getTotal());
     assertEquals(2, page.getPageCount());
   }
 
@@ -143,18 +165,22 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
     JsonList<JsonIdentifiableObject> list =
         page.getList("programNotificationTemplates", JsonIdentifiableObject.class);
     assertContainsOnly(
-        List.of(programTemplate1.getName(), programTemplate2.getName()),
+        List.of(
+            programTemplate1.getName(),
+            programTemplate2.getName(),
+            programTemplate3.getName(),
+            programTemplate4.getName()),
         list.toList(JsonIdentifiableObject::getName));
 
     assertEquals(1, page.getPager().getPage());
     assertEquals(50, page.getPager().getPageSize());
-    assertEquals(2, page.getPager().getTotal());
+    assertEquals(4, page.getPager().getTotal());
     assertEquals(1, page.getPager().getPageCount());
 
     // assert deprecated fields
     assertEquals(1, page.getPage());
     assertEquals(50, page.getPageSize());
-    assertEquals(2, page.getTotal());
+    assertEquals(4, page.getTotal());
     assertEquals(1, page.getPageCount());
   }
 
@@ -168,7 +194,11 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
     JsonList<JsonIdentifiableObject> list =
         page.getList("programNotificationTemplates", JsonIdentifiableObject.class);
     assertContainsOnly(
-        List.of(programTemplate1.getName(), programTemplate2.getName()),
+        List.of(
+            programTemplate1.getName(),
+            programTemplate2.getName(),
+            programTemplate3.getName(),
+            programTemplate4.getName()),
         list.toList(JsonIdentifiableObject::getName));
     assertHasNoMember(page, "pager");
 
@@ -189,7 +219,11 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
     JsonList<JsonIdentifiableObject> list =
         page.getList("programNotificationTemplates", JsonIdentifiableObject.class);
     assertContainsOnly(
-        List.of(programTemplate1.getName(), programTemplate2.getName()),
+        List.of(
+            programTemplate1.getName(),
+            programTemplate2.getName(),
+            programTemplate3.getName(),
+            programTemplate4.getName()),
         list.toList(JsonIdentifiableObject::getName));
     assertHasNoMember(page, "pager");
 
@@ -224,5 +258,34 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
             .string();
 
     assertStartsWith("Paging can either be enabled or disabled", message);
+  }
+
+  @Test
+  void shouldFailWhenProgramDoesNotExist() {
+    String invalidProgram = CodeGenerator.generateUid();
+    String message =
+        GET("/programNotificationTemplates/filter?program={uid}", invalidProgram)
+            .content(HttpStatus.CONFLICT)
+            .getString("message")
+            .string();
+
+    assertStartsWith(
+        "%s with UID %s does not exist.".formatted(Program.class.getSimpleName(), invalidProgram),
+        message);
+  }
+
+  @Test
+  void shouldFailWhenProgramStageDoesNotExist() {
+    String invalidProgramStage = CodeGenerator.generateUid();
+    String message =
+        GET("/programNotificationTemplates/filter?programStage={uid}", invalidProgramStage)
+            .content(HttpStatus.CONFLICT)
+            .getString("message")
+            .string();
+
+    assertStartsWith(
+        "%s with UID %s does not exist."
+            .formatted(ProgramStage.class.getSimpleName(), invalidProgramStage),
+        message);
   }
 }

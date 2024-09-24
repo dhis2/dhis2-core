@@ -37,10 +37,12 @@ import java.io.IOException;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
-import org.hisp.dhis.test.config.MinIOConfiguration;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.test.junit.MinIOTestExtension;
+import org.hisp.dhis.test.junit.MinIOTestExtension.DhisConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
@@ -52,7 +54,8 @@ import org.springframework.test.context.ContextConfiguration;
  * Test class configured for use cases when DHIS2 is configured to use MinIO storage. The default
  * storage is the local filesystem.
  */
-@ContextConfiguration(classes = {MinIOConfiguration.class})
+@ExtendWith(MinIOTestExtension.class)
+@ContextConfiguration(classes = {DhisConfig.class})
 class AppManagerTest extends PostgresIntegrationTestBase {
 
   @Autowired AppManager appManager;
@@ -61,22 +64,24 @@ class AppManagerTest extends PostgresIntegrationTestBase {
   @DisplayName("Can install and then update an App using MinIO storage")
   void canUpdateAppUsingMinIoTest() throws IOException {
     // install an app for the 1st time (version 1)
-    AppStatus appStatus =
+    App installedApp =
         appManager.installApp(
             new ClassPathResource("app/test-app-minio-v1.zip").getFile(), "test-app-minio-v1.zip");
+
+    AppStatus appStatus = installedApp.getAppState();
 
     assertTrue(appStatus.ok());
     assertEquals("ok", appStatus.getMessage());
 
     // install version 2 of the same app
-    AppStatus update =
+    App updatedApp =
         assertDoesNotThrow(
             () ->
                 appManager.installApp(
                     new ClassPathResource("app/test-app-minio-v2.zip").getFile(),
                     "test-app-minio-v2.zip"));
 
-    assertTrue(update.ok());
+    assertTrue(updatedApp.getAppState().ok());
     assertEquals("ok", appStatus.getMessage());
 
     // get app version & index.html
