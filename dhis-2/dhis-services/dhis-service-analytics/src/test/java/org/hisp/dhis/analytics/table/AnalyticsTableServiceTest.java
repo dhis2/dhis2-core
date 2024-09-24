@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.table;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -64,7 +65,7 @@ class AnalyticsTableServiceTest {
 
   @BeforeEach
   void setUp() {
-    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    lenient().when(settingsProvider.getCurrentSettings()).thenReturn(settings);
   }
 
   @Test
@@ -101,7 +102,6 @@ class AnalyticsTableServiceTest {
   @Test
   void testGetParallelJobsA() {
     when(settings.getParallelJobsInAnalyticsTableExport()).thenReturn(1);
-    when(settings.getDatabaseServerCpus()).thenReturn(8);
 
     assertEquals(1, tableService.getParallelJobs());
   }

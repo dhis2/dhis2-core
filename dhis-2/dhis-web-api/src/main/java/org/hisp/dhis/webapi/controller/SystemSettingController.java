@@ -103,6 +103,8 @@ public class SystemSettingController {
   public WebMessage setSystemSettingJson(@PathVariable("key") String key, @RequestBody String value)
       throws ConflictException {
     JsonMixed json = JsonMixed.of(value);
+    // TODO this might not be needed as maybe any simple JSON is already decoded to a Java string by
+    // jackson
     String plain =
         switch (json.node().getType()) {
           case STRING -> json.string();

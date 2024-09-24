@@ -46,6 +46,14 @@ import org.hisp.dhis.jsontree.JsonPrimitive;
  */
 public sealed interface Settings permits UserSettings, SystemSettings {
 
+  /**
+   * Converts Java types to a setting raw {@link String} value
+   *
+   * @param value a {@link Boolean}, {@link Number}, {@link String}, {@link Date}, {@link Locale} or
+   *     enum
+   * @return the equivalent raw {@link String} setting value. This is the value that can be parsed
+   *     back into the given Java type
+   */
   @Nonnull
   static String valueOf(@CheckForNull Serializable value) {
     if (value == null) return "";
