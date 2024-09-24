@@ -46,7 +46,6 @@ import org.hisp.dhis.system.util.HttpHeadersBuilder;
 import org.hisp.dhis.webapi.controller.security.LoginRequest;
 import org.hisp.dhis.webapi.controller.security.LoginResponse;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -65,7 +64,6 @@ import org.testcontainers.utility.DockerImageName;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Disabled("TODO(Morten) move test to embedded tomcat?")
 @Slf4j
 @ActiveProfiles(profiles = {"test-postgres"})
 class AuthTest {
@@ -80,7 +78,6 @@ class AuthTest {
 
   @BeforeAll
   static void setup() throws Exception {
-
     availablePort = findAvailablePort();
 
     POSTGRES_CONTAINER =
@@ -109,9 +106,9 @@ class AuthTest {
         new Thread(
             () -> {
               try {
-                System.setProperty("jetty.http.port", Integer.toString(availablePort));
-                // org.hisp.dhis.web.jetty.Main.main(null);
-                // } catch (InterruptedException ignored) {
+                System.setProperty("server.port", Integer.toString(availablePort));
+                org.hisp.dhis.web.tomcat.Main.main(null);
+              } catch (InterruptedException ignored) {
               } catch (Exception e) {
                 throw new RuntimeException(e);
               }

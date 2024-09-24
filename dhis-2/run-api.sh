@@ -27,9 +27,8 @@ fi
 
 # Print usage help
 function print_usage() {
-  echo "Usage: $0 [-d dhis2_home] [-h hostname] [-p port] [-s]" >&2
+  echo "Usage: $0 [-d dhis2_home] [-p port] [-s]" >&2
   echo "  -d <directory> DHIS2 home directory" >&2
-  echo "  -h <hostname>  Hostname (default is localhost)" >&2
   echo "  -s             Skip compilation of source code" >&2
   echo "  -p <port>      Port number (default is 9090)" >&2
   echo "  -m             Print this manual" >&2
@@ -39,7 +38,6 @@ function print_usage() {
 function print_variables() {
   echo "JAVA_HOME: $JAVA_HOME"
   echo "DHIS2_HOME_DIR: $DHIS2_HOME_DIR"
-  echo "HOSTNAME: $DHIS2_HOSTNAME"
   echo "PORT: $DHIS2_PORT"
   echo "SKIP_COMPILE: $SKIP_COMPILE"
   echo ""
@@ -50,6 +48,8 @@ function start_dhis2() {
   DHIS2_HTTP_PORT="$DHIS2_PORT" \
   DHIS2_HOME="$DHIS2_HOME_DIR" \
   java \
+    -Ddhis2.home="$DHIS2_DHIS2_HOME_DIR" \
+    -Dserver.port="$DHIS2_PORT" \
     -jar "$(dirname "$0")/dhis-web-server/target/dhis.war"
 }
 
@@ -63,13 +63,10 @@ function build_dhis2() {
 }
 
 # Read command line options
-while getopts "d:h:p:sm" OPT; do
+while getopts "d:p:sm" OPT; do
   case "$OPT" in
     d)
       DHIS2_HOME_DIR=$OPTARG
-      ;;
-    h)
-      DHIS2_HOSTNAME=$OPTARG
       ;;
     p)
       DHIS2_PORT=$OPTARG
