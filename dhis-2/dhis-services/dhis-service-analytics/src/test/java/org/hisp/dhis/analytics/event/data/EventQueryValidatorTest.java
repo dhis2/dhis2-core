@@ -113,8 +113,6 @@ class EventQueryValidatorTest extends TestBase {
     lsA = createLegendSet('A');
 
     osA = new OptionSet("OptionSetA", ValueType.TEXT);
-
-    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
   }
 
   @Test
@@ -392,6 +390,7 @@ class EventQueryValidatorTest extends TestBase {
 
   @Test
   void validateErrorMaxLimit() {
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     when(settings.getAnalyticsMaxLimit()).thenReturn(100);
 
     EventQueryParams params =

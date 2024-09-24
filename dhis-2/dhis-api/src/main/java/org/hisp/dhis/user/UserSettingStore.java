@@ -46,5 +46,11 @@ public interface UserSettingStore extends GenericStore<UserSetting> {
    */
   int delete(String username, Set<String> keys);
 
+  /**
+   * Deletes all user settings
+   *
+   * @param username of the user whose settings are deleted
+   * @return number of settings that were deleted
+   */
   int deleteAll(String username);
 }

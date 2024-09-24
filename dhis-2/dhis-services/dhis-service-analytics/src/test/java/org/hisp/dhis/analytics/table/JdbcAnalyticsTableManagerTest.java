@@ -33,7 +33,6 @@ import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -254,7 +253,8 @@ class JdbcAnalyticsTableManagerTest {
     when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(new Date(0L));
     when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
         .thenReturn(lastLatestPartitionUpdate);
-    assertThrows(IllegalArgumentException.class, () -> subject.getAnalyticsTables(params));
+
+    assertTrue(subject.getAnalyticsTables(params).isEmpty());
   }
 
   @Test

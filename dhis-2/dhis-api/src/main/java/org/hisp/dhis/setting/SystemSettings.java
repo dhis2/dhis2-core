@@ -264,7 +264,6 @@ public non-sealed interface SystemSettings extends Settings {
 
   @Confidential
   default String getRecaptchaSite() {
-    // TODO make sure the defaults are decoded...
     return asString("recaptchaSite", "6LcVwT0UAAAAAAkO_EGPiYOiymIszZUeHfqWIYX5");
   }
 

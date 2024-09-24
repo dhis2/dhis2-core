@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
@@ -69,6 +70,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.user.User;
@@ -129,6 +131,8 @@ class DataQueryServiceDimensionItemKeywordTest {
 
   @BeforeEach
   public void setUp() {
+    lenient().when(settingsService.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
+
     dimensionalObjectProducer =
         new DimensionalObjectProducer(
             idObjectManager,
@@ -143,8 +147,8 @@ class DataQueryServiceDimensionItemKeywordTest {
 
     rb = new RequestBuilder();
 
-    Mockito.lenient().when(i18nManager.getI18n()).thenReturn(i18n);
-    Mockito.lenient().when(i18n.getString("LAST_12_MONTHS")).thenReturn("Last 12 months");
+    lenient().when(i18nManager.getI18n()).thenReturn(i18n);
+    lenient().when(i18n.getString("LAST_12_MONTHS")).thenReturn("Last 12 months");
 
     rootOu = new OrganisationUnit("Sierra Leone");
     rootOu.setUid(CodeGenerator.generateUid());

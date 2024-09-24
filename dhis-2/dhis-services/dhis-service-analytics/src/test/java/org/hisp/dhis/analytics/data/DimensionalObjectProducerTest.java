@@ -58,6 +58,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -135,7 +136,7 @@ class DimensionalObjectProducerTest {
 
   @BeforeEach
   public void setUp() {
-    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    lenient().when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     target =
         new DimensionalObjectProducer(
             idObjectManager,
