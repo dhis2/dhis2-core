@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.servlet;
 
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.FilterRegistration;
+import jakarta.servlet.MultipartConfigElement;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletRegistration;
 import jakarta.servlet.SessionTrackingMode;
@@ -99,6 +100,7 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     dispatcher.setAsyncSupported(true);
     dispatcher.setLoadOnStartup(1);
     dispatcher.addMapping("/*");
+    dispatcher.setMultipartConfig(new MultipartConfigElement(""));
 
     context
         .addServlet("TempGetAppMenuServlet", TempGetAppMenuServlet.class)
