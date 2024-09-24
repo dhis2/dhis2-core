@@ -45,7 +45,7 @@ import org.hisp.dhis.setting.Settings;
 @EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserSetting {
+public class UserSetting implements Serializable {
 
   @Setter @Nonnull private User user;
 
