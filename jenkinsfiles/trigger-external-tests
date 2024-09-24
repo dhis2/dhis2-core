@@ -136,7 +136,7 @@ pipeline {
                         withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
                             def response = sh (
                                 script: """
-                                    curl -X POST \
+                                    curl -v -X POST \
                                     -H "Accept: application/vnd.github.v3+json" \
                                     -H "Authorization: token $GITHUB_TOKEN" \
                                     https://api.github.com/repos/${repo}/actions/workflows/e2e-test-dispatch.yml/dispatches \
