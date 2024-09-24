@@ -31,6 +31,14 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.analytics.AggregationType.COUNT;
+import static org.hisp.dhis.analytics.AggregationType.NONE;
+import static org.hisp.dhis.common.DimensionType.PERIOD;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.ValueType.COORDINATE;
+import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.injectSecurityContext;
@@ -38,11 +46,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
-import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
+import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
+import org.hisp.dhis.analytics.tracker.MetadataItemsHandler;
+import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionType;
@@ -57,9 +67,7 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.SystemUser;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -69,32 +77,26 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.opengis.geometry.primitive.Point;
 
 /**
- * This class only tests the "shared" code of AbstractAnalyticsService, which includes Grid header
- * generation and Grid Metadata
+ * Unit tests for {@link EnrollmentAggregateService}.
  *
  * @author Luciano Fiandesio
  */
 @ExtendWith(MockitoExtension.class)
-class AbstractAnalyticsServiceTest {
-  private Period peA;
+class EnrollmentAggregateServiceTest {
 
-  private OrganisationUnit ouA;
-
-  private DataElement deA;
-
-  private DataElement deB;
-
-  private DataElement deC;
-
-  private DummyAnalyticsService dummyAnalyticsService;
+  private EnrollmentAggregateService dummyAnalyticsService;
 
   @Mock private AnalyticsSecurityManager securityManager;
 
-  @Mock private EventQueryValidator eventQueryValidator;
+  @Mock private EnrollmentAnalyticsManager enrollmentAnalyticsManager;
 
-  @Mock private SchemeIdResponseMapper schemeIdResponseMapper;
+  @Mock private EventQueryValidator queryValidator;
 
-  @Mock private UserService userService;
+  @Mock private EventQueryPlanner queryPlanner;
+
+  @Mock private MetadataItemsHandler metadataHandler;
+
+  @Mock private SchemeIdHandler schemeIdHandler;
 
   @BeforeAll
   static void setup() {
@@ -104,27 +106,27 @@ class AbstractAnalyticsServiceTest {
   @BeforeEach
   public void setUp() {
     dummyAnalyticsService =
-        new DummyAnalyticsService(
-            securityManager, eventQueryValidator, schemeIdResponseMapper, userService);
-
-    peA = MonthlyPeriodType.getPeriodFromIsoString("201701");
-    ouA = createOrganisationUnit('A');
-    deA = createDataElement('A', ValueType.TEXT, AggregationType.NONE);
-
-    deB = createDataElement('B', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
-    deC = createDataElement('C', ValueType.NUMBER, AggregationType.COUNT);
+        new EnrollmentAggregateService(
+            enrollmentAnalyticsManager,
+            queryPlanner,
+            securityManager,
+            queryValidator,
+            metadataHandler,
+            schemeIdHandler);
   }
 
   @Test
   void verifyHeaderCreationBasedOnQueryItemsAndDimensions() {
-    DimensionalObject periods =
-        new BaseDimensionalObject(
-            DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of(peA));
-
+    // Given
+    Period peA = MonthlyPeriodType.getPeriodFromIsoString("201701");
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    DataElement deA = createDataElement('A', TEXT, NONE);
+    DataElement deB = createDataElement('B', ValueType.ORGANISATION_UNIT, NONE);
+    DataElement deC = createDataElement('C', NUMBER, COUNT);
+    DimensionalObject periods = new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(peA));
     DimensionalObject orgUnits =
         new BaseDimensionalObject(
-            DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, "ouA", List.of(ouA));
-
+            ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, "ouA", List.of(ouA));
     QueryItem qiA = new QueryItem(deA, null, deA.getValueType(), deA.getAggregationType(), null);
     QueryItem qiB = new QueryItem(deB, null, deB.getValueType(), deB.getAggregationType(), null);
     QueryItem qiC = new QueryItem(deC, null, deC.getValueType(), deC.getAggregationType(), null);
@@ -142,47 +144,52 @@ class AbstractAnalyticsServiceTest {
             .withApiVersion(DhisApiVersion.V33)
             .build();
 
+    // When
     when(securityManager.withUserConstraints(any(EventQueryParams.class))).thenReturn(params);
+    Grid grid = dummyAnalyticsService.getEnrollments(params);
 
-    Grid grid = dummyAnalyticsService.getGrid(params);
-
+    // Then
     List<GridHeader> headers = grid.getHeaders();
     assertThat(headers, is(notNullValue()));
-    assertThat(headers, hasSize(4));
+    assertThat(headers, hasSize(6));
 
-    assertHeaderWithColumn(headers.get(0), "ou", "ouA", ValueType.TEXT, String.class.getName());
+    assertHeaderWithColumn(headers.get(0), "value", "Value", NUMBER, Double.class.getName());
+    assertHeaderWithColumn(headers.get(1), "ou", "ouA", TEXT, String.class.getName());
+    assertHeaderWithColumn(headers.get(2), "pe", null, TEXT, String.class.getName());
     assertHeaderWithColumn(
-        headers.get(1), deA.getUid(), deA.getName(), ValueType.TEXT, String.class.getName());
+        headers.get(3), deA.getUid(), deA.getName(), TEXT, String.class.getName());
     assertHeaderWithColumn(
-        headers.get(2), deB.getUid(), deB.getName(), ValueType.COORDINATE, Point.class.getName());
+        headers.get(4), deB.getUid(), deB.getName(), COORDINATE, Point.class.getName());
     assertHeaderWithColumn(
-        headers.get(3), deC.getUid(), deC.getName(), ValueType.NUMBER, Double.class.getName());
+        headers.get(5), deC.getUid(), deC.getName(), NUMBER, Double.class.getName());
   }
 
   @Test
   void verifyHeaderCreationBasedOnQueryItemsAndDimensionsWithSameNamesMultiStage() {
+    // Given
+    Period peA = MonthlyPeriodType.getPeriodFromIsoString("201701");
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
     ProgramStage psA = new ProgramStage("ps", new Program());
     psA.setUid("psA12345678");
 
     ProgramStage psB = new ProgramStage("ps", new Program());
     psB.setUid("psB12345678");
 
-    DataElement deD = createDataElement('D', ValueType.NUMBER, AggregationType.COUNT);
+    DataElement deD = createDataElement('D', NUMBER, COUNT);
     deD.setName("same");
 
-    DataElement deE = createDataElement('E', ValueType.NUMBER, AggregationType.COUNT);
+    DataElement deE = createDataElement('E', NUMBER, COUNT);
     deE.setName("same");
 
-    DataElement deF = createDataElement('F', ValueType.NUMBER, AggregationType.COUNT);
+    DataElement deF = createDataElement('F', NUMBER, COUNT);
     deF.setName("unique");
 
-    DimensionalObject periods =
-        new BaseDimensionalObject(
-            DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of(peA));
-
+    DataElement deB = createDataElement('B', ValueType.ORGANISATION_UNIT, NONE);
+    DimensionalObject periods = new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(peA));
     DimensionalObject orgUnits =
         new BaseDimensionalObject(
-            DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, "ouA", List.of(ouA));
+            ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, "ouA", List.of(ouA));
 
     QueryItem qiD = new QueryItem(deD, null, deD.getValueType(), deD.getAggregationType(), null);
     qiD.setProgramStage(psA);
@@ -206,30 +213,33 @@ class AbstractAnalyticsServiceTest {
             .withApiVersion(DhisApiVersion.V33)
             .build();
 
+    // When
     when(securityManager.withUserConstraints(any(EventQueryParams.class))).thenReturn(params);
+    Grid grid = dummyAnalyticsService.getEnrollments(params);
 
-    Grid grid = dummyAnalyticsService.getGrid(params);
-
+    // Then
     List<GridHeader> headers = grid.getHeaders();
     assertThat(headers, is(notNullValue()));
-    assertThat(headers, hasSize(4));
+    assertThat(headers, hasSize(6));
 
-    assertHeaderWithColumn(headers.get(0), "ou", "ouA", ValueType.TEXT, String.class.getName());
+    assertHeaderWithColumn(headers.get(0), "value", "Value", NUMBER, Double.class.getName());
+    assertHeaderWithColumn(headers.get(1), "ou", "ouA", TEXT, String.class.getName());
+    assertHeaderWithColumn(headers.get(2), "pe", null, TEXT, String.class.getName());
 
     // Same item names with different program stages.
     assertHeaderWithDisplayColumn(
-        headers.get(1),
+        headers.get(3),
         psA.getUid() + "." + deD.getUid(),
         deD.getName(),
         deD.getName() + " - " + psA.getName(),
-        ValueType.NUMBER,
+        NUMBER,
         Double.class.getName());
     assertHeaderWithDisplayColumn(
-        headers.get(2),
+        headers.get(4),
         psB.getUid() + "." + deE.getUid(),
         deE.getName(),
         deE.getName() + " - " + psB.getName(),
-        ValueType.NUMBER,
+        NUMBER,
         Double.class.getName());
   }
 
@@ -254,25 +264,5 @@ class AbstractAnalyticsServiceTest {
         "Header displayColumn name does not match", expected.getDisplayColumn(), is(displayColumn));
     assertThat("Header value type does not match", expected.getValueType(), is(valueType));
     assertThat("Header type does not match", expected.getType(), is(type));
-  }
-}
-
-class DummyAnalyticsService extends AbstractAnalyticsService {
-  public DummyAnalyticsService(
-      AnalyticsSecurityManager securityManager,
-      EventQueryValidator queryValidator,
-      SchemeIdResponseMapper schemeIdResponseMapper,
-      UserService userService) {
-    super(securityManager, queryValidator, schemeIdResponseMapper, userService);
-  }
-
-  @Override
-  protected Grid createGridWithHeaders(EventQueryParams params) {
-    return new ListGrid();
-  }
-
-  @Override
-  protected long addData(Grid grid, EventQueryParams params) {
-    return 0;
   }
 }

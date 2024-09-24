@@ -173,13 +173,13 @@
     <!-- GIS -->
     <batik-transcoder.version>1.17</batik-transcoder.version>
     <fop.version>2.9</fop.version>
-    <mapstruct.version>1.5.5.Final</mapstruct.version>
+    <mapstruct.version>1.6.0</mapstruct.version>
     <geotools.version>29.6</geotools.version>
     <jts.version>1.20.0</jts.version>
 
     <!-- Apache Artemis -->
     <artemis-jakarta.version>2.37.0</artemis-jakarta.version>
-    <netty-all.version>4.1.112.Final</netty-all.version>
+    <netty-all.version>4.1.113.Final</netty-all.version>
     <classgraph.version>4.8.175</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -207,7 +207,7 @@
     <commons-fileupload.version>1.5</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>
     <commons-validator.version>1.9.0</commons-validator.version>
-    <commons-io.version>2.16.1</commons-io.version>
+    <commons-io.version>2.17.0</commons-io.version>
     <commons-codec.version>1.17.1</commons-codec.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
@@ -239,7 +239,7 @@
     <jakarta.persistence-api.version>3.1.0</jakarta.persistence-api.version>
 
     <!-- Maven plugin versions -->
-    <maven-surefire-plugin.version>3.4.0</maven-surefire-plugin.version>
+    <maven-surefire-plugin.version>3.5.0</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.5.0</maven-failsafe-plugin.version>
