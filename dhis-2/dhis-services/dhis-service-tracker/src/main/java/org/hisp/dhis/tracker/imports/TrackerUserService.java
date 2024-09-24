@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.imports;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.tracker.imports.preheat.mappers.FullUserMapper;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -47,22 +46,10 @@ public class TrackerUserService {
 
   private final IdentifiableObjectManager manager;
 
-  /**
-   * Fetch a User by user uid
-   *
-   * @param userUid a User uid
-   * @return a User
-   */
   @Transactional(readOnly = true)
-  public User getUser(String userUid) {
-    User user = null;
+  public User getCurrentUser() {
+    User user = manager.get(User.class, CurrentUserUtil.getCurrentUserDetails().getUid());
 
-    if (!StringUtils.isEmpty(userUid)) {
-      user = manager.get(User.class, userUid);
-    }
-    if (user == null) {
-      user = manager.get(User.class, CurrentUserUtil.getCurrentUserDetails().getUid());
-    }
     // Make a copy of the user object, retaining only the properties
     // required for
     // the import operation

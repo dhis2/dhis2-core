@@ -122,10 +122,6 @@ public class TrackerEventSMSListener extends CompressionSMSListener {
     TrackerImportParams params =
         TrackerImportParams.builder()
             .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
-            .userId(
-                user.getUid()) // SMS processing is done inside a job executed as the user that sent
-            // the SMS. We might want to remove the params user in favor of the currentUser set on
-            // the thread.
             .build();
     TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event.build())).build();
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);

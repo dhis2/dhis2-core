@@ -60,6 +60,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,7 +80,7 @@ class EventImportValidationTest extends TrackerTest {
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
 
     assertNoErrors(
         trackerImportService.importTracker(
@@ -89,9 +90,14 @@ class EventImportValidationTest extends TrackerTest {
             params, fromJson("tracker/validations/enrollments_te_enrollments-data.json")));
   }
 
+  @AfterEach
+  void setUpUser() {
+    injectSecurityContextUser(importUser);
+  }
+
   @Test
   void testInvalidEnrollmentPreventsValidEventFromBeingCreated() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/invalid_enrollment_with_valid_event.json"));
@@ -101,7 +107,7 @@ class EventImportValidationTest extends TrackerTest {
 
   @Test
   void failValidationWhenTrackedEntityAttributeHasWrongOptionValue() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/events-with_invalid_option_value.json"));
@@ -111,7 +117,7 @@ class EventImportValidationTest extends TrackerTest {
 
   @Test
   void successWhenTrackedEntityAttributeHasValidOptionValue() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/events-with_valid_option_value.json"));
@@ -121,7 +127,7 @@ class EventImportValidationTest extends TrackerTest {
 
   @Test
   void testEventValidationOkAll() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/events-with-registration.json"));
@@ -131,7 +137,7 @@ class EventImportValidationTest extends TrackerTest {
 
   @Test
   void testEventValidationOkWithoutAttributeOptionCombo() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/events-without-attribute-option-combo.json"));
@@ -141,7 +147,7 @@ class EventImportValidationTest extends TrackerTest {
 
   @Test
   void testTrackerAndProgramEventUpdateSuccess() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = fromJson("tracker/validations/program_and_tracker_events.json");
 
     assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
@@ -156,8 +162,7 @@ class EventImportValidationTest extends TrackerTest {
   void testCantWriteAccessCatCombo() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/events-cat-write-access.json");
     TrackerImportParams params = new TrackerImportParams();
-    User user = userService.getUser(USER_6);
-    params.setUserId(user.getUid());
+    injectSecurityContextUser(userService.getUser(USER_6));
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
@@ -173,15 +178,14 @@ class EventImportValidationTest extends TrackerTest {
   void testNoWriteAccessToOrg() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/events-with-registration.json");
     TrackerImportParams params = new TrackerImportParams();
-    User user = userService.getUser(USER_2);
-    params.setUserId(user.getUid());
+    injectSecurityContextUser(userService.getUser(USER_2));
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertHasOnlyErrors(importReport, ValidationCode.E1000);
   }
 
   @Test
   void testNonRepeatableProgramStage() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/events_non-repeatable-programstage_part1.json");
 
@@ -198,7 +202,7 @@ class EventImportValidationTest extends TrackerTest {
 
   @Test
   void shouldSuccessfullyImportRepeatedEventsInEventProgram() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/program_events_non-repeatable-programstage_part1.json");
 
@@ -216,7 +220,7 @@ class EventImportValidationTest extends TrackerTest {
 
   @Test
   void testEventProgramHasNonDefaultCategoryCombo() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/events_non-default-combo.json"));
@@ -226,7 +230,7 @@ class EventImportValidationTest extends TrackerTest {
 
   @Test
   void testCategoryOptionComboNotFound() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/events_cant-find-cat-opt-combo.json"));
@@ -236,7 +240,7 @@ class EventImportValidationTest extends TrackerTest {
 
   @Test
   void testCategoryOptionComboNotFoundGivenSubsetOfCategoryOptions() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/events_cant-find-aoc-with-subset-of-cos.json"));
@@ -246,7 +250,7 @@ class EventImportValidationTest extends TrackerTest {
 
   @Test
   void testCOFoundButAOCNotFound() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/events_cant-find-aoc-but-co-exists.json"));
@@ -256,7 +260,7 @@ class EventImportValidationTest extends TrackerTest {
 
   @Test
   void testCategoryOptionsNotFound() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/events_cant-find-cat-option.json"));
@@ -266,7 +270,7 @@ class EventImportValidationTest extends TrackerTest {
 
   @Test
   void testAttributeCategoryOptionNotInProgramCC() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/events-aoc-not-in-program-cc.json"));
@@ -276,7 +280,7 @@ class EventImportValidationTest extends TrackerTest {
 
   @Test
   void testAttributeCategoryOptionAndCODoNotMatch() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/events-aoc-and-co-dont-match.json"));
@@ -287,7 +291,7 @@ class EventImportValidationTest extends TrackerTest {
   @Test
   void testAttributeCategoryOptionCannotBeFoundForEventProgramCCAndGivenCategoryOption()
       throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params,
@@ -299,7 +303,7 @@ class EventImportValidationTest extends TrackerTest {
 
   @Test
   void testWrongDatesInCatCombo() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/events_combo-date-wrong.json"));
@@ -373,7 +377,6 @@ class EventImportValidationTest extends TrackerTest {
     manager.delete(event);
     TrackerObjects trackerObjects = fromJson("tracker/validations/events-with-notes-data.json");
     TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(importUser.getUid());
     params.setImportStrategy(importStrategy);
     // When
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -383,7 +386,7 @@ class EventImportValidationTest extends TrackerTest {
 
   @Test
   void testEventDeleteOk() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = fromJson("tracker/validations/events-with-registration.json");
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -406,7 +409,6 @@ class EventImportValidationTest extends TrackerTest {
     // Given
     TrackerObjects trackerObjects = fromJson(jsonPayload);
     TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(importUser.getUid());
     params.setImportStrategy(CREATE_AND_UPDATE);
     // When
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
