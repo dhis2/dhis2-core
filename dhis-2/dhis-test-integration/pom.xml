@@ -80,11 +80,6 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-setting</artifactId>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-tracker</artifactId>
       <scope>compile</scope>
     </dependency>
