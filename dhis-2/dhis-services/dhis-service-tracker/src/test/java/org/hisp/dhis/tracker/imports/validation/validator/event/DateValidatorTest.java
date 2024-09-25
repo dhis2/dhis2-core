@@ -37,7 +37,6 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1050;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.mockito.Mockito.when;
 
-import com.google.common.collect.Sets;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -46,7 +45,6 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -54,9 +52,7 @@ import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -101,8 +97,6 @@ class DateValidatorTest extends TestBase {
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID));
     event.setOccurredAt(now());
     event.setStatus(EventStatus.ACTIVE);
-
-    TrackerBundle bundle = TrackerBundle.builder().preheat(preheat).build();
 
     // when
     validator.validate(reporter, bundle, event);
@@ -268,16 +262,6 @@ class DateValidatorTest extends TestBase {
     program.setUid(PROGRAM_WITHOUT_REGISTRATION_ID);
     program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     return program;
-  }
-
-  private User getEditExpiredUser() {
-    User user = makeUser("A");
-    UserRole userRole = createUserRole('A');
-    userRole.setAuthorities(Sets.newHashSet(Authorities.F_EDIT_EXPIRED.name()));
-
-    user.setUserRoles(Sets.newHashSet(userRole));
-
-    return user;
   }
 
   private Instant now() {

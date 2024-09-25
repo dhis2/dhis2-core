@@ -72,7 +72,7 @@ public class ValidationUtils {
   }
 
   public static void validateGeometry(
-      Reporter reporter, TrackerDto dto, Geometry geometry, FeatureType featureType) {
+      Reporter reporter, TrackerDto dto, @Nonnull Geometry geometry, FeatureType featureType) {
 
     if (featureType == null) {
       reporter.addError(dto, ValidationCode.E1074);
@@ -105,7 +105,9 @@ public class ValidationUtils {
   }
 
   public static List<MetadataIdentifier> validateDeletionMandatoryDataValue(
-      Event event, ProgramStage programStage, List<MetadataIdentifier> mandatoryDataElements) {
+      Event event,
+      @Nonnull ProgramStage programStage,
+      List<MetadataIdentifier> mandatoryDataElements) {
     if (!needsToValidateDataValues(event, programStage)) {
       return List.of();
     }
@@ -122,7 +124,7 @@ public class ValidationUtils {
   public static List<MetadataIdentifier> validateMandatoryDataValue(
       TrackerBundle bundle,
       Event event,
-      ProgramStage programStage,
+      @Nonnull ProgramStage programStage,
       List<MetadataIdentifier> mandatoryDataElements) {
     if (!needsToValidateDataValues(event, programStage)) {
       return List.of();
@@ -145,7 +147,7 @@ public class ValidationUtils {
     return Stream.concat(payloadDataValues, savedDataValues).collect(Collectors.toSet());
   }
 
-  public static boolean needsToValidateDataValues(Event event, ProgramStage programStage) {
+  public static boolean needsToValidateDataValues(Event event, @Nonnull ProgramStage programStage) {
     if (EventStatus.STATUSES_WITHOUT_DATA_VALUES.contains(event.getStatus())) {
       return false;
     } else if (programStage.getValidationStrategy().equals(ValidationStrategy.ON_COMPLETE)
