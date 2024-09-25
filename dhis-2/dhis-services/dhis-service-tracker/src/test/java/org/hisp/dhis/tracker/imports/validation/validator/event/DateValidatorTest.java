@@ -55,19 +55,17 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 /**
  * @author Enrico Colasante
  */
-@MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class DateValidatorTest extends TestBase {
 
@@ -87,29 +85,24 @@ class DateValidatorTest extends TestBase {
   public void setUp() {
     validator = new DateValidator();
 
-    User user = makeUser("A");
-
-    bundle = TrackerBundle.builder().user(user).preheat(preheat).build();
-
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration());
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID)))
-        .thenReturn(getProgramWithoutRegistration());
+    bundle = TrackerBundle.builder().preheat(preheat).build();
 
     TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new Reporter(idSchemes);
+    injectSecurityContext(UserDetails.fromUser(makeUser("A")));
   }
 
   @Test
   void testEventIsValid() {
     // given
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID)))
+        .thenReturn(getProgramWithoutRegistration());
     Event event = new Event();
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID));
     event.setOccurredAt(now());
     event.setStatus(EventStatus.ACTIVE);
 
-    TrackerBundle bundle =
-        TrackerBundle.builder().user(getEditExpiredUser()).preheat(preheat).build();
+    TrackerBundle bundle = TrackerBundle.builder().preheat(preheat).build();
 
     // when
     validator.validate(reporter, bundle, event);
@@ -121,6 +114,8 @@ class DateValidatorTest extends TestBase {
   @Test
   void testEventIsNotValidWhenOccurredDateIsNotPresentAndProgramIsWithoutRegistration() {
     // given
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID)))
+        .thenReturn(getProgramWithoutRegistration());
     Event event = new Event();
     event.setEvent(CodeGenerator.generateUid());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID));
@@ -135,6 +130,8 @@ class DateValidatorTest extends TestBase {
   @Test
   void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsActive() {
     // given
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
+        .thenReturn(getProgramWithRegistration());
     Event event = new Event();
     event.setEvent(CodeGenerator.generateUid());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
@@ -150,6 +147,8 @@ class DateValidatorTest extends TestBase {
   @Test
   void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsCompleted() {
     // given
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
+        .thenReturn(getProgramWithRegistration());
     Event event = new Event();
     event.setEvent(CodeGenerator.generateUid());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
@@ -165,6 +164,8 @@ class DateValidatorTest extends TestBase {
   @Test
   void testEventIsNotValidWhenScheduledDateIsNotPresentAndEventIsSchedule() {
     // given
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
+        .thenReturn(getProgramWithRegistration());
     Event event = new Event();
     event.setEvent(CodeGenerator.generateUid());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
@@ -181,6 +182,8 @@ class DateValidatorTest extends TestBase {
   @Test
   void testEventIsNotValidWhenCompletedAtIsNotPresentAndEventIsCompleted() {
     // given
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
+        .thenReturn(getProgramWithRegistration());
     Event event = new Event();
     event.setEvent(CodeGenerator.generateUid());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
@@ -197,6 +200,8 @@ class DateValidatorTest extends TestBase {
   @Test
   void testEventIsNotValidWhenCompletedAtIsTooSoonAndEventIsCompleted() {
     // given
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
+        .thenReturn(getProgramWithRegistration());
     Event event = new Event();
     event.setEvent(CodeGenerator.generateUid());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
@@ -214,6 +219,8 @@ class DateValidatorTest extends TestBase {
   @Test
   void testEventIsNotValidWhenOccurredAtAndScheduledAtAreNotPresent() {
     // given
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
+        .thenReturn(getProgramWithRegistration());
     Event event = new Event();
     event.setEvent(CodeGenerator.generateUid());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
@@ -231,6 +238,8 @@ class DateValidatorTest extends TestBase {
   @Test
   void testEventIsNotValidWhenDateBelongsToExpiredPeriod() {
     // given
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
+        .thenReturn(getProgramWithRegistration());
     Event event = new Event();
     event.setEvent(CodeGenerator.generateUid());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));

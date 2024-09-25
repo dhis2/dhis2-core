@@ -39,6 +39,7 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
@@ -96,6 +97,8 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   private Program program;
 
+  private UserDetails user;
+
   private TrackedEntityType trackedEntityType;
 
   @BeforeEach
@@ -105,9 +108,10 @@ class SecurityOwnershipValidatorTest extends TestBase {
     organisationUnit = createOrganisationUnit('A');
     organisationUnit.setUid(ORG_UNIT_ID);
 
-    User user = makeUser("A");
-    user.addOrganisationUnit(organisationUnit);
-    when(bundle.getUser()).thenReturn(user);
+    User userA = makeUser("A");
+    userA.addOrganisationUnit(organisationUnit);
+    user = UserDetails.fromUser(userA);
+    injectSecurityContext(user);
 
     trackedEntityType = createTrackedEntityType('A');
     trackedEntityType.setUid(TE_TYPE_ID);
@@ -178,8 +182,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID)))
         .thenReturn(trackedEntityType);
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE);
-    when(aclService.canDataWrite(UserDetails.fromUser(bundle.getUser()), trackedEntityType))
-        .thenReturn(true);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
     validator.validate(reporter, bundle, trackedEntity);
 
@@ -215,15 +218,13 @@ class SecurityOwnershipValidatorTest extends TestBase {
             .trackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID))
             .build();
 
-    when(bundle.getUser()).thenReturn(deleteTeiAuthorisedUser());
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
     TrackedEntity te = teWithEnrollments();
-    User user = deleteTeiAuthorisedUser();
-    user.addOrganisationUnit(organisationUnit);
+    UserDetails userDetails = deleteTeiAuthorisedUser();
 
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
-    when(bundle.getUser()).thenReturn(user);
-    when(trackerAccessManager.canWrite(UserDetails.fromUser(user), te)).thenReturn(List.of());
+
+    when(trackerAccessManager.canWrite(userDetails, te)).thenReturn(List.of());
 
     validator.validate(reporter, bundle, trackedEntity);
 
@@ -264,9 +265,8 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID)))
         .thenReturn(trackedEntityType);
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE);
-    User user = makeUser("B");
-    when(bundle.getUser()).thenReturn(user);
-    when(aclService.canDataWrite(UserDetails.fromUser(user), trackedEntityType)).thenReturn(true);
+    UserDetails userDetails = incorrectCaptureScopeUser();
+    when(aclService.canDataWrite(userDetails, trackedEntityType)).thenReturn(true);
 
     validator.validate(reporter, bundle, trackedEntity);
 
@@ -327,7 +327,19 @@ class SecurityOwnershipValidatorTest extends TestBase {
     return trackedEntity;
   }
 
-  private User deleteTeiAuthorisedUser() {
-    return makeUser("A", Lists.newArrayList(Authorities.F_TEI_CASCADE_DELETE.name()));
+  private UserDetails deleteTeiAuthorisedUser() {
+    User authorizedUser =
+        makeUser("A", Lists.newArrayList(Authorities.F_TEI_CASCADE_DELETE.name()));
+    authorizedUser.setOrganisationUnits(Set.of(organisationUnit));
+    UserDetails userDetails = UserDetails.fromUser(authorizedUser);
+    injectSecurityContext(userDetails);
+    return userDetails;
+  }
+
+  private UserDetails incorrectCaptureScopeUser() {
+    User authorizedUser = makeUser("B");
+    UserDetails userDetails = UserDetails.fromUser(authorizedUser);
+    injectSecurityContext(userDetails);
+    return userDetails;
   }
 }

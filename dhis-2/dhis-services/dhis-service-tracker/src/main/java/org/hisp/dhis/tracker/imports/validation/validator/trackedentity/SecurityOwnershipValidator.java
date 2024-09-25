@@ -85,11 +85,11 @@ class SecurityOwnershipValidator
             : bundle.getPreheat().getOrganisationUnit(trackedEntity.getOrgUnit());
 
     if (strategy.isCreate()) {
-      checkTeTypeWriteAccess(reporter, trackedEntity, trackedEntityType, user);
+      checkTeTypeWriteAccess(reporter, trackedEntity, trackedEntityType);
     }
 
     if (strategy.isCreate() || strategy.isDelete()) {
-      checkOrgUnitInCaptureScope(reporter, trackedEntity, organisationUnit, user);
+      checkOrgUnitInCaptureScope(reporter, trackedEntity, organisationUnit);
     }
 
     if (!strategy.isCreate()) {
@@ -112,8 +112,8 @@ class SecurityOwnershipValidator
   private void checkTeTypeWriteAccess(
       Reporter reporter,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity,
-      TrackedEntityType trackedEntityType,
-      UserDetails user) {
+      TrackedEntityType trackedEntityType) {
+    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
     if (!aclService.canDataWrite(user, trackedEntityType)) {
       reporter.addError(trackedEntity, ValidationCode.E1001, user, trackedEntityType);
     }
@@ -125,7 +125,8 @@ class SecurityOwnershipValidator
   }
 
   private void checkOrgUnitInCaptureScope(
-      Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit, UserDetails user) {
+      Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit) {
+    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
     if (!user.isInUserHierarchy(orgUnit.getPath())) {
       reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
     }
