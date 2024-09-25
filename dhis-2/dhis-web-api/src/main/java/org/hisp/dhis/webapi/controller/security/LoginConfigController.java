@@ -40,6 +40,7 @@ import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.setting.SystemSettingsTranslationService;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.webapi.controller.Server;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -59,12 +60,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class LoginConfigController {
 
   private final SystemSettingsService settingsService;
+  private final SystemSettingsTranslationService settingsTranslationService;
   private final ConfigurationService configurationService;
   private final SystemService systemService;
   private final DhisOidcProviderRepository oidcProviderRepository;
 
   private String getTranslatableString(String key, String locale) {
-    return settingsService
+    return settingsTranslationService
         .getSystemSettingTranslation(key, locale)
         .orElseGet(() -> settingsService.getCurrentSettings().asString(key, ""));
   }

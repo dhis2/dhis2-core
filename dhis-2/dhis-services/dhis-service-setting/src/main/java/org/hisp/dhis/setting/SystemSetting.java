@@ -29,7 +29,7 @@ package org.hisp.dhis.setting;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -40,11 +40,16 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@RequiredArgsConstructor
+@NoArgsConstructor
 public class SystemSetting {
 
   private long id;
 
-  @EqualsAndHashCode.Include private final String name;
-  private final String value;
+  @EqualsAndHashCode.Include private String name;
+  private String value;
+
+  public SystemSetting(String name, String value) {
+    this.name = name;
+    this.value = value;
+  }
 }

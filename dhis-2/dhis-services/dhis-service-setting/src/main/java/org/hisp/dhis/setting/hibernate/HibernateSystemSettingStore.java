@@ -42,7 +42,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
- * @author Lars Helge Overland
+ * @author Jan Bernitt (refactored version)
  */
 @Repository
 public class HibernateSystemSettingStore extends HibernateGenericStore<SystemSetting>
@@ -63,10 +63,27 @@ public class HibernateSystemSettingStore extends HibernateGenericStore<SystemSet
   }
 
   @Override
-  public int delete(Set<String> keys) {
+  public void store(@Nonnull String key, @Nonnull String value) {
+    String sql = "update systemsetting set value = :value where name = :key";
+    int updated =
+        nativeSynchronizedQuery(sql)
+            .setParameter("key", key)
+            .setParameter("value", value)
+            .executeUpdate();
+    if (updated > 0) return;
+    sql =
+        "insert into systemsetting (systemsettingid, name, value) (select nextval('hibernate_sequence'), :key, :value)";
+    nativeSynchronizedQuery(sql)
+        .setParameter("key", key)
+        .setParameter("value", value)
+        .executeUpdate();
+  }
+
+  @Override
+  public int delete(@Nonnull Set<String> keys) {
     if (keys.isEmpty()) return 0;
-    String sql = "delete from systemsetting where name in :name";
-    return nativeSynchronizedQuery(sql).setParameterList("name", keys).executeUpdate();
+    String sql = "delete from systemsetting where name in :keys";
+    return nativeSynchronizedQuery(sql).setParameterList("keys", keys).executeUpdate();
   }
 
   /**
@@ -74,7 +91,7 @@ public class HibernateSystemSettingStore extends HibernateGenericStore<SystemSet
    * the quotes of a JSON string in case they are still present.
    */
   private static String unquote(String str) {
-    return str == null || str.isEmpty() || (!str.startsWith("\"") && str.endsWith("\""))
+    return str == null || !str.startsWith("\"") || !str.endsWith("\"")
         ? str
         : str.substring(1, str.length() - 1);
   }

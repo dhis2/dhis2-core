@@ -50,6 +50,7 @@ import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSetting;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.setting.SystemSettingsTranslationService;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
@@ -77,6 +78,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class SystemSettingController {
 
   private final SystemSettingsService settingsService;
+  private final SystemSettingsTranslationService settingsTranslationService;
 
   @PostMapping(value = "/{key}")
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
@@ -168,7 +170,7 @@ public class SystemSettingController {
       @PathVariable("key") String key, @RequestParam("locale") String locale) {
     if (locale == null || locale.isEmpty())
       locale = UserSettings.getCurrentSettings().getUserUiLocale().getLanguage();
-    return settingsService.getSystemSettingTranslation(key, locale).orElse("");
+    return settingsTranslationService.getSystemSettingTranslation(key, locale).orElse("");
   }
 
   @PostMapping(value = "/{key}", params = "locale", consumes = TEXT_PLAIN_VALUE)
@@ -181,7 +183,7 @@ public class SystemSettingController {
       @RequestBody(required = false) String valuePayload)
       throws ForbiddenException, BadRequestException {
     if (value == null) value = valuePayload;
-    settingsService.saveSystemSettingTranslation(key, locale, value);
+    settingsTranslationService.saveSystemSettingTranslation(key, locale, value);
     return ok(
         "Translation for system setting '%s' and locale: '%s' set to: '%s'"
             .formatted(key, locale, value));
@@ -193,6 +195,6 @@ public class SystemSettingController {
   public void removeSystemSettingTranslation(
       @PathVariable("key") String key, @RequestParam("locale") String locale)
       throws ForbiddenException, BadRequestException {
-    settingsService.saveSystemSettingTranslation(key, locale, StringUtils.EMPTY);
+    settingsTranslationService.saveSystemSettingTranslation(key, locale, StringUtils.EMPTY);
   }
 }

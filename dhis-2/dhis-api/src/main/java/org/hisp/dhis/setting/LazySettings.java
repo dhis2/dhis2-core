@@ -124,7 +124,7 @@ final class LazySettings implements SystemSettings, UserSettings {
     int i = 0;
     for (Map.Entry<String, String> e : from.entrySet()) {
       keys[i] = e.getKey();
-      values[i++] = decoder.apply(e.getValue());
+      values[i++] = isConfidential(e.getKey()) ? decoder.apply(e.getValue()) : e.getValue();
     }
     return new LazySettings(type, keys, values);
   }

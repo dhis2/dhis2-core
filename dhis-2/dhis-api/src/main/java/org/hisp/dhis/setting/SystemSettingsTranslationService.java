@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +27,38 @@
  */
 package org.hisp.dhis.setting;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
-import org.springframework.transaction.annotation.Transactional;
+import java.util.Optional;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 
 /**
- * @author Stian Strandli
- * @author Lars Helge Overland
+ * @author Jan Bernitt
+ * @since 2.42
  */
-@TestInstance(Lifecycle.PER_CLASS)
-@Transactional
-@RequiredArgsConstructor
-class SystemSettingManagerTest extends PostgresIntegrationTestBase {
+public interface SystemSettingsTranslationService {
 
-  private final SystemSettingsService settingsService;
+  /**
+   * Saves the translation for given setting key and locale if given setting key is translatable. If
+   * the translation string contains an empty string, the translation for given locale and key is
+   * removed.
+   *
+   * @param key of the related setting
+   * @param locale locale of the translation (should be a language tag)
+   * @param translation translation text, null or empty to delete
+   */
+  void saveSystemSettingTranslation(
+      @Nonnull String key, @Nonnull String locale, @CheckForNull String translation)
+      throws ForbiddenException, BadRequestException;
 
-  // TODO new tests
+  /**
+   * Returns the translation for given setting key and locale or empty Optional if no translation is
+   * available or setting key is not translatable.
+   *
+   * @param key SettingKey
+   * @param locale Locale of required translation
+   * @return The Optional with the actual translation or empty Optional
+   */
+  Optional<String> getSystemSettingTranslation(@Nonnull String key, @Nonnull String locale);
 }

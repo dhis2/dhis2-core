@@ -75,12 +75,23 @@ public non-sealed interface SystemSettings extends Settings {
     return LazySettings.of(SystemSettings.class, settings);
   }
 
+  /**
+   * Creates settings from raw key-value pairs.
+   *
+   * @param settings raw values, potentially encoded
+   * @param decoder applied to all {@link #isConfidential(String)} values
+   * @return a new instance of settings
+   */
   @Nonnull
   static SystemSettings of(
       @Nonnull Map<String, String> settings, @Nonnull UnaryOperator<String> decoder) {
     return LazySettings.of(SystemSettings.class, settings, decoder);
   }
 
+  /**
+   * @return a set of all key names that have defaults as defined by accessor methods in {@link
+   *     SystemSettings}
+   */
   @Nonnull
   static Set<String> keysWithDefaults() {
     return LazySettings.keysWithDefaults(SystemSettings.class);

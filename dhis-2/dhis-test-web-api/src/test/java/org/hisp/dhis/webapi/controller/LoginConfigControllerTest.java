@@ -41,6 +41,7 @@ import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.oidc.provider.GoogleProvider;
 import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.setting.SystemSettingsTranslationService;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
@@ -55,6 +56,7 @@ import org.springframework.web.util.HtmlUtils;
 class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired SystemSettingsService settingsService;
+  @Autowired SystemSettingsTranslationService settingsTranslationService;
   @Autowired SystemService systemService;
   @Autowired DhisOidcProviderRepository dhisOidcProviderRepository;
 
@@ -72,25 +74,27 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
     addGoogleProvider("testClientId");
 
     settingsService.saveSystemSetting("applicationTitle", "DHIS2");
-    settingsService.saveSystemSettingTranslation(
+    settingsTranslationService.saveSystemSettingTranslation(
         "applicationTitle", "no", "Distrikstshelsesinformasjonssystem versjon 2");
 
     settingsService.saveSystemSetting("loginPopup", "<html>TEXT</html>");
-    settingsService.saveSystemSettingTranslation("loginPopup", "no", "<html>tekst</html>");
+    settingsTranslationService.saveSystemSettingTranslation(
+        "loginPopup", "no", "<html>tekst</html>");
 
     settingsService.saveSystemSetting("keyApplicationFooter", "APPLICATION_FOOTER");
-    settingsService.saveSystemSettingTranslation("keyApplicationFooter", "no", "Søknadsbunntekst");
+    settingsTranslationService.saveSystemSettingTranslation(
+        "keyApplicationFooter", "no", "Søknadsbunntekst");
 
     settingsService.saveSystemSetting("keyApplicationRightFooter", "APPLICATION_RIGHT_FOOTER");
-    settingsService.saveSystemSettingTranslation(
+    settingsTranslationService.saveSystemSettingTranslation(
         "keyApplicationRightFooter", "no", "Høyre søknadsbunntekst");
 
     settingsService.saveSystemSetting("keyApplicationIntro", "APPLICATION_INTRO");
-    settingsService.saveSystemSettingTranslation(
+    settingsTranslationService.saveSystemSettingTranslation(
         "keyApplicationIntro", "no", "Søknadsintroduksjon");
 
     settingsService.saveSystemSetting("keyApplicationNotification", "APPLICATION_NOTIFICATION");
-    settingsService.saveSystemSettingTranslation(
+    settingsTranslationService.saveSystemSettingTranslation(
         "keyApplicationNotification", "no", "Søknadsmelding");
 
     settingsService.saveSystemSetting("keyFlag", "FLAG_IMAGE");

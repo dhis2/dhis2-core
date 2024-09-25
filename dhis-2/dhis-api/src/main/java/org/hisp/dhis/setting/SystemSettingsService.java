@@ -29,12 +29,9 @@ package org.hisp.dhis.setting;
 
 import java.io.Serializable;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
 
 /**
  * @author Jan Bernitt (refactored version)
@@ -44,6 +41,13 @@ public interface SystemSettingsService extends SystemSettingsProvider {
   /** Called at the start of a new request to ensure fresh view of the settings */
   void clearCurrentSettings();
 
+  /**
+   * Saves a single setting with {@link Settings#valueOf(Serializable)} applied to the provided
+   * value.
+   *
+   * @param key of the setting to insert or update
+   * @param value of the setting, null or empty to delete
+   */
   void saveSystemSetting(@Nonnull String key, @CheckForNull Serializable value);
 
   /**
@@ -56,30 +60,7 @@ public interface SystemSettingsService extends SystemSettingsProvider {
   /**
    * Deletes the system setting with the given name.
    *
-   * @param names of the system setting to delete
+   * @param keys of the system setting to delete
    */
-  void deleteSystemSettings(@Nonnull Set<String> names);
-
-  /**
-   * Saves the translation for given setting key and locale if given setting key is translatable. If
-   * the translation string contains an empty string, the translation for given locale and key is
-   * removed.
-   *
-   * @param key of the related setting
-   * @param locale locale of the translation (should be a language tag)
-   * @param translation translation text, null or empty to delete
-   */
-  void saveSystemSettingTranslation(
-      @Nonnull String key, @Nonnull String locale, @CheckForNull String translation)
-      throws ForbiddenException, BadRequestException;
-
-  /**
-   * Returns the translation for given setting key and locale or empty Optional if no translation is
-   * available or setting key is not translatable.
-   *
-   * @param key SettingKey
-   * @param locale Locale of required translation
-   * @return The Optional with the actual translation or empty Optional
-   */
-  Optional<String> getSystemSettingTranslation(@Nonnull String key, @Nonnull String locale);
+  void deleteSystemSettings(@Nonnull Set<String> keys);
 }

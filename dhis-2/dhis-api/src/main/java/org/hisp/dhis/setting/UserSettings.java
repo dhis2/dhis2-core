@@ -97,6 +97,10 @@ public non-sealed interface UserSettings extends Settings {
     CurrentUserSettings.overrideCurrentSettings(settings);
   }
 
+  /**
+   * @return a set of all key names that have defaults as defined by accessor methods in {@link
+   *     UserSettings}
+   */
   @Nonnull
   static Set<String> keysWithDefaults() {
     return LazySettings.keysWithDefaults(UserSettings.class);

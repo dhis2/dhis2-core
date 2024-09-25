@@ -27,28 +27,18 @@
  */
 package org.hisp.dhis.setting;
 
-import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
 import static org.hisp.dhis.setting.SystemSettings.isConfidential;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.NonTransactional;
-import org.hisp.dhis.datastore.DatastoreEntry;
-import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
-import org.hisp.dhis.datastore.DatastoreService;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.user.SystemUser;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -73,19 +63,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 @RequiredArgsConstructor
 public class DefaultSystemSettingsService implements SystemSettingsService {
 
-  /** The namespace used to store settings translations in the datastore. */
-  private static final String NS = "settings-translations";
-
-  private final DatastoreService datastore;
-
-  @PostConstruct
-  private void init() {
-    // Note: this uses a protection to prevent direct access
-    // but from within this service it datastore is read-accessed as SystemUser
-    datastore.addProtection(
-        new DatastoreNamespaceProtection(NS, RESTRICTED, Authorities.F_SYSTEM_SETTING.name()));
-  }
-
   /** This is a per thread cache of the settings */
   private final ThreadLocal<SystemSettings> currentSettings = new ThreadLocal<>();
 
@@ -93,6 +70,7 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
   private final @Qualifier("tripleDesStringEncryptor") PBEStringEncryptor pbeStringEncryptor;
   private final TransactionTemplate transactionTemplate;
 
+  /** The "cache" for the current settings */
   private SystemSettings allSettings;
 
   @Override
@@ -137,60 +115,25 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
   @Transactional
   public void saveSystemSettings(@Nonnull Map<String, String> settings) {
     if (settings.isEmpty()) return;
+    Set<String> deletes = new HashSet<>();
     for (Map.Entry<String, String> e : settings.entrySet()) {
-      String name = e.getKey();
+      String key = e.getKey();
       String value = e.getValue();
-      if (value != null && !value.isEmpty() && isConfidential(name))
-        value = pbeStringEncryptor.encrypt(value);
       if (value == null || value.isEmpty()) {
-        systemSettingStore.delete(new SystemSetting(name, null));
+        deletes.add(key);
       } else {
-        systemSettingStore.save(new SystemSetting(name, value));
+        systemSettingStore.store(
+            key, isConfidential(key) ? pbeStringEncryptor.encrypt(value) : value);
       }
     }
+    deleteSystemSettings(deletes);
     allSettings = null; // invalidate
   }
 
   @Override
   @Transactional
-  public void deleteSystemSettings(@Nonnull Set<String> names) {
-    if (systemSettingStore.delete(names) > 0) allSettings = null; // invalidate
-  }
-
-  @Override
-  @Transactional
-  public void saveSystemSettingTranslation(
-      @Nonnull String key, @Nonnull String locale, String translation)
-      throws ForbiddenException, BadRequestException {
-    String datastoreKey = getDatastoreKey(key, locale);
-    if (translation == null || translation.isEmpty()) {
-      datastore.deleteEntry(new DatastoreEntry(NS, datastoreKey), getCurrentUserDetails());
-    } else {
-      DatastoreEntry entry = new DatastoreEntry(NS, datastoreKey, translation);
-      datastore.saveOrUpdateEntry(entry, getCurrentUserDetails());
-    }
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Optional<String> getSystemSettingTranslation(@Nonnull String key, @Nonnull String locale) {
-    DatastoreEntry entry = null;
-    try {
-      entry = datastore.getEntry(NS, getDatastoreKey(key, locale), new SystemUser());
-    } catch (ForbiddenException e) {
-      // this should never happen as we use SuperUser
-      // but, we really don't want to propagate the exception
-      throw new RuntimeException(e);
-    }
-    return entry == null ? Optional.empty() : Optional.ofNullable(entry.getValue());
-  }
-
-  /**
-   * @param key a settings key
-   * @param locale a language tag
-   * @return the key used in the datastore for a system setting tranaslation
-   */
-  private static String getDatastoreKey(String key, String locale) {
-    return key + ":" + locale;
+  public void deleteSystemSettings(@Nonnull Set<String> keys) {
+    if (keys.isEmpty()) return;
+    if (systemSettingStore.delete(keys) > 0) allSettings = null; // invalidate
   }
 }

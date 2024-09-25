@@ -30,12 +30,11 @@ package org.hisp.dhis.setting;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.common.GenericStore;
 
 /**
  * @author Lars Helge Overland
  */
-public interface SystemSettingStore extends GenericStore<SystemSetting> {
+public interface SystemSettingStore {
 
   /**
    * @return a map of all settings keys and values, all values are as stored in database, that means
@@ -45,8 +44,16 @@ public interface SystemSettingStore extends GenericStore<SystemSetting> {
   Map<String, String> getAllSettings();
 
   /**
+   * Update or insert a key-value pair.
+   *
+   * @param key name of the setting
+   * @param value value of the setting
+   */
+  void store(@Nonnull String key, @Nonnull String value);
+
+  /**
    * @param keys the setting to delete
    * @return number of settings that were deleted
    */
-  int delete(Set<String> keys);
+  int delete(@Nonnull Set<String> keys);
 }
