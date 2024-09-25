@@ -49,6 +49,7 @@ import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 
 /**
@@ -58,7 +59,7 @@ class DateValidator implements Validator<Event> {
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
     TrackerPreheat preheat = bundle.getPreheat();
-    UserDetails user = UserDetails.fromUser(bundle.getUser());
+    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
     Program program = preheat.getProgram(event.getProgram());
 
     if (event.getOccurredAt() == null && occuredAtDateIsMandatory(event, program)) {

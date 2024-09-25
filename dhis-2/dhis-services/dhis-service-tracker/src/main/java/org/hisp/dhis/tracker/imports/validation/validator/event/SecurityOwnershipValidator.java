@@ -53,6 +53,7 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -76,7 +77,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       Reporter reporter, TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event) {
     TrackerImportStrategy strategy = bundle.getStrategy(event);
     TrackerPreheat preheat = bundle.getPreheat();
-    UserDetails user = UserDetails.fromUser(bundle.getUser());
+    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
 
     Event preheatEvent = bundle.getPreheat().getEvent(event.getEvent());
 

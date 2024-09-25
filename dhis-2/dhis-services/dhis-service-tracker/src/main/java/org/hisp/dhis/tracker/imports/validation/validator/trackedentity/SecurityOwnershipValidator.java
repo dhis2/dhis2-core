@@ -43,6 +43,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -65,7 +66,7 @@ class SecurityOwnershipValidator
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity) {
     TrackerImportStrategy strategy = bundle.getStrategy(trackedEntity);
-    UserDetails user = UserDetails.fromUser(bundle.getUser());
+    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
 
     TrackedEntityType trackedEntityType =
         strategy.isUpdateOrDelete()
