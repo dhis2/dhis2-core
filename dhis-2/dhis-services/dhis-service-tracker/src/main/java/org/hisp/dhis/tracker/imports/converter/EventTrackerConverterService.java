@@ -55,6 +55,7 @@ import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -228,7 +229,7 @@ public class EventTrackerConverterService
 
     if (currentStatus != previousStatus && currentStatus == EventStatus.COMPLETED) {
       result.setCompletedDate(now);
-      result.setCompletedBy(preheat.getUsername());
+      result.setCompletedBy(CurrentUserUtil.getCurrentUsername());
     }
 
     if (currentStatus != EventStatus.COMPLETED) {

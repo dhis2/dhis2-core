@@ -82,9 +82,6 @@ import org.hisp.dhis.user.User;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class TrackerPreheat {
-  /** User to use for import job (important for threaded imports). */
-  @Getter @Setter private User user;
-
   @Getter @Setter private UserInfoSnapshot userInfo;
 
   /**
@@ -285,10 +282,6 @@ public class TrackerPreheat {
   @Getter @Setter private Map<String, List<String>> programWithOrgUnitsMap;
 
   public TrackerPreheat() {}
-
-  public String getUsername() {
-    return User.username(user);
-  }
 
   /**
    * Put a default metadata value (i.e. CategoryOption "default") into the preheat.

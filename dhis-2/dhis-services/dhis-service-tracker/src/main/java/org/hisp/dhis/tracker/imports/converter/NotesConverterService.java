@@ -29,18 +29,25 @@ package org.hisp.dhis.tracker.imports.converter;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.note.Note;
+import org.hisp.dhis.tracker.imports.TrackerUserService;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
  * @author Luciano Fiandesio
  */
 @Service
+@RequiredArgsConstructor
 public class NotesConverterService
     implements TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Note, Note> {
+
+  @Autowired private final TrackerUserService userService;
+
   @Override
   public org.hisp.dhis.tracker.imports.domain.Note to(Note note) {
     org.hisp.dhis.tracker.imports.domain.Note trackerNote =
@@ -71,7 +78,7 @@ public class NotesConverterService
     trackerNote.setAutoFields();
     trackerNote.setNoteText(note.getValue());
 
-    trackerNote.setLastUpdatedBy(preheat.getUser());
+    trackerNote.setLastUpdatedBy(userService.getCurrentUser());
     trackerNote.setCreator(note.getStoredBy());
     return trackerNote;
   }
