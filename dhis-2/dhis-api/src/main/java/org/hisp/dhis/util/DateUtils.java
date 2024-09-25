@@ -640,8 +640,7 @@ public class DateUtils {
    * @param days the number of days to add.
    */
   public static Date addDays(Date date, double days) {
-
-    final long millisPerDay = 24L * 60 * 60 * 1000;
+    final long millisPerDay = SECONDS_PER_DAY * 1000;
     long currentTimeInMillis = date.getTime();
     long additionalMillis = (long) (days * millisPerDay);
     return new Date(currentTimeInMillis + additionalMillis);
