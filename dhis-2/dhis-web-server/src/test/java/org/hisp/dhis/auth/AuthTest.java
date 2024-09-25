@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.system.util.HttpHeadersBuilder;
+import org.hisp.dhis.test.IntegrationTest;
 import org.hisp.dhis.webapi.controller.security.LoginRequest;
 import org.hisp.dhis.webapi.controller.security.LoginResponse;
 import org.junit.jupiter.api.BeforeAll;
@@ -65,6 +66,7 @@ import org.testcontainers.utility.DockerImageName;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
+@IntegrationTest
 @ActiveProfiles(profiles = {"test-postgres"})
 class AuthTest {
   private static final String POSTGRES_POSTGIS_VERSION = "13-3.4-alpine";
