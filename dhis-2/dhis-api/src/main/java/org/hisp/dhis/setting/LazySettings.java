@@ -49,8 +49,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -104,14 +104,14 @@ final class LazySettings implements SystemSettings, UserSettings {
 
   @Nonnull
   static LazySettings of(Class<? extends Settings> type, @Nonnull Map<String, String> settings) {
-    return of(type, settings, UnaryOperator.identity());
+    return of(type, settings, (k, v) -> v);
   }
 
   @Nonnull
   static LazySettings of(
       Class<? extends Settings> type,
       @Nonnull Map<String, String> settings,
-      @Nonnull UnaryOperator<String> decoder) {
+      @Nonnull BinaryOperator<String> decoder) {
     if (settings.isEmpty()) {
       if (type == UserSettings.class) return EMPTY_USER_SETTINGS;
       if (type == SystemSettings.class) return EMPTY_SYSTEM_SETTINGS;
@@ -123,8 +123,10 @@ final class LazySettings implements SystemSettings, UserSettings {
     String[] values = new String[keys.length];
     int i = 0;
     for (Map.Entry<String, String> e : from.entrySet()) {
-      keys[i] = e.getKey();
-      values[i++] = isConfidential(e.getKey()) ? decoder.apply(e.getValue()) : e.getValue();
+      String key = e.getKey();
+      String value = e.getValue();
+      keys[i] = key;
+      values[i++] = isConfidential(key) ? decoder.apply(key, value) : value;
     }
     return new LazySettings(type, keys, values);
   }

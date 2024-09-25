@@ -40,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.NonTransactional;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
+import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -100,8 +101,7 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
     if (allSettings != null) return allSettings;
     Map<String, String> values =
         transactionTemplate.execute(status -> systemSettingStore.getAllSettings());
-    allSettings =
-        SystemSettings.of(values == null ? Map.of() : values, pbeStringEncryptor::decrypt);
+    allSettings = SystemSettings.of(values == null ? Map.of() : values, this::decrypt);
     return allSettings;
   }
 
@@ -135,5 +135,14 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
   public void deleteSystemSettings(@Nonnull Set<String> keys) {
     if (keys.isEmpty()) return;
     if (systemSettingStore.delete(keys) > 0) allSettings = null; // invalidate
+  }
+
+  private String decrypt(String key, String value) {
+    try {
+      return pbeStringEncryptor.decrypt(value);
+    } catch (EncryptionOperationNotPossibleException ex) {
+      log.warn("Could not decrypt system setting '" + key + "'");
+      return "";
+    }
   }
 }

@@ -59,7 +59,7 @@ public class HibernateSystemSettingStore extends HibernateGenericStore<SystemSet
   public Map<String, String> getAllSettings() {
     String sql = "select name, value from systemsetting";
     Stream<Object[]> res = nativeSynchronizedQuery(sql).stream();
-    return res.collect(toMap(row -> (String) row[0], row -> unquote((String) row[1])));
+    return res.collect(toMap(row -> (String) row[0], row -> (String) row[1]));
   }
 
   @Override
@@ -84,15 +84,5 @@ public class HibernateSystemSettingStore extends HibernateGenericStore<SystemSet
     if (keys.isEmpty()) return 0;
     String sql = "delete from systemsetting where name in :keys";
     return nativeSynchronizedQuery(sql).setParameterList("keys", keys).executeUpdate();
-  }
-
-  /**
-   * In the past the value was converted from and to JSON before set in the object so this removes
-   * the quotes of a JSON string in case they are still present.
-   */
-  private static String unquote(String str) {
-    return str == null || !str.startsWith("\"") || !str.endsWith("\"")
-        ? str
-        : str.substring(1, str.length() - 1);
   }
 }

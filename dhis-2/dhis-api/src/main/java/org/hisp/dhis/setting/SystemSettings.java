@@ -35,7 +35,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.UnaryOperator;
+import java.util.function.BinaryOperator;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
@@ -84,7 +84,7 @@ public non-sealed interface SystemSettings extends Settings {
    */
   @Nonnull
   static SystemSettings of(
-      @Nonnull Map<String, String> settings, @Nonnull UnaryOperator<String> decoder) {
+      @Nonnull Map<String, String> settings, @Nonnull BinaryOperator<String> decoder) {
     return LazySettings.of(SystemSettings.class, settings, decoder);
   }
 
