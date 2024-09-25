@@ -63,7 +63,7 @@ class ReportSummaryIntegrationTest extends TrackerTest {
   void testStatsCountForOneCreatedTE() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
     TrackerImportParams params =
-        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).userId(userA.getUid()).build();
+        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
 
     ImportReport trackerImportTeReport = trackerImportService.importTracker(params, trackerObjects);
 
@@ -78,13 +78,10 @@ class ReportSummaryIntegrationTest extends TrackerTest {
   void testStatsCountForOneCreatedAndOneUpdatedTE() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
     TrackerImportParams params =
-        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).userId(userA.getUid()).build();
-    params.setUserId(userA.getUid());
-
+        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
     trackerImportService.importTracker(params, trackerObjects);
 
     trackerObjects = fromJson("tracker/one_update_te_and_one_new_te.json");
-    params.setUserId(userA.getUid());
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport trackerImportTeReport = trackerImportService.importTracker(params, trackerObjects);
@@ -100,13 +97,10 @@ class ReportSummaryIntegrationTest extends TrackerTest {
   void testStatsCountForOneCreatedAndOneUpdatedTEAndOneInvalidTE() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
     TrackerImportParams params =
-        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).userId(userA.getUid()).build();
-    params.setUserId(userA.getUid());
-
+        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
     trackerImportService.importTracker(params, trackerObjects);
 
     trackerObjects = fromJson("tracker/one_update_te_and_one_new_te_and_one_invalid_te.json");
-    params.setUserId(userA.getUid());
     params.setAtomicMode(AtomicMode.OBJECT);
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
@@ -125,13 +119,10 @@ class ReportSummaryIntegrationTest extends TrackerTest {
   void testStatsCountForOneCreatedEnrollment() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
     TrackerImportParams params =
-        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).userId(userA.getUid()).build();
-    params.setUserId(userA.getUid());
-
+        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
     trackerImportService.importTracker(params, trackerObjects);
 
     trackerObjects = fromJson("tracker/single_enrollment.json");
-    params.setUserId(userA.getUid());
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport trackerImportEnrollmentReport =
@@ -148,13 +139,10 @@ class ReportSummaryIntegrationTest extends TrackerTest {
   void testStatsCountForOneCreatedEnrollmentAndUpdateSameEnrollment() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
     TrackerImportParams params =
-        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).userId(userA.getUid()).build();
-    params.setUserId(userA.getUid());
-
+        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
     trackerImportService.importTracker(params, trackerObjects);
 
     trackerObjects = fromJson("tracker/single_enrollment.json");
-    params.setUserId(userA.getUid());
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport trackerImportEnrollmentReport =
@@ -167,7 +155,6 @@ class ReportSummaryIntegrationTest extends TrackerTest {
     assertEquals(0, trackerImportEnrollmentReport.getStats().getDeleted());
 
     trackerObjects = fromJson("tracker/single_enrollment.json");
-    params.setUserId(userA.getUid());
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     trackerImportEnrollmentReport = trackerImportService.importTracker(params, trackerObjects);
@@ -183,18 +170,13 @@ class ReportSummaryIntegrationTest extends TrackerTest {
   void testStatsCountForOneUpdateEnrollmentAndOneCreatedEnrollment() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/one_update_te_and_one_new_te.json");
     TrackerImportParams params =
-        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).userId(userA.getUid()).build();
-    params.setUserId(userA.getUid());
-
+        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
     trackerImportService.importTracker(params, trackerObjects);
 
     trackerObjects = fromJson("tracker/single_enrollment.json");
-    params.setUserId(userA.getUid());
-
     trackerImportService.importTracker(params, trackerObjects);
 
     trackerObjects = fromJson("tracker/one_update_enrollment_and_one_new_enrollment.json");
-    params.setUserId(userA.getUid());
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport trackerImportEnrollmentReport =
@@ -212,19 +194,14 @@ class ReportSummaryIntegrationTest extends TrackerTest {
       throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/three_tes.json");
     TrackerImportParams params =
-        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).userId(userA.getUid()).build();
-    params.setUserId(userA.getUid());
-
+        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
     trackerImportService.importTracker(params, trackerObjects);
 
     trackerObjects = fromJson("tracker/single_enrollment.json");
-    params.setUserId(userA.getUid());
-
     trackerImportService.importTracker(params, trackerObjects);
 
     trackerObjects = fromJson("tracker/one_update_and_one_new_and_one_invalid_enrollment.json");
 
-    params.setUserId(userA.getUid());
     params.setAtomicMode(AtomicMode.OBJECT);
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
@@ -244,19 +221,13 @@ class ReportSummaryIntegrationTest extends TrackerTest {
   void testStatsCountForOneCreatedEvent() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
     TrackerImportParams params =
-        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).userId(userA.getUid()).build();
-    params.setUserId(userA.getUid());
-
+        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
     trackerImportService.importTracker(params, trackerObjects);
 
     trackerObjects = fromJson("tracker/single_enrollment.json");
-    params.setUserId(userA.getUid());
-
     trackerImportService.importTracker(params, trackerObjects);
 
     trackerObjects = fromJson("tracker/single_event.json");
-    params.setUserId(userA.getUid());
-
     ImportReport trackerImportEventReport =
         trackerImportService.importTracker(params, trackerObjects);
 
@@ -271,23 +242,16 @@ class ReportSummaryIntegrationTest extends TrackerTest {
   void testStatsCountForOneUpdateEventAndOneNewEvent() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
     TrackerImportParams params =
-        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).userId(userA.getUid()).build();
-    params.setUserId(userA.getUid());
-
+        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
     trackerImportService.importTracker(params, trackerObjects);
 
     trackerObjects = fromJson("tracker/single_enrollment.json");
-    params.setUserId(userA.getUid());
-
     trackerImportService.importTracker(params, trackerObjects);
 
     trackerObjects = fromJson("tracker/single_event.json");
-    params.setUserId(userA.getUid());
-
     trackerImportService.importTracker(params, trackerObjects);
 
     trackerObjects = fromJson("tracker/one_update_event_and_one_new_event.json");
-    params.setUserId(userA.getUid());
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport trackerImportEventReport =
@@ -304,23 +268,16 @@ class ReportSummaryIntegrationTest extends TrackerTest {
   void testStatsCountForOneUpdateEventAndOneNewEventAndOneInvalidEvent() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
     TrackerImportParams params =
-        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).userId(userA.getUid()).build();
-    params.setUserId(userA.getUid());
-
+        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
     trackerImportService.importTracker(params, trackerObjects);
 
     trackerObjects = fromJson("tracker/single_enrollment.json");
-    params.setUserId(userA.getUid());
-
     trackerImportService.importTracker(params, trackerObjects);
 
     trackerObjects = fromJson("tracker/single_event.json");
-    params.setUserId(userA.getUid());
-
     trackerImportService.importTracker(params, trackerObjects);
 
     trackerObjects = fromJson("tracker/one_update_and_one_new_and_one_invalid_event.json");
-    params.setUserId(userA.getUid());
     params.setAtomicMode(AtomicMode.OBJECT);
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 

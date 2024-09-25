@@ -77,7 +77,7 @@ class TrackedEntityAttributeValueChangeLogTest extends TrackerTest {
 
   @Test
   void testTrackedEntityAttributeValueAuditCreate() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     assertNoErrors(
         trackerImportService.importTracker(
             params, fromJson("tracker/te_program_with_tea_data.json")));
@@ -104,7 +104,7 @@ class TrackedEntityAttributeValueChangeLogTest extends TrackerTest {
 
   @Test
   void testTrackedEntityAttributeValueAuditDelete() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = fromJson("tracker/te_program_with_tea_data.json");
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
