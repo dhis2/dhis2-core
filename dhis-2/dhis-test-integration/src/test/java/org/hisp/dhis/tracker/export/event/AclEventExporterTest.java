@@ -90,7 +90,7 @@ class AclEventExporterTest extends TrackerTest {
     User userA = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(userA);
 
-    TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     assertNoErrors(
         trackerImportService.importTracker(params, fromJson("tracker/event_and_enrollment.json")));
     orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");

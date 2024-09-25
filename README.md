@@ -84,11 +84,9 @@ using versions we for example publish to https://databases.dhis2.org/
 
 ## Build process
 
-This repository contains the source code for the server-side component of DHIS 2, which is developed in [Java](https://www.java.com/en/) and built with [Maven](https://maven.apache.org/). 
+This repository contains the source code for the server-side component of DHIS2, which is developed in [Java](https://www.java.com/en/) and built with [Maven](https://maven.apache.org/).
 
-To build it you must first install the root `POM` file, navigate to the `dhis-web` directory and then build the web `POM` file.
-
-See the [contributing](https://github.com/dhis2/dhis2-core/blob/master/CONTRIBUTING.md) page to learn how to run locally.
+See the [contributing](./CONTRIBUTING.md) page to learn how to run locally.
 
 ### Docker image
 
@@ -115,7 +113,9 @@ It should now be available at `http://localhost:8080`.
 To build using a custom tag run
 
 ```sh
-mvn -DskipTests -Dmaven.test.skip=true -f dhis-2/dhis-web-server/pom.xml jib:dockerBuild -Djib.to.image=dhis2/core-dev:mytag
+mvn clean package -DskipTests -Dmaven.test.skip=true --file dhis-2/pom.xml \
+    --projects dhis-web-server --also-make --activate-profiles jibDockerBuild \
+    -Djib.to.image=dhis2/core-dev:mytag
 ```
 
 For more configuration options related to Jib or Docker go to the

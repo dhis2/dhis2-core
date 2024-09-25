@@ -41,27 +41,22 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
-import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.common.scheme.SchemeInfo;
 import org.hisp.dhis.analytics.common.scheme.SchemeInfo.Data;
 import org.hisp.dhis.analytics.common.scheme.SchemeInfo.Settings;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
-import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
-import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.table.model.Partitions;
+import org.hisp.dhis.analytics.tracker.MetadataItemsHandler;
+import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.user.SystemUser;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,32 +70,26 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author maikel arabori
  */
 @ExtendWith(MockitoExtension.class)
-class DefaultEventAnalyticsServiceTest {
-  private DefaultEventAnalyticsService defaultEventAnalyticsService;
+class EventQueryServiceTest {
+  @Mock private EventQueryService eventQueryService;
+
+  @Mock private EventQueryValidator queryValidator;
+
+  @Mock private MetadataItemsHandler metadataHandler;
+
+  @Mock private SchemeIdHandler schemeIdHandler;
 
   @Mock private AnalyticsSecurityManager securityManager;
 
   @Mock private EventQueryValidator eventQueryValidator;
 
-  @Mock private DataElementService dataElementService;
-
-  @Mock private TrackedEntityAttributeService trackedEntityAttributeService;
-
   @Mock private EventAnalyticsManager eventAnalyticsManager;
-
-  @Mock private EnrollmentAnalyticsManager enrollmentAnalyticsManager;
-
-  @Mock private EventDataQueryService eventDataQueryService;
 
   @Mock private EventQueryPlanner queryPlanner;
 
   @Mock private DatabaseInfoProvider databaseInfoProvider;
 
-  @Mock private AnalyticsCache analyticsCache;
-
   @Mock private SchemeIdResponseMapper schemeIdResponseMapper;
-
-  @Mock private UserService userService;
 
   @BeforeAll
   static void setup() {
@@ -109,21 +98,15 @@ class DefaultEventAnalyticsServiceTest {
 
   @BeforeEach
   public void setUp() {
-    when(databaseInfoProvider.getDatabaseInfo()).thenReturn(DatabaseInfo.builder().build());
-    defaultEventAnalyticsService =
-        new DefaultEventAnalyticsService(
-            dataElementService,
-            trackedEntityAttributeService,
-            eventAnalyticsManager,
-            eventDataQueryService,
+    eventQueryService =
+        new EventQueryService(
             securityManager,
+            queryValidator,
+            eventAnalyticsManager,
             queryPlanner,
-            eventQueryValidator,
             databaseInfoProvider,
-            analyticsCache,
-            enrollmentAnalyticsManager,
-            schemeIdResponseMapper,
-            userService);
+            metadataHandler,
+            schemeIdHandler);
   }
 
   @Test
@@ -137,10 +120,9 @@ class DefaultEventAnalyticsServiceTest {
 
     doNothing().when(securityManager).decideAccessEventQuery(mockParams);
     when(securityManager.withUserConstraints(mockParams)).thenReturn(mockParams);
-    doNothing().when(eventQueryValidator).validate(mockParams);
     when(queryPlanner.planEventQuery(any(EventQueryParams.class))).thenReturn(mockParams);
 
-    defaultEventAnalyticsService.getEvents(mockParams);
+    eventQueryService.getEvents(mockParams);
 
     verify(schemeIdResponseMapper, atMost(1)).getSchemeIdResponseMap(mockSchemeInfo);
   }
@@ -156,10 +138,9 @@ class DefaultEventAnalyticsServiceTest {
 
     doNothing().when(securityManager).decideAccessEventQuery(mockParams);
     when(securityManager.withUserConstraints(mockParams)).thenReturn(mockParams);
-    doNothing().when(eventQueryValidator).validate(mockParams);
     when(queryPlanner.planEventQuery(any(EventQueryParams.class))).thenReturn(mockParams);
 
-    defaultEventAnalyticsService.getEvents(mockParams);
+    eventQueryService.getEvents(mockParams);
 
     verify(schemeIdResponseMapper, never()).getSchemeIdResponseMap(mockSchemeInfo);
   }

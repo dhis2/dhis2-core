@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.web.tomcat;
 
-import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -81,16 +79,13 @@ public class Main {
   private static final int DEFAULT_HTTP_PORT = 8080;
 
   private static int getPort() {
-    return Integer.parseInt(
-        firstNonNull(System.getenv("DHIS2_HTTP_PORT"), Integer.toString(DEFAULT_HTTP_PORT)));
+    return Integer.parseInt(System.getProperty("server.port", Integer.toString(DEFAULT_HTTP_PORT)));
   }
 
   public static void main(String[] args) throws Exception {
-
-    int port = getPort();
-
     Tomcat tomcat = new Tomcat();
     tomcat.setBaseDir(createTempDir());
+    int port = getPort();
     tomcat.setPort(port);
 
     Connector connector = new Connector("org.apache.coyote.http11.Http11NioProtocol");
