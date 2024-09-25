@@ -100,12 +100,12 @@ class AnalyticsServiceProgramDataElementTest extends AnalyticsServiceBaseTest {
             any(DataQueryParams.class), eq(AnalyticsTableType.DATA_VALUE), eq(0)))
         .thenReturn(CompletableFuture.completedFuture(emptyData));
 
-    when(eventAnalyticsService.getAggregatedEventData(any(EventQueryParams.class)))
+    when(eventAggregatedService.getAggregatedData(any(EventQueryParams.class)))
         .thenReturn(new ListGrid());
 
     target.getAggregatedDataValueGrid(params);
 
-    verify(eventAnalyticsService).getAggregatedEventData(capturedParams.capture());
+    verify(eventAggregatedService).getAggregatedData(capturedParams.capture());
     EventQueryParams data = capturedParams.getValue();
 
     assertThat(data.hasValueDimension(), is(false));

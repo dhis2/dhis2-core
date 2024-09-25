@@ -138,7 +138,7 @@ public class DataSet extends BaseDimensionalItemObject
   private double expiryDays;
 
   /** Days after period end to qualify for timely data submission */
-  private int timelyDays;
+  private double timelyDays;
 
   /** User group which will receive notifications when data set is marked complete, can be null. */
   private UserGroup notificationRecipients;
@@ -631,11 +631,11 @@ public class DataSet extends BaseDimensionalItemObject
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getTimelyDays() {
+  public double getTimelyDays() {
     return timelyDays;
   }
 
-  public void setTimelyDays(int timelyDays) {
+  public void setTimelyDays(double timelyDays) {
     this.timelyDays = timelyDays;
   }
 

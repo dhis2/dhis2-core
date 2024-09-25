@@ -92,7 +92,7 @@ class TrackedEntityAttributeTest extends TrackerTest {
 
   @Test
   void testTrackedAttributeValueBundleImporter() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = fromJson("tracker/te_with_tea_data.json");
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);

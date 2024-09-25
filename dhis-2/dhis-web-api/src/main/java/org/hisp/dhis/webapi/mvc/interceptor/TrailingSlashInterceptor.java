@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event;
+package org.hisp.dhis.webapi.mvc.interceptor;
 
-import org.hisp.dhis.common.Grid;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
 
-/**
- * This interface is responsible for retrieving aggregated event data. Data will be returned in a
- * grid object or as a dimensional key-value mapping.
- *
- * @author Markus Bekken
- */
-public interface EnrollmentAnalyticsService {
+@Component
+public class TrailingSlashInterceptor implements HandlerInterceptor {
 
-  /**
-   * Returns a list of enrollments matching the given query.
-   *
-   * @param params the envent query parameters.
-   * @return enrollments with event data as a Grid object.
-   */
-  Grid getEnrollments(EventQueryParams params);
+  @Override
+  public boolean preHandle(
+      HttpServletRequest request, HttpServletResponse response, Object handler) {
+
+    String requestURI = request.getRequestURI();
+    String contextPath = request.getContextPath();
+
+    // Ignore API paths
+    if (requestURI.startsWith(contextPath + "/api")) {
+      return true;
+    }
+
+    // Check if the path does not end with '/' or contains .
+    if (!requestURI.endsWith("/") && !requestURI.contains(".")) {
+      String queryString = request.getQueryString();
+      String redirectURI = requestURI + "/";
+      if (queryString != null) {
+        redirectURI += "?" + queryString;
+      }
+      response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+      response.setHeader("Location", redirectURI);
+      return false;
+    }
+
+    return true;
+  }
 }

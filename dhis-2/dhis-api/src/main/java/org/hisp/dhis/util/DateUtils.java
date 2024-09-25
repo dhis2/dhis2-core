@@ -160,6 +160,8 @@ public class DateUtils {
 
   private static final long MS_PER_S = 1000;
 
+  public static final long SECONDS_PER_DAY = 86400;
+
   private static final Pattern DURATION_PATTERN = Pattern.compile("^(\\d+)(d|h|m|s)$");
 
   private static final Map<String, ChronoUnit> TEMPORAL_MAP =
