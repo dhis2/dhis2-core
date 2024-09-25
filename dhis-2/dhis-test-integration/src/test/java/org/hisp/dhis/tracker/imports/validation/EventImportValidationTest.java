@@ -60,8 +60,8 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.user.User;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -90,7 +90,7 @@ class EventImportValidationTest extends TrackerTest {
             params, fromJson("tracker/validations/enrollments_te_enrollments-data.json")));
   }
 
-  @AfterEach
+  @BeforeEach
   void setUpUser() {
     injectSecurityContextUser(importUser);
   }

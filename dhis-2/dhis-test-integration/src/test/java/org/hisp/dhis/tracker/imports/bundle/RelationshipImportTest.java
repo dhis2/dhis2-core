@@ -44,8 +44,8 @@ import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.User;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -76,7 +76,7 @@ class RelationshipImportTest extends TrackerTest {
     manager.flush();
   }
 
-  @AfterEach
+  @BeforeEach
   void setUpUser() {
     injectSecurityContextUser(userA);
   }

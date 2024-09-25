@@ -53,8 +53,8 @@ import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.User;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -98,7 +98,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest {
     manager.clear();
   }
 
-  @AfterEach
+  @BeforeEach
   void setUpUser() {
     injectSecurityContextUser(importUser);
   }
