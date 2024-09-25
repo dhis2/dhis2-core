@@ -82,7 +82,7 @@ public class DefaultTrackerImportService implements TrackerImportService {
   @IndirectTransactional
   public ImportReport importTracker(
       TrackerImportParams params, TrackerObjects trackerObjects, JobProgress jobProgress) {
-    User user = trackerUserService.getUser(params.getUserId());
+    User user = trackerUserService.getCurrentUser();
 
     jobProgress.startingStage("Running PreHeat");
     TrackerBundle trackerBundle =

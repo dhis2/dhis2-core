@@ -70,7 +70,7 @@ class TrackedEntityProgramAttributeTest extends TrackerTest {
 
   @Test
   void testTrackedEntityProgramAttributeValue() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = fromJson("tracker/te_program_with_tea_data.json");
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
@@ -85,7 +85,7 @@ class TrackedEntityProgramAttributeTest extends TrackerTest {
 
   @Test
   void testTrackedEntityProgramAttributeValueUpdate() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = fromJson("tracker/te_program_with_tea_data.json");
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -115,7 +115,7 @@ class TrackedEntityProgramAttributeTest extends TrackerTest {
 
   @Test
   void testTrackedEntityProgramAttributeValueUpdateAndDelete() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = fromJson("tracker/te_program_with_tea_data.json");
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);

@@ -110,13 +110,7 @@ public class RelationshipSMSListener extends CompressionSMSListener {
     }
 
     TrackerImportParams params =
-        TrackerImportParams.builder()
-            .importStrategy(TrackerImportStrategy.CREATE)
-            .userId(
-                user.getUid()) // SMS processing is done inside a job executed as the user that sent
-            // the SMS. We might want to remove the params user in favor of the currentUser set on
-            // the thread.
-            .build();
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.CREATE).build();
     TrackerObjects trackerObjects =
         TrackerObjects.builder()
             .relationships(

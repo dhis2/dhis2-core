@@ -8,16 +8,16 @@ on:
   push:
     branches:
       - master
-      - '2.3[1-9]'
-      - '2.4[0-9]'
+      - "2.3[1-9]"
+      - "2.4[0-9]"
   pull_request:
     branches:
       - master
-      - '2.3[1-9]'
-      - '2.4[0-9]'
+      - "2.3[1-9]"
+      - "2.4[0-9]"
 concurrency:
-    group: ${{ github.workflow}}-${{ github.ref }}
-    cancel-in-progress: true
+  group: ${{ github.workflow}}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   sonarqube:
     runs-on: ubuntu-latest
