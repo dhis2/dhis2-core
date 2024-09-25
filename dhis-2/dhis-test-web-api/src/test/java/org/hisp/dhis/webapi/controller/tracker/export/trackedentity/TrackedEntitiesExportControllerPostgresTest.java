@@ -99,7 +99,7 @@ class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerInte
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     assertNoDataErrors(
         trackerImportService.importTracker(params, fromJson("tracker/single_te.json")));
 

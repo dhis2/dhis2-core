@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -94,7 +93,7 @@ class TrackerImporterServiceTest {
     event.setEvent("EventUid");
     final List<Event> events = List.of(event);
 
-    params = TrackerImportParams.builder().userId("123").build();
+    params = TrackerImportParams.builder().build();
 
     trackerObjects =
         TrackerObjects.builder()
@@ -104,7 +103,7 @@ class TrackerImporterServiceTest {
             .trackedEntities(new ArrayList<>())
             .build();
 
-    when(trackerUserService.getUser(anyString())).thenReturn(getUser());
+    when(trackerUserService.getCurrentUser()).thenReturn(getUser());
 
     when(validationService.validate(any(TrackerBundle.class))).thenReturn(validationResult);
     when(validationService.validateRuleEngine(any(TrackerBundle.class)))
@@ -115,8 +114,7 @@ class TrackerImporterServiceTest {
 
   @Test
   void testSkipSideEffect() {
-    TrackerImportParams parameters =
-        TrackerImportParams.builder().skipSideEffects(true).userId("123").build();
+    TrackerImportParams parameters = TrackerImportParams.builder().skipSideEffects(true).build();
 
     TrackerObjects objects =
         TrackerObjects.builder()

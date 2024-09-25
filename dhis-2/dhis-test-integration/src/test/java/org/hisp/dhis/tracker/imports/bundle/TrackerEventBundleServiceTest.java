@@ -62,7 +62,7 @@ class TrackerEventBundleServiceTest extends TrackerTest {
 
   @Test
   void testCreateSingleEventData() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = fromJson("tracker/event_events_and_enrollment.json");
     assertEquals(8, trackerObjects.getEvents().size());
 
@@ -77,7 +77,6 @@ class TrackerEventBundleServiceTest extends TrackerTest {
   void testUpdateSingleEventData() throws IOException {
     TrackerImportParams params =
         TrackerImportParams.builder()
-            .userId(importUser.getUid())
             .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
             .build();
     TrackerObjects trackerObjects = fromJson("tracker/event_events_and_enrollment.json");

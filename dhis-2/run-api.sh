@@ -1,38 +1,34 @@
 #!/usr/bin/env bash
 
-# Command for running DHIS 2 in an embedded Jetty container
+# Command for running DHIS2 in an embedded Tomcat
 
 # Requires JDK 11
 
 # Supported options:
 #
-#   -d <directory> DHIS 2 home directory
-#   -h <hostname>  Hostname (default is localhost)
+#   -d <directory> DHIS2 home directory
 #   -p <port>      Port number (default is 9090)
 #   -s             Skip compilation of source code
 #   -m             Print this manual
 
 set -e
 
-# DHIS 2 home directory
+# DHIS2 home directory
 DHIS2_HOME_DIR="/opt/dhis2"
-# Hostname or IP for DHIS2/Jetty to listen
-DHIS2_HOSTNAME="localhost"
-# Port number for DHIS2/Jetty to listen
+# Port number for DHIS2 to listen to
 DHIS2_PORT=9090
-# Skip compilation of DHIS 2 source code
+# Skip compilation of DHIS2 source code
 SKIP_COMPILE=0
 
-# Set DHIS 2 home directory to DHIS2_HOME_DIR env variable if set
+# Set DHIS2 home directory to DHIS2_HOME_DIR env variable if set
 if [[ -v "$DHIS2_HOME" ]]; then
   DHIS2_HOME_DIR=$DHIS2_HOME
 fi
 
 # Print usage help
 function print_usage() {
-  echo "Usage: $0 [-d dhis2_home] [-h hostname] [-p port] [-s]" >&2
-  echo "  -d <directory> DHIS 2 home directory" >&2
-  echo "  -h <hostname>  Hostname (default is localhost)" >&2
+  echo "Usage: $0 [-d dhis2_home] [-p port] [-s]" >&2
+  echo "  -d <directory> DHIS2 home directory" >&2
   echo "  -s             Skip compilation of source code" >&2
   echo "  -p <port>      Port number (default is 9090)" >&2
   echo "  -m             Print this manual" >&2
@@ -42,38 +38,35 @@ function print_usage() {
 function print_variables() {
   echo "JAVA_HOME: $JAVA_HOME"
   echo "DHIS2_HOME_DIR: $DHIS2_HOME_DIR"
-  echo "HOSTNAME: $DHIS2_HOSTNAME"
   echo "PORT: $DHIS2_PORT"
   echo "SKIP_COMPILE: $SKIP_COMPILE"
   echo ""
 }
 
-# Start DHIS 2 in embedded Jetty container
+# Start DHIS2 in embedded Tomcat
 function start_dhis2() {
+  DHIS2_HTTP_PORT="$DHIS2_PORT" \
+  DHIS2_HOME="$DHIS2_HOME_DIR" \
   java \
-    -Ddhis2.home=$DHIS2_HOME_DIR \
-    -Djetty.host=$DHIS2_HOSTNAME \
-    -Djetty.http.port=$DHIS2_PORT \
+    -Ddhis2.home="$DHIS2_DHIS2_HOME_DIR" \
+    -Dserver.port="$DHIS2_PORT" \
     -jar "$(dirname "$0")/dhis-web-server/target/dhis.war"
 }
 
-# Build and install DHIS 2 source code without running tests
+# Build and install DHIS2 source code without running tests
 function build_dhis2() {
-  mvn clean install \
-    -f "$(dirname "$0")/pom.xml" \
-    --batch-mode \
-    -Pdev -T 100C \
-    -DskipTests -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true
+  mvn clean package \
+    --file "$(dirname "$0")/pom.xml" \
+    --batch-mode --threads 100C \
+    -DskipTests -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true \
+    --activate-profiles dev,embedded
 }
 
 # Read command line options
-while getopts "d:h:p:sm" OPT; do
+while getopts "d:p:sm" OPT; do
   case "$OPT" in
     d)
       DHIS2_HOME_DIR=$OPTARG
-      ;;
-    h)
-      DHIS2_HOSTNAME=$OPTARG
       ;;
     p)
       DHIS2_PORT=$OPTARG
@@ -106,6 +99,5 @@ if [[ $SKIP_COMPILE == 0 ]]; then
   build_dhis2
 fi
 
-# Start DHIS 2
 start_dhis2
 exit 0
