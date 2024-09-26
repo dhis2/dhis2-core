@@ -105,7 +105,7 @@ public class EventPersister
         .eventNotifications(bundle.getEventNotifications().get(UID.of(event.getUid())))
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
-        .accessedBy(bundle.getUsername())
+        .accessedBy(CurrentUserUtil.getCurrentUsername())
         .event(event)
         .program(event.getProgramStage().getProgram())
         .triggers(triggers)

@@ -43,7 +43,6 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerBundleReportMode;
-import org.hisp.dhis.tracker.imports.TrackerUserService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.imports.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -64,8 +63,6 @@ class TrackerBundleImportReportTest {
   @Mock private ValidationService validationService;
 
   @Mock private TrackerPreprocessService trackerPreprocessService;
-
-  @Mock private TrackerUserService trackerUserService;
 
   @Mock private Notifier notifier;
 

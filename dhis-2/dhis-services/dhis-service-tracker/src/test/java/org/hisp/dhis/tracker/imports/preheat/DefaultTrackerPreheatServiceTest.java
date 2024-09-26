@@ -41,7 +41,6 @@ import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.supplier.ClassBasedSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.PreheatSupplier;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -92,7 +91,7 @@ class DefaultTrackerPreheatServiceTest {
 
     doCallRealMethod().when(classBasedSupplier).add(any(), any());
 
-    preheatService.preheat(preheatParams, idSchemeParams, getUser());
+    preheatService.preheat(preheatParams, idSchemeParams);
 
     verify(applicationContext).getBean(bean.getValue(), preheatSupplierClassCaptor.getValue());
     verify(classBasedSupplier).add(any(), any());
@@ -104,7 +103,7 @@ class DefaultTrackerPreheatServiceTest {
     when(applicationContext.getBean(bean.capture(), preheatSupplierClassCaptor.capture()))
         .thenThrow(new BeanCreationException("e"));
 
-    preheatService.preheat(preheatParams, idSchemeParams, getUser());
+    preheatService.preheat(preheatParams, idSchemeParams);
 
     verify(applicationContext).getBean(bean.getValue(), preheatSupplierClassCaptor.getValue());
     verify(classBasedSupplier, times(0)).add(any(), any());
@@ -117,15 +116,9 @@ class DefaultTrackerPreheatServiceTest {
         .thenReturn(classBasedSupplier);
     doThrow(new RuntimeException("e")).when(classBasedSupplier).add(any(), any());
 
-    preheatService.preheat(preheatParams, idSchemeParams, getUser());
+    preheatService.preheat(preheatParams, idSchemeParams);
 
     verify(applicationContext).getBean(bean.getValue(), preheatSupplierClassCaptor.getValue());
     verify(classBasedSupplier).add(any(), any());
-  }
-
-  private User getUser() {
-    User user = new User();
-    user.setUid("user1234");
-    return user;
   }
 }

@@ -56,8 +56,7 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleService;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,15 +87,9 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   }
 
   @Override
-  public TrackerBundle create(
-      TrackerImportParams params, TrackerObjects trackerObjects, User user) {
-    UserInfoSnapshot userInfo = UserInfoSnapshot.from(UserDetails.fromUser(user));
-
-    TrackerPreheat preheat =
-        trackerPreheatService.preheat(trackerObjects, params.getIdSchemes(), user);
-
-    TrackerBundle trackerBundle = ParamsConverter.convert(params, trackerObjects, user);
-    trackerBundle.setUserInfo(userInfo);
+  public TrackerBundle create(TrackerImportParams params, TrackerObjects trackerObjects) {
+    TrackerPreheat preheat = trackerPreheatService.preheat(trackerObjects, params.getIdSchemes());
+    TrackerBundle trackerBundle = ParamsConverter.convert(params, trackerObjects);
     trackerBundle.setPreheat(preheat);
 
     return trackerBundle;
@@ -151,19 +144,19 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
         if (trackedEntities.isEmpty()) {
           continue;
         }
-        executeLastUpdatedQuery(session, trackedEntities, bundle);
+        executeLastUpdatedQuery(session, trackedEntities);
       }
     }
   }
 
-  private void executeLastUpdatedQuery(
-      Session session, List<String> trackedEntities, TrackerBundle bundle) {
+  private void executeLastUpdatedQuery(Session session, List<String> trackedEntities) {
     try {
+      UserInfoSnapshot userInfo = UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails());
       session
           .getNamedQuery("updateTrackedEntitiesLastUpdated")
           .setParameter("trackedEntities", trackedEntities)
           .setParameter("lastUpdated", new Date())
-          .setParameter("lastupdatedbyuserinfo", mapper.writeValueAsString(bundle.getUserInfo()))
+          .setParameter("lastupdatedbyuserinfo", mapper.writeValueAsString(userInfo))
           .executeUpdate();
     } catch (JsonProcessingException e) {
       throw new PersistenceException(e);

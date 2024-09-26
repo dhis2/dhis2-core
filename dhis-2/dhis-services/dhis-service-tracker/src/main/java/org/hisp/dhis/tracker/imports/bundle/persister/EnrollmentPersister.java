@@ -43,6 +43,7 @@ import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Component;
 
 /**
@@ -114,7 +115,7 @@ public class EnrollmentPersister
             bundle.getEnrollmentNotifications().get(UID.of(enrollment.getUid())))
         .object(enrollment.getUid())
         .importStrategy(bundle.getImportStrategy())
-        .accessedBy(bundle.getUsername())
+        .accessedBy(CurrentUserUtil.getCurrentUsername())
         .enrollment(enrollment)
         .program(enrollment.getProgram())
         .triggers(triggers)

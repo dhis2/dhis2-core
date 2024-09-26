@@ -42,6 +42,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.UserMapper;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
@@ -76,6 +77,8 @@ public class UserSupplier extends AbstractPreheatSupplier {
             .collect(Collectors.toSet());
 
     List<org.hisp.dhis.user.User> users = userService.getUsersByUsernames(usernames);
+
+    userUids.add(CurrentUserUtil.getCurrentUserDetails().getUid());
 
     Set<org.hisp.dhis.user.User> validUsers =
         new HashSet<>(DetachUtils.detach(UserMapper.INSTANCE, users));

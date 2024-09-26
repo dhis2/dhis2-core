@@ -132,8 +132,7 @@ class TrackerPreheatServiceIntegrationTest extends PostgresIntegrationTestBase {
             .programIdScheme(TrackerIdSchemeParam.ofAttribute(ATTRIBUTE_UID))
             .build();
 
-    TrackerPreheat preheat =
-        trackerPreheatService.preheat(trackerObjects, idSchemeParams, currentUser);
+    TrackerPreheat preheat = trackerPreheatService.preheat(trackerObjects, idSchemeParams);
 
     assertNotNull(preheat);
     // asserting on specific fields instead of plain assertEquals since

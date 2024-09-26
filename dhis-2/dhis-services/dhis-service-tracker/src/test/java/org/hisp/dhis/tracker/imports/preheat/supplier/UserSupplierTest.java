@@ -35,16 +35,16 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.test.random.BeanRandomizer;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,7 +57,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith(MockitoExtension.class)
-class UserSupplierTest {
+class UserSupplierTest extends TestBase {
 
   @InjectMocks private UserSupplier supplier;
 
@@ -65,37 +65,35 @@ class UserSupplierTest {
 
   @Mock private IdentifiableObjectManager manager;
 
-  private final BeanRandomizer rnd = BeanRandomizer.create(Event.class, "assignedUser");
+  private org.hisp.dhis.user.User currentUser;
 
-  private List<org.hisp.dhis.user.User> users;
+  private User assignedUserA;
+
+  private User assignedUserB;
 
   private List<Event> events;
 
   @BeforeEach
   void setup() {
-    events = rnd.objects(Event.class, 5).collect(Collectors.toList());
-    events.forEach(
-        e ->
-            e.setAssignedUser(
-                User.builder()
-                    .uid(CodeGenerator.generateUid())
-                    .username(RandomStringUtils.random(10))
-                    .build()));
-    users = rnd.objects(org.hisp.dhis.user.User.class, 5).collect(Collectors.toList());
+    assignedUserA = user();
+    assignedUserB = user();
+    Event eventA = event(assignedUserA);
+    Event eventB = event(assignedUserB);
+    events = List.of(eventA, eventB);
 
-    IntStream.range(0, 5)
-        .forEach(i -> users.get(i).setUid(events.get(i).getAssignedUser().getUid()));
-    IntStream.range(0, 5)
-        .forEach(i -> users.get(i).setUsername(events.get(i).getAssignedUser().getUsername()));
+    currentUser = makeUser("A");
+    injectSecurityContext(UserDetails.fromUser(currentUser));
   }
 
   @Test
   void verifyUserSupplierByUid() {
-    final List<String> userIds =
-        events.stream().map(Event::getAssignedUser).map(User::getUid).collect(Collectors.toList());
+    final Set<String> userIds =
+        events.stream().map(Event::getAssignedUser).map(User::getUid).collect(Collectors.toSet());
+
+    userIds.add(currentUser.getUid());
 
     when(manager.getByUid(eq(org.hisp.dhis.user.User.class), argThat(t -> t.containsAll(userIds))))
-        .thenReturn(users);
+        .thenReturn(List.of(currentUser, map(assignedUserA), map(assignedUserB)));
 
     final TrackerObjects params = TrackerObjects.builder().events(events).build();
 
@@ -109,13 +107,14 @@ class UserSupplierTest {
 
   @Test
   void verifyUserSupplierByUsername() {
-    final List<String> usernames =
+    final Set<String> usernames =
         events.stream()
             .map(Event::getAssignedUser)
             .map(User::getUsername)
-            .collect(Collectors.toList());
+            .collect(Collectors.toSet());
 
-    when(userService.getUsersByUsernames(argThat(t -> t.containsAll(usernames)))).thenReturn(users);
+    when(userService.getUsersByUsernames(argThat(t -> t.containsAll(usernames))))
+        .thenReturn(List.of(map(assignedUserA), map(assignedUserB)));
 
     final TrackerObjects params = TrackerObjects.builder().events(events).build();
 
@@ -125,5 +124,26 @@ class UserSupplierTest {
     for (String username : usernames) {
       assertThat(preheat.getUserByUsername(username).orElseGet(null), is(notNullValue()));
     }
+  }
+
+  private org.hisp.dhis.user.User map(User assignedUser) {
+    org.hisp.dhis.user.User user = new org.hisp.dhis.user.User();
+    user.setUid(assignedUser.getUid());
+    user.setUsername(assignedUser.getUsername());
+    return user;
+  }
+
+  private Event event(User user) {
+    return Event.builder().event(CodeGenerator.generateUid()).assignedUser(user).build();
+  }
+
+  private User user() {
+    String uid = CodeGenerator.generateUid();
+    return User.builder()
+        .uid(uid)
+        .username("username" + uid)
+        .firstName("firstName")
+        .surname("surname")
+        .build();
   }
 }
