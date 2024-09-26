@@ -417,7 +417,6 @@ class EventTrackerConverterServiceTest extends TestBase {
   }
 
   private void setUpMocks() {
-    when(preheat.getUserInfo()).thenReturn(UserInfoSnapshot.from(user));
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
     when(preheat.getProgram(MetadataIdentifier.ofUid(program))).thenReturn(program);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(organisationUnit)))

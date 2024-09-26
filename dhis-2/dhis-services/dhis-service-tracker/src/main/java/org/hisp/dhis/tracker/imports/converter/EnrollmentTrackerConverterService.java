@@ -41,6 +41,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors;
@@ -129,11 +130,13 @@ public class EnrollmentTrackerConverterService
               : enrollment.getUid());
       dbEnrollment.setCreated(now);
       dbEnrollment.setStoredBy(enrollment.getStoredBy());
-      dbEnrollment.setCreatedByUserInfo(preheat.getUserInfo());
+      dbEnrollment.setCreatedByUserInfo(
+          UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails()));
     }
 
     dbEnrollment.setLastUpdated(now);
-    dbEnrollment.setLastUpdatedByUserInfo(preheat.getUserInfo());
+    dbEnrollment.setLastUpdatedByUserInfo(
+        UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails()));
     dbEnrollment.setDeleted(false);
     dbEnrollment.setCreatedAtClient(DateUtils.fromInstant(enrollment.getCreatedAtClient()));
     dbEnrollment.setLastUpdatedAtClient(DateUtils.fromInstant(enrollment.getUpdatedAtClient()));

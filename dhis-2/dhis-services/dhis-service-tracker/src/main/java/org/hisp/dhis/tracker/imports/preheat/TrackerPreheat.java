@@ -62,7 +62,6 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -82,8 +81,6 @@ import org.hisp.dhis.user.User;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class TrackerPreheat {
-  @Getter @Setter private UserInfoSnapshot userInfo;
-
   /**
    * Internal map of all metadata objects mapped by class type => [id] The value of each id can be
    * either the metadata object's uid, code, name or attribute value
