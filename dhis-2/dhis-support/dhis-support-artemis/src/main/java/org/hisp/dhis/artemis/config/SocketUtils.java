@@ -58,7 +58,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @since 4.0
  * @deprecated as of Spring Framework 5.3.16, to be removed in 6.0; see {@link SocketUtils
- *     class-level Javadoc} for details.
+ *     class-level Javadoc} for details. Added back to DHIS2 v42 to support Artemis.
  */
 public class SocketUtils {
   /** The default minimum value for port ranges used when finding an available socket port. */
