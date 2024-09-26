@@ -29,8 +29,6 @@ package org.hisp.dhis.metadata.export;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObject;
