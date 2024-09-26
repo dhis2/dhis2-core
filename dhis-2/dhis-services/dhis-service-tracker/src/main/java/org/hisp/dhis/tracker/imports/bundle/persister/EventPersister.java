@@ -61,6 +61,7 @@ import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
@@ -211,7 +212,7 @@ public class EventPersister
           }
 
           logTrackedEntityDataValueHistory(
-              preheat.getUsername(), dataElement, event, new Date(), valuesHolder);
+              CurrentUserUtil.getCurrentUsername(), dataElement, event, new Date(), valuesHolder);
         });
   }
 

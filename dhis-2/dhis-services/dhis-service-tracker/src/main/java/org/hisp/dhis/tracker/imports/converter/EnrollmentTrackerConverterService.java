@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.imports.converter;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.util.ArrayList;
@@ -41,9 +40,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
@@ -110,11 +110,7 @@ public class EnrollmentTrackerConverterService
       Enrollment dbEnrollment) {
     OrganisationUnit organisationUnit = preheat.getOrganisationUnit(enrollment.getOrgUnit());
 
-    checkNotNull(organisationUnit, TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL);
-
     Program program = preheat.getProgram(enrollment.getProgram());
-
-    checkNotNull(program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL);
 
     TrackedEntity trackedEntity = preheat.getTrackedEntity(enrollment.getTrackedEntity());
 
@@ -128,11 +124,13 @@ public class EnrollmentTrackerConverterService
               : enrollment.getUid());
       dbEnrollment.setCreated(now);
       dbEnrollment.setStoredBy(enrollment.getStoredBy());
-      dbEnrollment.setCreatedByUserInfo(preheat.getUserInfo());
+      dbEnrollment.setCreatedByUserInfo(
+          UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails()));
     }
 
     dbEnrollment.setLastUpdated(now);
-    dbEnrollment.setLastUpdatedByUserInfo(preheat.getUserInfo());
+    dbEnrollment.setLastUpdatedByUserInfo(
+        UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails()));
     dbEnrollment.setDeleted(false);
     dbEnrollment.setCreatedAtClient(DateUtils.fromInstant(enrollment.getCreatedAtClient()));
     dbEnrollment.setLastUpdatedAtClient(DateUtils.fromInstant(enrollment.getUpdatedAtClient()));
@@ -155,7 +153,7 @@ public class EnrollmentTrackerConverterService
     if (previousStatus != dbEnrollment.getStatus()) {
       if (dbEnrollment.isCompleted()) {
         dbEnrollment.setCompletedDate(now);
-        dbEnrollment.setCompletedBy(preheat.getUsername());
+        dbEnrollment.setCompletedBy(CurrentUserUtil.getCurrentUsername());
       } else if (EnrollmentStatus.CANCELLED == dbEnrollment.getStatus()) {
         dbEnrollment.setCompletedDate(now);
       }

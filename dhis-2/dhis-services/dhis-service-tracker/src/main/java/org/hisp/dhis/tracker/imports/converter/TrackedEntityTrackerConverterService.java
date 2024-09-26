@@ -32,9 +32,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -100,10 +102,10 @@ public class TrackedEntityTrackerConverterService
       teTo = new TrackedEntity();
       teTo.setUid(teFrom.getTrackedEntity());
       teTo.setCreated(now);
-      teTo.setCreatedByUserInfo(preheat.getUserInfo());
+      teTo.setCreatedByUserInfo(UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails()));
     }
 
-    teTo.setLastUpdatedByUserInfo(preheat.getUserInfo());
+    teTo.setLastUpdatedByUserInfo(UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails()));
     teTo.setStoredBy(teFrom.getStoredBy());
     teTo.setLastUpdated(now);
     teTo.setDeleted(false);

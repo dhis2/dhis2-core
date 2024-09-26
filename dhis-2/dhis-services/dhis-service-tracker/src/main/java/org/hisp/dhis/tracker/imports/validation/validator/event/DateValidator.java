@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.time.Duration.ofDays;
 import static java.time.Instant.now;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1031;
@@ -50,8 +49,7 @@ import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -60,7 +58,6 @@ class DateValidator implements Validator<Event> {
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
     TrackerPreheat preheat = bundle.getPreheat();
-
     Program program = preheat.getProgram(event.getProgram());
 
     if (event.getOccurredAt() == null && occuredAtDateIsMandatory(event, program)) {
@@ -73,19 +70,12 @@ class DateValidator implements Validator<Event> {
       return;
     }
 
-    validateExpiryDays(reporter, bundle, event, program);
+    validateExpiryDays(reporter, event, program);
     validatePeriodType(reporter, event, program);
   }
 
-  private void validateExpiryDays(
-      Reporter reporter, TrackerBundle bundle, Event event, Program program) {
-    User actingUser = bundle.getUser();
-
-    checkNotNull(actingUser, TrackerImporterAssertErrors.USER_CANT_BE_NULL);
-    checkNotNull(event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL);
-    checkNotNull(program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL);
-
-    if (actingUser.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
+  private void validateExpiryDays(Reporter reporter, Event event, Program program) {
+    if (CurrentUserUtil.getCurrentUserDetails().isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       return;
     }
 
@@ -102,9 +92,6 @@ class DateValidator implements Validator<Event> {
   }
 
   private void validatePeriodType(Reporter reporter, Event event, Program program) {
-    checkNotNull(event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL);
-    checkNotNull(program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL);
-
     PeriodType periodType = program.getExpiryPeriodType();
 
     if (periodType == null || program.getExpiryDays() == 0) {

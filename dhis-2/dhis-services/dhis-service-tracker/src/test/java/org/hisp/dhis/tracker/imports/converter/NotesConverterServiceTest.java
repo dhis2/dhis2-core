@@ -32,21 +32,28 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.test.random.BeanRandomizer;
+import org.hisp.dhis.tracker.imports.TrackerUserService;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Luciano Fiandesio
  */
+@ExtendWith(MockitoExtension.class)
 class NotesConverterServiceTest extends TestBase {
 
   private static final String CURRENT_USER = "usernamea";
@@ -55,18 +62,24 @@ class NotesConverterServiceTest extends TestBase {
 
   private TrackerPreheat preheat;
 
+  private User user;
+
+  @Mock private TrackerUserService trackerUserService;
+
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
   @BeforeEach
   void setUp() {
-    this.notesConverterService = new NotesConverterService();
-    User user = makeUser("A");
+    this.notesConverterService = new NotesConverterService(trackerUserService);
+    user = makeUser("A");
+    UserDetails userDetails = UserDetails.fromUser(user);
+    injectSecurityContext(userDetails);
     this.preheat = new TrackerPreheat();
-    preheat.setUser(user);
   }
 
   @Test
   void verifyConvertTrackerNoteToNote() {
+    when(trackerUserService.getCurrentUser()).thenReturn(user);
     org.hisp.dhis.tracker.imports.domain.Note trackerNote =
         rnd.nextObject(org.hisp.dhis.tracker.imports.domain.Note.class);
     final Note note = notesConverterService.from(preheat, trackerNote);
@@ -75,6 +88,7 @@ class NotesConverterServiceTest extends TestBase {
 
   @Test
   void verifyConvertTrackerNoteToNoteWithNoStoredByDefined() {
+    when(trackerUserService.getCurrentUser()).thenReturn(user);
     org.hisp.dhis.tracker.imports.domain.Note trackerNote =
         rnd.nextObject(org.hisp.dhis.tracker.imports.domain.Note.class);
     trackerNote.setStoredBy(null);
@@ -84,6 +98,7 @@ class NotesConverterServiceTest extends TestBase {
 
   @Test
   void verifyConvertTrackerNotesToNotes() {
+    when(trackerUserService.getCurrentUser()).thenReturn(user);
     List<org.hisp.dhis.tracker.imports.domain.Note> trackerNotes =
         rnd.objects(org.hisp.dhis.tracker.imports.domain.Note.class, 10)
             .collect(Collectors.toList());
