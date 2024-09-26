@@ -118,8 +118,15 @@ final class LazySettings implements SystemSettings, UserSettings {
       if (type == SystemSettings.class) return EMPTY_SYSTEM_SETTINGS;
     }
     // sorts alphabetically which is essential for the binary search lookup used
-    TreeMap<String, String> from =
-        settings instanceof TreeMap<String, String> tm ? tm : new TreeMap<>(settings);
+    TreeMap<String, String> from = new TreeMap<>();
+    settings.forEach(
+        (k, v) -> {
+          if (v != null && !v.isEmpty()) from.put(k, v);
+        });
+    if (from.isEmpty()) {
+      if (type == UserSettings.class) return EMPTY_USER_SETTINGS;
+      if (type == SystemSettings.class) return EMPTY_SYSTEM_SETTINGS;
+    }
     String[] keys = new String[from.size()];
     String[] values = new String[keys.length];
     int i = 0;

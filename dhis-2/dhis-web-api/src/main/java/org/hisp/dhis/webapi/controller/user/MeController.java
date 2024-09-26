@@ -282,14 +282,13 @@ public class MeController {
   }
 
   @GetMapping(value = "/settings", produces = APPLICATION_JSON_VALUE)
-  public UserSettings getSettings(@CurrentUser(required = true) UserDetails currentUser) {
-    return currentUser.getUserSettings();
+  public @ResponseBody UserSettings getSettings() {
+    return UserSettings.getCurrentSettings();
   }
 
   @GetMapping(value = "/settings/{key}", produces = APPLICATION_JSON_VALUE)
-  public JsonValue getSetting(
-      @PathVariable String key, @CurrentUser(required = true) UserDetails currentUser) {
-    return currentUser.getUserSettings().toJson(false).get(key);
+  public @ResponseBody JsonValue getSetting(@PathVariable String key) {
+    return UserSettings.getCurrentSettings().toJson(false).get(key);
   }
 
   @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
