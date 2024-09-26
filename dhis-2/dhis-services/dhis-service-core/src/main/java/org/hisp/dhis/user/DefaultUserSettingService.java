@@ -28,8 +28,10 @@
 package org.hisp.dhis.user;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -58,7 +60,7 @@ public class DefaultUserSettingService implements UserSettingService {
   @Transactional
   public UserSettings getSettings(@Nonnull String username) {
     // Note: this does **not** use transaction template as we always need a TX when this is called
-    return UserSettings.of(userSettingStore.getAllSettings(username));
+    return UserSettings.of(userSettingStore.getAll(username));
   }
 
   @Override
@@ -89,15 +91,17 @@ public class DefaultUserSettingService implements UserSettingService {
       throw new NotFoundException(
           "%s with username %s could not be found."
               .formatted(User.class.getSimpleName(), username));
+    Set<String> deletes = new HashSet<>();
     for (Map.Entry<String, String> e : settings.entrySet()) {
+      String key = e.getKey();
       String value = e.getValue();
-      UserSetting setting = new UserSetting(user, e.getKey(), value);
       if (value == null || value.isEmpty()) {
-        userSettingStore.delete(setting);
+        deletes.add(key);
       } else {
-        userSettingStore.save(setting);
+        userSettingStore.put(username, key, value);
       }
     }
+    if (!deletes.isEmpty()) userSettingStore.delete(username, deletes);
   }
 
   @Override

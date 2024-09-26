@@ -44,7 +44,6 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPathConverter;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
-import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
@@ -118,8 +117,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
       currentSystemSettingsHandlerMethodArgumentResolver;
 
   @Autowired private DefaultRequestInfoService requestInfoService;
-
-  @Autowired private UserSettingService userSettingService;
 
   @Autowired private AuthorityInterceptor authorityInterceptor;
 

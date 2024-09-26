@@ -48,14 +48,11 @@ import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Session;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.metamodel.spi.MetamodelImplementor;
-import org.hibernate.persister.entity.EntityPersister;
-import org.hibernate.persister.entity.SingleTableEntityPersister;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
+import org.hisp.dhis.HibernateNativeStore;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
@@ -68,15 +65,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author Lars Helge Overland
  */
 @Slf4j
-public class HibernateGenericStore<T> implements GenericStore<T> {
+public class HibernateGenericStore<T> extends HibernateNativeStore<T> implements GenericStore<T> {
 
   protected static final int OBJECT_FETCH_SIZE = 2000;
 
-  protected final EntityManager entityManager;
   protected final JdbcTemplate jdbcTemplate;
   protected final ApplicationEventPublisher publisher;
-  protected final Class<T> clazz;
-  protected final String tableName;
 
   protected boolean cacheable;
 
@@ -86,38 +80,13 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
       ApplicationEventPublisher publisher,
       Class<T> clazz,
       boolean cacheable) {
-    checkNotNull(entityManager);
+    super(entityManager, clazz);
     checkNotNull(jdbcTemplate);
     checkNotNull(publisher);
-    checkNotNull(clazz);
 
-    this.entityManager = entityManager;
     this.jdbcTemplate = jdbcTemplate;
     this.publisher = publisher;
-    this.clazz = clazz;
-    this.tableName = getTableName(entityManager, clazz);
     this.cacheable = cacheable;
-  }
-
-  private static String getTableName(EntityManager em, Class<?> entityClass) {
-    // Note: this is the same way we extract the table name for Schema
-    try {
-      MetamodelImplementor metamodelImplementor = (MetamodelImplementor) em.getMetamodel();
-      EntityPersister entityPersister = metamodelImplementor.entityPersister(entityClass);
-      if (entityPersister instanceof SingleTableEntityPersister persister) {
-        return persister.getTableName();
-      }
-    } catch (Exception ex) {
-      log.warn("Failed to set table name for: " + entityClass, ex);
-    }
-    return null;
-  }
-
-  /** Could be overridden programmatically. */
-  @Nonnull
-  @Override
-  public Class<T> getClazz() {
-    return clazz;
   }
 
   /** Could be overridden programmatically. */
@@ -133,15 +102,6 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   // -------------------------------------------------------------------------
   // Convenience methods
   // -------------------------------------------------------------------------
-
-  /**
-   * Returns the current session.
-   *
-   * @return the current session.
-   */
-  protected final Session getSession() {
-    return entityManager.unwrap(Session.class);
-  }
 
   /**
    * Creates a Query for given HQL query string. Return type is casted to generic type T of the
@@ -359,30 +319,6 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   // ------------------------------------------------------------------------------------------
   // End JPA Methods
   // ------------------------------------------------------------------------------------------
-
-  /**
-   * Create a Hibernate {@link NativeQuery} instance with {@code SynchronizedEntityClass} set to the
-   * current class of the store. Use this to avoid all Hibernate second level caches from being
-   * invalidated.
-   *
-   * <p>Be aware that it is only correct to use this if and only if the only table touched by the
-   * native query is the one table belonging to the store.
-   *
-   * @param sql the SQL query to execute
-   * @return the {@link NativeQuery} instance
-   */
-  @SuppressWarnings("rawtypes")
-  protected NativeQuery nativeSynchronizedQuery(@Language("SQL") String sql) {
-    return getSession().createNativeQuery(sql).addSynchronizedEntityClass(getClazz());
-  }
-
-  /**
-   * Same as {@link #nativeSynchronizedQuery(String)} just with the return type being specified as
-   * the store entity type. Use only when the result is a of the store entity type or a list of it.
-   */
-  protected NativeQuery<T> nativeSynchronizedTypedQuery(@Language("SQL") String sql) {
-    return getSession().createNativeQuery(sql, clazz).addSynchronizedEntityClass(getClazz());
-  }
 
   // -------------------------------------------------------------------------
   // GenericIdentifiableObjectStore implementation

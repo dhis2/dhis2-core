@@ -249,7 +249,7 @@ public class FilteringHelper {
    */
   public static void setFilteringParams(
       Set<String> filters, WebOptions options, MapSqlParameterSource paramsMap, User currentUser) {
-    Locale currentLocale = UserSettings.getCurrentSettings().getUserLocale();
+    Locale currentLocale = UserSettings.getCurrentSettings().evalUserLocale();
 
     if (currentLocale != null && isNotBlank(currentLocale.getLanguage())) {
       paramsMap.addValue(LOCALE, trimToEmpty(currentLocale.getLanguage()));

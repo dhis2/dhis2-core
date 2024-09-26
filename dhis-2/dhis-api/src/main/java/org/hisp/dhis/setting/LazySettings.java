@@ -28,6 +28,7 @@
 package org.hisp.dhis.setting;
 
 import static java.lang.Character.toUpperCase;
+import static org.hisp.dhis.util.JsonValueUtils.toJsonPrimitive;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -56,7 +57,6 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.LocaleUtils;
-import org.hisp.dhis.jsontree.Json;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonPrimitive;
@@ -85,7 +85,7 @@ final class LazySettings implements SystemSettings, UserSettings {
   private static final Map<String, Serializable> DEFAULTS_SYSTEM_SETTINGS =
       extractDefaults(SystemSettings.class);
   private static final Map<String, Serializable> DEFAULTS_USER_SETTINGS =
-      extractDefaults(SystemSettings.class);
+      extractDefaults(UserSettings.class);
 
   private static final LazySettings EMPTY_USER_SETTINGS =
       new LazySettings(UserSettings.class, new String[0], new String[0]);
@@ -216,26 +216,19 @@ final class LazySettings implements SystemSettings, UserSettings {
                   // add values explicitly contained in this set
                   for (int i = 0; i < keys.length; i++) {
                     String key = keys[i];
-                    if (!isConfidential(key)) obj.addMember(key, toPrimitive(rawValues[i]).node());
+                    if (!isConfidential(key))
+                      obj.addMember(key, toJsonPrimitive(rawValues[i]).node());
                   }
                   // add defaults as defined in accessor methods
                   Set<String> ignore = Set.of(keys);
                   for (Map.Entry<String, Serializable> e : defaults.entrySet()) {
                     String key = e.getKey();
                     if (!ignore.contains(key) && !isConfidential(key)) {
-                      obj.addMember(key, toPrimitive(e.getValue()).node());
+                      obj.addMember(key, toJsonPrimitive(e.getValue()).node());
                     }
                   }
                 }))
         .asMap(JsonPrimitive.class);
-  }
-
-  private JsonPrimitive toPrimitive(Object value) {
-    if (value == null) return Json.ofNull();
-    if (value instanceof Number n) return Json.of(n);
-    if (value instanceof Boolean b) return Json.of(b);
-    if (value instanceof Enum<?> e) return Json.of(e.name());
-    return Json.of(value.toString());
   }
 
   private int indexOf(String key) {
@@ -294,6 +287,7 @@ final class LazySettings implements SystemSettings, UserSettings {
                 lastDefault[0] = method;
                 return getDefaultMethodHandle(method).bindTo(proxy).invokeWithArguments(args);
               }
+              if (args == null) return null;
               if (args.length == 2) {
                 String key = (String) args[0];
                 Serializable defaultValue = (Serializable) args[1];
@@ -304,7 +298,7 @@ final class LazySettings implements SystemSettings, UserSettings {
               return args[1];
             });
     for (Method m : type.getDeclaredMethods()) {
-      if (m.isDefault() && m.getParameterCount() == 0) {
+      if (m.isDefault() && m.getParameterCount() == 0 && m.getName().startsWith("get")) {
         try {
           m.invoke(instance);
         } catch (Exception ex) {

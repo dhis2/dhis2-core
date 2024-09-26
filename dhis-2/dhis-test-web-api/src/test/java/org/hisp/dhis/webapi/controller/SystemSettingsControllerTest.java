@@ -44,11 +44,11 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link SystemSettingController} using (mocked) REST requests.
+ * Tests the {@link SystemSettingsController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-class SystemSettingControllerTest extends H2ControllerIntegrationTestBase {
+class SystemSettingsControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testSetSystemSettingOrTranslation_NoSuchObject() {

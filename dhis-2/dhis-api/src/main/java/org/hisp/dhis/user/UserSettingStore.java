@@ -30,27 +30,35 @@ package org.hisp.dhis.user;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.common.GenericStore;
 
-public interface UserSettingStore extends GenericStore<UserSetting> {
+public interface UserSettingStore {
 
   /**
    * @return a map of all settings keys and values, all values are as stored in database
    */
   @Nonnull
-  Map<String, String> getAllSettings(String username);
+  Map<String, String> getAll(@Nonnull String username);
 
   /**
+   * Update or insert a key-value pair for a user.
+   *
+   * @param username of the user whose settings add updated
+   * @param key name of the setting
+   * @param value value of the setting
+   */
+  void put(@Nonnull String username, @Nonnull String key, @Nonnull String value);
+
+  /**
+   * @param username of the user whose settings are deleted
    * @param keys the setting to delete
    * @return number of settings that were deleted
    */
-  int delete(String username, Set<String> keys);
+  int delete(@Nonnull String username, @Nonnull Set<String> keys);
 
   /**
    * Deletes all user settings
    *
    * @param username of the user whose settings are deleted
-   * @return number of settings that were deleted
    */
-  int deleteAll(String username);
+  void deleteAll(@Nonnull String username);
 }

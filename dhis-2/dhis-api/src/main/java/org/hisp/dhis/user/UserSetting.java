@@ -35,35 +35,24 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.hisp.dhis.setting.Settings;
 
 /**
  * @author Nguyen Hong Duc
  */
 @Getter
+@Setter
 @ToString
 @EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserSetting implements Serializable {
 
-  @Setter @Nonnull private User user;
+  @Nonnull private User user;
+  @Nonnull private String name;
 
-  @Setter @Nonnull private String name;
-
-  @EqualsAndHashCode.Exclude private String value;
+  @EqualsAndHashCode.Exclude private Serializable value;
 
   public boolean hasValue() {
     return value != null;
-  }
-
-  /**
-   * Kept with {@link Serializable} for backwards compatibility with the DB where it is stored as
-   * binary
-   *
-   * @param value value from DB
-   */
-  public void setValue(Serializable value) {
-    this.value = Settings.valueOf(value);
   }
 }

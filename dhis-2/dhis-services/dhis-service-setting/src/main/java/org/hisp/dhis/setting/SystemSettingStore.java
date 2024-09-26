@@ -41,7 +41,7 @@ public interface SystemSettingStore {
    *     encoded values are still encoded
    */
   @Nonnull
-  Map<String, String> getAllSettings();
+  Map<String, String> getAll();
 
   /**
    * Update or insert a key-value pair.
@@ -49,7 +49,7 @@ public interface SystemSettingStore {
    * @param key name of the setting
    * @param value value of the setting
    */
-  void store(@Nonnull String key, @Nonnull String value);
+  void put(@Nonnull String key, @Nonnull String value);
 
   /**
    * @param keys the setting to delete

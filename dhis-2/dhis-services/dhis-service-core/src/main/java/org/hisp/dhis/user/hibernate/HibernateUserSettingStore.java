@@ -29,50 +29,80 @@ package org.hisp.dhis.user.hibernate;
 
 import static java.util.stream.Collectors.toMap;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
-import org.hisp.dhis.hibernate.HibernateGenericStore;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.HibernateNativeStore;
+import org.hisp.dhis.setting.Settings;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingStore;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
- * @author Lars Helge Overland
+ * @author Jan Bernitt (refactored version)
  */
+@Slf4j
 @Repository
-public class HibernateUserSettingStore extends HibernateGenericStore<UserSetting>
+public class HibernateUserSettingStore extends HibernateNativeStore<UserSetting>
     implements UserSettingStore {
 
-  public HibernateUserSettingStore(
-      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
-    super(entityManager, jdbcTemplate, publisher, UserSetting.class, false);
+  public HibernateUserSettingStore(EntityManager em) {
+    super(em, UserSetting.class);
   }
 
   @Nonnull
   @Override
   @SuppressWarnings("unchecked")
-  public Map<String, String> getAllSettings(String username) {
+  public Map<String, String> getAll(@Nonnull String username) {
     String sql =
         """
       select name, value from usersetting
-      where userinfoid = (select userinfoid from userinfo where username = :user)""";
+      where userinfoid = (select userinfoid from userinfo where username = :user limit 1)""";
     Stream<Object[]> res = nativeSynchronizedQuery(sql).setParameter("user", username).stream();
-    return res.collect(toMap(row -> (String) row[0], row -> toString(row[1])));
+    return res.collect(toMap(row -> (String) row[0], row -> fromBinary((String) row[0], row[1])));
   }
 
   @Override
-  public int delete(String username, Set<String> keys) {
+  public void put(@Nonnull String username, @Nonnull String key, @Nonnull String value) {
+    String sql =
+        """
+      update usersetting set value = :value
+      where name = :key
+      and userinfoid = (select u.userinfoid from userinfo u where u.username = :user limit 1)""";
+    int updated =
+        nativeSynchronizedQuery(sql)
+            .setParameter("user", username)
+            .setParameter("key", key)
+            .setParameter("value", toBinary(value))
+            .executeUpdate();
+    if (updated > 0) return;
+    sql =
+        """
+      insert into usersetting (userinfoid, name, value)
+      (select u.userinfoid, :key, :value from userinfo u where u.username = :user limit 1)""";
+    nativeSynchronizedQuery(sql)
+        .setParameter("user", username)
+        .setParameter("key", key)
+        .setParameter("value", toBinary(value))
+        .executeUpdate();
+  }
+
+  @Override
+  public int delete(@Nonnull String username, @Nonnull Set<String> keys) {
     if (keys.isEmpty()) return 0;
     String sql =
         """
       delete from usersetting
         where name in :names
-        and userinfoid = (select userinfoid from userinfo where username = :user)""";
+        and userinfoid = (select userinfoid from userinfo where username = :user limit 1)""";
     return nativeSynchronizedQuery(sql)
         .setParameter("user", username)
         .setParameterList("names", keys)
@@ -80,12 +110,12 @@ public class HibernateUserSettingStore extends HibernateGenericStore<UserSetting
   }
 
   @Override
-  public int deleteAll(String username) {
+  public void deleteAll(@Nonnull String username) {
     String sql =
         """
       delete from usersetting
-        where userinfoid = (select userinfoid from userinfo where username = :user)""";
-    return nativeSynchronizedQuery(sql).setParameter("user", username).executeUpdate();
+        where userinfoid = (select userinfoid from userinfo where username = :user limit 1)""";
+    nativeSynchronizedQuery(sql).setParameter("user", username).executeUpdate();
   }
 
   /**
@@ -95,7 +125,35 @@ public class HibernateUserSettingStore extends HibernateGenericStore<UserSetting
    * only using strings outside the store layer. Also, once settings are updated they always are
    * {@link String}s just still in their binary form.
    */
-  private static String toString(Object value) {
-    return value == null ? null : value.toString();
+  private static String fromBinary(String key, Object value) {
+    if (value == null) return "";
+    if (value instanceof byte[] binary) {
+      try {
+        ByteArrayInputStream bis = new ByteArrayInputStream((byte[]) value);
+        ObjectInputStream ois = new ObjectInputStream(bis);
+        return Settings.valueOf((Serializable) ois.readObject());
+      } catch (Exception ex) {
+        log.warn(
+            "Failed to de-serialize user setting %s from binary representation, using default"
+                .formatted(key));
+        return "";
+      }
+    }
+    if (value instanceof Serializable s) return Settings.valueOf(s);
+    log.warn(
+        "Failed to de-serialize user setting %s from unknown source type: %s, using default"
+            .formatted(key, value.getClass()));
+    return "";
+  }
+
+  private static byte[] toBinary(final String value) {
+    try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream out = new ObjectOutputStream(bos)) {
+      out.writeObject(value);
+      out.flush();
+      return bos.toByteArray();
+    } catch (Exception ex) {
+      throw new IllegalArgumentException(ex);
+    }
   }
 }

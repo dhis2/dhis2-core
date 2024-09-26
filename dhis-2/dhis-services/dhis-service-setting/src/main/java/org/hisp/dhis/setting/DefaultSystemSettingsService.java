@@ -99,8 +99,7 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
    */
   private SystemSettings getAllSettings() {
     if (allSettings != null) return allSettings;
-    Map<String, String> values =
-        transactionTemplate.execute(status -> systemSettingStore.getAllSettings());
+    Map<String, String> values = transactionTemplate.execute(status -> systemSettingStore.getAll());
     allSettings = SystemSettings.of(values == null ? Map.of() : values, this::decrypt);
     return allSettings;
   }
@@ -122,7 +121,7 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
       if (value == null || value.isEmpty()) {
         deletes.add(key);
       } else {
-        systemSettingStore.store(
+        systemSettingStore.put(
             key, isConfidential(key) ? pbeStringEncryptor.encrypt(value) : value);
       }
     }

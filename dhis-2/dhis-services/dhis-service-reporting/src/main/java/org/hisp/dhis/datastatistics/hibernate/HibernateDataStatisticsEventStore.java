@@ -130,7 +130,7 @@ public class HibernateDataStatisticsEventStore extends HibernateGenericStore<Dat
     Assert.notNull(eventType, "Data statistics event type cannot be null");
     Assert.notNull(sortOrder, "Sort order cannot be null");
 
-    Locale currentLocale = UserSettings.getCurrentSettings().getUserLocale();
+    Locale currentLocale = UserSettings.getCurrentSettings().evalUserLocale();
 
     String sql =
         "select c.uid, views, (case when value is not null then value else c.name end) as name, c.created"

@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.security.Authorities.F_SYSTEM_SETTING;
+import static org.hisp.dhis.util.JsonValueUtils.toJavaString;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
@@ -56,6 +57,7 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.intellij.lang.annotations.Language;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -75,7 +77,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequestMapping("/api/systemSettings")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
-public class SystemSettingController {
+public class SystemSettingsController {
 
   private final SystemSettingsService settingsService;
   private final SystemSettingsTranslationService settingsTranslationService;
@@ -102,19 +104,10 @@ public class SystemSettingController {
   @PostMapping(value = "/{key}", consumes = APPLICATION_JSON_VALUE)
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
-  public WebMessage setSystemSettingJson(@PathVariable("key") String key, @RequestBody String value)
+  public WebMessage setSystemSettingJson(
+      @PathVariable("key") String key, @Language("json") @RequestBody String value)
       throws ConflictException {
-    JsonMixed json = JsonMixed.of(value);
-    // TODO this might not be needed as maybe any simple JSON is already decoded to a Java string by
-    // jackson
-    String plain =
-        switch (json.node().getType()) {
-          case STRING -> json.string();
-          case OBJECT, ARRAY ->
-              throw new ConflictException("A setting must be a simple JSON value");
-          default -> json.toJson();
-        };
-    return setSystemSettingPlain(key, plain);
+    return setSystemSettingPlain(key, toJavaString(JsonMixed.of(value)));
   }
 
   @PostMapping(consumes = ContextUtils.CONTENT_TYPE_JSON)
@@ -135,11 +128,10 @@ public class SystemSettingController {
   }
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
-  public SystemSettings getSystemSettingsJson() {
+  public @ResponseBody SystemSettings getSystemSettingsJson() {
     return settingsService.getCurrentSettings();
   }
 
-  @Deprecated(since = "2.42", forRemoval = true)
   @GetMapping(value = "/{key}", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody JsonValue getSystemSettingJson(@PathVariable("key") String key) {
     return settingsService.getCurrentSettings().toJson().get(key);

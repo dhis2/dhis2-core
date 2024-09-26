@@ -34,36 +34,33 @@ import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
-import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.HibernateNativeStore;
 import org.hisp.dhis.setting.SystemSetting;
 import org.hisp.dhis.setting.SystemSettingStore;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author Jan Bernitt (refactored version)
  */
 @Repository
-public class HibernateSystemSettingStore extends HibernateGenericStore<SystemSetting>
+public class HibernateSystemSettingStore extends HibernateNativeStore<SystemSetting>
     implements SystemSettingStore {
 
-  public HibernateSystemSettingStore(
-      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
-    super(entityManager, jdbcTemplate, publisher, SystemSetting.class, false);
+  public HibernateSystemSettingStore(EntityManager em) {
+    super(em, SystemSetting.class);
   }
 
   @Nonnull
   @Override
   @SuppressWarnings("unchecked")
-  public Map<String, String> getAllSettings() {
+  public Map<String, String> getAll() {
     String sql = "select name, value from systemsetting";
     Stream<Object[]> res = nativeSynchronizedQuery(sql).stream();
     return res.collect(toMap(row -> (String) row[0], row -> (String) row[1]));
   }
 
   @Override
-  public void store(@Nonnull String key, @Nonnull String value) {
+  public void put(@Nonnull String key, @Nonnull String value) {
     String sql = "update systemsetting set value = :value where name = :key";
     int updated =
         nativeSynchronizedQuery(sql)

@@ -138,7 +138,7 @@ public class HtmlPushAnalyticsJob implements Job {
   private String substituteUrl(String urlTemplate, String username) {
     String url = urlTemplate.replace("{username}", username);
     if (url.contains("{locale}")) {
-      Locale locale = userSettingService.getSettings(username).getUserLocale();
+      Locale locale = userSettingService.getSettings(username).evalUserLocale();
       url = url.replace("{locale}", locale == null ? "" : locale.toLanguageTag());
     }
     return url;

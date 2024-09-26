@@ -156,15 +156,19 @@ public non-sealed interface UserSettings extends Settings {
     return asLocale("keyDbLocale", LocaleManager.DEFAULT_LOCALE);
   }
 
-  default Locale getUserLocale() {
-    return keys().contains("keyDbLocale") ? getUserDbLocale() : getUserUiLocale();
-  }
-
   default DisplayProperty getUserAnalysisDisplayProperty() {
     return asEnum("keyAnalysisDisplayProperty", DisplayProperty.NAME);
   }
 
   default String getUserTrackerDashboardLayout() {
     return asString("keyTrackerDashboardLayout", "");
+  }
+
+  /*
+  Combinators based on several settings
+   */
+
+  default Locale evalUserLocale() {
+    return keys().contains("keyDbLocale") ? getUserDbLocale() : getUserUiLocale();
   }
 }
