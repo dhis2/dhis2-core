@@ -147,8 +147,6 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private EnrollmentQueryService enrollmentQueryTarget;
 
-  @Autowired private EnrollmentAggregateService enrollmentAggregateService;
-
   @Autowired private List<AnalyticsTableService> analyticsTableServices;
 
   @Autowired private DataElementService dataElementService;

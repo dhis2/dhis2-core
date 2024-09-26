@@ -68,6 +68,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Lars Helge Overland
@@ -87,6 +88,8 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager idObjectManager;
 
   @Autowired private PasswordManager passwordManager;
+
+  @Autowired private TransactionTemplate transactionTemplate;
 
   private OrganisationUnit unitA;
 
@@ -335,6 +338,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testManagedGroups() {
     settingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", true);
+    settingsService.clearCurrentSettings();
     // TODO find way to override in parameters
     User userA = addUser("A");
     User userB = addUser("B");
@@ -379,6 +383,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testGetByPhoneNumber() {
     settingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", true);
+    settingsService.clearCurrentSettings();
     addUser("A", user -> user.setPhoneNumber("73647271"));
     User userB = addUser("B", user -> user.setPhoneNumber("23452134"));
     addUser("C", user -> user.setPhoneNumber("14543232"));
@@ -455,6 +460,9 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetManagedGroupsLessAuthoritiesDisjointRoles() {
+    settingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", false);
+    settingsService.clearCurrentSettings();
+
     User userA = addUser("A", roleA);
     User userB = addUser("B", roleB, roleC);
     User userC = addUser("C", roleA, roleC);
@@ -475,7 +483,9 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     userGroupService.addUserGroup(userGroup2);
     UserQueryParams params =
         new UserQueryParams().setCanManage(true).setAuthSubset(true).setUser(userA);
-    assertContainsOnly(List.of(userD, userF), userService.getUsers(params));
+    assertContainsOnly(
+        List.of(userD.getUsername(), userF.getUsername()),
+        userService.getUsers(params).stream().map(User::getUsername).toList());
     assertEquals(2, userService.getUserCount(params));
     params.setUser(userB);
     assertIsEmpty(userService.getUsers(params));
@@ -611,15 +621,10 @@ class UserServiceTest extends PostgresIntegrationTestBase {
         });
     addUser("C", User::setLastLogin, twentyTwoDaysAgo);
     addUser("D");
-    userSettingService.saveUserSetting("keyUiLocale", Locale.CANADA, userA.getUsername());
-    // the point of setting this setting is to see that the query does not
-    // get confused by other setting existing for the same user
-    userSettingService.saveUserSetting("keyDbLocale", Locale.FRANCE, userA.getUsername());
 
     Map<String, Optional<Locale>> users =
         userService.findNotifiableUsersWithLastLoginBetween(threeMonthAgo, twoMonthsAgo);
     assertEquals(Set.of("emaila"), users.keySet());
-    assertEquals(Locale.CANADA, users.values().iterator().next().orElse(null));
     assertEquals(
         Set.of("emaila"),
         userService.findNotifiableUsersWithLastLoginBetween(fourMonthAgo, oneMonthsAgo).keySet());

@@ -52,6 +52,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.SystemUser;
@@ -501,12 +502,12 @@ public class DefaultMessageService implements MessageService {
       return StringUtils.EMPTY;
     }
 
-    UserDetails userDetails =
+    UserSettings settings =
         conversation.getCreatedBy() == null
-            ? CurrentUserUtil.getCurrentUserDetails()
-            : userService.createUserDetails(conversation.getCreatedBy());
+            ? UserSettings.getCurrentSettings()
+            : userService.createUserDetails(conversation.getCreatedBy()).getUserSettings();
 
-    Locale locale = userDetails.getUserSettings().getUserUiLocale();
+    Locale locale = settings.getUserUiLocale();
 
     locale = ObjectUtils.firstNonNull(locale, LocaleManager.DEFAULT_LOCALE);
 

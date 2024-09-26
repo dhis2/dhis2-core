@@ -62,6 +62,7 @@ class MetadataSystemSettingServiceTest extends PostgresIntegrationTestBase {
             entry("keyRemoteInstanceUsername", "username"),
             entry("keyRemoteInstancePassword", "password"),
             entry("keyStopMetadataSync", "true")));
+    settingsService.clearCurrentSettings();
   }
 
   @Test

@@ -486,7 +486,13 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         .collect(
             toMap(
                 (Object[] columns) -> (String) columns[0],
-                (Object[] columns) -> Optional.ofNullable((Locale) columns[1])));
+                (Object[] columns) -> Optional.ofNullable(toLocale(columns[1]))));
+  }
+
+  private static Locale toLocale(Object value) {
+    if (value == null) return null;
+    if (value instanceof Locale l) return l;
+    return Locale.forLanguageTag(value.toString());
   }
 
   @Override

@@ -199,6 +199,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
           throws IOException {
     assignProgramRule();
     settingsService.saveSystemSetting("ruleEngineAssignOverwrite", true);
+    settingsService.clearCurrentSettings();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
         fromJson("tracker/programrule/event_update_datavalue_different_value.json");
@@ -215,6 +216,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
           throws IOException {
     assignProgramRule();
     settingsService.saveSystemSetting("ruleEngineAssignOverwrite", true);
+    settingsService.clearCurrentSettings();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
         fromJson("tracker/programrule/event_update_datavalue_empty_value.json");

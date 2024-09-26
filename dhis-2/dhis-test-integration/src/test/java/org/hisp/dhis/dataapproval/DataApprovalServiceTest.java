@@ -436,6 +436,9 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
     userB = makeUser("B");
     userService.addUser(userA);
     userService.addUser(userB);
+
+    settingsService.saveSystemSetting("keyAcceptanceRequiredForApproval", false);
+    settingsService.clearCurrentSettings();
   }
 
   @AfterEach
@@ -3572,21 +3575,17 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
   // -------------------------------------------------------------------------
   @Test
   void testApprovalsWithCategories() {
+    settingsService.saveSystemSetting("keyAcceptanceRequiredForApproval", true);
+    settingsService.clearCurrentSettings();
     Date date = new Date();
-    transactionTemplate.execute(
-        status -> {
-          settingsService.saveSystemSetting("keyAcceptanceRequiredForApproval", true);
-          setUpCategories();
-          createUserAndInjectSecurityContext(
-              singleton(organisationUnitA),
-              false,
-              DataApproval.AUTH_APPROVE,
-              DataApproval.AUTH_APPROVE_LOWER_LEVELS,
-              DataApproval.AUTH_ACCEPT_LOWER_LEVELS,
-              AUTH_APPR_LEVEL);
-          dbmsManager.flushSession();
-          return null;
-        });
+    setUpCategories();
+    createUserAndInjectSecurityContext(
+        singleton(organisationUnitA),
+        false,
+        DataApproval.AUTH_APPROVE,
+        DataApproval.AUTH_APPROVE_LOWER_LEVELS,
+        DataApproval.AUTH_ACCEPT_LOWER_LEVELS,
+        AUTH_APPR_LEVEL);
     // Category A -> Options A,B,C,D
     // Category B -> Options E,F,G,H
     //
@@ -4106,15 +4105,11 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
             NOT_ACCEPTED,
             date,
             userA);
-    transactionTemplate.execute(
-        status -> {
-          settingsService.saveSystemSetting("keyAcceptanceRequiredForApproval", true);
-          createUserAndInjectSecurityContext(singleton(organisationUnitA), false, AUTH_APPR_LEVEL);
-          dataApprovalStore.addDataApproval(dataApprovalA);
-          dataApprovalStore.addDataApproval(dataApprovalB);
-          dbmsManager.flushSession();
-          return null;
-        });
+    settingsService.saveSystemSetting("keyAcceptanceRequiredForApproval", true);
+    settingsService.clearCurrentSettings();
+    createUserAndInjectSecurityContext(singleton(organisationUnitA), false, AUTH_APPR_LEVEL);
+    dataApprovalStore.addDataApproval(dataApprovalA);
+    dataApprovalStore.addDataApproval(dataApprovalB);
     DataApprovalStatus status =
         dataApprovalService.getDataApprovalStatus(
             workflow1234, periodA, organisationUnitA, defaultOptionCombo);

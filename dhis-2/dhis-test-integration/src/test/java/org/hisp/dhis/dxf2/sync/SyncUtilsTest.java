@@ -62,6 +62,7 @@ class SyncUtilsTest extends PostgresIntegrationTestBase {
             entry("keyRemoteInstanceUsername", USERNAME),
             entry("keyRemoteInstancePassword", PASSWORD),
             entry("keyRemoteInstanceUrl", URL)));
+    settingsService.clearCurrentSettings();
     SystemInstance systemInstance =
         SyncUtils.getRemoteInstance(
             settingsService.getCurrentSettings(), SyncEndpoint.DATA_VALUE_SETS);
