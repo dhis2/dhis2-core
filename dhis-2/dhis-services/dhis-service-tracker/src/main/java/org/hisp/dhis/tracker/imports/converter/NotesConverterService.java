@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.tracker.imports.converter;
 
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -74,7 +75,7 @@ public class NotesConverterService
     trackerNote.setNoteText(note.getValue());
 
     trackerNote.setLastUpdatedBy(
-        preheat.getUserByUid(CurrentUserUtil.getCurrentUserDetails().getUid()).orElse(null));
+        preheat.getUserByUid(getCurrentUserDetails().getUid()).orElse(null));
     trackerNote.setCreator(note.getStoredBy());
     return trackerNote;
   }

@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -61,7 +62,6 @@ import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
@@ -105,7 +105,7 @@ public class EventPersister
         .eventNotifications(bundle.getEventNotifications().get(UID.of(event.getUid())))
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
-        .accessedBy(CurrentUserUtil.getCurrentUsername())
+        .accessedBy(getCurrentUsername())
         .event(event)
         .program(event.getProgramStage().getProgram())
         .triggers(triggers)
@@ -212,7 +212,7 @@ public class EventPersister
           }
 
           logTrackedEntityDataValueHistory(
-              CurrentUserUtil.getCurrentUsername(), dataElement, event, new Date(), valuesHolder);
+              getCurrentUsername(), dataElement, event, new Date(), valuesHolder);
         });
   }
 

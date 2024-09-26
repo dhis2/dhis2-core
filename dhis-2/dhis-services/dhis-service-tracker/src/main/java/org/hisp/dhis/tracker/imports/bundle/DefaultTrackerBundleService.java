@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -56,7 +58,6 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleService;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -151,7 +152,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
 
   private void executeLastUpdatedQuery(Session session, List<String> trackedEntities) {
     try {
-      UserInfoSnapshot userInfo = UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails());
+      UserInfoSnapshot userInfo = UserInfoSnapshot.from(getCurrentUserDetails());
       session
           .getNamedQuery("updateTrackedEntitiesLastUpdated")
           .setParameter("trackedEntities", trackedEntities)

@@ -44,7 +44,6 @@ import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,24 +64,18 @@ class UserSupplierTest extends TestBase {
 
   @Mock private IdentifiableObjectManager manager;
 
-  private org.hisp.dhis.user.User currentUser;
-
-  private User assignedUserA;
-
-  private User assignedUserB;
+  private List<org.hisp.dhis.user.User> users;
 
   private List<Event> events;
 
   @BeforeEach
   void setup() {
-    assignedUserA = user();
-    assignedUserB = user();
+    User assignedUserA = user();
+    User assignedUserB = user();
     Event eventA = event(assignedUserA);
     Event eventB = event(assignedUserB);
     events = List.of(eventA, eventB);
-
-    currentUser = makeUser("A");
-    injectSecurityContext(UserDetails.fromUser(currentUser));
+    users = List.of(map(assignedUserA), map(assignedUserB));
   }
 
   @Test
@@ -90,10 +83,8 @@ class UserSupplierTest extends TestBase {
     final Set<String> userIds =
         events.stream().map(Event::getAssignedUser).map(User::getUid).collect(Collectors.toSet());
 
-    userIds.add(currentUser.getUid());
-
     when(manager.getByUid(eq(org.hisp.dhis.user.User.class), argThat(t -> t.containsAll(userIds))))
-        .thenReturn(List.of(currentUser, map(assignedUserA), map(assignedUserB)));
+        .thenReturn(users);
 
     final TrackerObjects params = TrackerObjects.builder().events(events).build();
 
@@ -113,8 +104,7 @@ class UserSupplierTest extends TestBase {
             .map(User::getUsername)
             .collect(Collectors.toSet());
 
-    when(userService.getUsersByUsernames(argThat(t -> t.containsAll(usernames))))
-        .thenReturn(List.of(map(assignedUserA), map(assignedUserB)));
+    when(userService.getUsersByUsernames(argThat(t -> t.containsAll(usernames)))).thenReturn(users);
 
     final TrackerObjects params = TrackerObjects.builder().events(events).build();
 

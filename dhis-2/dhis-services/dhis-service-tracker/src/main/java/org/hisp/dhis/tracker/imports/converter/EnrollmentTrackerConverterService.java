@@ -28,6 +28,8 @@
 package org.hisp.dhis.tracker.imports.converter;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,7 +45,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
@@ -124,13 +125,11 @@ public class EnrollmentTrackerConverterService
               : enrollment.getUid());
       dbEnrollment.setCreated(now);
       dbEnrollment.setStoredBy(enrollment.getStoredBy());
-      dbEnrollment.setCreatedByUserInfo(
-          UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails()));
+      dbEnrollment.setCreatedByUserInfo(UserInfoSnapshot.from(getCurrentUserDetails()));
     }
 
     dbEnrollment.setLastUpdated(now);
-    dbEnrollment.setLastUpdatedByUserInfo(
-        UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails()));
+    dbEnrollment.setLastUpdatedByUserInfo(UserInfoSnapshot.from(getCurrentUserDetails()));
     dbEnrollment.setDeleted(false);
     dbEnrollment.setCreatedAtClient(DateUtils.fromInstant(enrollment.getCreatedAtClient()));
     dbEnrollment.setLastUpdatedAtClient(DateUtils.fromInstant(enrollment.getUpdatedAtClient()));
@@ -153,7 +152,7 @@ public class EnrollmentTrackerConverterService
     if (previousStatus != dbEnrollment.getStatus()) {
       if (dbEnrollment.isCompleted()) {
         dbEnrollment.setCompletedDate(now);
-        dbEnrollment.setCompletedBy(CurrentUserUtil.getCurrentUsername());
+        dbEnrollment.setCompletedBy(getCurrentUsername());
       } else if (EnrollmentStatus.CANCELLED == dbEnrollment.getStatus()) {
         dbEnrollment.setCompletedDate(now);
       }

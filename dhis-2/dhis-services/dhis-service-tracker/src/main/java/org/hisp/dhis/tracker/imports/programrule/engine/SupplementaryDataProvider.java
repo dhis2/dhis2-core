@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.imports.programrule.engine;
 
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+
 import com.google.common.collect.Maps;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +42,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -84,10 +85,7 @@ public class SupplementaryDataProvider {
                               .toList()));
     }
 
-    if (CurrentUserUtil.getCurrentUsername() != null) {
-      supplementaryData.put(
-          USER, new ArrayList<>(CurrentUserUtil.getCurrentUserDetails().getUserRoleIds()));
-    }
+    supplementaryData.put(USER, new ArrayList<>(getCurrentUserDetails().getUserRoleIds()));
 
     return supplementaryData;
   }
