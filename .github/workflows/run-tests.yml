@@ -8,8 +8,8 @@ on:
       - master
   pull_request:
 concurrency:
-    group: ${{ github.workflow}}-${{ github.ref }}
-    cancel-in-progress: true
+  group: ${{ github.workflow}}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   unit-test:
     runs-on: ubuntu-latest
@@ -21,8 +21,8 @@ jobs:
           java-version: 17
           distribution: temurin
           cache: maven
-      - name: Test core # NOTE: dhis-2/pom.xml needs to be installed as built artifacts are needed by dhis-web
-        run: mvn clean install --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-server,-dhis-web-apps
+      - name: Test core
+        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml
         timeout-minutes: 30
       - name: Report coverage to codecov
         uses: codecov/codecov-action@v3
@@ -41,7 +41,7 @@ jobs:
           path: coverage.tar
           retention-days: 5
       - name: Generate surefire aggregate report
-        run: mvn surefire-report:report-only -Daggregate=true --batch-mode --no-transfer-progress -f ./dhis-2/pom.xml -pl -dhis-web-server,-dhis-test-coverage,-dhis-web-apps
+        run: mvn surefire-report:report-only -Daggregate=true --batch-mode --no-transfer-progress --file ./dhis-2/pom.xml --projects -dhis-test-coverage
       # tar due to https://github.com/actions/upload-artifact/blob/3cea5372237819ed00197afe530f5a7ea3e805c8/README.md?plain=1#L254
       - name: Tar surefire individual reports
         run: find . -name "surefire-reports" -type d -exec find {} -type f -name "*.xml" -printf '%p\0' \; | tar --null --files-from=- -cvf surefire_reports.tar
@@ -65,7 +65,7 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Run integration tests
-        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress -Pintegration --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-server,-dhis-web-apps
+        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress -Pintegration --update-snapshots --file ./dhis-2/pom.xml
         timeout-minutes: 30
       - uses: actions/upload-artifact@v4
         name: Upload test logs on failure
@@ -92,7 +92,7 @@ jobs:
           path: coverage.tar
           retention-days: 5
       - name: Generate surefire aggregate report
-        run: mvn surefire-report:report-only -Daggregate=true --batch-mode --no-transfer-progress -f ./dhis-2/pom.xml -pl -dhis-web-server,-dhis-test-coverage,-dhis-web-apps
+        run: mvn surefire-report:report-only -Daggregate=true --batch-mode --no-transfer-progress --file ./dhis-2/pom.xml --projects -dhis-test-coverage
       # tar due to https://github.com/actions/upload-artifact/blob/3cea5372237819ed00197afe530f5a7ea3e805c8/README.md?plain=1#L254
       - name: Tar surefire individual reports
         run: find . -name "surefire-reports" -type d -exec find {} -type f -name "*.xml" -printf '%p\0' \; | tar --null --files-from=- -cvf surefire_reports.tar
@@ -116,7 +116,7 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Run integration h2 tests
-        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress -PintegrationH2 --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-server,-dhis-web-apps
+        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress -PintegrationH2 --update-snapshots --file ./dhis-2/pom.xml
         timeout-minutes: 30
       - uses: actions/upload-artifact@v4
         name: Upload test logs on failure
@@ -143,7 +143,7 @@ jobs:
           path: coverage.tar
           retention-days: 5
       - name: Generate surefire aggregate report
-        run: mvn surefire-report:report-only -Daggregate=true --batch-mode --no-transfer-progress -f ./dhis-2/pom.xml -pl -dhis-web-server,-dhis-test-coverage,-dhis-web-apps
+        run: mvn surefire-report:report-only -Daggregate=true --batch-mode --no-transfer-progress --file ./dhis-2/pom.xml --projects -dhis-test-coverage
       # tar due to https://github.com/actions/upload-artifact/blob/3cea5372237819ed00197afe530f5a7ea3e805c8/README.md?plain=1#L254
       - name: Tar surefire individual reports
         run: find . -name "surefire-reports" -type d -exec find {} -type f -name "*.xml" -printf '%p\0' \; | tar --null --files-from=- -cvf surefire_reports.tar
@@ -163,11 +163,11 @@ jobs:
       contains(needs.*.result, 'failure') &&
       github.ref == 'refs/heads/master'
 
-    needs: [ unit-test, integration-test, integration-h2-test ]
+    needs: [unit-test, integration-test, integration-h2-test]
     steps:
       - uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_BACKEND_WEBHOOK }}
-          SLACK_CHANNEL: 'team-backend'
+          SLACK_CHANNEL: "team-backend"
           SLACK_MESSAGE: "Latest test run on master failed and needs investigation :detective-duck:. \n Commit message: ${{ github.event.head_commit.message }}"
-          SLACK_COLOR: '#ff0000'
+          SLACK_COLOR: "#ff0000"

@@ -109,25 +109,8 @@ public class RelationshipSMSListener extends CompressionSMSListener {
     }
 
     TrackerImportParams params =
-        TrackerImportParams.builder()
-            .importStrategy(TrackerImportStrategy.CREATE)
-            .userId(
-                user.getUid()) // SMS processing is done inside a job executed as the user that sent
-            // the SMS. We might want to remove the params user in favor of the currentUser set on
-            // the thread.
-            .build();
-    TrackerObjects trackerObjects =
-        TrackerObjects.builder()
-            .relationships(
-                List.of(
-                    Relationship.builder()
-                        .relationshipType(MetadataIdentifier.ofUid(relType))
-                        .relationship(
-                            subm.getRelationship() != null ? subm.getRelationship().getUid() : null)
-                        .from(relationshipItem(relType.getFromConstraint(), subm.getFrom()))
-                        .to(relationshipItem(relType.getToConstraint(), subm.getTo()))
-                        .build()))
-            .build();
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.CREATE).build();
+    TrackerObjects trackerObjects = map(subm, relType);
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     if (Status.OK == importReport.getStatus()) {
@@ -138,7 +121,24 @@ public class RelationshipSMSListener extends CompressionSMSListener {
     return SmsResponse.UNKNOWN_ERROR;
   }
 
-  private RelationshipItem relationshipItem(RelationshipConstraint constraint, Uid uid) {
+  private static TrackerObjects map(
+      RelationshipSmsSubmission submission, RelationshipType relType) {
+    return TrackerObjects.builder()
+        .relationships(
+            List.of(
+                Relationship.builder()
+                    .relationshipType(MetadataIdentifier.ofUid(relType))
+                    .relationship(
+                        submission.getRelationship() != null
+                            ? submission.getRelationship().getUid()
+                            : null)
+                    .from(relationshipItem(relType.getFromConstraint(), submission.getFrom()))
+                    .to(relationshipItem(relType.getToConstraint(), submission.getTo()))
+                    .build()))
+        .build();
+  }
+
+  private static RelationshipItem relationshipItem(RelationshipConstraint constraint, Uid uid) {
     return switch (constraint.getRelationshipEntity()) {
       case TRACKED_ENTITY_INSTANCE ->
           RelationshipItem.builder().trackedEntity(uid.getUid()).build();

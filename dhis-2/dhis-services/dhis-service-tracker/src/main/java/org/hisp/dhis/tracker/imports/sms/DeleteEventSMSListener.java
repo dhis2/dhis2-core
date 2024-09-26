@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.sms;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -93,17 +94,8 @@ public class DeleteEventSMSListener extends CompressionSMSListener {
     DeleteSmsSubmission subm = (DeleteSmsSubmission) submission;
 
     TrackerImportParams params =
-        TrackerImportParams.builder()
-            .importStrategy(TrackerImportStrategy.DELETE)
-            .userId(
-                user.getUid()) // SMS processing is done inside a job executed as the user that sent
-            // the SMS. We might want to remove the params user in favor of the currentUser set on
-            // the thread.
-            .build();
-    TrackerObjects trackerObjects =
-        TrackerObjects.builder()
-            .events(List.of(Event.builder().event(subm.getEvent().getUid()).build()))
-            .build();
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build();
+    TrackerObjects trackerObjects = map(subm);
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     if (Status.OK == importReport.getStatus()) {
@@ -112,6 +104,13 @@ public class DeleteEventSMSListener extends CompressionSMSListener {
 
     // TODO(DHIS2-18003) we need to map tracker import report errors/warnings to an sms
     return SmsResponse.INVALID_EVENT.set(subm.getEvent());
+  }
+
+  @Nonnull
+  private static TrackerObjects map(@Nonnull DeleteSmsSubmission submission) {
+    return TrackerObjects.builder()
+        .events(List.of(Event.builder().event(submission.getEvent().getUid()).build()))
+        .build();
   }
 
   @Override
