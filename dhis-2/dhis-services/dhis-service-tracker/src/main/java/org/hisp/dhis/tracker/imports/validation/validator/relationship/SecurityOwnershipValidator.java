@@ -36,6 +36,7 @@ import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -49,25 +50,21 @@ class SecurityOwnershipValidator implements Validator<Relationship> {
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Relationship relationship) {
     TrackerImportStrategy strategy = bundle.getStrategy(relationship);
+    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
 
     if (strategy.isDelete()
         && (!trackerAccessManager
-            .canDelete(
-                UserDetails.fromUser(bundle.getUser()),
-                bundle.getPreheat().getRelationship(relationship))
+            .canDelete(user, bundle.getPreheat().getRelationship(relationship))
             .isEmpty())) {
-      reporter.addError(
-          relationship, ValidationCode.E4020, bundle.getUser(), relationship.getRelationship());
+      reporter.addError(relationship, ValidationCode.E4020, user, relationship.getRelationship());
     }
 
     if (strategy.isCreate()
         && (!trackerAccessManager
             .canWrite(
-                UserDetails.fromUser(bundle.getUser()),
-                relationshipTrackerConverterService.from(bundle.getPreheat(), relationship))
+                user, relationshipTrackerConverterService.from(bundle.getPreheat(), relationship))
             .isEmpty())) {
-      reporter.addError(
-          relationship, ValidationCode.E4020, bundle.getUser(), relationship.getRelationship());
+      reporter.addError(relationship, ValidationCode.E4020, user, relationship.getRelationship());
     }
   }
 

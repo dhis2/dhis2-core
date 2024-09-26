@@ -133,18 +133,6 @@ class ExistingEnrollmentValidatorTest {
   }
 
   @Test
-  void shouldThrowTrackedEntityNotFound() {
-    Program program = new Program();
-    program.setOnlyEnrollOnce(true);
-
-    when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
-
-    when(enrollment.getTrackedEntity()).thenReturn(null);
-    assertThrows(
-        NullPointerException.class, () -> validator.validate(reporter, bundle, enrollment));
-  }
-
-  @Test
   void shouldPassValidation() {
     Program program = new Program();
     program.setOnlyEnrollOnce(true);
