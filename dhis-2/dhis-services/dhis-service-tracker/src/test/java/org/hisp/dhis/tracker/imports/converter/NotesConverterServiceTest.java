@@ -32,7 +32,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
 
 import java.util.Date;
 import java.util.List;
@@ -46,13 +45,10 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith(MockitoExtension.class)
 class NotesConverterServiceTest extends TestBase {
 
   private static final String CURRENT_USER = "usernamea";

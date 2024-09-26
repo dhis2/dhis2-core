@@ -51,7 +51,6 @@ import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationResult;
 import org.hisp.dhis.tracker.imports.validation.ValidationService;
 import org.hisp.dhis.user.SystemUser;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -155,11 +154,5 @@ class TrackerImporterServiceTest {
             IllegalArgumentException.class,
             () -> subject.importTracker(params, trackerObjects, transitory));
     assertEquals("ERROR", ex.getMessage());
-  }
-
-  private User getUser() {
-    User user = new User();
-    user.setUid("user1234");
-    return user;
   }
 }
