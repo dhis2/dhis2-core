@@ -47,12 +47,14 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.descriptors.ProgramSchemaDescriptor;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.imports.preheat.mappers.CopyMapper;
 import org.hisp.dhis.tracker.imports.preheat.mappers.ProgramMapper;
+import org.hisp.dhis.user.SystemUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -63,7 +65,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith(MockitoExtension.class)
-class AbstractSchemaStrategyCachingTest {
+class AbstractSchemaStrategyCachingTest extends TestBase {
 
   @Mock private PreheatCacheService cache;
 
@@ -80,6 +82,7 @@ class AbstractSchemaStrategyCachingTest {
   @BeforeEach
   public void setUp() {
     preheat = new TrackerPreheat();
+    injectSecurityContext(new SystemUser());
   }
 
   @Test
