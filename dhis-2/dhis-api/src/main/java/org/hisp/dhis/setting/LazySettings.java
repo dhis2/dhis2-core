@@ -52,6 +52,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -59,7 +60,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.LocaleUtils;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonMap;
-import org.hisp.dhis.jsontree.JsonPrimitive;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonValue;
 
 /**
@@ -207,28 +208,36 @@ final class LazySettings implements SystemSettings, UserSettings {
   }
 
   @Override
-  public JsonMap<? extends JsonPrimitive> toJson() {
+  public JsonMap<JsonMixed> toJson(boolean includeConfidential) {
+    return toJson(includeConfidential, Set.of());
+  }
+
+  @Override
+  public JsonMap<JsonMixed> toJson(boolean includeConfidential, Set<String> filter) {
     Map<String, Serializable> defaults =
         type == SystemSettings.class ? DEFAULTS_SYSTEM_SETTINGS : DEFAULTS_USER_SETTINGS;
+    Predicate<String> acceptKey =
+        k ->
+            (filter.isEmpty() || filter.contains(k)) && (includeConfidential || !isConfidential(k));
     return JsonValue.of(
             JsonBuilder.createObject(
                 obj -> {
                   // add values explicitly contained in this set
                   for (int i = 0; i < keys.length; i++) {
                     String key = keys[i];
-                    if (!isConfidential(key))
+                    if (acceptKey.test(key))
                       obj.addMember(key, toJsonPrimitive(rawValues[i]).node());
                   }
                   // add defaults as defined in accessor methods
                   Set<String> ignore = Set.of(keys);
                   for (Map.Entry<String, Serializable> e : defaults.entrySet()) {
                     String key = e.getKey();
-                    if (!ignore.contains(key) && !isConfidential(key)) {
+                    if (!ignore.contains(key) && acceptKey.test(key)) {
                       obj.addMember(key, toJsonPrimitive(e.getValue()).node());
                     }
                   }
                 }))
-        .asMap(JsonPrimitive.class);
+        .asMap(JsonMixed.class);
   }
 
   private int indexOf(String key) {
@@ -331,7 +340,7 @@ final class LazySettings implements SystemSettings, UserSettings {
       if (value == null) {
         gen.writeNull();
       } else {
-        gen.writeRawValue(value.toJson().toJson());
+        gen.writeRawValue(value.toJson(false).toJson());
       }
     }
   }

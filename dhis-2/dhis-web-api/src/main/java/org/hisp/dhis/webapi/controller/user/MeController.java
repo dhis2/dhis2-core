@@ -289,7 +289,7 @@ public class MeController {
   @GetMapping(value = "/settings/{key}", produces = APPLICATION_JSON_VALUE)
   public JsonValue getSetting(
       @PathVariable String key, @CurrentUser(required = true) UserDetails currentUser) {
-    return currentUser.getUserSettings().toJson().get(key);
+    return currentUser.getUserSettings().toJson(false).get(key);
   }
 
   @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)

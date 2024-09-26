@@ -39,6 +39,7 @@ import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
 import org.hisp.dhis.jsontree.JsonBoolean;
 import org.hisp.dhis.jsontree.JsonInteger;
 import org.hisp.dhis.jsontree.JsonMap;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonPrimitive;
 import org.hisp.dhis.jsontree.JsonString;
 import org.junit.jupiter.api.Test;
@@ -56,7 +57,6 @@ class SystemSettingsTest {
 
   @Test
   void testIsConfidential() {
-
     CONFIDENTIAL_KEYS.forEach(
         key ->
             assertTrue(
@@ -77,7 +77,7 @@ class SystemSettingsTest {
   @Test
   void testToJson() {
     SystemSettings settings = SystemSettings.of(Map.of("applicationTitle", "Hello World"));
-    JsonMap<? extends JsonPrimitive> asJson = settings.toJson();
+    JsonMap<JsonMixed> asJson = settings.toJson(false);
     // it does contain the custom value
     JsonPrimitive stringValue = asJson.get("applicationTitle");
     assertTrue(stringValue.isString());

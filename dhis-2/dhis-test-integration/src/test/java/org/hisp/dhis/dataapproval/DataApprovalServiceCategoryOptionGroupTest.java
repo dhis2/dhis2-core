@@ -625,6 +625,7 @@ class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTest
     // System settings
     settingsService.saveSystemSetting("keyIgnoreAnalyticsApprovalYearThreshold", 0);
     settingsService.saveSystemSetting("keyAcceptanceRequiredForApproval", true);
+    settingsService.clearCurrentSettings();
   }
 
   @AfterEach

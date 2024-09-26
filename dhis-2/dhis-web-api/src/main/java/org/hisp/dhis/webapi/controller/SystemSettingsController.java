@@ -45,8 +45,8 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonMixed;
-import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSetting;
 import org.hisp.dhis.setting.SystemSettings;
@@ -121,10 +121,10 @@ public class SystemSettingsController {
   @GetMapping(value = "/{key}", produces = TEXT_PLAIN_VALUE)
   public @ResponseBody String getSystemSettingPlain(
       @PathVariable("key") String key, @CurrentUser UserDetails currentUser)
-      throws ForbiddenException {
+      throws ForbiddenException, ConflictException {
     if (SystemSettings.isConfidential(key) && !currentUser.isSuper())
       throw new ForbiddenException("Setting is marked as confidential");
-    return settingsService.getCurrentSettings().asString(key, "");
+    return toJavaString(settingsService.getCurrentSettings().toJson(true, Set.of(key)).get(key));
   }
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
@@ -133,8 +133,12 @@ public class SystemSettingsController {
   }
 
   @GetMapping(value = "/{key}", produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody JsonValue getSystemSettingJson(@PathVariable("key") String key) {
-    return settingsService.getCurrentSettings().toJson().get(key);
+  public @ResponseBody JsonMap<JsonMixed> getSystemSettingJson(
+      @PathVariable("key") String key, @CurrentUser UserDetails currentUser)
+      throws ForbiddenException {
+    if (SystemSettings.isConfidential(key) && !currentUser.isSuper())
+      throw new ForbiddenException("Setting is marked as confidential");
+    return settingsService.getCurrentSettings().toJson(true, Set.of(key));
   }
 
   @DeleteMapping("/{key}")
@@ -175,6 +179,8 @@ public class SystemSettingsController {
       @RequestBody(required = false) String valuePayload)
       throws ForbiddenException, BadRequestException {
     if (value == null) value = valuePayload;
+    if (value == null)
+      throw new BadRequestException("Value must be specified as query param or as payload");
     settingsTranslationService.saveSystemSettingTranslation(key, locale, value);
     return ok(
         "Translation for system setting '%s' and locale: '%s' set to: '%s'"

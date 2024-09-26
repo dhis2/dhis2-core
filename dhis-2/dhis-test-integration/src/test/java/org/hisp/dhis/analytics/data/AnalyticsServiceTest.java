@@ -38,7 +38,6 @@ import static org.hisp.dhis.expression.Operator.equal_to;
 import static org.hisp.dhis.test.utils.Assertions.assertMapEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -89,7 +88,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
-import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.validation.ValidationResult;
@@ -222,7 +221,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
-  @Autowired private SystemSettingsProvider settingsProvider;
+  @Autowired private SystemSettingsService settingsService;
 
   private Date processStartTime;
 
@@ -263,9 +262,9 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
     Date tenSecondsFromNow =
         Date.from(LocalDateTime.now().plusSeconds(10).atZone(ZoneId.systemDefault()).toInstant());
 
-    SystemSettings settings = settingsProvider.getCurrentSettings();
-    assertNull(settings.getLastSuccessfulResourceTablesUpdate());
-    assertNull(settings.getLastSuccessfulAnalyticsTablesUpdate());
+    SystemSettings settings = settingsService.getCurrentSettings();
+    assertEquals(new Date(0L), settings.getLastSuccessfulResourceTablesUpdate());
+    assertEquals(new Date(0L), settings.getLastSuccessfulAnalyticsTablesUpdate());
     processStartTime = new Date();
     // Generate analytics tables
     analyticsTableGenerator.generateAnalyticsTables(
@@ -1578,16 +1577,17 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
   @Test
   void resourceTablesTimestampUpdated() {
 
-    SystemSettings settings = settingsProvider.getCurrentSettings();
+    settingsService.clearCurrentSettings();
+    SystemSettings settings = settingsService.getCurrentSettings();
     Date tableLastUpdated = settings.getNextAnalyticsTableUpdate();
-    assertNotEquals(null, tableLastUpdated);
+    assertNotEquals(new Date(0L), tableLastUpdated);
     Date resourceTablesUpdated = settings.getLastSuccessfulResourceTablesUpdate();
-    assertNotEquals(null, resourceTablesUpdated);
+    assertNotEquals(new Date(0L), resourceTablesUpdated);
     assertTrue(
-        tableLastUpdated.compareTo(processStartTime) > 0,
+        tableLastUpdated.after(processStartTime),
         String.format("%s > %s", tableLastUpdated, processStartTime));
     assertTrue(
-        resourceTablesUpdated.compareTo(processStartTime) > 0,
+        resourceTablesUpdated.after(processStartTime),
         String.format("%s > %s", resourceTablesUpdated, processStartTime));
   }
 }

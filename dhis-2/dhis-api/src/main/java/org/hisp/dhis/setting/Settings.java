@@ -35,7 +35,7 @@ import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.jsontree.JsonMap;
-import org.hisp.dhis.jsontree.JsonPrimitive;
+import org.hisp.dhis.jsontree.JsonMixed;
 
 /**
  * {@link Settings} are plain {@link String} key-value pairs that can be accessed as certain types
@@ -81,9 +81,17 @@ public sealed interface Settings permits UserSettings, SystemSettings {
   Map<String, String> toMap();
 
   /**
-   * @return a JSON of all public properties that are non-null with their JSON value
+   * @param includeConfidential true to include, false to exclude confidential settings
+   * @return a JSON of all settings including defaults
    */
-  JsonMap<? extends JsonPrimitive> toJson();
+  JsonMap<JsonMixed> toJson(boolean includeConfidential);
+
+  /**
+   * @param includeConfidential true to include, false to exclude confidential settings
+   * @param keys the keys to extract, empty set includes all
+   * @return a JSON of settings for the requested keys
+   */
+  JsonMap<JsonMixed> toJson(boolean includeConfidential, Set<String> keys);
 
   <E extends Enum<E>> E asEnum(String key, @Nonnull E defaultValue);
 
