@@ -56,7 +56,6 @@ class LockExceptionStoreTest extends PostgresIntegrationTestBase {
   @Autowired private PeriodStore periodStore;
 
   @Autowired private LockExceptionStore store;
-  @PersistenceContext private EntityManager entityManager;
 
   private PeriodType pt;
 

@@ -48,7 +48,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class MetadataExportWithDependenciesTest extends PostgresIntegrationTestBase {
 
-  @PersistenceContext private EntityManager entityManager;
   @Autowired private MetadataExportService metadataExportService;
 
   @Test

@@ -55,8 +55,6 @@ class MessageConversationStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private MessageService messageService;
 
-  @Autowired private EntityManager entityManager;
-
   private User userB;
 
   private User userC;
@@ -117,7 +115,6 @@ class MessageConversationStoreTest extends PostgresIntegrationTestBase {
   @Test
   void testGetMessageConversationsReturnCorrectNumberOfMessages() {
     MessageConversation conversation = messageConversationStore.get(conversationA);
-    entityManager.flush();
     assertTrue((conversation.getMessageCount() == 4));
   }
 

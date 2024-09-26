@@ -36,7 +36,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -61,8 +60,6 @@ import org.springframework.context.ApplicationContext;
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class DefaultTrackerPreheatServiceTest {
-  @Mock private IdentifiableObjectManager manager;
-
   @Mock private ClassBasedSupplier classBasedSupplier;
 
   @Mock private ApplicationContext applicationContext;
@@ -83,11 +80,9 @@ class DefaultTrackerPreheatServiceTest {
   @BeforeEach
   public void setUp() {
     preheatService =
-        new DefaultTrackerPreheatService(
-            manager, List.of(ClassBasedSupplier.class.getSimpleName()));
+        new DefaultTrackerPreheatService(List.of(ClassBasedSupplier.class.getSimpleName()));
 
     preheatService.setApplicationContext(applicationContext);
-    when(manager.get(User.class, getUser().getUid())).thenReturn(getUser());
   }
 
   @Test

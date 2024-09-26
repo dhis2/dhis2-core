@@ -59,8 +59,6 @@ class TrackerOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackerOrgUnitMergeHandler mergeHandler;
 
-  @PersistenceContext private EntityManager entityManager;
-
   private ProgramStage psA;
 
   private Program prA;

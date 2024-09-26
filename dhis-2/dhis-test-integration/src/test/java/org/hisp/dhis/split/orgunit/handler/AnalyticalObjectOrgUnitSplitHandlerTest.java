@@ -53,8 +53,6 @@ class AnalyticalObjectOrgUnitSplitHandlerTest extends PostgresIntegrationTestBas
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
-  @PersistenceContext private EntityManager entityManager;
-
   @Autowired private AnalyticalObjectOrgUnitSplitHandler handler;
 
   private DataElement deA;

@@ -66,6 +66,7 @@ import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
+import org.hisp.dhis.user.CurrentUserUtil;
 
 /**
  * @author Luciano Fiandesio
@@ -377,7 +378,10 @@ public abstract class AbstractTrackerPersister<
             : entityManager.merge(trackedEntityAttributeValue));
 
     logTrackedEntityAttributeValueHistory(
-        preheat.getUsername(), trackedEntityAttributeValue, trackedEntity, ChangeLogType.DELETE);
+        CurrentUserUtil.getCurrentUsername(),
+        trackedEntityAttributeValue,
+        trackedEntity,
+        ChangeLogType.DELETE);
   }
 
   private void saveOrUpdate(
@@ -409,7 +413,10 @@ public abstract class AbstractTrackerPersister<
     }
 
     logTrackedEntityAttributeValueHistory(
-        preheat.getUsername(), trackedEntityAttributeValue, trackedEntity, changeLogType);
+        CurrentUserUtil.getCurrentUsername(),
+        trackedEntityAttributeValue,
+        trackedEntity,
+        changeLogType);
   }
 
   private static boolean isFileResource(TrackedEntityAttributeValue trackedEntityAttributeValue) {

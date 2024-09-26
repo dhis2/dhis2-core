@@ -50,8 +50,6 @@ class AnalyticalObjectOrgUnitMergeHandlerTest extends PostgresIntegrationTestBas
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
-  @PersistenceContext private EntityManager entityManager;
-
   @Autowired private AnalyticalObjectOrgUnitMergeHandler handler;
 
   private DataElement deA;

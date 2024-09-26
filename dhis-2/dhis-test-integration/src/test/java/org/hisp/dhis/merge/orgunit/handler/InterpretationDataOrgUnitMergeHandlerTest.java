@@ -61,8 +61,6 @@ class InterpretationDataOrgUnitMergeHandlerTest extends PostgresIntegrationTestB
 
   @Autowired private DataOrgUnitMergeHandler mergeHandler;
 
-  @PersistenceContext private EntityManager entityManager;
-
   private OrganisationUnit ouA;
 
   private OrganisationUnit ouB;
