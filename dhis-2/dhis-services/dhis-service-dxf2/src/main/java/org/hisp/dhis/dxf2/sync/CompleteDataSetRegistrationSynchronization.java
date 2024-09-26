@@ -100,7 +100,7 @@ public class CompleteDataSetRegistrationSynchronization
             this::createContext);
 
     if (context.getObjectsToSynchronize() == 0) {
-      settingsService.saveSystemSetting(
+      settingsService.put(
           "keyLastCompleteDataSetRegistrationSyncSuccess", context.getStartTime().toString());
       String msg = "Skipping completeness synchronization, no new or updated data";
       progress.completedProcess(msg);
@@ -108,7 +108,7 @@ public class CompleteDataSetRegistrationSynchronization
     }
 
     if (runSync(context, progress)) {
-      settingsService.saveSystemSetting(
+      settingsService.put(
           "keyLastCompleteDataSetRegistrationSyncSuccess", context.getStartTime().toString());
       String msg = "Complete data set registration synchronization is done.";
       progress.completedProcess(msg);

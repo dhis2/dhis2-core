@@ -63,7 +63,7 @@ class SecurityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testUserAuthenticationLockout() {
-    settingsService.saveSystemSetting("keyLockMultipleFailedLogins", true);
+    settingsService.put("keyLockMultipleFailedLogins", true);
     settingsService.clearCurrentSettings();
     String username = "dr_evil";
     userService.registerFailedLogin(username);
@@ -78,12 +78,12 @@ class SecurityServiceTest extends PostgresIntegrationTestBase {
     assertTrue(userService.isLocked(username));
     userService.registerSuccessfulLogin(username);
     assertFalse(userService.isLocked(username));
-    settingsService.deleteSystemSettings(Set.of("keyLockMultipleFailedLogins"));
+    settingsService.deleteAll(Set.of("keyLockMultipleFailedLogins"));
   }
 
   @Test
   void testRecoveryAttemptLocked() {
-    settingsService.saveSystemSetting("keyLockMultipleFailedLogins", true);
+    settingsService.put("keyLockMultipleFailedLogins", true);
     settingsService.clearCurrentSettings();
     String username = "dr_evil";
     userService.registerRecoveryAttempt(username);
@@ -98,7 +98,7 @@ class SecurityServiceTest extends PostgresIntegrationTestBase {
     assertFalse(userService.isRecoveryLocked(username));
     userService.registerRecoveryAttempt(username);
     assertTrue(userService.isRecoveryLocked(username));
-    settingsService.deleteSystemSettings(Set.of("keyLockMultipleFailedLogins"));
+    settingsService.deleteAll(Set.of("keyLockMultipleFailedLogins"));
   }
 
   @Test

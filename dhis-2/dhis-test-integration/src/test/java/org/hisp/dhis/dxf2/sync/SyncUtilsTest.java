@@ -57,7 +57,7 @@ class SyncUtilsTest extends PostgresIntegrationTestBase {
 
   @Test
   void getRemoteInstanceTest() {
-    settingsService.saveSystemSettings(
+    settingsService.putAll(
         Map.ofEntries(
             entry("keyRemoteInstanceUsername", USERNAME),
             entry("keyRemoteInstancePassword", PASSWORD),

@@ -73,33 +73,33 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
 
     addGoogleProvider("testClientId");
 
-    settingsService.saveSystemSetting("applicationTitle", "DHIS2");
+    settingsService.put("applicationTitle", "DHIS2");
     settingsTranslationService.saveSystemSettingTranslation(
         "applicationTitle", "no", "Distrikstshelsesinformasjonssystem versjon 2");
 
-    settingsService.saveSystemSetting("loginPopup", "<html>TEXT</html>");
+    settingsService.put("loginPopup", "<html>TEXT</html>");
     settingsTranslationService.saveSystemSettingTranslation(
         "loginPopup", "no", "<html>tekst</html>");
 
-    settingsService.saveSystemSetting("keyApplicationFooter", "APPLICATION_FOOTER");
+    settingsService.put("keyApplicationFooter", "APPLICATION_FOOTER");
     settingsTranslationService.saveSystemSettingTranslation(
         "keyApplicationFooter", "no", "Søknadsbunntekst");
 
-    settingsService.saveSystemSetting("keyApplicationRightFooter", "APPLICATION_RIGHT_FOOTER");
+    settingsService.put("keyApplicationRightFooter", "APPLICATION_RIGHT_FOOTER");
     settingsTranslationService.saveSystemSettingTranslation(
         "keyApplicationRightFooter", "no", "Høyre søknadsbunntekst");
 
-    settingsService.saveSystemSetting("keyApplicationIntro", "APPLICATION_INTRO");
+    settingsService.put("keyApplicationIntro", "APPLICATION_INTRO");
     settingsTranslationService.saveSystemSettingTranslation(
         "keyApplicationIntro", "no", "Søknadsintroduksjon");
 
-    settingsService.saveSystemSetting("keyApplicationNotification", "APPLICATION_NOTIFICATION");
+    settingsService.put("keyApplicationNotification", "APPLICATION_NOTIFICATION");
     settingsTranslationService.saveSystemSettingTranslation(
         "keyApplicationNotification", "no", "Søknadsmelding");
 
-    settingsService.saveSystemSetting("keyFlag", "FLAG_IMAGE");
-    settingsService.saveSystemSetting("keyUseCustomLogoFront", true);
-    settingsService.saveSystemSetting("keyCustomTopMenuLogo", true);
+    settingsService.put("keyFlag", "FLAG_IMAGE");
+    settingsService.put("keyUseCustomLogoFront", true);
+    settingsService.put("keyCustomTopMenuLogo", true);
 
     JsonObject responseDefaultLocale = GET("/loginConfig").content();
     JsonObject responseNorwegianLocale = GET("/loginConfig?locale=no").content();

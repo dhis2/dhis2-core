@@ -81,7 +81,7 @@ import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.Dashboard;
@@ -133,7 +133,7 @@ public class MeController {
 
   @Nonnull private final NodeService nodeService;
 
-  @Nonnull private final UserSettingService userSettingService;
+  @Nonnull private final UserSettingsService userSettingsService;
 
   @Nonnull private final PasswordValidationService passwordValidationService;
 

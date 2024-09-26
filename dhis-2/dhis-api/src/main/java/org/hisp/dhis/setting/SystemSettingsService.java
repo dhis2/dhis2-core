@@ -48,19 +48,19 @@ public interface SystemSettingsService extends SystemSettingsProvider {
    * @param key of the setting to insert or update
    * @param value of the setting, null or empty to delete
    */
-  void saveSystemSetting(@Nonnull String key, @CheckForNull Serializable value);
+  void put(@Nonnull String key, @CheckForNull Serializable value);
 
   /**
    * Saves the given system setting key and value.
    *
    * @param settings the new values, null or empty values delete the setting
    */
-  void saveSystemSettings(@Nonnull Map<String, String> settings);
+  void putAll(@Nonnull Map<String, String> settings);
 
   /**
    * Deletes the system setting with the given name.
    *
    * @param keys of the system setting to delete
    */
-  void deleteSystemSettings(@Nonnull Set<String> keys);
+  void deleteAll(@Nonnull Set<String> keys);
 }

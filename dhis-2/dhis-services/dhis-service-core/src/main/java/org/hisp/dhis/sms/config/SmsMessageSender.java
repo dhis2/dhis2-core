@@ -56,7 +56,7 @@ import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.scheduling.annotation.Async;
@@ -87,7 +87,7 @@ public class SmsMessageSender implements MessageSender {
 
   private final GatewayAdministrationService gatewayAdminService;
   private final List<SmsGateway> smsGateways;
-  private final UserSettingService userSettingService;
+  private final UserSettingsService userSettingsService;
   private final OutboundSmsService outboundSmsService;
   private final SystemSettingsProvider settingsProvider;
 
@@ -206,7 +206,7 @@ public class SmsMessageSender implements MessageSender {
   // -------------------------------------------------------------------------
 
   private boolean isQualifiedReceiver(User user) {
-    return userSettingService.getSettings(user.getUsername()).getUserMessageSmsNotification();
+    return userSettingsService.getUserSettings(user.getUsername()).getUserMessageSmsNotification();
   }
 
   private OutboundMessageResponse sendMessage(

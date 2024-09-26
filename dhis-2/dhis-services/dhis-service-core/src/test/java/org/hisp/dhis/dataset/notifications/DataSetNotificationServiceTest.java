@@ -71,7 +71,7 @@ import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.TestBase;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -131,7 +131,7 @@ class DataSetNotificationServiceTest extends TestBase {
 
   @Mock private ConfigurationService configurationService;
 
-  @Mock private UserSettingService userSettingService;
+  @Mock private UserSettingsService userSettingsService;
 
   @Mock private SystemSettingsService settingsService;
 

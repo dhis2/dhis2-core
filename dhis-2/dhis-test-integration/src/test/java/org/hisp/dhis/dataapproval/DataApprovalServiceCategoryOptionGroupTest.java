@@ -623,14 +623,14 @@ class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTest
     dataSetService.addDataSet(dataSetB);
 
     // System settings
-    settingsService.saveSystemSetting("keyIgnoreAnalyticsApprovalYearThreshold", 0);
-    settingsService.saveSystemSetting("keyAcceptanceRequiredForApproval", true);
+    settingsService.put("keyIgnoreAnalyticsApprovalYearThreshold", 0);
+    settingsService.put("keyAcceptanceRequiredForApproval", true);
     settingsService.clearCurrentSettings();
   }
 
   @AfterEach
   void tearDown() {
-    settingsService.deleteSystemSettings(
+    settingsService.deleteAll(
         Set.of("keyIgnoreAnalyticsApprovalYearThreshold", "keyAcceptanceRequiredForApproval"));
     DataApprovalPermissionsEvaluator.invalidateCache();
   }

@@ -56,7 +56,7 @@ class MetadataSystemSettingServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   public void setup() {
-    settingsService.saveSystemSettings(
+    settingsService.putAll(
         Map.ofEntries(
             entry("keyRemoteInstanceUrl", "http://localhost:9080"),
             entry("keyRemoteInstanceUsername", "username"),
@@ -122,7 +122,7 @@ class MetadataSystemSettingServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testShouldReturnFalseIfStopMetadataSyncSettingValueIsNull() {
-    settingsService.deleteSystemSettings(Set.of("keyStopMetadataSync"));
+    settingsService.deleteAll(Set.of("keyStopMetadataSync"));
     boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting();
 
     assertFalse(stopMetadataSync);

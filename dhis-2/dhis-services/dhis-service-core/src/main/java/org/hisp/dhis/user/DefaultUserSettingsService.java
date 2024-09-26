@@ -50,7 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class DefaultUserSettingService implements UserSettingService {
+public class DefaultUserSettingsService implements UserSettingsService {
 
   private final UserStore userStore;
   private final UserSettingStore userSettingStore;
@@ -58,16 +58,16 @@ public class DefaultUserSettingService implements UserSettingService {
   @Nonnull
   @Override
   @Transactional
-  public UserSettings getSettings(@Nonnull String username) {
+  public UserSettings getUserSettings(@Nonnull String username) {
     // Note: this does **not** use transaction template as we always need a TX when this is called
     return UserSettings.of(userSettingStore.getAll(username));
   }
 
   @Override
   @Transactional
-  public void saveUserSetting(@Nonnull String key, Serializable value) {
+  public void put(@Nonnull String key, Serializable value) {
     try {
-      saveUserSetting(key, value, CurrentUserUtil.getCurrentUsername());
+      put(key, value, CurrentUserUtil.getCurrentUsername());
     } catch (NotFoundException ex) {
       // we know the user exists so this should never happen
       throw new NoSuchElementException(ex);
@@ -76,15 +76,14 @@ public class DefaultUserSettingService implements UserSettingService {
 
   @Override
   @Transactional
-  public void saveUserSetting(
-      @Nonnull String key, @CheckForNull Serializable value, @Nonnull String username)
+  public void put(@Nonnull String key, @CheckForNull Serializable value, @Nonnull String username)
       throws NotFoundException {
-    saveUserSettings(Map.of(key, Settings.valueOf(value)), username);
+    putAll(Map.of(key, Settings.valueOf(value)), username);
   }
 
   @Override
   @Transactional
-  public void saveUserSettings(@Nonnull Map<String, String> settings, @Nonnull String username)
+  public void putAll(@Nonnull Map<String, String> settings, @Nonnull String username)
       throws NotFoundException {
     User user = userStore.getUserByUsername(username);
     if (user == null)
@@ -106,7 +105,7 @@ public class DefaultUserSettingService implements UserSettingService {
 
   @Override
   @Transactional
-  public void deleteAllUserSettings(@Nonnull String username) {
+  public void deleteAll(@Nonnull String username) {
     userSettingStore.deleteAll(username);
   }
 }

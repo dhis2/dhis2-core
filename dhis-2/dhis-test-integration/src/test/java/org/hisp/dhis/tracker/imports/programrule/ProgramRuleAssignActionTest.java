@@ -198,7 +198,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
       shouldImportWithWarningWhenDataElementWithDifferentValueIsAssignedByAssignRuleAndOverwriteKeyIsTrue()
           throws IOException {
     assignProgramRule();
-    settingsService.saveSystemSetting("ruleEngineAssignOverwrite", true);
+    settingsService.put("ruleEngineAssignOverwrite", true);
     settingsService.clearCurrentSettings();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
@@ -215,7 +215,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
       shouldImportWithWarningWhenDataElementWithDifferentAndEmptyValueIsAssignedByAssignRuleAndOverwriteKeyIsTrue()
           throws IOException {
     assignProgramRule();
-    settingsService.saveSystemSetting("ruleEngineAssignOverwrite", true);
+    settingsService.put("ruleEngineAssignOverwrite", true);
     settingsService.clearCurrentSettings();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =

@@ -43,6 +43,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.jboss.aerogear.security.otp.Totp;
 import org.jboss.aerogear.security.otp.api.Base32;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,8 +54,15 @@ import org.springframework.security.core.session.SessionRegistry;
  */
 class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
-  @Autowired SystemSettingsService settingsService;
+  @Autowired private SystemSettingsService settingsService;
   @Autowired private SessionRegistry sessionRegistry;
+
+  @AfterEach
+  void tearDown() {
+    settingsService.put("keyLockMultipleFailedLogins", false);
+    settingsService.put("credentialsExpires", 0);
+    settingsService.clearCurrentSettings();
+  }
 
   @Test
   void testSuccessfulLogin() {
@@ -125,7 +133,8 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
   @Test
   void testLoginWithLockedUser() {
-    settingsService.saveSystemSetting("keyLockMultipleFailedLogins", true);
+    settingsService.put("keyLockMultipleFailedLogins", true);
+    settingsService.clearCurrentSettings();
 
     User admin = userService.getUserByUsername("admin");
     userService.updateUser(admin);
@@ -161,7 +170,8 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
   @Test
   void testLoginWithCredentialsExpiredUser() {
-    settingsService.saveSystemSetting("credentialsExpires", 1);
+    settingsService.put("credentialsExpires", 1);
+    settingsService.clearCurrentSettings();
 
     User admin = userService.getUserByUsername("admin");
 

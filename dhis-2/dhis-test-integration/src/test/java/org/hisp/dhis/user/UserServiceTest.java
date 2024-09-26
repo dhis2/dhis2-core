@@ -79,7 +79,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private UserGroupService userGroupService;
 
-  @Autowired private UserSettingService userSettingService;
+  @Autowired private UserSettingsService userSettingsService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -337,7 +337,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testManagedGroups() {
-    settingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", true);
+    settingsService.put("keyCanGrantOwnUserAuthorityGroups", true);
     settingsService.clearCurrentSettings();
     // TODO find way to override in parameters
     User userA = addUser("A");
@@ -382,7 +382,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetByPhoneNumber() {
-    settingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", true);
+    settingsService.put("keyCanGrantOwnUserAuthorityGroups", true);
     settingsService.clearCurrentSettings();
     addUser("A", user -> user.setPhoneNumber("73647271"));
     User userB = addUser("B", user -> user.setPhoneNumber("23452134"));
@@ -460,7 +460,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetManagedGroupsLessAuthoritiesDisjointRoles() {
-    settingsService.saveSystemSetting("keyCanGrantOwnUserAuthorityGroups", false);
+    settingsService.put("keyCanGrantOwnUserAuthorityGroups", false);
     settingsService.clearCurrentSettings();
 
     User userA = addUser("A", roleA);

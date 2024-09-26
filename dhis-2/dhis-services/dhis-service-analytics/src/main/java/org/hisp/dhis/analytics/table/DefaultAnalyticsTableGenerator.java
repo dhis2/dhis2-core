@@ -120,14 +120,14 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
   private void updateLastSuccessfulSystemSettings(AnalyticsTableUpdateParams params, Clock clock) {
     if (params.isLatestUpdate()) {
-      settingsService.saveSystemSettings(
+      settingsService.putAll(
           Map.ofEntries(
               entry(
                   "keyLastSuccessfulLatestAnalyticsPartitionUpdate",
                   Settings.valueOf(params.getStartTime())),
               entry("keyLastSuccessfulLatestAnalyticsPartitionRuntime", clock.time())));
     } else {
-      settingsService.saveSystemSettings(
+      settingsService.putAll(
           Map.ofEntries(
               entry(
                   "keyLastSuccessfulAnalyticsTablesUpdate",
@@ -166,7 +166,6 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
     resourceTableService.createAllSqlViews(progress);
 
-    settingsService.saveSystemSetting(
-        "keyLastSuccessfulResourceTablesUpdate", new Date().toString());
+    settingsService.put("keyLastSuccessfulResourceTablesUpdate", new Date().toString());
   }
 }

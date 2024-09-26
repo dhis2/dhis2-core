@@ -42,7 +42,7 @@ import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.user.UserStore;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.context.annotation.Lazy;
@@ -63,7 +63,7 @@ public class ApiTokenAuthManager implements AuthenticationManager {
   private final OrganisationUnitService organisationUnitService;
   private final UserService userService;
   private final UserStore userStore;
-  private final UserSettingService userSettingService;
+  private final UserSettingsService userSettingsService;
   private final SystemSettingsProvider settingsProvider;
 
   private final Cache<ApiTokenAuthenticationToken> apiTokenCache;
@@ -73,13 +73,13 @@ public class ApiTokenAuthManager implements AuthenticationManager {
       ApiTokenService apiTokenService,
       CacheProvider cacheProvider,
       @Lazy UserService userService,
-      UserSettingService userSettingService,
+      UserSettingsService userSettingsService,
       OrganisationUnitService organisationUnitService,
       SystemSettingsProvider settingsProvider) {
     this.userService = userService;
     this.userStore = userStore;
     this.apiTokenService = apiTokenService;
-    this.userSettingService = userSettingService;
+    this.userSettingsService = userSettingsService;
     this.organisationUnitService = organisationUnitService;
     this.settingsProvider = settingsProvider;
     this.apiTokenCache = cacheProvider.createApiKeyCache();
@@ -146,8 +146,8 @@ public class ApiTokenAuthManager implements AuthenticationManager {
     }
 
     UserSettings userSettings =
-        userSettingService
-            .getSettings(user.getUsername())
+        userSettingsService
+            .getUserSettings(user.getUsername())
             .withFallback(settingsProvider.getCurrentSettings().toMap());
 
     List<String> organisationUnitsUidsByUser =

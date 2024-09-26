@@ -87,7 +87,7 @@ public class SystemSettingsController {
   @ResponseBody
   public WebMessage setSystemSettingPlain(
       @PathVariable("key") String key, @RequestParam(value = "value") String value) {
-    settingsService.saveSystemSetting(key, value);
+    settingsService.put(key, value);
     return ok("System setting '" + key + "' set to value '" + value + "'.");
   }
 
@@ -114,7 +114,7 @@ public class SystemSettingsController {
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
   public WebMessage setSystemSettingsJson(@RequestBody Map<String, String> settings) {
-    settingsService.saveSystemSettings(settings);
+    settingsService.putAll(settings);
     return ok("System settings imported");
   }
 
@@ -145,14 +145,14 @@ public class SystemSettingsController {
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseStatus(value = NO_CONTENT)
   public void removeSystemSetting(@PathVariable("key") String key) {
-    settingsService.deleteSystemSettings(Set.of(key));
+    settingsService.deleteAll(Set.of(key));
   }
 
   @DeleteMapping(params = "key")
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseStatus(value = NO_CONTENT)
   public void removeSystemSetting(@RequestParam("key") Set<String> keys) {
-    settingsService.deleteSystemSettings(keys == null ? Set.of() : keys);
+    settingsService.deleteAll(keys == null ? Set.of() : keys);
   }
 
   /*

@@ -40,7 +40,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -54,7 +54,7 @@ public class DefaultStyleManager implements StyleManager {
   private static final String SYSTEM_SEPARATOR = File.separator;
 
   private final SystemSettingsService settingsService;
-  private final UserSettingService userSettingService;
+  private final UserSettingsService userSettingsService;
   private final I18nManager i18nManager;
 
   /**
@@ -72,12 +72,12 @@ public class DefaultStyleManager implements StyleManager {
 
   @Override
   public void setSystemStyle(String style) {
-    settingsService.saveSystemSetting("keyStyle", style);
+    settingsService.put("keyStyle", style);
   }
 
   @Override
   public void setUserStyle(String style) {
-    userSettingService.saveUserSetting("keyStyle", style);
+    userSettingsService.put("keyStyle", style);
   }
 
   @Override

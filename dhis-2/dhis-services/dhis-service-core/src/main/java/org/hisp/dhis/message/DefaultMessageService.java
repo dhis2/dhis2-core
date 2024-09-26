@@ -60,7 +60,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.springframework.scheduling.annotation.Async;
@@ -92,7 +92,7 @@ public class DefaultMessageService implements MessageService {
 
   private final ConfigurationService configurationService;
 
-  private final UserSettingService userSettingService;
+  private final UserSettingsService userSettingsService;
 
   private final I18nManager i18nManager;
 

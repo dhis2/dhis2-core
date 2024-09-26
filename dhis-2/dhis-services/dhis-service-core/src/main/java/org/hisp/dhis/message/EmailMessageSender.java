@@ -58,7 +58,7 @@ import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
@@ -89,7 +89,7 @@ public class EmailMessageSender implements MessageSender {
 
   private final SystemSettingsProvider settingsProvider;
 
-  private final UserSettingService userSettingService;
+  private final UserSettingsService userSettingsService;
 
   private final DhisConfigurationProvider configurationProvider;
 
@@ -136,8 +136,8 @@ public class EmailMessageSender implements MessageSender {
       for (User user : users) {
         boolean doSend =
             forceSend
-                || userSettingService
-                    .getSettings(user.getUsername())
+                || userSettingsService
+                    .getUserSettings(user.getUsername())
                     .getUserMessageEmailNotification();
 
         if (doSend && ValidationUtils.emailIsValid(user.getEmail())) {

@@ -93,7 +93,7 @@ public class FileController {
   @ResponseStatus(HttpStatus.OK)
   public WebMessage postCustomScript(@RequestBody String content) {
     if (content != null) {
-      settingsService.saveSystemSetting("keyCustomJs", content);
+      settingsService.put("keyCustomJs", content);
       return ok("Custom script created");
     }
     return null;
@@ -103,7 +103,7 @@ public class FileController {
   @RequiresAuthority(anyOf = F_INSERT_CUSTOM_JS_CSS)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void removeCustomScript() {
-    settingsService.deleteSystemSettings(Set.of("keyCustomJs"));
+    settingsService.deleteAll(Set.of("keyCustomJs"));
   }
 
   // -------------------------------------------------------------------------
@@ -133,7 +133,7 @@ public class FileController {
   @ResponseStatus(HttpStatus.OK)
   public WebMessage postCustomStyle(@RequestBody String content) {
     if (content != null) {
-      settingsService.saveSystemSetting("keyCustomCss", content);
+      settingsService.put("keyCustomCss", content);
       return ok("Custom style created");
     }
     return null;
@@ -143,6 +143,6 @@ public class FileController {
   @RequiresAuthority(anyOf = F_INSERT_CUSTOM_JS_CSS)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void removeCustomStyle() {
-    settingsService.deleteSystemSettings(Set.of("keyCustomCss"));
+    settingsService.deleteAll(Set.of("keyCustomCss"));
   }
 }

@@ -151,8 +151,7 @@ public class DefaultMonitoringService implements MonitoringService {
     }
 
     if (sc.is2xxSuccessful()) {
-      settingsService.saveSystemSetting(
-          "keyLastSuccessfulSystemMonitoringPush", startTime.toString());
+      settingsService.put("keyLastSuccessfulSystemMonitoringPush", startTime.toString());
 
       log.debug(String.format("Monitoring request successfully sent, URL: %s", target.getUrl()));
     } else {

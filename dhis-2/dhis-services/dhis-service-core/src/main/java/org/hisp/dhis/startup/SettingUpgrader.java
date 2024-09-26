@@ -41,7 +41,7 @@ public class SettingUpgrader extends AbstractStartupRoutine {
     String startModule = settingsService.getCurrentSettings().getStartModule();
 
     if ("dhis-web-dashboard-integration".equals(startModule)) {
-      settingsService.saveSystemSetting("startModule", "dhis-web-dashboard");
+      settingsService.put("startModule", "dhis-web-dashboard");
     }
   }
 }

@@ -56,7 +56,7 @@ class SystemSettingsServiceTest extends PostgresIntegrationTestBase {
   @BeforeEach
   void setUp() {
     // just to be sure since the test itself is not transactional
-    settingsService.deleteSystemSettings(settingsService.getCurrentSettings().keys());
+    settingsService.deleteAll(settingsService.getCurrentSettings().keys());
     // this is required since creating a user to test with indirectly initializes
     // the settings in the current thread
     settingsService.clearCurrentSettings();
@@ -64,7 +64,7 @@ class SystemSettingsServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testSaveSystemSettings() {
-    settingsService.saveSystemSettings(Map.of("k0", "v0", "k1", "v1"));
+    settingsService.putAll(Map.of("k0", "v0", "k1", "v1"));
 
     SystemSettings settings = settingsService.getCurrentSettings();
     assertEquals(Set.of("k0", "k1"), settings.keys());
@@ -73,7 +73,7 @@ class SystemSettingsServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testSaveSystemSetting_Date() {
-    settingsService.saveSystemSetting("keyDate", new Date(123456L));
+    settingsService.put("keyDate", new Date(123456L));
 
     SystemSettings settings = settingsService.getCurrentSettings();
     assertEquals(new Date(123456L), settings.asDate("keyDate", new Date(0L)));
@@ -81,7 +81,7 @@ class SystemSettingsServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testSaveSystemSetting_Boolean() {
-    settingsService.saveSystemSetting("keyBoolean", true);
+    settingsService.put("keyBoolean", true);
 
     SystemSettings settings = settingsService.getCurrentSettings();
     assertTrue(settings.asBoolean("keyBoolean", false));
@@ -89,7 +89,7 @@ class SystemSettingsServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testSaveSystemSetting_Int() {
-    settingsService.saveSystemSetting("keyInt", 42);
+    settingsService.put("keyInt", 42);
 
     SystemSettings settings = settingsService.getCurrentSettings();
     assertEquals(42, settings.asInt("keyInt", -1));
@@ -97,7 +97,7 @@ class SystemSettingsServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testSaveSystemSetting_Locale() {
-    settingsService.saveSystemSetting("keyLocale", Locale.forLanguageTag("en-GB"));
+    settingsService.put("keyLocale", Locale.forLanguageTag("en-GB"));
 
     SystemSettings settings = settingsService.getCurrentSettings();
     assertEquals(Locale.forLanguageTag("en-GB"), settings.asLocale("keyLocale", Locale.FRENCH));
@@ -109,11 +109,11 @@ class SystemSettingsServiceTest extends PostgresIntegrationTestBase {
         IntStream.range(0, 20)
             .mapToObj(String::valueOf)
             .collect(toMap(i -> "key" + i, i -> "value" + i));
-    settingsService.saveSystemSettings(allSettings);
+    settingsService.putAll(allSettings);
 
     Set<String> deletedKeys =
         Stream.of(1, 4, 5, 7, 9, 12, 16, 32, 64).map(i -> "key" + i).collect(toSet());
-    settingsService.deleteSystemSettings(deletedKeys);
+    settingsService.deleteAll(deletedKeys);
 
     SystemSettings settings = settingsService.getCurrentSettings();
     Set<String> expectedKeys =

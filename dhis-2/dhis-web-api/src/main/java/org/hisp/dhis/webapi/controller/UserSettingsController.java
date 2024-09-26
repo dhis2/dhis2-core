@@ -29,9 +29,10 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.util.JsonValueUtils.toJavaString;
 import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
+import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
-import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
@@ -49,7 +50,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.CacheControl;
@@ -61,6 +62,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -71,13 +73,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/userSettings")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
-public class UserSettingController {
+public class UserSettingsController {
 
-  private final UserSettingService userSettingService;
+  private final UserSettingsService userSettingsService;
   private final UserService userService;
 
   @GetMapping
-  public UserSettings getAllUserSettings(
+  public @ResponseBody UserSettings getAllUserSettings(
       @RequestParam(required = false, defaultValue = "true") boolean useFallback,
       @RequestParam(value = "user", required = false) String username,
       @OpenApi.Param({UID.class, User.class}) @RequestParam(value = "userId", required = false)
@@ -91,23 +93,22 @@ public class UserSettingController {
     return getUserSettings(userId, username, useFallback);
   }
 
-  @OpenApi.Response(String.class)
-  @GetMapping(value = "/{key}")
-  public void getUserSettingByKey(
+  @GetMapping(value = "/{key}", produces = TEXT_PLAIN_VALUE)
+  public @ResponseBody String getUserSettingByKey(
       @PathVariable(value = "key") String key,
       @RequestParam(required = false, defaultValue = "true") boolean useFallback,
       @RequestParam(value = "user", required = false) String username,
       @OpenApi.Param({UID.class, User.class}) @RequestParam(value = "userId", required = false)
           String userId,
       HttpServletResponse response)
-      throws IOException, ForbiddenException, ConflictException {
+      throws ForbiddenException, ConflictException {
 
     response.setHeader(
         ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue());
     response.setHeader(HttpHeaders.CONTENT_TYPE, ContextUtils.CONTENT_TYPE_TEXT);
 
     UserSettings settings = getUserSettings(userId, username, useFallback);
-    response.getWriter().print(settings.asString(key, ""));
+    return toJavaString(settings.toJson(false, Set.of(key)).get(key));
   }
 
   @PostMapping(value = "/{key}")
@@ -125,7 +126,7 @@ public class UserSettingController {
     if (isEmpty(newValue)) throw new ConflictException("You need to specify a new value");
 
     if (username == null) username = getUser(userId, username).getUsername();
-    userSettingService.saveUserSetting(key, newValue, username);
+    userSettingsService.put(key, newValue, username);
 
     return ok("User setting saved");
   }
@@ -138,7 +139,7 @@ public class UserSettingController {
           String userId)
       throws ForbiddenException, ConflictException, NotFoundException {
     if (username == null) username = getUser(userId, username).getUsername();
-    userSettingService.saveUserSetting(key, null, username);
+    userSettingsService.put(key, null, username);
   }
 
   /**
@@ -175,6 +176,6 @@ public class UserSettingController {
     UserDetails user = getUser(userId, username);
     return useFallback
         ? user.getUserSettings()
-        : userSettingService.getSettings(user.getUsername());
+        : userSettingsService.getUserSettings(user.getUsername());
   }
 }

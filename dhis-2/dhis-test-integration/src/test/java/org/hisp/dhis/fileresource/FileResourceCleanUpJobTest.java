@@ -116,8 +116,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   void testNoRetention() {
     when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(true);
 
-    settingsService.saveSystemSetting(
-        "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE);
+    settingsService.put("keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE);
 
     content = "filecontentA".getBytes();
     dataValueA = createFileResourceDataValue('A', content);
@@ -134,7 +133,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   void testRetention() {
     when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(true);
 
-    settingsService.saveSystemSetting(
+    settingsService.put(
         "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.THREE_MONTHS);
 
     content = "filecontentA".getBytes(StandardCharsets.UTF_8);
@@ -169,8 +168,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   void testOrphan() {
     when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(false);
 
-    settingsService.saveSystemSetting(
-        "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE);
+    settingsService.put("keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE);
 
     content = "filecontentA".getBytes(StandardCharsets.UTF_8);
     FileResource fileResourceA = createFileResource('A', content);
@@ -205,7 +203,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   @Disabled
   @Test
   void testFalsePositive() {
-    settingsService.saveSystemSetting(
+    settingsService.put(
         "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.THREE_MONTHS);
 
     content = "externalA".getBytes();
@@ -226,7 +224,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   @Disabled
   @Test
   void testFailedUpload() {
-    settingsService.saveSystemSetting(
+    settingsService.put(
         "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.THREE_MONTHS);
 
     content = "externalA".getBytes();

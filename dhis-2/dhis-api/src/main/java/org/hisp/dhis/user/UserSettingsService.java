@@ -39,7 +39,7 @@ import org.hisp.dhis.setting.UserSettings;
  *
  * @author Jan Bernitt
  */
-public interface UserSettingService {
+public interface UserSettingsService {
 
   /**
    * Note that a user's setting including fallbacks can and should be accessed via {@link
@@ -54,7 +54,7 @@ public interface UserSettingService {
    *     exists an empty {@link UserSettings} is returned.
    */
   @Nonnull
-  UserSettings getSettings(@Nonnull String username);
+  UserSettings getUserSettings(@Nonnull String username);
 
   /**
    * Saves the key/value pair as a user setting for the current user
@@ -62,7 +62,7 @@ public interface UserSettingService {
    * @param key the user setting key.
    * @param value the setting value, null or empty to delete
    */
-  void saveUserSetting(@Nonnull String key, @CheckForNull Serializable value);
+  void put(@Nonnull String key, @CheckForNull Serializable value);
 
   /**
    * Saves the name/value pair as a user setting connected to user.
@@ -71,8 +71,7 @@ public interface UserSettingService {
    * @param value the setting value, null or empty to delete
    * @param username owner/target of the settings update
    */
-  void saveUserSetting(
-      @Nonnull String key, @CheckForNull Serializable value, @Nonnull String username)
+  void put(@Nonnull String key, @CheckForNull Serializable value, @Nonnull String username)
       throws NotFoundException;
 
   /**
@@ -81,7 +80,7 @@ public interface UserSettingService {
    * @param settings settings to store, null or empty values are deleted
    * @param username owner/target of the settings update
    */
-  void saveUserSettings(@Nonnull Map<String, String> settings, @Nonnull String username)
+  void putAll(@Nonnull Map<String, String> settings, @Nonnull String username)
       throws NotFoundException;
 
   /**
@@ -89,5 +88,5 @@ public interface UserSettingService {
    *
    * @param username owner/target of the settings deletion
    */
-  void deleteAllUserSettings(@Nonnull String username);
+  void deleteAll(@Nonnull String username);
 }

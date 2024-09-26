@@ -45,7 +45,7 @@ import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -76,7 +76,7 @@ public class HtmlPushAnalyticsJob implements Job {
   private final EmailService emailService;
   private final SystemSettingsProvider settingsProvider;
   private final UserService userService;
-  private final UserSettingService userSettingService;
+  private final UserSettingsService userSettingsService;
   private final RestTemplate restTemplate;
 
   @Override
@@ -138,7 +138,7 @@ public class HtmlPushAnalyticsJob implements Job {
   private String substituteUrl(String urlTemplate, String username) {
     String url = urlTemplate.replace("{username}", username);
     if (url.contains("{locale}")) {
-      Locale locale = userSettingService.getSettings(username).evalUserLocale();
+      Locale locale = userSettingsService.getUserSettings(username).evalUserLocale();
       url = url.replace("{locale}", locale == null ? "" : locale.toLanguageTag());
     }
     return url;

@@ -85,7 +85,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
@@ -119,7 +119,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
   @Autowired protected IdentifiableObjectManager manager;
 
-  @Autowired protected UserSettingService userSettingService;
+  @Autowired protected UserSettingsService userSettingsService;
 
   @Autowired protected ContextService contextService;
 

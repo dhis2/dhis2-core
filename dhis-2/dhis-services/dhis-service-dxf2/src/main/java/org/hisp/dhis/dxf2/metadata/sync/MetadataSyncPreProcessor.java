@@ -70,7 +70,7 @@ public class MetadataSyncPreProcessor {
 
   public void setUp(MetadataRetryContext context, JobProgress progress) {
     progress.startingProcess("Setting up metadata synchronisation");
-    progress.runStage(() -> settingsService.saveSystemSetting("keyVersionEnabled", true));
+    progress.runStage(() -> settingsService.put("keyVersionEnabled", true));
     progress.completedProcess("finished setting up metadata synchronisation");
   }
 
@@ -106,7 +106,7 @@ public class MetadataSyncPreProcessor {
       MetadataVersion latestVersion = getLatestVersion(versions);
       assert latestVersion != null;
 
-      settingsService.saveSystemSetting("keyRemoteMetadataVersion", latestVersion.getName());
+      settingsService.put("keyRemoteMetadataVersion", latestVersion.getName());
       progress.completedProcess("Remote system is at version: " + latestVersion.getName());
       return versions;
     } catch (MetadataVersionServiceException e) {

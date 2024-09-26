@@ -121,7 +121,7 @@ public class DefaultUserService implements UserService {
   private final AclService aclService;
   private final OrganisationUnitService organisationUnitService;
   private final SessionRegistry sessionRegistry;
-  private final UserSettingService userSettingService;
+  private final UserSettingsService userSettingsService;
   private final RestTemplate restTemplate;
   private final MessageSender emailMessageSender;
   private final I18nManager i18nManager;
@@ -133,7 +133,7 @@ public class DefaultUserService implements UserService {
   private final Cache<Integer> twoFaDisableFailedAttemptCache;
 
   public DefaultUserService(
-      UserSettingService userSettingService,
+      UserSettingsService userSettingsService,
       RestTemplate restTemplate,
       MessageSender emailMessageSender,
       I18nManager i18nManager,
@@ -156,7 +156,7 @@ public class DefaultUserService implements UserService {
     checkNotNull(aclService);
     checkNotNull(organisationUnitService);
     checkNotNull(sessionRegistry);
-    checkNotNull(userSettingService);
+    checkNotNull(userSettingsService);
     checkNotNull(restTemplate);
     checkNotNull(cacheProvider);
     checkNotNull(emailMessageSender);
@@ -173,7 +173,7 @@ public class DefaultUserService implements UserService {
     this.organisationUnitService = organisationUnitService;
     this.sessionRegistry = sessionRegistry;
 
-    this.userSettingService = userSettingService;
+    this.userSettingsService = userSettingsService;
     this.restTemplate = restTemplate;
     this.emailMessageSender = emailMessageSender;
     this.i18nManager = i18nManager;
@@ -936,8 +936,8 @@ public class DefaultUserService implements UserService {
     }
 
     UserSettings userSettings =
-        userSettingService
-            .getSettings(user.getUsername())
+        userSettingsService
+            .getUserSettings(user.getUsername())
             .withFallback(settingsProvider.getCurrentSettings().toMap());
 
     List<String> organisationUnitsUidsByUser =
@@ -1142,7 +1142,7 @@ public class DefaultUserService implements UserService {
 
     I18n i18n =
         i18nManager.getI18n(
-            userSettingService.getSettings(persistedUser.getUsername()).getUserUiLocale());
+            userSettingsService.getUserSettings(persistedUser.getUsername()).getUserUiLocale());
 
     vars.put("i18n", i18n);
 
@@ -1537,7 +1537,8 @@ public class DefaultUserService implements UserService {
     vars.put("username", user.getUsername());
     vars.put("email", user.getEmail());
     I18n i18n =
-        i18nManager.getI18n(userSettingService.getSettings(user.getUsername()).getUserUiLocale());
+        i18nManager.getI18n(
+            userSettingsService.getUserSettings(user.getUsername()).getUserUiLocale());
     vars.put("i18n", i18n);
 
     VelocityManager vm = new VelocityManager();

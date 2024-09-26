@@ -38,7 +38,7 @@ import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManagerException;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -50,16 +50,16 @@ public class UserSettingLocaleManager implements LocaleManager {
   // Dependencies
   // -------------------------------------------------------------------------
 
-  private final UserSettingService userSettingService;
+  private final UserSettingsService userSettingsService;
 
   private final ResourceBundleManager resourceBundleManager;
 
   public UserSettingLocaleManager(
-      UserSettingService userSettingService, ResourceBundleManager resourceBundleManager) {
-    checkNotNull(userSettingService);
+      UserSettingsService userSettingsService, ResourceBundleManager resourceBundleManager) {
+    checkNotNull(userSettingsService);
     checkNotNull(resourceBundleManager);
 
-    this.userSettingService = userSettingService;
+    this.userSettingsService = userSettingsService;
     this.resourceBundleManager = resourceBundleManager;
   }
 
@@ -84,7 +84,7 @@ public class UserSettingLocaleManager implements LocaleManager {
 
   @Override
   public void setCurrentLocale(Locale locale) {
-    userSettingService.saveUserSetting("keyUiLocale", locale);
+    userSettingsService.put("keyUiLocale", locale);
   }
 
   @Override

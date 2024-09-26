@@ -81,7 +81,7 @@ public class DefaultMetadataSystemSettingService implements MetadataSystemSettin
 
   @Override
   public void setSystemMetadataVersion(String versionName) {
-    settingsService.saveSystemSetting("keySystemMetadataVersion", versionName);
+    settingsService.put("keySystemMetadataVersion", versionName);
   }
 
   @Override

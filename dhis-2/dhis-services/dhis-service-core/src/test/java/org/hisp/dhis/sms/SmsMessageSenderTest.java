@@ -68,7 +68,7 @@ import org.hisp.dhis.sms.config.SmsMessageSender;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -88,7 +88,7 @@ class SmsMessageSenderTest {
 
   private SmsMessageSender smsMessageSender;
 
-  @Mock private UserSettingService userSettingService;
+  @Mock private UserSettingsService userSettingsService;
 
   @Mock private UserSettings userSettings;
 
@@ -144,7 +144,7 @@ class SmsMessageSenderTest {
         new SmsMessageSender(
             gatewayAdministrationService,
             smsGateways,
-            userSettingService,
+            userSettingsService,
             outboundSmsService,
             settingsProvider);
   }
@@ -218,7 +218,7 @@ class SmsMessageSenderTest {
 
   @Test
   void testSendMessageWithListOfUsers() {
-    when(userSettingService.getSettings(anyString())).thenReturn(userSettings);
+    when(userSettingsService.getUserSettings(anyString())).thenReturn(userSettings);
     when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     when(settings.getSmsMaxLength()).thenReturn(maxSmsLength);
 
@@ -248,7 +248,7 @@ class SmsMessageSenderTest {
 
   @Test
   void testSendMessageWithUserSMSSettingsDisabled() {
-    when(userSettingService.getSettings(anyString())).thenReturn(userSettings);
+    when(userSettingsService.getUserSettings(anyString())).thenReturn(userSettings);
     when(userSettings.getUserMessageSmsNotification()).thenReturn(false);
 
     OutboundMessageResponse status =

@@ -74,7 +74,7 @@ import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -119,7 +119,7 @@ class DataQueryServiceDimensionItemKeywordTest {
 
   @Mock private AnalyticsSecurityManager securityManager;
 
-  @Mock private UserSettingService userSettingService;
+  @Mock private UserSettingsService userSettingsService;
 
   @Mock private SystemSettingsService settingsService;
 
@@ -143,7 +143,7 @@ class DataQueryServiceDimensionItemKeywordTest {
             aclService);
     target =
         new DefaultDataQueryService(
-            dimensionalObjectProducer, idObjectManager, securityManager, userSettingService);
+            dimensionalObjectProducer, idObjectManager, securityManager, userSettingsService);
 
     rb = new RequestBuilder();
 

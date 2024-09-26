@@ -106,13 +106,13 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
 
   @Override
   @Transactional
-  public void saveSystemSetting(@Nonnull String key, @CheckForNull Serializable value) {
-    saveSystemSettings(Map.of(key, Settings.valueOf(value)));
+  public void put(@Nonnull String key, @CheckForNull Serializable value) {
+    putAll(Map.of(key, Settings.valueOf(value)));
   }
 
   @Override
   @Transactional
-  public void saveSystemSettings(@Nonnull Map<String, String> settings) {
+  public void putAll(@Nonnull Map<String, String> settings) {
     if (settings.isEmpty()) return;
     Set<String> deletes = new HashSet<>();
     for (Map.Entry<String, String> e : settings.entrySet()) {
@@ -125,13 +125,13 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
             key, isConfidential(key) ? pbeStringEncryptor.encrypt(value) : value);
       }
     }
-    deleteSystemSettings(deletes);
+    deleteAll(deletes);
     allSettings = null; // invalidate
   }
 
   @Override
   @Transactional
-  public void deleteSystemSettings(@Nonnull Set<String> keys) {
+  public void deleteAll(@Nonnull Set<String> keys) {
     if (keys.isEmpty()) return;
     if (systemSettingStore.delete(keys) > 0) allSettings = null; // invalidate
   }

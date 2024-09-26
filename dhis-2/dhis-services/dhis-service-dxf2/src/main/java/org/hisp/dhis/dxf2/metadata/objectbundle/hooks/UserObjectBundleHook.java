@@ -54,7 +54,7 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -73,7 +73,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
 
   private final AclService aclService;
 
-  private final UserSettingService userSettingService;
+  private final UserSettingsService userSettingsService;
 
   private final DhisConfigurationProvider dhisConfig;
 
@@ -299,7 +299,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
     Map<String, String> settings = user.getSettings();
     if (settings == null) return;
     try {
-      userSettingService.saveUserSettings(settings, user.getUsername());
+      userSettingsService.putAll(settings, user.getUsername());
     } catch (NotFoundException ex) {
       // we know the user exists so this should never happen
       throw new NoSuchElementException(ex);
