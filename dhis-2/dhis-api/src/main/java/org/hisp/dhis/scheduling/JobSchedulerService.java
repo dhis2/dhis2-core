@@ -63,33 +63,12 @@ public interface JobSchedulerService {
   void executeNow(@Nonnull String jobId) throws ConflictException, NotFoundException;
 
   /**
-   * Creates a new job configuration and executes it immediately.
-   *
-   * @param config
-   * @param contentType
-   * @param content
-   * @throws ConflictException
-   * @throws NotFoundException
-   */
-  void createThenExecute(JobConfiguration config, MimeType contentType, InputStream content)
-      throws ConflictException, NotFoundException;
-
-  /**
-   * Creates a new job configuration and executes it immediately.
-   *
-   * @param config
-   * @throws ConflictException
-   * @throws NotFoundException
-   */
-  void createThenExecute(JobConfiguration config) throws ConflictException, NotFoundException;
-
-  /**
    * Creates a new job configuration in a separate transaction.
    *
-   * @param jobConfiguration
-   * @param contentType
-   * @param content
-   * @return
+   * @param jobConfiguration {@link JobConfiguration}
+   * @param contentType {@link MimeType}
+   * @param content  {@link InputStream}
+   * @return the job id
    * @throws ConflictException
    * @throws NotFoundException
    */
@@ -100,8 +79,8 @@ public interface JobSchedulerService {
   /**
    * Creates a new job configuration in a separate transaction.
    *
-   * @param jobConfiguration
-   * @return
+   * @param jobConfiguration {@link JobConfiguration}
+   * @return the job id
    * @throws ConflictException
    * @throws NotFoundException
    */
@@ -111,7 +90,7 @@ public interface JobSchedulerService {
   /**
    * Executes a job configuration in a separate transaction.
    *
-   * @param jobId
+   * @param jobId the job id to execute
    * @throws NotFoundException
    * @throws ConflictException
    */

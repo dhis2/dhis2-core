@@ -107,20 +107,6 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
   }
 
   @Override
-  public void createThenExecute(JobConfiguration config, MimeType contentType, InputStream content)
-      throws ConflictException, NotFoundException {
-    String jobId = createInTransaction(config, contentType, content);
-    runInTransaction(jobId);
-  }
-
-  @Override
-  public void createThenExecute(JobConfiguration config)
-      throws ConflictException, NotFoundException {
-    String jobId = createInTransaction(config);
-    runInTransaction(jobId);
-  }
-
-  @Override
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public String createInTransaction(
       JobConfiguration jobConfiguration, MimeType contentType, InputStream content)

@@ -108,6 +108,6 @@ public class PushAnalysisController extends AbstractCrudController<PushAnalysis>
     config.setJobParameters(new PushAnalysisJobParameters(uid));
     config.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
 
-    jobSchedulerService.createThenExecute(config);
+    jobSchedulerService.runInTransaction(jobSchedulerService.createInTransaction(config));
   }
 }

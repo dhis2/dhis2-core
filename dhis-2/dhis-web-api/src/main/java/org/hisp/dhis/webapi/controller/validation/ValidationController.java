@@ -113,7 +113,7 @@ public class ValidationController {
       throws ConflictException, @OpenApi.Ignore NotFoundException {
     JobConfiguration config = new JobConfiguration(JobType.VALIDATION_RESULTS_NOTIFICATION);
 
-    jobSchedulerService.createThenExecute(config);
+    jobSchedulerService.runInTransaction(jobSchedulerService.createInTransaction(config));
 
     return jobConfigurationReport(config);
   }

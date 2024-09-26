@@ -267,7 +267,7 @@ public class MetadataImportExportController {
 
     config.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
     config.setJobParameters(params);
-    jobSchedulerService.createThenExecute(config, contentType, request.getInputStream());
+    jobSchedulerService.runInTransaction(jobSchedulerService.createInTransaction(config, contentType, request.getInputStream()));
     return jobConfigurationReport(config);
   }
 

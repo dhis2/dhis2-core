@@ -264,7 +264,7 @@ public class CompleteDataSetRegistrationController {
 
     jobConfig.setJobParameters(importOptions);
     jobConfig.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
-    jobSchedulerService.createThenExecute(jobConfig, mimeType, request.getInputStream());
+    jobSchedulerService.runInTransaction(jobSchedulerService.createInTransaction(jobConfig, mimeType, request.getInputStream()));
 
     return jobConfigurationReport(jobConfig);
   }
