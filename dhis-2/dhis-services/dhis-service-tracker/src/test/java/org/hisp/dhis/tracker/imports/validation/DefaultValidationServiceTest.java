@@ -44,16 +44,19 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.ValidationMode;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class DefaultValidationServiceTest {
+class DefaultValidationServiceTest extends TestBase {
 
   private DefaultValidationService service;
 
@@ -76,30 +79,19 @@ class DefaultValidationServiceTest {
     when(validator.needsToRun(any())).thenReturn(true);
     ruleEngineValidator = mock(Validator.class);
 
+    User userA = makeUser("A");
+    UserDetails user = UserDetails.fromUser(userA);
+    injectSecurityContext(user);
+
     bundleBuilder = newBundle();
   }
 
   @Test
-  void shouldNotValidateWhenModeIsSkipAndUserIsNull() {
-    bundle =
-        bundleBuilder
-            .validationMode(ValidationMode.SKIP)
-            .user(null)
-            .trackedEntities(trackedEntities(trackedEntity()))
-            .build();
-    service = new DefaultValidationService(validator, ruleEngineValidator);
-
-    service.validate(bundle);
-
-    verifyNoInteractions(validator);
-  }
-
-  @Test
   void shouldNotValidateWhenModeIsSkipAndUserIsASuperUser() {
+    superUser();
     bundle =
         bundleBuilder
             .validationMode(ValidationMode.SKIP)
-            .user(superUser())
             .trackedEntities(trackedEntities(trackedEntity()))
             .build();
     service = new DefaultValidationService(validator, ruleEngineValidator);
@@ -115,7 +107,6 @@ class DefaultValidationServiceTest {
     bundle =
         bundleBuilder
             .validationMode(ValidationMode.FULL)
-            .user(superUser())
             .trackedEntities(trackedEntities(trackedEntity))
             .build();
     service = new DefaultValidationService(validator, ruleEngineValidator);
@@ -161,10 +152,8 @@ class DefaultValidationServiceTest {
     assertTrue(bundle.getTrackedEntities().contains(validTrackedEntity));
   }
 
-  private User superUser() {
-    User user = mock(User.class);
-    when(user.isSuper()).thenReturn(true);
-    return user;
+  private void superUser() {
+    injectSecurityContext(new SystemUser());
   }
 
   private TrackedEntity trackedEntity() {
