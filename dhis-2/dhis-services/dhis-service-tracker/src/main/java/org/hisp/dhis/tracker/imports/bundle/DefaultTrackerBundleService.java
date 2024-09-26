@@ -94,7 +94,6 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
 
     TrackerPreheat preheat =
         trackerPreheatService.preheat(trackerObjects, params.getIdSchemes(), user);
-    preheat.setUserInfo(userInfo);
 
     TrackerBundle trackerBundle = ParamsConverter.convert(params, trackerObjects, user);
     trackerBundle.setUserInfo(userInfo);

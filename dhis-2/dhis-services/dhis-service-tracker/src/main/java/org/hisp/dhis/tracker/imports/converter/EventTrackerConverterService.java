@@ -55,6 +55,7 @@ import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -201,10 +202,10 @@ public class EventTrackerConverterService
       result.setUid(!StringUtils.isEmpty(event.getEvent()) ? event.getEvent() : event.getUid());
       result.setCreated(now);
       result.setStoredBy(event.getStoredBy());
-      result.setCreatedByUserInfo(preheat.getUserInfo());
+      result.setCreatedByUserInfo(UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails()));
       result.setCreatedAtClient(DateUtils.fromInstant(event.getCreatedAtClient()));
     }
-    result.setLastUpdatedByUserInfo(preheat.getUserInfo());
+    result.setLastUpdatedByUserInfo(UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails()));
     result.setLastUpdated(now);
     result.setDeleted(false);
     result.setLastUpdatedAtClient(DateUtils.fromInstant(event.getUpdatedAtClient()));
@@ -228,7 +229,7 @@ public class EventTrackerConverterService
 
     if (currentStatus != previousStatus && currentStatus == EventStatus.COMPLETED) {
       result.setCompletedDate(now);
-      result.setCompletedBy(preheat.getUsername());
+      result.setCompletedBy(CurrentUserUtil.getCurrentUsername());
     }
 
     if (currentStatus != EventStatus.COMPLETED) {
@@ -262,8 +263,10 @@ public class EventTrackerConverterService
       // dataElementIdSchemes are supported
       DataElement dataElement = preheat.getDataElement(dataValue.getDataElement());
       eventDataValue.setDataElement(dataElement.getUid());
-      eventDataValue.setLastUpdatedByUserInfo(preheat.getUserInfo());
-      eventDataValue.setCreatedByUserInfo(preheat.getUserInfo());
+      eventDataValue.setLastUpdatedByUserInfo(
+          UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails()));
+      eventDataValue.setCreatedByUserInfo(
+          UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails()));
 
       result.getEventDataValues().add(eventDataValue);
     }
