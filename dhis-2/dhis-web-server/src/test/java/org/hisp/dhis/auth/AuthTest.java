@@ -78,7 +78,6 @@ class AuthTest {
 
   @BeforeAll
   static void setup() throws Exception {
-
     availablePort = findAvailablePort();
 
     POSTGRES_CONTAINER =
@@ -107,8 +106,8 @@ class AuthTest {
         new Thread(
             () -> {
               try {
-                System.setProperty("jetty.http.port", Integer.toString(availablePort));
-                org.hisp.dhis.web.jetty.Main.main(null);
+                System.setProperty("server.port", Integer.toString(availablePort));
+                org.hisp.dhis.web.tomcat.Main.main(null);
               } catch (InterruptedException ignored) {
               } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -126,15 +125,15 @@ class AuthTest {
     log.info("JDBC URL: " + jdbcUrl);
     String multiLineString =
         """
-            connection.dialect = org.hibernate.dialect.PostgreSQLDialect
-            connection.driver_class = org.postgresql.Driver
-            connection.url = %s
-            connection.username = dhis
-            connection.password = dhis
-            # Database schema behavior, can be validate, update, create, create-drop
-            connection.schema = update
-            system.audit.enabled = false
-            """
+        connection.dialect = org.hibernate.dialect.PostgreSQLDialect
+        connection.driver_class = org.postgresql.Driver
+        connection.url = %s
+        connection.username = dhis
+        connection.password = dhis
+        # Database schema behavior, can be validate, update, create, create-drop
+        connection.schema = update
+        system.audit.enabled = false
+        """
             .formatted(jdbcUrl);
     try {
       String tmpDir = System.getProperty("java.io.tmpdir");

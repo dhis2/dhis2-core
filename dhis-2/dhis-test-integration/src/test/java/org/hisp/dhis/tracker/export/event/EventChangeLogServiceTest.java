@@ -80,7 +80,7 @@ class EventChangeLogServiceTest extends TrackerTest {
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    importParams = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    importParams = TrackerImportParams.builder().build();
     assertNoErrors(
         trackerImportService.importTracker(
             importParams, fromJson("tracker/event_and_enrollment.json")));

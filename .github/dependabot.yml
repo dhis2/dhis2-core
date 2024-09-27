@@ -31,9 +31,6 @@ updates:
       - dependency-name: "org.apache.struts:*" # will be removed from core (significant work involved in upgrade with the risk of regressions)
         versions:
           - ">= 3.0"
-      - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
-        versions:
-          - ">= 11.0"
       - dependency-name: "org.springframework:*" # Spring framework 6 requires minimum JDK 17 so it will require more effort/time until we update it
         versions:
           - ">= 6.0"
@@ -120,9 +117,6 @@ updates:
       - dependency-name: "org.apache.struts:*" # will be removed from core (significant work involved in upgrade with the risk of regressions)
         versions:
           - ">= 3.0"
-      - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
-        versions:
-          - ">= 11.0"
       - dependency-name: "org.springframework:*" # Spring framework 6 requires minimum JDK 17 so it will require more effort/time until we update it
         versions:
           - ">= 6.0"
@@ -219,9 +213,6 @@ updates:
       - dependency-name: "org.apache.struts:*" # will be removed from core (significant work involved in upgrade with the risk of regressions)
         versions:
           - ">= 3.0"
-      - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
-        versions:
-          - ">= 11.0"
       - dependency-name: "org.springframework:*" # Spring framework 6 requires minimum JDK 17 so it will require more effort/time until we update it
         versions:
           - ">= 6.0"
@@ -309,9 +300,6 @@ updates:
       - dependency-name: "org.apache.struts:*" # will be removed from core (significant work involved in upgrade with the risk of regressions)
         versions:
           - ">= 3.0"
-      - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
-        versions:
-          - ">= 11.0"
       - dependency-name: "org.antlr:antlr4-runtime" # Automatically upgrade ANTLR version can cause issues in rule-engine and antlr-parser libraries
       - dependency-name: "org.springframework:*" # Spring framework 6 requires minimum JDK 17 so it will require more effort/time until we update it
         versions:

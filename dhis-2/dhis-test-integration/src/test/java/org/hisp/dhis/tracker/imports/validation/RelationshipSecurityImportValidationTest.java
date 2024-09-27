@@ -44,6 +44,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -51,18 +52,25 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
 
   @Autowired private TrackerImportService trackerImportService;
 
+  private User importUser;
+
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/tracker_basic_metadata.json");
 
-    User importUser = userService.getUser("tTgjgobT1oS");
+    importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     assertNoErrors(
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/te_relationship.json")));
     manager.flush();
+  }
+
+  @BeforeEach
+  void setUpUser() {
+    injectSecurityContextUser(importUser);
   }
 
   @Test
@@ -70,7 +78,6 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
       throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_siblings.json");
     TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(USER_11);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
@@ -82,11 +89,11 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
           throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_siblings.json");
     TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(USER_11);
 
     RelationshipType relationshipType = manager.get(RelationshipType.class, "xLmPUYJX8Ks");
     relationshipType.getSharing().getUsers().remove(USER_11);
     manager.update(relationshipType);
+    injectSecurityContextUser(userService.getUser(USER_11));
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
@@ -99,11 +106,11 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
           throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_siblings.json");
     TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(USER_11);
 
     Program program = manager.get(Program.class, "E8o1E9tAppy");
     program.getSharing().getUsers().get(USER_11).setAccess("r-r-----");
     manager.update(program);
+    injectSecurityContextUser(userService.getUser(USER_11));
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
@@ -116,11 +123,11 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
           throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_siblings.json");
     TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(USER_11);
 
     Program program = manager.get(Program.class, "YYY1E9tAbbW");
     program.getSharing().getUsers().get(USER_11).setAccess("r-r-----");
     manager.update(program);
+    injectSecurityContextUser(userService.getUser(USER_11));
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
@@ -132,7 +139,6 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
       throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_siblings.json");
     TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(USER_11);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
@@ -148,7 +154,6 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
           throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_siblings.json");
     TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(USER_11);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
@@ -156,6 +161,7 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
     RelationshipType relationshipType = manager.get(RelationshipType.class, "xLmPUYJX8Ks");
     relationshipType.getSharing().getUsers().remove(USER_11);
     manager.update(relationshipType);
+    injectSecurityContextUser(userService.getUser(USER_11));
 
     params.setImportStrategy(TrackerImportStrategy.DELETE);
     importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -169,7 +175,6 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
           throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_siblings.json");
     TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(USER_11);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
@@ -177,6 +182,7 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
     Program program = manager.get(Program.class, "E8o1E9tAppy");
     program.getSharing().getUsers().get(USER_11).setAccess("r-r-----");
     manager.update(program);
+    injectSecurityContextUser(userService.getUser(USER_12));
 
     params.setImportStrategy(TrackerImportStrategy.DELETE);
     importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -190,7 +196,6 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
           throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_siblings.json");
     TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(USER_11);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
@@ -198,6 +203,7 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
     Program program = manager.get(Program.class, "YYY1E9tAbbW");
     program.getSharing().getUsers().get(USER_11).setAccess("r-r-----");
     manager.update(program);
+    injectSecurityContextUser(userService.getUser(USER_11));
 
     params.setImportStrategy(TrackerImportStrategy.DELETE);
     importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -210,8 +216,6 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
       throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_parent_child.json");
     TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(USER_12);
-
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
   }
@@ -221,11 +225,10 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
       throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_parent_child.json");
     TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(USER_12);
-
     RelationshipType relationshipType = manager.get(RelationshipType.class, "TV9oB9LT3sh");
     relationshipType.getSharing().getUsers().remove(USER_12);
     manager.update(relationshipType);
+    injectSecurityContextUser(userService.getUser(USER_12));
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
@@ -237,11 +240,10 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
       throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_parent_child.json");
     TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(USER_12);
-
     Program program = manager.get(Program.class, "E8o1E9tAppy");
     program.getSharing().getUsers().get(USER_12).setAccess("r-r-----");
     manager.update(program);
+    injectSecurityContextUser(userService.getUser(USER_12));
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
@@ -253,11 +255,10 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
       throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_parent_child.json");
     TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(USER_12);
-
     Program program = manager.get(Program.class, "YYY1E9tAbbW");
     program.getSharing().getUsers().remove(USER_12);
     manager.update(program);
+    injectSecurityContextUser(userService.getUser(USER_12));
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
@@ -269,8 +270,6 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
       throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_parent_child.json");
     TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(USER_12);
-
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
 
@@ -288,14 +287,13 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
       throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_parent_child.json");
     TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(USER_12);
-
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
 
     RelationshipType relationshipType = manager.get(RelationshipType.class, "TV9oB9LT3sh");
     relationshipType.getSharing().getUsers().remove(USER_12);
     manager.update(relationshipType);
+    injectSecurityContextUser(userService.getUser(USER_12));
 
     params.setImportStrategy(TrackerImportStrategy.DELETE);
     importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -308,14 +306,13 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
       throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_parent_child.json");
     TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(USER_12);
-
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
 
     Program program = manager.get(Program.class, "E8o1E9tAppy");
     program.getSharing().getUsers().get(USER_12).setAccess("r-r-----");
     manager.update(program);
+    injectSecurityContextUser(userService.getUser(USER_12));
 
     params.setImportStrategy(TrackerImportStrategy.DELETE);
     importReport = trackerImportService.importTracker(params, trackerObjects);

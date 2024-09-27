@@ -57,7 +57,7 @@ class TeTaEncryptionValidationTest extends TrackerTest {
 
   @Test
   void testUniqueFailInOrgUnit() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/te-program_with_tea_unique_data_in_country.json");
 
@@ -81,7 +81,7 @@ class TeTaEncryptionValidationTest extends TrackerTest {
 
   @Test
   void testUniqueFail() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/te-program_with_tea_unique_data.json");
 

@@ -27,19 +27,14 @@
  */
 package org.hisp.dhis.tracker.imports.preheat;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.beans.Introspector;
 import java.util.List;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.preheat.PreheatException;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.supplier.PreheatSupplier;
-import org.hisp.dhis.user.User;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -55,8 +50,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class DefaultTrackerPreheatService
     implements TrackerPreheatService, ApplicationContextAware {
-  @Nonnull private final IdentifiableObjectManager manager;
-
   private ApplicationContext ctx;
 
   @Override
@@ -73,12 +66,9 @@ public class DefaultTrackerPreheatService
   @Override
   @Transactional(readOnly = true)
   public TrackerPreheat preheat(
-      TrackerObjects trackerObjects, TrackerIdSchemeParams idSchemeParams, User user) {
+      TrackerObjects trackerObjects, TrackerIdSchemeParams idSchemeParams) {
     TrackerPreheat preheat = new TrackerPreheat();
     preheat.setIdSchemes(idSchemeParams);
-    preheat.setUser(user);
-
-    checkNotNull(preheat.getUser(), "TrackerPreheat is missing the user object.");
 
     for (String supplier : preheatSuppliers) {
       final String beanName = Introspector.decapitalize(supplier);
