@@ -72,7 +72,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Slf4j
 @RequiredArgsConstructor
 public class RouteService {
-  private static String HEADER_X_FORWARDED_USER = "X-Forwarded-User";
+  private static final String HEADER_X_FORWARDED_USER = "X-Forwarded-User";
 
   private final RouteStore routeStore;
 
