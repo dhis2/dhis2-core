@@ -48,6 +48,7 @@ import org.hisp.dhis.smscompression.SmsConsts.SmsEnrollmentStatus;
 import org.hisp.dhis.smscompression.SmsConsts.SmsEventStatus;
 import org.hisp.dhis.smscompression.models.EnrollmentSmsSubmission;
 import org.hisp.dhis.smscompression.models.GeoPoint;
+import org.hisp.dhis.smscompression.models.SimpleEventSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsAttributeValue;
 import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.smscompression.models.SmsEvent;
@@ -282,6 +283,27 @@ class SmsImportMapper {
         .enrollment(submission.getEnrollment().getUid())
         .orgUnit(metadataUid(submission.getOrgUnit()))
         .programStage(metadataUid(submission.getProgramStage()))
+        .attributeOptionCombo(metadataUid(submission.getAttributeOptionCombo()))
+        .storedBy(user.getUsername())
+        .occurredAt(toInstant(submission.getEventDate()))
+        .scheduledAt(toInstant(submission.getDueDate()))
+        .status(map(submission.getEventStatus()))
+        .geometry(map(submission.getCoordinates()))
+        .dataValues(map(submission.getValues(), user))
+        .build();
+  }
+
+  @Nonnull
+  static TrackerObjects map(@Nonnull SimpleEventSmsSubmission submission, @Nonnull User user) {
+    return TrackerObjects.builder().events(List.of(mapEvent(submission, user))).build();
+  }
+
+  @Nonnull
+  private static Event mapEvent(@Nonnull SimpleEventSmsSubmission submission, @Nonnull User user) {
+    return Event.builder()
+        .event(submission.getEvent().getUid())
+        .orgUnit(metadataUid(submission.getOrgUnit()))
+        .program(metadataUid(submission.getEventProgram()))
         .attributeOptionCombo(metadataUid(submission.getAttributeOptionCombo()))
         .storedBy(user.getUsername())
         .occurredAt(toInstant(submission.getEventDate()))
