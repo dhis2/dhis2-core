@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.imports.sms;
 
 import java.util.List;
 import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -51,6 +52,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Component("org.hisp.dhis.tracker.sms.DeleteEventSMSListener")
 @Transactional
 public class DeleteEventSMSListener extends CompressionSMSListener {
@@ -81,6 +83,7 @@ public class DeleteEventSMSListener extends CompressionSMSListener {
     }
 
     // TODO(DHIS2-18003) we need to map tracker import report errors/warnings to an sms
+    log.error("Failed to process SMS of submission type DELETE {}", importReport);
     return SmsResponse.INVALID_EVENT.set(subm.getEvent());
   }
 
