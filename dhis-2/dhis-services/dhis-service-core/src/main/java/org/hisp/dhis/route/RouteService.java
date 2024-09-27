@@ -33,10 +33,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
@@ -56,6 +58,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
@@ -69,6 +72,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Slf4j
 @RequiredArgsConstructor
 public class RouteService {
+  private static String HEADER_X_FORWARDED_USER = "X-Forwarded-User";
+
   private final RouteStore routeStore;
 
   private final ObjectMapper objectMapper;
@@ -78,8 +83,8 @@ public class RouteService {
 
   private static final RestTemplate restTemplate = new RestTemplate();
 
-  private static final List<String> ALLOWED_REQUEST_HEADERS =
-      List.of(
+  private static final Set<String> ALLOWED_REQUEST_HEADERS =
+      Set.of(
           "accept",
           "accept-encoding",
           "accept-language",
@@ -98,8 +103,8 @@ public class RouteService {
           "x-forwarded-prefix",
           "forwarded");
 
-  private static final List<String> ALLOWED_RESPONSE_HEADERS =
-      List.of(
+  private static final Set<String> ALLOWED_RESPONSE_HEADERS =
+      Set.of(
           "content-encoding",
           "content-language",
           "content-length",
@@ -125,12 +130,13 @@ public class RouteService {
   }
 
   /**
-   * Retrieves a {@link Route} by UID or code, decrypts its password/token and returns it.
+   * Retrieves a {@link Route} by UID or code, where the authentication secrets will be decrypted.
+   * Either the route UID or code can be passed as route identifier.
    *
-   * @param id the UID or code,
+   * @param id the route UID or code.
    * @return {@link Route}.
    */
-  public Route getDecryptedRoute(@Nonnull String id) {
+  public Route getRouteWithDecryptedAuth(@Nonnull String id) {
     Route route = routeStore.getByUidNoAcl(id);
 
     if (route == null) {
@@ -144,32 +150,27 @@ public class RouteService {
     try {
       route = objectMapper.readValue(objectMapper.writeValueAsString(route), Route.class);
     } catch (JsonProcessingException ex) {
-      log.error("Unable to create clone of route: '{}'", route.getUid());
+      log.error("Unable to create copy of route: '{}'", route.getUid());
       return null;
     }
 
-    decrypt(route);
+    decryptAuthentication(route.getAuth());
 
     return route;
   }
 
-  public ResponseEntity<String> exec(
-      Route route,
-      UserDetails currentUserDetails,
-      Optional<String> subPath,
-      HttpServletRequest request)
+  public ResponseEntity<String> execute(
+      Route route, UserDetails userDetails, Optional<String> subPath, HttpServletRequest request)
       throws IOException, BadRequestException {
     HttpHeaders headers = filterRequestHeaders(request);
+
     headers.forEach(
         (String name, List<String> values) ->
-            log.debug(String.format("Forwarded header %s=%s", name, values.toString())));
+            log.debug(String.format("Forwarded header '%s'='%s'", name, values.toString())));
 
     route.getHeaders().forEach(headers::add);
 
-    if (currentUserDetails != null && StringUtils.hasText(currentUserDetails.getUsername())) {
-      log.debug("Route accessed by user: '{}'", currentUserDetails.getUsername());
-      headers.add("X-Forwarded-User", currentUserDetails.getUsername());
-    }
+    addForwardedUserHeader(userDetails, headers);
 
     if (route.getAuth() != null) {
       route.getAuth().apply(headers);
@@ -184,19 +185,26 @@ public class RouteService {
     if (subPath.isPresent()) {
       if (!route.allowsSubpaths()) {
         throw new BadRequestException(
-            String.format("Route %s does not allow subpaths", route.getId()));
+            String.format("Route '%s' does not allow subpaths", route.getId()));
       }
       uriComponentsBuilder.path(subPath.get());
     }
 
     String body = StreamUtils.copyToString(request.getInputStream(), StandardCharsets.UTF_8);
+
     HttpEntity<String> entity = new HttpEntity<>(body, headers);
+
     HttpMethod httpMethod =
         Objects.requireNonNullElse(HttpMethod.resolve(request.getMethod()), HttpMethod.GET);
+
     String targetUri = uriComponentsBuilder.toUriString();
 
     log.info(
-        "Sending {} {} via route {} ({})", httpMethod, targetUri, route.getName(), route.getUid());
+        "Sending '{}' '{}' with route '{}' ('{}')",
+        httpMethod,
+        targetUri,
+        route.getName(),
+        route.getUid());
 
     ResponseEntity<String> response =
         restTemplate.exchange(targetUri, httpMethod, entity, String.class);
@@ -207,9 +215,10 @@ public class RouteService {
 
     responseHeaders.forEach(
         (String name, List<String> values) ->
-            log.debug(String.format("Response header %s=%s", name, values.toString())));
+            log.debug(String.format("Response header '%s'='%s'", name, values.toString())));
+
     log.info(
-        "Request {} {} responded with HTTP status {} via route {} ({})",
+        "Request '{}' '{}' responded with HTTP status '{}' for route '{}' ('{}')",
         httpMethod,
         targetUri,
         response.getStatusCode().toString(),
@@ -219,10 +228,54 @@ public class RouteService {
     return new ResponseEntity<>(responseBody, responseHeaders, response.getStatusCode());
   }
 
+  /**
+   * Adds the user as an HTTP header, if it exists.
+   *
+   * @param userDetails the {@link UserDetails} of the current user.
+   * @param headers the {@link HttpHeaders}.
+   */
+  private void addForwardedUserHeader(UserDetails userDetails, HttpHeaders headers) {
+    if (userDetails != null && StringUtils.hasText(userDetails.getUsername())) {
+      log.debug("Route accessed by user: '{}'", userDetails.getUsername());
+      headers.add(HEADER_X_FORWARDED_USER, userDetails.getUsername());
+    }
+  }
+
+  /**
+   * Returns the allowed HTTP headers only for the given request.
+   *
+   * @param request the {@link HttpServletRequest}.
+   * @return an {@link HttpHeaders}.
+   */
+  private HttpHeaders filterRequestHeaders(HttpServletRequest request) {
+    return filterHeaders(
+        Collections.list(request.getHeaderNames()),
+        ALLOWED_REQUEST_HEADERS,
+        (String name) -> Collections.list(request.getHeaders(name)));
+  }
+
+  /**
+   * Returns the allowed HTTP headers only for the given response headers.
+   *
+   * @param responseHeaders the {@link HttpHeaders}.
+   * @return an {@link HttpHeaders}.
+   */
+  private HttpHeaders filterResponseHeaders(HttpHeaders responseHeaders) {
+    return filterHeaders(responseHeaders.keySet(), ALLOWED_RESPONSE_HEADERS, responseHeaders::get);
+  }
+
+  /**
+   * Filters the given HTTP headers.
+   *
+   * @param names the header names.
+   * @param allowedHeaders the allowed headers.
+   * @param valueGetter the function for retrieving the value for a header name.
+   * @return an {@link HttpHeaders}.
+   */
   private HttpHeaders filterHeaders(
       Iterable<String> names,
-      List<String> allowedHeaders,
-      Function<String, List<String>> valuesGetter) {
+      Collection<String> allowedHeaders,
+      Function<String, List<String>> valueGetter) {
     HttpHeaders headers = new HttpHeaders();
     names.forEach(
         (String name) -> {
@@ -231,26 +284,18 @@ public class RouteService {
             log.debug("Blocked header: '{}'", name);
             return;
           }
-          List<String> values = valuesGetter.apply(name);
+          List<String> values = valueGetter.apply(name);
           headers.addAll(name, values);
         });
     return headers;
   }
 
-  private HttpHeaders filterRequestHeaders(HttpServletRequest request) {
-    return filterHeaders(
-        Collections.list(request.getHeaderNames()),
-        ALLOWED_REQUEST_HEADERS,
-        (String name) -> Collections.list(request.getHeaders(name)));
-  }
-
-  private HttpHeaders filterResponseHeaders(HttpHeaders responseHeaders) {
-    return filterHeaders(responseHeaders.keySet(), ALLOWED_RESPONSE_HEADERS, responseHeaders::get);
-  }
-
-  private void decrypt(Route route) {
-    Auth auth = route.getAuth();
-
+  /**
+   * Decrypts the secrets on the given authentication.
+   *
+   * @param auth the {@link Authentication}.
+   */
+  private void decryptAuthentication(Auth auth) {
     if (auth == null) {
       return;
     }

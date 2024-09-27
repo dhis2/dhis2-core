@@ -95,7 +95,7 @@ public class RouteController extends AbstractCrudController<Route> {
       HttpServletRequest request)
       throws IOException, ForbiddenException, NotFoundException, BadRequestException {
 
-    Route route = routeService.getDecryptedRoute(id);
+    Route route = routeService.getRouteWithDecryptedAuth(id);
 
     if (route == null) {
       throw new NotFoundException(String.format("Route %s not found", id));
@@ -108,7 +108,7 @@ public class RouteController extends AbstractCrudController<Route> {
 
     Optional<String> subPath = getSubPath(request.getPathInfo(), id);
 
-    return routeService.exec(route, currentUser, subPath, request);
+    return routeService.execute(route, currentUser, subPath, request);
   }
 
   private Optional<String> getSubPath(String path, String id) {
