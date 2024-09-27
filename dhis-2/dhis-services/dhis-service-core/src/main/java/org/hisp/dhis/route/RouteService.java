@@ -218,10 +218,10 @@ public class RouteService {
             log.debug(String.format("Response header '%s'='%s'", name, values.toString())));
 
     log.info(
-        "Request '{}' '{}' responded with HTTP status '{}' for route '{}' ('{}')",
+        "Request '{}' '{}' responded with status '{}' for route '{}' ('{}')",
         httpMethod,
         targetUri,
-        response.getStatusCode().toString(),
+        response.getStatusCode(),
         route.getName(),
         route.getUid());
 

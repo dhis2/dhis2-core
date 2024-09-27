@@ -29,9 +29,10 @@ package org.hisp.dhis.webapi.controller;
 
 import java.io.IOException;
 import java.util.Optional;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -52,6 +53,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Morten Olav Hansen
@@ -98,12 +101,12 @@ public class RouteController extends AbstractCrudController<Route> {
     Route route = routeService.getRouteWithDecryptedAuth(id);
 
     if (route == null) {
-      throw new NotFoundException(String.format("Route %s not found", id));
+      throw new NotFoundException(String.format("Route not found: '%s'", id));
     }
 
     if (!aclService.canRead(currentUser, route)
         && !currentUser.hasAnyAuthority(route.getAuthorities())) {
-      throw new ForbiddenException("User not authorized");
+      throw new ForbiddenException("User not authorized to execute route");
     }
 
     Optional<String> subPath = getSubPath(request.getPathInfo(), id);
@@ -127,15 +130,15 @@ public class RouteController extends AbstractCrudController<Route> {
   }
 
   /**
-   * Disable the Collection API for /api/routes endpoint. This conflicts with sub-path based routes
-   * and is not supported by the Route API (no id object collections).
+   * Disable the collection API for /api/routes endpoint. This conflicts with sub-path based routes
+   * and is not supported by the Route API (no identifiable object collections).
    */
   @Override
   @PostMapping(value = "/addCollectionItem__disabled")
   @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
   public WebMessage addCollectionItem(String pvUid, String pvProperty, String pvItemId)
       throws NotFoundException, ConflictException, ForbiddenException, BadRequestException {
-    throw new NotFoundException("Method Not Allowed");
+    throw new NotFoundException("Method not allowed");
   }
 
   @Override
@@ -144,6 +147,6 @@ public class RouteController extends AbstractCrudController<Route> {
   public WebMessage deleteCollectionItem(
       String pvUid, String pvProperty, String pvItemId, HttpServletResponse response)
       throws NotFoundException, ForbiddenException, ConflictException, BadRequestException {
-    throw new NotFoundException("Method Not Allowed");
+    throw new NotFoundException("Method not allowed");
   }
 }
