@@ -131,7 +131,8 @@ public class RouteService {
 
   /**
    * Retrieves a {@link Route} by UID or code, where the authentication secrets will be decrypted.
-   * Either the route UID or code can be passed as route identifier.
+   * The route UID or code can be passed as route identifier. Returns null if the route does not
+   * exist.
    *
    * @param id the route UID or code.
    * @return {@link Route}.
@@ -159,6 +160,17 @@ public class RouteService {
     return route;
   }
 
+  /**
+   * Executes the given route and returns the response from the target API.
+   *
+   * @param route the {@link Route}.
+   * @param userDetails the {@link UserDetails} of the current user.
+   * @param subPath the sub path.
+   * @param request the {@link HttpServletRequest}.
+   * @return an {@link ResponseEntity}.
+   * @throws IOException
+   * @throws BadRequestException
+   */
   public ResponseEntity<String> execute(
       Route route, UserDetails userDetails, Optional<String> subPath, HttpServletRequest request)
       throws IOException, BadRequestException {
