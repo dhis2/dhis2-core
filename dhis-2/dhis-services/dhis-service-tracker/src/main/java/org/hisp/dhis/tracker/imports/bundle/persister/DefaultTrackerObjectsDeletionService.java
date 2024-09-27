@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import static org.hisp.dhis.changelog.ChangeLogType.READ;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import java.util.Collection;
@@ -55,7 +56,6 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Service;
 
 /**
@@ -80,8 +80,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
   @Override
   public TrackerTypeReport deleteEnrollments(List<String> enrollments) throws NotFoundException {
-    UserInfoSnapshot userInfoSnapshot =
-        UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails());
+    UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.ENROLLMENT);
 
     for (String uid : enrollments) {
@@ -130,8 +129,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
   @Override
   public TrackerTypeReport deleteEvents(List<String> events) throws NotFoundException {
-    UserInfoSnapshot userInfoSnapshot =
-        UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails());
+    UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.EVENT);
     for (String uid : events) {
       Entity objectReport = new Entity(TrackerType.EVENT, uid);
@@ -181,8 +179,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   @Override
   public TrackerTypeReport deleteTrackedEntities(List<String> trackedEntities)
       throws NotFoundException {
-    UserInfoSnapshot userInfoSnapshot =
-        UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails());
+    UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.TRACKED_ENTITY);
 
     for (String uid : trackedEntities) {

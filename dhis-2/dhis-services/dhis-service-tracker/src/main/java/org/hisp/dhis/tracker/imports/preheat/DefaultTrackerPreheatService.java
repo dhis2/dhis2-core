@@ -35,7 +35,6 @@ import org.hisp.dhis.preheat.PreheatException;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.supplier.PreheatSupplier;
-import org.hisp.dhis.user.User;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -67,7 +66,7 @@ public class DefaultTrackerPreheatService
   @Override
   @Transactional(readOnly = true)
   public TrackerPreheat preheat(
-      TrackerObjects trackerObjects, TrackerIdSchemeParams idSchemeParams, User user) {
+      TrackerObjects trackerObjects, TrackerIdSchemeParams idSchemeParams) {
     TrackerPreheat preheat = new TrackerPreheat();
     preheat.setIdSchemes(idSchemeParams);
 

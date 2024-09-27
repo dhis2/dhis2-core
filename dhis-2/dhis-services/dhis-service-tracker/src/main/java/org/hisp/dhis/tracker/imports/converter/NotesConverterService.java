@@ -27,15 +27,14 @@
  */
 package org.hisp.dhis.tracker.imports.converter;
 
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.note.Note;
-import org.hisp.dhis.tracker.imports.TrackerUserService;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -45,9 +44,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class NotesConverterService
     implements TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Note, Note> {
-
-  @Autowired private final TrackerUserService userService;
-
   @Override
   public org.hisp.dhis.tracker.imports.domain.Note to(Note note) {
     org.hisp.dhis.tracker.imports.domain.Note trackerNote =
@@ -68,7 +64,7 @@ public class NotesConverterService
 
   @Override
   public List<org.hisp.dhis.tracker.imports.domain.Note> to(List<Note> notes) {
-    return notes.stream().map(this::to).collect(Collectors.toList());
+    return notes.stream().map(this::to).toList();
   }
 
   @Override
@@ -78,7 +74,8 @@ public class NotesConverterService
     trackerNote.setAutoFields();
     trackerNote.setNoteText(note.getValue());
 
-    trackerNote.setLastUpdatedBy(userService.getCurrentUser());
+    trackerNote.setLastUpdatedBy(
+        preheat.getUserByUid(getCurrentUserDetails().getUid()).orElse(null));
     trackerNote.setCreator(note.getStoredBy());
     return trackerNote;
   }
@@ -86,6 +83,6 @@ public class NotesConverterService
   @Override
   public List<Note> from(
       TrackerPreheat preheat, List<org.hisp.dhis.tracker.imports.domain.Note> notes) {
-    return notes.stream().map(n -> from(preheat, n)).collect(Collectors.toList());
+    return notes.stream().map(n -> from(preheat, n)).toList();
   }
 }

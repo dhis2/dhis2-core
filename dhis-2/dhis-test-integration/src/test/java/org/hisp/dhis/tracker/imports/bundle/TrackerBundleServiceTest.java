@@ -72,8 +72,7 @@ class TrackerBundleServiceTest extends TrackerTest {
     TrackerObjects trackerObjects = fromJson("tracker/trackedentity_basic_data.json");
     assertEquals(13, trackerObjects.getTrackedEntities().size());
     TrackerBundle trackerBundle =
-        trackerBundleService.create(
-            new TrackerImportParams(), trackerObjects, userService.getUser(ADMIN_USER_UID));
+        trackerBundleService.create(new TrackerImportParams(), trackerObjects);
     trackerBundleService.commit(trackerBundle);
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
     assertEquals(13, trackedEntities.size());

@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.validation.validator.trackedentity;
 
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1100;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +44,6 @@ import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -66,7 +66,7 @@ class SecurityOwnershipValidator
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity) {
     TrackerImportStrategy strategy = bundle.getStrategy(trackedEntity);
-    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails user = getCurrentUserDetails();
 
     TrackedEntityType trackedEntityType =
         strategy.isUpdateOrDelete()
@@ -113,7 +113,7 @@ class SecurityOwnershipValidator
       Reporter reporter,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity,
       TrackedEntityType trackedEntityType) {
-    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails user = getCurrentUserDetails();
     if (!aclService.canDataWrite(user, trackedEntityType)) {
       reporter.addError(trackedEntity, ValidationCode.E1001, user, trackedEntityType);
     }
@@ -126,7 +126,7 @@ class SecurityOwnershipValidator
 
   private void checkOrgUnitInCaptureScope(
       Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit) {
-    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails user = getCurrentUserDetails();
     if (!user.isInUserHierarchy(orgUnit.getPath())) {
       reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
     }

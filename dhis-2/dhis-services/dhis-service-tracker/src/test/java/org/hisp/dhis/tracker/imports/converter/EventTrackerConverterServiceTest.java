@@ -51,7 +51,6 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.tracker.imports.TrackerUserService;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.User;
@@ -82,10 +81,7 @@ class EventTrackerConverterServiceTest extends TestBase {
 
   private static final Date today = new Date();
 
-  @Mock public TrackerUserService trackerUserService;
-
-  private final NotesConverterService notesConverterService =
-      new NotesConverterService(trackerUserService);
+  private final NotesConverterService notesConverterService = new NotesConverterService();
 
   private RuleEngineConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> converter;
 
