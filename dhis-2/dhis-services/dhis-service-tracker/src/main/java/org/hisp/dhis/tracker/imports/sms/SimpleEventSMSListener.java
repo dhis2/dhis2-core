@@ -29,12 +29,8 @@ package org.hisp.dhis.tracker.imports.sms;
 
 import static org.hisp.dhis.tracker.imports.sms.SmsImportMapper.map;
 
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.listener.CompressionSMSListener;
@@ -43,15 +39,12 @@ import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.SimpleEventSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -66,30 +59,14 @@ public class SimpleEventSMSListener extends CompressionSMSListener {
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       UserService userService,
-      TrackedEntityTypeService trackedEntityTypeService,
-      TrackedEntityAttributeService trackedEntityAttributeService,
-      ProgramService programService,
-      OrganisationUnitService organisationUnitService,
-      CategoryService categoryService,
-      DataElementService dataElementService,
       IdentifiableObjectManager identifiableObjectManager,
       TrackerImportService trackerImportService) {
-    super(
-        incomingSmsService,
-        smsSender,
-        userService,
-        trackedEntityTypeService,
-        trackedEntityAttributeService,
-        programService,
-        organisationUnitService,
-        categoryService,
-        dataElementService,
-        identifiableObjectManager);
+    super(incomingSmsService, smsSender, userService, identifiableObjectManager);
     this.trackerImportService = trackerImportService;
   }
 
   @Override
-  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, User user)
+  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, String username)
       throws SMSProcessingException {
     SimpleEventSmsSubmission subm = (SimpleEventSmsSubmission) submission;
 
@@ -97,7 +74,7 @@ public class SimpleEventSMSListener extends CompressionSMSListener {
         TrackerImportParams.builder()
             .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
             .build();
-    TrackerObjects trackerObjects = map(subm, user);
+    TrackerObjects trackerObjects = map(subm, username);
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     if (Status.OK == importReport.getStatus()) {

@@ -63,7 +63,6 @@ import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.user.User;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
@@ -98,7 +97,7 @@ class SmsImportMapper {
       @Nonnull EnrollmentSmsSubmission submission,
       @Nonnull Program program,
       @Nullable org.hisp.dhis.trackedentity.TrackedEntity trackedEntity,
-      @Nonnull User user) {
+      @Nonnull String username) {
     Set<String> programAttributes =
         emptyIfNull(program.getProgramAttributes()).stream()
             .map(ProgramTrackedEntityAttribute::getAttribute)
@@ -121,7 +120,7 @@ class SmsImportMapper {
             List.of(mapToEnrollment(submission, programAttributes, existingAttributeValues)))
         .events(
             emptyIfNull(submission.getEvents()).stream()
-                .map(e -> mapToEvent(e, user, submission.getEnrollment()))
+                .map(e -> mapToEvent(e, username, submission.getEnrollment()))
                 .toList())
         .build();
   }
@@ -255,62 +254,66 @@ class SmsImportMapper {
 
   @Nonnull
   private static Event mapToEvent(
-      @Nonnull SmsEvent submission, @Nonnull User user, @Nonnull Uid enrollment) {
+      @Nonnull SmsEvent submission, @Nonnull String username, @Nonnull Uid enrollment) {
     return Event.builder()
         .event(submission.getEvent().getUid())
         .enrollment(enrollment.getUid())
         .orgUnit(metadataUid(submission.getOrgUnit()))
         .programStage(metadataUid(submission.getProgramStage()))
         .attributeOptionCombo(metadataUid(submission.getAttributeOptionCombo()))
-        .storedBy(user.getUsername())
+        .storedBy(username)
         .occurredAt(toInstant(submission.getEventDate()))
         .scheduledAt(toInstant(submission.getDueDate()))
         .status(map(submission.getEventStatus()))
         .geometry(map(submission.getCoordinates()))
-        .dataValues(map(submission.getValues(), user))
+        .dataValues(map(submission.getValues(), username))
         .build();
   }
 
   @Nonnull
-  static TrackerObjects map(@Nonnull TrackerEventSmsSubmission submission, @Nonnull User user) {
-    return TrackerObjects.builder().events(List.of(mapEvent(submission, user))).build();
+  static TrackerObjects map(
+      @Nonnull TrackerEventSmsSubmission submission, @Nonnull String username) {
+    return TrackerObjects.builder().events(List.of(mapEvent(submission, username))).build();
   }
 
   @Nonnull
-  private static Event mapEvent(@Nonnull TrackerEventSmsSubmission submission, @Nonnull User user) {
+  private static Event mapEvent(
+      @Nonnull TrackerEventSmsSubmission submission, @Nonnull String username) {
     return Event.builder()
         .event(submission.getEvent().getUid())
         .enrollment(submission.getEnrollment().getUid())
         .orgUnit(metadataUid(submission.getOrgUnit()))
         .programStage(metadataUid(submission.getProgramStage()))
         .attributeOptionCombo(metadataUid(submission.getAttributeOptionCombo()))
-        .storedBy(user.getUsername())
+        .storedBy(username)
         .occurredAt(toInstant(submission.getEventDate()))
         .scheduledAt(toInstant(submission.getDueDate()))
         .status(map(submission.getEventStatus()))
         .geometry(map(submission.getCoordinates()))
-        .dataValues(map(submission.getValues(), user))
+        .dataValues(map(submission.getValues(), username))
         .build();
   }
 
   @Nonnull
-  static TrackerObjects map(@Nonnull SimpleEventSmsSubmission submission, @Nonnull User user) {
-    return TrackerObjects.builder().events(List.of(mapEvent(submission, user))).build();
+  static TrackerObjects map(
+      @Nonnull SimpleEventSmsSubmission submission, @Nonnull String username) {
+    return TrackerObjects.builder().events(List.of(mapEvent(submission, username))).build();
   }
 
   @Nonnull
-  private static Event mapEvent(@Nonnull SimpleEventSmsSubmission submission, @Nonnull User user) {
+  private static Event mapEvent(
+      @Nonnull SimpleEventSmsSubmission submission, @Nonnull String username) {
     return Event.builder()
         .event(submission.getEvent().getUid())
         .orgUnit(metadataUid(submission.getOrgUnit()))
         .program(metadataUid(submission.getEventProgram()))
         .attributeOptionCombo(metadataUid(submission.getAttributeOptionCombo()))
-        .storedBy(user.getUsername())
+        .storedBy(username)
         .occurredAt(toInstant(submission.getEventDate()))
         .scheduledAt(toInstant(submission.getDueDate()))
         .status(map(submission.getEventStatus()))
         .geometry(map(submission.getCoordinates()))
-        .dataValues(map(submission.getValues(), user))
+        .dataValues(map(submission.getValues(), username))
         .build();
   }
 
@@ -325,14 +328,15 @@ class SmsImportMapper {
   }
 
   @Nonnull
-  private static Set<DataValue> map(@Nullable List<SmsDataValue> dataValues, @Nonnull User user) {
+  private static Set<DataValue> map(
+      @Nullable List<SmsDataValue> dataValues, @Nonnull String username) {
     return emptyIfNull(dataValues).stream()
         .map(
             dv ->
                 DataValue.builder()
                     .dataElement(metadataUid(dv.getDataElement()))
                     .value(dv.getValue())
-                    .storedBy(user.getUsername())
+                    .storedBy(username)
                     .build())
         .collect(Collectors.toSet());
   }
