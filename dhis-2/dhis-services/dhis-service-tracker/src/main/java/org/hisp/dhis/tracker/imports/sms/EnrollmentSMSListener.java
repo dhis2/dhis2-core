@@ -29,16 +29,12 @@ package org.hisp.dhis.tracker.imports.sms;
 
 import static org.hisp.dhis.tracker.imports.sms.SmsImportMapper.map;
 
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.listener.CompressionSMSListener;
@@ -48,8 +44,6 @@ import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.EnrollmentSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -75,26 +69,10 @@ public class EnrollmentSMSListener extends CompressionSMSListener {
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       UserService userService,
-      TrackedEntityTypeService trackedEntityTypeService,
-      TrackedEntityAttributeService trackedEntityAttributeService,
-      ProgramService programService,
-      OrganisationUnitService organisationUnitService,
-      CategoryService categoryService,
-      DataElementService dataElementService,
       IdentifiableObjectManager identifiableObjectManager,
       TrackerImportService trackerImportService,
       TrackedEntityService trackedEntityService) {
-    super(
-        incomingSmsService,
-        smsSender,
-        userService,
-        trackedEntityTypeService,
-        trackedEntityAttributeService,
-        programService,
-        organisationUnitService,
-        categoryService,
-        dataElementService,
-        identifiableObjectManager);
+    super(incomingSmsService, smsSender, userService, identifiableObjectManager);
     this.trackerImportService = trackerImportService;
     this.trackedEntityService = trackedEntityService;
   }

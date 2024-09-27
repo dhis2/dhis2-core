@@ -28,12 +28,8 @@
 package org.hisp.dhis.tracker.imports.sms;
 
 import java.util.List;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
@@ -46,8 +42,6 @@ import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.RelationshipSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -74,26 +68,10 @@ public class RelationshipSMSListener extends CompressionSMSListener {
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       UserService userService,
-      TrackedEntityTypeService trackedEntityTypeService,
-      TrackedEntityAttributeService trackedEntityAttributeService,
-      ProgramService programService,
-      OrganisationUnitService organisationUnitService,
-      CategoryService categoryService,
-      DataElementService dataElementService,
       IdentifiableObjectManager identifiableObjectManager,
       RelationshipTypeService relationshipTypeService,
       TrackerImportService trackerImportService) {
-    super(
-        incomingSmsService,
-        smsSender,
-        userService,
-        trackedEntityTypeService,
-        trackedEntityAttributeService,
-        programService,
-        organisationUnitService,
-        categoryService,
-        dataElementService,
-        identifiableObjectManager);
+    super(incomingSmsService, smsSender, userService, identifiableObjectManager);
     this.relationshipTypeService = relationshipTypeService;
     this.trackerImportService = trackerImportService;
   }
