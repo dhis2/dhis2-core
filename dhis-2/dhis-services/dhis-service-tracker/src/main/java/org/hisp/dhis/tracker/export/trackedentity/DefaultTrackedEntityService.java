@@ -208,6 +208,11 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   @Override
+  public TrackedEntity getTrackedEntity(String uid) throws NotFoundException, ForbiddenException {
+    return getTrackedEntity(uid, null);
+  }
+
+  @Override
   public TrackedEntity getTrackedEntity(
       String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
@@ -468,7 +473,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   @Override
   public List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)
       throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntityQueryParams queryParams = mapper.map(operationParams);
+    TrackedEntityQueryParams queryParams = mapper.map(operationParams, getCurrentUserDetails());
     final List<Long> ids = getTrackedEntityIds(queryParams);
 
     List<TrackedEntity> trackedEntities =
@@ -492,7 +497,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   public Page<TrackedEntity> getTrackedEntities(
       TrackedEntityOperationParams operationParams, PageParams pageParams)
       throws BadRequestException, ForbiddenException, NotFoundException {
-    TrackedEntityQueryParams queryParams = mapper.map(operationParams);
+    TrackedEntityQueryParams queryParams = mapper.map(operationParams, getCurrentUserDetails());
     final Page<Long> ids = getTrackedEntityIds(queryParams, pageParams);
 
     List<TrackedEntity> trackedEntities =

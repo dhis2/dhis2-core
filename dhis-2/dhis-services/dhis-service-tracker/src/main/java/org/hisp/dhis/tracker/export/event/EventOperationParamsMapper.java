@@ -52,9 +52,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,8 +72,6 @@ class EventOperationParamsMapper {
 
   private final CategoryOptionComboService categoryOptionComboService;
 
-  private final UserService userService;
-
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
   private final DataElementService dataElementService;
@@ -83,19 +79,14 @@ class EventOperationParamsMapper {
   private final OperationsParamsValidator paramsValidator;
 
   @Transactional(readOnly = true)
-  public EventQueryParams map(EventOperationParams operationParams)
+  public EventQueryParams map(EventOperationParams operationParams, UserDetails user)
       throws BadRequestException, ForbiddenException {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-
-    Program program = paramsValidator.validateProgramAccess(operationParams.getProgramUid());
-    ProgramStage programStage =
-        validateProgramStage(operationParams.getProgramStageUid(), currentUser);
+    Program program = paramsValidator.validateProgramAccess(operationParams.getProgramUid(), user);
+    ProgramStage programStage = validateProgramStage(operationParams.getProgramStageUid(), user);
     TrackedEntity trackedEntity =
-        paramsValidator.validateTrackedEntity(operationParams.getTrackedEntityUid(), currentUser);
-
-    OrganisationUnit orgUnit =
-        validateRequestedOrgUnit(operationParams.getOrgUnitUid(), currentUser);
-    validateOrgUnitMode(operationParams.getOrgUnitMode(), program);
+        paramsValidator.validateTrackedEntity(operationParams.getTrackedEntityUid(), user);
+    OrganisationUnit orgUnit = validateRequestedOrgUnit(operationParams.getOrgUnitUid(), user);
+    validateOrgUnitMode(operationParams.getOrgUnitMode(), program, user);
 
     CategoryOptionCombo attributeOptionCombo =
         categoryOptionComboService.getAttributeOptionCombo(
@@ -105,7 +96,7 @@ class EventOperationParamsMapper {
             operationParams.getAttributeCategoryOptions(),
             true);
 
-    validateAttributeOptionCombo(attributeOptionCombo, currentUser);
+    validateAttributeOptionCombo(attributeOptionCombo, user);
 
     EventQueryParams queryParams = new EventQueryParams();
 
@@ -146,7 +137,7 @@ class EventOperationParamsMapper {
         .setIncludeRelationships(operationParams.getEventParams().isIncludeRelationships());
   }
 
-  private ProgramStage validateProgramStage(String programStageUid, User user)
+  private ProgramStage validateProgramStage(String programStageUid, UserDetails user)
       throws BadRequestException, ForbiddenException {
     if (programStageUid == null) {
       return null;
@@ -165,7 +156,7 @@ class EventOperationParamsMapper {
     return programStage;
   }
 
-  private OrganisationUnit validateRequestedOrgUnit(String orgUnitUid, User user)
+  private OrganisationUnit validateRequestedOrgUnit(String orgUnitUid, UserDetails user)
       throws BadRequestException, ForbiddenException {
     if (orgUnitUid == null) {
       return null;
@@ -175,8 +166,7 @@ class EventOperationParamsMapper {
       throw new BadRequestException("Org unit is specified but does not exist: " + orgUnitUid);
     }
 
-    if (!organisationUnitService.isInUserHierarchy(
-        orgUnit.getUid(), user.getEffectiveSearchOrganisationUnits())) {
+    if (!user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getPath())) {
       throw new ForbiddenException(
           "Organisation unit is not part of your search scope: " + orgUnit.getUid());
     }
@@ -184,10 +174,10 @@ class EventOperationParamsMapper {
     return orgUnit;
   }
 
-  private void validateAttributeOptionCombo(CategoryOptionCombo attributeOptionCombo, User user)
-      throws ForbiddenException {
+  private void validateAttributeOptionCombo(
+      CategoryOptionCombo attributeOptionCombo, UserDetails user) throws ForbiddenException {
     if (attributeOptionCombo != null
-        && (user != null && !user.isSuper())
+        && !user.isSuper()
         && !aclService.canDataRead(user, attributeOptionCombo)) {
       throw new ForbiddenException(
           "User has no access to attribute category option combo: "

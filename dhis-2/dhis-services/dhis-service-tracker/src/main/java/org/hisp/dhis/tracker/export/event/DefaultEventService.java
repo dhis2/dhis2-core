@@ -236,14 +236,14 @@ class DefaultEventService implements EventService {
   @Override
   public List<Event> getEvents(EventOperationParams operationParams)
       throws BadRequestException, ForbiddenException, NotFoundException {
-    EventQueryParams queryParams = paramsMapper.map(operationParams);
+    EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
     return eventStore.getEvents(queryParams);
   }
 
   @Override
   public Page<Event> getEvents(EventOperationParams operationParams, PageParams pageParams)
       throws BadRequestException, ForbiddenException, NotFoundException {
-    EventQueryParams queryParams = paramsMapper.map(operationParams);
+    EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
     return eventStore.getEvents(queryParams, pageParams);
   }
 

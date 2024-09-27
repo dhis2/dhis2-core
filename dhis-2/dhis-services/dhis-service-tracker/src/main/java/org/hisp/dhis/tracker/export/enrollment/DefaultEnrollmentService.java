@@ -55,7 +55,6 @@ import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,20 +79,9 @@ class DefaultEnrollmentService implements EnrollmentService {
   }
 
   @Override
-  public Enrollment getEnrollment(String uid, UserDetails currentUser)
-      throws ForbiddenException, NotFoundException {
-    return getEnrollment(uid, EnrollmentParams.FALSE, false, currentUser);
-  }
-
-  @Override
   public Enrollment getEnrollment(String uid, EnrollmentParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
-    return getEnrollment(uid, params, includeDeleted, getCurrentUserDetails());
-  }
-
-  private Enrollment getEnrollment(
-      String uid, EnrollmentParams params, boolean includeDeleted, UserDetails currentUser)
-      throws NotFoundException, ForbiddenException {
+    UserDetails currentUser = getCurrentUserDetails();
     Enrollment enrollment = enrollmentStore.getByUid(uid);
 
     if (enrollment == null) {
@@ -226,8 +214,7 @@ class DefaultEnrollmentService implements EnrollmentService {
   @Override
   public List<Enrollment> getEnrollments(@Nonnull List<String> uids) throws ForbiddenException {
     List<Enrollment> enrollments = enrollmentStore.getByUid(uids);
-    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
-
+    UserDetails user = getCurrentUserDetails();
     List<String> errors =
         enrollments.stream()
             .flatMap(e -> trackerAccessManager.canRead(user, e, false).stream())
@@ -263,7 +250,7 @@ class DefaultEnrollmentService implements EnrollmentService {
   @Override
   public List<Enrollment> getEnrollments(EnrollmentOperationParams params)
       throws ForbiddenException, BadRequestException, NotFoundException {
-    EnrollmentQueryParams queryParams = paramsMapper.map(params);
+    EnrollmentQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
 
     return getEnrollments(
         new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
@@ -275,7 +262,7 @@ class DefaultEnrollmentService implements EnrollmentService {
   @Override
   public Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
       throws ForbiddenException, BadRequestException, NotFoundException {
-    EnrollmentQueryParams queryParams = paramsMapper.map(params);
+    EnrollmentQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
 
     Page<Enrollment> enrollmentsPage = enrollmentStore.getEnrollments(queryParams, pageParams);
     List<Enrollment> enrollments =
