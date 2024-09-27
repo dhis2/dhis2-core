@@ -1091,7 +1091,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
     TrackedEntityOperationParamsBuilder builder =
         TrackedEntityOperationParams.builder()
-            .assignedUserQueryParam(new AssignedUserQueryParam(null, null))
+            .assignedUserQueryParam(new AssignedUserQueryParam(null, null, user.getUid()))
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .programUid(programA.getUid())
             .eventStartDate(Date.from(Instant.now().minus(10, ChronoUnit.DAYS)))

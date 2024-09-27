@@ -64,6 +64,7 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler;
@@ -160,7 +161,8 @@ class TrackedEntitiesExportController {
   ResponseEntity<Page<ObjectNode>> getTrackedEntities(TrackedEntityRequestParams requestParams)
       throws BadRequestException, ForbiddenException, NotFoundException {
     validatePaginationParameters(requestParams);
-    TrackedEntityOperationParams operationParams = paramsMapper.map(requestParams);
+    TrackedEntityOperationParams operationParams =
+        paramsMapper.map(requestParams, CurrentUserUtil.getCurrentUserDetails());
 
     if (requestParams.isPaged()) {
       PageParams pageParams =
@@ -198,7 +200,8 @@ class TrackedEntitiesExportController {
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
       throws IOException, BadRequestException, ForbiddenException, NotFoundException {
     TrackedEntityOperationParams operationParams =
-        paramsMapper.map(trackedEntityRequestParams, CSV_FIELDS);
+        paramsMapper.map(
+            trackedEntityRequestParams, CSV_FIELDS, CurrentUserUtil.getCurrentUserDetails());
 
     ResponseHeader.addContentDispositionAttachment(response, TE_CSV_FILE);
     ResponseHeader.addContentTransferEncodingBinary(response);
@@ -218,7 +221,8 @@ class TrackedEntitiesExportController {
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
       throws IOException, BadRequestException, ForbiddenException, NotFoundException {
     TrackedEntityOperationParams operationParams =
-        paramsMapper.map(trackedEntityRequestParams, CSV_FIELDS);
+        paramsMapper.map(
+            trackedEntityRequestParams, CSV_FIELDS, CurrentUserUtil.getCurrentUserDetails());
 
     ResponseHeader.addContentDispositionAttachment(response, TE_CSV_FILE + ZIP_EXT);
     ResponseHeader.addContentTransferEncodingBinary(response);
@@ -239,7 +243,8 @@ class TrackedEntitiesExportController {
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
       throws IOException, BadRequestException, ForbiddenException, NotFoundException {
     TrackedEntityOperationParams operationParams =
-        paramsMapper.map(trackedEntityRequestParams, CSV_FIELDS);
+        paramsMapper.map(
+            trackedEntityRequestParams, CSV_FIELDS, CurrentUserUtil.getCurrentUserDetails());
 
     ResponseHeader.addContentDispositionAttachment(response, TE_CSV_FILE + GZIP_EXT);
     ResponseHeader.addContentTransferEncodingBinary(response);

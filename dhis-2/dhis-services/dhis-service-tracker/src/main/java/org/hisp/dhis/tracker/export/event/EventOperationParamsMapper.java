@@ -114,7 +114,9 @@ class EventOperationParamsMapper {
         .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setAssignedUserQueryParam(
             new AssignedUserQueryParam(
-                operationParams.getAssignedUserMode(), operationParams.getAssignedUsers()))
+                operationParams.getAssignedUserMode(),
+                operationParams.getAssignedUsers(),
+                user.getUid()))
         .setOccurredStartDate(operationParams.getOccurredAfter())
         .setOccurredEndDate(operationParams.getOccurredBefore())
         .setScheduledStartDate(operationParams.getScheduledAfter())

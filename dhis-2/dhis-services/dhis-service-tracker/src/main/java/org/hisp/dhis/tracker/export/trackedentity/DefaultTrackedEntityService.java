@@ -209,7 +209,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Override
   public TrackedEntity getTrackedEntity(String uid) throws NotFoundException, ForbiddenException {
-    return getTrackedEntity(uid, null);
+    return getTrackedEntity(uid, CurrentUserUtil.getCurrentUserDetails());
   }
 
   @Override

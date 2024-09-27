@@ -189,7 +189,8 @@ class TrackedEntityOperationParamsMapperTest {
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .assignedUserQueryParam(
-                new AssignedUserQueryParam(AssignedUserSelectionMode.CURRENT, null))
+                new AssignedUserQueryParam(
+                    AssignedUserSelectionMode.CURRENT, null, currentUser.getUid()))
             .orgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)
             .enrollmentStatus(EnrollmentStatus.ACTIVE)
             .followUp(true)
@@ -417,7 +418,9 @@ class TrackedEntityOperationParamsMapperTest {
             .programUid(program.getUid())
             .assignedUserQueryParam(
                 new AssignedUserQueryParam(
-                    AssignedUserSelectionMode.PROVIDED, Set.of("IsdLBTOBzMi", "l5ab8q5skbB")))
+                    AssignedUserSelectionMode.PROVIDED,
+                    Set.of("IsdLBTOBzMi", "l5ab8q5skbB"),
+                    currentUser.getUid()))
             .build();
 
     TrackedEntityQueryParams params = mapper.map(operationParams, currentUser);
