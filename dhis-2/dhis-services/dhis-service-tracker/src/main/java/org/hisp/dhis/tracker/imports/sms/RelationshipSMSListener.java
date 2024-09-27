@@ -51,7 +51,6 @@ import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -77,7 +76,7 @@ public class RelationshipSMSListener extends CompressionSMSListener {
   }
 
   @Override
-  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, User user)
+  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, String username)
       throws SMSProcessingException {
     RelationshipSmsSubmission subm = (RelationshipSmsSubmission) submission;
 

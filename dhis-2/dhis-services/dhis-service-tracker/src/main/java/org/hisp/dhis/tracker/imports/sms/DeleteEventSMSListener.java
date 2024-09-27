@@ -46,7 +46,6 @@ import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -68,7 +67,7 @@ public class DeleteEventSMSListener extends CompressionSMSListener {
   }
 
   @Override
-  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, User user)
+  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, String username)
       throws SMSProcessingException {
     DeleteSmsSubmission subm = (DeleteSmsSubmission) submission;
 

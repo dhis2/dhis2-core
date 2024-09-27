@@ -174,7 +174,7 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
 
   @Test
   void testAggregateDatasetListener() {
-    subject.receive(incomingSmsAggregate);
+    subject.receive(incomingSmsAggregate, "frank");
 
     assertNotNull(updatedIncomingSms);
     assertTrue(updatedIncomingSms.isParsed());
@@ -185,8 +185,8 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
 
   @Test
   void testAggregateDatasetListenerRepeat() {
-    subject.receive(incomingSmsAggregate);
-    subject.receive(incomingSmsAggregate);
+    subject.receive(incomingSmsAggregate, "frank");
+    subject.receive(incomingSmsAggregate, "frank");
 
     assertNotNull(updatedIncomingSms);
     assertTrue(updatedIncomingSms.isParsed());
@@ -197,7 +197,7 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
 
   @Test
   void testAggregateDatasetListenerNoValues() {
-    subject.receive(incomingSmsAggregateNoValues);
+    subject.receive(incomingSmsAggregateNoValues, "frank");
 
     assertNotNull(updatedIncomingSms);
     assertTrue(updatedIncomingSms.isParsed());

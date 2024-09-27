@@ -35,6 +35,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.listener.CompressionSMSListener;
@@ -52,7 +53,6 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -65,20 +65,24 @@ public class EnrollmentSMSListener extends CompressionSMSListener {
 
   private final TrackedEntityService trackedEntityService;
 
+  private final ProgramService programService;
+
   public EnrollmentSMSListener(
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       UserService userService,
       IdentifiableObjectManager identifiableObjectManager,
       TrackerImportService trackerImportService,
-      TrackedEntityService trackedEntityService) {
+      TrackedEntityService trackedEntityService,
+      ProgramService programService) {
     super(incomingSmsService, smsSender, userService, identifiableObjectManager);
     this.trackerImportService = trackerImportService;
     this.trackedEntityService = trackedEntityService;
+    this.programService = programService;
   }
 
   @Override
-  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, User user)
+  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, String username)
       throws SMSProcessingException {
     EnrollmentSmsSubmission subm = (EnrollmentSmsSubmission) submission;
 
@@ -106,7 +110,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener {
         TrackerImportParams.builder()
             .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
             .build();
-    TrackerObjects trackerObjects = map(subm, program, trackedEntity, user);
+    TrackerObjects trackerObjects = map(subm, program, trackedEntity, username);
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     if (Status.OK == importReport.getStatus()) {

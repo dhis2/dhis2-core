@@ -45,7 +45,6 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -67,7 +66,7 @@ public class SimpleEventSMSListener extends CompressionSMSListener {
   }
 
   @Override
-  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, User user)
+  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, String username)
       throws SMSProcessingException {
     SimpleEventSmsSubmission subm = (SimpleEventSmsSubmission) submission;
 
@@ -75,7 +74,7 @@ public class SimpleEventSMSListener extends CompressionSMSListener {
         TrackerImportParams.builder()
             .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
             .build();
-    TrackerObjects trackerObjects = map(subm, user);
+    TrackerObjects trackerObjects = map(subm, username);
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     if (Status.OK == importReport.getStatus()) {

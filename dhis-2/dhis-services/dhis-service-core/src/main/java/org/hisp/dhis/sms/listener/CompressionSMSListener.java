@@ -30,6 +30,7 @@ package org.hisp.dhis.sms.listener;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -50,7 +51,6 @@ import org.hisp.dhis.smscompression.models.SmsMetadata;
 import org.hisp.dhis.smscompression.models.SmsMetadata.Id;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsSubmissionHeader;
-import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -61,8 +61,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Transactional
 public abstract class CompressionSMSListener extends BaseSMSListener {
-  protected abstract SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, User user)
-      throws SMSProcessingException;
+  protected abstract SmsResponse postProcess(
+      IncomingSms sms, SmsSubmission submission, String username) throws SMSProcessingException;
 
   protected abstract boolean handlesType(SubmissionType type);
 
@@ -81,8 +81,8 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
   }
 
   @Override
-  public boolean accept(IncomingSms sms) {
-    if (sms == null || !SmsUtils.isBase64(sms)) {
+  public boolean accept(@Nonnull IncomingSms sms) {
+    if (!SmsUtils.isBase64(sms)) {
       return false;
     }
 
@@ -96,7 +96,7 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
   }
 
   @Override
-  public void receive(IncomingSms sms) {
+  public void receive(@Nonnull IncomingSms sms, @Nonnull String username) {
     SmsSubmissionReader reader = new SmsSubmissionReader();
     SmsSubmissionHeader header = getHeader(sms);
     if (header == null) {
@@ -117,8 +117,7 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
 
     SmsResponse resp;
     try {
-      User user = checkUser(subm);
-      resp = postProcess(sms, subm, user);
+      resp = postProcess(sms, subm, username);
     } catch (SMSProcessingException e) {
       log.error(e.getMessage());
       sendSMSResponse(e.getResp(), sms, header.getSubmissionId());
@@ -127,17 +126,6 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
 
     log.info("Sms Response: {}", resp.toString());
     sendSMSResponse(resp, sms, header.getSubmissionId());
-  }
-
-  private User checkUser(SmsSubmission subm) {
-    Uid userid = subm.getUserId();
-    User user = userService.getUser(userid.getUid());
-
-    if (user == null) {
-      throw new SMSProcessingException(SmsResponse.INVALID_USER.set(userid));
-    }
-
-    return user;
   }
 
   private SmsSubmissionHeader getHeader(IncomingSms sms) {
