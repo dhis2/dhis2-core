@@ -57,6 +57,7 @@ import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -544,19 +545,22 @@ public class DefaultDimensionService implements DimensionService {
         } else if (PERIOD.equals(type)) {
           List<RelativePeriodEnum> enums = new ArrayList<>();
           List<Period> periods = new UniqueArrayList<>();
+          Set<String> relativesPeriods = new LinkedHashSet<>();
 
-          for (String isoPeriod : uids) {
-            if (RelativePeriodEnum.contains(isoPeriod)) {
-              enums.add(RelativePeriodEnum.valueOf(isoPeriod));
+          for (String period : uids) {
+            if (RelativePeriodEnum.contains(period)) {
+              enums.add(RelativePeriodEnum.valueOf(period));
+              relativesPeriods.add(period);
             } else {
-              Period period = PeriodType.getPeriodFromIsoString(isoPeriod);
+              Period isoPeriod = PeriodType.getPeriodFromIsoString(period);
 
               if (period != null) {
-                periods.add(period);
+                periods.add(isoPeriod);
               }
             }
           }
 
+          object.setRawRelativePeriods(new ArrayList<>(relativesPeriods));
           object.setRelatives(new RelativePeriods().setRelativePeriodsFromEnums(enums));
           object.setPeriods(periodService.reloadPeriods(new ArrayList<>(periods)));
         } else if (ORGANISATION_UNIT.equals(type)) {

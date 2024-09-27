@@ -154,6 +154,8 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   protected RelativePeriods relatives;
 
+  protected List<String> rawRelativePeriods = new ArrayList<>();
+
   protected int sortOrder;
 
   protected int topLimit;
@@ -329,7 +331,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   }
 
   public boolean hasRelativePeriods() {
-    return relatives != null && !relatives.isEmpty();
+    return rawRelativePeriods != null && !rawRelativePeriods.isEmpty();
   }
 
   public boolean hasOrganisationUnitLevels() {
@@ -681,10 +683,8 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
       List<Period> periodList = new ArrayList<>(periods);
 
       if (hasRelativePeriods()) {
-        List<RelativePeriodEnum> list = relatives.getRelativePeriodEnums();
-
-        for (RelativePeriodEnum periodEnum : list) {
-          periodList.add(new Period(periodEnum));
+        for (String relPeriod : rawRelativePeriods) {
+          periodList.add(new Period(RelativePeriodEnum.valueOf(relPeriod)));
         }
       }
 
@@ -1267,6 +1267,14 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   public void setRelatives(RelativePeriods relatives) {
     this.relatives = relatives;
+  }
+
+  public List<String> getRawRelativePeriods() {
+    return rawRelativePeriods;
+  }
+
+  public void setRawRelativePeriods(List<String> rawRelativePeriods) {
+    this.rawRelativePeriods = rawRelativePeriods;
   }
 
   @JsonProperty
