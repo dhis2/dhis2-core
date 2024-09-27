@@ -176,10 +176,6 @@ public class RouteService {
       throws IOException, BadRequestException {
     HttpHeaders headers = filterRequestHeaders(request);
 
-    headers.forEach(
-        (String name, List<String> values) ->
-            log.debug(String.format("Forwarded header '%s'='%s'", name, values.toString())));
-
     route.getHeaders().forEach(headers::add);
 
     addForwardedUserHeader(userDetails, headers);
@@ -224,10 +220,6 @@ public class RouteService {
     HttpHeaders responseHeaders = filterResponseHeaders(response.getHeaders());
 
     String responseBody = response.getBody();
-
-    responseHeaders.forEach(
-        (String name, List<String> values) ->
-            log.debug(String.format("Response header '%s'='%s'", name, values.toString())));
 
     log.info(
         "Request '{}' '{}' responded with status '{}' for route '{}' ('{}')",
