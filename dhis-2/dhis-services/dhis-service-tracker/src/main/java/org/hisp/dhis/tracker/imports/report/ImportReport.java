@@ -34,6 +34,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.tracker.TrackerType;
 
@@ -48,6 +49,7 @@ import org.hisp.dhis.tracker.TrackerType;
  */
 @OpenApi.Shared(name = "TrackerImportReport")
 @Getter
+@ToString
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
