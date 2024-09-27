@@ -95,7 +95,6 @@ import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -142,10 +141,11 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
   private DataElement de;
 
   private Program eventProgram;
-  private ProgramStage eventProgramStage;
 
   @BeforeEach
   void setUp() {
+    messageSender.clearMessages();
+
     coc = categoryService.getDefaultCategoryOptionCombo();
 
     orgUnit = createOrganisationUnit('A');
@@ -192,7 +192,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     eventProgram.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     manager.save(eventProgram, false);
 
-    eventProgramStage = createProgramStage('B', eventProgram);
+    ProgramStage eventProgramStage = createProgramStage('B', eventProgram);
     eventProgramStage.setFeatureType(FeatureType.POINT);
     eventProgramStage.getSharing().setOwner(user);
     eventProgramStage.getSharing().addUserAccess(fullAccess(user));
@@ -232,11 +232,11 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
                 "/sms/inbound",
                 format(
                     """
-        {
-        "text": "%s",
-        "originator": "%s"
-        }
-        """,
+                    {
+                    "text": "%s",
+                    "originator": "%s"
+                    }
+                    """,
                     text, originator))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
@@ -327,11 +327,11 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
                 "/sms/inbound",
                 format(
                     """
-    {
-    "text": "%s",
-    "originator": "%s"
-    }
-    """,
+                    {
+                    "text": "%s",
+                    "originator": "%s"
+                    }
+                    """,
                     text, originator))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
@@ -379,11 +379,11 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
                 "/sms/inbound",
                 format(
                     """
-    {
-    "text": "%s",
-    "originator": "%s"
-    }
-    """,
+                    {
+                    "text": "%s",
+                    "originator": "%s"
+                    }
+                    """,
                     text, originator))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
@@ -490,7 +490,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertNull(actual.getGeometry()));
   }
 
-  @Disabled("TODO(DHIS2-17729) fix NPE in EventWithoutRegistrationPreProcessor.java:48")
   @Test
   void shouldCreateEventInEventProgram()
       throws SmsCompressionException, ForbiddenException, NotFoundException {
