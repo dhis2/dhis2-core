@@ -119,12 +119,13 @@ class DefaultProgramRuleService implements ProgramRuleService {
         .map(
             e -> {
               Enrollment enrollment =
-                  enrollmentTrackerConverterService.fromForRuleEngine(preheat, e);
+                  enrollmentTrackerConverterService.fromForRuleEngine(preheat, e, bundle.getUser());
 
               return programRuleEngine.evaluateEnrollmentAndEvents(
                   enrollment,
                   getEventsFromEnrollment(enrollment.getUid(), bundle, preheat),
-                  getAttributes(e.getEnrollment(), e.getTrackedEntity(), bundle, preheat));
+                  getAttributes(e.getEnrollment(), e.getTrackedEntity(), bundle, preheat),
+                  bundle.getUser());
             })
         .reduce(RuleEngineEffects::merge)
         .orElse(RuleEngineEffects.empty());
@@ -149,7 +150,8 @@ class DefaultProgramRuleService implements ProgramRuleService {
                         enrollment.getUid(),
                         enrollment.getTrackedEntity().getUid(),
                         bundle,
-                        preheat)))
+                        preheat),
+                    bundle.getUser()))
         .reduce(RuleEngineEffects::merge)
         .orElse(RuleEngineEffects.empty());
   }
@@ -165,9 +167,11 @@ class DefaultProgramRuleService implements ProgramRuleService {
         .map(
             entry -> {
               List<Event> events =
-                  eventTrackerConverterService.fromForRuleEngine(preheat, entry.getValue());
+                  eventTrackerConverterService.fromForRuleEngine(
+                      preheat, entry.getValue(), bundle.getUser());
 
-              return programRuleEngine.evaluateProgramEvents(new HashSet<>(events), entry.getKey());
+              return programRuleEngine.evaluateProgramEvents(
+                  new HashSet<>(events), entry.getKey(), bundle.getUser());
             })
         .reduce(RuleEngineEffects::merge)
         .orElse(RuleEngineEffects.empty());
@@ -182,13 +186,19 @@ class DefaultProgramRuleService implements ProgramRuleService {
         bundle
             .findEnrollmentByUid(enrollmentUid)
             .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getAttributes)
-            .map(attributes -> attributeValueTrackerConverterService.from(preheat, attributes))
+            .map(
+                attributes ->
+                    attributeValueTrackerConverterService.from(
+                        preheat, attributes, bundle.getUser()))
             .orElse(new ArrayList<>());
 
     List<TrackedEntityAttributeValue> payloadAttributeValues =
         bundle
             .findTrackedEntityByUid(teUid)
-            .map(te -> attributeValueTrackerConverterService.from(preheat, te.getAttributes()))
+            .map(
+                te ->
+                    attributeValueTrackerConverterService.from(
+                        preheat, te.getAttributes(), bundle.getUser()))
             .orElse(Collections.emptyList());
     attributeValues.addAll(payloadAttributeValues);
 
@@ -231,7 +241,10 @@ class DefaultProgramRuleService implements ProgramRuleService {
     Stream<Event> bundleEvents =
         bundle.getEvents().stream()
             .filter(e -> e.getEnrollment().equals(enrollmentUid))
-            .map(event -> eventTrackerConverterService.fromForRuleEngine(preheat, event));
+            .map(
+                event ->
+                    eventTrackerConverterService.fromForRuleEngine(
+                        preheat, event, bundle.getUser()));
 
     return Stream.concat(events, bundleEvents).collect(Collectors.toSet());
   }

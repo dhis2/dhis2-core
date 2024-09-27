@@ -57,14 +57,16 @@ class NotesConverterServiceTest extends TestBase {
 
   private TrackerPreheat preheat;
 
+  private UserDetails currentUser;
+
   private User user;
 
   @BeforeEach
   void setUp() {
     this.notesConverterService = new NotesConverterService();
     user = makeUser("A");
-    UserDetails userDetails = UserDetails.fromUser(user);
-    injectSecurityContext(userDetails);
+    currentUser = UserDetails.fromUser(user);
+
     this.preheat = new TrackerPreheat();
     this.preheat.addUsers(Set.of(user));
   }
@@ -72,7 +74,7 @@ class NotesConverterServiceTest extends TestBase {
   @Test
   void verifyConvertTrackerNoteToNote() {
     org.hisp.dhis.tracker.imports.domain.Note trackerNote = trackerNote();
-    final Note note = notesConverterService.from(preheat, trackerNote);
+    final Note note = notesConverterService.from(preheat, trackerNote, currentUser);
     assertNoteValues(note, trackerNote);
   }
 
@@ -80,7 +82,7 @@ class NotesConverterServiceTest extends TestBase {
   void verifyConvertTrackerNoteToNoteWithNoStoredByDefined() {
     org.hisp.dhis.tracker.imports.domain.Note trackerNote = trackerNote();
     trackerNote.setStoredBy(null);
-    final Note note = notesConverterService.from(preheat, trackerNote);
+    final Note note = notesConverterService.from(preheat, trackerNote, currentUser);
     assertNoteValues(note, trackerNote);
   }
 
@@ -88,7 +90,7 @@ class NotesConverterServiceTest extends TestBase {
   void verifyConvertTrackerNotesToNotes() {
     List<org.hisp.dhis.tracker.imports.domain.Note> trackerNotes =
         List.of(trackerNote(), trackerNote());
-    final List<Note> notes = notesConverterService.from(preheat, trackerNotes);
+    final List<Note> notes = notesConverterService.from(preheat, trackerNotes, currentUser);
     assertThat(notes, hasSize(2));
     for (org.hisp.dhis.tracker.imports.domain.Note note : trackerNotes) {
       assertNoteValues(

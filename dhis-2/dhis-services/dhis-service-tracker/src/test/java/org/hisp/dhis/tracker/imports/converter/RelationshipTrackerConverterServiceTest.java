@@ -46,6 +46,7 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.SystemUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -123,7 +124,8 @@ class RelationshipTrackerConverterServiceTest extends TestBase {
     when(preheat.getEvent(EVENT)).thenReturn(event);
 
     List<org.hisp.dhis.relationship.Relationship> from =
-        relationshipConverterService.from(preheat, List.of(relationshipA(), relationshipB()));
+        relationshipConverterService.from(
+            preheat, List.of(relationshipA(), relationshipB()), new SystemUser());
     assertNotNull(from);
     assertEquals(2, from.size());
     from.forEach(

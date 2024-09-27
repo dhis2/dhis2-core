@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.imports.validation;
 
 import static org.hisp.dhis.tracker.imports.validation.PersistablesFilter.filter;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -66,7 +65,7 @@ public class DefaultValidationService implements ValidationService {
   }
 
   private ValidationResult validate(TrackerBundle bundle, Validator<TrackerBundle> validator) {
-    UserDetails user = getCurrentUserDetails();
+    UserDetails user = bundle.getUser();
     if (user.isSuper() && ValidationMode.SKIP == bundle.getValidationMode()) {
       log.warn(
           "Skipping validation for metadata import by user '"

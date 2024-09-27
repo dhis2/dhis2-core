@@ -52,6 +52,8 @@ import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationResult;
 import org.hisp.dhis.tracker.imports.validation.ValidationService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 
 /**
@@ -79,10 +81,12 @@ public class DefaultTrackerImportService implements TrackerImportService {
   @IndirectTransactional
   public ImportReport importTracker(
       TrackerImportParams params, TrackerObjects trackerObjects, JobProgress jobProgress) {
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     jobProgress.startingStage("Running PreHeat");
     TrackerBundle trackerBundle =
         jobProgress.nonNullStagePostCondition(
-            jobProgress.runStage(() -> trackerBundleService.create(params, trackerObjects)));
+            jobProgress.runStage(
+                () -> trackerBundleService.create(params, trackerObjects, currentUser)));
 
     jobProgress.startingStage("Calculating Payload Size");
     Map<TrackerType, Integer> bundleSize =

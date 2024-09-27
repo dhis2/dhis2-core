@@ -55,6 +55,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -63,6 +64,8 @@ import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
 @Builder
 @AllArgsConstructor
 public class TrackerBundle {
+  private UserDetails user;
+
   /** Should import be imported or just validated. */
   @Builder.Default private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
 

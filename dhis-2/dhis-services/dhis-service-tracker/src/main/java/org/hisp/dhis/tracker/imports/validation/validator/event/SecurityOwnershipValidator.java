@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.validation.validator.event;
 
 import static org.hisp.dhis.security.Authorities.F_UNCOMPLETE_EVENT;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1083;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.Map;
 import javax.annotation.Nonnull;
@@ -99,7 +98,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       if (organisationUnit == null) {
         log.warn(ORG_UNIT_NO_USER_ASSIGNED, event.getUid());
       } else {
-        checkOrgUnitInCaptureScope(reporter, event, organisationUnit);
+        checkOrgUnitInCaptureScope(reporter, event, organisationUnit, bundle.getUser());
       }
     }
 
@@ -117,7 +116,8 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
           event,
           preheatEvent,
           trackedEntity == null ? null : trackedEntity.getUid(),
-          ownerOrgUnit);
+          ownerOrgUnit,
+          bundle.getUser());
     } else {
       validateCreateEvent(
           reporter,
@@ -169,8 +169,8 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       org.hisp.dhis.tracker.imports.domain.Event event,
       Event preheatEvent,
       String teUid,
-      OrganisationUnit ownerOrgUnit) {
-    UserDetails user = getCurrentUserDetails();
+      OrganisationUnit ownerOrgUnit,
+      UserDetails user) {
     TrackerImportStrategy strategy = bundle.getStrategy(event);
 
     checkEventWriteAccess(
@@ -227,8 +227,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
   }
 
   private void checkOrgUnitInCaptureScope(
-      Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit) {
-    UserDetails user = getCurrentUserDetails();
+      Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit, UserDetails user) {
     if (!user.isInUserHierarchy(orgUnit.getPath())) {
       reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
     }
@@ -239,8 +238,8 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       TrackerDto dto,
       String trackedEntity,
       OrganisationUnit ownerOrganisationUnit,
-      Program program) {
-    UserDetails user = getCurrentUserDetails();
+      Program program,
+      UserDetails user) {
     if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
       reporter.addError(dto, ValidationCode.E1104, user, program, program.getTrackedEntityType());
     }
@@ -263,23 +262,29 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       boolean isCreatableInSearchScope) {
 
     if (bundle.getStrategy(event) != TrackerImportStrategy.UPDATE) {
-      checkEventOrgUnitWriteAccess(reporter, event, eventOrgUnit, isCreatableInSearchScope);
+      checkEventOrgUnitWriteAccess(
+          reporter, event, eventOrgUnit, isCreatableInSearchScope, bundle.getUser());
     }
 
     if (programStage.getProgram().isWithoutRegistration()) {
-      checkProgramWriteAccess(reporter, event, programStage.getProgram());
+      checkProgramWriteAccess(reporter, event, programStage.getProgram(), bundle.getUser());
     } else {
-      checkProgramStageWriteAccess(reporter, event, programStage);
+      checkProgramStageWriteAccess(reporter, event, programStage, bundle.getUser());
       final Program program = programStage.getProgram();
 
-      checkProgramReadAccess(reporter, event, program);
+      checkProgramReadAccess(reporter, event, program, bundle.getUser());
 
       checkTeTypeAndTeProgramAccess(
-          reporter, event, trackedEntity, ownerOrgUnit, programStage.getProgram());
+          reporter,
+          event,
+          trackedEntity,
+          ownerOrgUnit,
+          programStage.getProgram(),
+          bundle.getUser());
     }
 
     if (categoryOptionCombo != null) {
-      checkWriteCategoryOptionComboAccess(reporter, event, categoryOptionCombo);
+      checkWriteCategoryOptionComboAccess(reporter, event, categoryOptionCombo, bundle.getUser());
     }
   }
 
@@ -287,8 +292,8 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       Reporter reporter,
       org.hisp.dhis.tracker.imports.domain.Event event,
       OrganisationUnit eventOrgUnit,
-      boolean isCreatableInSearchScope) {
-    UserDetails user = getCurrentUserDetails();
+      boolean isCreatableInSearchScope,
+      UserDetails user) {
     if (eventOrgUnit == null) {
       log.warn(ORG_UNIT_NO_USER_ASSIGNED, event.getUid());
     } else if (isCreatableInSearchScope
@@ -298,31 +303,32 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     }
   }
 
-  private void checkProgramReadAccess(Reporter reporter, TrackerDto dto, Program program) {
-    UserDetails user = getCurrentUserDetails();
+  private void checkProgramReadAccess(
+      Reporter reporter, TrackerDto dto, Program program, UserDetails user) {
     if (!aclService.canDataRead(user, program)) {
       reporter.addError(dto, ValidationCode.E1096, user, program);
     }
   }
 
   private void checkProgramStageWriteAccess(
-      Reporter reporter, TrackerDto dto, ProgramStage programStage) {
-    UserDetails user = getCurrentUserDetails();
+      Reporter reporter, TrackerDto dto, ProgramStage programStage, UserDetails user) {
     if (!aclService.canDataWrite(user, programStage)) {
       reporter.addError(dto, ValidationCode.E1095, user, programStage);
     }
   }
 
-  private void checkProgramWriteAccess(Reporter reporter, TrackerDto dto, Program program) {
-    UserDetails user = getCurrentUserDetails();
+  private void checkProgramWriteAccess(
+      Reporter reporter, TrackerDto dto, Program program, UserDetails user) {
     if (!aclService.canDataWrite(user, program)) {
       reporter.addError(dto, ValidationCode.E1091, user, program);
     }
   }
 
   public void checkWriteCategoryOptionComboAccess(
-      Reporter reporter, TrackerDto dto, CategoryOptionCombo categoryOptionCombo) {
-    UserDetails user = getCurrentUserDetails();
+      Reporter reporter,
+      TrackerDto dto,
+      CategoryOptionCombo categoryOptionCombo,
+      UserDetails user) {
     for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
       if (!aclService.canDataWrite(user, categoryOption)) {
         reporter.addError(dto, ValidationCode.E1099, user, categoryOption);
