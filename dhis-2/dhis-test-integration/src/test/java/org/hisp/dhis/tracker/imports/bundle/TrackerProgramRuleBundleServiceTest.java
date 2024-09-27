@@ -92,8 +92,7 @@ class TrackerProgramRuleBundleServiceTest extends TrackerTest {
     TrackerObjects trackerObjects = fromJson("tracker/event_events_and_enrollment.json");
     assertEquals(8, trackerObjects.getEvents().size());
     TrackerBundle trackerBundle =
-        trackerBundleService.create(
-            new TrackerImportParams(), trackerObjects, userService.getUser(ADMIN_USER_UID));
+        trackerBundleService.create(new TrackerImportParams(), trackerObjects);
     trackerBundle = trackerBundleService.runRuleEngine(trackerBundle);
     assertEquals(trackerBundle.getEvents().size(), trackerBundle.getEventNotifications().size());
   }

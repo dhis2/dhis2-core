@@ -141,8 +141,7 @@ class TrackerPreheatServiceTest extends TrackerTest {
     TrackerObjects trackerObjects = fromJson("tracker/event_events.json");
 
     TrackerPreheat preheat =
-        trackerPreheatService.preheat(
-            trackerObjects, new TrackerIdSchemeParams(), userService.getUser(ADMIN_USER_UID));
+        trackerPreheatService.preheat(trackerObjects, new TrackerIdSchemeParams());
 
     assertNotNull(preheat);
     assertFalse(preheat.getAll(DataElement.class).isEmpty());

@@ -105,8 +105,7 @@ class EnrollmentImportValidationTest extends TrackerTest {
     TrackerObjects secondTrackerObjects =
         fromJson("tracker/validations/enrollments_te_enrollments-data.json");
     TrackerPreheat preheat =
-        trackerPreheatService.preheat(
-            secondTrackerObjects, new TrackerIdSchemeParams(), getAdminUser());
+        trackerPreheatService.preheat(secondTrackerObjects, new TrackerIdSchemeParams());
     secondTrackerObjects
         .getEnrollments()
         .forEach(

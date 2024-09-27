@@ -25,23 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat;
+package org.hisp.dhis.tracker.imports.preheat.supplier;
 
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
+
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.UserDetails;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface TrackerPreheatService {
+@ExtendWith(MockitoExtension.class)
+class CurrentUserSupplierTest extends TestBase {
 
-  /**
-   * Preheat a set of pre-defined classes. If size == 0, then preheat all metadata classes
-   * automatically.
-   *
-   * @param trackerObjects list of payload entities
-   * @param idSchemeParams id schema identifier
-   * @return
-   */
-  TrackerPreheat preheat(TrackerObjects trackerObjects, TrackerIdSchemeParams idSchemeParams);
+  @InjectMocks private CurrentUserSupplier supplier;
+
+  @Mock private IdentifiableObjectManager manager;
+
+  private org.hisp.dhis.user.User currentUser;
+
+  @BeforeEach
+  void setup() {
+    currentUser = makeUser("A");
+    injectSecurityContext(UserDetails.fromUser(currentUser));
+  }
+
+  @Test
+  void shouldAddCurrentUserToPreheat() {
+    when(manager.get(org.hisp.dhis.user.User.class, currentUser.getUid())).thenReturn(currentUser);
+
+    TrackerPreheat preheat = new TrackerPreheat();
+    this.supplier.preheatAdd(TrackerObjects.builder().build(), preheat);
+
+    assertEquals(
+        currentUser.getUsername(), preheat.getUserByUid(currentUser.getUid()).get().getUsername());
+    assertEquals(currentUser.getUid(), preheat.getUserByUid(currentUser.getUid()).get().getUid());
+  }
 }
