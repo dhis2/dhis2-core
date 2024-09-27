@@ -126,7 +126,7 @@ pipeline {
         stage('Trigger Cypress Tests') {
             steps {
                 script {
-                    def repos = ['dhis2/line-listing-app','dhis2/data-visualizer-app','dhis2/aggregate-data-entry-app']
+                    def repos = ['dhis2/line-listing-app','dhis2/data-visualizer-app','dhis2/aggregate-data-entry-app', 'dhis2/dashboard-app', 'dhis2/capture-app', 'dhis2/maps-app', 'dhis2/user-app']
                     def payload = [
                         dhis2_version: env.DOCKER_IMAGE_TAG,
                         instance_url: "$INSTANCE_URL"
