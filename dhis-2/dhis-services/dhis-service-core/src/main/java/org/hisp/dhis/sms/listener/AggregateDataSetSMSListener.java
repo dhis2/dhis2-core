@@ -48,7 +48,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
@@ -57,9 +56,6 @@ import org.hisp.dhis.smscompression.models.AggregateDatasetSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,13 +70,16 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
 
   private final CompleteDataSetRegistrationService registrationService;
 
+  private final OrganisationUnitService organisationUnitService;
+
+  private final CategoryService categoryService;
+
+  private final DataElementService dataElementService;
+
   public AggregateDataSetSMSListener(
       IncomingSmsService incomingSmsService,
       MessageSender smsMessageSender,
       UserService userService,
-      TrackedEntityTypeService trackedEntityTypeService,
-      TrackedEntityAttributeService trackedEntityAttributeService,
-      ProgramService programService,
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
       DataElementService dataElementService,
@@ -88,24 +87,17 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
       DataValueService dataValueService,
       CompleteDataSetRegistrationService registrationService,
       IdentifiableObjectManager identifiableObjectManager) {
-    super(
-        incomingSmsService,
-        smsMessageSender,
-        userService,
-        trackedEntityTypeService,
-        trackedEntityAttributeService,
-        programService,
-        organisationUnitService,
-        categoryService,
-        dataElementService,
-        identifiableObjectManager);
+    super(incomingSmsService, smsMessageSender, userService, identifiableObjectManager);
     this.dataSetService = dataSetService;
     this.dataValueService = dataValueService;
     this.registrationService = registrationService;
+    this.organisationUnitService = organisationUnitService;
+    this.categoryService = categoryService;
+    this.dataElementService = dataElementService;
   }
 
   @Override
-  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, User user)
+  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, String username)
       throws SMSProcessingException {
     AggregateDatasetSmsSubmission subm = (AggregateDatasetSmsSubmission) submission;
 
@@ -140,7 +132,7 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
       throw new SMSProcessingException(SmsResponse.DATASET_LOCKED.set(dsid, per));
     }
 
-    List<Object> errorElems = submitDataValues(subm.getValues(), period, orgUnit, aoc, user);
+    List<Object> errorElems = submitDataValues(subm.getValues(), period, orgUnit, aoc, username);
 
     if (subm.isComplete()) {
       CompleteDataSetRegistration existingReg =
@@ -149,7 +141,6 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
         registrationService.deleteCompleteDataSetRegistration(existingReg);
       }
       Date now = new Date();
-      String username = user.getUsername();
       CompleteDataSetRegistration newReg =
           new CompleteDataSetRegistration(
               dataSet, period, orgUnit, aoc, now, username, now, username, true);
@@ -171,7 +162,7 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
       Period period,
       OrganisationUnit orgUnit,
       CategoryOptionCombo aoc,
-      User user) {
+      String username) {
     ArrayList<Object> errorElems = new ArrayList<>();
 
     if (values == null) {
@@ -219,8 +210,8 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
       }
 
       dv.setValue(val);
-      dv.setLastUpdated(new java.util.Date());
-      dv.setStoredBy(user.getUsername());
+      dv.setLastUpdated(new Date());
+      dv.setStoredBy(username);
 
       if (newDataValue) {
         boolean addedDataValue = dataValueService.addDataValue(dv);

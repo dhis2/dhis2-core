@@ -275,17 +275,22 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testAccept() {
-    // Mock for smsCommandService
+  void testAcceptTrue() {
     when(smsCommandService.getSMSCommand(anyString(), any())).thenReturn(keyValueCommand);
-
-    incomingSms.setCreatedBy(user);
+    IncomingSms sms = new IncomingSms();
+    sms.setText("some text");
 
     boolean result = subject.accept(incomingSms);
 
     assertTrue(result);
+  }
 
-    result = subject.accept(null);
+  @Test
+  void testAcceptFalse() {
+    IncomingSms sms = new IncomingSms();
+    sms.setText("some text");
+
+    boolean result = subject.accept(sms);
 
     assertFalse(result);
   }
@@ -294,7 +299,7 @@ class DataValueListenerTest extends TestBase {
   void testReceive() {
     mockServices();
     incomingSms.setCreatedBy(user);
-    subject.receive(incomingSms);
+    subject.receive(incomingSms, "frank");
 
     assertNotNull(updatedIncomingSms);
     assertEquals(SmsMessageStatus.PROCESSED, updatedIncomingSms.getStatus());
@@ -320,7 +325,7 @@ class DataValueListenerTest extends TestBase {
     incomingSms.setUser(user);
     when(dataSetService.getLockStatus(any(DataSet.class), any(), any(), any()))
         .thenReturn(LockStatus.OPEN);
-    subject.receive(incomingSms);
+    subject.receive(incomingSms, "frank");
 
     verify(smsCommandService, times(1)).getSMSCommand(anyString(), any());
     verify(incomingSmsService, times(1)).update(incomingSmsCaptor.capture());
@@ -342,7 +347,7 @@ class DataValueListenerTest extends TestBase {
     incomingSms.setCreatedBy(userWithNoOu);
     when(userService.getUser(anyString())).thenReturn(userWithNoOu);
 
-    subject.receive(incomingSms);
+    subject.receive(incomingSms, "frank");
 
     assertEquals(SMSCommand.NO_USER_MESSAGE, message);
     assertNull(updatedIncomingSms);
@@ -365,7 +370,7 @@ class DataValueListenerTest extends TestBase {
     when(userService.getUsersByPhoneNumber(anyString()))
         .thenReturn(Collections.singletonList(userwithMultipleOu));
 
-    subject.receive(incomingSms);
+    subject.receive(incomingSms, "frank");
 
     assertEquals(SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE, message);
     assertNull(updatedIncomingSms);
@@ -373,7 +378,7 @@ class DataValueListenerTest extends TestBase {
 
     keyValueCommand.setMoreThanOneOrgUnitMessage(MORE_THAN_ONE_OU);
 
-    subject.receive(incomingSms);
+    subject.receive(incomingSms, "frank");
 
     // system will use custom message
     assertEquals(MORE_THAN_ONE_OU, message);
@@ -388,14 +393,14 @@ class DataValueListenerTest extends TestBase {
     when(userService.getUser(anyString())).thenReturn(user);
     when(userService.getUsersByPhoneNumber(anyString())).thenReturn(Arrays.asList(user, userB));
 
-    subject.receive(incomingSms);
+    subject.receive(incomingSms, "frank");
 
     assertEquals(SUCCESS_MESSAGE, message);
 
     when(userService.getUsersByPhoneNumber(anyString())).thenReturn(Arrays.asList(user, userC));
 
     keyValueCommand.setMoreThanOneOrgUnitMessage(MORE_THAN_ONE_OU);
-    subject.receive(incomingSms);
+    subject.receive(incomingSms, "frank");
 
     // system will use custom message
     assertEquals(MORE_THAN_ONE_OU, message);
@@ -408,14 +413,14 @@ class DataValueListenerTest extends TestBase {
     // Mock for smsCommandService
     when(smsCommandService.getSMSCommand(anyString(), any())).thenReturn(keyValueCommand);
 
-    subject.receive(incomingSmsForCustomSeparator);
+    subject.receive(incomingSmsForCustomSeparator, "frank");
 
     assertEquals(message, SMSCommand.WRONG_FORMAT_MESSAGE);
     assertNull(updatedIncomingSms);
     verify(dataSetService, never()).getLockStatus(any(DataSet.class), any(), any(), any());
 
     keyValueCommand.setWrongFormatMessage(WRONG_FORMAT);
-    subject.receive(incomingSmsForCustomSeparator);
+    subject.receive(incomingSmsForCustomSeparator, "frank");
 
     // system will use custom message
     assertEquals(WRONG_FORMAT, message);
@@ -430,19 +435,19 @@ class DataValueListenerTest extends TestBase {
     keyValueCommand.setCodeValueSeparator(null);
     incomingSmsForCompulsoryCode.setText(SMS_TEXT);
 
-    subject.receive(incomingSmsForCompulsoryCode);
+    subject.receive(incomingSmsForCompulsoryCode, "frank");
 
     assertEquals(message, SMSCommand.PARAMETER_MISSING);
 
     incomingSmsForCompulsoryCode.setText(SMS_TEXT_FOR_COMPULSORY);
 
-    subject.receive(incomingSmsForCompulsoryCode);
+    subject.receive(incomingSmsForCompulsoryCode, "frank");
 
     assertEquals(keyValueCommand.getSuccessMessage(), message);
 
     incomingSmsForCompulsoryCode.setText(SMS_TEXT_FOR_COMPULSORY2);
 
-    subject.receive(incomingSmsForCompulsoryCode);
+    subject.receive(incomingSmsForCompulsoryCode, "frank");
 
     assertEquals(keyValueCommand.getSuccessMessage(), message);
   }
@@ -463,7 +468,7 @@ class DataValueListenerTest extends TestBase {
     keyValueCommand.setCodeValueSeparator(null);
     keyValueCommand.setDataset(dataSetB);
 
-    subject.receive(incomingSms);
+    subject.receive(incomingSms, "frank");
 
     assertNotNull(updatedIncomingSms);
     assertEquals(SmsMessageStatus.FAILED, updatedIncomingSms.getStatus());
@@ -483,7 +488,7 @@ class DataValueListenerTest extends TestBase {
     keyValueCommand.setCodeValueSeparator(null);
 
     // = is default separator
-    subject.receive(incomingSms);
+    subject.receive(incomingSms, "frank");
 
     assertNotNull(updatedIncomingSms);
     assertEquals(SmsMessageStatus.PROCESSED, updatedIncomingSms.getStatus());
@@ -498,7 +503,7 @@ class DataValueListenerTest extends TestBase {
     keyValueCommand.setCodeValueSeparator(".");
     keyValueCommand.setWrongFormatMessage(null);
 
-    subject.receive(incomingSmsForCustomSeparator);
+    subject.receive(incomingSmsForCustomSeparator, "frank");
 
     assertNotNull(updatedIncomingSms);
     assertEquals(SmsMessageStatus.PROCESSED, updatedIncomingSms.getStatus());
@@ -507,7 +512,7 @@ class DataValueListenerTest extends TestBase {
     // when custom separator is empty space
     keyValueCommand.setSeparator(" ");
     keyValueCommand.setCodeValueSeparator(" ");
-    subject.receive(incomingSmsForCustomSeparator);
+    subject.receive(incomingSmsForCustomSeparator, "frank");
 
     assertEquals(SMSCommand.WRONG_FORMAT_MESSAGE, message);
   }

@@ -39,6 +39,7 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -70,7 +71,7 @@ public class InboundSmsProcessingJob implements Job {
     try {
       for (IncomingSmsListener listener : listeners) {
         if (listener.accept(sms)) {
-          listener.receive(sms);
+          listener.receive(sms, CurrentUserUtil.getCurrentUsername());
           progress.completedProcess("Processed SMS with UID {}", params.getSms());
           return;
         }

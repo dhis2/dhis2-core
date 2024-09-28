@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -92,14 +93,14 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
 
   @Transactional
   @Override
-  public boolean accept(IncomingSms sms) {
+  public boolean accept(@Nonnull IncomingSms sms) {
     return smsCommandService.getSMSCommand(SmsUtils.getCommandString(sms), ParserType.J2ME_PARSER)
         != null;
   }
 
   @Transactional
   @Override
-  public void receive(IncomingSms sms) {
+  public void receive(@Nonnull IncomingSms sms, @Nonnull String username) {
     String message = sms.getText();
 
     SMSCommand smsCommand =

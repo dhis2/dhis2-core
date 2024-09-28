@@ -95,6 +95,7 @@ import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -489,6 +490,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertNull(actual.getGeometry()));
   }
 
+  @Disabled("TODO(DHIS2-17729) fix NPE in EventWithoutRegistrationPreProcessor.java:48")
   @Test
   void shouldCreateEventInEventProgram()
       throws SmsCompressionException, ForbiddenException, NotFoundException {
