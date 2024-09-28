@@ -44,7 +44,6 @@ import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerUserService;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preprocess.TrackerPreprocessService;
@@ -52,7 +51,6 @@ import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationResult;
 import org.hisp.dhis.tracker.imports.validation.ValidationService;
 import org.hisp.dhis.user.SystemUser;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,8 +69,6 @@ class TrackerImporterServiceTest {
 
   @Mock private TrackerPreprocessService trackerPreprocessService;
 
-  @Mock private TrackerUserService trackerUserService;
-
   @Mock private ValidationResult validationResult;
 
   private DefaultTrackerImportService subject;
@@ -87,7 +83,7 @@ class TrackerImporterServiceTest {
 
     subject =
         new DefaultTrackerImportService(
-            trackerBundleService, validationService, trackerPreprocessService, trackerUserService);
+            trackerBundleService, validationService, trackerPreprocessService);
 
     Event event = new Event();
     event.setEvent("EventUid");
@@ -103,13 +99,11 @@ class TrackerImporterServiceTest {
             .trackedEntities(new ArrayList<>())
             .build();
 
-    when(trackerUserService.getCurrentUser()).thenReturn(getUser());
-
     when(validationService.validate(any(TrackerBundle.class))).thenReturn(validationResult);
     when(validationService.validateRuleEngine(any(TrackerBundle.class)))
         .thenReturn(validationResult);
     when(trackerPreprocessService.preprocess(any(TrackerBundle.class)))
-        .thenReturn(ParamsConverter.convert(params, trackerObjects, new User()));
+        .thenReturn(ParamsConverter.convert(params, trackerObjects));
   }
 
   @Test
@@ -124,8 +118,8 @@ class TrackerImporterServiceTest {
             .trackedEntities(new ArrayList<>())
             .build();
 
-    when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
-        .thenReturn(ParamsConverter.convert(parameters, objects, new User()));
+    when(trackerBundleService.create(any(TrackerImportParams.class), any()))
+        .thenReturn(ParamsConverter.convert(parameters, objects));
     when(trackerBundleService.commit(any(TrackerBundle.class)))
         .thenReturn(PersistenceReport.emptyReport());
 
@@ -137,8 +131,8 @@ class TrackerImporterServiceTest {
   @Test
   void testWithSideEffects() {
     doAnswer(invocationOnMock -> null).when(trackerBundleService).sendNotifications(anyList());
-    when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
-        .thenReturn(ParamsConverter.convert(params, trackerObjects, new User()));
+    when(trackerBundleService.create(any(TrackerImportParams.class), any()))
+        .thenReturn(ParamsConverter.convert(params, trackerObjects));
     when(trackerBundleService.commit(any(TrackerBundle.class)))
         .thenReturn(PersistenceReport.emptyReport());
 
@@ -149,8 +143,8 @@ class TrackerImporterServiceTest {
 
   @Test
   void shouldRaiseExceptionWhenExceptionWasThrownInsideAStage() {
-    when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
-        .thenReturn(ParamsConverter.convert(params, trackerObjects, new User()));
+    when(trackerBundleService.create(any(TrackerImportParams.class), any()))
+        .thenReturn(ParamsConverter.convert(params, trackerObjects));
     when(trackerBundleService.commit(any(TrackerBundle.class)))
         .thenThrow(new IllegalArgumentException("ERROR"));
 
@@ -160,11 +154,5 @@ class TrackerImporterServiceTest {
             IllegalArgumentException.class,
             () -> subject.importTracker(params, trackerObjects, transitory));
     assertEquals("ERROR", ex.getMessage());
-  }
-
-  private User getUser() {
-    User user = new User();
-    user.setUid("user1234");
-    return user;
   }
 }

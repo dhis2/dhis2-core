@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.hisp.dhis.tracker.imports.preheat.supplier.ClassBasedSupplier;
+import org.hisp.dhis.tracker.imports.preheat.supplier.CurrentUserSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DefaultsSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DuplicateRelationshipSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.EnrollmentsWithAtLeastOneEventSupplier;
@@ -65,6 +66,7 @@ public class TrackerPreheatConfig {
           ProgramOwnerSupplier.class,
           PeriodTypeSupplier.class,
           UniqueAttributesSupplier.class,
+          CurrentUserSupplier.class,
           UserSupplier.class,
           UsernameValueTypeSupplier.class,
           FileResourceSupplier.class,

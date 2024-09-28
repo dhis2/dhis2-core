@@ -106,7 +106,7 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.40</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>9.41.1</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
@@ -244,7 +244,7 @@
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
-    <restrict-imports-enforcer.version>2.5.0</restrict-imports-enforcer.version>
+    <restrict-imports-enforcer.version>2.6.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.17.1</versions-maven-plugin.version>
     <dependency-check-maven.version>10.0.4</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.8.6.2</spotbugs-maven-plugin.version>

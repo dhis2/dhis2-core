@@ -13,3 +13,5 @@ jenkinsfiles/** @dhis2/devops
 docker-compose.yml @dhis2/devops
 
 jib.yaml @dhis2/devops
+
+dhis-2/dhis-services/dhis-service-tracker/** @dhis2/tracker-backend

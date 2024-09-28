@@ -95,20 +95,20 @@ public class RouteController extends AbstractCrudController<Route> {
       HttpServletRequest request)
       throws IOException, ForbiddenException, NotFoundException, BadRequestException {
 
-    Route route = routeService.getDecryptedRoute(id);
+    Route route = routeService.getRouteWithDecryptedAuth(id);
 
     if (route == null) {
-      throw new NotFoundException(String.format("Route %s not found", id));
+      throw new NotFoundException(String.format("Route not found: '%s'", id));
     }
 
     if (!aclService.canRead(currentUser, route)
         && !currentUser.hasAnyAuthority(route.getAuthorities())) {
-      throw new ForbiddenException("User not authorized");
+      throw new ForbiddenException("User not authorized to execute route");
     }
 
     Optional<String> subPath = getSubPath(request.getPathInfo(), id);
 
-    return routeService.exec(route, currentUser, subPath, request);
+    return routeService.execute(route, currentUser, subPath, request);
   }
 
   private Optional<String> getSubPath(String path, String id) {
@@ -127,15 +127,15 @@ public class RouteController extends AbstractCrudController<Route> {
   }
 
   /**
-   * Disable the Collection API for /api/routes endpoint. This conflicts with sub-path based routes
-   * and is not supported by the Route API (no id object collections).
+   * Disable the collection API for /api/routes endpoint. This conflicts with sub-path based routes
+   * and is not supported by the Route API (no identifiable object collections).
    */
   @Override
   @PostMapping(value = "/addCollectionItem__disabled")
   @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
   public WebMessage addCollectionItem(String pvUid, String pvProperty, String pvItemId)
       throws NotFoundException, ConflictException, ForbiddenException, BadRequestException {
-    throw new NotFoundException("Method Not Allowed");
+    throw new NotFoundException("Method not allowed");
   }
 
   @Override
@@ -144,6 +144,6 @@ public class RouteController extends AbstractCrudController<Route> {
   public WebMessage deleteCollectionItem(
       String pvUid, String pvProperty, String pvItemId, HttpServletResponse response)
       throws NotFoundException, ForbiddenException, ConflictException, BadRequestException {
-    throw new NotFoundException("Method Not Allowed");
+    throw new NotFoundException("Method not allowed");
   }
 }

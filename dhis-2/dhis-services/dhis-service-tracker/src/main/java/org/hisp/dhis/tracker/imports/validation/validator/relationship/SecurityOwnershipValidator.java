@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -36,7 +38,6 @@ import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -50,7 +51,7 @@ class SecurityOwnershipValidator implements Validator<Relationship> {
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Relationship relationship) {
     TrackerImportStrategy strategy = bundle.getStrategy(relationship);
-    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails user = getCurrentUserDetails();
 
     if (strategy.isDelete()
         && (!trackerAccessManager

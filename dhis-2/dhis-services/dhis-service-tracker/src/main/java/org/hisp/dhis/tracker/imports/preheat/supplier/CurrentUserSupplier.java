@@ -25,34 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports;
+package org.hisp.dhis.tracker.imports.preheat.supplier;
 
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+
+import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.tracker.imports.preheat.mappers.FullUserMapper;
-import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.preheat.mappers.UserMapper;
 import org.hisp.dhis.user.User;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Component;
 
-/**
- * Specialized User Service for Tracker that executes User look-up in a read-only transaction
- *
- * @author Luciano Fiandesio
- */
 @RequiredArgsConstructor
-@Service
-public class TrackerUserService {
+@Component
+public class CurrentUserSupplier extends AbstractPreheatSupplier {
+  @Nonnull private final IdentifiableObjectManager manager;
 
-  private final IdentifiableObjectManager manager;
-
-  @Transactional(readOnly = true)
-  public User getCurrentUser() {
-    User user = manager.get(User.class, CurrentUserUtil.getCurrentUserDetails().getUid());
-
-    // Make a copy of the user object, retaining only the properties
-    // required for
-    // the import operation
-    return FullUserMapper.INSTANCE.map(user);
+  @Override
+  public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
+    User user = UserMapper.INSTANCE.map(manager.get(User.class, getCurrentUserDetails().getUid()));
+    preheat.addUsers(Set.of(user));
   }
 }

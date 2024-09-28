@@ -53,7 +53,6 @@ import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -132,9 +131,7 @@ class CategoryOptValidatorTest extends TestBase {
     event.setProgram(MetadataIdentifier.ofUid(program));
     event.setOccurredAt(EVENT_INSTANT);
 
-    User user = makeUser("A");
-
-    bundle = TrackerBundle.builder().user(user).preheat(preheat).build();
+    bundle = TrackerBundle.builder().preheat(preheat).build();
 
     when(preheat.getProgram(MetadataIdentifier.ofUid(program))).thenReturn(program);
     when(i18nManager.getI18nFormat()).thenReturn(I18N_FORMAT);

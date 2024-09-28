@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.Map;
 import javax.annotation.Nonnull;
@@ -48,7 +49,6 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -69,7 +69,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
   public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
     TrackerImportStrategy strategy = bundle.getStrategy(enrollment);
     TrackerPreheat preheat = bundle.getPreheat();
-    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails user = getCurrentUserDetails();
     Program program =
         strategy.isUpdateOrDelete()
             ? bundle.getPreheat().getEnrollment(enrollment.getEnrollment()).getProgram()
@@ -163,7 +163,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
 
   private void checkOrgUnitInCaptureScope(
       Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit) {
-    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails user = getCurrentUserDetails();
     if (!user.isInUserHierarchy(orgUnit.getPath())) {
       reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
     }
@@ -175,7 +175,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
       String trackedEntity,
       OrganisationUnit ownerOrganisationUnit,
       Program program) {
-    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails user = getCurrentUserDetails();
     if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
       reporter.addError(dto, ValidationCode.E1104, user, program, program.getTrackedEntityType());
     }
@@ -199,7 +199,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
 
   private void checkProgramWriteAccess(Reporter reporter, TrackerDto dto, Program program) {
 
-    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails user = getCurrentUserDetails();
     if (!aclService.canDataWrite(user, program)) {
       reporter.addError(dto, ValidationCode.E1091, user, program);
     }

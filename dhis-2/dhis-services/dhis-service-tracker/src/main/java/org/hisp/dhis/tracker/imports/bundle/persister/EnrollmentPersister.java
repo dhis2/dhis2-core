@@ -26,6 +26,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
+
 
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
@@ -114,7 +116,7 @@ public class EnrollmentPersister
             bundle.getEnrollmentNotifications().get(UID.of(enrollment.getUid())))
         .object(enrollment.getUid())
         .importStrategy(bundle.getImportStrategy())
-        .accessedBy(bundle.getUsername())
+        .accessedBy(getCurrentUsername())
         .enrollment(enrollment)
         .program(enrollment.getProgram())
         .triggers(triggers)
