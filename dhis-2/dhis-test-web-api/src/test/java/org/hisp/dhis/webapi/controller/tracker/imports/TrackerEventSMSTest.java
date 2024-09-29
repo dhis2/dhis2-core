@@ -83,7 +83,7 @@ import org.hisp.dhis.smscompression.models.SimpleEventSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
-import org.hisp.dhis.test.message.FakeMessageSender;
+import org.hisp.dhis.test.message.DefaultFakeMessageSender;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
@@ -101,6 +101,7 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
  * Tests tracker SMS
@@ -126,7 +127,9 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private IncomingSmsService incomingSmsService;
 
-  @Autowired private FakeMessageSender messageSender;
+  @Autowired
+  @Qualifier("smsMessageSender")
+  private DefaultFakeMessageSender messageSender;
 
   private CategoryOptionCombo coc;
 
