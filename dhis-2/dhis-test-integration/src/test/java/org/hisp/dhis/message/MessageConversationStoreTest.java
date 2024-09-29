@@ -30,7 +30,6 @@ package org.hisp.dhis.message;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;

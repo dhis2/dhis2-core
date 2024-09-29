@@ -64,6 +64,7 @@ import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -81,11 +82,11 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
       CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      MessageSender smsMessageSender,
+      @Qualifier("smsMessageSender") MessageSender smsSender,
       DataValueService dataValueService,
       SMSCommandService smsCommandService,
       CompleteDataSetRegistrationService registrationService) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsMessageSender);
+    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
     this.dataValueService = dataValueService;
     this.smsCommandService = smsCommandService;
     this.registrationService = registrationService;

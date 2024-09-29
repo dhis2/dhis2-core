@@ -59,11 +59,11 @@ public class SimpleEventSMSListener extends CompressionSMSListener {
 
   public SimpleEventSMSListener(
       IncomingSmsService incomingSmsService,
-      @Qualifier("smsMessageSender") MessageSender smsMessageSender,
+      @Qualifier("smsMessageSender") MessageSender smsSender,
       UserService userService,
       IdentifiableObjectManager identifiableObjectManager,
       TrackerImportService trackerImportService) {
-    super(incomingSmsService, smsMessageSender, userService, identifiableObjectManager);
+    super(incomingSmsService, smsSender, userService, identifiableObjectManager);
     this.trackerImportService = trackerImportService;
   }
 

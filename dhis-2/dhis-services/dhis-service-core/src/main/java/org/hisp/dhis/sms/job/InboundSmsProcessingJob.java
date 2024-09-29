@@ -40,6 +40,7 @@ import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -49,7 +50,8 @@ public class InboundSmsProcessingJob implements Job {
 
   private final List<IncomingSmsListener> listeners;
 
-  private final MessageSender smsMessageSender;
+  @Qualifier("smsMessageSender")
+  private final MessageSender smsSender;
 
   @Override
   public JobType getJobType() {
@@ -79,7 +81,7 @@ public class InboundSmsProcessingJob implements Job {
 
       sms.setStatus(SmsMessageStatus.UNHANDLED);
       incomingSmsService.update(sms);
-      smsMessageSender.sendMessage(null, "No command found", sms.getOriginator());
+      smsSender.sendMessage(null, "No command found", sms.getOriginator());
 
       progress.failedProcess("No command found for SMS with UID {}", params.getSms());
     } catch (Exception e) {

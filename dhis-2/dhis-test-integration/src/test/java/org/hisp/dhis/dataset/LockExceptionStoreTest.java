@@ -30,8 +30,6 @@ package org.hisp.dhis.dataset;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import java.util.List;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObjectManager;

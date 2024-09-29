@@ -57,6 +57,7 @@ import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -78,7 +79,7 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
 
   public AggregateDataSetSMSListener(
       IncomingSmsService incomingSmsService,
-      MessageSender smsMessageSender,
+      @Qualifier("smsMessageSender") MessageSender smsSender,
       UserService userService,
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
@@ -87,7 +88,7 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
       DataValueService dataValueService,
       CompleteDataSetRegistrationService registrationService,
       IdentifiableObjectManager identifiableObjectManager) {
-    super(incomingSmsService, smsMessageSender, userService, identifiableObjectManager);
+    super(incomingSmsService, smsSender, userService, identifiableObjectManager);
     this.dataSetService = dataSetService;
     this.dataValueService = dataValueService;
     this.registrationService = registrationService;

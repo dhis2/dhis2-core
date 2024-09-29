@@ -59,7 +59,6 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
@@ -84,6 +83,7 @@ import org.hisp.dhis.smscompression.models.SimpleEventSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
+import org.hisp.dhis.test.message.FakeMessageSender;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
@@ -126,7 +126,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private IncomingSmsService incomingSmsService;
 
-  @Autowired private MessageSender smsMessageSender;
+  @Autowired private FakeMessageSender messageSender;
 
   private CategoryOptionCombo coc;
 
@@ -209,7 +209,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
   @AfterEach
   void afterEach() {
-    smsMessageSender.clearMessages();
+    messageSender.clearMessages();
   }
 
   @Test
@@ -254,7 +254,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
           String expectedText = submissionId + ":" + SmsResponse.SUCCESS;
           OutboundMessage expectedMessage =
               new OutboundMessage(null, expectedText, Set.of(originator));
-          assertContainsOnly(List.of(expectedMessage), smsMessageSender.getAllMessages());
+          assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages());
         });
     assertThrows(NotFoundException.class, () -> eventService.getEvent(UID.of(event.getUid())));
   }
@@ -301,7 +301,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
           String expectedText = submissionId + ":" + SmsResponse.SUCCESS;
           OutboundMessage expectedMessage =
               new OutboundMessage(null, expectedText, Set.of(originator));
-          assertContainsOnly(List.of(expectedMessage), smsMessageSender.getAllMessages());
+          assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages());
         });
     assertThrows(NotFoundException.class, () -> eventService.getEvent(UID.of(event.getUid())));
   }
@@ -346,7 +346,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
           String expectedText = submissionId + ":" + SmsResponse.INVALID_EVENT.set(uid.getValue());
           OutboundMessage expectedMessage =
               new OutboundMessage(null, expectedText, Set.of(originator));
-          assertContainsOnly(List.of(expectedMessage), smsMessageSender.getAllMessages());
+          assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages());
         });
   }
 
@@ -398,7 +398,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
           String expectedText = submissionId + ":" + SmsResponse.SUCCESS;
           OutboundMessage expectedMessage =
               new OutboundMessage(null, expectedText, Set.of(originator));
-          assertContainsOnly(List.of(expectedMessage), smsMessageSender.getAllMessages());
+          assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages());
         });
     assertDoesNotThrow(() -> eventService.getEvent(UID.of(eventUid)));
     Event actual = eventService.getEvent(UID.of(eventUid));
@@ -465,7 +465,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
           String expectedText = submissionId + ":" + SmsResponse.SUCCESS;
           OutboundMessage expectedMessage =
               new OutboundMessage(null, expectedText, Set.of(originator));
-          assertContainsOnly(List.of(expectedMessage), smsMessageSender.getAllMessages());
+          assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages());
         });
     assertDoesNotThrow(() -> eventService.getEvent(UID.of(event.getUid())));
     Event actual = eventService.getEvent(UID.of(event.getUid()));

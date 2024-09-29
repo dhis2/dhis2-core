@@ -317,8 +317,9 @@ public class DataValueSetController {
     config.setExecutedBy(currentUser.getUid());
     config.setJobParameters(importOptions);
 
-    jobSchedulerService.runInTransaction(jobSchedulerService.createInTransaction(config, mimeType, request.getInputStream()));
-    
+    jobSchedulerService.runInTransaction(
+        jobSchedulerService.createInTransaction(config, mimeType, request.getInputStream()));
+
     return jobConfigurationReport(config);
   }
 

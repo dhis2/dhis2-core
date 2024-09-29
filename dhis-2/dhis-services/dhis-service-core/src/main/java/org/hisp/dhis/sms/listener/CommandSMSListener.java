@@ -72,8 +72,8 @@ public abstract class CommandSMSListener extends BaseSMSListener {
       CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      MessageSender smsMessageSender) {
-    super(incomingSmsService, smsMessageSender);
+      MessageSender smsSender) {
+    super(incomingSmsService, smsSender);
     checkNotNull(dataElementCategoryService);
     checkNotNull(userService);
     this.dataElementCategoryService = dataElementCategoryService;

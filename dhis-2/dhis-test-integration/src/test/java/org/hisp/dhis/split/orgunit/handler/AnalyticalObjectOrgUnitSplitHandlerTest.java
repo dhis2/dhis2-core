@@ -29,8 +29,6 @@ package org.hisp.dhis.split.orgunit.handler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;

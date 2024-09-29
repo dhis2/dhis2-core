@@ -67,12 +67,12 @@ public class RelationshipSMSListener extends CompressionSMSListener {
 
   public RelationshipSMSListener(
       IncomingSmsService incomingSmsService,
-      @Qualifier("smsMessageSender") MessageSender smsMessageSender,
+      @Qualifier("smsMessageSender") MessageSender smsSender,
       UserService userService,
       IdentifiableObjectManager identifiableObjectManager,
       RelationshipTypeService relationshipTypeService,
       TrackerImportService trackerImportService) {
-    super(incomingSmsService, smsMessageSender, userService, identifiableObjectManager);
+    super(incomingSmsService, smsSender, userService, identifiableObjectManager);
     this.relationshipTypeService = relationshipTypeService;
     this.trackerImportService = trackerImportService;
   }

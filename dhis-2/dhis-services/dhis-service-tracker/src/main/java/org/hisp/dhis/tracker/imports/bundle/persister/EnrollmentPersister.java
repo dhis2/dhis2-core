@@ -26,8 +26,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;

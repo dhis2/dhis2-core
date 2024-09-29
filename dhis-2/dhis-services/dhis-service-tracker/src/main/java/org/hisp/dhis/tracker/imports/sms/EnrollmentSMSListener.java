@@ -55,6 +55,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,13 +71,13 @@ public class EnrollmentSMSListener extends CompressionSMSListener {
 
   public EnrollmentSMSListener(
       IncomingSmsService incomingSmsService,
-      MessageSender smsMessageSender,
+      @Qualifier("smsMessageSender") MessageSender smsSender,
       UserService userService,
       IdentifiableObjectManager identifiableObjectManager,
       TrackerImportService trackerImportService,
       TrackedEntityService trackedEntityService,
       ProgramService programService) {
-    super(incomingSmsService, smsMessageSender, userService, identifiableObjectManager);
+    super(incomingSmsService, smsSender, userService, identifiableObjectManager);
     this.trackerImportService = trackerImportService;
     this.trackedEntityService = trackedEntityService;
     this.programService = programService;

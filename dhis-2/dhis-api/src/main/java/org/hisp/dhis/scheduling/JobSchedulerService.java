@@ -67,7 +67,7 @@ public interface JobSchedulerService {
    *
    * @param jobConfiguration {@link JobConfiguration}
    * @param contentType {@link MimeType}
-   * @param content  {@link InputStream}
+   * @param content {@link InputStream}
    * @return the job id
    * @throws ConflictException
    * @throws NotFoundException

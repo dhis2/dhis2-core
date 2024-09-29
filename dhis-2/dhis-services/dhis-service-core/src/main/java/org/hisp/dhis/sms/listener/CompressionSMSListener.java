@@ -72,10 +72,10 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
 
   public CompressionSMSListener(
       IncomingSmsService incomingSmsService,
-      MessageSender smsMessageSender,
+      MessageSender smsSender,
       UserService userService,
       IdentifiableObjectManager manager) {
-    super(incomingSmsService, smsMessageSender);
+    super(incomingSmsService, smsSender);
     this.userService = userService;
     this.manager = manager;
   }
