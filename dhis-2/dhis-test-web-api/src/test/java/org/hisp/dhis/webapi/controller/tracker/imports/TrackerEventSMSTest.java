@@ -141,10 +141,11 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
   private DataElement de;
 
   private Program eventProgram;
-  private ProgramStage eventProgramStage;
 
   @BeforeEach
   void setUp() {
+    messageSender.clearMessages();
+
     coc = categoryService.getDefaultCategoryOptionCombo();
 
     orgUnit = createOrganisationUnit('A');
@@ -191,7 +192,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     eventProgram.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     manager.save(eventProgram, false);
 
-    eventProgramStage = createProgramStage('B', eventProgram);
+    ProgramStage eventProgramStage = createProgramStage('B', eventProgram);
     eventProgramStage.setFeatureType(FeatureType.POINT);
     eventProgramStage.getSharing().setOwner(user);
     eventProgramStage.getSharing().addUserAccess(fullAccess(user));
@@ -231,11 +232,11 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
                 "/sms/inbound",
                 format(
                     """
-        {
-        "text": "%s",
-        "originator": "%s"
-        }
-        """,
+                    {
+                    "text": "%s",
+                    "originator": "%s"
+                    }
+                    """,
                     text, originator))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
@@ -326,11 +327,11 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
                 "/sms/inbound",
                 format(
                     """
-    {
-    "text": "%s",
-    "originator": "%s"
-    }
-    """,
+                    {
+                    "text": "%s",
+                    "originator": "%s"
+                    }
+                    """,
                     text, originator))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
@@ -378,11 +379,11 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
                 "/sms/inbound",
                 format(
                     """
-    {
-    "text": "%s",
-    "originator": "%s"
-    }
-    """,
+                    {
+                    "text": "%s",
+                    "originator": "%s"
+                    }
+                    """,
                     text, originator))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);

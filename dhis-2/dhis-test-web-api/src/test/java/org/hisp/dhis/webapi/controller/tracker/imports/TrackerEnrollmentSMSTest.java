@@ -123,6 +123,8 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
+    messageSender.clearMessages();
+
     orgUnit = createOrganisationUnit('A');
 
     user = createUserWithAuth("tester", Authorities.toStringArray(Authorities.F_MOBILE_SETTINGS));
