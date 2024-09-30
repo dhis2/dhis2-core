@@ -64,9 +64,11 @@ import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.SystemUser;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -96,6 +98,8 @@ class TrackerImportControllerTest {
 
   @Mock private JobConfigurationService jobConfigurationService;
 
+  @Mock private UserService userService;
+
   private RenderService renderService;
 
   @BeforeEach
@@ -121,6 +125,7 @@ class TrackerImportControllerTest {
     mockMvc =
         MockMvcBuilders.standaloneSetup(controller)
             .setControllerAdvice(new CrudControllerAdvice())
+            .setCustomArgumentResolvers(new CurrentUserHandlerMethodArgumentResolver(userService))
             .build();
   }
 
