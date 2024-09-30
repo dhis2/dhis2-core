@@ -125,38 +125,40 @@ pipeline {
 
         stage('Verify GitHub Token Access') {
             steps {
-                script {
-                    //  List installations accessible to the token
-                    def installationsResponse = sh(
-                        script: """
-                            curl -X GET -H "Accept: application/vnd.github.v3+json" \
-                            -H "Authorization: token $GITHUB_TOKEN" \
-                            https://api.github.com/user/installations
-                        """,
-                        returnStdout: true
-                    ).trim()
+                withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
+                    script {
+                        //  List installations accessible to the token
+                        def installationsResponse = sh(
+                            script: """
+                                curl -X GET -H "Accept: application/vnd.github.v3+json" \
+                                -H "Authorization: token ${GITHUB_TOKEN}" \
+                                https://api.github.com/user/installations
+                            """,
+                            returnStdout: true
+                        ).trim()
 
-                    echo "Installations Response: ${installationsResponse}"
+                        echo "Installations Response: ${installationsResponse}"
 
-                    // Parse installation_id from the response
-                    def installationId = sh(
-                        script: "echo ${installationsResponse} | jq '.installations[0].id'",
-                        returnStdout: true
-                    ).trim()
+                        // Parse installation_id from the response
+                        def installationId = sh(
+                            script: "echo ${installationsResponse} | jq '.installations[0].id'",
+                            returnStdout: true
+                        ).trim()
 
-                    echo "Installation ID: ${installationId}"
+                        echo "Installation ID: ${installationId}"
 
-                    // List repositories accessible to a specific installation
-                    def reposResponse = sh(
-                        script: """
-                            curl -X GET -H "Accept: application/vnd.github.v3+json" \
-                            -H "Authorization: token $GITHUB_TOKEN" \
-                            https://api.github.com/user/installations/${installationId}/repositories
-                        """,
-                        returnStdout: true
-                    ).trim()
+                        // List repositories accessible to a specific installation
+                        def reposResponse = sh(
+                            script: """
+                                curl -X GET -H "Accept: application/vnd.github.v3+json" \
+                                -H "Authorization: token ${GITHUB_TOKEN}" \
+                                https://api.github.com/user/installations/${installationId}/repositories
+                            """,
+                            returnStdout: true
+                        ).trim()
 
-                    echo "Repositories Accessible to the Token: ${reposResponse}"
+                        echo "Repositories Accessible to the Token: ${reposResponse}"
+                    }
                 }
             }
         }
