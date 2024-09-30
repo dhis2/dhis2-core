@@ -123,6 +123,44 @@ pipeline {
             }
         }
 
+        stage('Verify GitHub Token Access') {
+            steps {
+                script {
+                    //  List installations accessible to the token
+                    def installationsResponse = sh(
+                        script: """
+                            curl -X GET -H "Accept: application/vnd.github.v3+json" \
+                            -H "Authorization: token $GITHUB_TOKEN" \
+                            https://api.github.com/user/installations
+                        """,
+                        returnStdout: true
+                    ).trim()
+
+                    echo "Installations Response: ${installationsResponse}"
+
+                    // Parse installation_id from the response
+                    def installationId = sh(
+                        script: "echo ${installationsResponse} | jq '.installations[0].id'",
+                        returnStdout: true
+                    ).trim()
+
+                    echo "Installation ID: ${installationId}"
+
+                    // List repositories accessible to a specific installation
+                    def reposResponse = sh(
+                        script: """
+                            curl -X GET -H "Accept: application/vnd.github.v3+json" \
+                            -H "Authorization: token $GITHUB_TOKEN" \
+                            https://api.github.com/user/installations/${installationId}/repositories
+                        """,
+                        returnStdout: true
+                    ).trim()
+
+                    echo "Repositories Accessible to the Token: ${reposResponse}"
+                }
+            }
+        }
+
         stage('Trigger Cypress Tests') {
             steps {
                 script {
@@ -144,7 +182,7 @@ pipeline {
                                 """,
                                 returnStdout: true
                             ).trim()
-                            echo "GitHub Dispatch Response: ${response}"
+                            echo "GitHub Dispatch Response for ${repo}: ${response}"
                         }
                     }
                 }
