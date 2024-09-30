@@ -123,50 +123,10 @@ pipeline {
             }
         }
 
-        stage('Verify GitHub Token Access') {
-            steps {
-                withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
-                    script {
-                        // List installations accessible to the token
-                        def installationsResponse = sh(
-                            script: """
-                                curl -X GET -H "Accept: application/vnd.github.v3+json" \
-                                -H "Authorization: token \$GITHUB_TOKEN" \
-                                https://api.github.com/user/installations
-                            """,
-                            returnStdout: true
-                        ).trim()
-
-                        echo "Installations Response: ${installationsResponse}"
-
-                        // Parse installation_id from the response
-                        def installationId = sh(
-                            script: "echo '${installationsResponse}' | jq '.installations[0].id'",
-                            returnStdout: true
-                        ).trim()
-
-                        echo "Installation ID: ${installationId}"
-
-                        // List repositories accessible to a specific installation
-                        def reposResponse = sh(
-                            script: """
-                                curl -X GET -H "Accept: application/vnd.github.v3+json" \
-                                -H "Authorization: token \$GITHUB_TOKEN" \
-                                https://api.github.com/user/installations/${installationId}/repositories
-                            """,
-                            returnStdout: true
-                        ).trim()
-
-                        echo "Repositories Accessible to the Token: ${reposResponse}"
-                    }
-                }
-            }
-        }
-
         stage('Trigger Cypress Tests') {
             steps {
                 script {
-                    def repos = ['dhis2/line-listing-app','dhis2/data-visualizer-app','dhis2/aggregate-data-entry-app', 'dhis2/dashboard-app', 'dhis2/capture-app', 'dhis2/maps-app', 'dhis2/user-app']
+                    def repos = ['dhis2/line-listing-app', 'dhis2/data-visualizer-app', 'dhis2/aggregate-data-entry-app', 'dhis2/dashboard-app', 'dhis2/capture-app', 'dhis2/maps-app', 'dhis2/user-app']
                     def payload = [
                         dhis2_version: env.DOCKER_IMAGE_TAG,
                         instance_url: "$INSTANCE_URL"
