@@ -127,11 +127,11 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
                     script {
-                        //  List installations accessible to the token
+                        // List installations accessible to the token
                         def installationsResponse = sh(
                             script: """
                                 curl -X GET -H "Accept: application/vnd.github.v3+json" \
-                                -H "Authorization: token ${GITHUB_TOKEN}" \
+                                -H "Authorization: token \$GITHUB_TOKEN" \
                                 https://api.github.com/user/installations
                             """,
                             returnStdout: true
@@ -141,7 +141,7 @@ pipeline {
 
                         // Parse installation_id from the response
                         def installationId = sh(
-                            script: "echo ${installationsResponse} | jq '.installations[0].id'",
+                            script: "echo '${installationsResponse}' | jq '.installations[0].id'",
                             returnStdout: true
                         ).trim()
 
@@ -151,7 +151,7 @@ pipeline {
                         def reposResponse = sh(
                             script: """
                                 curl -X GET -H "Accept: application/vnd.github.v3+json" \
-                                -H "Authorization: token ${GITHUB_TOKEN}" \
+                                -H "Authorization: token \$GITHUB_TOKEN" \
                                 https://api.github.com/user/installations/${installationId}/repositories
                             """,
                             returnStdout: true
@@ -178,7 +178,7 @@ pipeline {
                                 script: """
                                     curl -v -X POST \
                                     -H "Accept: application/vnd.github.v3+json" \
-                                    -H "Authorization: token $GITHUB_TOKEN" \
+                                    -H "Authorization: token \$GITHUB_TOKEN" \
                                     https://api.github.com/repos/${repo}/actions/workflows/e2e-test-dispatch.yml/dispatches \
                                     -d '{ "ref": "workflow-dispatch-cypress", "inputs": {"dhis2_version":"${env.DOCKER_IMAGE_TAG}", "instance_url":"$INSTANCE_URL"} }'
                                 """,
