@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -203,7 +204,13 @@ public class FieldFilterService {
       return objectNodes;
     }
 
-    toObjectNodes(objects, fieldPaths, user, isSkipSharing, objectNodes::add);
+    toObjectNodes(
+        objects,
+        fieldPaths,
+        user,
+        isSkipSharing,
+        false,
+        objectNodes::add); // todo should not be hardcoded
 
     return objectNodes;
   }
@@ -213,6 +220,7 @@ public class FieldFilterService {
       List<FieldPath> filter,
       User user,
       boolean isSkipSharing,
+      boolean excludeDefaults,
       Consumer<ObjectNode> consumer) {
 
     UserDetails currentUserDetails = null;
@@ -228,7 +236,8 @@ public class FieldFilterService {
     List<FieldPath> paths =
         fieldPathHelper.apply(filter, HibernateProxyUtils.getRealClass(firstObject));
 
-    SimpleFilterProvider filterProvider = getSimpleFilterProvider(paths, isSkipSharing);
+    SimpleFilterProvider filterProvider =
+        getSimpleFilterProvider(paths, isSkipSharing, excludeDefaults);
 
     // only set filter provider on a local copy so that we don't affect
     // other object mappers (running across other threads)
@@ -247,11 +256,24 @@ public class FieldFilterService {
 
       ObjectNode objectNode = objectMapper.valueToTree(object);
       addAttributeFieldsInAttributeValues(
-          object, objectNode, relativeAttributePaths, attributeProperties);
+          object, objectNode, relativeAttributePaths, attributeProperties, excludeDefaults);
       applyAttributeAsPropertyFields(object, objectNode, paths);
       applyTransformers(objectNode, null, "", fieldTransformers);
 
+      if (excludeDefaults) excludeDefaults(objectNode);
+
       consumer.accept(objectNode);
+    }
+  }
+
+  private void excludeDefaults(ObjectNode objectNode) {
+    Iterator<JsonNode> elements = objectNode.elements();
+
+    while (elements.hasNext()) {
+      JsonNode next = elements.next();
+      if (next.isObject() && next.isEmpty()) {
+        elements.remove();
+      }
     }
   }
 
@@ -278,7 +300,8 @@ public class FieldFilterService {
    *     to the generator
    */
   @Transactional(readOnly = true)
-  public void toObjectNodesStream(FieldFilterParams<?> params, JsonGenerator generator)
+  public void toObjectNodesStream(
+      FieldFilterParams<?> params, boolean excludeDefaults, JsonGenerator generator)
       throws IOException {
     if (params.getObjects().isEmpty()) {
       return;
@@ -291,6 +314,7 @@ public class FieldFilterService {
           fieldPaths,
           params.getUser(),
           params.isSkipSharing(),
+          excludeDefaults,
           n -> {
             try {
               generator.writeObject(n);
@@ -312,7 +336,8 @@ public class FieldFilterService {
       Object object,
       ObjectNode objectNode,
       List<FieldPath> relativeAttributePaths,
-      Map<String, ObjectNode> attributeProperties) {
+      Map<String, ObjectNode> attributeProperties,
+      boolean excludeDefaults) {
     if (relativeAttributePaths.isEmpty()) return;
     if (!(object instanceof IdentifiableObject source)) return;
     ArrayNode attributes = objectNode.putArray("attributeValues");
@@ -330,7 +355,12 @@ public class FieldFilterService {
                         Attribute attribute = attributeService.getAttribute(attributeId);
                         List<ObjectNode> res = new ArrayList<>(1);
                         toObjectNodes(
-                            List.of(attribute), relativeAttributePaths, null, true, res::add);
+                            List.of(attribute),
+                            relativeAttributePaths,
+                            null,
+                            true,
+                            excludeDefaults,
+                            res::add);
                         ObjectNode attr = res.get(0);
                         attr.put("id", attributeId);
                         return attr;
@@ -443,10 +473,11 @@ public class FieldFilterService {
   }
 
   private SimpleFilterProvider getSimpleFilterProvider(
-      List<FieldPath> fieldPaths, boolean skipSharing) {
+      List<FieldPath> fieldPaths, boolean skipSharing, boolean excludeDefaults) {
     SimpleFilterProvider filterProvider = new SimpleFilterProvider();
     filterProvider.addFilter(
-        "field-filter", new FieldFilterSimpleBeanPropertyFilter(fieldPaths, skipSharing));
+        "field-filter",
+        new FieldFilterSimpleBeanPropertyFilter(fieldPaths, skipSharing, excludeDefaults));
 
     return filterProvider;
   }

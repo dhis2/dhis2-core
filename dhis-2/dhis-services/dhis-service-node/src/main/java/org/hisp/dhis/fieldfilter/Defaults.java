@@ -38,5 +38,9 @@ public enum Defaults {
    * Remove defaults from nodes. Roots will not be included, collections which contains default will
    * have them removed, 1-to-1 mappings will have them set to null.
    */
-  EXCLUDE
+  EXCLUDE;
+
+  public boolean isExclude() {
+    return this.name().equals("EXCLUDE");
+  }
 }

@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataElement;
@@ -53,7 +54,7 @@ class DataElementControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "All DataElements should have categoryCombo field present when defaults are INCLUDE by default")
+      "DataElement with default categoryCombo should be present in payload when defaults are INCLUDE by default")
   void getAllDataElementsWithCatComboFieldsIncludingDefaultsTest() {
     JsonArray dataElements =
         GET("/dataElements?fields=id,name,categoryCombo")
@@ -80,25 +81,28 @@ class DataElementControllerTest extends H2ControllerIntegrationTestBase {
             .content(HttpStatus.OK)
             .getArray("dataElements");
 
-    Map<Boolean, List<JsonDataElement>> dePartitionedByDefaultCatCombo =
+    Map<Boolean, List<JsonValue>> deWithCatCombo =
         dataElements.stream()
-            .map(jde -> jde.as(JsonDataElement.class))
-            .collect(Collectors.partitioningBy(de -> de.getCategoryCombo() != null));
+            .collect(
+                Collectors.partitioningBy(
+                    jv -> {
+                      JsonDataElement jsonDataElement = jv.as(JsonDataElement.class);
+                      return jsonDataElement.getCategoryCombo() != null;
+                    }));
 
     assertEquals(
         3,
-        dePartitionedByDefaultCatCombo.get(true).size(),
+        deWithCatCombo.get(true).size(),
         "There should be 3 dataElements with a cat combo field");
-
     assertEquals(
         1,
-        dePartitionedByDefaultCatCombo.get(false).size(),
+        deWithCatCombo.get(false).size(),
         "There should be 1 dataElement without a cat combo field");
-
     assertTrue(
         Set.of("CatComUid00", "CatComUid01", "CatComUid02")
             .containsAll(
-                dePartitionedByDefaultCatCombo.get(true).stream()
+                deWithCatCombo.get(true).stream()
+                    .map(jde -> jde.as(JsonDataElement.class))
                     .map(JsonDataElement::getCategoryCombo)
                     .map(JsonIdentifiableObject::getId)
                     .collect(Collectors.toSet())),
