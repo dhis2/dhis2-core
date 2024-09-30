@@ -122,7 +122,7 @@
     <lettuce.version>6.4.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>10.17.0</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>10.18.2</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
