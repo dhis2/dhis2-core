@@ -87,6 +87,7 @@ import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionItemObjectValue;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -866,6 +867,14 @@ public class DataQueryParams {
     return this.outputFormat != null && this.outputFormat == format;
   }
 
+  public boolean hasOptionSetInDimensionItems() {
+    return dimensions.stream().anyMatch( d -> d.getItems().stream().anyMatch(it -> it.getDimensionItemType() == DimensionItemType.DATA_ELEMENT
+            && ((DataElement)it).getOptionSet() != null));
+  }
+
+  public boolean hasOptionSetAggregatedSelectionMode(){
+    return optionSetSelectionMode == OptionSetSelectionMode.AGGREGATED;
+  }
   /**
    * Creates a mapping between the data periods, based on the data period type for this query, and
    * the aggregation periods for this query.

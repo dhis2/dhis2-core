@@ -38,7 +38,8 @@ public class DataElementOptionResourceTable implements ResourceTable {
                 new Column("optionsetid", DataType.BIGINT, Nullable.NOT_NULL),
                 new Column("optionvalueid", DataType.BIGINT, Nullable.NOT_NULL),
                 new Column("optionsetuid", DataType.CHARACTER_11, Nullable.NOT_NULL),
-                new Column("optionvalueuid", DataType.CHARACTER_11, Nullable.NOT_NULL));
+                new Column("optionvalueuid", DataType.CHARACTER_11, Nullable.NOT_NULL),
+                new Column("optionvaluecode", DataType.VARCHAR_255, Nullable.NOT_NULL));
     }
 
     private List<String> getPrimaryKey() {
@@ -66,9 +67,9 @@ public class DataElementOptionResourceTable implements ResourceTable {
                 replace(
                         """
                         insert into ${tableName} \
-                        (dataelementid, optionsetid, optionvalueid, optionsetuid, optionvalueuid) \
+                        (dataelementid, optionsetid, optionvalueid, optionsetuid, optionvalueuid, optionvaluecode) \
                         select de.dataelementid, os.optionsetid as optionsetid, ov.optionvalueid as optionvalueid, \
-                        os.uid as optionsetuid, ov.uid as optionvalueuid from optionvalue ov \
+                        os.uid as optionsetuid, ov.uid as optionvalueuid, ov.code as optionvaluecode from optionvalue ov \
                         inner join optionset os on ov.optionsetid = os.optionsetid \
                         inner join dataelement de on os.optionsetid = de.optionsetid;""",
                         "tableName",
