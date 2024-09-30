@@ -207,7 +207,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             ? getLatestAnalyticsTable(params, getColumns(params))
             : getRegularAnalyticsTable(params, getDataYears(params), getColumns(params));
 
-    return table.hasTablePartitions() ? List.of(table) : List.of();
+    return table.hasTablePartitions() || table.isDistributed() ? List.of(table) : List.of();
   }
 
   @Override
@@ -342,6 +342,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     String approvalSelectExpression = getApprovalSelectExpression(partition.getYear());
     String approvalClause = getApprovalJoinClause(partition.getYear());
     String partitionClause = getPartitionClause(partition);
+
+    if (partition.getMasterTable().isDistributed()) {
+      partitionClause = "";
+    }
 
     StringBuilder sql =
         new StringBuilder(replace("insert into ${tableName} (", Map.of("tableName", tableName)));

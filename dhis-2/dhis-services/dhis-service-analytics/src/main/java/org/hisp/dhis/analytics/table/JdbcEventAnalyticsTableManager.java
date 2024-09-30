@@ -235,7 +235,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             PartitionUtils.getEndDate(calendar, year));
       }
 
-      if (table.hasTablePartitions()) {
+      if (table.hasTablePartitions() || table.isDistributed()) {
         tables.add(table);
       }
     }
@@ -374,6 +374,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
     Program program = partition.getMasterTable().getProgram();
     String partitionClause = getPartitionClause(partition);
+
+    if (partition.getMasterTable().isDistributed()) {
+      partitionClause = "";
+    }
 
     String fromClause =
         replace(

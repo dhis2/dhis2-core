@@ -35,13 +35,13 @@ import org.apache.commons.lang3.StringUtils;
  */
 @Getter
 public enum AnalyticsTableType {
-  DATA_VALUE("analytics", true, true),
+  DATA_VALUE("analytics", true, true, "id"),
   COMPLETENESS("analytics_completeness", true, true),
   COMPLETENESS_TARGET("analytics_completenesstarget", false, false),
   ORG_UNIT_TARGET("analytics_orgunittarget", false, false),
   VALIDATION_RESULT("analytics_validationresult", true, false),
-  EVENT("analytics_event", false, true),
-  ENROLLMENT("analytics_enrollment", false, false),
+  EVENT("analytics_event", false, true, "enrollment"),
+  ENROLLMENT("analytics_enrollment", false, false, "enrollment"),
   OWNERSHIP("analytics_ownership", false, false),
   TRACKED_ENTITY_INSTANCE_EVENTS("analytics_te_event", false, true, "trackedentity"),
   TRACKED_ENTITY_INSTANCE_ENROLLMENTS("analytics_te_enrollment", false, false, "trackedentity"),
