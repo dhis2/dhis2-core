@@ -112,6 +112,8 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
 
   @BeforeEach
   void setUp() {
+    messageSender.clearMessages();
+
     coc = categoryService.getDefaultCategoryOptionCombo();
 
     orgUnit = createOrganisationUnit('A');

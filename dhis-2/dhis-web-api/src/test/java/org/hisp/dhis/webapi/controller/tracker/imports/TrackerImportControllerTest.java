@@ -68,6 +68,7 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -96,6 +97,7 @@ class TrackerImportControllerTest {
   @Mock private JobSchedulerService jobSchedulerService;
 
   @Mock private JobConfigurationService jobConfigurationService;
+
   @Mock private UserService userService;
 
   private RenderService renderService;
@@ -118,12 +120,12 @@ class TrackerImportControllerTest {
             notifier,
             jobSchedulerService,
             jobConfigurationService,
-            new ObjectMapper(),
-            userService);
+            new ObjectMapper());
 
     mockMvc =
         MockMvcBuilders.standaloneSetup(controller)
             .setControllerAdvice(new CrudControllerAdvice())
+            .setCustomArgumentResolvers(new CurrentUserHandlerMethodArgumentResolver(userService))
             .build();
   }
 

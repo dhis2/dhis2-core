@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -104,7 +105,7 @@ public class EventPersister
         .eventNotifications(bundle.getEventNotifications().get(UID.of(event.getUid())))
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
-        .accessedBy(bundle.getUsername())
+        .accessedBy(getCurrentUsername())
         .event(event)
         .program(event.getProgramStage().getProgram())
         .triggers(triggers)
@@ -211,7 +212,7 @@ public class EventPersister
           }
 
           logTrackedEntityDataValueHistory(
-              preheat.getUsername(), dataElement, event, new Date(), valuesHolder);
+              getCurrentUsername(), dataElement, event, new Date(), valuesHolder);
         });
   }
 

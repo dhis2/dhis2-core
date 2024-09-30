@@ -27,13 +27,11 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.trackedentity;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1006;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1009;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1076;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1084;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1090;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.getTrackedEntityAttributes;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateOptionSet;
 
@@ -58,7 +56,6 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.hisp.dhis.tracker.imports.validation.service.attribute.TrackedAttributeValidationService;
-import org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors;
 import org.springframework.stereotype.Component;
 
 /**
@@ -124,9 +121,6 @@ class AttributeValidator
       TrackedEntity te,
       OrganisationUnit orgUnit,
       TrackedEntityType trackedEntityType) {
-    checkNotNull(trackedEntity, TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL);
-    checkNotNull(trackedEntityType, TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL);
-
     TrackerPreheat preheat = bundle.getPreheat();
     Map<MetadataIdentifier, TrackedEntityAttributeValue> valueMap = new HashMap<>();
     if (te != null) {
@@ -188,7 +182,6 @@ class AttributeValidator
       org.hisp.dhis.tracker.imports.domain.TrackedEntity te,
       Attribute attr,
       Map<MetadataIdentifier, TrackedEntityAttributeValue> valueMap) {
-    checkNotNull(attr, ATTRIBUTE_CANT_BE_NULL);
 
     boolean attrIsFile = attr.getValueType() != null && attr.getValueType().isFile();
     if (!attrIsFile) {

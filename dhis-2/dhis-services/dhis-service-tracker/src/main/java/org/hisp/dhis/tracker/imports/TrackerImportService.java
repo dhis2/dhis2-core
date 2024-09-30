@@ -37,12 +37,18 @@ import org.hisp.dhis.tracker.imports.report.ImportReport;
  */
 public interface TrackerImportService {
   /**
-   * Import object using provided params. Takes the objects through all phases of the importer from
-   * preheating to validation, and then finished with a commit (unless its validate only)
+   * Import objects using provided params. Takes the objects through all phases of the importer from
+   * preheating to validation, and then finished with a commit (unless the {@link
+   * TrackerImportParams#getImportMode()} is {@link
+   * org.hisp.dhis.tracker.imports.bundle.TrackerBundleMode#VALIDATE} only).
    *
-   * @param params Parameters for import
+   * <p>{@link TrackerObjects} need to be flat. Each entity needs to be in the top level field like
+   * {@link TrackerObjects#getEnrollments()} for an enrollment, even though you could put its' data
+   * onto its tracked entitys' enrollment field in {@link TrackerObjects#getTrackedEntities()}.
+   *
+   * @param params import parameters
    * @param trackerObjects the objects to import
-   * @return Report giving status of import (and any errors)
+   * @return report giving status of import (and any errors)
    */
   default ImportReport importTracker(TrackerImportParams params, TrackerObjects trackerObjects) {
     return importTracker(params, trackerObjects, RecordingJobProgress.transitory());

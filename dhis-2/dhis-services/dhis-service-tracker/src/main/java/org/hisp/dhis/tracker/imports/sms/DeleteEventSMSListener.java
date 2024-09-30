@@ -28,12 +28,10 @@
 package org.hisp.dhis.tracker.imports.sms;
 
 import java.util.List;
-import org.hisp.dhis.category.CategoryService;
+import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.listener.CompressionSMSListener;
@@ -42,8 +40,6 @@ import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.DeleteSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -51,12 +47,12 @@ import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Component("org.hisp.dhis.tracker.sms.DeleteEventSMSListener")
 @Transactional
 public class DeleteEventSMSListener extends CompressionSMSListener {
@@ -66,45 +62,20 @@ public class DeleteEventSMSListener extends CompressionSMSListener {
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       UserService userService,
-      TrackedEntityTypeService trackedEntityTypeService,
-      TrackedEntityAttributeService trackedEntityAttributeService,
-      ProgramService programService,
-      OrganisationUnitService organisationUnitService,
-      CategoryService categoryService,
-      DataElementService dataElementService,
       IdentifiableObjectManager identifiableObjectManager,
       TrackerImportService trackerImportService) {
-    super(
-        incomingSmsService,
-        smsSender,
-        userService,
-        trackedEntityTypeService,
-        trackedEntityAttributeService,
-        programService,
-        organisationUnitService,
-        categoryService,
-        dataElementService,
-        identifiableObjectManager);
+    super(incomingSmsService, smsSender, userService, identifiableObjectManager);
     this.trackerImportService = trackerImportService;
   }
 
   @Override
-  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, User user)
+  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, String username)
       throws SMSProcessingException {
     DeleteSmsSubmission subm = (DeleteSmsSubmission) submission;
 
     TrackerImportParams params =
-        TrackerImportParams.builder()
-            .importStrategy(TrackerImportStrategy.DELETE)
-            .userId(
-                user.getUid()) // SMS processing is done inside a job executed as the user that sent
-            // the SMS. We might want to remove the params user in favor of the currentUser set on
-            // the thread.
-            .build();
-    TrackerObjects trackerObjects =
-        TrackerObjects.builder()
-            .events(List.of(Event.builder().event(subm.getEvent().getUid()).build()))
-            .build();
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build();
+    TrackerObjects trackerObjects = map(subm);
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     if (Status.OK == importReport.getStatus()) {
@@ -112,7 +83,15 @@ public class DeleteEventSMSListener extends CompressionSMSListener {
     }
 
     // TODO(DHIS2-18003) we need to map tracker import report errors/warnings to an sms
+    log.error("Failed to process SMS of submission type DELETE {}", importReport);
     return SmsResponse.INVALID_EVENT.set(subm.getEvent());
+  }
+
+  @Nonnull
+  private static TrackerObjects map(@Nonnull DeleteSmsSubmission submission) {
+    return TrackerObjects.builder()
+        .events(List.of(Event.builder().event(submission.getEvent().getUid()).build()))
+        .build();
   }
 
   @Override

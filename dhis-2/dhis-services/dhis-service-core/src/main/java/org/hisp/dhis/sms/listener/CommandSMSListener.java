@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageSender;
@@ -80,18 +81,12 @@ public abstract class CommandSMSListener extends BaseSMSListener {
   }
 
   @Override
-  public boolean accept(IncomingSms sms) {
-    if (sms == null) {
-      return false;
-    }
-
-    SMSCommand smsCommand = getSMSCommand(sms);
-
-    return smsCommand != null;
+  public boolean accept(@Nonnull IncomingSms sms) {
+    return getSMSCommand(sms) != null;
   }
 
   @Override
-  public void receive(IncomingSms sms) {
+  public void receive(@Nonnull IncomingSms sms, @Nonnull String username) {
     SMSCommand smsCommand = getSMSCommand(sms);
 
     Map<String, String> parsedMessage = this.parseMessageInput(sms, smsCommand);

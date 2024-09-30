@@ -57,8 +57,7 @@ public class TrackerImportParamsMapper {
 
   private TrackerImportParamsMapper() {}
 
-  public static TrackerImportParams trackerImportParams(
-      String userId, ImportRequestParams request) {
+  public static TrackerImportParams trackerImportParams(ImportRequestParams request) {
     TrackerIdSchemeParam defaultIdSchemeParam = request.getIdScheme();
     TrackerIdSchemeParams idSchemeParams =
         TrackerIdSchemeParams.builder()
@@ -85,8 +84,7 @@ public class TrackerImportParamsMapper {
             .flushMode(request.getFlushMode())
             .skipSideEffects(request.isSkipSideEffects())
             .skipRuleEngine(request.isSkipRuleEngine())
-            .reportMode(request.getReportMode())
-            .userId(userId);
+            .reportMode(request.getReportMode());
     return paramsBuilder.build();
   }
 
