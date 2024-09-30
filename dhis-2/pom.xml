@@ -9,8 +9,7 @@
 
   <description>DHIS2 is a free and open-source software platform for collecting, managing, analyzing, and sharing data.
     It supports online and offline data capture via web and mobile devices, and includes built-in features for data validation and visualization.
-    The generic DHIS2 data model supports both routine aggregate/statistical data collection and individual/event data, a
-    nd can be applied to use cases in any sector, allowing decentralized access to data throughout an organizational hierarchy.
+    The generic DHIS2 data model supports both routine aggregate/statistical data collection and individual/event data, and can be applied to use cases in any sector, allowing decentralized access to data throughout an organizational hierarchy.
     DHIS2 is fully customizable through the user interface without the need for coding skills,
     and can be extended with custom applications, scripts, and integrations.
     Each DHIS2 instance and the data stored within it are locally owned and managed.
@@ -40,7 +39,6 @@
     <module>dhis-test-web-api</module>
     <module>dhis-test-coverage</module>
     <module>dhis-test-integration</module>
-    <module>dhis-web-apps</module>
     <module>dhis-web-server</module>
   </modules>
 
@@ -60,7 +58,7 @@
   <properties>
     <!-- Build Properties -->
     <rootDir/>
-    <!-- Custom source directory property, as <build><sourceDirectory> cannot 
+    <!-- Custom source directory property, as <build><sourceDirectory> cannot
       be set in a profile. See https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 -->
     <sourceDir>${project.basedir}/src/main/java</sourceDir>
 
@@ -74,7 +72,7 @@
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <surefireArgLine>-Xmx2024m</surefireArgLine>
 
-    <!-- Needed so we can disable running tests when the default profile 
+    <!-- Needed so we can disable running tests when the default profile
       is used (activated by default). It does not honor -DskipTests otherwise https://maven.apache.org/surefire/maven-surefire-plugin/examples/skipping-tests.html -->
     <skipTests>false</skipTests>
 
@@ -86,7 +84,6 @@
     <jib.container.user>65534</jib.container.user>
     <jib.container.appRoot>/usr/local/tomcat/webapps/ROOT</jib.container.appRoot>
 
-    <useWarCompression>true</useWarCompression>
     <tomcat.version>8.5.47</tomcat.version>
     <jrebel-maven-plugin.version>1.1.6</jrebel-maven-plugin.version>
     <maven-war-plugin.version>3.4.0</maven-war-plugin.version>
@@ -109,7 +106,7 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.40</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>9.41.1</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
@@ -125,7 +122,7 @@
     <lettuce.version>6.4.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>10.17.0</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>10.18.2</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
@@ -169,7 +166,7 @@
     <!-- GIS -->
     <batik-transcoder.version>1.17</batik-transcoder.version>
     <fop.version>2.9</fop.version>
-    <mapstruct.version>1.6.0</mapstruct.version>
+    <mapstruct.version>1.6.2</mapstruct.version>
     <geotools.version>29.6</geotools.version>
     <jts.version>1.20.0</jts.version>
 
@@ -185,7 +182,6 @@
     <jsmpp.version>3.0.1</jsmpp.version>
     <json-path.version>2.9.0</json-path.version>
     <jsoup.version>1.18.1</jsoup.version>
-    <jetty.version>10.0.24</jetty.version>
 
     <!-- Div. utils -->
     <guava.version>33.3.0-jre</guava.version>
@@ -194,7 +190,7 @@
     <google-api-client.version>2.7.0</google-api-client.version>
     <lombok.version>1.18.34</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
-    <joda-time.version>2.12.7</joda-time.version>
+    <joda-time.version>2.13.0</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
     <commons-collections4.version>4.4</commons-collections4.version>
     <commons-beanutils.version>1.9.4</commons-beanutils.version>
@@ -203,7 +199,7 @@
     <commons-fileupload.version>1.5</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>
     <commons-validator.version>1.9.0</commons-validator.version>
-    <commons-io.version>2.16.1</commons-io.version>
+    <commons-io.version>2.17.0</commons-io.version>
     <commons-codec.version>1.17.1</commons-codec.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
@@ -220,7 +216,7 @@
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
-    <junit.version>5.10.3</junit.version>
+    <junit.version>5.11.1</junit.version>
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>3.0</hamcrest.version>
@@ -234,15 +230,16 @@
     <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
     <!-- Maven plugin versions -->
-    <maven-surefire-plugin.version>3.4.0</maven-surefire-plugin.version>
+    <maven-surefire-plugin.version>3.5.0</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+    <maven-exec-plugin.version>3.4.1</maven-exec-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.5.0</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.10.0</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
-    <restrict-imports-enforcer.version>2.5.0</restrict-imports-enforcer.version>
+    <restrict-imports-enforcer.version>2.6.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.17.1</versions-maven-plugin.version>
     <dependency-check-maven.version>10.0.4</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.8.6.2</spotbugs-maven-plugin.version>
@@ -253,18 +250,12 @@
     <jai-imageio.version>1.1.1</jai-imageio.version>
     <gson.version>2.11.0</gson.version>
     <semver4j.version>3.1.0</semver4j.version>
-    <opentelemetry.version>2.7.0</opentelemetry.version>
+    <opentelemetry.version>2.8.0</opentelemetry.version>
   </properties>
 
   <dependencyManagement>
     <dependencies>
       <!--DHIS -->
-      <dependency>
-        <groupId>org.hisp.dhis</groupId>
-        <artifactId>dhis-web-apps</artifactId>
-        <version>${project.version}</version>
-        <type>war</type>
-      </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-api</artifactId>
@@ -1579,32 +1570,6 @@
         <artifactId>semver4j</artifactId>
         <version>${semver4j.version}</version>
       </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-rewrite</artifactId>
-        <version>${jetty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-util</artifactId>
-        <version>${jetty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-servlet</artifactId>
-        <version>${jetty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-server</artifactId>
-        <version>${jetty.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.eclipse.jetty.toolchain</groupId>
-            <artifactId>jetty-servlet-api</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
 
       <!-- Lombok -->
       <dependency>
@@ -1667,8 +1632,8 @@
         <version>${mockito.version}</version>
         <scope>test</scope>
       </dependency>
-      <!-- Depend only on mockito-inline (includes mockito-core already) 
-        if you must use mockStatic (can you rewrite your code, so it's not necessary 
+      <!-- Depend only on mockito-inline (includes mockito-core already)
+        if you must use mockStatic (can you rewrite your code, so it's not necessary
         ;)), otherwise depend on mockito-core only -->
       <dependency>
         <groupId>org.mockito</groupId>
@@ -1727,9 +1692,9 @@
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
           </exclusion>
-          <!-- 
+          <!--
             Junit 4 cannot be excluded yet, because of this issue
-            https://github.com/testcontainers/testcontainers-java/issues/970 
+            https://github.com/testcontainers/testcontainers-java/issues/970
           -->
           <!--
           <exclusion>
@@ -1919,6 +1884,11 @@
           <version>${maven-surefire-plugin.version}</version>
         </plugin>
         <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>${maven-exec-plugin.version}</version>
+        </plugin>
+        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>${maven-failsafe-plugin.version}</version>
@@ -2065,11 +2035,10 @@ jasperreports.version=${jasperreports.version}
               <ignoredUnusedDeclaredDependency>org.apache.logging.log4j:log4j-layout-template-json</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>javax.servlet:javax.servlet-api</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.jclouds.provider:aws-s3</ignoredUnusedDeclaredDependency>
-              <!-- Needed by dhis-web modules -->
-              <ignoredUnusedDeclaredDependency>io.lettuce:lettuce-core</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.apache.struts:struts2-spring-plugin</ignoredUnusedDeclaredDependency>
+              <!-- Needed by dhis-web-server modules -->
               <ignoredUnusedDeclaredDependency>org.apache.velocity.tools:velocity-tools-generic</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.springframework:spring-context-support</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.springframework:spring-web</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.xmlgraphics:batik-codec</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>commons-fileupload:commons-fileupload</ignoredUnusedDeclaredDependency>
               <!-- Removing makes some tests fail -->
@@ -2080,8 +2049,6 @@ jasperreports.version=${jasperreports.version}
               <ignoredUnusedDeclaredDependency>org.apache.jclouds.api:s3</ignoredUnusedDeclaredDependency>
               <!-- Removing makes the startup fail -->
               <ignoredUnusedDeclaredDependency>org.hibernate:hibernate-ehcache</ignoredUnusedDeclaredDependency>
-              <!-- Removing makes the startup with Jetty fail -->
-              <ignoredUnusedDeclaredDependency>javax.media:jai_imageio</ignoredUnusedDeclaredDependency>
               <!-- Required only at runtime -->
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-hibernate</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-db-migration</ignoredUnusedDeclaredDependency>
@@ -2096,7 +2063,6 @@ jasperreports.version=${jasperreports.version}
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-commons</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-dataentry</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-approval</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-apps</ignoredUnusedDeclaredDependency>
             </ignoredUnusedDeclaredDependencies>
             <ignoredUsedUndeclaredDependencies>
               <ignoredUsedUndeclaredDependency>org.flywaydb:flyway-core</ignoredUsedUndeclaredDependency>
@@ -2110,7 +2076,6 @@ jasperreports.version=${jasperreports.version}
               <ignoredUsedUndeclaredDependency>org.springframework:spring-jcl</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>ognl:ognl</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.springframework.session:spring-session-core</ignoredUsedUndeclaredDependency>
-              <ignoredUsedUndeclaredDependency>org.eclipse.jetty.toolchain:jetty-servlet-api</ignoredUsedUndeclaredDependency>
             </ignoredUsedUndeclaredDependencies>
             <ignoredNonTestScopedDependencies>
               <!-- Setting the scope to test makes the build fail -->
@@ -2118,6 +2083,9 @@ jasperreports.version=${jasperreports.version}
               <ignoredNonTestScopedDependency>io.debezium:debezium-connector-postgres</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>org.springframework.security:spring-security-core</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>com.fasterxml.jackson.core:jackson-databind</ignoredNonTestScopedDependency>
+              <!-- Needed by dhis-web-server module -->
+              <ignoredUnusedDeclaredDependency>org.springframework:spring-web</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-system</ignoredUnusedDeclaredDependency>
             </ignoredNonTestScopedDependencies>
           </configuration>
         </plugin>

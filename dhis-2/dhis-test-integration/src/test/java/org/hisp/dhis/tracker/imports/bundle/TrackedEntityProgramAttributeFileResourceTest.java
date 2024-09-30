@@ -76,7 +76,7 @@ class TrackedEntityProgramAttributeFileResourceTest extends TrackerTest {
 
   @Test
   void testTrackedEntityProgramAttributeFileResourceValue() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     FileResource fileResource =
         new FileResource(
             "test.pdf",

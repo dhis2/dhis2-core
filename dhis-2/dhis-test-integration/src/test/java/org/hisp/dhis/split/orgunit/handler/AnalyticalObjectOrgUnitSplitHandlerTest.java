@@ -29,8 +29,6 @@ package org.hisp.dhis.split.orgunit.handler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -52,8 +50,6 @@ import org.springframework.transaction.annotation.Transactional;
 class AnalyticalObjectOrgUnitSplitHandlerTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager idObjectManager;
-
-  @PersistenceContext private EntityManager entityManager;
 
   @Autowired private AnalyticalObjectOrgUnitSplitHandler handler;
 

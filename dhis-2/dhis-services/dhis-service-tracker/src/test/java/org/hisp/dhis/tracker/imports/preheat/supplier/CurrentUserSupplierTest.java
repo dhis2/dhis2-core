@@ -25,47 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports;
+package org.hisp.dhis.tracker.imports.preheat.supplier;
 
-import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
+
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.tracker.imports.preheat.mappers.FullUserMapper;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.UserDetails;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * Specialized User Service for Tracker that executes User look-up in a read-only transaction
- *
- * @author Luciano Fiandesio
- */
-@RequiredArgsConstructor
-@Service
-public class TrackerUserService {
+@ExtendWith(MockitoExtension.class)
+class CurrentUserSupplierTest extends TestBase {
 
-  private final IdentifiableObjectManager manager;
+  @InjectMocks private CurrentUserSupplier supplier;
 
-  /**
-   * Fetch a User by user uid
-   *
-   * @param userUid a User uid
-   * @return a User
-   */
-  @Transactional(readOnly = true)
-  public User getUser(String userUid) {
-    User user = null;
+  @Mock private IdentifiableObjectManager manager;
 
-    if (!StringUtils.isEmpty(userUid)) {
-      user = manager.get(User.class, userUid);
-    }
-    if (user == null) {
-      user = manager.get(User.class, CurrentUserUtil.getCurrentUserDetails().getUid());
-    }
-    // Make a copy of the user object, retaining only the properties
-    // required for
-    // the import operation
-    return FullUserMapper.INSTANCE.map(user);
+  private org.hisp.dhis.user.User currentUser;
+
+  @BeforeEach
+  void setup() {
+    currentUser = makeUser("A");
+    injectSecurityContext(UserDetails.fromUser(currentUser));
+  }
+
+  @Test
+  void shouldAddCurrentUserToPreheat() {
+    when(manager.get(org.hisp.dhis.user.User.class, currentUser.getUid())).thenReturn(currentUser);
+
+    TrackerPreheat preheat = new TrackerPreheat();
+    this.supplier.preheatAdd(TrackerObjects.builder().build(), preheat);
+
+    assertEquals(
+        currentUser.getUsername(), preheat.getUserByUid(currentUser.getUid()).get().getUsername());
+    assertEquals(currentUser.getUid(), preheat.getUserByUid(currentUser.getUid()).get().getUid());
   }
 }

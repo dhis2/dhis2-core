@@ -29,14 +29,12 @@ package org.hisp.dhis.tracker.imports;
 
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Luciano Fiandesio
  */
 public class ParamsConverter {
-  public static TrackerBundle convert(
-      TrackerImportParams params, TrackerObjects trackerObjects, User user) {
+  public static TrackerBundle convert(TrackerImportParams params, TrackerObjects trackerObjects) {
     return TrackerBundle.builder()
         .importMode(params.getImportMode())
         .importStrategy(params.getImportStrategy())
@@ -49,7 +47,6 @@ public class ParamsConverter {
         .enrollments(trackerObjects.getEnrollments())
         .events(trackerObjects.getEvents())
         .relationships(trackerObjects.getRelationships())
-        .user(user)
         .build();
   }
 }

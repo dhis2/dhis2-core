@@ -5,7 +5,7 @@ env:
 
 on:
   pull_request:
-    types: [ opened, labeled, synchronize ]
+    types: [opened, labeled, synchronize]
   schedule:
     - cron: "16 1 * * *" # Run at 01:16 AM
 concurrency:
@@ -18,7 +18,7 @@ jobs:
       PR_NUMBER: ${{ github.event.number }}
       DOCKER_CHANNEL: "dhis2/core-pr"
       SIERRA_LEONE_DB_PATH: "/tmp/db/sierra-leone"
-      SIERRA_LEONE_DB_VERSION: "2.39.0.1"
+      SIERRA_LEONE_DB_VERSION: "2.39.6"
 
     runs-on: ubuntu-latest
     if: "contains(github.event.pull_request.labels.*.name, 'run-api-analytics-tests')"
@@ -39,10 +39,13 @@ jobs:
           distribution: temurin
           cache: maven
 
-      - name: Build core image
+      - name: Build container image
         run: |
-          mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true --update-snapshots -f dhis-2/pom.xml -pl -dhis-test-integration,-dhis-test-coverage,-dhis-web-server
-          mvn clean install -PjibDockerBuild -DactiveProfile=jibDockerBuild --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f ./dhis-2/dhis-web-server/pom.xml -Djib.to.image=$CORE_IMAGE_NAME
+          # only build image for running api tests in this workflow
+          mvn clean package --threads 2C --batch-mode --no-transfer-progress \
+            -DskipTests -Dmaven.test.skip=true --update-snapshots --file dhis-2/pom.xml \
+            --projects dhis-web-server --also-make --activate-profiles jibDockerBuild \
+            -Djib.to.image=$CORE_IMAGE_NAME
 
       - name: Get Sierra Leone DB from cache
         uses: actions/cache@v4
@@ -56,9 +59,6 @@ jobs:
         run: |
           mkdir -p ${{ env.SIERRA_LEONE_DB_PATH }}
           wget https://databases.dhis2.org/sierra-leone/${{ env.SIERRA_LEONE_DB_VERSION }}/analytics_be/dhis2-db-sierra-leone.sql.gz --no-clobber --directory-prefix ${{ env.SIERRA_LEONE_DB_PATH }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
 
       - name: Run tests
         run: |
@@ -78,7 +78,7 @@ jobs:
         if: failure()
         with:
           name: "tomcat_logs"
-          path: '~/logs.txt'
+          path: "~/logs.txt"
 
   send-slack-message:
     runs-on: ubuntu-latest
@@ -87,11 +87,11 @@ jobs:
       contains(needs.*.result, 'failure') &&
       github.ref == 'refs/heads/master'
 
-    needs: [ api-analytics-test ]
+    needs: [api-analytics-test]
     steps:
       - uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_BACKEND_WEBHOOK }}
-          SLACK_CHANNEL: 'team-backend'
+          SLACK_CHANNEL: "team-backend"
           SLACK_MESSAGE: "Latest analytics e2e test run on master failed and needs investigation :detective-duck:. \n Commit message: ${{ github.event.head_commit.message }}"
-          SLACK_COLOR: '#ff0000'
+          SLACK_COLOR: "#ff0000"

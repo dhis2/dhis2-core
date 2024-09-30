@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.supplier.strategy;
 
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -48,8 +50,6 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.imports.preheat.mappers.CopyMapper;
 import org.hisp.dhis.tracker.imports.preheat.mappers.PreheatMapper;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -109,7 +109,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
                 UID.of(idSchemeParam.getAttributeUid()),
                 ids);
       } else {
-        objects = cacheAwareFetch(preheat.getUser(), schema, idSchemeParam, ids, mapper);
+        objects = cacheAwareFetch(schema, idSchemeParam, ids, mapper);
       }
 
       preheat.put(idSchemeParam, objects);
@@ -122,7 +122,6 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
 
   @SuppressWarnings({"unchecked", "rawtypes"})
   private List<IdentifiableObject> cacheAwareFetch(
-      User user,
       Schema schema,
       TrackerIdSchemeParam idSchemeParam,
       List<String> ids,
@@ -151,8 +150,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
         // cache
         objects =
             map(
-                (List<IdentifiableObject>)
-                    queryService.query(buildQuery(schema, user, idScheme, ids)),
+                (List<IdentifiableObject>) queryService.query(buildQuery(schema, idScheme, ids)),
                 mapper);
 
         // put objects in query based on given scheme. If the key
@@ -171,8 +169,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     } else {
       objects =
           map(
-              (List<IdentifiableObject>)
-                  queryService.query(buildQuery(schema, user, idScheme, ids)),
+              (List<IdentifiableObject>) queryService.query(buildQuery(schema, idScheme, ids)),
               mapper);
     }
 
@@ -193,9 +190,9 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     }
   }
 
-  private Query buildQuery(Schema schema, User user, TrackerIdScheme idScheme, List<String> ids) {
+  private Query buildQuery(Schema schema, TrackerIdScheme idScheme, List<String> ids) {
     Query query = Query.from(schema);
-    query.setCurrentUserDetails(user == null ? null : UserDetails.fromUser(user));
+    query.setCurrentUserDetails(getCurrentUserDetails());
     query.add(generateRestrictionFromIdentifiers(idScheme, ids));
     query.setDefaults(Defaults.INCLUDE);
 
