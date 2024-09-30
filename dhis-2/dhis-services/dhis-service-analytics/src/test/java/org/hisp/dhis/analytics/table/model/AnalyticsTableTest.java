@@ -220,7 +220,7 @@ class AnalyticsTableTest {
   @Test
   void createPartitionWhenTableTypeNotDistributedAndSystemSettingsDistributed() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED, DISTRIBUTED);
+        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, columnsA, Logged.UNLOGGED, DISTRIBUTED);
     table.addTablePartition(
         List.of(),
         2014,
