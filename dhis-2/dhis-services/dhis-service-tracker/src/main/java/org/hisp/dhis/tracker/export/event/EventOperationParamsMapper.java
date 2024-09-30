@@ -32,6 +32,7 @@ import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrg
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
@@ -79,7 +80,8 @@ class EventOperationParamsMapper {
   private final OperationsParamsValidator paramsValidator;
 
   @Transactional(readOnly = true)
-  public EventQueryParams map(EventOperationParams operationParams, UserDetails user)
+  public EventQueryParams map(
+      @Nonnull EventOperationParams operationParams, @Nonnull UserDetails user)
       throws BadRequestException, ForbiddenException {
     Program program = paramsValidator.validateProgramAccess(operationParams.getProgramUid(), user);
     ProgramStage programStage = validateProgramStage(operationParams.getProgramStageUid(), user);

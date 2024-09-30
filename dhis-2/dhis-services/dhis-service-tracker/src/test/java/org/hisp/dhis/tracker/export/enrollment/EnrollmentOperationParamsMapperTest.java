@@ -97,12 +97,12 @@ class EnrollmentOperationParamsMapperTest {
 
   private OrganisationUnit orgUnit2;
 
-  private UserDetails currentUser;
+  private UserDetails user;
 
   @BeforeEach
   void setUp() throws ForbiddenException, BadRequestException {
-    User user = new User();
-    user.setUsername("admin");
+    User testUser = new User();
+    testUser.setUsername("admin");
 
     orgUnit1 = new OrganisationUnit("orgUnit1");
     orgUnit1.setUid(ORG_UNIT_1_UID);
@@ -121,9 +121,9 @@ class EnrollmentOperationParamsMapperTest {
         .thenReturn(List.of(orgUnit1));
     when(organisationUnitService.getOrganisationUnit(orgUnit2.getUid())).thenReturn(orgUnit2);
 
-    user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
-    user.setOrganisationUnits(Set.of(orgUnit2));
-    currentUser = UserDetails.fromUser(user);
+    testUser.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
+    testUser.setOrganisationUnits(Set.of(orgUnit2));
+    user = UserDetails.fromUser(testUser);
 
     TrackedEntityType trackedEntityType = new TrackedEntityType();
     trackedEntityType.setUid(TRACKED_ENTITY_TYPE_UID);
@@ -139,12 +139,11 @@ class EnrollmentOperationParamsMapperTest {
     trackedEntity.setUid(TRACKED_ENTITY_UID);
     trackedEntity.setTrackedEntityType(trackedEntityType);
 
-    when(paramsValidator.validateTrackerProgram(PROGRAM_UID, currentUser)).thenReturn(program);
-    when(paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID, currentUser))
+    when(paramsValidator.validateTrackerProgram(PROGRAM_UID, user)).thenReturn(program);
+    when(paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID, user))
         .thenReturn(trackedEntityType);
-    when(paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, currentUser))
-        .thenReturn(trackedEntity);
-    when(paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), currentUser))
+    when(paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user)).thenReturn(trackedEntity);
+    when(paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), user))
         .thenReturn(Set.of(orgUnit1, orgUnit2));
   }
 
@@ -154,7 +153,7 @@ class EnrollmentOperationParamsMapperTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 
-    mapper.map(operationParams, currentUser);
+    mapper.map(operationParams, user);
 
     verifyNoInteractions(programService);
     verifyNoInteractions(trackedEntityTypeService);
@@ -170,7 +169,7 @@ class EnrollmentOperationParamsMapperTest {
             .orgUnitMode(ACCESSIBLE)
             .build();
 
-    EnrollmentQueryParams params = mapper.map(operationParams, currentUser);
+    EnrollmentQueryParams params = mapper.map(operationParams, user);
 
     assertEquals(
         List.of(
@@ -185,7 +184,7 @@ class EnrollmentOperationParamsMapperTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 
-    EnrollmentQueryParams params = mapper.map(operationParams, currentUser);
+    EnrollmentQueryParams params = mapper.map(operationParams, user);
 
     assertIsEmpty(params.getOrder());
   }
@@ -196,11 +195,11 @@ class EnrollmentOperationParamsMapperTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 
-    EnrollmentQueryParams params = mapper.map(operationParams, currentUser);
+    EnrollmentQueryParams params = mapper.map(operationParams, user);
 
     assertEquals(DESCENDANTS, params.getOrganisationUnitMode());
     assertEquals(
-        currentUser.getUserEffectiveSearchOrgUnitIds(),
+        user.getUserEffectiveSearchOrgUnitIds(),
         params.getOrganisationUnits().stream()
             .map(BaseIdentifiableObject::getUid)
             .collect(Collectors.toSet()));
@@ -212,11 +211,11 @@ class EnrollmentOperationParamsMapperTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(CAPTURE).build();
 
-    EnrollmentQueryParams params = mapper.map(operationParams, currentUser);
+    EnrollmentQueryParams params = mapper.map(operationParams, user);
 
     assertEquals(DESCENDANTS, params.getOrganisationUnitMode());
     assertEquals(
-        currentUser.getUserOrgUnitIds(),
+        user.getUserOrgUnitIds(),
         params.getOrganisationUnits().stream()
             .map(BaseIdentifiableObject::getUid)
             .collect(Collectors.toSet()));
@@ -232,7 +231,7 @@ class EnrollmentOperationParamsMapperTest {
             .orgUnitMode(CHILDREN)
             .build();
 
-    EnrollmentQueryParams params = mapper.map(operationParams, currentUser);
+    EnrollmentQueryParams params = mapper.map(operationParams, user);
 
     assertEquals(CHILDREN, params.getOrganisationUnitMode());
   }

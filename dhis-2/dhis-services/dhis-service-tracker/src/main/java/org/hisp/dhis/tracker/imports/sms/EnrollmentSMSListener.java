@@ -97,8 +97,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener {
           trackedEntityService.getTrackedEntity(
               subm.getTrackedEntityInstance().getUid(),
               subm.getTrackerProgram().getUid(),
-              TrackedEntityParams.FALSE.withIncludeAttributes(true),
-              false);
+              TrackedEntityParams.FALSE.withIncludeAttributes(true));
     } catch (NotFoundException e) {
       // new TE will be created
     } catch (ForbiddenException | BadRequestException e) {

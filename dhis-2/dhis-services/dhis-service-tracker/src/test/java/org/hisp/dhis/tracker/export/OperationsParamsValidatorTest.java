@@ -141,8 +141,7 @@ class OperationsParamsValidatorTest {
             BadRequestException.class, () -> validateOrgUnitMode(ALL, program, user));
 
     assertEquals(
-        "Current user is not authorized to query across all organisation units",
-        exception.getMessage());
+        "User is not authorized to query across all organisation units", exception.getMessage());
   }
 
   @Test
@@ -210,7 +209,7 @@ class OperationsParamsValidatorTest {
 
     assertEquals(
         String.format(
-            "Current user is not authorized to read data from selected program's tracked entity type: %s",
+            "User is not authorized to read data from selected program's tracked entity type: %s",
             trackedEntityType.getUid()),
         exception.getMessage());
   }
@@ -280,7 +279,7 @@ class OperationsParamsValidatorTest {
 
     assertEquals(
         String.format(
-            "Current user is not authorized to read data from type of selected tracked entity: %s",
+            "User is not authorized to read data from type of selected tracked entity: %s",
             trackedEntity.getUid()),
         exception.getMessage());
   }
@@ -326,7 +325,7 @@ class OperationsParamsValidatorTest {
 
     assertEquals(
         String.format(
-            "Current user is not authorized to read data from selected tracked entity type: %s",
+            "User is not authorized to read data from selected tracked entity type: %s",
             trackedEntityType.getUid()),
         exception.getMessage());
   }

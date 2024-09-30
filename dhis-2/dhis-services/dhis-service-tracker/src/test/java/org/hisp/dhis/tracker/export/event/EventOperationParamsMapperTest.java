@@ -122,7 +122,7 @@ class EventOperationParamsMapperTest {
 
   @InjectMocks private EventOperationParamsMapper mapper;
 
-  private UserDetails currentUser;
+  private UserDetails user;
 
   private final Map<String, User> userMap = new HashMap<>();
 
@@ -138,10 +138,10 @@ class EventOperationParamsMapperTest {
             createOrgUnit("captureScopeChild", "captureScopeChildUid"),
             createOrgUnit("searchScopeChild", "searchScopeChildUid")));
 
-    User user = new User();
-    user.setUsername("test");
-    user.setOrganisationUnits(Set.of(orgUnit));
-    currentUser = UserDetails.fromUser(user);
+    User testUser = new User();
+    testUser.setUsername("test");
+    testUser.setOrganisationUnits(Set.of(orgUnit));
+    user = UserDetails.fromUser(testUser);
 
     // By default, set to ACCESSIBLE for tests that don't set an orgUnit. The orgUnitMode needs to
     // be
@@ -159,11 +159,11 @@ class EventOperationParamsMapperTest {
     EventOperationParams eventOperationParams =
         eventBuilder.programStageUid(programStage.getUid()).build();
 
-    when(aclService.canDataRead(currentUser, programStage)).thenReturn(false);
+    when(aclService.canDataRead(user, programStage)).thenReturn(false);
     when(programStageService.getProgramStage("PlZSBEN7iZd")).thenReturn(programStage);
 
     Exception exception =
-        assertThrows(ForbiddenException.class, () -> mapper.map(eventOperationParams, currentUser));
+        assertThrows(ForbiddenException.class, () -> mapper.map(eventOperationParams, user));
     assertEquals(
         "User has no access to program stage: " + programStage.getUid(), exception.getMessage());
   }
@@ -174,8 +174,7 @@ class EventOperationParamsMapperTest {
         EventOperationParams.builder().programStageUid("NeU85luyD4w").build();
 
     Exception exception =
-        assertThrows(
-            BadRequestException.class, () -> mapper.map(eventOperationParams, currentUser));
+        assertThrows(BadRequestException.class, () -> mapper.map(eventOperationParams, user));
     assertEquals(
         "Program stage is specified but does not exist: NeU85luyD4w", exception.getMessage());
   }
@@ -197,7 +196,7 @@ class EventOperationParamsMapperTest {
         .thenReturn(false);
 
     Exception exception =
-        assertThrows(ForbiddenException.class, () -> mapper.map(eventOperationParams, currentUser));
+        assertThrows(ForbiddenException.class, () -> mapper.map(eventOperationParams, user));
 
     assertEquals(
         "User has no access to attribute category option combo: " + combo.getUid(),
@@ -220,7 +219,7 @@ class EventOperationParamsMapperTest {
     when(aclService.canDataRead(any(UserDetails.class), any(CategoryOptionCombo.class)))
         .thenReturn(true);
 
-    EventQueryParams queryParams = mapper.map(operationParams, currentUser);
+    EventQueryParams queryParams = mapper.map(operationParams, user);
 
     assertEquals(combo, queryParams.getCategoryOptionCombo());
   }
@@ -233,7 +232,7 @@ class EventOperationParamsMapperTest {
             .assignedUserMode(AssignedUserSelectionMode.PROVIDED)
             .build();
 
-    EventQueryParams queryParams = mapper.map(operationParams, currentUser);
+    EventQueryParams queryParams = mapper.map(operationParams, user);
 
     assertContainsOnly(
         Set.of("IsdLBTOBzMi", "l5ab8q5skbB"),
@@ -261,7 +260,7 @@ class EventOperationParamsMapperTest {
                     List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
             .build();
 
-    EventQueryParams queryParams = mapper.map(operationParams, currentUser);
+    EventQueryParams queryParams = mapper.map(operationParams, user);
 
     Map<TrackedEntityAttribute, List<QueryFilter>> attributes = queryParams.getAttributes();
     assertNotNull(attributes);
@@ -283,7 +282,7 @@ class EventOperationParamsMapperTest {
     when(trackedEntityAttributeService.getTrackedEntityAttribute(filterName)).thenReturn(null);
 
     Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams, currentUser));
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams, user));
 
     assertContains(
         "Tracked entity attribute '" + filterName + "' does not exist", exception.getMessage());
@@ -309,7 +308,7 @@ class EventOperationParamsMapperTest {
             .orderBy("scheduledDate", SortDirection.ASC)
             .build();
 
-    EventQueryParams params = mapper.map(operationParams, currentUser);
+    EventQueryParams params = mapper.map(operationParams, user);
 
     assertEquals(
         List.of(
@@ -335,7 +334,7 @@ class EventOperationParamsMapperTest {
         eventBuilder.orderBy(UID.of(TEA_1_UID), SortDirection.ASC).build();
 
     Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams, currentUser));
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams, user));
     assertStartsWith("Cannot order by '" + TEA_1_UID, exception.getMessage());
   }
 
@@ -350,7 +349,7 @@ class EventOperationParamsMapperTest {
         eventBuilder.orderBy(UID.of("lastUpdated"), SortDirection.ASC).build();
 
     Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams, currentUser));
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams, user));
     assertStartsWith("Cannot order by 'lastUpdated'", exception.getMessage());
   }
 
@@ -373,7 +372,7 @@ class EventOperationParamsMapperTest {
                     List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
             .build();
 
-    EventQueryParams queryParams = mapper.map(operationParams, currentUser);
+    EventQueryParams queryParams = mapper.map(operationParams, user);
 
     Map<DataElement, List<QueryFilter>> dataElements = queryParams.getDataElements();
     assertNotNull(dataElements);
@@ -395,7 +394,7 @@ class EventOperationParamsMapperTest {
     when(dataElementService.getDataElement(filterName)).thenReturn(null);
 
     Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams, currentUser));
+        assertThrows(BadRequestException.class, () -> mapper.map(operationParams, user));
 
     assertContains("Data element '" + filterName + "' does not exist", exception.getMessage());
   }

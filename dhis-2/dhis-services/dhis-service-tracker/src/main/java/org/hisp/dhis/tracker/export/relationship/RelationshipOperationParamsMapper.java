@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
@@ -54,7 +55,7 @@ class RelationshipOperationParamsMapper {
   private final TrackerAccessManager accessManager;
 
   @Transactional(readOnly = true)
-  public RelationshipQueryParams map(RelationshipOperationParams params)
+  public RelationshipQueryParams map(@Nonnull RelationshipOperationParams params)
       throws NotFoundException, ForbiddenException, BadRequestException {
 
     IdentifiableObject entity =

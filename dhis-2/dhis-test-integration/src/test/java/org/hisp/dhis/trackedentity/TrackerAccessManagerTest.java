@@ -201,9 +201,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     UserDetails userDetails = UserDetails.fromUser(user);
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
     manager.update(trackedEntityType);
-    TrackedEntity te =
-        trackedEntityService.getTrackedEntity(
-            trackedEntityA.getUid(), null, TrackedEntityParams.FALSE, false);
+    TrackedEntity te = trackedEntityService.getTrackedEntity(trackedEntityA.getUid());
     // Can read te
     assertNoErrors(trackerAccessManager.canRead(userDetails, te));
     // can write te

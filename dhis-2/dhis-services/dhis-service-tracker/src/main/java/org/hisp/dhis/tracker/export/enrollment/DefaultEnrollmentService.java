@@ -74,12 +74,14 @@ class DefaultEnrollmentService implements EnrollmentService {
   private final EnrollmentOperationParamsMapper paramsMapper;
 
   @Override
-  public Enrollment getEnrollment(String uid) throws ForbiddenException, NotFoundException {
+  public Enrollment getEnrollment(@Nonnull String uid)
+      throws ForbiddenException, NotFoundException {
     return getEnrollment(uid, EnrollmentParams.FALSE, false);
   }
 
   @Override
-  public Enrollment getEnrollment(String uid, EnrollmentParams params, boolean includeDeleted)
+  public Enrollment getEnrollment(
+      @Nonnull String uid, @Nonnull EnrollmentParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
     UserDetails currentUser = getCurrentUserDetails();
     Enrollment enrollment = enrollmentStore.getByUid(uid);
@@ -99,9 +101,9 @@ class DefaultEnrollmentService implements EnrollmentService {
 
   private Enrollment getEnrollment(
       @Nonnull Enrollment enrollment,
-      EnrollmentParams params,
+      @Nonnull EnrollmentParams params,
       boolean includeDeleted,
-      UserDetails currentUser) {
+      @Nonnull UserDetails user) {
 
     Enrollment result = new Enrollment();
     result.setId(enrollment.getId());
@@ -131,16 +133,15 @@ class DefaultEnrollmentService implements EnrollmentService {
     result.setDeleted(enrollment.isDeleted());
     result.setNotes(enrollment.getNotes());
     if (params.isIncludeEvents()) {
-      result.setEvents(getEvents(currentUser, enrollment, includeDeleted));
+      result.setEvents(getEvents(user, enrollment, includeDeleted));
     }
     if (params.isIncludeRelationships()) {
-      result.setRelationshipItems(getRelationshipItems(currentUser, enrollment, includeDeleted));
+      result.setRelationshipItems(getRelationshipItems(user, enrollment, includeDeleted));
     }
     if (params.isIncludeAttributes()) {
       result
           .getTrackedEntity()
-          .setTrackedEntityAttributeValues(
-              getTrackedEntityAttributeValues(currentUser, enrollment));
+          .setTrackedEntityAttributeValues(getTrackedEntityAttributeValues(user, enrollment));
     }
 
     return result;
@@ -148,7 +149,8 @@ class DefaultEnrollmentService implements EnrollmentService {
 
   @Override
   public RelationshipItem getEnrollmentInRelationshipItem(
-      String uid, EnrollmentParams params, boolean includeDeleted) throws NotFoundException {
+      @Nonnull String uid, @Nonnull EnrollmentParams params, boolean includeDeleted)
+      throws NotFoundException {
 
     RelationshipItem relationshipItem = new RelationshipItem();
     Enrollment enrollment = enrollmentStore.getByUid(uid);
@@ -248,7 +250,7 @@ class DefaultEnrollmentService implements EnrollmentService {
   }
 
   @Override
-  public List<Enrollment> getEnrollments(EnrollmentOperationParams params)
+  public List<Enrollment> getEnrollments(@Nonnull EnrollmentOperationParams params)
       throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
 
@@ -260,7 +262,8 @@ class DefaultEnrollmentService implements EnrollmentService {
   }
 
   @Override
-  public Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
+  public Page<Enrollment> getEnrollments(
+      @Nonnull EnrollmentOperationParams params, PageParams pageParams)
       throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
 

@@ -34,6 +34,7 @@ import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrg
 
 import java.util.HashSet;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -59,7 +60,8 @@ class EnrollmentOperationParamsMapper {
   private final OperationsParamsValidator paramsValidator;
 
   @Transactional(readOnly = true)
-  public EnrollmentQueryParams map(EnrollmentOperationParams operationParams, UserDetails user)
+  public EnrollmentQueryParams map(
+      @Nonnull EnrollmentOperationParams operationParams, @Nonnull UserDetails user)
       throws BadRequestException, ForbiddenException {
     Program program = paramsValidator.validateTrackerProgram(operationParams.getProgramUid(), user);
     TrackedEntityType trackedEntityType =

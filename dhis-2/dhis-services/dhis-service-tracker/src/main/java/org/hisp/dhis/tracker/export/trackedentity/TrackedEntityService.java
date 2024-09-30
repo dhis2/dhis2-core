@@ -50,11 +50,23 @@ public interface TrackedEntityService {
       UID trackedEntity, UID attribute, UID program, ImageFileDimension dimension)
       throws NotFoundException;
 
+  /**
+   * Get the tracked entity matching given {@code UID} under the privileges of the currently
+   * authenticated user. No program attributes are included, only TETAs. Enrollments and
+   * relationships are not included. Use {@link #getTrackedEntity(String, String,
+   * TrackedEntityParams)} instead to also get the relationships, enrollments and program
+   * attributes.
+   */
   TrackedEntity getTrackedEntity(String uid)
       throws NotFoundException, ForbiddenException, BadRequestException;
 
-  TrackedEntity getTrackedEntity(
-      String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)
+  /**
+   * Get the tracked entity matching given {@code UID} under the privileges of the currently
+   * authenticated user. If @param programIdentifier is defined, program attributes for such program
+   * are included, otherwise only TETAs are included. It will include enrollments, relationships,
+   * attributes and ownerships as defined in @param params
+   */
+  TrackedEntity getTrackedEntity(String uid, String programIdentifier, TrackedEntityParams params)
       throws NotFoundException, ForbiddenException, BadRequestException;
 
   /** Get all tracked entities matching given params. */

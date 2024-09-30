@@ -64,7 +64,8 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
-import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler;
@@ -158,11 +159,11 @@ class TrackedEntitiesExportController {
       // use the text/html Accept header to default to a Json response when a generic request comes
       // from a browser
       )
-  ResponseEntity<Page<ObjectNode>> getTrackedEntities(TrackedEntityRequestParams requestParams)
+  ResponseEntity<Page<ObjectNode>> getTrackedEntities(
+      TrackedEntityRequestParams requestParams, @CurrentUser UserDetails currentUser)
       throws BadRequestException, ForbiddenException, NotFoundException {
     validatePaginationParameters(requestParams);
-    TrackedEntityOperationParams operationParams =
-        paramsMapper.map(requestParams, CurrentUserUtil.getCurrentUserDetails());
+    TrackedEntityOperationParams operationParams = paramsMapper.map(requestParams, currentUser);
 
     if (requestParams.isPaged()) {
       PageParams pageParams =
@@ -197,11 +198,11 @@ class TrackedEntitiesExportController {
   void getTrackedEntitiesAsCsv(
       TrackedEntityRequestParams trackedEntityRequestParams,
       HttpServletResponse response,
-      @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
+      @RequestParam(required = false, defaultValue = "false") boolean skipHeader,
+      @CurrentUser UserDetails currentUser)
       throws IOException, BadRequestException, ForbiddenException, NotFoundException {
     TrackedEntityOperationParams operationParams =
-        paramsMapper.map(
-            trackedEntityRequestParams, CSV_FIELDS, CurrentUserUtil.getCurrentUserDetails());
+        paramsMapper.map(trackedEntityRequestParams, CSV_FIELDS, currentUser);
 
     ResponseHeader.addContentDispositionAttachment(response, TE_CSV_FILE);
     ResponseHeader.addContentTransferEncodingBinary(response);
@@ -218,11 +219,11 @@ class TrackedEntitiesExportController {
   void getTrackedEntitiesAsCsvZip(
       TrackedEntityRequestParams trackedEntityRequestParams,
       HttpServletResponse response,
-      @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
+      @RequestParam(required = false, defaultValue = "false") boolean skipHeader,
+      @CurrentUser UserDetails currentUser)
       throws IOException, BadRequestException, ForbiddenException, NotFoundException {
     TrackedEntityOperationParams operationParams =
-        paramsMapper.map(
-            trackedEntityRequestParams, CSV_FIELDS, CurrentUserUtil.getCurrentUserDetails());
+        paramsMapper.map(trackedEntityRequestParams, CSV_FIELDS, currentUser);
 
     ResponseHeader.addContentDispositionAttachment(response, TE_CSV_FILE + ZIP_EXT);
     ResponseHeader.addContentTransferEncodingBinary(response);
@@ -240,11 +241,11 @@ class TrackedEntitiesExportController {
   void getTrackedEntitiesAsCsvGZip(
       TrackedEntityRequestParams trackedEntityRequestParams,
       HttpServletResponse response,
-      @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
+      @RequestParam(required = false, defaultValue = "false") boolean skipHeader,
+      @CurrentUser UserDetails currentUser)
       throws IOException, BadRequestException, ForbiddenException, NotFoundException {
     TrackedEntityOperationParams operationParams =
-        paramsMapper.map(
-            trackedEntityRequestParams, CSV_FIELDS, CurrentUserUtil.getCurrentUserDetails());
+        paramsMapper.map(trackedEntityRequestParams, CSV_FIELDS, currentUser);
 
     ResponseHeader.addContentDispositionAttachment(response, TE_CSV_FILE + GZIP_EXT);
     ResponseHeader.addContentTransferEncodingBinary(response);
@@ -270,10 +271,7 @@ class TrackedEntitiesExportController {
     TrackedEntity trackedEntity =
         TRACKED_ENTITY_MAPPER.from(
             trackedEntityService.getTrackedEntity(
-                uid.getValue(),
-                program == null ? null : program.getValue(),
-                trackedEntityParams,
-                false));
+                uid.getValue(), program == null ? null : program.getValue(), trackedEntityParams));
 
     return ResponseEntity.ok(fieldFilterService.toObjectNode(trackedEntity, fields));
   }
@@ -291,7 +289,7 @@ class TrackedEntitiesExportController {
 
     TrackedEntity trackedEntity =
         TRACKED_ENTITY_MAPPER.from(
-            trackedEntityService.getTrackedEntity(uid, program, trackedEntityParams, false));
+            trackedEntityService.getTrackedEntity(uid, program, trackedEntityParams));
 
     OutputStream outputStream = response.getOutputStream();
     response.setContentType(CONTENT_TYPE_CSV);
