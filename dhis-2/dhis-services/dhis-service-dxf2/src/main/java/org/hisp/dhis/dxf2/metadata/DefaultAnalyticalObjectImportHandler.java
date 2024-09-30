@@ -87,7 +87,7 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
 
     if (relativePeriods != null) {
       rawRelativePeriods.addAll(
-          relativePeriods.getRelativePeriodEnums().stream().map(p -> p.name()).toList());
+          relativePeriods.getRelativePeriodEnums().stream().map(Enum::name).toList());
     }
 
     analyticalObject.setRawRelativePeriods(new ArrayList<>(rawRelativePeriods));
