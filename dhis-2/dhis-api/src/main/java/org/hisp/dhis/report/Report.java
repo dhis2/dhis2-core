@@ -160,17 +160,21 @@ public class Report extends BaseIdentifiableObject implements Cacheable, Metadat
   @JsonProperty("relativePeriods")
   @JacksonXmlProperty(namespace = DXF_2_0)
   public RelativePeriods getRelatives() {
-    List<RelativePeriodEnum> enums = new ArrayList<>();
+    if (relatives == null) {
+      List<RelativePeriodEnum> enums = new ArrayList<>();
 
-    if (rawRelativePeriods != null) {
-      for (String relativePeriod : rawRelativePeriods) {
-        if (RelativePeriodEnum.contains(relativePeriod)) {
-          enums.add(RelativePeriodEnum.valueOf(relativePeriod));
+      if (rawRelativePeriods != null) {
+        for (String relativePeriod : rawRelativePeriods) {
+          if (RelativePeriodEnum.contains(relativePeriod)) {
+            enums.add(RelativePeriodEnum.valueOf(relativePeriod));
+          }
         }
       }
+
+      return new RelativePeriods().setRelativePeriodsFromEnums(enums);
     }
 
-    return new RelativePeriods().setRelativePeriodsFromEnums(enums);
+    return relatives;
   }
 
   /**

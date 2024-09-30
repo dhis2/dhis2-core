@@ -111,7 +111,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
-import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
@@ -545,12 +544,12 @@ public class DefaultDimensionService implements DimensionService {
         } else if (PERIOD.equals(type)) {
           List<RelativePeriodEnum> enums = new ArrayList<>();
           List<Period> periods = new UniqueArrayList<>();
-          Set<String> relativesPeriods = new LinkedHashSet<>();
+          Set<String> relativePeriods = new LinkedHashSet<>();
 
           for (String period : uids) {
             if (RelativePeriodEnum.contains(period)) {
               enums.add(RelativePeriodEnum.valueOf(period));
-              relativesPeriods.add(period);
+              relativePeriods.add(period);
             } else {
               Period isoPeriod = PeriodType.getPeriodFromIsoString(period);
 
@@ -560,8 +559,8 @@ public class DefaultDimensionService implements DimensionService {
             }
           }
 
-          object.setRawRelativePeriods(new ArrayList<>(relativesPeriods));
-          object.setRelatives(new RelativePeriods().setRelativePeriodsFromEnums(enums));
+          object.setRawRelativePeriods(new ArrayList<>(relativePeriods));
+          // object.setRelatives(new RelativePeriods().setRelativePeriodsFromEnums(enums));
           object.setPeriods(periodService.reloadPeriods(new ArrayList<>(periods)));
         } else if (ORGANISATION_UNIT.equals(type)) {
           for (String ou : uids) {

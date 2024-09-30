@@ -1262,6 +1262,20 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   @JsonProperty(value = "relativePeriods")
   @JacksonXmlProperty(localName = "relativePeriods", namespace = DxfNamespaces.DXF_2_0)
   public RelativePeriods getRelatives() {
+    if (relatives == null) {
+      List<RelativePeriodEnum> enums = new ArrayList<>();
+
+      if (rawRelativePeriods != null) {
+        for (String relativePeriod : rawRelativePeriods) {
+          if (RelativePeriodEnum.contains(relativePeriod)) {
+            enums.add(RelativePeriodEnum.valueOf(relativePeriod));
+          }
+        }
+      }
+
+      return new RelativePeriods().setRelativePeriodsFromEnums(enums);
+    }
+
     return relatives;
   }
 
@@ -1269,6 +1283,10 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
     this.relatives = relatives;
   }
 
+  @JsonProperty
+  @JsonIgnore
+  @JacksonXmlElementWrapper(localName = "rawRelativePeriods", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "rawRelativePeriods", namespace = DxfNamespaces.DXF_2_0)
   public List<String> getRawRelativePeriods() {
     return rawRelativePeriods;
   }
