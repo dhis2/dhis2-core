@@ -64,7 +64,6 @@ import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.SystemUser;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
@@ -96,7 +95,6 @@ class TrackerImportControllerTest {
   @Mock private JobSchedulerService jobSchedulerService;
 
   @Mock private JobConfigurationService jobConfigurationService;
-  @Mock private UserService userService;
 
   private RenderService renderService;
 
@@ -118,8 +116,7 @@ class TrackerImportControllerTest {
             notifier,
             jobSchedulerService,
             jobConfigurationService,
-            new ObjectMapper(),
-            userService);
+            new ObjectMapper());
 
     mockMvc =
         MockMvcBuilders.standaloneSetup(controller)

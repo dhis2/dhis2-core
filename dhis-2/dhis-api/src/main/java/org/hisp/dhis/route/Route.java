@@ -61,8 +61,10 @@ public class Route extends BaseIdentifiableObject implements MetadataObject {
   @JsonProperty(required = true)
   private Map<String, String> headers = new HashMap<>();
 
+  /** Optional. Authentication to be passed as part of the route request. */
   @JsonProperty private Auth auth;
 
+  /** Optional. Required authorities for invoking the route. */
   @JsonProperty private List<String> authorities = new ArrayList<>();
 
   /**

@@ -25,23 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event;
+package org.hisp.dhis.tracker.imports.preheat.supplier;
 
-import org.hisp.dhis.common.Grid;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
-/**
- * This interface is responsible for retrieving aggregated event data. Data will be returned in a
- * grid object or as a dimensional key-value mapping.
- *
- * @author Markus Bekken
- */
-public interface EnrollmentAnalyticsService {
+import java.util.Set;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.preheat.mappers.UserMapper;
+import org.hisp.dhis.user.User;
+import org.springframework.stereotype.Component;
 
-  /**
-   * Returns a list of enrollments matching the given query.
-   *
-   * @param params the envent query parameters.
-   * @return enrollments with event data as a Grid object.
-   */
-  Grid getEnrollments(EventQueryParams params);
+@RequiredArgsConstructor
+@Component
+public class CurrentUserSupplier extends AbstractPreheatSupplier {
+  @Nonnull private final IdentifiableObjectManager manager;
+
+  @Override
+  public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
+    User user = UserMapper.INSTANCE.map(manager.get(User.class, getCurrentUserDetails().getUid()));
+    preheat.addUsers(Set.of(user));
+  }
 }

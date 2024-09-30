@@ -27,48 +27,31 @@
  */
 package org.hisp.dhis.tracker.imports.sms;
 
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import org.hisp.dhis.category.CategoryService;
+import static org.hisp.dhis.tracker.imports.sms.SmsImportMapper.map;
+
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.collection.CollectionUtils;
-import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.listener.CompressionSMSListener;
 import org.hisp.dhis.sms.listener.SMSProcessingException;
-import org.hisp.dhis.smscompression.SmsConsts.SmsEventStatus;
 import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SmsResponse;
-import org.hisp.dhis.smscompression.models.GeoPoint;
-import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.domain.DataValue;
-import org.hisp.dhis.tracker.imports.domain.Event.EventBuilder;
-import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Component("org.hisp.dhis.tracker.sms.TrackerEventSMSListener")
 @Transactional
 public class TrackerEventSMSListener extends CompressionSMSListener {
@@ -78,99 +61,30 @@ public class TrackerEventSMSListener extends CompressionSMSListener {
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       UserService userService,
-      TrackedEntityTypeService trackedEntityTypeService,
-      TrackedEntityAttributeService trackedEntityAttributeService,
-      ProgramService programService,
-      OrganisationUnitService organisationUnitService,
-      CategoryService categoryService,
-      DataElementService dataElementService,
       IdentifiableObjectManager identifiableObjectManager,
       TrackerImportService trackerImportService) {
-    super(
-        incomingSmsService,
-        smsSender,
-        userService,
-        trackedEntityTypeService,
-        trackedEntityAttributeService,
-        programService,
-        organisationUnitService,
-        categoryService,
-        dataElementService,
-        identifiableObjectManager);
+    super(incomingSmsService, smsSender, userService, identifiableObjectManager);
     this.trackerImportService = trackerImportService;
   }
 
   @Override
-  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, User user)
+  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, String username)
       throws SMSProcessingException {
     TrackerEventSmsSubmission subm = (TrackerEventSmsSubmission) submission;
-
-    EventBuilder event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder()
-            .event(subm.getEvent() != null ? subm.getEvent().getUid() : null)
-            .enrollment(subm.getEnrollment().getUid())
-            .orgUnit(MetadataIdentifier.ofUid(subm.getOrgUnit().getUid()))
-            .programStage(MetadataIdentifier.ofUid(subm.getProgramStage().getUid()))
-            .attributeOptionCombo(MetadataIdentifier.ofUid(subm.getAttributeOptionCombo().getUid()))
-            .storedBy(user.getUsername())
-            .occurredAt(subm.getEventDate() != null ? subm.getEventDate().toInstant() : null)
-            .scheduledAt(subm.getDueDate() != null ? subm.getDueDate().toInstant() : null)
-            .status(map(subm.getEventStatus()))
-            .geometry(map(subm.getCoordinates()))
-            .dataValues(map(user, subm.getValues()));
 
     TrackerImportParams params =
         TrackerImportParams.builder()
             .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
-            .userId(
-                user.getUid()) // SMS processing is done inside a job executed as the user that sent
-            // the SMS. We might want to remove the params user in favor of the currentUser set on
-            // the thread.
             .build();
-    TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event.build())).build();
+    TrackerObjects trackerObjects = map(subm, username);
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     if (Status.OK == importReport.getStatus()) {
       return SmsResponse.SUCCESS;
     }
     // TODO(DHIS2-18003) we need to map tracker import report errors/warnings to an sms
+    log.error("Failed to process SMS of submission type TRACKER_EVENT {}", importReport);
     return SmsResponse.INVALID_EVENT.set(subm.getEvent());
-  }
-
-  private EventStatus map(SmsEventStatus eventStatus) {
-    return switch (eventStatus) {
-      case ACTIVE -> EventStatus.ACTIVE;
-      case COMPLETED -> EventStatus.COMPLETED;
-      case VISITED -> EventStatus.VISITED;
-      case SCHEDULE -> EventStatus.SCHEDULE;
-      case OVERDUE -> EventStatus.OVERDUE;
-      case SKIPPED -> EventStatus.SKIPPED;
-    };
-  }
-
-  private Geometry map(GeoPoint coordinates) {
-    if (coordinates == null) {
-      return null;
-    }
-
-    return new GeometryFactory()
-        .createPoint(new Coordinate(coordinates.getLongitude(), coordinates.getLatitude()));
-  }
-
-  private Set<DataValue> map(User user, List<SmsDataValue> dataValues) {
-    if (CollectionUtils.isEmpty(dataValues)) {
-      return Set.of();
-    }
-
-    return dataValues.stream()
-        .map(
-            dv ->
-                DataValue.builder()
-                    .dataElement(MetadataIdentifier.ofUid(dv.getDataElement().getUid()))
-                    .value(dv.getValue())
-                    .storedBy(user.getUsername())
-                    .build())
-        .collect(Collectors.toSet());
   }
 
   @Override

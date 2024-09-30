@@ -64,22 +64,24 @@ class AppManagerTest extends PostgresIntegrationTestBase {
   @DisplayName("Can install and then update an App using MinIO storage")
   void canUpdateAppUsingMinIoTest() throws IOException {
     // install an app for the 1st time (version 1)
-    AppStatus appStatus =
+    App installedApp =
         appManager.installApp(
             new ClassPathResource("app/test-app-minio-v1.zip").getFile(), "test-app-minio-v1.zip");
+
+    AppStatus appStatus = installedApp.getAppState();
 
     assertTrue(appStatus.ok());
     assertEquals("ok", appStatus.getMessage());
 
     // install version 2 of the same app
-    AppStatus update =
+    App updatedApp =
         assertDoesNotThrow(
             () ->
                 appManager.installApp(
                     new ClassPathResource("app/test-app-minio-v2.zip").getFile(),
                     "test-app-minio-v2.zip"));
 
-    assertTrue(update.ok());
+    assertTrue(updatedApp.getAppState().ok());
     assertEquals("ok", appStatus.getMessage());
 
     // get app version & index.html

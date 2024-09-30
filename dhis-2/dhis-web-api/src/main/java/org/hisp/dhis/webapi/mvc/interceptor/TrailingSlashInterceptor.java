@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.web.jetty;
+package org.hisp.dhis.webapi.mvc.interceptor;
 
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@Slf4j
-public class StartupFinishedRoutine extends AbstractStartupRoutine {
+@Component
+public class TrailingSlashInterceptor implements HandlerInterceptor {
+
   @Override
-  public void execute() throws Exception {
-    log.info(
-        String.format(
-            "DHIS2 API Server Startup Finished In %s Seconds! Running on port: %s",
-            (Main.getElapsedMsSinceStart() / 1000), System.getProperty("jetty.http.port")));
+  public boolean preHandle(
+      HttpServletRequest request, HttpServletResponse response, Object handler) {
+
+    String requestURI = request.getRequestURI();
+    String contextPath = request.getContextPath();
+
+    // Ignore API paths
+    if (requestURI.startsWith(contextPath + "/api")) {
+      return true;
+    }
+
+    // Check if the path does not end with '/' or contains .
+    if (!requestURI.endsWith("/") && !requestURI.contains(".")) {
+      String queryString = request.getQueryString();
+      String redirectURI = requestURI + "/";
+      if (queryString != null) {
+        redirectURI += "?" + queryString;
+      }
+      response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+      response.setHeader("Location", redirectURI);
+      return false;
+    }
+
+    return true;
   }
 }

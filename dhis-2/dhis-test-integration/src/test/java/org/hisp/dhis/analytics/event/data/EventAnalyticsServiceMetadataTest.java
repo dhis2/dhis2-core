@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
-import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -114,7 +113,7 @@ class EventAnalyticsServiceMetadataTest extends PostgresIntegrationTestBase {
 
   private Program prA;
 
-  @Autowired private EventAnalyticsService eventAnalyticsService;
+  @Autowired private EventAggregateService eventAggregateService;
 
   @BeforeAll
   void setUp() {
@@ -192,7 +191,7 @@ class EventAnalyticsServiceMetadataTest extends PostgresIntegrationTestBase {
             .withDisplayProperty(DisplayProperty.NAME)
             .build();
 
-    Grid grid = eventAnalyticsService.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
     Map<String, Object> metadata = grid.getMetaData();
     assertNotNull(metadata);
     Map<String, Object> dimensionItems =
@@ -248,7 +247,7 @@ class EventAnalyticsServiceMetadataTest extends PostgresIntegrationTestBase {
             .withSkipMeta(false)
             .withApiVersion(DhisApiVersion.V29)
             .build();
-    Grid grid = eventAnalyticsService.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
     Map<String, Object> metadata = grid.getMetaData();
     Map<String, MetadataItem> itemMap =
         (Map<String, MetadataItem>) metadata.get(AnalyticsMetaDataKey.ITEMS.getKey());

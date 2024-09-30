@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -377,7 +378,7 @@ public abstract class AbstractTrackerPersister<
             : entityManager.merge(trackedEntityAttributeValue));
 
     logTrackedEntityAttributeValueHistory(
-        preheat.getUsername(), trackedEntityAttributeValue, trackedEntity, ChangeLogType.DELETE);
+        getCurrentUsername(), trackedEntityAttributeValue, trackedEntity, ChangeLogType.DELETE);
   }
 
   private void saveOrUpdate(
@@ -409,7 +410,7 @@ public abstract class AbstractTrackerPersister<
     }
 
     logTrackedEntityAttributeValueHistory(
-        preheat.getUsername(), trackedEntityAttributeValue, trackedEntity, changeLogType);
+        getCurrentUsername(), trackedEntityAttributeValue, trackedEntity, changeLogType);
   }
 
   private static boolean isFileResource(TrackedEntityAttributeValue trackedEntityAttributeValue) {

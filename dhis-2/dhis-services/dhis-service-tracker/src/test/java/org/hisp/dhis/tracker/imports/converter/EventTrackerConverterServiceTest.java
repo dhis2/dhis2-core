@@ -55,6 +55,7 @@ import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -100,6 +101,7 @@ class EventTrackerConverterServiceTest extends TestBase {
   void setUpTest() {
     converter = new EventTrackerConverterService(notesConverterService);
     user = makeUser("U");
+    injectSecurityContext(UserDetails.fromUser(user));
     programStage = createProgramStage('A', 1);
     programStage.setUid(PROGRAM_STAGE_UID);
     programStage.setProgram(program);
@@ -165,7 +167,6 @@ class EventTrackerConverterServiceTest extends TestBase {
     dataElement.setUid(CodeGenerator.generateUid());
     when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElement.getUid())))
         .thenReturn(dataElement);
-    when(preheat.getUsername()).thenReturn(USERNAME);
 
     org.hisp.dhis.tracker.imports.domain.Event event =
         event(dataValue(MetadataIdentifier.ofUid(dataElement.getUid()), "value"));
@@ -233,7 +234,6 @@ class EventTrackerConverterServiceTest extends TestBase {
     String eventUid = CodeGenerator.generateUid();
     when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElement.getUid())))
         .thenReturn(dataElement);
-    when(preheat.getUsername()).thenReturn(USERNAME);
     dbEvent.setStatus(EventStatus.ACTIVE);
     when(preheat.getEvent(eventUid)).thenReturn(dbEvent);
 
@@ -413,7 +413,6 @@ class EventTrackerConverterServiceTest extends TestBase {
   }
 
   private void setUpMocks() {
-    when(preheat.getUserInfo()).thenReturn(UserInfoSnapshot.from(user));
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
     when(preheat.getProgram(MetadataIdentifier.ofUid(program))).thenReturn(program);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(organisationUnit)))

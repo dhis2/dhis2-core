@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.web.jetty;
+package org.hisp.dhis.common;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
-/**
- * Configuration class for a simple startup timer for embedded Jetty.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@Configuration
-@Order(100)
-@ComponentScan(basePackages = {"org.hisp.dhis"})
-public class JettyStartupTimerSpringConfig {
+import org.hisp.dhis.analytics.AggregationType;
+import org.junit.jupiter.api.Test;
 
-  @Bean("org.hisp.dhis.web.embeddedjetty.StartupFinishedRoutine")
-  public StartupFinishedRoutine startupFinishedRoutine() {
-    StartupFinishedRoutine startupRoutine = new StartupFinishedRoutine();
-    startupRoutine.setName("StartupFinishedRoutine");
-    startupRoutine.setRunlevel(42);
-    startupRoutine.setSkipInTests(true);
-    return startupRoutine;
+class BaseDimensionalItemObjectTest {
+  @Test
+  void testWhenBaseDimensionalItemObjectAggregationTypeIsNoneTotalAggregationTypeIsNone() {
+    // given
+    BaseDimensionalItemObject baseDimensionalItemObject = new BaseDimensionalItemObject();
+
+    // when
+    baseDimensionalItemObject.setAggregationType(AggregationType.NONE);
+
+    // then
+    assertSame(TotalAggregationType.NONE, baseDimensionalItemObject.getTotalAggregationType());
+  }
+
+  @Test
+  void testWhenBaseDimensionalItemObjectAggregationTypeIsNotNoneTotalAggregationTypeIsSum() {
+    // given
+    BaseDimensionalItemObject baseDimensionalItemObject = new BaseDimensionalItemObject();
+
+    // when
+    baseDimensionalItemObject.setAggregationType(AggregationType.AVERAGE_SUM_ORG_UNIT);
+
+    // then
+    assertSame(TotalAggregationType.SUM, baseDimensionalItemObject.getTotalAggregationType());
   }
 }

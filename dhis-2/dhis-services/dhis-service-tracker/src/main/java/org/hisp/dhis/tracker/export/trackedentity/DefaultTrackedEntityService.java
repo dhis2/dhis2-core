@@ -43,6 +43,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -386,21 +387,26 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
       TrackedEntity trackedEntity, Program program) {
-    Set<TrackedEntityAttribute> readableAttributes =
-        new HashSet<>(trackedEntity.getTrackedEntityType().getTrackedEntityAttributes());
+    Set<String> readableAttributes =
+        trackedEntity.getTrackedEntityType().getTrackedEntityAttributes().stream()
+            .map(IdentifiableObject::getUid)
+            .collect(Collectors.toSet());
 
     if (program != null) {
-      readableAttributes.addAll(program.getTrackedEntityAttributes());
+      readableAttributes.addAll(
+          program.getTrackedEntityAttributes().stream()
+              .map(IdentifiableObject::getUid)
+              .collect(Collectors.toSet()));
     }
 
     return trackedEntity.getTrackedEntityAttributeValues().stream()
-        .filter(av -> readableAttributes.contains(av.getAttribute()))
-        .collect(Collectors.toCollection(LinkedHashSet::new));
+        .filter(av -> readableAttributes.contains(av.getAttribute().getUid()))
+        .collect(Collectors.toSet());
   }
 
   private RelationshipItem withNestedEntity(
       TrackedEntity trackedEntity, RelationshipItem item, boolean includeDeleted)
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     // relationships of relationship items are not mapped to JSON so there is no need to fetch them
     RelationshipItem result = new RelationshipItem();
 
@@ -546,7 +552,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private void mapRelationshipItems(TrackedEntity trackedEntity, boolean includeDeleted)
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     Set<RelationshipItem> result = new HashSet<>();
 
     for (RelationshipItem item : trackedEntity.getRelationshipItems()) {
@@ -562,7 +568,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   private void mapRelationshipItems(
       Enrollment enrollment, TrackedEntity trackedEntity, boolean includeDeleted)
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     Set<RelationshipItem> result = new HashSet<>();
 
     for (RelationshipItem item : enrollment.getRelationshipItems()) {
@@ -573,8 +579,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private void mapRelationshipItems(
-      Event event, TrackedEntity trackedEntity, boolean includeDeleted)
-      throws ForbiddenException, NotFoundException {
+      Event event, TrackedEntity trackedEntity, boolean includeDeleted) throws NotFoundException {
     Set<RelationshipItem> result = new HashSet<>();
 
     for (RelationshipItem item : event.getRelationshipItems()) {
@@ -589,7 +594,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       BaseIdentifiableObject itemOwner,
       TrackedEntity trackedEntity,
       boolean includeDeleted)
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     Relationship rel = item.getRelationship();
     RelationshipItem from = withNestedEntity(trackedEntity, rel.getFrom(), includeDeleted);
     RelationshipItem to = withNestedEntity(trackedEntity, rel.getTo(), includeDeleted);
