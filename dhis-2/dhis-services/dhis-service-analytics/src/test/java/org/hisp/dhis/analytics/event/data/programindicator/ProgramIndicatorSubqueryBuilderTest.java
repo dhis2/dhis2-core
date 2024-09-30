@@ -117,7 +117,7 @@ class ProgramIndicatorSubqueryBuilderTest {
         is(
             "(SELECT avg (distinct event) FROM analytics_event_"
                 + program.getUid().toLowerCase()
-                + " as subax WHERE event = ax.event)"));
+                + " as subax WHERE enrollment = ax.enrollment AND event = ax.event)"));
   }
 
   @Test
