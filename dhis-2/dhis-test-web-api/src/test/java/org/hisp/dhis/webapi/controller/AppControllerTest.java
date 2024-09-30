@@ -100,6 +100,19 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testInstallReturnsAppInfo() throws IOException {
+    var result =
+        appManager.installApp(
+            new ClassPathResource("app/test-app-with-index-html.zip").getFile(),
+            "test-app-with-index-html.zip");
+
+    assertEquals(
+        "31.0.0",
+        result.getVersion(),
+        "the version returned should match the version in the installed zip file");
+  }
+
+  @Test
   void testGetApps() {
     HttpResponse response = GET("/apps");
     JsonArray apps = response.content(HttpStatus.OK);

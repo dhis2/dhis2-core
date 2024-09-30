@@ -28,12 +28,9 @@
 package org.hisp.dhis.tracker.imports.sms;
 
 import java.util.List;
-import org.hisp.dhis.category.CategoryService;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
@@ -46,8 +43,6 @@ import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.RelationshipSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -57,12 +52,12 @@ import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Component("org.hisp.dhis.tracker.sms.RelationshipSMSListener")
 @Transactional
 public class RelationshipSMSListener extends CompressionSMSListener {
@@ -74,32 +69,16 @@ public class RelationshipSMSListener extends CompressionSMSListener {
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       UserService userService,
-      TrackedEntityTypeService trackedEntityTypeService,
-      TrackedEntityAttributeService trackedEntityAttributeService,
-      ProgramService programService,
-      OrganisationUnitService organisationUnitService,
-      CategoryService categoryService,
-      DataElementService dataElementService,
       IdentifiableObjectManager identifiableObjectManager,
       RelationshipTypeService relationshipTypeService,
       TrackerImportService trackerImportService) {
-    super(
-        incomingSmsService,
-        smsSender,
-        userService,
-        trackedEntityTypeService,
-        trackedEntityAttributeService,
-        programService,
-        organisationUnitService,
-        categoryService,
-        dataElementService,
-        identifiableObjectManager);
+    super(incomingSmsService, smsSender, userService, identifiableObjectManager);
     this.relationshipTypeService = relationshipTypeService;
     this.trackerImportService = trackerImportService;
   }
 
   @Override
-  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, User user)
+  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, String username)
       throws SMSProcessingException {
     RelationshipSmsSubmission subm = (RelationshipSmsSubmission) submission;
 
@@ -110,25 +89,8 @@ public class RelationshipSMSListener extends CompressionSMSListener {
     }
 
     TrackerImportParams params =
-        TrackerImportParams.builder()
-            .importStrategy(TrackerImportStrategy.CREATE)
-            .userId(
-                user.getUid()) // SMS processing is done inside a job executed as the user that sent
-            // the SMS. We might want to remove the params user in favor of the currentUser set on
-            // the thread.
-            .build();
-    TrackerObjects trackerObjects =
-        TrackerObjects.builder()
-            .relationships(
-                List.of(
-                    Relationship.builder()
-                        .relationshipType(MetadataIdentifier.ofUid(relType))
-                        .relationship(
-                            subm.getRelationship() != null ? subm.getRelationship().getUid() : null)
-                        .from(relationshipItem(relType.getFromConstraint(), subm.getFrom()))
-                        .to(relationshipItem(relType.getToConstraint(), subm.getTo()))
-                        .build()))
-            .build();
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.CREATE).build();
+    TrackerObjects trackerObjects = map(subm, relType);
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     if (Status.OK == importReport.getStatus()) {
@@ -136,10 +98,28 @@ public class RelationshipSMSListener extends CompressionSMSListener {
     }
 
     // TODO(DHIS2-18003) we need to map tracker import report errors/warnings to an sms
+    log.error("Failed to process SMS of submission type RELATIONSHIP {}", importReport);
     return SmsResponse.UNKNOWN_ERROR;
   }
 
-  private RelationshipItem relationshipItem(RelationshipConstraint constraint, Uid uid) {
+  private static TrackerObjects map(
+      RelationshipSmsSubmission submission, RelationshipType relType) {
+    return TrackerObjects.builder()
+        .relationships(
+            List.of(
+                Relationship.builder()
+                    .relationshipType(MetadataIdentifier.ofUid(relType))
+                    .relationship(
+                        submission.getRelationship() != null
+                            ? submission.getRelationship().getUid()
+                            : null)
+                    .from(relationshipItem(relType.getFromConstraint(), submission.getFrom()))
+                    .to(relationshipItem(relType.getToConstraint(), submission.getTo()))
+                    .build()))
+        .build();
+  }
+
+  private static RelationshipItem relationshipItem(RelationshipConstraint constraint, Uid uid) {
     return switch (constraint.getRelationshipEntity()) {
       case TRACKED_ENTITY_INSTANCE ->
           RelationshipItem.builder().trackedEntity(uid.getUid()).build();

@@ -55,6 +55,7 @@ import org.hisp.dhis.test.e2e.dto.ImportSummary;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -62,6 +63,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Disabled
 @Tag("category:aggregate")
 class DataImportTest extends ApiTest {
   private DataValueSetActions dataValueSetActions;

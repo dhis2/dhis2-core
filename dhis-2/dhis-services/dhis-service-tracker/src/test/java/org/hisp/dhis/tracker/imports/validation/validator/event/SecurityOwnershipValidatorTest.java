@@ -38,7 +38,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.Set;
-import java.util.function.Consumer;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.event.EventStatus;
@@ -94,7 +93,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   @Mock private TrackerOwnershipManager ownershipAccessManager;
 
-  private UserDetails user;
+  private final UserDetails user = UserDetails.fromUser(makeUser("A"));
 
   private Reporter reporter;
 
@@ -111,8 +110,6 @@ class SecurityOwnershipValidatorTest extends TestBase {
   @BeforeEach
   public void setUp() {
     when(bundle.getPreheat()).thenReturn(preheat);
-
-    setUpUser(user -> {});
 
     organisationUnit = createOrganisationUnit('A');
     organisationUnit.setUid(ORG_UNIT_ID);
@@ -131,17 +128,23 @@ class SecurityOwnershipValidatorTest extends TestBase {
     reporter = new Reporter(idSchemes);
 
     validator = new SecurityOwnershipValidator(aclService, ownershipAccessManager);
+
+    injectSecurityContext(user);
   }
 
-  private void setUpUser(Consumer<User> init) {
-    User u = makeUser("A");
-    init.accept(u);
-    user = UserDetails.fromUser(u);
-    when(bundle.getUser()).thenReturn(u);
+  private UserDetails setUpUserWithOrgUnit() {
+    User userWithOrgUnit = makeUser("B");
+    userWithOrgUnit.setOrganisationUnits(Set.of(organisationUnit));
+    UserDetails currentUserDetails = UserDetails.fromUser(userWithOrgUnit);
+    injectSecurityContext(currentUserDetails);
+    return currentUserDetails;
   }
 
-  private void setUpUserWithOrgUnit() {
-    setUpUser(user -> user.setOrganisationUnits(Set.of(organisationUnit)));
+  private UserDetails changeCompletedEventAuthorisedUser() {
+    User authorizedUser = makeUser("A", Lists.newArrayList("F_UNCOMPLETE_EVENT"));
+    UserDetails userDetails = UserDetails.fromUser(authorizedUser);
+    injectSecurityContext(userDetails);
+    return userDetails;
   }
 
   @Test
@@ -164,10 +167,10 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
     when(preheat.getEnrollment(event.getEnrollment())).thenReturn(enrollment);
 
-    setUpUserWithOrgUnit();
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(aclService.canDataWrite(user, programStage)).thenReturn(true);
+    UserDetails userDetails = setUpUserWithOrgUnit();
+    when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
+    when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
@@ -195,8 +198,8 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
-    setUpUserWithOrgUnit();
-    when(aclService.canDataWrite(user, program)).thenReturn(true);
+    UserDetails userDetails = setUpUserWithOrgUnit();
+    when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
@@ -220,10 +223,10 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
-    setUpUserWithOrgUnit();
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(aclService.canDataWrite(user, programStage)).thenReturn(true);
+    UserDetails userDetails = setUpUserWithOrgUnit();
+    when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
+    when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
@@ -247,10 +250,10 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
-    setUpUserWithOrgUnit();
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(aclService.canDataWrite(user, programStage)).thenReturn(true);
+    UserDetails userDetails = setUpUserWithOrgUnit();
+    when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
+    when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
@@ -347,7 +350,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
-    when(bundle.getUser()).thenReturn(changeCompletedEventAuthorisedUser());
+    UserDetails userDetails = changeCompletedEventAuthorisedUser();
     when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
     Enrollment enrollment = getEnrollment(enrollmentUid);
     Event preheatEvent = getEvent();
@@ -356,9 +359,9 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
     when(preheat.getEnrollment(event.getEnrollment())).thenReturn(enrollment);
 
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(aclService.canDataWrite(user, programStage)).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
+    when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
@@ -512,9 +515,5 @@ class SecurityOwnershipValidatorTest extends TestBase {
     event.setEnrollment(new Enrollment());
     event.setStatus(EventStatus.COMPLETED);
     return event;
-  }
-
-  private User changeCompletedEventAuthorisedUser() {
-    return makeUser("A", Lists.newArrayList("F_UNCOMPLETE_EVENT"));
   }
 }

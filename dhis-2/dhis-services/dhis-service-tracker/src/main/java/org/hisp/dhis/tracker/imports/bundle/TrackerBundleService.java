@@ -34,7 +34,6 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -46,7 +45,7 @@ public interface TrackerBundleService {
    * @param params Params object for this bundle.
    * @return Configured TrackerBundle instance(s) (if bundle splitting is enabled)
    */
-  TrackerBundle create(TrackerImportParams params, TrackerObjects trackerObjects, User user);
+  TrackerBundle create(TrackerImportParams params, TrackerObjects trackerObjects);
 
   /**
    * Call rule engine for tracker bundle.

@@ -287,16 +287,6 @@ public class UserController extends AbstractCrudController<User> {
   @OpenApi.Params(MetadataImportParams.class)
   @OpenApi.Param(OpenApi.EntityType.class)
   @Override
-  @PostMapping(consumes = {APPLICATION_XML_VALUE, TEXT_XML_VALUE})
-  @ResponseBody
-  public WebMessage postXmlObject(HttpServletRequest request)
-      throws IOException, ForbiddenException, ConflictException {
-    return postObject(renderService.fromXml(request.getInputStream(), getEntityClass()));
-  }
-
-  @OpenApi.Params(MetadataImportParams.class)
-  @OpenApi.Param(OpenApi.EntityType.class)
-  @Override
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
   @ResponseBody
   public WebMessage postJsonObject(HttpServletRequest request)
@@ -562,23 +552,6 @@ public class UserController extends AbstractCrudController<User> {
   // -------------------------------------------------------------------------
   // PUT
   // -------------------------------------------------------------------------
-
-  @Override
-  @PutMapping(
-      value = "/{uid}",
-      consumes = {APPLICATION_XML_VALUE, TEXT_XML_VALUE},
-      produces = APPLICATION_XML_VALUE)
-  @ResponseBody
-  public WebMessage putXmlObject(
-      @PathVariable("uid") String pvUid,
-      @CurrentUser UserDetails currentUser,
-      HttpServletRequest request,
-      HttpServletResponse response)
-      throws IOException, ForbiddenException, ConflictException, NotFoundException {
-    User parsed = renderService.fromXml(request.getInputStream(), getEntityClass());
-
-    return importReport(updateUser(pvUid, parsed)).withPlainResponseBefore(DhisApiVersion.V38);
-  }
 
   @Override
   @PutMapping(

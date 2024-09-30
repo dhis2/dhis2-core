@@ -30,9 +30,12 @@ package org.hisp.dhis.webapi.controller;
 import java.io.IOException;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.route.Route;
@@ -41,9 +44,13 @@ import org.hisp.dhis.schema.descriptors.RouteSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -56,7 +63,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class RouteController extends AbstractCrudController<Route> {
   private final RouteService routeService;
 
-  @RequestMapping("/{id}/run")
+  @RequestMapping(
+      value = "/{id}/run",
+      method = {
+        RequestMethod.GET,
+        RequestMethod.POST,
+        RequestMethod.PUT,
+        RequestMethod.DELETE,
+        RequestMethod.PATCH
+      })
   public ResponseEntity<String> run(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
@@ -65,37 +80,70 @@ public class RouteController extends AbstractCrudController<Route> {
     return runWithSubpath(id, currentUser, request);
   }
 
-  @RequestMapping("/{id}/run/**")
+  @RequestMapping(
+      value = "/{id}/run/**",
+      method = {
+        RequestMethod.GET,
+        RequestMethod.POST,
+        RequestMethod.PUT,
+        RequestMethod.DELETE,
+        RequestMethod.PATCH
+      })
   public ResponseEntity<String> runWithSubpath(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
       throws IOException, ForbiddenException, NotFoundException, BadRequestException {
-    Route route = routeService.getDecryptedRoute(id);
+
+    Route route = routeService.getRouteWithDecryptedAuth(id);
 
     if (route == null) {
-      throw new NotFoundException(String.format("Route %s not found", id));
+      throw new NotFoundException(String.format("Route not found: '%s'", id));
     }
 
     if (!aclService.canRead(currentUser, route)
         && !currentUser.hasAnyAuthority(route.getAuthorities())) {
-      throw new ForbiddenException("User not authorized");
+      throw new ForbiddenException("User not authorized to execute route");
     }
 
     Optional<String> subPath = getSubPath(request.getPathInfo(), id);
 
-    return routeService.exec(route, currentUser, subPath, request);
+    return routeService.execute(route, currentUser, subPath, request);
   }
 
   private Optional<String> getSubPath(String path, String id) {
+    String apiPrefix = "/api";
     String prefix = String.format("%s/%s/run/", RouteSchemaDescriptor.API_ENDPOINT, id);
 
-    if (path.startsWith(prefix, 3)) {
-      return Optional.of(path.substring(prefix.length() + 3));
-    } else if (path.startsWith(prefix)) {
-      return Optional.of(path.substring(prefix.length()));
+    // /api/{api-version}/
+    if (path.startsWith(prefix, apiPrefix.length() + 3)) {
+      return Optional.of(path.substring(apiPrefix.length() + 3 + prefix.length()));
+      // /api/
+    } else if (path.startsWith(prefix, apiPrefix.length())) {
+      return Optional.of(path.substring(prefix.length() + apiPrefix.length()));
     }
 
     return Optional.empty();
+  }
+
+  /**
+   * Disable the collection API for /api/routes endpoint. This conflicts with sub-path based routes
+   * and is not supported by the Route API (no identifiable object collections).
+   */
+  @Override
+  @PostMapping(value = "/addCollectionItem__disabled")
+  @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+  public WebMessage addCollectionItem(String pvUid, String pvProperty, String pvItemId)
+      throws NotFoundException, ConflictException, ForbiddenException, BadRequestException {
+    throw new NotFoundException("Method not allowed");
+  }
+
+  @Override
+  @PostMapping(value = "/deleteCollectionItem__disabled")
+  @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+  public WebMessage deleteCollectionItem(
+      String pvUid, String pvProperty, String pvItemId, HttpServletResponse response)
+      throws NotFoundException, ForbiddenException, ConflictException, BadRequestException {
+    throw new NotFoundException("Method not allowed");
   }
 }
