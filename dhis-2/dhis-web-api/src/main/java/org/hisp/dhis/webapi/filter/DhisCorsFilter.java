@@ -47,7 +47,6 @@ public class DhisCorsFilter implements InitializingBean {
 
   public DhisCorsFilter(ConfigurationService configurationService) {
     this.configurationService = configurationService;
-    instance.setCorsProcessor(new DhisCorsProcessor(configurationService));
   }
 
   @Override
