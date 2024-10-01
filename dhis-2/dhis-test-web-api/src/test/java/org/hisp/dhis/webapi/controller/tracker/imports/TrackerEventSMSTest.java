@@ -265,8 +265,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEquals(sms.getReceivedDate(), sms.getSentDate()),
         () -> assertEquals("default", sms.getGatewayId()),
         () ->
-            assertSmsResponse(submissionId + ":" + SmsResponse.SUCCESS, originator,
-                smsMessageSender));
+            assertSmsResponse(
+                submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
     assertThrows(NotFoundException.class, () -> eventService.getEvent(UID.of(event.getUid())));
   }
 
@@ -309,8 +309,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
                 sms.getSentDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()),
         () -> assertEquals("Unknown", sms.getGatewayId()),
         () ->
-            assertSmsResponse(submissionId + ":" + SmsResponse.SUCCESS, originator,
-                smsMessageSender));
+            assertSmsResponse(
+                submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
     assertThrows(NotFoundException.class, () -> eventService.getEvent(UID.of(event.getUid())));
   }
 
@@ -402,8 +402,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEquals(originator, sms.getOriginator()),
         () -> assertEquals(user, sms.getCreatedBy()),
         () ->
-            assertSmsResponse(submissionId + ":" + SmsResponse.SUCCESS, originator,
-                smsMessageSender));
+            assertSmsResponse(
+                submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
     assertDoesNotThrow(() -> eventService.getEvent(UID.of(eventUid)));
     Event actual = eventService.getEvent(UID.of(eventUid));
     assertAll(
@@ -466,8 +466,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEquals(originator, sms.getOriginator()),
         () -> assertEquals(user, sms.getCreatedBy()),
         () ->
-            assertSmsResponse(submissionId + ":" + SmsResponse.SUCCESS, originator,
-                smsMessageSender));
+            assertSmsResponse(
+                submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
     assertDoesNotThrow(() -> eventService.getEvent(UID.of(event.getUid())));
     Event actual = eventService.getEvent(UID.of(event.getUid()));
     assertAll(
@@ -533,8 +533,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEquals(originator, sms.getOriginator()),
         () -> assertEquals(user, sms.getCreatedBy()),
         () ->
-            assertSmsResponse(submissionId + ":" + SmsResponse.SUCCESS, originator,
-                smsMessageSender));
+            assertSmsResponse(
+                submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
     assertDoesNotThrow(() -> eventService.getEvent(UID.of(eventUid)));
     Event actual = eventService.getEvent(UID.of(eventUid));
     assertAll(

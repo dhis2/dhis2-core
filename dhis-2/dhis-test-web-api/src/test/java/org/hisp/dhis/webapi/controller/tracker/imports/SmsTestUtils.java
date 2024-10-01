@@ -42,7 +42,6 @@ import org.hisp.dhis.smscompression.SmsCompressionException;
 import org.hisp.dhis.smscompression.SmsSubmissionWriter;
 import org.hisp.dhis.smscompression.models.SmsMetadata;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
-import org.hisp.dhis.test.message.FakeMessageSender;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 
 class SmsTestUtils {
