@@ -144,7 +144,7 @@ public class DhisCorsProcessor implements CorsProcessor {
    * Simple HttpServletRequestWrapper implementation that makes sure that the query string is
    * properly encoded.
    */
-  class HttpServletRequestEncodingWrapper extends HttpServletRequestWrapper {
+  static class HttpServletRequestEncodingWrapper extends HttpServletRequestWrapper {
     public HttpServletRequestEncodingWrapper(HttpServletRequest request) {
       super(request);
     }
