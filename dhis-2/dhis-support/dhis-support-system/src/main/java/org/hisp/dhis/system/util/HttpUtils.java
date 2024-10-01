@@ -140,7 +140,7 @@ public class HttpUtils {
     List<BasicNameValuePair> pairs = new ArrayList<>();
     DhisHttpResponse dhisHttpResponse;
 
-    try {
+    try (httpClient) {
       HttpPost httpPost = new HttpPost(requestURL);
       httpPost.setConfig(requestConfig);
 
@@ -153,8 +153,8 @@ public class HttpUtils {
           }
         }
         httpPost.setEntity(new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8));
-      } else if (body instanceof String) {
-        httpPost.setEntity(new StringEntity((String) body));
+      } else if (body instanceof String bodyString) {
+        httpPost.setEntity(new StringEntity(bodyString));
       }
 
       if (!StringUtils.isNotEmpty(contentType)) {

@@ -47,16 +47,15 @@ public class DhisCorsFilter implements InitializingBean {
 
   public DhisCorsFilter(ConfigurationService configurationService) {
     this.configurationService = configurationService;
+    instance.setCorsProcessor(new DhisCorsProcessor(configurationService));
   }
 
   @Override
   public void afterPropertiesSet() {
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    instance = new CorsFilter(source);
-    instance.setCorsProcessor(new DhisCorsProcessor(configurationService));
+    get().setCorsProcessor(new DhisCorsProcessor(configurationService));
   }
 
   public static CorsFilter get() {
-    return instance;
+    return instance == null ? new CorsFilter(new UrlBasedCorsConfigurationSource()) : instance;
   }
 }
