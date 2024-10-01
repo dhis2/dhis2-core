@@ -97,7 +97,7 @@ public class PredictionController {
       config.setJobParameters(params);
       config.setExecutedBy(currentUser.getUid());
 
-      jobSchedulerService.runInTransaction(jobSchedulerService.createInTransaction(config));
+      jobSchedulerService.createThenExecute(config);
 
       return jobConfigurationReport(config);
     }

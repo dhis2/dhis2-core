@@ -111,7 +111,7 @@ public class DataIntegrityController {
             : new DataIntegrityJobParameters(type, checks);
     config.setJobParameters(parameters);
 
-    jobSchedulerService.runInTransaction(jobSchedulerService.createInTransaction(config));
+    jobSchedulerService.createThenExecute(config);
 
     return jobConfigurationReport(config);
   }

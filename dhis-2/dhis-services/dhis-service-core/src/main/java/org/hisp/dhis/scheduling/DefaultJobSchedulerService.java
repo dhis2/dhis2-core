@@ -42,6 +42,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -66,6 +67,7 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
   private final JobRunner jobRunner;
   private final ObjectMapper jsonMapper;
   private final JobCreationHelper jobCreationHelper;
+  private final JobConfigurationService jobConfigurationService;
 
   @Override
   @Transactional
@@ -107,40 +109,19 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
   }
 
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public String createInTransaction(
-      JobConfiguration jobConfiguration, MimeType contentType, InputStream content)
+  @NonTransactional
+  public void createThenExecute(JobConfiguration config, MimeType contentType, InputStream content)
       throws ConflictException, NotFoundException {
-    String jobId = jobCreationHelper.create(jobConfiguration, contentType, content);
-
-    if (!jobConfigurationStore.executeNow(jobId)) {
-      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
-      if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
-      if (job.getJobStatus() == JobStatus.RUNNING)
-        throw new ConflictException("Job is already running.");
-      if (job.getSchedulingType() == SchedulingType.ONCE_ASAP && job.getLastFinished() != null)
-        throw new ConflictException("Job did already run once.");
-      throw new ConflictException("Failed to transition job into ONCE_ASAP state.");
-    }
-    return jobId;
+    String jobId = jobConfigurationService.createInTransaction(config, contentType, content);
+    runInTransaction(jobId);
   }
 
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public String createInTransaction(JobConfiguration jobConfiguration)
+  @NonTransactional
+  public void createThenExecute(JobConfiguration config)
       throws ConflictException, NotFoundException {
-    String jobId = jobCreationHelper.create(jobConfiguration);
-
-    if (!jobConfigurationStore.executeNow(jobId)) {
-      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
-      if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
-      if (job.getJobStatus() == JobStatus.RUNNING)
-        throw new ConflictException("Job is already running.");
-      if (job.getSchedulingType() == SchedulingType.ONCE_ASAP && job.getLastFinished() != null)
-        throw new ConflictException("Job did already run once.");
-      throw new ConflictException("Failed to transition job into ONCE_ASAP state.");
-    }
-    return jobId;
+    String jobId = jobConfigurationService.createInTransaction(config);
+    runInTransaction(jobId);
   }
 
   @Override

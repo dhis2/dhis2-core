@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -63,31 +64,6 @@ public interface JobSchedulerService {
   void executeNow(@Nonnull String jobId) throws ConflictException, NotFoundException;
 
   /**
-   * Creates a new job configuration in a separate transaction.
-   *
-   * @param jobConfiguration {@link JobConfiguration}
-   * @param contentType {@link MimeType}
-   * @param content {@link InputStream}
-   * @return the job id
-   * @throws ConflictException
-   * @throws NotFoundException
-   */
-  String createInTransaction(
-      JobConfiguration jobConfiguration, MimeType contentType, InputStream content)
-      throws ConflictException, NotFoundException;
-
-  /**
-   * Creates a new job configuration in a separate transaction.
-   *
-   * @param jobConfiguration {@link JobConfiguration}
-   * @return the job id
-   * @throws ConflictException
-   * @throws NotFoundException
-   */
-  String createInTransaction(JobConfiguration jobConfiguration)
-      throws ConflictException, NotFoundException;
-
-  /**
    * Executes a job configuration in a separate transaction.
    *
    * @param jobId the job id to execute
@@ -95,6 +71,13 @@ public interface JobSchedulerService {
    * @throws ConflictException
    */
   void runInTransaction(String jobId) throws NotFoundException, ConflictException;
+
+  @NonTransactional
+  void createThenExecute(JobConfiguration config, MimeType contentType, InputStream content)
+      throws ConflictException, NotFoundException;
+
+  @NonTransactional
+  void createThenExecute(JobConfiguration config) throws ConflictException, NotFoundException;
 
   /**
    * Reverts the {@link JobStatus} of the job from {@link JobStatus#RUNNING} to the appropriate
