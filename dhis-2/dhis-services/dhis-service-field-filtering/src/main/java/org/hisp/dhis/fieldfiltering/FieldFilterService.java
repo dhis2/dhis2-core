@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.CodeGenerator;
@@ -212,7 +213,7 @@ public class FieldFilterService {
   /**
    * Method which allows callers to invoke it without passing an exclude defaults boolean parameter.
    * This keeps current behaviour as is. If callers require different behaviour regarding excluding
-   * defaults, then they can call the object nodes method which takes a value for excluding
+   * defaults, then they can call the toObjectNodes method which takes a value for excluding
    * defaults. This method passes false as the default value for excluding defaults.
    *
    * @param objects objects to render
@@ -272,7 +273,7 @@ public class FieldFilterService {
 
       ObjectNode objectNode = objectMapper.valueToTree(object);
       addAttributeFieldsInAttributeValues(
-          object, objectNode, relativeAttributePaths, attributeProperties, excludeDefaults);
+          object, objectNode, relativeAttributePaths, attributeProperties);
       applyAttributeAsPropertyFields(object, objectNode, paths);
       applyTransformers(objectNode, null, "", fieldTransformers);
 
@@ -282,7 +283,29 @@ public class FieldFilterService {
     }
   }
 
-  private void excludeDefaults(ObjectNode objectNode) {
+  /**
+   * Method that removes empty objects from the node, at root level.
+   *
+   * <p>e.g. json input: <br>
+   * <code>
+   *   {
+   *      "name": "dhis2",
+   *      "system": {}
+   *   }
+   * </code>
+   *
+   * <p><br>
+   *
+   * <p>resulting output: <br>
+   * <code>
+   *   {
+   *      "name": "dhis2"
+   *   }
+   * </code>
+   *
+   * @param objectNode object node to process on
+   */
+  private void excludeDefaults(@Nonnull ObjectNode objectNode) {
     Iterator<JsonNode> elements = objectNode.elements();
 
     while (elements.hasNext()) {
@@ -352,8 +375,7 @@ public class FieldFilterService {
       Object object,
       ObjectNode objectNode,
       List<FieldPath> relativeAttributePaths,
-      Map<String, ObjectNode> attributeProperties,
-      boolean excludeDefaults) {
+      Map<String, ObjectNode> attributeProperties) {
     if (relativeAttributePaths.isEmpty()) return;
     if (!(object instanceof IdentifiableObject source)) return;
     ArrayNode attributes = objectNode.putArray("attributeValues");
@@ -371,12 +393,7 @@ public class FieldFilterService {
                         Attribute attribute = attributeService.getAttribute(attributeId);
                         List<ObjectNode> res = new ArrayList<>(1);
                         toObjectNodes(
-                            List.of(attribute),
-                            relativeAttributePaths,
-                            null,
-                            true,
-                            excludeDefaults,
-                            res::add);
+                            List.of(attribute), relativeAttributePaths, null, true, res::add);
                         ObjectNode attr = res.get(0);
                         attr.put("id", attributeId);
                         return attr;
