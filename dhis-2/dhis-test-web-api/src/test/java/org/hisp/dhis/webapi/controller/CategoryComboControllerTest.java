@@ -28,11 +28,13 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.test.web.HttpStatus;
@@ -90,7 +92,135 @@ class CategoryComboControllerTest extends H2ControllerIntegrationTestBase {
         Set.of("CategoryComboC", "CategoryComboB", "CategoryComboA"),
         catCombos,
         "Returned catCombos include custom catCombos only");
+  }
 
-    assertFalse(catCombos.contains("default"), "default catCombo was not in payload");
+  @Test
+  @DisplayName(
+      "A CategoryCombo with default Category should not have the category field present when EXCLUDE defaults")
+  void catCombosExcludingDefaultCategoryTest() {
+    Category customCat = createCategory('G');
+    categoryService.addCategory(customCat);
+    CategoryCombo catComboWithCustomCategory = createCategoryCombo('1', customCat);
+    CategoryCombo catComboWithDefaultCategory = createCategoryCombo('2');
+    categoryService.addCategoryCombo(catComboWithCustomCategory);
+    categoryService.addCategoryCombo(catComboWithDefaultCategory);
+
+    JsonArray categoryCombos =
+        GET("/categoryCombos?fields=categories[name,id]&defaults=EXCLUDE")
+            .content(HttpStatus.OK)
+            .getArray("categoryCombos");
+
+    Set<String> catCombos =
+        categoryCombos.stream()
+            .map(jcc -> jcc.as(JsonCategoryCombo.class))
+            .flatMap(jcc -> jcc.getCategories().stream())
+            .map(JsonIdentifiableObject::getName)
+            .collect(Collectors.toSet());
+
+    assertEquals(
+        Set.of("CategoryG"),
+        catCombos,
+        "category equals custom category only, no default category present");
+  }
+
+  @Test
+  @DisplayName(
+      "A CategoryCombo with default Category should have the category field present when INCLUDE defaults")
+  void catCombosIncludingDefaultCategoryTest() {
+    Category customCat = createCategory('G');
+    categoryService.addCategory(customCat);
+    CategoryCombo catComboWithCustomCategory = createCategoryCombo('1', customCat);
+    CategoryCombo catComboWithDefaultCategory = createCategoryCombo('2');
+    categoryService.addCategoryCombo(catComboWithCustomCategory);
+    categoryService.addCategoryCombo(catComboWithDefaultCategory);
+
+    JsonArray categoryCombos =
+        GET("/categoryCombos?fields=categories[name,id]&defaults=INCLUDE")
+            .content(HttpStatus.OK)
+            .getArray("categoryCombos");
+
+    Set<String> catCombos =
+        categoryCombos.stream()
+            .map(jcc -> jcc.as(JsonCategoryCombo.class))
+            .flatMap(jcc -> jcc.getCategories().stream())
+            .map(JsonIdentifiableObject::getName)
+            .collect(Collectors.toSet());
+
+    assertEquals(
+        Set.of("CategoryG", "default"),
+        catCombos,
+        "categories equal custom category and default category");
+  }
+
+  @Test
+  @DisplayName(
+      "A CategoryCombo with default CategoryOptionCombo should not have the categoryOptionCombo field present when EXCLUDE defaults")
+  void catExcludingDefaultCatOptionTest() {
+    CategoryCombo catCombo1 = createCategoryCombo('1');
+    categoryService.addCategoryCombo(catCombo1);
+    CategoryOption catOpt1 = createCategoryOption('1');
+    categoryService.addCategoryOption(catOpt1);
+    CategoryOptionCombo customCoc =
+        createCategoryOptionCombo("CatOptCombo A", "CocUid0001", catCombo1, catOpt1);
+    categoryService.addCategoryOptionCombo(customCoc);
+
+    CategoryCombo catComboWithCustomCoc = createCategoryCombo('3');
+    catComboWithCustomCoc.setOptionCombos(Set.of(customCoc));
+    CategoryCombo catComboWithDefaultCoc = createCategoryCombo('4');
+    categoryService.addCategoryCombo(catComboWithCustomCoc);
+    categoryService.addCategoryCombo(catComboWithDefaultCoc);
+
+    JsonArray catCombos =
+        GET("/categoryCombos?fields=categoryOptionCombos[name,id]&defaults=EXCLUDE")
+            .content(HttpStatus.OK)
+            .getArray("categoryCombos");
+
+    Set<String> catOptionCombos =
+        catCombos.stream()
+            .map(jc -> jc.as(JsonCategoryCombo.class))
+            .flatMap(jc -> jc.getCategoryOptionCombos().stream())
+            .map(JsonIdentifiableObject::getName)
+            .collect(Collectors.toSet());
+
+    assertEquals(
+        Set.of("CatOptCombo A"),
+        catOptionCombos,
+        "category option combos equal custom cat option combo only, no default category option combo present");
+  }
+
+  @Test
+  @DisplayName(
+      "A CategoryCombo with default CategoryOptionCombo should have the categoryOptionCombo field present when INCLUDE defaults")
+  void catIncludingDefaultCatOptionTest() {
+    CategoryCombo catCombo1 = createCategoryCombo('1');
+    categoryService.addCategoryCombo(catCombo1);
+    CategoryOption catOpt1 = createCategoryOption('1');
+    categoryService.addCategoryOption(catOpt1);
+    CategoryOptionCombo customCoc =
+        createCategoryOptionCombo("CatOptCombo A", "CocUid0001", catCombo1, catOpt1);
+    categoryService.addCategoryOptionCombo(customCoc);
+
+    CategoryCombo catComboWithCustomCoc = createCategoryCombo('3');
+    catComboWithCustomCoc.setOptionCombos(Set.of(customCoc));
+    CategoryCombo catComboWithDefaultCoc = createCategoryCombo('4');
+    categoryService.addCategoryCombo(catComboWithCustomCoc);
+    categoryService.addCategoryCombo(catComboWithDefaultCoc);
+
+    JsonArray catCombos =
+        GET("/categoryCombos?fields=categoryOptionCombos[name,id]&defaults=INCLUDE")
+            .content(HttpStatus.OK)
+            .getArray("categoryCombos");
+
+    Set<String> catOptionCombos =
+        catCombos.stream()
+            .map(jc -> jc.as(JsonCategoryCombo.class))
+            .flatMap(jc -> jc.getCategoryOptionCombos().stream())
+            .map(JsonIdentifiableObject::getName)
+            .collect(Collectors.toSet());
+
+    assertEquals(
+        Set.of("CatOptCombo A", "default"),
+        catOptionCombos,
+        "category option combos equal custom cat option combo and default category option combo");
   }
 }

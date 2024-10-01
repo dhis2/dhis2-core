@@ -210,10 +210,10 @@ public class FieldFilterService {
   }
 
   /**
-   * Method which allows callers to invoke it without passing an exclude defaults boolean parameter.
-   * This keeps current behaviour as is. If callers require different behaviour regarding excluding
-   * defaults, then they can call the toObjectNodes method which takes a value for excluding
-   * defaults. This method passes false as the default value for excluding defaults.
+   * Method allowing calls without an exclude defaults boolean parameter. This keeps current
+   * behaviour as is. If callers require different behaviour regarding excluding defaults, then they
+   * can call the toObjectNodes method which takes a value for excluding defaults. This method
+   * passes false as the default value for excluding defaults.
    *
    * @param objects objects to render
    * @param filter filters
@@ -283,7 +283,7 @@ public class FieldFilterService {
   }
 
   /**
-   * Method that removes empty objects from the node, at root level.
+   * Method that removes empty objects from an ObjectNode, at root level.
    *
    * <p>e.g. json input: <br>
    * <code>

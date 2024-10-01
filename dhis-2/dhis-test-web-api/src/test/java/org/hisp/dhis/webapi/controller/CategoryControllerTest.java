@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.test.web.HttpStatus;
@@ -90,5 +91,63 @@ class CategoryControllerTest extends H2ControllerIntegrationTestBase {
         "Returned categories include custom categories only");
 
     assertFalse(catDisplayNames.contains("default"), "default category was not in payload");
+  }
+
+  @Test
+  @DisplayName(
+      "A Category with default CategoryOption should not have the category option field present when EXCLUDE defaults")
+  void catExcludingDefaultCatOptionTest() {
+    CategoryOption customCat = createCategoryOption('P');
+    categoryService.addCategoryOption(customCat);
+    Category catWithCustomCatOption = createCategory('1', customCat);
+    Category catWithDefaultCategory = createCategory('2');
+    categoryService.addCategory(catWithCustomCatOption);
+    categoryService.addCategory(catWithDefaultCategory);
+
+    JsonArray categories =
+        GET("/categories?fields=categoryOptions[name,id]&defaults=EXCLUDE")
+            .content(HttpStatus.OK)
+            .getArray("categories");
+
+    Set<String> catOptions =
+        categories.stream()
+            .map(jc -> jc.as(JsonCategory.class))
+            .flatMap(jc -> jc.getCategoryOptions().stream())
+            .map(JsonIdentifiableObject::getName)
+            .collect(Collectors.toSet());
+
+    assertEquals(
+        Set.of("CategoryOptionP"),
+        catOptions,
+        "category option equals custom cat option only, no default category option present");
+  }
+
+  @Test
+  @DisplayName(
+      "A Category with default CategoryOption should have the category option field present when INCLUDE defaults")
+  void catIncludingDefaultCatOptionTest() {
+    CategoryOption customCat = createCategoryOption('P');
+    categoryService.addCategoryOption(customCat);
+    Category catWithCustomCatOption = createCategory('1', customCat);
+    Category catWithDefaultCategory = createCategory('2');
+    categoryService.addCategory(catWithCustomCatOption);
+    categoryService.addCategory(catWithDefaultCategory);
+
+    JsonArray categories =
+        GET("/categories?fields=categoryOptions[name,id]&defaults=INCLUDE")
+            .content(HttpStatus.OK)
+            .getArray("categories");
+
+    Set<String> catOptions =
+        categories.stream()
+            .map(jc -> jc.as(JsonCategory.class))
+            .flatMap(jc -> jc.getCategoryOptions().stream())
+            .map(JsonIdentifiableObject::getName)
+            .collect(Collectors.toSet());
+
+    assertEquals(
+        Set.of("CategoryOptionP", "default"),
+        catOptions,
+        "category options equal custom cat option and default category option");
   }
 }
