@@ -94,10 +94,14 @@ import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.util.DateUtils;
@@ -132,6 +136,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
 
+  @Autowired private TrackedEntityAttributeValueService attributeValueService;
+
   @Autowired private EventService eventService;
 
   @Autowired private IncomingSmsService incomingSmsService;
@@ -148,6 +154,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
   private User user;
 
   private TrackedEntityType trackedEntityType;
+  private TrackedEntityAttribute teaA;
 
   private DataElement de;
 
@@ -174,6 +181,16 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     manager.save(orgUnit, false);
 
     trackedEntityType = trackedEntityTypeAccessible();
+
+    teaA = createTrackedEntityAttribute('A', ValueType.PHONE_NUMBER);
+    teaA.setConfidential(false);
+    teaA.getSharing().setOwner(user);
+    teaA.getSharing().addUserAccess(fullAccess(user));
+    manager.save(teaA, false);
+
+    trackedEntityType.setTrackedEntityTypeAttributes(
+        List.of(new TrackedEntityTypeAttribute(trackedEntityType, teaA)));
+    manager.save(trackedEntityType, false);
 
     trackerProgram = createProgram('A');
     trackerProgram.addOrganisationUnit(orgUnit);
@@ -593,6 +610,88 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
             assertSmsResponse(
                 "Command has been processed successfully", originator, messageSender));
 
+    List<Event> events =
+        eventService.getEvents(
+            EventOperationParams.builder()
+                .programUid(eventProgram.getUid())
+                .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
+                .eventParams(EventParams.FALSE)
+                .build());
+    assertHasSize(1, events);
+    Event actual = events.get(0);
+    assertAll(
+        "created event",
+        () -> assertEqualUids(orgUnit, actual.getOrganisationUnit()),
+        () -> assertEqualUids(eventProgram, actual.getEnrollment().getProgram()),
+        () -> assertEqualUids(eventProgramStage, actual.getProgramStage()),
+        () -> assertEquals(user.getUsername(), actual.getStoredBy()),
+        () -> assertEquals(EventStatus.ACTIVE, actual.getStatus()),
+        () -> assertEquals(user.getUsername(), actual.getStoredBy()),
+        () -> {
+          EventDataValue expected = new EventDataValue(de.getUid(), "hello");
+          expected.setStoredBy(user.getUsername());
+          assertDataValues(Set.of(expected), actual.getEventDataValues());
+        });
+  }
+
+  // TODO(ivo) create test for enrolling a TE into a tracker program, creating an event with a data
+  // value
+  // TODO(ivo) create test for updating an enrollment in a tracker program, creating an event with a
+  // data value
+  // TODO(ivo) create test for one sad path?
+  @Test
+  void shouldCreateEventInEventProgramViaProgramStageDataEntryCommand()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    SMSCommand command = new SMSCommand();
+    command.setName("birth");
+    command.setParserType(ParserType.PROGRAM_STAGE_DATAENTRY_PARSER);
+    command.setProgram(trackerProgram);
+    command.setProgramStage(trackerProgramStage);
+    SMSCode code1 = new SMSCode();
+    code1.setCode("a");
+    code1.setDataElement(de);
+    command.setCodes(Set.of(code1));
+    manager.save(command);
+
+    String originator = user.getPhoneNumber();
+
+    // TODO(ivo) why cant I find the user via the phone number?
+    // TODO(ivo) extract/move adding the attribute into the trackedEntity method
+    TrackedEntity trackedEntity = trackedEntity();
+    TrackedEntityAttributeValue teavA = createTrackedEntityAttributeValue('A', trackedEntity, teaA);
+    teavA.setValue(user.getPhoneNumber());
+    attributeValueService.addTrackedEntityAttributeValue(teavA);
+    trackedEntity.getTrackedEntityAttributeValues().add(teavA);
+    manager.save(trackedEntity, false);
+
+    manager.flush();
+    manager.clear();
+
+    switchContextToUser(user);
+
+    JsonWebMessage response =
+        POST(
+                "/sms/inbound",
+                format("""
+{
+"text": "birth a=hello",
+"originator": "%s"
+}
+""", originator))
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+
+    IncomingSms smsResponse = getSms(incomingSmsService, response);
+    assertAll(
+        () -> assertEquals(SmsMessageStatus.PROCESSED, smsResponse.getStatus()),
+        () -> assertTrue(smsResponse.isParsed()),
+        () -> assertEquals(originator, smsResponse.getOriginator()),
+        () -> assertEquals(user, smsResponse.getCreatedBy()),
+        () ->
+            assertSmsResponse(
+                "Command has been processed successfully", originator, messageSender));
+
+    // TODO(ivo) assert enrollment was created for the TE
     List<Event> events =
         eventService.getEvents(
             EventOperationParams.builder()

@@ -28,22 +28,21 @@
 package org.hisp.dhis.tracker.imports.sms;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -53,6 +52,8 @@ import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
+import org.hisp.dhis.sms.incoming.SmsMessageStatus;
+import org.hisp.dhis.sms.listener.CommandSMSListener;
 import org.hisp.dhis.sms.listener.SMSProcessingException;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.smscompression.SmsResponse;
@@ -60,19 +61,27 @@ import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Created by zubair@dhis2.org on 11.08.17. */
+@Slf4j
 @Component("org.hisp.dhis.tracker.sms.ProgramStageDataEntrySMSListener")
 @Transactional
-public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
+public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
   private static final String MORE_THAN_ONE_TE =
       "More than one tracked entity found for given phone number";
 
@@ -86,49 +95,26 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
 
   private final SMSCommandService smsCommandService;
 
+  private final EnrollmentService enrollmentService;
+
+  private final TrackerImportService trackerImportService;
+
   public ProgramStageDataEntrySMSListener(
       CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
-      EnrollmentService enrollmentService,
-      EventChangeLogService eventChangeLogService,
-      FileResourceService fileResourceService,
-      DhisConfigurationProvider config,
-      IdentifiableObjectManager identifiableObjectManager,
       TrackedEntityService trackedEntityService,
       TrackedEntityAttributeService trackedEntityAttributeService,
-      SMSCommandService smsCommandService) {
-    super(
-        dataElementCategoryService,
-        userService,
-        incomingSmsService,
-        smsSender,
-        enrollmentService,
-        eventChangeLogService,
-        fileResourceService,
-        config,
-        identifiableObjectManager);
+      SMSCommandService smsCommandService,
+      EnrollmentService enrollmentService,
+      TrackerImportService trackerImportService) {
+    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
     this.trackedEntityService = trackedEntityService;
     this.trackedEntityAttributeService = trackedEntityAttributeService;
     this.smsCommandService = smsCommandService;
-  }
-
-  @Override
-  public void postProcess(
-      @Nonnull IncomingSms sms,
-      @Nonnull String username,
-      @Nonnull SMSCommand smsCommand,
-      @Nonnull Map<String, String> codeValues) {
-    Set<OrganisationUnit> ous = getOrganisationUnits(sms);
-
-    List<TrackedEntity> trackedEntities = getTrackedEntityByPhoneNumber(sms, smsCommand, ous);
-
-    if (!validate(trackedEntities, ous, sms)) {
-      return;
-    }
-
-    registerProgramStage(trackedEntities.iterator().next(), sms, smsCommand, codeValues, ous);
+    this.enrollmentService = enrollmentService;
+    this.trackerImportService = trackerImportService;
   }
 
   @Override
@@ -137,13 +123,20 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
         SmsUtils.getCommandString(sms), ParserType.PROGRAM_STAGE_DATAENTRY_PARSER);
   }
 
-  private void registerProgramStage(
-      TrackedEntity trackedEntity,
-      IncomingSms sms,
-      SMSCommand smsCommand,
-      Map<String, String> keyValue,
-      Set<OrganisationUnit> ous) {
+  @Override
+  public void postProcess(
+      @Nonnull IncomingSms sms,
+      @Nonnull String username,
+      @Nonnull SMSCommand smsCommand,
+      @Nonnull Map<String, String> dataValues) {
+    Set<OrganisationUnit> orgUnits = getOrganisationUnits(sms);
+    List<TrackedEntity> trackedEntities = getTrackedEntityByPhoneNumber(sms, smsCommand, orgUnits);
+    if (!validate(trackedEntities, orgUnits, sms)) {
+      return;
+    }
+    TrackedEntity trackedEntity = trackedEntities.get(0);
 
+    // TODO(ivo) create or update one enrollment but fail on multiple enrollments
     List<Enrollment> enrollments;
     try {
       enrollments =
@@ -155,7 +148,50 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
       throw new SMSProcessingException(SmsResponse.UNKNOWN_ERROR);
     }
 
-    register(enrollments, keyValue, smsCommand, sms, ous);
+    if (enrollments.isEmpty()) {
+      Enrollment enrollment = new Enrollment();
+      enrollment.setEnrollmentDate(new Date());
+      enrollment.setOccurredDate(new Date());
+      enrollment.setProgram(smsCommand.getProgram());
+      enrollment.setStatus(EnrollmentStatus.ACTIVE);
+
+      // identifiableObjectManager.save(enrollment);
+
+      enrollments.add(enrollment);
+    } else if (enrollments.size() > 1) {
+      update(sms, SmsMessageStatus.FAILED, false);
+
+      sendFeedback(
+          "Multiple active Enrollments exists for program: " + smsCommand.getProgram().getUid(),
+          sms.getOriginator(),
+          ERROR);
+
+      return;
+    }
+
+    TrackerImportParams params =
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.CREATE).build();
+    OrganisationUnit orgUnit = orgUnits.iterator().next();
+    // TODO(ivo) also map tracked entity and enrollment
+    TrackerObjects trackerObjects = null;
+    // mapCommand(sms, smsCommand, dataValues, orgUnit, username, dataElementCategoryService);
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
+    if (Status.OK == importReport.getStatus()) {
+      update(sms, SmsMessageStatus.PROCESSED, true);
+      sendFeedback(
+          StringUtils.defaultIfEmpty(smsCommand.getSuccessMessage(), SMSCommand.SUCCESS_MESSAGE),
+          sms.getOriginator(),
+          INFO);
+      return;
+    }
+
+    // TODO(DHIS2-18003) we need to map tracker import report errors/warnings to an sms
+    log.error(
+        "Failed to process SMS command {} of parser type EVENT_REGISTRATION_PARSER {}",
+        smsCommand.getName(),
+        importReport);
+    throw new IllegalStateException(importReport.toString());
   }
 
   private List<TrackedEntity> getTrackedEntityByPhoneNumber(
@@ -167,12 +203,15 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
 
     List<TrackedEntity> trackedEntities = new ArrayList<>();
 
-    attributes.parallelStream()
+    //    attributes.parallelStream()
+    attributes.stream()
         .map(attr -> getParams(attr, sms, command.getProgram(), ous))
         .forEach(
             param -> {
               try {
-                trackedEntities.addAll(trackedEntityService.getTrackedEntities(param));
+                Page<TrackedEntity> page =
+                    trackedEntityService.getTrackedEntities(param, new PageParams(1, 2, false));
+                trackedEntities.addAll(page.getItems());
               } catch (BadRequestException | ForbiddenException | NotFoundException e) {
                 // TODO(tracker) Find a better error message for these exceptions
                 throw new SMSProcessingException(SmsResponse.UNKNOWN_ERROR);
@@ -193,14 +232,16 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
       Set<OrganisationUnit> ous) {
 
     QueryFilter queryFilter = new QueryFilter();
-    queryFilter.setOperator(QueryOperator.LIKE);
+    queryFilter.setOperator(QueryOperator.EQ);
     queryFilter.setFilter(sms.getOriginator());
 
     return TrackedEntityOperationParams.builder()
         .filters(Map.of(attribute.getUid(), List.of(queryFilter)))
-        .programUid(program.getUid())
-        .organisationUnits(
-            ous.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet()))
+        //        .programUid(program.getUid())
+        .trackedEntityTypeUid(program.getTrackedEntityType().getUid())
+        .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
+        //        .organisationUnits(
+        //            ous.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet()))
         .build();
   }
 
