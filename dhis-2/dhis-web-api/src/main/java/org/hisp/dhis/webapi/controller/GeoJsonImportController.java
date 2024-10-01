@@ -118,9 +118,7 @@ public class GeoJsonImportController {
       JobConfiguration jobConfig = new JobConfiguration(JobType.GEOJSON_IMPORT);
       jobConfig.setJobParameters(params);
       jobConfig.setExecutedBy(currentUser.getUid());
-      jobSchedulerService.runInTransaction(
-          jobSchedulerService.createInTransaction(
-              jobConfig, APPLICATION_JSON, request.getInputStream()));
+      jobSchedulerService.createThenExecute(jobConfig, APPLICATION_JSON, request.getInputStream());
 
       return jobConfigurationReport(jobConfig);
     }
