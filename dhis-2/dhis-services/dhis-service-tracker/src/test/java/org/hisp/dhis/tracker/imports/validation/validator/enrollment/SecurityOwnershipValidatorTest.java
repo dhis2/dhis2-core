@@ -110,14 +110,14 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   @BeforeEach
   public void setUp() {
-    when(bundle.getPreheat()).thenReturn(preheat);
+    organisationUnit = createOrganisationUnit('A');
+    organisationUnit.setUid(ORG_UNIT_ID);
 
     User u = makeUser("A");
     user = UserDetails.fromUser(u);
-    injectSecurityContext(user);
 
-    organisationUnit = createOrganisationUnit('A');
-    organisationUnit.setUid(ORG_UNIT_ID);
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getUser()).thenReturn(user);
 
     trackedEntityType = createTrackedEntityType('A');
     trackedEntityType.setUid(TE_TYPE_ID);
@@ -146,7 +146,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     User userB = makeUser("B", auths);
     userB.setOrganisationUnits(Set.of(organisationUnit));
     UserDetails userDetails = UserDetails.fromUser(userB);
-    injectSecurityContext(userDetails);
+    when(bundle.getUser()).thenReturn(userDetails);
     return userDetails;
   }
 

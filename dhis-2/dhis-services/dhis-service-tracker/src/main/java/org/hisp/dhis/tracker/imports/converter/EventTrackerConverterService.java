@@ -28,8 +28,6 @@
 package org.hisp.dhis.tracker.imports.converter;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -57,6 +55,7 @@ import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -147,20 +146,23 @@ public class EventTrackerConverterService
   }
 
   @Override
-  public Event from(TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event) {
-    return from(preheat, event, preheat.getEvent(event.getEvent()));
+  public Event from(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event, UserDetails user) {
+    return from(preheat, event, preheat.getEvent(event.getEvent()), user);
   }
 
   @Override
   public List<Event> from(
-      TrackerPreheat preheat, List<org.hisp.dhis.tracker.imports.domain.Event> events) {
-    return events.stream().map(e -> from(preheat, e)).collect(Collectors.toList());
+      TrackerPreheat preheat,
+      List<org.hisp.dhis.tracker.imports.domain.Event> events,
+      UserDetails user) {
+    return events.stream().map(e -> from(preheat, e, user)).toList();
   }
 
   @Override
   public Event fromForRuleEngine(
-      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event) {
-    Event result = from(preheat, event, null);
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event, UserDetails user) {
+    Event result = from(preheat, event, null, user);
     // merge data values from DB
     result.getEventDataValues().addAll(getDataValues(preheat, event));
     return result;
@@ -191,7 +193,10 @@ public class EventTrackerConverterService
   }
 
   private Event from(
-      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event, Event result) {
+      TrackerPreheat preheat,
+      org.hisp.dhis.tracker.imports.domain.Event event,
+      Event result,
+      UserDetails user) {
     ProgramStage programStage = preheat.getProgramStage(event.getProgramStage());
     Program program = preheat.getProgram(event.getProgram());
     OrganisationUnit organisationUnit = preheat.getOrganisationUnit(event.getOrgUnit());
@@ -203,10 +208,10 @@ public class EventTrackerConverterService
       result.setUid(!StringUtils.isEmpty(event.getEvent()) ? event.getEvent() : event.getUid());
       result.setCreated(now);
       result.setStoredBy(event.getStoredBy());
-      result.setCreatedByUserInfo(UserInfoSnapshot.from(getCurrentUserDetails()));
+      result.setCreatedByUserInfo(UserInfoSnapshot.from(user));
       result.setCreatedAtClient(DateUtils.fromInstant(event.getCreatedAtClient()));
     }
-    result.setLastUpdatedByUserInfo(UserInfoSnapshot.from(getCurrentUserDetails()));
+    result.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
     result.setLastUpdated(now);
     result.setDeleted(false);
     result.setLastUpdatedAtClient(DateUtils.fromInstant(event.getUpdatedAtClient()));
@@ -230,7 +235,7 @@ public class EventTrackerConverterService
 
     if (currentStatus != previousStatus && currentStatus == EventStatus.COMPLETED) {
       result.setCompletedDate(now);
-      result.setCompletedBy(getCurrentUsername());
+      result.setCompletedBy(user.getUsername());
     }
 
     if (currentStatus != EventStatus.COMPLETED) {
@@ -264,14 +269,14 @@ public class EventTrackerConverterService
       // dataElementIdSchemes are supported
       DataElement dataElement = preheat.getDataElement(dataValue.getDataElement());
       eventDataValue.setDataElement(dataElement.getUid());
-      eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(getCurrentUserDetails()));
-      eventDataValue.setCreatedByUserInfo(UserInfoSnapshot.from(getCurrentUserDetails()));
+      eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
+      eventDataValue.setCreatedByUserInfo(UserInfoSnapshot.from(user));
 
       result.getEventDataValues().add(eventDataValue);
     }
 
     if (isNotEmpty(event.getNotes())) {
-      result.getNotes().addAll(notesConverterService.from(preheat, event.getNotes()));
+      result.getNotes().addAll(notesConverterService.from(preheat, event.getNotes(), user));
     }
 
     return result;

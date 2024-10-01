@@ -52,6 +52,8 @@ import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationResult;
 import org.hisp.dhis.tracker.imports.validation.ValidationService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 
 /**
@@ -75,14 +77,19 @@ public class DefaultTrackerImportService implements TrackerImportService {
     }
   }
 
+  @Nonnull
   @Override
   @IndirectTransactional
   public ImportReport importTracker(
-      TrackerImportParams params, TrackerObjects trackerObjects, JobProgress jobProgress) {
+      @Nonnull TrackerImportParams params,
+      @Nonnull TrackerObjects trackerObjects,
+      @Nonnull JobProgress jobProgress) {
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     jobProgress.startingStage("Running PreHeat");
     TrackerBundle trackerBundle =
         jobProgress.nonNullStagePostCondition(
-            jobProgress.runStage(() -> trackerBundleService.create(params, trackerObjects)));
+            jobProgress.runStage(
+                () -> trackerBundleService.create(params, trackerObjects, currentUser)));
 
     jobProgress.startingStage("Calculating Payload Size");
     Map<TrackerType, Integer> bundleSize =
@@ -190,9 +197,10 @@ public class DefaultTrackerImportService implements TrackerImportService {
    *
    * @return a copy of the current TrackerImportReport
    */
+  @Nonnull
   @Override
   public ImportReport buildImportReport(
-      ImportReport originalImportReport, TrackerBundleReportMode reportMode) {
+      @Nonnull ImportReport originalImportReport, @Nonnull TrackerBundleReportMode reportMode) {
     ImportReport.ImportReportBuilder importReportBuilder =
         ImportReport.builder()
             .status(originalImportReport.getStatus())
