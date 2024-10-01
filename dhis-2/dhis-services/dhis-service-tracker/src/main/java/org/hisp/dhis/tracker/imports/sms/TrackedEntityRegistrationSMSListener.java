@@ -58,7 +58,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.UserService;
@@ -156,8 +155,7 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
 
     try {
       smsEnrollmentService.enrollTrackedEntity(
-          trackedEntityService.getTrackedEntity(
-              trackedEntity.getUid(), null, TrackedEntityParams.FALSE, false),
+          trackedEntityService.getTrackedEntity(trackedEntity.getUid()),
           program,
           orgUnit,
           occurredDate);

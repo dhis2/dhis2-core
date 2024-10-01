@@ -124,7 +124,7 @@
     <jakarta-annotation-api.version>2.1.1</jakarta-annotation-api.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>10.17.0</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>10.18.2</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.10.8</ehcache3.version>
     <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
@@ -194,7 +194,7 @@
     <google-api-client.version>2.7.0</google-api-client.version>
     <lombok.version>1.18.34</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
-    <joda-time.version>2.12.7</joda-time.version>
+    <joda-time.version>2.13.0</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
     <commons-collections4.version>4.4</commons-collections4.version>
     <commons-beanutils.version>1.9.4</commons-beanutils.version>

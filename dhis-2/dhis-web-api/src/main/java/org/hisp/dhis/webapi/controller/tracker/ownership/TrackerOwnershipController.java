@@ -43,7 +43,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
@@ -96,8 +95,7 @@ public class TrackerOwnershipController {
             "trackedEntityInstance", trackedEntityInstance, "trackedEntity", trackedEntity);
 
     trackerOwnershipAccessManager.transferOwnership(
-        trackedEntityService.getTrackedEntity(
-            trackedEntityUid.getValue(), null, TrackedEntityParams.FALSE, false),
+        trackedEntityService.getTrackedEntity(trackedEntityUid.getValue()),
         programService.getProgram(program),
         organisationUnitService.getOrganisationUnit(ou));
     return ok("Ownership transferred");
@@ -117,8 +115,7 @@ public class TrackerOwnershipController {
 
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     trackerOwnershipAccessManager.grantTemporaryOwnership(
-        trackedEntityService.getTrackedEntity(
-            trackedEntityUid.getValue(), null, TrackedEntityParams.FALSE, false),
+        trackedEntityService.getTrackedEntity(trackedEntityUid.getValue()),
         programService.getProgram(program),
         currentUser,
         reason);

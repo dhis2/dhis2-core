@@ -59,7 +59,7 @@ public class DefaultRelationshipService implements RelationshipService {
   private final RelationshipOperationParamsMapper mapper;
 
   @Override
-  public List<Relationship> getRelationships(RelationshipOperationParams params)
+  public List<Relationship> getRelationships(@Nonnull RelationshipOperationParams params)
       throws ForbiddenException, NotFoundException, BadRequestException {
     RelationshipQueryParams queryParams = mapper.map(params);
 
@@ -68,7 +68,7 @@ public class DefaultRelationshipService implements RelationshipService {
 
   @Override
   public Page<Relationship> getRelationships(
-      RelationshipOperationParams params, PageParams pageParams)
+      @Nonnull RelationshipOperationParams params, @Nonnull PageParams pageParams)
       throws ForbiddenException, NotFoundException, BadRequestException {
     RelationshipQueryParams queryParams = mapper.map(params);
 
@@ -76,7 +76,8 @@ public class DefaultRelationshipService implements RelationshipService {
   }
 
   @Override
-  public Relationship getRelationship(String uid) throws ForbiddenException, NotFoundException {
+  public Relationship getRelationship(@Nonnull String uid)
+      throws ForbiddenException, NotFoundException {
     Relationship relationship = relationshipStore.getByUid(uid);
 
     if (relationship == null) {

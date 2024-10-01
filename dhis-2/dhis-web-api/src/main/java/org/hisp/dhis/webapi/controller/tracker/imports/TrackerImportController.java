@@ -60,7 +60,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
@@ -106,11 +106,11 @@ public class TrackerImportController {
   @PostMapping(value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public WebMessage asyncPostJsonTracker(
-      HttpServletRequest request, ImportRequestParams importRequestParams, @RequestBody Body body)
+      HttpServletRequest request,
+      ImportRequestParams importRequestParams,
+      @RequestBody Body body,
+      @CurrentUser UserDetails currentUser)
       throws ConflictException, NotFoundException, IOException {
-
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    String userUid = currentUserDetails.getUid();
 
     TrackerImportParams trackerImportParams =
         TrackerImportParamsMapper.trackerImportParams(importRequestParams);
@@ -121,7 +121,7 @@ public class TrackerImportController {
         trackerImportParams,
         MimeType.valueOf("application/json"),
         trackerObjects,
-        userUid,
+        currentUser.getUid(),
         request);
   }
 
@@ -178,11 +178,9 @@ public class TrackerImportController {
   public WebMessage asyncPostCsvTracker(
       HttpServletRequest request,
       ImportRequestParams importRequest,
-      @RequestParam(required = false, defaultValue = "true") boolean skipFirst)
+      @RequestParam(required = false, defaultValue = "true") boolean skipFirst,
+      @CurrentUser UserDetails currentUser)
       throws IOException, ParseException, ConflictException, NotFoundException {
-
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    String userUid = currentUserDetails.getUid();
 
     InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat(request.getInputStream());
 
@@ -197,7 +195,11 @@ public class TrackerImportController {
         TrackerImportParamsMapper.trackerObjects(body, trackerImportParams.getIdSchemes());
 
     return startAsyncTracker(
-        trackerImportParams, MimeType.valueOf("application/csv"), trackerObjects, userUid, request);
+        trackerImportParams,
+        MimeType.valueOf("application/csv"),
+        trackerObjects,
+        currentUser.getUid(),
+        request);
   }
 
   @PostMapping(

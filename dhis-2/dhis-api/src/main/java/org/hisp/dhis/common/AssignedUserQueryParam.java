@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.common;
 
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
-
 import java.util.Collections;
 import java.util.Set;
 import lombok.Value;
@@ -41,7 +39,7 @@ import lombok.Value;
 public class AssignedUserQueryParam {
 
   public static final AssignedUserQueryParam ALL =
-      new AssignedUserQueryParam(AssignedUserSelectionMode.ALL, Collections.emptySet());
+      new AssignedUserQueryParam(AssignedUserSelectionMode.ALL, Collections.emptySet(), null);
 
   private final AssignedUserSelectionMode mode;
 
@@ -53,7 +51,8 @@ public class AssignedUserQueryParam {
    * @param mode assigned user mode
    * @param assignedUsers assigned user uids
    */
-  public AssignedUserQueryParam(AssignedUserSelectionMode mode, Set<String> assignedUsers) {
+  public AssignedUserQueryParam(
+      AssignedUserSelectionMode mode, Set<String> assignedUsers, String userUid) {
     if (mode == AssignedUserSelectionMode.PROVIDED
         && (assignedUsers == null || assignedUsers.isEmpty())) {
       throw new IllegalQueryException(
@@ -70,7 +69,7 @@ public class AssignedUserQueryParam {
 
     if (mode == AssignedUserSelectionMode.CURRENT) {
       this.mode = AssignedUserSelectionMode.PROVIDED;
-      this.assignedUsers = Collections.singleton(getCurrentUserDetails().getUid());
+      this.assignedUsers = Collections.singleton(userUid);
     } else if ((mode == null || mode == AssignedUserSelectionMode.PROVIDED)
         && (assignedUsers != null && !assignedUsers.isEmpty())) {
       this.mode = AssignedUserSelectionMode.PROVIDED;
