@@ -204,15 +204,31 @@ public class FieldFilterService {
       return objectNodes;
     }
 
-    toObjectNodes(
-        objects,
-        fieldPaths,
-        user,
-        isSkipSharing,
-        false,
-        objectNodes::add); // todo should not be hardcoded
+    toObjectNodes(objects, fieldPaths, user, isSkipSharing, objectNodes::add);
 
     return objectNodes;
+  }
+
+  /**
+   * Method which allows callers to invoke it without passing an exclude defaults boolean parameter.
+   * This keeps current behaviour as is. If callers require different behaviour regarding excluding
+   * defaults, then they can call the object nodes method which takes a value for excluding
+   * defaults. This method passes false as the default value for excluding defaults.
+   *
+   * @param objects objects to render
+   * @param filter filters
+   * @param user user
+   * @param isSkipSharing skip sharing
+   * @param consumer consumer action
+   * @param <T> type of objects
+   */
+  private <T> void toObjectNodes(
+      List<T> objects,
+      List<FieldPath> filter,
+      User user,
+      boolean isSkipSharing,
+      Consumer<ObjectNode> consumer) {
+    toObjectNodes(objects, filter, user, isSkipSharing, false, consumer);
   }
 
   private <T> void toObjectNodes(

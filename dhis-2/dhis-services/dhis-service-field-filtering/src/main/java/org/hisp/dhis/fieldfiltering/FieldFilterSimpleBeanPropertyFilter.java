@@ -136,7 +136,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
   }
 
   private boolean propertyIsDefault(Object object) {
-    return exclude(object);
+    return object instanceof SystemDefaultMetadataObject sdmo && sdmo.isDefault();
   }
 
   private static boolean isIgnoredProperty(String property, Class<?> type) {
@@ -186,10 +186,6 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
     } else if (!jgen.canOmitFields()) { // since 2.3
       writer.serializeAsOmittedField(pojo, jgen, provider);
     }
-  }
-
-  private boolean exclude(Object object) {
-    return object instanceof SystemDefaultMetadataObject sdmo && sdmo.isDefault();
   }
 
   private static boolean isAlwaysExpandType(Object object) {

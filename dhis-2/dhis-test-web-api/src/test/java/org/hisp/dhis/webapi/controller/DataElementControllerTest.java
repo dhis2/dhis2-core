@@ -74,13 +74,14 @@ class DataElementControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "DataElements in payload should not include the default categoryCombo field when EXCLUDE used")
+      "DataElements in payload should not include the default categoryCombo when EXCLUDE used")
   void dataElementsExcludingDefaultCatComboTest() {
     JsonArray dataElements =
         GET("/dataElements?fields=id,name,categoryCombo&defaults=EXCLUDE")
             .content(HttpStatus.OK)
             .getArray("dataElements");
 
+    // get map of data elements with/without cat combo
     Map<Boolean, List<JsonValue>> deWithCatCombo =
         dataElements.stream()
             .collect(
