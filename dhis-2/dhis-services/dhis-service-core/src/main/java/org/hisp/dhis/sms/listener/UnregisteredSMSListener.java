@@ -28,6 +28,7 @@
 package org.hisp.dhis.sms.listener;
 
 import java.util.Map;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageSender;
@@ -70,19 +71,22 @@ public class UnregisteredSMSListener extends CommandSMSListener {
   }
 
   @Override
-  protected SMSCommand getSMSCommand(IncomingSms sms) {
+  protected SMSCommand getSMSCommand(@Nonnull IncomingSms sms) {
     return smsCommandService.getSMSCommand(
         SmsUtils.getCommandString(sms), ParserType.UNREGISTERED_PARSER);
   }
 
   @Override
-  protected boolean hasCorrectFormat(IncomingSms sms, SMSCommand smsCommand) {
+  protected boolean hasCorrectFormat(@Nonnull IncomingSms sms, @Nonnull SMSCommand smsCommand) {
     return true;
   }
 
   @Override
   protected void postProcess(
-      IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage) {
+      @Nonnull IncomingSms sms,
+      @Nonnull String username,
+      @Nonnull SMSCommand smsCommand,
+      @Nonnull Map<String, String> codeValues) {
     UserGroup userGroup = smsCommand.getUserGroup();
 
     String userName = sms.getOriginator();

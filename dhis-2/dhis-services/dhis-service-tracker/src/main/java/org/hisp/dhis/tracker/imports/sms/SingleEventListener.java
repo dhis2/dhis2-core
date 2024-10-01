@@ -27,95 +27,89 @@
  */
 package org.hisp.dhis.tracker.imports.sms;
 
-import java.util.ArrayList;
-import java.util.List;
+import static org.hisp.dhis.tracker.imports.sms.SmsImportMapper.mapCommand;
+
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.sms.listener.SMSProcessingException;
+import org.hisp.dhis.sms.incoming.SmsMessageStatus;
+import org.hisp.dhis.sms.listener.CommandSMSListener;
 import org.hisp.dhis.sms.parse.ParserType;
-import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.system.util.SmsUtils;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Zubair <rajazubair.asghar@gmail.com> */
+@Slf4j
 @Component("org.hisp.dhis.tracker.sms.SingleEventListener")
 @Transactional
-public class SingleEventListener extends RegisterSMSListener {
+public class SingleEventListener extends CommandSMSListener {
   private final SMSCommandService smsCommandService;
+
+  private final TrackerImportService trackerImportService;
 
   public SingleEventListener(
       CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
       MessageSender smsMessageSender,
-      EnrollmentService enrollmentService,
-      EventChangeLogService eventChangeLogService,
-      FileResourceService fileResourceService,
-      DhisConfigurationProvider config,
-      IdentifiableObjectManager identifiableObjectManager,
-      SMSCommandService smsCommandService) {
-    super(
-        dataElementCategoryService,
-        userService,
-        incomingSmsService,
-        smsMessageSender,
-        enrollmentService,
-        eventChangeLogService,
-        fileResourceService,
-        config,
-        identifiableObjectManager);
+      SMSCommandService smsCommandService,
+      TrackerImportService trackerImportService) {
+    super(dataElementCategoryService, userService, incomingSmsService, smsMessageSender);
     this.smsCommandService = smsCommandService;
+    this.trackerImportService = trackerImportService;
   }
 
   @Override
-  protected SMSCommand getSMSCommand(IncomingSms sms) {
+  protected SMSCommand getSMSCommand(@Nonnull IncomingSms sms) {
     return smsCommandService.getSMSCommand(
         SmsUtils.getCommandString(sms), ParserType.EVENT_REGISTRATION_PARSER);
   }
 
   @Override
   protected void postProcess(
-      IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage) {
+      @Nonnull IncomingSms sms,
+      @Nonnull String username,
+      @Nonnull SMSCommand smsCommand,
+      @Nonnull Map<String, String> dataValues) {
+    TrackerImportParams params =
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.CREATE).build();
     Set<OrganisationUnit> ous = getOrganisationUnits(sms);
+    OrganisationUnit orgUnit = ous.iterator().next();
+    TrackerObjects trackerObjects =
+        mapCommand(sms, smsCommand, dataValues, orgUnit, username, dataElementCategoryService);
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    registerEvent(parsedMessage, smsCommand, sms, ous);
-  }
-
-  private void registerEvent(
-      Map<String, String> commandValuePairs,
-      SMSCommand smsCommand,
-      IncomingSms sms,
-      Set<OrganisationUnit> ous) {
-    List<Enrollment> enrollments;
-    try {
-      enrollments =
-          new ArrayList<>(
-              enrollmentService.getEnrollments(
-                  null, smsCommand.getProgram(), EnrollmentStatus.ACTIVE));
-    } catch (ForbiddenException | BadRequestException | NotFoundException e) {
-      // TODO(tracker) Find a better error message for these exceptions
-      throw new SMSProcessingException(SmsResponse.UNKNOWN_ERROR);
+    if (Status.OK == importReport.getStatus()) {
+      update(sms, SmsMessageStatus.PROCESSED, true);
+      sendFeedback(
+          StringUtils.defaultIfEmpty(smsCommand.getSuccessMessage(), SMSCommand.SUCCESS_MESSAGE),
+          sms.getOriginator(),
+          INFO);
+      return;
     }
 
-    register(enrollments, commandValuePairs, smsCommand, sms, ous);
+    // TODO(DHIS2-18003) we need to map tracker import report errors/warnings to an sms
+    log.error(
+        "Failed to process SMS command {} of parser type EVENT_REGISTRATION_PARSER {}",
+        smsCommand.getName(),
+        importReport);
+    throw new IllegalStateException(importReport.toString());
   }
 }

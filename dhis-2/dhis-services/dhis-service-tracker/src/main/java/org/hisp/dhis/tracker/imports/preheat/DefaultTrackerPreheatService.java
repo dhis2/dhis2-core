@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.imports.preheat;
 
 import java.beans.Introspector;
 import java.util.List;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.preheat.PreheatException;
@@ -63,10 +64,11 @@ public class DefaultTrackerPreheatService
   // TODO this flag should be configurable
   private static final boolean FAIL_FAST_ON_PREHEAT_ERROR = false;
 
+  @Nonnull
   @Override
   @Transactional(readOnly = true)
   public TrackerPreheat preheat(
-      TrackerObjects trackerObjects, TrackerIdSchemeParams idSchemeParams) {
+      @Nonnull TrackerObjects trackerObjects, @Nonnull TrackerIdSchemeParams idSchemeParams) {
     TrackerPreheat preheat = new TrackerPreheat();
     preheat.setIdSchemes(idSchemeParams);
 

@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.dataset;
 
+import static org.hisp.dhis.util.DateUtils.addDays;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.indicator.Indicator;
@@ -125,12 +125,20 @@ class DataSetTest {
 
   @Test
   void testIsLocked_AfterLastDayOfPeriod() {
+    // 12 hours after the end is still ok (12/24 = 0.5 days)
+    assertIsLocked(false, period -> addDays(period.getEndDate(), 0.5));
+
     // expiryDays is 1 so 1 extra day after the end is still ok
-    assertIsLocked(
-        false, period -> new Date(period.getEndDate().getTime() + TimeUnit.DAYS.toMillis(1)));
-    // but 2 is too much
-    assertIsLocked(
-        true, period -> new Date(period.getEndDate().getTime() + TimeUnit.DAYS.toMillis(2)));
+    assertIsLocked(false, period -> addDays(period.getEndDate(), 1));
+
+    // 1.5 days after the end is too much
+    assertIsLocked(true, period -> addDays(period.getEndDate(), 1.5));
+
+    // 2 days after the end is too much
+    assertIsLocked(true, period -> addDays(period.getEndDate(), 2));
+
+    // 60 hours is 2.5 days (60 / 24) which is too much
+    assertIsLocked(true, period -> addDays(period.getEndDate(), 2.5));
   }
 
   private static void assertIsLocked(boolean expected, Function<Period, Date> actual) {

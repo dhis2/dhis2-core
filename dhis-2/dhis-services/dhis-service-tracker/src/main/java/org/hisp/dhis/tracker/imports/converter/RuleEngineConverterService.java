@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.imports.converter;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * Converts rule-engine domain objects to tracker domain objects and vice versa.
@@ -37,11 +38,11 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
  * @author Enrico Colasante
  */
 public interface RuleEngineConverterService<From, To> extends TrackerConverterService<From, To> {
-  To fromForRuleEngine(TrackerPreheat preheat, From object);
+  To fromForRuleEngine(TrackerPreheat preheat, From object, UserDetails user);
 
-  default List<To> fromForRuleEngine(TrackerPreheat preheat, List<From> objects) {
+  default List<To> fromForRuleEngine(TrackerPreheat preheat, List<From> objects, UserDetails user) {
     return objects.stream()
-        .map(object -> fromForRuleEngine(preheat, object))
+        .map(object -> fromForRuleEngine(preheat, object, user))
         .collect(Collectors.toList());
   }
 }

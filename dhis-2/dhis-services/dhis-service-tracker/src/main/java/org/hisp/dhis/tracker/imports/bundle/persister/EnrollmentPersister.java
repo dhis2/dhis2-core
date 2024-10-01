@@ -45,6 +45,7 @@ import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -75,12 +76,14 @@ public class EnrollmentPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
-      Enrollment enrollmentToPersist) {
+      Enrollment enrollmentToPersist,
+      UserDetails user) {
     handleTrackedEntityAttributeValues(
         entityManager,
         preheat,
         enrollment.getAttributes(),
-        preheat.getTrackedEntity(enrollmentToPersist.getTrackedEntity().getUid()));
+        preheat.getTrackedEntity(enrollmentToPersist.getTrackedEntity().getUid()),
+        user);
   }
 
   @Override
@@ -88,7 +91,8 @@ public class EnrollmentPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
-      Enrollment enrollmentToPersist) {
+      Enrollment enrollmentToPersist,
+      UserDetails user) {
     // DO NOTHING - TE HAVE NO DATA VALUES
   }
 
@@ -116,7 +120,7 @@ public class EnrollmentPersister
             bundle.getEnrollmentNotifications().get(UID.of(enrollment.getUid())))
         .object(enrollment.getUid())
         .importStrategy(bundle.getImportStrategy())
-        .accessedBy(getCurrentUsername())
+        .accessedBy(bundle.getUser().getUsername())
         .enrollment(enrollment)
         .program(enrollment.getProgram())
         .triggers(triggers)
@@ -151,7 +155,7 @@ public class EnrollmentPersister
   @Override
   protected Enrollment convert(
       TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Enrollment enrollment) {
-    return enrollmentConverter.from(bundle.getPreheat(), enrollment);
+    return enrollmentConverter.from(bundle.getPreheat(), enrollment, bundle.getUser());
   }
 
   @Override

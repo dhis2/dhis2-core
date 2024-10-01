@@ -81,18 +81,17 @@ class DefaultValidationServiceTest extends TestBase {
 
     User userA = makeUser("A");
     UserDetails user = UserDetails.fromUser(userA);
-    injectSecurityContext(user);
 
-    bundleBuilder = newBundle();
+    bundleBuilder = TrackerBundle.builder().user(user).preheat(preheat).skipRuleEngine(true);
   }
 
   @Test
   void shouldNotValidateWhenModeIsSkipAndUserIsASuperUser() {
-    superUser();
     bundle =
         bundleBuilder
             .validationMode(ValidationMode.SKIP)
             .trackedEntities(trackedEntities(trackedEntity()))
+            .user(new SystemUser())
             .build();
     service = new DefaultValidationService(validator, ruleEngineValidator);
 
@@ -152,19 +151,11 @@ class DefaultValidationServiceTest extends TestBase {
     assertTrue(bundle.getTrackedEntities().contains(validTrackedEntity));
   }
 
-  private void superUser() {
-    injectSecurityContext(new SystemUser());
-  }
-
   private TrackedEntity trackedEntity() {
     return TrackedEntity.builder().trackedEntity(CodeGenerator.generateUid()).build();
   }
 
   private List<TrackedEntity> trackedEntities(TrackedEntity... trackedEntities) {
     return List.of(trackedEntities);
-  }
-
-  private TrackerBundle.TrackerBundleBuilder newBundle() {
-    return TrackerBundle.builder().preheat(preheat).skipRuleEngine(true);
   }
 }

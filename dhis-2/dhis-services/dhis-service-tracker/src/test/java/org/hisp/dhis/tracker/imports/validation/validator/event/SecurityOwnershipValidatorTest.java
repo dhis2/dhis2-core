@@ -110,7 +110,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   @BeforeEach
   public void setUp() {
     when(bundle.getPreheat()).thenReturn(preheat);
-
+    when(bundle.getUser()).thenReturn(user);
     organisationUnit = createOrganisationUnit('A');
     organisationUnit.setUid(ORG_UNIT_ID);
 
@@ -128,22 +128,20 @@ class SecurityOwnershipValidatorTest extends TestBase {
     reporter = new Reporter(idSchemes);
 
     validator = new SecurityOwnershipValidator(aclService, ownershipAccessManager);
-
-    injectSecurityContext(user);
   }
 
   private UserDetails setUpUserWithOrgUnit() {
     User userWithOrgUnit = makeUser("B");
     userWithOrgUnit.setOrganisationUnits(Set.of(organisationUnit));
     UserDetails currentUserDetails = UserDetails.fromUser(userWithOrgUnit);
-    injectSecurityContext(currentUserDetails);
+    when(bundle.getUser()).thenReturn(currentUserDetails);
     return currentUserDetails;
   }
 
   private UserDetails changeCompletedEventAuthorisedUser() {
     User authorizedUser = makeUser("A", Lists.newArrayList("F_UNCOMPLETE_EVENT"));
     UserDetails userDetails = UserDetails.fromUser(authorizedUser);
-    injectSecurityContext(userDetails);
+    when(bundle.getUser()).thenReturn(userDetails);
     return userDetails;
   }
 

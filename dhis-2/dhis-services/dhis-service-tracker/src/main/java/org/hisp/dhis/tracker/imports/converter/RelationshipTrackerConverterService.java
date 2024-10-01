@@ -34,13 +34,13 @@ import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTA
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.util.RelationshipKeySupport;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -81,7 +81,7 @@ public class RelationshipTrackerConverterService
 
               return toRelationship;
             })
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private RelationshipItem convertRelationshipType(
@@ -97,7 +97,7 @@ public class RelationshipTrackerConverterService
 
   @Override
   public org.hisp.dhis.relationship.Relationship from(
-      TrackerPreheat preheat, Relationship fromRelationship) {
+      TrackerPreheat preheat, Relationship fromRelationship, UserDetails user) {
     org.hisp.dhis.relationship.Relationship toRelationship =
         preheat.getRelationship(fromRelationship.getRelationship());
     return from(preheat, fromRelationship, toRelationship);
@@ -105,8 +105,8 @@ public class RelationshipTrackerConverterService
 
   @Override
   public List<org.hisp.dhis.relationship.Relationship> from(
-      TrackerPreheat preheat, List<Relationship> fromRelationships) {
-    return fromRelationships.stream().map(r -> from(preheat, r)).collect(Collectors.toList());
+      TrackerPreheat preheat, List<Relationship> fromRelationships, UserDetails user) {
+    return fromRelationships.stream().map(r -> from(preheat, r, user)).toList();
   }
 
   private org.hisp.dhis.relationship.Relationship from(

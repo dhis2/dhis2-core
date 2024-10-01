@@ -38,6 +38,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 
 /**
@@ -64,11 +65,11 @@ public class AttributeValueConverterService
 
   @Override
   public List<Attribute> to(List<TrackedEntityAttributeValue> attributeValues) {
-    return attributeValues.stream().map(this::to).collect(Collectors.toList());
+    return attributeValues.stream().map(this::to).toList();
   }
 
   @Override
-  public TrackedEntityAttributeValue from(TrackerPreheat preheat, Attribute at) {
+  public TrackedEntityAttributeValue from(TrackerPreheat preheat, Attribute at, UserDetails user) {
     TrackedEntityAttribute attribute = preheat.getTrackedEntityAttribute(at.getAttribute());
 
     if (attribute == null) {
@@ -88,10 +89,10 @@ public class AttributeValueConverterService
 
   @Override
   public List<TrackedEntityAttributeValue> from(
-      TrackerPreheat preheat, List<Attribute> attributes) {
+      TrackerPreheat preheat, List<Attribute> attributes, UserDetails user) {
     return attributes.stream()
         .filter(Objects::nonNull)
-        .map(n -> from(preheat, n))
+        .map(n -> from(preheat, n, user))
         .collect(Collectors.toList());
   }
 }

@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.Map;
 import javax.annotation.Nonnull;
@@ -69,7 +68,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
   public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
     TrackerImportStrategy strategy = bundle.getStrategy(enrollment);
     TrackerPreheat preheat = bundle.getPreheat();
-    UserDetails user = getCurrentUserDetails();
+    UserDetails user = bundle.getUser();
     Program program =
         strategy.isUpdateOrDelete()
             ? bundle.getPreheat().getEnrollment(enrollment.getEnrollment()).getProgram()
@@ -77,7 +76,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
     TrackedEntity trackedEntity = getTrackedEntity(bundle, enrollment);
     OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit(preheat, trackedEntity, program);
 
-    checkEnrollmentOrgUnit(reporter, bundle, strategy, enrollment);
+    checkEnrollmentOrgUnit(reporter, bundle, strategy, enrollment, user);
 
     if (strategy.isDelete()) {
       boolean hasNonDeletedEvents = enrollmentHasEvents(preheat, enrollment.getEnrollment());
@@ -89,7 +88,8 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
       }
     }
 
-    checkWriteEnrollmentAccess(reporter, enrollment, program, ownerOrgUnit, trackedEntity.getUid());
+    checkWriteEnrollmentAccess(
+        reporter, enrollment, program, ownerOrgUnit, trackedEntity.getUid(), user);
   }
 
   private TrackedEntity getTrackedEntity(TrackerBundle bundle, Enrollment enrollment) {
@@ -139,7 +139,8 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
       Reporter reporter,
       TrackerBundle bundle,
       TrackerImportStrategy strategy,
-      Enrollment enrollment) {
+      Enrollment enrollment,
+      UserDetails user) {
     OrganisationUnit enrollmentOrgUnit;
 
     if (strategy.isUpdateOrDelete()) {
@@ -152,7 +153,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
     // If enrollment is newly created, or going to be deleted, capture scope
     // has to be checked
     if (strategy.isCreate() || strategy.isDelete()) {
-      checkOrgUnitInCaptureScope(reporter, enrollment, enrollmentOrgUnit);
+      checkOrgUnitInCaptureScope(reporter, enrollment, enrollmentOrgUnit, user);
     }
   }
 
@@ -162,8 +163,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
   }
 
   private void checkOrgUnitInCaptureScope(
-      Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit) {
-    UserDetails user = getCurrentUserDetails();
+      Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit, UserDetails user) {
     if (!user.isInUserHierarchy(orgUnit.getPath())) {
       reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
     }
@@ -174,8 +174,8 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
       TrackerDto dto,
       String trackedEntity,
       OrganisationUnit ownerOrganisationUnit,
-      Program program) {
-    UserDetails user = getCurrentUserDetails();
+      Program program,
+      UserDetails user) {
     if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
       reporter.addError(dto, ValidationCode.E1104, user, program, program.getTrackedEntityType());
     }
@@ -191,15 +191,15 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
       Enrollment enrollment,
       Program program,
       OrganisationUnit ownerOrgUnit,
-      String trackedEntity) {
-    checkProgramWriteAccess(reporter, enrollment, program);
+      String trackedEntity,
+      UserDetails user) {
+    checkProgramWriteAccess(reporter, enrollment, program, user);
 
-    checkTeTypeAndTeProgramAccess(reporter, enrollment, trackedEntity, ownerOrgUnit, program);
+    checkTeTypeAndTeProgramAccess(reporter, enrollment, trackedEntity, ownerOrgUnit, program, user);
   }
 
-  private void checkProgramWriteAccess(Reporter reporter, TrackerDto dto, Program program) {
-
-    UserDetails user = getCurrentUserDetails();
+  private void checkProgramWriteAccess(
+      Reporter reporter, TrackerDto dto, Program program, UserDetails user) {
     if (!aclService.canDataWrite(user, program)) {
       reporter.addError(dto, ValidationCode.E1091, user, program);
     }

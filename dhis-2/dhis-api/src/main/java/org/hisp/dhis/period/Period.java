@@ -68,6 +68,15 @@ public class Period extends BaseDimensionalItemObject {
    * @return true, if the checked date is non-null and is between start and end date (ignoring time
    *     both ends inclusive)
    */
+  /**
+   * Check if a date is within the date range as provided by a period.
+   *
+   * @param start inclusive, null is open to any time before end
+   * @param end inclusive, null is open to any time after start
+   * @param checked the date checked, maybe null
+   * @return true, if the checked date is non-null and is between start and end date (ignoring time
+   *     both ends inclusive)
+   */
   public static boolean isDateInTimeFrame(
       @CheckForNull Date start, @CheckForNull Date end, @CheckForNull Date checked) {
     if (checked == null) {
@@ -80,6 +89,23 @@ public class Period extends BaseDimensionalItemObject {
     ZonedDateTime to = end == null ? null : toZonedDate.apply(end);
     ZonedDateTime sample = toZonedDate.apply(checked);
     return (from == null || !sample.isBefore(from)) && (to == null || !sample.isAfter(to));
+  }
+
+  /**
+   * Check if a date is within the date range as provided by a period.
+   *
+   * @param start inclusive, null is open to any time before end
+   * @param end inclusive, null is open to any time after start
+   * @param checked the date checked, maybe null
+   * @return true, if the checked date is non-null and is between start and end date. Exact times
+   *     are considered.
+   */
+  public static boolean isDateWithTimeInTimeFrame(
+      @CheckForNull Date start, @CheckForNull Date end, @CheckForNull Date checked) {
+    if (checked == null) {
+      return false;
+    }
+    return (start == null || !checked.before(start)) && (end == null || !checked.after(end));
   }
 
   /** Required. */
