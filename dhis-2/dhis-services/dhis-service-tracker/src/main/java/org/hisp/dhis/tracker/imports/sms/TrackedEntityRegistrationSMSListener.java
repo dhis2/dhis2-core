@@ -32,6 +32,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -108,7 +109,10 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
 
   @Override
   protected void postProcess(
-      IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage) {
+      @Nonnull IncomingSms sms,
+      @Nonnull String username,
+      @Nonnull SMSCommand smsCommand,
+      @Nonnull Map<String, String> codeValues) {
     String message = sms.getText();
 
     Date occurredDate = SmsUtils.lookForDate(message);
@@ -117,7 +121,7 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
 
     Program program = smsCommand.getProgram();
 
-    OrganisationUnit orgUnit = SmsUtils.selectOrganisationUnit(orgUnits, parsedMessage, smsCommand);
+    OrganisationUnit orgUnit = SmsUtils.selectOrganisationUnit(orgUnits, codeValues, smsCommand);
 
     if (!programService.hasOrgUnit(program, orgUnit)) {
       sendFeedback(SMSCommand.NO_OU_FOR_PROGRAM, senderPhoneNumber, WARNING);
@@ -133,11 +137,11 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
     Set<TrackedEntityAttributeValue> patientAttributeValues = new HashSet<>();
 
     smsCommand.getCodes().stream()
-        .filter(code -> parsedMessage.containsKey(code.getCode()))
+        .filter(code -> codeValues.containsKey(code.getCode()))
         .forEach(
             code -> {
               TrackedEntityAttributeValue trackedEntityAttributeValue =
-                  this.createTrackedEntityAttributeValue(parsedMessage, code, trackedEntity);
+                  this.createTrackedEntityAttributeValue(codeValues, code, trackedEntity);
               patientAttributeValues.add(trackedEntityAttributeValue);
             });
 
@@ -175,7 +179,7 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
   }
 
   @Override
-  protected SMSCommand getSMSCommand(IncomingSms sms) {
+  protected SMSCommand getSMSCommand(@Nonnull IncomingSms sms) {
     return smsCommandService.getSMSCommand(
         SmsUtils.getCommandString(sms), ParserType.TRACKED_ENTITY_REGISTRATION_PARSER);
   }

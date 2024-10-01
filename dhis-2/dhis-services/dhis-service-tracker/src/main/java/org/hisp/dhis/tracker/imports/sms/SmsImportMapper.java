@@ -32,18 +32,27 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.sms.command.SMSCommand;
+import org.hisp.dhis.sms.command.code.SMSCode;
+import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.smscompression.SmsConsts.SmsEnrollmentStatus;
 import org.hisp.dhis.smscompression.SmsConsts.SmsEventStatus;
 import org.hisp.dhis.smscompression.models.EnrollmentSmsSubmission;
@@ -68,9 +77,20 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 
 /**
- * SmsImportMapper maps tracker SMS types found in {@link org.hisp.dhis.smscompression.models} to
- * {@link org.hisp.dhis.tracker.imports.domain.TrackerObjects} so they can be imported into tracker.
- * This class should only include pure functions that do not need any other dependency.
+ * SmsImportMapper maps tracker SMS to {@link org.hisp.dhis.tracker.imports.domain.TrackerObjects}
+ * so they can be imported into tracker. This class should only include pure functions that do not
+ * need any other dependency.
+ *
+ * <p>There are two types of SMS tracker supports
+ *
+ * <ol>
+ *   <li>compression based SMS types found in {@link org.hisp.dhis.smscompression.models} and
+ *   <li>command based SMS which are not compressed and do not have dedicated types
+ * </ol>
+ *
+ * Package private mapper functions are the ones used by the SMS processing code. Compression based
+ * SMS mapper functions are prefixed with {@code map} while command based SMS ones are prefixed with
+ * {@code mapCommand}.
  *
  * <p>Note that all "id" fields in a compressed SMS are mandatory, meaning you will get an NPE if
  * you try to encode an sms using {@link org.hisp.dhis.smscompression}. Android will therefore
@@ -96,7 +116,7 @@ class SmsImportMapper {
   static TrackerObjects map(
       @Nonnull EnrollmentSmsSubmission submission,
       @Nonnull Program program,
-      @Nullable org.hisp.dhis.trackedentity.TrackedEntity trackedEntity,
+      @CheckForNull org.hisp.dhis.trackedentity.TrackedEntity trackedEntity,
       @Nonnull String username) {
     Set<String> programAttributes =
         emptyIfNull(program.getProgramAttributes()).stream()
@@ -148,7 +168,7 @@ class SmsImportMapper {
    */
   @Nonnull
   private static List<Attribute> mapTrackedEntityTypeAttributes(
-      @Nullable List<SmsAttributeValue> smsAttributeValues,
+      @CheckForNull List<SmsAttributeValue> smsAttributeValues,
       @Nonnull Set<String> existingAttributeValues,
       @Nonnull Set<String> programAttributes) {
     List<SmsAttributeValue> smsTrackedEntityTypeAttributeValues =
@@ -238,7 +258,7 @@ class SmsImportMapper {
    */
   @Nonnull
   static List<Attribute> mapProgramAttributeValues(
-      @Nullable List<SmsAttributeValue> smsAttributeValues,
+      @CheckForNull List<SmsAttributeValue> smsAttributeValues,
       @Nonnull Set<String> programAttributes,
       @Nonnull Set<String> existingAttributeValues) {
     List<SmsAttributeValue> smsProgramAttributeValues =
@@ -318,18 +338,23 @@ class SmsImportMapper {
   }
 
   @Nonnull
-  private static MetadataIdentifier metadataUid(Uid uid) {
+  private static MetadataIdentifier metadataUid(@Nonnull Uid uid) {
     return MetadataIdentifier.ofUid(uid.getUid());
   }
 
-  @Nullable
-  private static Instant toInstant(@Nullable Date date) {
+  @CheckForNull
+  private static MetadataIdentifier metadataUid(@CheckForNull BaseIdentifiableObject uid) {
+    return uid != null ? MetadataIdentifier.ofUid(uid.getUid()) : null;
+  }
+
+  @CheckForNull
+  private static Instant toInstant(@CheckForNull Date date) {
     return date != null ? date.toInstant() : null;
   }
 
   @Nonnull
   private static Set<DataValue> map(
-      @Nullable List<SmsDataValue> dataValues, @Nonnull String username) {
+      @CheckForNull List<SmsDataValue> dataValues, @Nonnull String username) {
     return emptyIfNull(dataValues).stream()
         .map(
             dv ->
@@ -341,8 +366,8 @@ class SmsImportMapper {
         .collect(Collectors.toSet());
   }
 
-  @Nullable
-  private static Point map(@Nullable GeoPoint coordinates) {
+  @CheckForNull
+  private static Point map(@CheckForNull GeoPoint coordinates) {
     if (coordinates == null) {
       return null;
     }
@@ -368,5 +393,55 @@ class SmsImportMapper {
       case OVERDUE -> EventStatus.OVERDUE;
       case SKIPPED -> EventStatus.SKIPPED;
     };
+  }
+
+  static @Nonnull TrackerObjects mapCommand(
+      @Nonnull IncomingSms sms,
+      @Nonnull SMSCommand smsCommand,
+      @Nonnull Map<String, String> dataValues,
+      @Nonnull OrganisationUnit orgUnit,
+      @Nonnull String username,
+      @Nonnull CategoryService dataElementCategoryService) {
+    return TrackerObjects.builder()
+        .events(
+            List.of(
+                Event.builder()
+                    .event(CodeGenerator.generateUid())
+                    .orgUnit(metadataUid(orgUnit))
+                    .program(metadataUid(smsCommand.getProgram()))
+                    .programStage(metadataUid(smsCommand.getProgramStage()))
+                    .occurredAt(sms.getSentDate().toInstant())
+                    .scheduledAt(sms.getSentDate().toInstant())
+                    .attributeOptionCombo(
+                        metadataUid(dataElementCategoryService.getDefaultCategoryOptionCombo()))
+                    .storedBy(username)
+                    .dataValues(map(smsCommand.getCodes(), dataValues, username))
+                    .build()))
+        .build();
+  }
+
+  @Nonnull
+  private static Set<DataValue> map(
+      @Nonnull Set<SMSCode> codes,
+      @Nonnull Map<String, String> dataValues,
+      @Nonnull String username) {
+    Set<DataValue> result = new HashSet<>();
+    for (SMSCode code : codes) {
+      String value = dataValues.get(code.getCode());
+      // Filter empty values out -> this is "adding/saving/creating",
+      // therefore, empty values are ignored
+      if (StringUtils.isEmpty(value)) {
+        continue;
+      }
+
+      result.add(
+          DataValue.builder()
+              .dataElement(MetadataIdentifier.ofUid(code.getDataElement().getUid()))
+              .value(value)
+              .storedBy(username)
+              .build());
+    }
+
+    return result;
   }
 }
