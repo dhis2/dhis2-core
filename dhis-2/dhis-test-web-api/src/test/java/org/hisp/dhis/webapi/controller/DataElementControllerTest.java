@@ -28,12 +28,15 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.test.web.HttpStatus;
@@ -43,13 +46,34 @@ import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 class DataElementControllerTest extends H2ControllerIntegrationTestBase {
 
+  CategoryCombo catComboA;
+  CategoryCombo catComboB;
+  CategoryCombo catComboC;
+
+  @Autowired private CategoryService categoryService;
+  @Autowired private DataElementService dataElementService;
+
   @BeforeEach
   void setUp() {
-    createCatCombos();
-    createDataElementsWithCatCombos();
+    catComboA = createCategoryCombo('A');
+    catComboB = createCategoryCombo('B');
+    catComboC = createCategoryCombo('C');
+    categoryService.addCategoryCombo(catComboA);
+    categoryService.addCategoryCombo(catComboB);
+    categoryService.addCategoryCombo(catComboC);
+
+    DataElement deA = createDataElement('A', catComboA);
+    DataElement deB = createDataElement('B', catComboB);
+    DataElement deC = createDataElement('C', catComboC);
+    DataElement deZ = createDataElement('Z');
+    dataElementService.addDataElement(deA);
+    dataElementService.addDataElement(deB);
+    dataElementService.addDataElement(deC);
+    dataElementService.addDataElement(deZ);
   }
 
   @Test
@@ -61,15 +85,14 @@ class DataElementControllerTest extends H2ControllerIntegrationTestBase {
             .content(HttpStatus.OK)
             .getArray("dataElements");
 
-    assertTrue(
-        Set.of("CatComUid00", "CatComUid01", "CatComUid02", "bjDvmb4bfuf")
-            .containsAll(
-                dataElements.stream()
-                    .map(jde -> jde.as(JsonDataElement.class))
-                    .map(JsonDataElement::getCategoryCombo)
-                    .map(JsonIdentifiableObject::getId)
-                    .collect(Collectors.toSet())),
-        "Returned cat combo IDs include custom cat combos and default cat combo");
+    assertEquals(
+        Set.of(catComboA.getUid(), catComboB.getUid(), catComboC.getUid(), "bjDvmb4bfuf"),
+        dataElements.stream()
+            .map(jde -> jde.as(JsonDataElement.class))
+            .map(JsonDataElement::getCategoryCombo)
+            .map(JsonIdentifiableObject::getId)
+            .collect(Collectors.toSet()),
+        "Returned cat combo IDs equal custom cat combos and default cat combo Ids");
   }
 
   @Test
@@ -95,71 +118,19 @@ class DataElementControllerTest extends H2ControllerIntegrationTestBase {
         3,
         deWithCatCombo.get(true).size(),
         "There should be 3 dataElements with a cat combo field");
+
     assertEquals(
         1,
         deWithCatCombo.get(false).size(),
         "There should be 1 dataElement without a cat combo field");
-    assertTrue(
-        Set.of("CatComUid00", "CatComUid01", "CatComUid02")
-            .containsAll(
-                deWithCatCombo.get(true).stream()
-                    .map(jde -> jde.as(JsonDataElement.class))
-                    .map(JsonDataElement::getCategoryCombo)
-                    .map(JsonIdentifiableObject::getId)
-                    .collect(Collectors.toSet())),
-        "Returned cat combo IDs include custom cat combos only");
-  }
 
-  private void createCatCombos() {
-    for (int i = 0; i < 3; i++) {
-      POST(
-              "/categoryCombos",
-              """
-              {
-                'id': 'CatComUid0%d',
-                'name': 'cat combo %d',
-                'dataDimensionType': "DISAGGREGATION'
-              }
-              """
-                  .formatted(i, i))
-          .content(HttpStatus.CREATED);
-    }
-  }
-
-  private void createDataElementsWithCatCombos() {
-    for (int i = 0; i < 3; i++) {
-      POST(
-              "/dataElements",
-              """
-              {
-                'id': 'DeUid00000%d',
-                'name': 'de %d',
-                'shortName': 'de %d',
-                'valueType': 'TEXT',
-                'domainType': 'AGGREGATE',
-                'aggregationType': 'DEFAULT',
-                'categoryCombo': {
-                  'id': 'CatComUid0%d'
-                }
-              }
-              """
-                  .formatted(i, i, i, i))
-          .content(HttpStatus.CREATED);
-    }
-
-    // DE with no cat combo (default cat combo will be assigned)
-    POST(
-            "/dataElements",
-            """
-            {
-              'id': 'DeUid00000x',
-              'name': 'de x',
-              'shortName': 'de x',
-              'valueType': 'TEXT',
-              'domainType': 'AGGREGATE',
-              'aggregationType': 'DEFAULT'
-            }
-            """)
-        .content(HttpStatus.CREATED);
+    assertEquals(
+        Set.of(catComboA.getUid(), catComboB.getUid(), catComboC.getUid()),
+        deWithCatCombo.get(true).stream()
+            .map(jde -> jde.as(JsonDataElement.class))
+            .map(JsonDataElement::getCategoryCombo)
+            .map(JsonIdentifiableObject::getId)
+            .collect(Collectors.toSet()),
+        "Returned cat combo IDs equal custom cat combos Ids only");
   }
 }

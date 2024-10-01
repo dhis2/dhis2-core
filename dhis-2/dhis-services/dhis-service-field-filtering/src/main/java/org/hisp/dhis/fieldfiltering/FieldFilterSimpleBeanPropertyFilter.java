@@ -106,7 +106,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
       return false;
     }
 
-    if (excludeDefaults && propertyIsDefault(object)) {
+    if (excludeDefaults && object instanceof SystemDefaultMetadataObject sdmo && sdmo.isDefault()) {
       return false;
     }
 
@@ -133,10 +133,6 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
     }
 
     return false;
-  }
-
-  private boolean propertyIsDefault(Object object) {
-    return object instanceof SystemDefaultMetadataObject sdmo && sdmo.isDefault();
   }
 
   private static boolean isIgnoredProperty(String property, Class<?> type) {

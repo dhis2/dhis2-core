@@ -49,7 +49,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.CodeGenerator;
@@ -277,7 +276,7 @@ public class FieldFilterService {
       applyAttributeAsPropertyFields(object, objectNode, paths);
       applyTransformers(objectNode, null, "", fieldTransformers);
 
-      if (excludeDefaults) excludeDefaults(objectNode);
+      if (excludeDefaults) removeEmptyObjects(objectNode);
 
       consumer.accept(objectNode);
     }
@@ -305,7 +304,7 @@ public class FieldFilterService {
    *
    * @param objectNode object node to process on
    */
-  private void excludeDefaults(@Nonnull ObjectNode objectNode) {
+  private void removeEmptyObjects(ObjectNode objectNode) {
     Iterator<JsonNode> elements = objectNode.elements();
 
     while (elements.hasNext()) {
