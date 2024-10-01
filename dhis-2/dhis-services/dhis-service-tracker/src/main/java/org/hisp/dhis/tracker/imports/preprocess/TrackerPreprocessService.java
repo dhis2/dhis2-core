@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.preprocess;
 
+import javax.annotation.Nonnull;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 
 /**
@@ -38,5 +39,6 @@ public interface TrackerPreprocessService {
    *
    * @param bundle Bundle to preprocess
    */
-  TrackerBundle preprocess(TrackerBundle bundle);
+  @Nonnull
+  TrackerBundle preprocess(@Nonnull TrackerBundle bundle);
 }

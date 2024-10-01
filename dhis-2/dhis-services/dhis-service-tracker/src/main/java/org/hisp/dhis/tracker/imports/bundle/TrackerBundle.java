@@ -64,6 +64,7 @@ import org.hisp.dhis.user.UserDetails;
 @Builder
 @AllArgsConstructor
 public class TrackerBundle {
+  /** User making the import */
   private UserDetails user;
 
   /** Should import be imported or just validated. */

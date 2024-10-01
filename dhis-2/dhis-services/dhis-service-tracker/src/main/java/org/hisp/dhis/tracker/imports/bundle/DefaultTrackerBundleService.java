@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
@@ -86,9 +87,12 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
     this.notificationHandlers = notificationHandlers;
   }
 
+  @Nonnull
   @Override
   public TrackerBundle create(
-      TrackerImportParams params, TrackerObjects trackerObjects, UserDetails user) {
+      @Nonnull TrackerImportParams params,
+      @Nonnull TrackerObjects trackerObjects,
+      @Nonnull UserDetails user) {
     TrackerPreheat preheat = trackerPreheatService.preheat(trackerObjects, params.getIdSchemes());
     TrackerBundle trackerBundle = ParamsConverter.convert(params, trackerObjects, user);
     trackerBundle.setPreheat(preheat);
@@ -96,16 +100,18 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
     return trackerBundle;
   }
 
+  @Nonnull
   @Override
-  public TrackerBundle runRuleEngine(TrackerBundle trackerBundle) {
+  public TrackerBundle runRuleEngine(@Nonnull TrackerBundle trackerBundle) {
     programRuleService.calculateRuleEffects(trackerBundle, trackerBundle.getPreheat());
 
     return trackerBundle;
   }
 
+  @Nonnull
   @Override
   @Transactional
-  public PersistenceReport commit(TrackerBundle bundle) {
+  public PersistenceReport commit(@Nonnull TrackerBundle bundle) {
     if (TrackerBundleMode.VALIDATE == bundle.getImportMode()) {
       return PersistenceReport.emptyReport();
     }
@@ -126,7 +132,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
 
   @Override
   @Transactional
-  public void postCommit(TrackerBundle bundle) {
+  public void postCommit(@Nonnull TrackerBundle bundle) {
     updateTrackedEntitiesLastUpdated(bundle);
   }
 
@@ -166,13 +172,14 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   }
 
   @Override
-  public void sendNotifications(List<TrackerNotificationDataBundle> bundles) {
+  public void sendNotifications(@Nonnull List<TrackerNotificationDataBundle> bundles) {
     notificationHandlers.forEach(handler -> handler.handleNotifications(bundles));
   }
 
+  @Nonnull
   @Override
   @Transactional
-  public PersistenceReport delete(TrackerBundle bundle)
+  public PersistenceReport delete(@Nonnull TrackerBundle bundle)
       throws ForbiddenException, NotFoundException {
     if (TrackerBundleMode.VALIDATE == bundle.getImportMode()) {
       return PersistenceReport.emptyReport();

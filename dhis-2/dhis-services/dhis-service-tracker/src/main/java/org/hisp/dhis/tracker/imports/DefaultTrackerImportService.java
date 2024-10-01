@@ -77,10 +77,13 @@ public class DefaultTrackerImportService implements TrackerImportService {
     }
   }
 
+  @Nonnull
   @Override
   @IndirectTransactional
   public ImportReport importTracker(
-      TrackerImportParams params, TrackerObjects trackerObjects, JobProgress jobProgress) {
+      @Nonnull TrackerImportParams params,
+      @Nonnull TrackerObjects trackerObjects,
+      @Nonnull JobProgress jobProgress) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     jobProgress.startingStage("Running PreHeat");
     TrackerBundle trackerBundle =
@@ -194,9 +197,10 @@ public class DefaultTrackerImportService implements TrackerImportService {
    *
    * @return a copy of the current TrackerImportReport
    */
+  @Nonnull
   @Override
   public ImportReport buildImportReport(
-      ImportReport originalImportReport, TrackerBundleReportMode reportMode) {
+      @Nonnull ImportReport originalImportReport, @Nonnull TrackerBundleReportMode reportMode) {
     ImportReport.ImportReportBuilder importReportBuilder =
         ImportReport.builder()
             .status(originalImportReport.getStatus())

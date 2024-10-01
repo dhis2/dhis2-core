@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.bundle;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -46,40 +47,48 @@ public interface TrackerBundleService {
    * @param params Params object for this bundle.
    * @return Configured TrackerBundle instance(s) (if bundle splitting is enabled)
    */
-  TrackerBundle create(TrackerImportParams params, TrackerObjects trackerObjects, UserDetails user);
+  @Nonnull
+  TrackerBundle create(
+      @Nonnull TrackerImportParams params,
+      @Nonnull TrackerObjects trackerObjects,
+      @Nonnull UserDetails user);
 
   /**
    * Call rule engine for tracker bundle.
    *
    * @return Tracker bundle populated with rule effects
    */
-  TrackerBundle runRuleEngine(TrackerBundle bundle);
+  @Nonnull
+  TrackerBundle runRuleEngine(@Nonnull TrackerBundle bundle);
 
   /**
    * Commits objects from bundle into persistence store if bundle mode COMMIT is enabled.
    *
    * @param bundle TrackerBundle to commit.
    */
-  PersistenceReport commit(TrackerBundle bundle);
+  @Nonnull
+  PersistenceReport commit(@Nonnull TrackerBundle bundle);
 
   /**
    * Carry out notifications for TrackerImporter.
    *
    * @param bundles {@link TrackerNotificationDataBundle} to hold data for notifications.
    */
-  void sendNotifications(List<TrackerNotificationDataBundle> bundles);
+  void sendNotifications(@Nonnull List<TrackerNotificationDataBundle> bundles);
 
   /**
    * Deletes objects in the bundle from persistence store if bundle mode DELETE is enabled.
    *
    * @param bundle TrackerBundle to delete.
    */
-  PersistenceReport delete(TrackerBundle bundle) throws ForbiddenException, NotFoundException;
+  @Nonnull
+  PersistenceReport delete(@Nonnull TrackerBundle bundle)
+      throws ForbiddenException, NotFoundException;
 
   /**
    * Finalize bundle objects
    *
    * @param bundle to process in post commit operations if any
    */
-  void postCommit(TrackerBundle bundle);
+  void postCommit(@Nonnull TrackerBundle bundle);
 }
