@@ -103,15 +103,15 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   @BeforeEach
   public void setUp() {
-    when(bundle.getPreheat()).thenReturn(preheat);
-
     organisationUnit = createOrganisationUnit('A');
     organisationUnit.setUid(ORG_UNIT_ID);
 
     User userA = makeUser("A");
     userA.addOrganisationUnit(organisationUnit);
     user = UserDetails.fromUser(userA);
-    injectSecurityContext(user);
+
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getUser()).thenReturn(user);
 
     trackedEntityType = createTrackedEntityType('A');
     trackedEntityType.setUid(TE_TYPE_ID);
@@ -332,14 +332,14 @@ class SecurityOwnershipValidatorTest extends TestBase {
         makeUser("A", Lists.newArrayList(Authorities.F_TEI_CASCADE_DELETE.name()));
     authorizedUser.setOrganisationUnits(Set.of(organisationUnit));
     UserDetails userDetails = UserDetails.fromUser(authorizedUser);
-    injectSecurityContext(userDetails);
+    when(bundle.getUser()).thenReturn(userDetails);
     return userDetails;
   }
 
   private UserDetails incorrectCaptureScopeUser() {
     User authorizedUser = makeUser("B");
     UserDetails userDetails = UserDetails.fromUser(authorizedUser);
-    injectSecurityContext(userDetails);
+    when(bundle.getUser()).thenReturn(userDetails);
     return userDetails;
   }
 }

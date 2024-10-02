@@ -147,13 +147,16 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
   }
 
   @Override
-  protected SMSCommand getSMSCommand(IncomingSms sms) {
+  protected SMSCommand getSMSCommand(@Nonnull IncomingSms sms) {
     return null;
   }
 
   @Override
   protected void postProcess(
-      IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage) {}
+      @Nonnull IncomingSms sms,
+      @Nonnull String username,
+      @Nonnull SMSCommand smsCommand,
+      @Nonnull Map<String, String> codeValues) {}
 
   private Map<String, String> parse(String sms, SMSCommand smsCommand) {
     String[] keyValuePairs;

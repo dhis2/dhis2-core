@@ -28,13 +28,12 @@
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.assertSmsResponse;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.encodeSms;
+import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.getSms;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Date;
 import java.util.List;
@@ -52,7 +51,6 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
@@ -231,15 +229,11 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
 
-    IncomingSms sms = getSms(response);
+    IncomingSms sms = getSms(incomingSmsService, response);
     assertAll(
         () -> assertEquals(SmsMessageStatus.PROCESSED, sms.getStatus()),
-        () -> {
-          String expectedText = submissionId + ":" + SmsResponse.SUCCESS;
-          OutboundMessage expectedMessage =
-              new OutboundMessage(null, expectedText, Set.of(originator));
-          assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages());
-        });
+        () ->
+            assertSmsResponse(submissionId + ":" + SmsResponse.SUCCESS, originator, messageSender));
     assertDoesNotThrow(() -> enrollmentService.getEnrollment(enrollmentUid));
     Enrollment actual = enrollmentService.getEnrollment(enrollmentUid);
     assertAll(
@@ -251,14 +245,12 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
             trackedEntityService.getTrackedEntity(
                 submission.getTrackedEntityInstance().getUid(),
                 submission.getTrackerProgram().getUid(),
-                TrackedEntityParams.FALSE,
-                false));
+                TrackedEntityParams.FALSE));
     TrackedEntity actualTe =
         trackedEntityService.getTrackedEntity(
             submission.getTrackedEntityInstance().getUid(),
             submission.getTrackerProgram().getUid(),
-            TrackedEntityParams.FALSE.withIncludeAttributes(true),
-            false);
+            TrackedEntityParams.FALSE.withIncludeAttributes(true));
     assertAll(
         "created tracked entity with tracked entity attribute values",
         () -> assertEqualUids(submission.getTrackedEntityInstance(), actualTe),
@@ -337,15 +329,11 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
             .as(JsonWebMessage.class);
 
     manager.clear();
-    IncomingSms sms = getSms(response);
+    IncomingSms sms = getSms(incomingSmsService, response);
     assertAll(
         () -> assertEquals(SmsMessageStatus.PROCESSED, sms.getStatus()),
-        () -> {
-          String expectedText = submissionId + ":" + SmsResponse.SUCCESS;
-          OutboundMessage expectedMessage =
-              new OutboundMessage(null, expectedText, Set.of(originator));
-          assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages());
-        });
+        () ->
+            assertSmsResponse(submissionId + ":" + SmsResponse.SUCCESS, originator, messageSender));
     Enrollment actual =
         enrollmentService.getEnrollment(
             enrollment.getUid(), EnrollmentParams.FALSE.withIncludeAttributes(true), false);
@@ -357,14 +345,12 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
             trackedEntityService.getTrackedEntity(
                 submission.getTrackedEntityInstance().getUid(),
                 submission.getTrackerProgram().getUid(),
-                TrackedEntityParams.FALSE,
-                false));
+                TrackedEntityParams.FALSE));
     TrackedEntity actualTe =
         trackedEntityService.getTrackedEntity(
             submission.getTrackedEntityInstance().getUid(),
             submission.getTrackerProgram().getUid(),
-            TrackedEntityParams.FALSE.withIncludeAttributes(true),
-            false);
+            TrackedEntityParams.FALSE.withIncludeAttributes(true));
     assertAll(
         "update tracked entity with tracked entity attribute values",
         () -> assertEqualUids(submission.getTrackedEntityInstance(), actualTe),
@@ -379,15 +365,6 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
               Map.of(teaA.getUid(), "AttributeAUpdated", teaC.getUid(), "AttributeCAdded"),
               actualTeav);
         });
-  }
-
-  private IncomingSms getSms(JsonWebMessage response) {
-    assertStartsWith("Received SMS: ", response.getMessage());
-
-    String smsUid = response.getMessage().replaceFirst("^Received SMS: ", "");
-    IncomingSms sms = incomingSmsService.get(smsUid);
-    assertNotNull(sms, "failed to find SMS in DB with UID " + smsUid);
-    return sms;
   }
 
   private TrackedEntityType trackedEntityTypeAccessible() {

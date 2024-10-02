@@ -131,7 +131,25 @@ public final class Assertions {
    */
   public static void assertNotEmpty(Collection<?> actual) {
     assertNotNull(actual);
-    assertFalse(actual.isEmpty(), actual.toString());
+    assertFalse(actual.isEmpty(), "expected collection not to be empty");
+  }
+
+  /**
+   * Asserts that the given collection contains the expected number of elements.
+   *
+   * @param actual the collection.
+   */
+  public static void assertHasSize(int expected, Collection<?> actual) {
+    assert expected > 0 : "use assertIsEmpty";
+
+    assertNotEmpty(actual);
+    assertEquals(
+        expected,
+        actual.size(),
+        () ->
+            String.format(
+                "expected collection to contain %d elements, it has %d instead: '%s'",
+                expected, actual.size(), actual));
   }
 
   /**

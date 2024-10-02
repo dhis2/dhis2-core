@@ -676,8 +676,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
         assertThrows(
             BadRequestException.class, () -> enrollmentService.getEnrollments(operationParams));
     assertEquals(
-        "Current user is not authorized to query across all organisation units",
-        exception.getMessage());
+        "User is not authorized to query across all organisation units", exception.getMessage());
   }
 
   @Test

@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -115,7 +116,10 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
 
   @Override
   public void postProcess(
-      IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage) {
+      @Nonnull IncomingSms sms,
+      @Nonnull String username,
+      @Nonnull SMSCommand smsCommand,
+      @Nonnull Map<String, String> codeValues) {
     Set<OrganisationUnit> ous = getOrganisationUnits(sms);
 
     List<TrackedEntity> trackedEntities = getTrackedEntityByPhoneNumber(sms, smsCommand, ous);
@@ -124,11 +128,11 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
       return;
     }
 
-    registerProgramStage(trackedEntities.iterator().next(), sms, smsCommand, parsedMessage, ous);
+    registerProgramStage(trackedEntities.iterator().next(), sms, smsCommand, codeValues, ous);
   }
 
   @Override
-  protected SMSCommand getSMSCommand(IncomingSms sms) {
+  protected SMSCommand getSMSCommand(@Nonnull IncomingSms sms) {
     return smsCommandService.getSMSCommand(
         SmsUtils.getCommandString(sms), ParserType.PROGRAM_STAGE_DATAENTRY_PARSER);
   }
