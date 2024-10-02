@@ -139,16 +139,8 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         .addFilter("GlobalShellFilter", new DelegatingFilterProxy("globalShellFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
 
-    /* Intercept index.html, plugin.html, and perhaps other html requests to inject no-cache
-      headers using ContextUtils.setNoStore(response).  Think about what the implications might
-      be of doing this for non-app html files (or html files that aren't index or plugin).
-
-      Need to think about where this should be placed... are bundled apps served with this servlet?
-
-      Why did this stop working in v42?  Possibly due to restructuring to support embedded tomcat
-      and/or removal of struts for bundled app serving
-
-      Consider renaming this filter if it is very specific to app paths, or reusing the app override filter
+    /* Intercept index.html, plugin.html, and other html requests to inject no-cache
+      headers using ContextUtils.setNoStore(response).
     */
     context
         .addFilter("HttpNoCacheFilter", new DelegatingFilterProxy("httpNoCacheFilter"))
