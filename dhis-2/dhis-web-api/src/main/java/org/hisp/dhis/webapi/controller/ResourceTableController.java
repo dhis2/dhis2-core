@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 import static org.hisp.dhis.analytics.AnalyticsTableType.COMPLETENESS;
 import static org.hisp.dhis.analytics.AnalyticsTableType.COMPLETENESS_TARGET;
@@ -110,11 +111,12 @@ public class ResourceTableController {
       @RequestParam(defaultValue = "false") Boolean skipOutliers,
       @RequestParam(required = false) Set<String> skipCitusTables)
       throws ConflictException, @OpenApi.Ignore NotFoundException {
+
     Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
     Set<AnalyticsTableType> skipCitusTypes = new HashSet<>(toAnalyticsTableTypes(skipCitusTables));
     Set<String> skipPrograms = new HashSet<>();
 
-    if (skipCitusTables.contains(TRACKED_ENTITY_INSTANCE)) {
+    if (skipCitusTypes.contains(TRACKED_ENTITY_INSTANCE)) {
       skipCitusTypes.add(TRACKED_ENTITY_INSTANCE_EVENTS);
       skipCitusTypes.add(TRACKED_ENTITY_INSTANCE_ENROLLMENTS);
     }
