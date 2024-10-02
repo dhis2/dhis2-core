@@ -98,6 +98,7 @@ class ProgramMessageOperationParamsMapperTest {
 
     when(manager.get(eq(Enrollment.class), anyString())).thenReturn(enrollment);
     when(manager.get(eq(Event.class), anyString())).thenReturn(event);
+
     when(programService.getCurrentUserPrograms()).thenReturn(List.of(program));
   }
 
