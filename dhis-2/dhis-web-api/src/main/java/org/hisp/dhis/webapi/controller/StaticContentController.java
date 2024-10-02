@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static java.lang.String.format;
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.feedback.Status.WARNING;
@@ -211,7 +212,7 @@ public class StaticContentController {
     // Only keys in the white list are accepted at the current time
 
     if (!Set.of("logo_banner", "logo_front").contains(key)) {
-      throw new BadRequestException("This key is not supported.");
+      throw new WebMessageException(badRequest("This key is not supported."));
     }
 
     try {
