@@ -140,16 +140,16 @@ how often the request was made.
 Note: if you run the tests inside a Docker container you will need to make sure to either write
 the file to a mounted volume or copy it out of the container. Otherwise, it will be deleted with the
 container.
- 
+
 ## Writing Tests
 
 ### Actions
- 
+
 For convenience, every REST endpoint should be represented by object of type RestApiActions. RestApiActions class will provide way of sending different types of requests and will control keeping track of created or deleted data.
- 
- *Examples*: 
+
+ *Examples*:
  1) endpoint that doesn't require any specific actions:
- 
+
  > private RestApiActions optionSetActions = new RestApiActions("/optionSets");
 
 ### Connecting to Selenium Grid (for debugging)
@@ -178,8 +178,8 @@ OutlierDetectionGenerator.java -> /analytics/outlierDetection?
 _**NOTE**_: The `.json` extension in some URLs above. It's mandatory for all cases where we expect and `uid` of the respective entity/object.
 
 ### How to generate the test(s)
-1. Add the URL(s) into the respective `<file>.json` (for examples, check one of them)
-2. Define the generator implementation to use, in `TestGenerator.java`
+1. Add the URL(s) into the respective `<scenario-file>.json`
+2. Define the generator implementation to use, in `TestGenerator.java`, and the scenario(s) to be tested
 3. Go to the class `Main.java` and run it from your IDE
 4. Check the generated file(s) in the folder `src/test/java/org/hisp/dhis/analytics/generator/output`
 

@@ -49,7 +49,7 @@ import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -70,12 +70,13 @@ class DateValidator implements Validator<Event> {
       return;
     }
 
-    validateExpiryDays(reporter, event, program);
+    validateExpiryDays(reporter, event, program, bundle.getUser());
     validatePeriodType(reporter, event, program);
   }
 
-  private void validateExpiryDays(Reporter reporter, Event event, Program program) {
-    if (CurrentUserUtil.getCurrentUserDetails().isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
+  private void validateExpiryDays(
+      Reporter reporter, Event event, Program program, UserDetails user) {
+    if (user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       return;
     }
 

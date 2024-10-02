@@ -65,6 +65,21 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
   }
 
   @Test
+  void testSuccessfulLoginWithOldUsername() {
+    User adminUser = userService.getUserByUsername("admin");
+    adminUser.setUsername("Üsername");
+    userService.updateUser(adminUser);
+
+    JsonLoginResponse response =
+        POST("/auth/login", "{'username':'Üsername','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("SUCCESS", response.getLoginStatus());
+    assertEquals("/dhis-web-dashboard/", response.getRedirectUrl());
+  }
+
+  @Test
   void testSuccessfulLogin() {
     JsonLoginResponse response =
         POST("/auth/login", "{'username':'admin','password':'district'}")

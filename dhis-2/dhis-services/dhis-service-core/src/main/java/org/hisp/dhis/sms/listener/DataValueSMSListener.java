@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -113,7 +114,10 @@ public class DataValueSMSListener extends CommandSMSListener {
 
   @Override
   protected void postProcess(
-      IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage) {
+      @Nonnull IncomingSms sms,
+      @Nonnull String username,
+      @Nonnull SMSCommand smsCommand,
+      @Nonnull Map<String, String> codeValues) {
     String message = sms.getText();
 
     Date date = SmsUtils.lookForDate(message);
@@ -154,12 +158,12 @@ public class DataValueSMSListener extends CommandSMSListener {
     boolean valueStored = false;
 
     for (SMSCode code : smsCommand.getCodes()) {
-      if (parsedMessage.containsKey(code.getCode())) {
-        valueStored = storeDataValue(sms, orgUnit, parsedMessage, code, smsCommand, date);
+      if (codeValues.containsKey(code.getCode())) {
+        valueStored = storeDataValue(sms, orgUnit, codeValues, code, smsCommand, date);
       }
     }
 
-    if (parsedMessage.isEmpty()) {
+    if (codeValues.isEmpty()) {
       sendFeedback(
           org.apache.commons.lang3.StringUtils.defaultIfEmpty(
               smsCommand.getDefaultMessage(),
@@ -181,7 +185,7 @@ public class DataValueSMSListener extends CommandSMSListener {
     }
 
     if (markCompleteDataSet(sms, orgUnit, smsCommand, date)) {
-      sendSuccessFeedback(senderPhoneNumber, smsCommand, parsedMessage, date, orgUnit);
+      sendSuccessFeedback(senderPhoneNumber, smsCommand, codeValues, date, orgUnit);
 
       update(sms, SmsMessageStatus.PROCESSED, true);
     } else {
@@ -192,7 +196,7 @@ public class DataValueSMSListener extends CommandSMSListener {
   }
 
   @Override
-  protected SMSCommand getSMSCommand(IncomingSms sms) {
+  protected SMSCommand getSMSCommand(@Nonnull IncomingSms sms) {
     return smsCommandService.getSMSCommand(
         SmsUtils.getCommandString(sms), ParserType.KEY_VALUE_PARSER);
   }

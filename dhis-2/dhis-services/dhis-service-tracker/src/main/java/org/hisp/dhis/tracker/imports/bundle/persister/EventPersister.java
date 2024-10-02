@@ -61,7 +61,7 @@ import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
@@ -105,7 +105,7 @@ public class EventPersister
         .eventNotifications(bundle.getEventNotifications().get(UID.of(event.getUid())))
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
-        .accessedBy(bundle.getUsername())
+        .accessedBy(bundle.getUser().getUsername())
         .event(event)
         .program(event.getProgramStage().getProgram())
         .triggers(triggers)
@@ -136,7 +136,7 @@ public class EventPersister
 
   @Override
   protected Event convert(TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event) {
-    return eventConverter.from(bundle.getPreheat(), event);
+    return eventConverter.from(bundle.getPreheat(), event, bundle.getUser());
   }
 
   @Override
@@ -149,7 +149,8 @@ public class EventPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Event event,
-      Event hibernateEntity) {
+      Event hibernateEntity,
+      UserDetails user) {
     // DO NOTHING - EVENT HAVE NO ATTRIBUTES
   }
 
@@ -158,15 +159,17 @@ public class EventPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Event event,
-      Event hibernateEntity) {
-    handleDataValues(entityManager, preheat, event.getDataValues(), hibernateEntity);
+      Event hibernateEntity,
+      UserDetails user) {
+    handleDataValues(entityManager, preheat, event.getDataValues(), hibernateEntity, user);
   }
 
   private void handleDataValues(
       EntityManager entityManager,
       TrackerPreheat preheat,
       Set<DataValue> payloadDataValues,
-      Event event) {
+      Event event,
+      UserDetails user) {
     Map<String, EventDataValue> dataValueDBMap =
         Optional.ofNullable(preheat.getEvent(event.getUid()))
             .map(
@@ -212,7 +215,7 @@ public class EventPersister
           }
 
           logTrackedEntityDataValueHistory(
-              CurrentUserUtil.getCurrentUsername(), dataElement, event, new Date(), valuesHolder);
+              user.getUsername(), dataElement, event, new Date(), valuesHolder);
         });
   }
 

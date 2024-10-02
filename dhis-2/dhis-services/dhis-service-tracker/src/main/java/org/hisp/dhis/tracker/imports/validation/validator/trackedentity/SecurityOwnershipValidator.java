@@ -43,7 +43,6 @@ import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -66,7 +65,7 @@ class SecurityOwnershipValidator
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity) {
     TrackerImportStrategy strategy = bundle.getStrategy(trackedEntity);
-    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails user = bundle.getUser();
 
     TrackedEntityType trackedEntityType =
         strategy.isUpdateOrDelete()
@@ -85,11 +84,11 @@ class SecurityOwnershipValidator
             : bundle.getPreheat().getOrganisationUnit(trackedEntity.getOrgUnit());
 
     if (strategy.isCreate()) {
-      checkTeTypeWriteAccess(reporter, trackedEntity, trackedEntityType);
+      checkTeTypeWriteAccess(reporter, trackedEntity, trackedEntityType, user);
     }
 
     if (strategy.isCreate() || strategy.isDelete()) {
-      checkOrgUnitInCaptureScope(reporter, trackedEntity, organisationUnit);
+      checkOrgUnitInCaptureScope(reporter, trackedEntity, organisationUnit, user);
     }
 
     if (!strategy.isCreate()) {
@@ -112,8 +111,8 @@ class SecurityOwnershipValidator
   private void checkTeTypeWriteAccess(
       Reporter reporter,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity,
-      TrackedEntityType trackedEntityType) {
-    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
+      TrackedEntityType trackedEntityType,
+      UserDetails user) {
     if (!aclService.canDataWrite(user, trackedEntityType)) {
       reporter.addError(trackedEntity, ValidationCode.E1001, user, trackedEntityType);
     }
@@ -125,8 +124,7 @@ class SecurityOwnershipValidator
   }
 
   private void checkOrgUnitInCaptureScope(
-      Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit) {
-    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
+      Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit, UserDetails user) {
     if (!user.isInUserHierarchy(orgUnit.getPath())) {
       reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
     }

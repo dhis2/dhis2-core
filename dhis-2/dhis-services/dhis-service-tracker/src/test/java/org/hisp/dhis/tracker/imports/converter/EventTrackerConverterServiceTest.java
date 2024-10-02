@@ -51,7 +51,6 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.tracker.imports.TrackerUserService;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.User;
@@ -82,10 +81,7 @@ class EventTrackerConverterServiceTest extends TestBase {
 
   private static final Date today = new Date();
 
-  @Mock public TrackerUserService trackerUserService;
-
-  private final NotesConverterService notesConverterService =
-      new NotesConverterService(trackerUserService);
+  private final NotesConverterService notesConverterService = new NotesConverterService();
 
   private RuleEngineConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> converter;
 
@@ -101,11 +97,14 @@ class EventTrackerConverterServiceTest extends TestBase {
 
   private org.hisp.dhis.user.User user;
 
+  private UserDetails currentUser;
+
   @BeforeEach
   void setUpTest() {
     converter = new EventTrackerConverterService(notesConverterService);
     user = makeUser("U");
-    injectSecurityContext(UserDetails.fromUser(user));
+    currentUser = UserDetails.fromUser(user);
+
     programStage = createProgramStage('A', 1);
     programStage.setUid(PROGRAM_STAGE_UID);
     programStage.setProgram(program);
@@ -144,7 +143,7 @@ class EventTrackerConverterServiceTest extends TestBase {
     org.hisp.dhis.tracker.imports.domain.Event event =
         event(dataValue(MetadataIdentifier.ofUid(dataElement.getUid()), "value"));
 
-    Event result = converter.from(preheat, event);
+    Event result = converter.from(preheat, event, currentUser);
 
     assertNotNull(result);
     assertNotNull(result.getProgramStage());
@@ -176,7 +175,7 @@ class EventTrackerConverterServiceTest extends TestBase {
         event(dataValue(MetadataIdentifier.ofUid(dataElement.getUid()), "value"));
     event.setStatus(EventStatus.COMPLETED);
 
-    Event result = converter.from(preheat, event);
+    Event result = converter.from(preheat, event, currentUser);
 
     assertNotNull(result);
     assertNotNull(result.getProgramStage());
@@ -210,7 +209,7 @@ class EventTrackerConverterServiceTest extends TestBase {
     org.hisp.dhis.tracker.imports.domain.Event event =
         event(eventUid, dataValue(MetadataIdentifier.ofUid(dataElement.getUid()), "value"));
 
-    Event result = converter.from(preheat, event);
+    Event result = converter.from(preheat, event, currentUser);
 
     assertNotNull(result);
     assertNotNull(result.getProgramStage());
@@ -245,7 +244,7 @@ class EventTrackerConverterServiceTest extends TestBase {
         event(eventUid, dataValue(MetadataIdentifier.ofUid(dataElement.getUid()), "value"));
     event.setStatus(EventStatus.COMPLETED);
 
-    Event result = converter.from(preheat, event);
+    Event result = converter.from(preheat, event, currentUser);
 
     assertNotNull(result);
     assertNotNull(result.getProgramStage());
@@ -276,7 +275,7 @@ class EventTrackerConverterServiceTest extends TestBase {
     DataValue dataValue = dataValue(metadataIdentifier, "900");
     org.hisp.dhis.tracker.imports.domain.Event event = event(dataValue);
 
-    Event result = converter.fromForRuleEngine(preheat, event);
+    Event result = converter.fromForRuleEngine(preheat, event, currentUser);
 
     assertNotNull(result);
     assertNotNull(result.getProgramStage());
@@ -315,7 +314,7 @@ class EventTrackerConverterServiceTest extends TestBase {
     org.hisp.dhis.tracker.imports.domain.Event event = event(existingEvent.getUid(), newDataValue);
     when(preheat.getEvent(existingEvent.getUid())).thenReturn(existingEvent);
 
-    Event result = converter.fromForRuleEngine(preheat, event);
+    Event result = converter.fromForRuleEngine(preheat, event, currentUser);
 
     assertEquals(2, result.getEventDataValues().size());
     EventDataValue expect1 = new EventDataValue();
@@ -345,7 +344,7 @@ class EventTrackerConverterServiceTest extends TestBase {
     org.hisp.dhis.tracker.imports.domain.Event event = event(existingEvent.getUid(), updatedValue);
     when(preheat.getEvent(event.getEvent())).thenReturn(existingEvent);
 
-    Event result = converter.fromForRuleEngine(preheat, event);
+    Event result = converter.fromForRuleEngine(preheat, event, currentUser);
 
     assertEquals(1, result.getEventDataValues().size());
     EventDataValue expect1 = new EventDataValue();
@@ -378,7 +377,7 @@ class EventTrackerConverterServiceTest extends TestBase {
     org.hisp.dhis.tracker.imports.domain.Event event = event(existingEvent.getUid(), updatedValue);
     when(preheat.getEvent(event.getEvent())).thenReturn(existingEvent);
 
-    Event actual = converter.fromForRuleEngine(preheat, event);
+    Event actual = converter.fromForRuleEngine(preheat, event, currentUser);
 
     assertEquals(1, actual.getEventDataValues().size());
     EventDataValue expect1 = new EventDataValue();

@@ -106,7 +106,7 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.40</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>9.41.1</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
@@ -122,12 +122,12 @@
     <lettuce.version>6.4.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>10.17.0</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>10.18.2</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.10.1</c3p0.version>
-    <HikariCP.version>5.1.0</HikariCP.version>
+    <HikariCP.version>6.0.0</HikariCP.version>
     <postgresql-driver.version>42.7.4</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.10</datasource-proxy.version>
@@ -140,7 +140,7 @@
     <velocity-tools.version>3.1</velocity-tools.version>
 
     <!-- Jackson -->
-    <jackson.version>2.17.2</jackson.version>
+    <jackson.version>2.18.0</jackson.version>
     <jackson-datatype-jts.version>2.14</jackson-datatype-jts.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 
@@ -190,7 +190,7 @@
     <google-api-client.version>2.7.0</google-api-client.version>
     <lombok.version>1.18.34</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
-    <joda-time.version>2.12.7</joda-time.version>
+    <joda-time.version>2.13.0</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
     <commons-collections4.version>4.4</commons-collections4.version>
     <commons-beanutils.version>1.9.4</commons-beanutils.version>
@@ -212,7 +212,7 @@
     <micrometer.version>1.12.6</micrometer.version>
 
     <!-- Logging -->
-    <log4j.version>2.24.0</log4j.version>
+    <log4j.version>2.24.1</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
@@ -220,7 +220,7 @@
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>3.0</hamcrest.version>
-    <testcontainers.version>1.20.1</testcontainers.version>
+    <testcontainers.version>1.20.2</testcontainers.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.2.2</awaitility.version>
     <swagger.version>2.1.21</swagger.version>
@@ -239,7 +239,7 @@
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
-    <restrict-imports-enforcer.version>2.5.0</restrict-imports-enforcer.version>
+    <restrict-imports-enforcer.version>2.6.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.17.1</versions-maven-plugin.version>
     <dependency-check-maven.version>10.0.4</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.8.6.2</spotbugs-maven-plugin.version>

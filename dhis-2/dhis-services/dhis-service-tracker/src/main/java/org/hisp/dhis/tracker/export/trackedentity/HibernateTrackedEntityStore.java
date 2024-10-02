@@ -656,12 +656,11 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    */
   private void handleOrganisationUnits(TrackedEntityQueryParams params) {
     UserDetails user = getCurrentUserDetails();
-    if (user != null && params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
+    if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
       params.setOrgUnits(
           new HashSet<>(organisationUnitStore.getByUid(user.getUserEffectiveSearchOrgUnitIds())));
       params.setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    } else if (user != null
-        && params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CAPTURE)) {
+    } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CAPTURE)) {
       params.setOrgUnits(new HashSet<>(organisationUnitStore.getByUid(user.getUserOrgUnitIds())));
       params.setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
     }

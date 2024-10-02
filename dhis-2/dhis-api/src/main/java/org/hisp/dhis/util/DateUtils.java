@@ -639,11 +639,11 @@ public class DateUtils {
    * @param date the date.
    * @param days the number of days to add.
    */
-  public static Date addDays(Date date, int days) {
-    Calendar cal = Calendar.getInstance();
-    cal.setTime(date);
-    cal.add(Calendar.DATE, days);
-    return cal.getTime();
+  public static Date addDays(Date date, double days) {
+    final long millisPerDay = SECONDS_PER_DAY * 1000;
+    long currentTimeInMillis = date.getTime();
+    long additionalMillis = (long) (days * millisPerDay);
+    return new Date(currentTimeInMillis + additionalMillis);
   }
 
   /**
