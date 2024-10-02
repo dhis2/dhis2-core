@@ -60,15 +60,16 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @Service
 @RequiredArgsConstructor
-public class DefaultUserSettingsService implements UserSettingsService {
+public class DefaultUserSettingsService implements UserSettingsService, UserSessionListener {
 
   private final UserStore userStore;
   private final UserSettingStore userSettingStore;
   private final SystemSettingsProvider systemSettingsProvider;
   private final TransactionTemplate transactionTemplate;
 
+  @Override
   @EventListener
-  public void onStartOfSession(AuthenticationSuccessEvent event) {
+  public void onSessionInit(AuthenticationSuccessEvent event) {
     Object principal = event.getAuthentication().getPrincipal();
     if (principal instanceof UserDetails user) {
       String username = user.getUsername();
@@ -76,8 +77,9 @@ public class DefaultUserSettingsService implements UserSettingsService {
     }
   }
 
+  @Override
   @EventListener
-  public void onEndOfSession(SessionDestroyedEvent event) {
+  public void onSessionExpired(SessionDestroyedEvent event) {
     for (SecurityContext context : event.getSecurityContexts()) {
       Object principal = context.getAuthentication().getPrincipal();
       if (principal instanceof UserDetails user) {

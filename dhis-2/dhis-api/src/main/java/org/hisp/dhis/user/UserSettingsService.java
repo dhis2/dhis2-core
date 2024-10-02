@@ -57,8 +57,6 @@ public interface UserSettingsService {
   @Nonnull
   UserSettings getUserSettings(@Nonnull String username, boolean includeSystemFallbacks);
 
-  // FIXME check if Dates are numbers in JSON
-
   /**
    * Saves the key/value pair as a user setting for the current user
    *

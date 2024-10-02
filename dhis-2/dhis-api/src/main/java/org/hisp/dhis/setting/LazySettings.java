@@ -29,7 +29,7 @@ package org.hisp.dhis.setting;
 
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.Character.toUpperCase;
-import static java.lang.Integer.parseInt;
+import static java.lang.Long.parseLong;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -244,11 +244,12 @@ final class LazySettings implements SystemSettings, UserSettings {
     if (defaultValue instanceof Number n) return Json.of(asInt(key, n.intValue()));
     if (defaultValue instanceof Boolean b) return Json.of(asBoolean(key, b));
     if (defaultValue instanceof Locale l) return Json.of(asLocale(key, l).toLanguageTag());
+    if (defaultValue instanceof Enum e) return Json.of(asEnum(key, e).toString());
     String value = asString(key, "");
     // auto-conversion based on regex when no default is known to tell the type
     if ("true".equals(value) || "false".equals(value)) return Json.of(parseBoolean(value));
-    if (value.matches("[0-9]+")) return Json.of(parseInt(value));
-    if (value.matches("[0-9]?\\.[0-9]+]")) return Json.of(Double.parseDouble(value));
+    if (value.matches("^[-+]?[0-9]+$")) return Json.of(parseLong(value));
+    if (value.matches("^[-+]?[0-9]?\\.[0-9]+$")) return Json.of(Double.parseDouble(value));
     return Json.of(value);
   }
 
@@ -300,7 +301,7 @@ final class LazySettings implements SystemSettings, UserSettings {
 
   private static Date parseDate(String raw) {
     if (raw.isEmpty()) return new Date(0);
-    if (raw.matches("^[0-9]+$")) return new Date(Long.parseLong(raw));
+    if (raw.matches("^[0-9]+$")) return new Date(parseLong(raw));
     return Date.from(LocalDateTime.parse(raw).atZone(ZoneId.systemDefault()).toInstant());
   }
 
