@@ -84,7 +84,7 @@
     <jib.container.user>65534</jib.container.user>
     <jib.container.appRoot>/usr/local/tomcat/webapps/ROOT</jib.container.appRoot>
 
-    <tomcat.version>8.5.47</tomcat.version>
+    <tomcat.version>10.1.30</tomcat.version>
     <jrebel-maven-plugin.version>1.1.6</jrebel-maven-plugin.version>
     <maven-war-plugin.version>3.4.0</maven-war-plugin.version>
     <properties-maven-plugin.version>1.2.1</properties-maven-plugin.version>
