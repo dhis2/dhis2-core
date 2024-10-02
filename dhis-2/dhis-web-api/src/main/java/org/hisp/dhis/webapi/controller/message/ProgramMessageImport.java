@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.message;
+package org.hisp.dhis.webapi.controller.message;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-import lombok.Builder;
-import lombok.Getter;
-import org.hisp.dhis.common.UID;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.program.message.ProgramMessage;
 
 /**
- * @author Zubair Asghar
+ * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@Getter
-@Builder(toBuilder = true)
-public class ProgramMessageOperationParams {
-  @Builder.Default private Set<UID> organisationUnits = new HashSet<>();
-
-  private UID enrollment;
-
-  private UID event;
-
-  private ProgramMessageStatus messageStatus;
-
-  private Date afterDate;
-
-  private Date beforeDate;
-
-  private Integer page;
-
-  private Integer pageSize;
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@JacksonXmlRootElement(localName = "programMessageBatch", namespace = DxfNamespaces.DXF_2_0)
+public class ProgramMessageImport {
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "programMessages", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "programMessage", namespace = DxfNamespaces.DXF_2_0)
+  private List<ProgramMessage> programMessages = new ArrayList<>();
 }

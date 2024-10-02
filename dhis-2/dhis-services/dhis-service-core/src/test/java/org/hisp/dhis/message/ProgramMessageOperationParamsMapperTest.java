@@ -33,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -40,6 +42,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -56,13 +59,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 /**
  * @author Zubair Asghar
  */
-@MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class ProgramMessageOperationParamsMapperTest {
   private static UID ENROLLMENT = UID.of(CodeGenerator.generateUid());
@@ -95,26 +95,32 @@ class ProgramMessageOperationParamsMapperTest {
     event = new Event();
     event.setUid(EVENT.getValue());
     event.setEnrollment(enrollment);
-
-    when(manager.get(eq(Enrollment.class), anyString())).thenReturn(enrollment);
-    when(manager.get(eq(Event.class), anyString())).thenReturn(event);
-    when(programService.getCurrentUserPrograms()).thenReturn(List.of(program));
   }
 
   @Test
-  void shouldMapEnrollmentUIDToEnrollmentObject() throws NotFoundException {
+  void shouldMapEnrollmentUIDToEnrollmentObject() throws NotFoundException, BadRequestException {
+    when(programService.getCurrentUserPrograms()).thenReturn(List.of(program));
+    when(manager.get(eq(Enrollment.class), anyString())).thenReturn(enrollment);
+
     ProgramMessageQueryParams queryParams =
         subject.map(ProgramMessageOperationParams.builder().enrollment(ENROLLMENT).build());
 
     assertEquals(enrollment, queryParams.getEnrollment());
+    verify(manager).get(Enrollment.class, ENROLLMENT.getValue());
+    verifyNoMoreInteractions(manager);
   }
 
   @Test
-  void shouldMapEventUIDToEnrollmentObject() throws NotFoundException {
+  void shouldMapEventUIDToEnrollmentObject() throws NotFoundException, BadRequestException {
+    when(programService.getCurrentUserPrograms()).thenReturn(List.of(program));
+    when(manager.get(eq(Event.class), anyString())).thenReturn(event);
+
     ProgramMessageQueryParams queryParams =
         subject.map(ProgramMessageOperationParams.builder().event(EVENT).build());
 
     assertEquals(event, queryParams.getEvent());
+    verify(manager).get(Event.class, EVENT.getValue());
+    verifyNoMoreInteractions(manager);
   }
 
   @Test
@@ -133,6 +139,8 @@ class ProgramMessageOperationParamsMapperTest {
         String.format(
             "%s: %s does not exist.", Enrollment.class.getSimpleName(), invalidEnrollment),
         exception.getMessage());
+    verify(manager).get(Enrollment.class, invalidEnrollment.getValue());
+    verifyNoMoreInteractions(manager);
   }
 
   @Test
@@ -148,10 +156,13 @@ class ProgramMessageOperationParamsMapperTest {
     assertStartsWith(
         String.format("%s: %s does not exist.", Event.class.getSimpleName(), invalidEvent),
         exception.getMessage());
+    verify(manager).get(Event.class, invalidEvent.getValue());
+    verifyNoMoreInteractions(manager);
   }
 
   @Test
   void shouldFailWhenUserHasNoAccessToProgram() {
+    when(manager.get(eq(Enrollment.class), anyString())).thenReturn(enrollment);
     when(programService.getCurrentUserPrograms()).thenReturn(List.of());
 
     IllegalQueryException exception =
@@ -166,5 +177,8 @@ class ProgramMessageOperationParamsMapperTest {
             "User:%s does not have access to the required program:%s",
             user.getUsername(), program.getName()),
         exception.getMessage());
+
+    verify(programService).getCurrentUserPrograms();
+    verifyNoMoreInteractions(programService);
   }
 }
