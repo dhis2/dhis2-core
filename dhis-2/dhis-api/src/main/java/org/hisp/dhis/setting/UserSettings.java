@@ -119,7 +119,7 @@ public non-sealed interface UserSettings extends Settings {
   }
 
   default String getUserStyle() {
-    return asString("keyStyle", "");
+    return asString("keyStyle", "light_blue/light_blue.css");
   }
 
   default boolean getUserMessageEmailNotification() {

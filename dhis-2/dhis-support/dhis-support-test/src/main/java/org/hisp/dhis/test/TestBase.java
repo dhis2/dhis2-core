@@ -2676,8 +2676,10 @@ public abstract class TestBase {
 
   public void injectSecurityContext(UserDetails currentUserDetails) {
     injectSecurityContextNoSettings(currentUserDetails);
-    String username = currentUserDetails.getUsername();
-    SessionUserSettings.put(username, userSettingsService.getUserSettings(username, true));
+    if (userSettingsService != null) {
+      String username = currentUserDetails.getUsername();
+      SessionUserSettings.put(username, userSettingsService.getUserSettings(username, true));
+    }
   }
 
   public static void clearSecurityContext() {

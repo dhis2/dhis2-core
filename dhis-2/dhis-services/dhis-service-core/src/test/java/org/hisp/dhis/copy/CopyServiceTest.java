@@ -137,7 +137,7 @@ class CopyServiceTest extends TestBase {
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     when(eventProgramEnrollmentService.getEnrollments(original)).thenReturn(originalEnrollments);
 
@@ -172,7 +172,7 @@ class CopyServiceTest extends TestBase {
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
 
@@ -196,7 +196,7 @@ class CopyServiceTest extends TestBase {
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
     ProgramStage stageCopy = new ArrayList<>(programCopy.getProgramStages()).get(0);
@@ -242,7 +242,7 @@ class CopyServiceTest extends TestBase {
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
     ProgramSection sectionCopy = new ArrayList<>(programCopy.getProgramSections()).get(0);
@@ -258,7 +258,7 @@ class CopyServiceTest extends TestBase {
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
     ProgramTrackedEntityAttribute pteaCopy = programCopy.getProgramAttributes().get(0);
@@ -275,7 +275,7 @@ class CopyServiceTest extends TestBase {
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
     ProgramRuleVariable prvCopy = new ArrayList<>(programCopy.getProgramRuleVariables()).get(0);
@@ -291,7 +291,7 @@ class CopyServiceTest extends TestBase {
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
     ProgramIndicator indicatorCopy = new ArrayList<>(programCopy.getProgramIndicators()).get(0);
@@ -308,7 +308,7 @@ class CopyServiceTest extends TestBase {
     when(eventProgramEnrollmentService.getEnrollments(original)).thenReturn(null);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
 
@@ -322,7 +322,7 @@ class CopyServiceTest extends TestBase {
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(false);
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     ForbiddenException forbiddenException =
         assertThrows(
@@ -351,7 +351,7 @@ class CopyServiceTest extends TestBase {
     when(programService.addProgram(any(Program.class))).thenThrow(error);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     assertThrows(
         DataIntegrityViolationException.class,

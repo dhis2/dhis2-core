@@ -80,6 +80,7 @@ class StaticContentControllerTest extends WebSpringTestBase {
     this.mockMultipartFile =
         new MockMultipartFile("file", "testlogo.png", MIME_PNG, "image".getBytes());
     settingsService.put("keyUseCustomLogoBanner", false);
+    settingsService.clearCurrentSettings();
   }
 
   @Test
@@ -101,6 +102,7 @@ class StaticContentControllerTest extends WebSpringTestBase {
     fileResourceContentStore.saveFileResourceContent(
         build(LOGO_BANNER, mockMultipartFile, DOCUMENT), "image".getBytes());
     settingsService.put("keyUseCustomLogoBanner", true);
+    settingsService.clearCurrentSettings();
     mvc.perform(get(URL + LOGO_BANNER).accept(TEXT_HTML_VALUE).session(session))
         .andExpect(content().contentType(MIME_PNG))
         .andExpect(content().bytes(mockMultipartFile.getBytes()))
@@ -117,6 +119,7 @@ class StaticContentControllerTest extends WebSpringTestBase {
         build(LOGO_BANNER, mockMultipartFile, DOCUMENT), "image".getBytes());
     // a positive flag indicating the usage of a custom logo
     settingsService.put("keyUseCustomLogoBanner", true);
+    settingsService.clearCurrentSettings();
     // When
     final ResultActions result =
         mvc.perform(get(URL + LOGO_BANNER).accept(APPLICATION_JSON).session(session));

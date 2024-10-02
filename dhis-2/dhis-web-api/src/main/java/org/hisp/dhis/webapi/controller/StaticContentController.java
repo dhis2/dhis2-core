@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller;
 import static java.lang.String.format;
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.feedback.Status.WARNING;
@@ -59,6 +58,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResourceContentStore;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -195,9 +195,9 @@ public class StaticContentController {
       @PathVariable("key") String key,
       @RequestParam(value = "file") MultipartFile file,
       SystemSettings settings)
-      throws WebMessageException, NotFoundException {
+      throws WebMessageException, BadRequestException {
     if (file == null || file.isEmpty()) {
-      throw new WebMessageException(badRequest("Missing parameter 'file'"));
+      throw new BadRequestException("Missing parameter 'file'");
     }
 
     // Only PNG is accepted at the current time
@@ -211,7 +211,7 @@ public class StaticContentController {
     // Only keys in the white list are accepted at the current time
 
     if (!Set.of("logo_banner", "logo_front").contains(key)) {
-      throw new WebMessageException(badRequest("This key is not supported."));
+      throw new BadRequestException("This key is not supported.");
     }
 
     try {
@@ -220,7 +220,7 @@ public class StaticContentController {
               build(key, file, DEFAULT_RESOURCE_DOMAIN), file.getBytes());
 
       if (fileKey == null) {
-        throw new WebMessageException(badRequest("The resource was not saved"));
+        throw new BadRequestException("The resource was not saved");
       } else {
         log.info(format("File [%s] uploaded. Storage key: [%s]", file.getName(), fileKey));
       }

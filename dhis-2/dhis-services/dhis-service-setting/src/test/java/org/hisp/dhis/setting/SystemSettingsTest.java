@@ -78,7 +78,7 @@ class SystemSettingsTest {
   void testToJson() {
     SystemSettings settings = SystemSettings.of(Map.of("applicationTitle", "Hello World"));
     JsonMap<JsonMixed> asJson = settings.toJson(false);
-    // it does contain the custom value
+    // it does contain the set value
     JsonPrimitive stringValue = asJson.get("applicationTitle");
     assertTrue(stringValue.isString());
     assertEquals("Hello World", stringValue.as(JsonString.class).string());
