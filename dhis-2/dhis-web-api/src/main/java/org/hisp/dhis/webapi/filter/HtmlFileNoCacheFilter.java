@@ -46,7 +46,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * @author Kai Vandivier
  */
 @Component
-public class HttpNoCacheFilter extends OncePerRequestFilter {
+public class HtmlFileNoCacheFilter extends OncePerRequestFilter {
   public static final String HTML_PATH_REGEX = "\\.html$|/$";
   public static final Pattern HTML_PATH_PATTERN = Pattern.compile(HTML_PATH_REGEX);
 
