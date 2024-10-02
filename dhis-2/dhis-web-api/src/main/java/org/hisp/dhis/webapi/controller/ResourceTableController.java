@@ -56,10 +56,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
@@ -170,7 +173,7 @@ public class ResourceTableController {
     return Arrays.stream(AnalyticsTableType.values())
         .filter(type -> type.name().equalsIgnoreCase(typeName))
         .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("Unknown table type: " + typeName));
+        .orElseThrow(() -> new IllegalQueryException(new ErrorMessage(ErrorCode.E7190, typeName)));
   }
 
   @RequestMapping(method = {PUT, POST})

@@ -107,12 +107,12 @@ public class AnalyticsTableUpdateParams {
   }
 
   /**
-   * Indicates whether the export process should skip citus for the given table type.
+   * Indicates whether the export process should skip Citus table for the given table type.
    *
    * @param type the table type
-   * @return true if citus should be skipped, false otherwise
+   * @return true if Citus should be skipped, false otherwise
    */
-  public boolean isSkippedCitusType(AnalyticsTableType type) {
+  public boolean isSkipCitusType(AnalyticsTableType type) {
     return skipCitusTypes.contains(type);
   }
 

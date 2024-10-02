@@ -156,7 +156,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   protected Distribution getDistribution(AnalyticsTableUpdateParams params) {
-    if (params.isSkippedCitusType(getAnalyticsTableType())) {
+    if (params.isSkipCitusType(getAnalyticsTableType())) {
       return Distribution.NONE;
     }
     return analyticsTableSettings.getDistribution();
