@@ -36,7 +36,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.setting.UserSettings;
 import org.springframework.security.core.GrantedAuthority;
 
 @Getter
@@ -61,7 +60,6 @@ public class UserDetailsImpl implements UserDetails {
   @Nonnull private final Collection<GrantedAuthority> authorities;
   @Nonnull private final Set<String> allAuthorities;
   @Nonnull private final Set<String> allRestrictions;
-  @Nonnull private final UserSettings userSettings;
   @Nonnull private final Set<String> userGroupIds;
   @Nonnull private final Set<String> userOrgUnitIds;
   @Nonnull private final Set<String> userDataOrgUnitIds;

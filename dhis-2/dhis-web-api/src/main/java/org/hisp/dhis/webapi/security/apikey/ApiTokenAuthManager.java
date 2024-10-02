@@ -37,12 +37,9 @@ import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
 import org.hisp.dhis.security.apikey.ApiTokenDeletedEvent;
 import org.hisp.dhis.security.apikey.ApiTokenService;
-import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.user.UserStore;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.context.annotation.Lazy;
@@ -63,8 +60,6 @@ public class ApiTokenAuthManager implements AuthenticationManager {
   private final OrganisationUnitService organisationUnitService;
   private final UserService userService;
   private final UserStore userStore;
-  private final UserSettingsService userSettingsService;
-  private final SystemSettingsProvider settingsProvider;
 
   private final Cache<ApiTokenAuthenticationToken> apiTokenCache;
 
@@ -73,15 +68,11 @@ public class ApiTokenAuthManager implements AuthenticationManager {
       ApiTokenService apiTokenService,
       CacheProvider cacheProvider,
       @Lazy UserService userService,
-      UserSettingsService userSettingsService,
-      OrganisationUnitService organisationUnitService,
-      SystemSettingsProvider settingsProvider) {
+      OrganisationUnitService organisationUnitService) {
     this.userService = userService;
     this.userStore = userStore;
     this.apiTokenService = apiTokenService;
-    this.userSettingsService = userSettingsService;
     this.organisationUnitService = organisationUnitService;
-    this.settingsProvider = settingsProvider;
     this.apiTokenCache = cacheProvider.createApiKeyCache();
   }
 
@@ -145,11 +136,6 @@ public class ApiTokenAuthManager implements AuthenticationManager {
           ApiTokenErrors.invalidToken("The API token is disabled, locked or 2FA is enabled."));
     }
 
-    UserSettings userSettings =
-        userSettingsService
-            .getUserSettings(user.getUsername())
-            .withFallback(settingsProvider.getCurrentSettings().toMap());
-
     List<String> organisationUnitsUidsByUser =
         organisationUnitService.getOrganisationUnitsUidsByUser(user.getUsername());
     List<String> searchOrganisationUnitsUidsByUser =
@@ -163,8 +149,7 @@ public class ApiTokenAuthManager implements AuthenticationManager {
         credentialsNonExpired,
         new HashSet<>(organisationUnitsUidsByUser),
         new HashSet<>(searchOrganisationUnitsUidsByUser),
-        new HashSet<>(dataViewOrganisationUnitsUidsByUser),
-        userSettings);
+        new HashSet<>(dataViewOrganisationUnitsUidsByUser));
   }
 
   private static void validateTokenExpiry(Long expiry) {

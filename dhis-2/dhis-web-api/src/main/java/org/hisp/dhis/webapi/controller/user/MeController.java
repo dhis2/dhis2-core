@@ -172,7 +172,7 @@ public class MeController {
 
     List<ApiToken> patTokens = apiTokenService.getAllOwning(user);
 
-    MeDto meDto = new MeDto(user, userDetails.getUserSettings(), programs, dataSets, patTokens);
+    MeDto meDto = new MeDto(user, UserSettings.getCurrentSettings(), programs, dataSets, patTokens);
     determineUserImpersonation(meDto);
 
     var params = org.hisp.dhis.fieldfiltering.FieldFilterParams.of(meDto, fields);

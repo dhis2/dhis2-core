@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anySet;
 import static org.mockito.Mockito.anyString;
@@ -218,7 +219,7 @@ class SmsMessageSenderTest {
 
   @Test
   void testSendMessageWithListOfUsers() {
-    when(userSettingsService.getUserSettings(anyString())).thenReturn(userSettings);
+    when(userSettingsService.getUserSettings(anyString(), anyBoolean())).thenReturn(userSettings);
     when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     when(settings.getSmsMaxLength()).thenReturn(maxSmsLength);
 
@@ -248,7 +249,7 @@ class SmsMessageSenderTest {
 
   @Test
   void testSendMessageWithUserSMSSettingsDisabled() {
-    when(userSettingsService.getUserSettings(anyString())).thenReturn(userSettings);
+    when(userSettingsService.getUserSettings(anyString(), anyBoolean())).thenReturn(userSettings);
     when(userSettings.getUserMessageSmsNotification()).thenReturn(false);
 
     OutboundMessageResponse status =

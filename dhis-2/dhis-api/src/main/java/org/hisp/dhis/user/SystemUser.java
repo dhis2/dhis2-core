@@ -29,12 +29,10 @@ package org.hisp.dhis.user;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.setting.UserSettings;
 import org.springframework.security.core.GrantedAuthority;
 
 /**
@@ -163,12 +161,6 @@ public class SystemUser implements UserDetails {
   @Override
   public boolean isAuthorized(@Nonnull Authorities auth) {
     return true;
-  }
-
-  @Nonnull
-  @Override
-  public UserSettings getUserSettings() {
-    return UserSettings.of(Map.of());
   }
 
   @Nonnull

@@ -32,6 +32,7 @@ import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.setting.SessionUserSettings;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -49,13 +50,13 @@ public class UserContextInterceptor implements HandlerInterceptor {
       final HttpServletRequest request,
       @Nonnull final HttpServletResponse response,
       @Nonnull final Object handler) {
-    UserSettings.clearCurrentUserSettings();
+    SessionUserSettings.clearCurrentUserSettings();
     // Note: if there is no override happening the settings are initialized on access
     if (!"true".equals(request.getParameter("translate"))) return true;
     String locale = request.getParameter("locale");
     if (locale == null || locale.isEmpty()) return true;
     if (!CurrentUserUtil.hasCurrentUser()) return true;
-    UserSettings.overrideCurrentUserSettings(Map.of("keyDbLocale", locale));
+    SessionUserSettings.overrideCurrentUserSettings(Map.of("keyDbLocale", locale));
     return true;
   }
 
@@ -66,6 +67,6 @@ public class UserContextInterceptor implements HandlerInterceptor {
       @Nonnull Object handler,
       ModelAndView modelAndView) {
     // cleanup: unset for the thread
-    UserSettings.clearCurrentUserSettings();
+    SessionUserSettings.clearCurrentUserSettings();
   }
 }

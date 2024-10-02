@@ -206,7 +206,9 @@ public class SmsMessageSender implements MessageSender {
   // -------------------------------------------------------------------------
 
   private boolean isQualifiedReceiver(User user) {
-    return userSettingsService.getUserSettings(user.getUsername()).getUserMessageSmsNotification();
+    return userSettingsService
+        .getUserSettings(user.getUsername(), true)
+        .getUserMessageSmsNotification();
   }
 
   private OutboundMessageResponse sendMessage(

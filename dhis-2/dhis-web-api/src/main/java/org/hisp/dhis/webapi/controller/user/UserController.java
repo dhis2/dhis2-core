@@ -484,7 +484,7 @@ public class UserController extends AbstractCrudController<User> {
     // Replicate user settings
     // ---------------------------------------------------------------------
 
-    UserSettings settings = userSettingsService.getUserSettings(existingUser.getUsername());
+    UserSettings settings = userSettingsService.getUserSettings(existingUser.getUsername(), false);
     userSettingsService.putAll(settings.toMap(), userReplica.getUsername());
 
     return created("User replica created")

@@ -505,7 +505,7 @@ public class DefaultMessageService implements MessageService {
     UserSettings settings =
         conversation.getCreatedBy() == null
             ? UserSettings.getCurrentSettings()
-            : userService.createUserDetails(conversation.getCreatedBy()).getUserSettings();
+            : userSettingsService.getUserSettings(conversation.getCreatedBy().getUsername(), true);
 
     Locale locale = settings.getUserUiLocale();
 

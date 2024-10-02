@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.util.JsonValueUtils.toJavaString;
 import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
@@ -85,7 +86,7 @@ public class UserSettingsController {
       @OpenApi.Param({UID.class, User.class}) @RequestParam(value = "userId", required = false)
           String userId,
       HttpServletResponse response)
-      throws ForbiddenException, ConflictException {
+      throws ForbiddenException, NotFoundException {
 
     response.setHeader(
         ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue());
@@ -101,7 +102,7 @@ public class UserSettingsController {
       @OpenApi.Param({UID.class, User.class}) @RequestParam(value = "userId", required = false)
           String userId,
       HttpServletResponse response)
-      throws ForbiddenException, ConflictException {
+      throws ForbiddenException, ConflictException, NotFoundException {
 
     response.setHeader(
         ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue());
@@ -125,7 +126,7 @@ public class UserSettingsController {
 
     if (isEmpty(newValue)) throw new ConflictException("You need to specify a new value");
 
-    if (username == null) username = getUser(userId, username).getUsername();
+    if (username == null) username = getUsername(userId);
     userSettingsService.put(key, newValue, username);
 
     return ok("User setting saved");
@@ -137,8 +138,8 @@ public class UserSettingsController {
       @RequestParam(value = "user", required = false) String username,
       @OpenApi.Param({UID.class, User.class}) @RequestParam(value = "userId", required = false)
           String userId)
-      throws ForbiddenException, ConflictException, NotFoundException {
-    if (username == null) username = getUser(userId, username).getUsername();
+      throws ForbiddenException, NotFoundException {
+    if (username == null) username = getUsername(userId);
     userSettingsService.put(key, null, username);
   }
 
@@ -148,34 +149,28 @@ public class UserSettingsController {
    * the user.
    *
    * @param uid the user uid
-   * @param username the user username
-   * @return the user found with uid or username, or current user if no uid or username was
-   *     specified
+   * @return the username
    */
-  private UserDetails getUser(String uid, String username)
-      throws ConflictException, ForbiddenException {
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    if (uid == null && username == null) return currentUser;
+  private String getUsername(String uid) throws ForbiddenException, NotFoundException {
+    if (uid == null) return CurrentUserUtil.getCurrentUsername();
 
-    User user = uid != null ? userService.getUser(uid) : userService.getUserByUsername(username);
+    User user = userService.getUser(uid);
 
-    if (user == null)
-      throw new ConflictException("Could not find user '" + firstNonNull(uid, username) + "'");
+    if (user == null) throw new NotFoundException(User.class, uid);
 
     Set<String> userGroups =
         user.getGroups().stream().map(UserGroup::getUid).collect(Collectors.toSet());
 
+    UserDetails currentUser = getCurrentUserDetails();
     if (!userService.canAddOrUpdateUser(userGroups) && !currentUser.canModifyUser(user))
       throw new ForbiddenException("You are not authorized to access user: " + user.getUsername());
 
-    return UserDetails.fromUser(user);
+    return user.getUsername();
   }
 
   private UserSettings getUserSettings(String userId, String username, boolean useFallback)
-      throws ConflictException, ForbiddenException {
-    UserDetails user = getUser(userId, username);
-    return useFallback
-        ? user.getUserSettings()
-        : userSettingsService.getUserSettings(user.getUsername());
+      throws ForbiddenException, NotFoundException {
+    if (username == null) username = getUsername(userId);
+    return userSettingsService.getUserSettings(username, useFallback);
   }
 }

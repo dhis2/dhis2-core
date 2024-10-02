@@ -28,7 +28,6 @@
 package org.hisp.dhis.user;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,7 +36,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.UserDetailsImpl.UserDetailsImplBuilder;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -60,14 +58,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
       return null;
     }
     return createUserDetails(
-        user,
-        user.isAccountNonLocked(),
-        user.isCredentialsNonExpired(),
-        null,
-        null,
-        null,
-        UserSettings.of(Map.of()),
-        true);
+        user, user.isAccountNonLocked(), user.isCredentialsNonExpired(), null, null, null, true);
   }
 
   /**
@@ -82,14 +73,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
       return null;
     }
     return createUserDetails(
-        user,
-        user.isAccountNonLocked(),
-        user.isCredentialsNonExpired(),
-        null,
-        null,
-        null,
-        UserSettings.of(Map.of()),
-        false);
+        user, user.isAccountNonLocked(), user.isCredentialsNonExpired(), null, null, null, false);
   }
 
   @CheckForNull
@@ -99,8 +83,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
       boolean credentialsNonExpired,
       @CheckForNull Set<String> orgUnitUids,
       @CheckForNull Set<String> searchOrgUnitUids,
-      @CheckForNull Set<String> dataViewUnitUids,
-      @Nonnull UserSettings settings) {
+      @CheckForNull Set<String> dataViewUnitUids) {
     return createUserDetails(
         user,
         accountNonLocked,
@@ -108,7 +91,6 @@ public interface UserDetails extends org.springframework.security.core.userdetai
         orgUnitUids,
         searchOrgUnitUids,
         dataViewUnitUids,
-        settings,
         true);
   }
 
@@ -120,7 +102,6 @@ public interface UserDetails extends org.springframework.security.core.userdetai
       @CheckForNull Set<String> orgUnitUids,
       @CheckForNull Set<String> searchOrgUnitUids,
       @CheckForNull Set<String> dataViewUnitUids,
-      @Nonnull UserSettings settings,
       boolean loadOrgUnits) {
 
     if (user == null) {
@@ -148,8 +129,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
                     user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList()))
             .isSuper(user.isSuper())
             .userRoleIds(setOfIds(user.getUserRoles()))
-            .userGroupIds(user.getUid() == null ? Set.of() : setOfIds(user.getGroups()))
-            .userSettings(settings);
+            .userGroupIds(user.getUid() == null ? Set.of() : setOfIds(user.getGroups()));
 
     if (loadOrgUnits) {
 
@@ -250,14 +230,6 @@ public interface UserDetails extends org.springframework.security.core.userdetai
   boolean isAuthorized(String auth);
 
   boolean isAuthorized(@Nonnull Authorities auth);
-
-  /**
-   * @return the effective settings for the user, this includes {@link
-   *     org.hisp.dhis.setting.SystemSettings} as fallback as they were when the {@link UserDetails}
-   *     instance was created
-   */
-  @Nonnull
-  UserSettings getUserSettings();
 
   @Nonnull
   Set<String> getUserRoleIds();

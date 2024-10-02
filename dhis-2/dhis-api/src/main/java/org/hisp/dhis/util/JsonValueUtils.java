@@ -30,9 +30,7 @@ package org.hisp.dhis.util;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.jsontree.Json;
 import org.hisp.dhis.jsontree.JsonMixed;
-import org.hisp.dhis.jsontree.JsonPrimitive;
 
 /**
  * Util around {@link org.hisp.dhis.jsontree.JsonValue} as input mostly to Java values as output.
@@ -62,19 +60,5 @@ public class JsonValueUtils {
               "Value must be a simple JSON value but was: " + value.toJson());
       default -> value.toJson();
     };
-  }
-
-  /**
-   * Generic code to convert a simple Java object into a {@link JsonPrimitive}.
-   *
-   * @param value a simple Java value
-   * @return the corresponding {@link JsonPrimitive}
-   */
-  @Nonnull
-  public static JsonPrimitive toJsonPrimitive(@CheckForNull Object value) {
-    if (value == null) return Json.ofNull();
-    if (value instanceof Number n) return Json.of(n);
-    if (value instanceof Boolean b) return Json.of(b);
-    return Json.of(value.toString());
   }
 }

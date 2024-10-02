@@ -43,18 +43,21 @@ public interface UserSettingsService {
 
   /**
    * Note that a user's setting including fallbacks can and should be accessed via {@link
-   * UserSettings#getCurrentSettings()} for the current user or for any other particular user use
-   * {@link UserDetails#getUserSettings()}.
+   * UserSettings#getCurrentSettings()} for the current user.
    *
    * <p>This method is just suitable when building composed settings with fallbacks or when fallback
    * explicitly are not wanted, e.g. to make a copy of a user's settings.
    *
    * @param username the user for whom to fetch settings
+   * @param includeSystemFallbacks true to use {@link org.hisp.dhis.setting.SystemSettings} as
+   *     fallbacks (should be default), false to only include the user's own settings
    * @return the user's setting as stored in DB **without** any fallbacks applied. If no such user
    *     exists an empty {@link UserSettings} is returned.
    */
   @Nonnull
-  UserSettings getUserSettings(@Nonnull String username);
+  UserSettings getUserSettings(@Nonnull String username, boolean includeSystemFallbacks);
+
+  // FIXME check if Dates are numbers in JSON
 
   /**
    * Saves the key/value pair as a user setting for the current user

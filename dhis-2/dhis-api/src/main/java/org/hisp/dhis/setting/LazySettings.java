@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.setting;
 
+import static java.lang.Boolean.parseBoolean;
 import static java.lang.Character.toUpperCase;
-import static org.hisp.dhis.util.JsonValueUtils.toJsonPrimitive;
+import static java.lang.Integer.parseInt;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -43,22 +44,24 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
-import java.util.function.Predicate;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.LocaleUtils;
-import org.hisp.dhis.jsontree.JsonBuilder;
+import org.hisp.dhis.jsontree.Json;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonValue;
@@ -161,7 +164,7 @@ final class LazySettings implements SystemSettings, UserSettings {
   public <E extends Enum<E>> E asEnum(String key, @Nonnull E defaultValue) {
     Serializable value = orDefault(key, defaultValue);
     if (value != null && value.getClass() == defaultValue.getClass()) return (E) value;
-    return (E) parsed(key, defaultValue, raw -> Enum.valueOf(defaultValue.getClass(), raw));
+    return (E) asParseValue(key, defaultValue, raw -> Enum.valueOf(defaultValue.getClass(), raw));
   }
 
   @Nonnull
@@ -177,32 +180,32 @@ final class LazySettings implements SystemSettings, UserSettings {
   @Override
   public Date asDate(String key, @Nonnull Date defaultValue) {
     if (orDefault(key, defaultValue) instanceof Date value) return value;
-    return parsed(key, defaultValue, LazySettings::parseDate);
+    return asParseValue(key, defaultValue, LazySettings::parseDate);
   }
 
   @Nonnull
   @Override
   public Locale asLocale(String key, @Nonnull Locale defaultValue) {
     if (orDefault(key, defaultValue) instanceof Locale value) return value;
-    return parsed(key, defaultValue, LocaleUtils::toLocale);
+    return asParseValue(key, defaultValue, LocaleUtils::toLocale);
   }
 
   @Override
   public int asInt(String key, int defaultValue) {
     if (orDefault(key, defaultValue) instanceof Integer value) return value;
-    return parsed(key, defaultValue, Integer::valueOf);
+    return asParseValue(key, defaultValue, Integer::valueOf);
   }
 
   @Override
   public double asDouble(String key, double defaultValue) {
     if (orDefault(key, defaultValue) instanceof Double value) return value;
-    return parsed(key, defaultValue, Double::valueOf);
+    return asParseValue(key, defaultValue, Double::valueOf);
   }
 
   @Override
   public boolean asBoolean(String key, boolean defaultValue) {
     if (orDefault(key, defaultValue) instanceof Boolean value) return value;
-    return parsed(key, defaultValue, Boolean::valueOf);
+    return asParseValue(key, defaultValue, Boolean::valueOf);
   }
 
   @Override
@@ -221,30 +224,32 @@ final class LazySettings implements SystemSettings, UserSettings {
 
   @Override
   public JsonMap<JsonMixed> toJson(boolean includeConfidential, Set<String> filter) {
-    Map<String, Serializable> defaults =
-        type == SystemSettings.class ? DEFAULTS_SYSTEM_SETTINGS : DEFAULTS_USER_SETTINGS;
-    Predicate<String> acceptKey =
-        k ->
-            (filter.isEmpty() || filter.contains(k)) && (includeConfidential || !isConfidential(k));
-    return JsonValue.of(
-            JsonBuilder.createObject(
-                obj -> {
-                  // add values explicitly contained in this set
-                  for (int i = 0; i < keys.length; i++) {
-                    String key = keys[i];
-                    if (acceptKey.test(key))
-                      obj.addMember(key, toJsonPrimitive(rawValues[i]).node());
-                  }
-                  // add defaults as defined in accessor methods
-                  Set<String> ignore = Set.of(keys);
-                  for (Map.Entry<String, Serializable> e : defaults.entrySet()) {
-                    String key = e.getKey();
-                    if (!ignore.contains(key) && acceptKey.test(key)) {
-                      obj.addMember(key, toJsonPrimitive(e.getValue()).node());
-                    }
-                  }
-                }))
+    Set<String> includedKeys = new HashSet<>(filter);
+    if (filter.isEmpty()) {
+      includedKeys.addAll(keysWithDefaults(type));
+      includedKeys.addAll(List.of(keys));
+    }
+    if (!includeConfidential) includedKeys.removeIf(LazySettings::isConfidential);
+    return Json.object(obj -> includedKeys.forEach(key -> obj.addMember(key, asJson(key).node())))
         .asMap(JsonMixed.class);
+  }
+
+  @Nonnull
+  private JsonValue asJson(String key) {
+    Serializable defaultValue = getDefault(key);
+    if (defaultValue instanceof String s) return Json.of(asString(key, s));
+    if (defaultValue instanceof Date d)
+      return Json.of(DateTimeFormatter.ISO_INSTANT.format(asDate(key, d).toInstant()));
+    if (defaultValue instanceof Double d) return Json.of(asDouble(key, d));
+    if (defaultValue instanceof Number n) return Json.of(asInt(key, n.intValue()));
+    if (defaultValue instanceof Boolean b) return Json.of(asBoolean(key, b));
+    if (defaultValue instanceof Locale l) return Json.of(asLocale(key, l).toLanguageTag());
+    String value = asString(key, "");
+    // auto-conversion based on regex when no default is known to tell the type
+    if ("true".equals(value) || "false".equals(value)) return Json.of(parseBoolean(value));
+    if (value.matches("[0-9]+")) return Json.of(parseInt(value));
+    if (value.matches("[0-9]?\\.[0-9]+]")) return Json.of(Double.parseDouble(value));
+    return Json.of(value);
   }
 
   private int indexOf(String key) {
@@ -255,14 +260,22 @@ final class LazySettings implements SystemSettings, UserSettings {
     return Arrays.binarySearch(keys, key);
   }
 
-  private Serializable orDefault(String key, Serializable defaultValue) {
+  @CheckForNull
+  private Serializable orDefault(String key, @Nonnull Serializable defaultValue) {
     int i = indexOf(key);
     return i < 0 ? defaultValue : typedValues[i];
   }
 
+  @CheckForNull
+  private Serializable getDefault(String key) {
+    if (type == UserSettings.class) return DEFAULTS_USER_SETTINGS.get(key);
+    if (type == SystemSettings.class) return DEFAULTS_SYSTEM_SETTINGS.get(key);
+    return null;
+  }
+
   @Nonnull
-  private <T extends Serializable> T parsed(
-      String key, @Nonnull T defaultValue, Function<String, T> parse) {
+  private <T extends Serializable> T asParseValue(
+      String key, @Nonnull T defaultValue, Function<String, T> parser) {
     int i = indexOf(key);
     String raw = rawValues[i];
     if (raw == null || raw.isEmpty()) {
@@ -271,7 +284,7 @@ final class LazySettings implements SystemSettings, UserSettings {
     }
     T res = defaultValue;
     try {
-      res = parse.apply(raw);
+      res = parser.apply(raw);
     } catch (Exception ex) {
       log.warn(
           "Setting {} has a raw value that cannot be parsed successfully as a {}; using default {}: {}",
@@ -293,6 +306,7 @@ final class LazySettings implements SystemSettings, UserSettings {
 
   private static Map<String, Serializable> extractDefaults(Class<? extends Settings> type) {
     Map<String, Serializable> defaults = new TreeMap<>();
+    // TODO capture could also make use of counting the number of accesses to only use those with 1
     Method[] lastDefault = new Method[1];
     Object instance =
         Proxy.newProxyInstance(

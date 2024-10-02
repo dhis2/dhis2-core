@@ -137,7 +137,7 @@ public class EmailMessageSender implements MessageSender {
         boolean doSend =
             forceSend
                 || userSettingsService
-                    .getUserSettings(user.getUsername())
+                    .getUserSettings(user.getUsername(), true)
                     .getUserMessageEmailNotification();
 
         if (doSend && ValidationUtils.emailIsValid(user.getEmail())) {

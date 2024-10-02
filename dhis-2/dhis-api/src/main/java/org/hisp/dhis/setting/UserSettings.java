@@ -45,7 +45,7 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
  * fallback. Keys that are not defined in DB use the default provided through their access method.
  *
  * <p>The only exception are individual request that make an override using {@link
- * #overrideCurrentUserSettings(Map)}.
+ * SessionUserSettings#overrideCurrentUserSettings(Map)}.
  *
  * <p>For that reason user has to log out and re-login to make changes to system or user settings
  * visible in the session. This choice is made to balance complexity, predictability and resource
@@ -65,9 +65,10 @@ public non-sealed interface UserSettings extends Settings {
    *
    * <p>The settings are initialized from the current {@link org.hisp.dhis.user.UserDetails} but can
    * be overridden per request using request parameters. In such a case the object returned will
-   * reflect the changes (which are applied using {@link #overrideCurrentUserSettings(Map)}) for the
-   * scope of the request only. The settings in {@link org.hisp.dhis.user.UserDetails} still reflect
-   * the state that was last stored for the user.
+   * reflect the changes (which are applied using {@link
+   * SessionUserSettings#overrideCurrentUserSettings(Map)}) for the scope of the request only. The
+   * settings in {@link org.hisp.dhis.user.UserDetails} still reflect the state that was last stored
+   * for the user.
    *
    * @return an immutable instance of the current user's settings. It explicitly defines settings
    *     stored for the user as well as settings defined for the system in case they are not defined
@@ -75,26 +76,7 @@ public non-sealed interface UserSettings extends Settings {
    *     do not reflect any {@link SystemSettings} as fallback).
    */
   static UserSettings getCurrentSettings() {
-    return CurrentUserSettings.getCurrentSettings();
-  }
-
-  /**
-   * Removes the use {@link UserSettings} instance from the current thread. This happens at the end
-   * of each request.
-   */
-  static void clearCurrentUserSettings() {
-    CurrentUserSettings.clearCurrentSettings();
-  }
-
-  /**
-   * Allows to overlay the current user's settings with overrides for the scope of the current
-   * request. This does not change the user's setting in the session nor the settings stored in the
-   * DB.
-   *
-   * @param settings the overrides to apply on top of the user's session held settings
-   */
-  static void overrideCurrentUserSettings(Map<String, String> settings) {
-    CurrentUserSettings.overrideCurrentSettings(settings);
+    return SessionUserSettings.getCurrentUserSettings();
   }
 
   /**
@@ -130,7 +112,7 @@ public non-sealed interface UserSettings extends Settings {
    * @return a new {@link UserSettings} instance with all entries of this instance and the provided
    *     settings map
    */
-  default UserSettings withOverlay(Map<String, String> settings) {
+  default UserSettings withOverride(Map<String, String> settings) {
     Map<String, String> merged = new HashMap<>(toMap());
     merged.putAll(settings);
     return UserSettings.of(merged);

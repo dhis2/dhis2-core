@@ -27,19 +27,29 @@
  */
 package org.hisp.dhis.user;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.setting.SessionUserSettings;
 import org.hisp.dhis.setting.Settings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.setting.UserSettings;
+import org.springframework.context.event.EventListener;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.session.SessionDestroyedEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Declare transactions on individual methods. The get-methods do not have transactions declared,
@@ -54,13 +64,46 @@ public class DefaultUserSettingsService implements UserSettingsService {
 
   private final UserStore userStore;
   private final UserSettingStore userSettingStore;
+  private final SystemSettingsProvider systemSettingsProvider;
+  private final TransactionTemplate transactionTemplate;
+
+  @EventListener
+  public void onStartOfSession(AuthenticationSuccessEvent event) {
+    Object principal = event.getAuthentication().getPrincipal();
+    if (principal instanceof UserDetails user) {
+      String username = user.getUsername();
+      SessionUserSettings.put(username, getUserSettings(username, true));
+    }
+  }
+
+  @EventListener
+  public void onEndOfSession(SessionDestroyedEvent event) {
+    for (SecurityContext context : event.getSecurityContexts()) {
+      Object principal = context.getAuthentication().getPrincipal();
+      if (principal instanceof UserDetails user) {
+        SessionUserSettings.clear(user.getUsername());
+      }
+    }
+  }
 
   @Nonnull
   @Override
-  @Transactional
-  public UserSettings getUserSettings(@Nonnull String username) {
-    // Note: this does **not** use transaction template as we always need a TX when this is called
-    return UserSettings.of(userSettingStore.getAll(username));
+  public UserSettings getUserSettings(@Nonnull String username, boolean includeSystemFallbacks) {
+    if (includeSystemFallbacks) {
+      Optional<UserSettings> settings = SessionUserSettings.get(username);
+      if (settings.isPresent()) return settings.get();
+    }
+    return requireNonNull(
+        transactionTemplate.execute(
+            status -> getUserSettingsInternal(username, includeSystemFallbacks)));
+  }
+
+  @Nonnull
+  private UserSettings getUserSettingsInternal(@Nonnull String username, boolean includeFallbacks) {
+    UserSettings settings = UserSettings.of(userSettingStore.getAll(username));
+    return includeFallbacks
+        ? settings.withFallback(systemSettingsProvider.getCurrentSettings().toMap())
+        : settings;
   }
 
   @Override
@@ -101,11 +144,20 @@ public class DefaultUserSettingsService implements UserSettingsService {
       }
     }
     if (!deletes.isEmpty()) userSettingStore.delete(username, deletes);
+    updateSession(username);
   }
 
   @Override
   @Transactional
   public void deleteAll(@Nonnull String username) {
     userSettingStore.deleteAll(username);
+    updateSession(username);
+  }
+
+  private void updateSession(String username) {
+    Optional<UserSettings> settings = SessionUserSettings.get(username);
+    if (settings.isPresent()) {
+      SessionUserSettings.put(username, getUserSettingsInternal(username, true));
+    }
   }
 }
