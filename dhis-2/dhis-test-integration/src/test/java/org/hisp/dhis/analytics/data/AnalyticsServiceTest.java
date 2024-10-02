@@ -35,6 +35,7 @@ import static org.hisp.dhis.common.ValueType.DATE;
 import static org.hisp.dhis.common.ValueType.INTEGER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.expression.Operator.equal_to;
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.hisp.dhis.test.utils.Assertions.assertMapEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -86,7 +87,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.CsvUtils;
@@ -253,6 +253,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws IOException {
+
     setUpMetadata();
     setUpDataValues();
     setUpValidation();
@@ -269,7 +270,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
     // Generate analytics tables
     analyticsTableGenerator.generateAnalyticsTables(
         AnalyticsTableUpdateParams.newBuilder().withStartTime(tenSecondsFromNow).build(),
-        JobProgress.noop());
+        transitory());
   }
 
   private void setUpMetadata() {
@@ -1579,7 +1580,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
 
     settingsService.clearCurrentSettings();
     SystemSettings settings = settingsService.getCurrentSettings();
-    Date tableLastUpdated = settings.getNextAnalyticsTableUpdate();
+    Date tableLastUpdated = settings.getLastSuccessfulAnalyticsTablesUpdate();
     assertNotEquals(new Date(0L), tableLastUpdated);
     Date resourceTablesUpdated = settings.getLastSuccessfulResourceTablesUpdate();
     assertNotEquals(new Date(0L), resourceTablesUpdated);

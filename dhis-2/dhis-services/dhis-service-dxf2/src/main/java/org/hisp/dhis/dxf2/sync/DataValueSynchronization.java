@@ -110,7 +110,7 @@ public class DataValueSynchronization implements DataSynchronizationWithPaging {
 
     if (runSyncWithPaging(context, progress)) {
       progress.completedProcess("SUCCESS! DataValueSynchronization job is done.");
-      settingsService.put("keyLastSuccessfulDataSynch", context.getStartTime().toString());
+      settingsService.put("keyLastSuccessfulDataSynch", context.getStartTime());
       return SynchronizationResult.success("DataValueSynchronization done.");
     }
 

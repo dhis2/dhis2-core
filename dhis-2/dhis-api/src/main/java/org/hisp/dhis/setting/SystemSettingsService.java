@@ -38,7 +38,10 @@ import javax.annotation.Nonnull;
  */
 public interface SystemSettingsService extends SystemSettingsProvider {
 
-  /** Called at the start of a new request to ensure fresh view of the settings */
+  /**
+   * Called at the start of a new request to ensure fresh snapshot view of the current {@link
+   * SystemSettings} is returned by {@link #getCurrentSettings()}
+   */
   void clearCurrentSettings();
 
   /**

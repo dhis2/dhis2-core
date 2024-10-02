@@ -159,9 +159,10 @@ final class LazySettings implements SystemSettings, UserSettings {
     return Set.of(keys);
   }
 
+  @Nonnull
   @Override
   @SuppressWarnings("unchecked")
-  public <E extends Enum<E>> E asEnum(String key, @Nonnull E defaultValue) {
+  public <E extends Enum<E>> E asEnum(@Nonnull String key, @Nonnull E defaultValue) {
     Serializable value = orDefault(key, defaultValue);
     if (value != null && value.getClass() == defaultValue.getClass()) return (E) value;
     return (E) asParseValue(key, defaultValue, raw -> Enum.valueOf(defaultValue.getClass(), raw));
@@ -169,7 +170,7 @@ final class LazySettings implements SystemSettings, UserSettings {
 
   @Nonnull
   @Override
-  public String asString(String key, @Nonnull String defaultValue) {
+  public String asString(@Nonnull String key, @Nonnull String defaultValue) {
     if (orDefault(key, defaultValue) instanceof String value) return value;
     // Note: index will exist as otherwise we would have exited above
     String rawValue = rawValues[indexOf(key)];
@@ -178,32 +179,32 @@ final class LazySettings implements SystemSettings, UserSettings {
 
   @Nonnull
   @Override
-  public Date asDate(String key, @Nonnull Date defaultValue) {
+  public Date asDate(@Nonnull String key, @Nonnull Date defaultValue) {
     if (orDefault(key, defaultValue) instanceof Date value) return value;
     return asParseValue(key, defaultValue, LazySettings::parseDate);
   }
 
   @Nonnull
   @Override
-  public Locale asLocale(String key, @Nonnull Locale defaultValue) {
+  public Locale asLocale(@Nonnull String key, @Nonnull Locale defaultValue) {
     if (orDefault(key, defaultValue) instanceof Locale value) return value;
     return asParseValue(key, defaultValue, LocaleUtils::toLocale);
   }
 
   @Override
-  public int asInt(String key, int defaultValue) {
+  public int asInt(@Nonnull String key, int defaultValue) {
     if (orDefault(key, defaultValue) instanceof Integer value) return value;
     return asParseValue(key, defaultValue, Integer::valueOf);
   }
 
   @Override
-  public double asDouble(String key, double defaultValue) {
+  public double asDouble(@Nonnull String key, double defaultValue) {
     if (orDefault(key, defaultValue) instanceof Double value) return value;
     return asParseValue(key, defaultValue, Double::valueOf);
   }
 
   @Override
-  public boolean asBoolean(String key, boolean defaultValue) {
+  public boolean asBoolean(@Nonnull String key, boolean defaultValue) {
     if (orDefault(key, defaultValue) instanceof Boolean value) return value;
     return asParseValue(key, defaultValue, Boolean::valueOf);
   }
@@ -223,7 +224,7 @@ final class LazySettings implements SystemSettings, UserSettings {
   }
 
   @Override
-  public JsonMap<JsonMixed> toJson(boolean includeConfidential, Set<String> filter) {
+  public JsonMap<JsonMixed> toJson(boolean includeConfidential, @Nonnull Set<String> filter) {
     Set<String> includedKeys = new HashSet<>(filter);
     if (filter.isEmpty()) {
       includedKeys.addAll(keysWithDefaults(type));

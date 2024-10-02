@@ -32,14 +32,20 @@ import org.springframework.security.core.session.SessionDestroyedEvent;
 
 /**
  * Event listeners in spring require the called method to be accessible though an interface of the
- * implementing service. Therefore the methods are exposed in this interface as we otherwise do not
- * want to deal with them.
+ * implementing service. Therefore, these methods are exposed in this interface as we otherwise do
+ * not want to have them in {@link UserSettingsService}.
  *
  * @author Jan Bernitt
  */
-public interface UserSessionListener {
+public interface UserSessionAware {
 
+  /**
+   * @param event used to track newly created user sessions
+   */
   void onSessionInit(AuthenticationSuccessEvent event);
 
+  /**
+   * @param event used to track session that are no longer valid
+   */
   void onSessionExpired(SessionDestroyedEvent event);
 }

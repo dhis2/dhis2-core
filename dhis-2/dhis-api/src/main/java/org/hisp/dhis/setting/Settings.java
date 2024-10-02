@@ -71,42 +71,47 @@ public sealed interface Settings permits UserSettings, SystemSettings {
    * can be used to test if a default would take an effect in case logic needs to combine several
    * settings based on them being defined.
    *
-   * @return names of the settings whose value is defined as data
+   * @return names of the settings whose value is explicitly defined
    */
   Set<String> keys();
 
   /**
-   * @return a map of the names and raw values
+   * This can be seen as the inverse operation to constructing a settings object from a map.
+   *
+   * @return a map of the names and raw values that are explicitly defined (this excludes any value
+   *     only provided a value because of defaults)
    */
   Map<String, String> toMap();
 
   /**
    * @param includeConfidential true to include, false to exclude confidential settings
-   * @return a JSON of all settings including defaults
+   * @return a JSON of all settings including those only defined through defaults
    */
   JsonMap<JsonMixed> toJson(boolean includeConfidential);
 
   /**
    * @param includeConfidential true to include, false to exclude confidential settings
    * @param keys the keys to extract, empty set includes all
-   * @return a JSON of settings for the requested keys
+   * @return a JSON of the settings for the requested keys; if a confidential key is included by
+   *     #includeConfidential is {@code false} the key is not included in the result
    */
-  JsonMap<JsonMixed> toJson(boolean includeConfidential, Set<String> keys);
-
-  <E extends Enum<E>> E asEnum(String key, @Nonnull E defaultValue);
+  JsonMap<JsonMixed> toJson(boolean includeConfidential, @Nonnull Set<String> keys);
 
   @Nonnull
-  String asString(String key, @Nonnull String defaultValue);
+  <E extends Enum<E>> E asEnum(@Nonnull String key, @Nonnull E defaultValue);
 
   @Nonnull
-  Date asDate(String key, @Nonnull Date defaultValue);
+  String asString(@Nonnull String key, @Nonnull String defaultValue);
 
   @Nonnull
-  Locale asLocale(String key, @Nonnull Locale defaultValue);
+  Date asDate(@Nonnull String key, @Nonnull Date defaultValue);
 
-  int asInt(String key, int defaultValue);
+  @Nonnull
+  Locale asLocale(@Nonnull String key, @Nonnull Locale defaultValue);
 
-  double asDouble(String key, double defaultValue);
+  int asInt(@Nonnull String key, int defaultValue);
 
-  boolean asBoolean(String key, boolean defaultValue);
+  double asDouble(@Nonnull String key, double defaultValue);
+
+  boolean asBoolean(@Nonnull String key, boolean defaultValue);
 }

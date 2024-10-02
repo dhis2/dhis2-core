@@ -166,6 +166,6 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
     resourceTableService.createAllSqlViews(progress);
 
-    settingsService.put("keyLastSuccessfulResourceTablesUpdate", new Date().toString());
+    settingsService.put("keyLastSuccessfulResourceTablesUpdate", new Date());
   }
 }

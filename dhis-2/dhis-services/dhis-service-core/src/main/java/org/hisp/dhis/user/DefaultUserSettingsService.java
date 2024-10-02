@@ -60,7 +60,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @Service
 @RequiredArgsConstructor
-public class DefaultUserSettingsService implements UserSettingsService, UserSessionListener {
+public class DefaultUserSettingsService implements UserSettingsService, UserSessionAware {
 
   private final UserStore userStore;
   private final UserSettingStore userSettingStore;
