@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 import static org.hisp.dhis.analytics.AnalyticsTableType.COMPLETENESS;
 import static org.hisp.dhis.analytics.AnalyticsTableType.COMPLETENESS_TARGET;
