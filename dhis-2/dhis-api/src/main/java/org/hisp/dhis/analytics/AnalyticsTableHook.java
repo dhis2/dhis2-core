@@ -33,7 +33,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+
+import java.util.Objects;
 
 /**
  * @author Lars Helge Overland
@@ -102,6 +105,19 @@ public class AnalyticsTableHook extends BaseIdentifiableObject implements Metada
 
   public void setAnalyticsTableType(AnalyticsTableType analyticsTableType) {
     this.analyticsTableType = analyticsTableType;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return this == obj
+            || obj instanceof AnalyticsTableHook && objectEquals((AnalyticsTableHook) obj);
+  }
+
+  private boolean objectEquals(AnalyticsTableHook other) {
+    return Objects.equals(this.phase, other.phase)
+            && Objects.equals(this.resourceTableType, other.resourceTableType)
+            && Objects.equals(this.analyticsTableType, other.analyticsTableType)
+            && Objects.equals(this.sql, other.sql);
   }
 
   @JsonProperty
