@@ -73,7 +73,9 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -82,6 +84,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Component("org.hisp.dhis.tracker.sms.ProgramStageDataEntrySMSListener")
 @Transactional
 public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
+  @Autowired JdbcTemplate jdbcTemplate;
+
   private static final String MORE_THAN_ONE_TE =
       "More than one tracked entity found for given phone number";
 
@@ -218,6 +222,57 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
               }
             });
 
+    attributes.stream()
+        .forEach(
+            a -> {
+
+              // full query made by listener
+              String query =
+                  """
+  select TE.trackedentityid,
+                    TE.uid,
+                    TE.created,
+                    TE.lastupdated,
+                    TE.createdatclient,
+                    TE.lastupdatedatclient,
+                    TE.inactive,
+                    TE.potentialduplicate,
+                    TE.deleted,
+                    TE.trackedentitytypeid
+             FROM (SELECT DISTINCT TE.trackedentityid     as trackedentityid,
+                                   TE.trackedentitytypeid as trackedentitytypeid,
+                                   TE.uid                 as uid,
+                                   TE.created             as created,
+                                   TE.lastupdated         as lastupdated,
+                                   TE.createdatclient     as createdatclient,
+                                   TE.lastupdatedatclient as lastupdatedatclient,
+                                   TE.inactive            as inactive,
+                                   TE.potentialduplicate  as potentialduplicate,
+                                   TE.deleted             as deleted
+                   FROM trackedentity TE
+                            INNER JOIN program P
+                                       ON P.trackedentitytypeid = TE.trackedentitytypeid AND P.programid IN (%s)
+                            INNER JOIN trackedentityattributevalue "rjK0coA4EWq"
+                                       ON "rjK0coA4EWq".trackedentityattributeid = %s AND
+                                          "rjK0coA4EWq".trackedentityid = TE.trackedentityid AND
+                                          lower("rjK0coA4EWq".value) = '7654321'
+                            LEFT JOIN trackedentityprogramowner PO
+                                      ON PO.trackedentityid = TE.trackedentityid AND P.programid = PO.programid
+                            INNER JOIN organisationunit OU ON OU.organisationunitid =
+                                                              COALESCE(PO.organisationunitid, TE.organisationunitid)
+                   where TE.trackedentitytypeid = %s
+                     and TE.deleted IS FALSE
+                   ORDER BY TE.trackedentityid desc
+                   LIMIT 2 OFFSET 0) TE
+             ORDER BY TE.trackedentityid desc
+  """
+                      .formatted(
+                          command.getProgram().getId(),
+                          a.getId(),
+                          command.getProgram().getTrackedEntityType().getId());
+              List<Map<String, Object>> dbResult = jdbcTemplate.queryForList(query);
+            });
+
     return trackedEntities;
   }
 
@@ -239,7 +294,8 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
         .filters(Map.of(attribute.getUid(), List.of(queryFilter)))
         //        .programUid(program.getUid())
         .trackedEntityTypeUid(program.getTrackedEntityType().getUid())
-        .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
+        //        .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
+        .orgUnitMode(OrganisationUnitSelectionMode.ALL)
         //        .organisationUnits(
         //            ous.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet()))
         .build();

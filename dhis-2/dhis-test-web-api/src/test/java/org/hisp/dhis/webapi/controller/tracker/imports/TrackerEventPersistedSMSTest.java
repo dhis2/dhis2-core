@@ -92,7 +92,7 @@ import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.test.message.FakeMessageSender;
 import org.hisp.dhis.test.web.HttpStatus;
-import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.NonTransactionalPostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -136,7 +136,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * SMS classes in the SMS class hierarchy.
  */
 @TestInstance(Lifecycle.PER_CLASS)
-class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
+class TrackerEventPersistedSMSTest extends NonTransactionalPostgresControllerIntegrationTestBase {
   @Autowired JdbcTemplate jdbcTemplate;
   @Autowired private IdentifiableObjectManager manager;
 
@@ -661,7 +661,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
     String originator = user.getPhoneNumber();
 
-    // TODO(ivo) why cant I find the user via the phone number?
     // TODO(ivo) extract/move adding the attribute into the trackedEntity method
     TrackedEntity trackedEntity = trackedEntity();
     TrackedEntityAttributeValue teavA = createTrackedEntityAttributeValue('A', trackedEntity, teaA);
@@ -669,9 +668,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     attributeValueService.addTrackedEntityAttributeValue(teavA);
     trackedEntity.getTrackedEntityAttributeValues().add(teavA);
     manager.save(trackedEntity, false);
-
-    manager.flush();
-    manager.clear();
 
     System.out.println("tracked entity uid: " + trackedEntity.getUid());
     System.out.println("program id: " + trackerProgram.getId());
