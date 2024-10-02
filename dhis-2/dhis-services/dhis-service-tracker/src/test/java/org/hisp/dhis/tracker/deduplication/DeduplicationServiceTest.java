@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.deduplication;
 
-import static org.hisp.dhis.test.TestBase.injectSecurityContext;
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -166,7 +166,7 @@ class DeduplicationServiceTest {
           ForbiddenException,
           NotFoundException {
     SystemUser actingUser = new SystemUser();
-    injectSecurityContext(actingUser);
+    injectSecurityContextNoSettings(actingUser);
 
     MergeObject mergeObject = MergeObject.builder().build();
     when(deduplicationHelper.generateMergeObject(trackedEntityA, trackedEntityB))
@@ -298,7 +298,7 @@ class DeduplicationServiceTest {
           NotFoundException,
           ForbiddenException {
     SystemUser actingUser = new SystemUser();
-    injectSecurityContext(actingUser);
+    injectSecurityContextNoSettings(actingUser);
 
     when(trackedEntityB.getTrackedEntityAttributeValues()).thenReturn(new HashSet<>());
     MergeObject mergeObject = MergeObject.builder().build();
@@ -323,7 +323,7 @@ class DeduplicationServiceTest {
           NotFoundException,
           ForbiddenException {
     SystemUser actingUser = new SystemUser();
-    injectSecurityContext(actingUser);
+    injectSecurityContextNoSettings(actingUser);
 
     deduplicationService.manualMerge(deduplicationMergeParams);
     verify(deduplicationHelper, times(1)).getInvalidReferenceErrors(deduplicationMergeParams);

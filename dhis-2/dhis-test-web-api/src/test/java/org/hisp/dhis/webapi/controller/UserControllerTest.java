@@ -836,19 +836,20 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testPutJsonObject_WithSettings() {
-    JsonUser user = GET("/users/{id}", peter.getUid()).content().as(JsonUser.class);
+    String userId = peter.getUid();
+    JsonUser user = GET("/users/{id}", userId).content().as(JsonUser.class);
     assertWebMessage(
         "OK",
         200,
         "OK",
         null,
         PUT(
-                "/38/users/" + peter.getUid(),
-                user.node().addMember("settings", "{\"uiLocale\":\"de\"}").toString())
+                "/38/users/" + userId,
+                user.node().addMember("settings", "{\"keyUiLocale\":\"de\"}").toString())
             .content(HttpStatus.OK));
     assertEquals(
         "de",
-        GET("/userSettings/keyUiLocale?userId=" + user.getId(), Accept("text/plain"))
+        GET("/userSettings/keyUiLocale?userId=" + userId, Accept("text/plain"))
             .content("text/plain"));
   }
 

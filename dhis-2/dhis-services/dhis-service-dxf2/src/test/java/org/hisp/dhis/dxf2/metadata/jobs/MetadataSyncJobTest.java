@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.jobs;
 
-import static org.hisp.dhis.test.TestBase.injectSecurityContext;
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -61,7 +61,7 @@ class MetadataSyncJobTest {
   @BeforeAll
   static void setUp() {
     SystemUser user = new SystemUser();
-    injectSecurityContext(user);
+    injectSecurityContextNoSettings(user);
   }
 
   @Test

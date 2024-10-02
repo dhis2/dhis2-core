@@ -36,7 +36,7 @@ import static org.hisp.dhis.test.TestBase.createCategoryOptionCombo;
 import static org.hisp.dhis.test.TestBase.createDataSet;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createPeriod;
-import static org.hisp.dhis.test.TestBase.injectSecurityContext;
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -207,7 +207,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
 
   @Test
   void verifyUserHasNoWritePermissionOnCategoryOption() {
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
     when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
 
     OrganisationUnit organisationUnit = createOrganisationUnit('A');

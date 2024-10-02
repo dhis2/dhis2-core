@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller.dataelement;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig.staticJsonMapper;
-import static org.hisp.dhis.test.TestBase.injectSecurityContext;
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -124,7 +124,7 @@ class DataElementOperandControllerTest {
 
   @BeforeEach
   public void setUp() {
-    injectSecurityContext(new SystemUser());
+    injectSecurityContextNoSettings(new SystemUser());
 
     ContextService contextService = new DefaultContextService();
 

@@ -229,7 +229,7 @@ public class DataValueController {
     DataValueCategoryDto attribute = dataValue.getAttribute();
 
     SystemSettings settings = settingsProvider.getCurrentSettings();
-    boolean strictPeriods = settings.getDataImportStrictDataSetInputPeriods();
+    boolean strictPeriods = settings.getDataImportStrictPeriods();
     boolean strictCategoryOptionCombos = settings.getDataImportStrictCategoryOptionCombos();
     boolean strictOrgUnits = settings.getDataImportStrictOrganisationUnits();
     boolean requireCategoryOptionCombo = settings.getDataImportRequireCategoryOptionCombo();

@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.datavalueset;
 
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createDataSet;
-import static org.hisp.dhis.test.TestBase.injectSecurityContext;
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -135,7 +135,7 @@ class DataValueSetServiceImportTest {
   void testImportDataValuesUpdatedSkipNoChange() {
     when(settingsProvider.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
     SystemUser user = new SystemUser();
-    injectSecurityContext(user);
+    injectSecurityContextNoSettings(user);
 
     Calendar calendar = mock(Calendar.class);
     when(calendarService.getSystemCalendar()).thenReturn(calendar);

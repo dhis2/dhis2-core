@@ -32,7 +32,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.util.JsonValueUtils.toJavaString;
 import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
-import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -94,7 +93,7 @@ public class UserSettingsController {
     return getUserSettings(userId, username, useFallback);
   }
 
-  @GetMapping(value = "/{key}", produces = TEXT_PLAIN_VALUE)
+  @GetMapping(value = "/{key}")
   public @ResponseBody String getUserSettingByKey(
       @PathVariable(value = "key") String key,
       @RequestParam(required = false, defaultValue = "true") boolean useFallback,

@@ -49,7 +49,7 @@ import static org.hisp.dhis.test.TestBase.createIndicator;
 import static org.hisp.dhis.test.TestBase.createIndicatorType;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnitGroup;
-import static org.hisp.dhis.test.TestBase.injectSecurityContext;
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -468,7 +468,7 @@ class DimensionalObjectProducerTest {
 
   @Test
   void testDynamicFrom() {
-    injectSecurityContext(new SystemUser());
+    injectSecurityContextNoSettings(new SystemUser());
 
     String categoryUid = "L6BswcbPGqs";
     String categoryName = "Category-A";
@@ -497,7 +497,7 @@ class DimensionalObjectProducerTest {
     List<String> items = List.of("ALL_ITEMS");
     category.setCategoryOptions(List.of(new CategoryOption()));
 
-    injectSecurityContext(new SystemUser());
+    injectSecurityContextNoSettings(new SystemUser());
 
     // when
     when(idObjectManager.get(DYNAMIC_DIM_CLASSES, UID, categoryUid)).thenReturn(category);
