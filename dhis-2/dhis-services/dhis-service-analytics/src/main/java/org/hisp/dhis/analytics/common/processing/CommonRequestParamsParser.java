@@ -123,8 +123,8 @@ public class CommonRequestParamsParser implements Parser<CommonRequestParams, Co
     // Adds all program attributes from all applicable programs as dimensions.
     request
         .getInternal()
-        .setProgramAttributes(
-            getProgramAttributes(programs).map(IdentifiableObject::getUid).collect(toSet()));
+        .getProgramAttributes()
+        .addAll(getProgramAttributes(programs).map(IdentifiableObject::getUid).toList());
 
     return CommonParsedParams.builder()
         .programs(programs)

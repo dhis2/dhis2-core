@@ -31,10 +31,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.Map;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -49,7 +49,6 @@ import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,9 +57,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class TrackerPreheatServiceIntegrationTest extends PostgresIntegrationTestBase {
 
-  private final String TET_UID = "TET12345678";
+  private static final String TET_UID = "TET12345678";
 
-  private final String ATTRIBUTE_UID = "ATTR1234567";
+  private static final String ATTRIBUTE_UID = "ATTR1234567";
 
   @Autowired private TrackerPreheatService trackerPreheatService;
 
@@ -72,15 +71,12 @@ class TrackerPreheatServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private AttributeService attributeService;
 
-  private User currentUser;
-
   private Program program;
 
   private String programAttribute;
 
   @BeforeEach
   void setUp() {
-    currentUser = getAdminUser();
     // Set up placeholder OU; We add Code for testing idScheme.
     OrganisationUnit orgUnit = createOrganisationUnit('A');
     orgUnit.setCode("OUA");
@@ -101,7 +97,7 @@ class TrackerPreheatServiceIntegrationTest extends PostgresIntegrationTestBase {
     program.setTrackedEntityType(trackedEntityType);
     program.setProgramType(ProgramType.WITH_REGISTRATION);
     programAttribute = "PROGRAM1";
-    program.setAttributeValues(Sets.newHashSet(new AttributeValue(programAttribute, attributeA)));
+    program.setAttributeValues(AttributeValues.of(Map.of(attributeA.getUid(), programAttribute)));
     programService.addProgram(program);
   }
 
@@ -132,8 +128,7 @@ class TrackerPreheatServiceIntegrationTest extends PostgresIntegrationTestBase {
             .programIdScheme(TrackerIdSchemeParam.ofAttribute(ATTRIBUTE_UID))
             .build();
 
-    TrackerPreheat preheat =
-        trackerPreheatService.preheat(trackerObjects, idSchemeParams, currentUser);
+    TrackerPreheat preheat = trackerPreheatService.preheat(trackerObjects, idSchemeParams);
 
     assertNotNull(preheat);
     // asserting on specific fields instead of plain assertEquals since

@@ -39,10 +39,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -64,7 +66,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.access.TrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
@@ -108,14 +110,18 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Override
   public FileResourceStream getFileResource(
-      UID trackedEntity, UID attribute, @CheckForNull UID program) throws NotFoundException {
+      @Nonnull UID trackedEntity, @Nonnull UID attribute, @CheckForNull UID program)
+      throws NotFoundException {
     FileResource fileResource = getFileResourceMetadata(trackedEntity, attribute, program);
     return FileResourceStream.of(fileResourceService, fileResource);
   }
 
   @Override
   public FileResourceStream getFileResourceImage(
-      UID trackedEntity, UID attribute, @CheckForNull UID program, ImageFileDimension dimension)
+      @Nonnull UID trackedEntity,
+      @Nonnull UID attribute,
+      @CheckForNull UID program,
+      ImageFileDimension dimension)
       throws NotFoundException {
     FileResource fileResource = getFileResourceMetadata(trackedEntity, attribute, program);
     return FileResourceStream.ofImage(fileResourceService, fileResource, dimension);
@@ -207,8 +213,25 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   @Override
+  public TrackedEntity getTrackedEntity(@Nonnull String uid)
+      throws NotFoundException, ForbiddenException {
+    UserDetails currentUser = getCurrentUserDetails();
+    TrackedEntity trackedEntity =
+        mapTrackedEntity(
+            getTrackedEntity(uid, currentUser),
+            TrackedEntityParams.FALSE,
+            currentUser,
+            null,
+            false);
+    mapTrackedEntityTypeAttributes(trackedEntity);
+    return trackedEntity;
+  }
+
+  @Override
   public TrackedEntity getTrackedEntity(
-      String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)
+      @Nonnull String uid,
+      @CheckForNull String programIdentifier,
+      @Nonnull TrackedEntityParams params)
       throws NotFoundException, ForbiddenException {
     Program program = null;
 
@@ -221,7 +244,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
     TrackedEntity trackedEntity;
     if (program != null) {
-      trackedEntity = getTrackedEntity(uid, program, params, includeDeleted);
+      trackedEntity = getTrackedEntity(uid, program, params);
 
       if (params.isIncludeProgramOwners()) {
         Set<TrackedEntityProgramOwner> filteredProgramOwners =
@@ -234,8 +257,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       UserDetails userDetails = getCurrentUserDetails();
 
       trackedEntity =
-          mapTrackedEntity(
-              getTrackedEntity(uid, userDetails), params, userDetails, null, includeDeleted);
+          mapTrackedEntity(getTrackedEntity(uid, userDetails), params, userDetails, null, false);
 
       mapTrackedEntityTypeAttributes(trackedEntity);
     }
@@ -249,8 +271,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
    * @throws NotFoundException if uid does not exist
    * @throws ForbiddenException if TE owner is not in user's scope or not enough sharing access
    */
-  private TrackedEntity getTrackedEntity(
-      String uid, Program program, TrackedEntityParams params, boolean includeDeleted)
+  private TrackedEntity getTrackedEntity(String uid, Program program, TrackedEntityParams params)
       throws NotFoundException, ForbiddenException {
     TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid);
     trackedEntityAuditService.addTrackedEntityAudit(trackedEntity, getCurrentUsername(), READ);
@@ -272,7 +293,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       throw new ForbiddenException(error);
     }
 
-    return mapTrackedEntity(trackedEntity, params, userDetails, program, includeDeleted);
+    return mapTrackedEntity(trackedEntity, params, userDetails, program, false);
   }
 
   /**
@@ -316,7 +337,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private TrackedEntity mapTrackedEntity(
       TrackedEntity trackedEntity,
       TrackedEntityParams params,
-      UserDetails currentUser,
+      UserDetails user,
       Program program,
       boolean includeDeleted) {
     TrackedEntity result = new TrackedEntity();
@@ -337,10 +358,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     result.setLastUpdatedByUserInfo(trackedEntity.getLastUpdatedByUserInfo());
     result.setGeometry(trackedEntity.getGeometry());
     if (params.isIncludeRelationships()) {
-      result.setRelationshipItems(getRelationshipItems(trackedEntity, currentUser, includeDeleted));
+      result.setRelationshipItems(getRelationshipItems(trackedEntity, user, includeDeleted));
     }
     if (params.isIncludeEnrollments()) {
-      result.setEnrollments(getEnrollments(trackedEntity, currentUser, includeDeleted, program));
+      result.setEnrollments(getEnrollments(trackedEntity, user, includeDeleted, program));
     }
     if (params.isIncludeProgramOwners()) {
       result.setProgramOwners(trackedEntity.getProgramOwners());
@@ -386,21 +407,26 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
       TrackedEntity trackedEntity, Program program) {
-    Set<TrackedEntityAttribute> readableAttributes =
-        new HashSet<>(trackedEntity.getTrackedEntityType().getTrackedEntityAttributes());
+    Set<String> readableAttributes =
+        trackedEntity.getTrackedEntityType().getTrackedEntityAttributes().stream()
+            .map(IdentifiableObject::getUid)
+            .collect(Collectors.toSet());
 
     if (program != null) {
-      readableAttributes.addAll(program.getTrackedEntityAttributes());
+      readableAttributes.addAll(
+          program.getTrackedEntityAttributes().stream()
+              .map(IdentifiableObject::getUid)
+              .collect(Collectors.toSet()));
     }
 
     return trackedEntity.getTrackedEntityAttributeValues().stream()
-        .filter(av -> readableAttributes.contains(av.getAttribute()))
-        .collect(Collectors.toCollection(LinkedHashSet::new));
+        .filter(av -> readableAttributes.contains(av.getAttribute().getUid()))
+        .collect(Collectors.toSet());
   }
 
   private RelationshipItem withNestedEntity(
       TrackedEntity trackedEntity, RelationshipItem item, boolean includeDeleted)
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     // relationships of relationship items are not mapped to JSON so there is no need to fetch them
     RelationshipItem result = new RelationshipItem();
 
@@ -460,9 +486,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   @Override
-  public List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)
+  public List<TrackedEntity> getTrackedEntities(
+      @Nonnull TrackedEntityOperationParams operationParams)
       throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntityQueryParams queryParams = mapper.map(operationParams);
+    TrackedEntityQueryParams queryParams = mapper.map(operationParams, getCurrentUserDetails());
     final List<Long> ids = getTrackedEntityIds(queryParams);
 
     List<TrackedEntity> trackedEntities =
@@ -484,9 +511,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Override
   public Page<TrackedEntity> getTrackedEntities(
-      TrackedEntityOperationParams operationParams, PageParams pageParams)
+      @Nonnull TrackedEntityOperationParams operationParams, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException, NotFoundException {
-    TrackedEntityQueryParams queryParams = mapper.map(operationParams);
+    TrackedEntityQueryParams queryParams = mapper.map(operationParams, getCurrentUserDetails());
     final Page<Long> ids = getTrackedEntityIds(queryParams, pageParams);
 
     List<TrackedEntity> trackedEntities =
@@ -521,7 +548,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
    */
   private void mapRelationshipItems(
       List<TrackedEntity> trackedEntities, TrackedEntityParams params, boolean includeDeleted)
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     if (params.isIncludeRelationships()) {
       for (TrackedEntity trackedEntity : trackedEntities) {
         mapRelationshipItems(trackedEntity, includeDeleted);
@@ -546,7 +573,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private void mapRelationshipItems(TrackedEntity trackedEntity, boolean includeDeleted)
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     Set<RelationshipItem> result = new HashSet<>();
 
     for (RelationshipItem item : trackedEntity.getRelationshipItems()) {
@@ -562,7 +589,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   private void mapRelationshipItems(
       Enrollment enrollment, TrackedEntity trackedEntity, boolean includeDeleted)
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     Set<RelationshipItem> result = new HashSet<>();
 
     for (RelationshipItem item : enrollment.getRelationshipItems()) {
@@ -573,8 +600,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private void mapRelationshipItems(
-      Event event, TrackedEntity trackedEntity, boolean includeDeleted)
-      throws ForbiddenException, NotFoundException {
+      Event event, TrackedEntity trackedEntity, boolean includeDeleted) throws NotFoundException {
     Set<RelationshipItem> result = new HashSet<>();
 
     for (RelationshipItem item : event.getRelationshipItems()) {
@@ -589,7 +615,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       BaseIdentifiableObject itemOwner,
       TrackedEntity trackedEntity,
       boolean includeDeleted)
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     Relationship rel = item.getRelationship();
     RelationshipItem from = withNestedEntity(trackedEntity, rel.getFrom(), includeDeleted);
     RelationshipItem to = withNestedEntity(trackedEntity, rel.getTo(), includeDeleted);

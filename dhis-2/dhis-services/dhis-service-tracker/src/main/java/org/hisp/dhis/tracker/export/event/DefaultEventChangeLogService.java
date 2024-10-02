@@ -33,29 +33,27 @@ import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogStore;
-import org.hisp.dhis.tracker.access.TrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service("org.hisp.dhis.tracker.export.event.EventChangeLogService")
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class DefaultEventChangeLogService implements EventChangeLogService {
 
   private final EventService eventService;
   private final JdbcEventChangeLogStore jdbcEventChangeLogStore;
-  private final TrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore;
+  private final HibernateTrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore;
   private final TrackerAccessManager trackerAccessManager;
 
   @Override
+  @Transactional(readOnly = true)
   public Page<EventChangeLog> getEventChangeLog(
       UID eventUid, EventChangeLogOperationParams operationParams, PageParams pageParams)
       throws NotFoundException, ForbiddenException {
@@ -106,6 +104,13 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   }
 
   @Override
+  @Transactional
+  public void deleteTrackedEntityDataValueChangeLog(DataElement dataElement) {
+    trackedEntityDataValueChangeLogStore.deleteTrackedEntityDataValueChangeLog(dataElement);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public Set<String> getOrderableFields() {
     return jdbcEventChangeLogStore.getOrderableFields();
   }

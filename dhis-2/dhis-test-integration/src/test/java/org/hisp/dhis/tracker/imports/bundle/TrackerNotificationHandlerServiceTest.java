@@ -119,6 +119,8 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
     user.getGroups().add(userGroup);
     manager.update(user);
 
+    injectSecurityContextUser(user);
+
     templateForEnrollment =
         createProgramNotification(
             "enrollment",
@@ -166,7 +168,6 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
     ImportReport importReport =
         trackerImportService.importTracker(
             TrackerImportParams.builder()
-                .userId(user.getUid())
                 .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
                 .build(),
             TrackerObjects.builder().enrollments(List.of(enrollment)).build());
@@ -216,7 +217,6 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
     ImportReport importReport =
         trackerImportService.importTracker(
             TrackerImportParams.builder()
-                .userId(user.getUid())
                 .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
                 .build(),
             TrackerObjects.builder()
@@ -253,10 +253,7 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
 
     importReport =
         trackerImportService.importTracker(
-            TrackerImportParams.builder()
-                .userId(user.getUid())
-                .importStrategy(TrackerImportStrategy.UPDATE)
-                .build(),
+            TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build(),
             TrackerObjects.builder().events(List.of(eventUpdated)).build());
 
     assertNoErrors(importReport);
@@ -291,7 +288,6 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
     ImportReport importReport =
         trackerImportService.importTracker(
             TrackerImportParams.builder()
-                .userId(user.getUid())
                 .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
                 .build(),
             TrackerObjects.builder().enrollments(List.of(enrollment)).build());
@@ -322,10 +318,7 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
 
     importReport =
         trackerImportService.importTracker(
-            TrackerImportParams.builder()
-                .userId(user.getUid())
-                .importStrategy(TrackerImportStrategy.UPDATE)
-                .build(),
+            TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build(),
             TrackerObjects.builder().enrollments(List.of(enrollmentUpdated)).build());
 
     assertNoErrors(importReport);
@@ -360,7 +353,6 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
     ImportReport importReport =
         trackerImportService.importTracker(
             TrackerImportParams.builder()
-                .userId(user.getUid())
                 .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
                 .build(),
             TrackerObjects.builder().enrollments(List.of(enrollment)).build());
@@ -382,7 +374,6 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
     importReport =
         trackerImportService.importTracker(
             TrackerImportParams.builder()
-                .userId(user.getUid())
                 .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
                 .build(),
             TrackerObjects.builder().enrollments(List.of(enrollment)).build());

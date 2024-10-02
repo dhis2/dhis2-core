@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import static org.hisp.dhis.changelog.ChangeLogType.READ;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import java.util.Collection;
@@ -46,16 +47,15 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipQueryParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Service;
 
 /**
@@ -74,14 +74,13 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
   private final EventChangeLogService eventChangeLogService;
 
-  private final TrackedEntityAttributeValueChangeLogService attributeValueAuditService;
+  private final TrackedEntityChangeLogService attributeValueAuditService;
 
   private final ProgramNotificationInstanceService programNotificationInstanceService;
 
   @Override
   public TrackerTypeReport deleteEnrollments(List<String> enrollments) throws NotFoundException {
-    UserInfoSnapshot userInfoSnapshot =
-        UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails());
+    UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.ENROLLMENT);
 
     for (String uid : enrollments) {
@@ -130,8 +129,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
   @Override
   public TrackerTypeReport deleteEvents(List<String> events) throws NotFoundException {
-    UserInfoSnapshot userInfoSnapshot =
-        UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails());
+    UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.EVENT);
     for (String uid : events) {
       Entity objectReport = new Entity(TrackerType.EVENT, uid);
@@ -181,8 +179,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   @Override
   public TrackerTypeReport deleteTrackedEntities(List<String> trackedEntities)
       throws NotFoundException {
-    UserInfoSnapshot userInfoSnapshot =
-        UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails());
+    UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.TRACKED_ENTITY);
 
     for (String uid : trackedEntities) {

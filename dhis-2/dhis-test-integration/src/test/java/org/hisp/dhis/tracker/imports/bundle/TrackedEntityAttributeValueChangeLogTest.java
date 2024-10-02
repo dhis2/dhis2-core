@@ -38,10 +38,10 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLog;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogQueryParams;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLog;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLogQueryParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -63,7 +63,7 @@ class TrackedEntityAttributeValueChangeLogTest extends TrackerTest {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private TrackedEntityAttributeValueChangeLogService attributeValueAuditService;
+  @Autowired private TrackedEntityChangeLogService attributeValueAuditService;
 
   private User importUser;
 
@@ -77,7 +77,7 @@ class TrackedEntityAttributeValueChangeLogTest extends TrackerTest {
 
   @Test
   void testTrackedEntityAttributeValueAuditCreate() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     assertNoErrors(
         trackerImportService.importTracker(
             params, fromJson("tracker/te_program_with_tea_data.json")));
@@ -104,7 +104,7 @@ class TrackedEntityAttributeValueChangeLogTest extends TrackerTest {
 
   @Test
   void testTrackedEntityAttributeValueAuditDelete() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = fromJson("tracker/te_program_with_tea_data.json");
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);

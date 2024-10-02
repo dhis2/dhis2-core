@@ -73,7 +73,7 @@ class TrackedEntityProgramAttributeEncryptionTest extends TrackerTest {
 
   @Test
   void testTrackedEntityProgramAttributeEncryptedValue() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/te_program_with_tea_encryption_data.json"));

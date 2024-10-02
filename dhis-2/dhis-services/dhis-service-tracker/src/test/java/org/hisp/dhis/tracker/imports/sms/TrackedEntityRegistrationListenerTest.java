@@ -182,7 +182,7 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
         .when(incomingSmsService)
         .update(any());
 
-    subject.receive(incomingSms);
+    subject.receive(incomingSms, "frank");
 
     assertNotNull(updatedIncomingSms);
     assertTrue(updatedIncomingSms.isParsed());
@@ -197,7 +197,7 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
 
     teRegistrationCommand.setProgram(programA);
 
-    assertThrows(SMSParserException.class, () -> subject.receive(incomingSms));
+    assertThrows(SMSParserException.class, () -> subject.receive(incomingSms, "frank"));
 
     verify(trackedEntityTypeService, never()).getTrackedEntityByName(anyString());
   }

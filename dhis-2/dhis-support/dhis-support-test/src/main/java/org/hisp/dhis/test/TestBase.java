@@ -70,7 +70,6 @@ import javax.xml.xpath.XPathFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -782,10 +781,6 @@ public abstract class TestBase {
     attribute.setAutoFields();
 
     return attribute;
-  }
-
-  public static AttributeValue createAttributeValue(Attribute attribute, String value) {
-    return new AttributeValue(value, attribute);
   }
 
   /**
@@ -2910,6 +2905,12 @@ public abstract class TestBase {
     return user;
   }
 
+  /**
+   * Used by setupAdminUser() in SpringIntegrationTestExtension.class, to set up the base admin user
+   * for all tests.
+   *
+   * @return the admin user
+   */
   protected User preCreateInjectAdminUser() {
     UserRole role = createUserRole("Superuser", "ALL");
     role.setUid("yrB6vc5Ip3r");

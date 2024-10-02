@@ -75,7 +75,6 @@ import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -134,7 +133,7 @@ class EventRequestParamsMapperTest {
   public void setUp() throws ForbiddenException, NotFoundException, BadRequestException {
     User user = new User();
 
-    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+    when(userService.getUserByUsername(null)).thenReturn(user);
 
     program = new Program();
     program.setUid(PROGRAM_UID);
@@ -151,7 +150,7 @@ class EventRequestParamsMapperTest {
     when(organisationUnitService.isInUserHierarchy(user, orgUnit)).thenReturn(true);
 
     TrackedEntity trackedEntity = new TrackedEntity();
-    when(trackedEntityService.getTrackedEntity("qnR1RK4cTIZ", null, FALSE, false))
+    when(trackedEntityService.getTrackedEntity("qnR1RK4cTIZ", null, FALSE))
         .thenReturn(trackedEntity);
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
     tea1.setUid(TEA_1_UID);

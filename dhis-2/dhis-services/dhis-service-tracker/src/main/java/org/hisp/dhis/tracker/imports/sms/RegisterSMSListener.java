@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.sms;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -60,10 +61,9 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.listener.CommandSMSListener;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
-import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.user.UserService;
 
 @Slf4j
@@ -126,8 +126,7 @@ public abstract class RegisterSMSListener extends CommandSMSListener {
 
     Enrollment enrollment = enrollments.get(0);
 
-    UserInfoSnapshot currentUserInfo =
-        UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails());
+    UserInfoSnapshot currentUserInfo = UserInfoSnapshot.from(getCurrentUserDetails());
 
     Event event = new Event();
     event.setOrganisationUnit(ous.iterator().next());

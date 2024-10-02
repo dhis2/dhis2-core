@@ -52,7 +52,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.tracker.access.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityEnrollmentParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
@@ -197,7 +197,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
             ForbiddenException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
-                    trackedEntityA1.getUid(), programA.getUid(), defaultParams, false));
+                    trackedEntityA1.getUid(), programA.getUid(), defaultParams));
     assertEquals("OWNERSHIP_ACCESS_DENIED", exception.getMessage());
   }
 
@@ -212,7 +212,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
     assertEquals(
         trackedEntityA1,
         trackedEntityService.getTrackedEntity(
-            trackedEntityA1.getUid(), programA.getUid(), defaultParams, false));
+            trackedEntityA1.getUid(), programA.getUid(), defaultParams));
   }
 
   @Test
@@ -228,7 +228,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
     assertEquals(
         trackedEntityA1,
         trackedEntityService.getTrackedEntity(
-            trackedEntityA1.getUid(), programA.getUid(), defaultParams, false));
+            trackedEntityA1.getUid(), programA.getUid(), defaultParams));
   }
 
   @Test
@@ -238,8 +238,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
 
     assertEquals(
         trackedEntityA1,
-        trackedEntityService.getTrackedEntity(
-            trackedEntityA1.getUid(), null, defaultParams, false));
+        trackedEntityService.getTrackedEntity(trackedEntityA1.getUid(), null, defaultParams));
   }
 
   @Test
@@ -253,7 +252,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
             ForbiddenException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
-                    trackedEntityA1.getUid(), null, defaultParams, false));
+                    trackedEntityA1.getUid(), null, defaultParams));
 
     assertEquals(
         String.format("User has no access to TrackedEntity:%s", trackedEntityA1.getUid()),
@@ -300,7 +299,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
             ForbiddenException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
-                    trackedEntityA1.getUid(), programA.getUid(), defaultParams, false));
+                    trackedEntityA1.getUid(), programA.getUid(), defaultParams));
     assertEquals(TrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT, exception.getMessage());
   }
 
@@ -323,7 +322,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
             ForbiddenException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
-                    trackedEntityA1.getUid(), programA.getUid(), defaultParams, false));
+                    trackedEntityA1.getUid(), programA.getUid(), defaultParams));
     assertEquals(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED, exception.getMessage());
   }
 
@@ -356,7 +355,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
             ForbiddenException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
-                    trackedEntityA1.getUid(), programB.getUid(), defaultParams, false));
+                    trackedEntityA1.getUid(), programB.getUid(), defaultParams));
     assertEquals(TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED, exception.getMessage());
   }
 
@@ -369,7 +368,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
     assertEquals(
         trackedEntityA1,
         trackedEntityService.getTrackedEntity(
-            trackedEntityA1.getUid(), programA.getUid(), defaultParams, false));
+            trackedEntityA1.getUid(), programA.getUid(), defaultParams));
   }
 
   @Test
@@ -387,7 +386,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
             ForbiddenException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
-                    trackedEntityA1.getUid(), programA.getUid(), defaultParams, false));
+                    trackedEntityA1.getUid(), programA.getUid(), defaultParams));
     assertEquals(TrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT, exception.getMessage());
   }
 
@@ -401,8 +400,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(userB);
     assertEquals(
         trackedEntityA1,
-        trackedEntityService.getTrackedEntity(
-            trackedEntityA1.getUid(), null, defaultParams, false));
+        trackedEntityService.getTrackedEntity(trackedEntityA1.getUid(), null, defaultParams));
   }
 
   @Test
@@ -414,7 +412,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
             ForbiddenException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
-                    trackedEntityA1.getUid(), null, defaultParams, false));
+                    trackedEntityA1.getUid(), null, defaultParams));
     assertEquals(
         String.format("User has no access to TrackedEntity:%s", trackedEntityA1.getUid()),
         exception.getMessage());
@@ -427,8 +425,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
 
     assertEquals(
         trackedEntityB1,
-        trackedEntityService.getTrackedEntity(
-            trackedEntityB1.getUid(), null, defaultParams, false));
+        trackedEntityService.getTrackedEntity(trackedEntityB1.getUid(), null, defaultParams));
   }
 
   @Test
@@ -440,7 +437,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
             ForbiddenException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
-                    trackedEntityB1.getUid(), null, defaultParams, false));
+                    trackedEntityB1.getUid(), null, defaultParams));
     assertEquals(
         String.format("User has no access to TrackedEntity:%s", trackedEntityB1.getUid()),
         exception.getMessage());

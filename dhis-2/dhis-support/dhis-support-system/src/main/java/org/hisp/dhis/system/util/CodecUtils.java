@@ -68,8 +68,7 @@ public class CodecUtils {
    * @return the encoded string.
    */
   public static String getBasicAuthString(String username, String password) {
-    String string = username + ":" + password;
-
+    String string = String.format("%s:%s", username, password);
     return "Basic " + Base64.getEncoder().encodeToString(string.getBytes());
   }
 

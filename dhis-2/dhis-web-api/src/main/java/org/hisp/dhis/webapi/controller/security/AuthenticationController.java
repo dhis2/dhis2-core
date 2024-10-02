@@ -40,7 +40,6 @@ import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.security.LoginResponse.STATUS;
@@ -173,9 +172,6 @@ public class AuthenticationController {
   }
 
   private void validateRequest(LoginRequest loginRequest) {
-    if (!ValidationUtils.usernameIsValid(loginRequest.getUsername())) {
-      throw new BadCredentialsException("Bad credentials");
-    }
     User user = userService.getUserByUsername(loginRequest.getUsername());
     if (user == null) {
       throw new BadCredentialsException("Bad credentials");
@@ -226,17 +222,21 @@ public class AuthenticationController {
     SavedRequest savedRequest = requestCache.getRequest(request, null);
     if (savedRequest != null) {
       DefaultSavedRequest defaultSavedRequest = (DefaultSavedRequest) savedRequest;
-
-      if (defaultSavedRequest.getQueryString() != null) {
-        redirectUrl =
-            defaultSavedRequest.getRequestURI() + "?" + defaultSavedRequest.getQueryString();
-      } else {
-        redirectUrl = defaultSavedRequest.getRequestURI();
+      if (!filterSavedRequest(defaultSavedRequest)) {
+        if (defaultSavedRequest.getQueryString() != null) {
+          redirectUrl =
+              defaultSavedRequest.getRequestURI() + "?" + defaultSavedRequest.getQueryString();
+        } else {
+          redirectUrl = defaultSavedRequest.getRequestURI();
+        }
       }
-
       this.requestCache.removeRequest(request, response);
     }
-
     return redirectUrl;
+  }
+
+  private boolean filterSavedRequest(DefaultSavedRequest savedRequest) {
+    String requestURI = savedRequest.getRequestURI();
+    return !requestURI.endsWith(".html") && !requestURI.endsWith("/") && requestURI.contains(".");
   }
 }

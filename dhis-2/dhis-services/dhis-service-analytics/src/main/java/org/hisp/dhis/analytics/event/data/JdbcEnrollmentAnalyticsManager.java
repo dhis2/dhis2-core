@@ -54,6 +54,9 @@ import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
+import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
@@ -102,21 +105,21 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   private static final List<String> COLUMNS =
       List.of(
-          "enrollment",
-          "trackedentity",
-          "enrollmentdate",
-          "incidentdate",
-          "storedby",
-          "createdbydisplayname",
-          "lastupdatedbydisplayname",
-          "lastupdated",
-          "ST_AsGeoJSON(enrollmentgeometry)",
-          "longitude",
-          "latitude",
-          "ouname",
-          "ounamehierarchy",
-          "oucode",
-          "enrollmentstatus");
+          EnrollmentAnalyticsColumnName.ENROLLMENT_COLUMN_NAME,
+          EnrollmentAnalyticsColumnName.TRACKED_ENTITY_COLUMN_NAME,
+          EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
+          EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
+          EnrollmentAnalyticsColumnName.STORED_BY_COLUMN_NAME,
+          EnrollmentAnalyticsColumnName.CREATED_BY_DISPLAY_NAME_COLUMN_NAME,
+          EnrollmentAnalyticsColumnName.LAST_UPDATED_BY_DISPLAY_NAME_COLUMN_NAME,
+          EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
+          "ST_AsGeoJSON(" + EnrollmentAnalyticsColumnName.ENROLLMENT_GEOMETRY_COLUMN_NAME + ")",
+          EnrollmentAnalyticsColumnName.LONGITUDE_COLUMN_NAME,
+          EnrollmentAnalyticsColumnName.LATITUDE_COLUMN_NAME,
+          EnrollmentAnalyticsColumnName.OU_NAME_COLUMN_NAME,
+          AbstractJdbcTableManager.OU_NAME_HIERARCHY_COLUMN_NAME,
+          EnrollmentAnalyticsColumnName.OU_CODE_COLUMN_NAME,
+          EnrollmentAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME);
 
   public JdbcEnrollmentAnalyticsManager(
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
@@ -605,7 +608,12 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           && !item.getRepeatableStageParams().simpleStageValueExpected()) {
         return "(select json_agg(t1) from (select "
             + colName
-            + ", incidentdate, scheduleddate, occurreddate "
+            + ", "
+            + String.join(
+                ", ",
+                EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME,
+                EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME,
+                EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME)
             + " from "
             + eventTableName
             + " where "

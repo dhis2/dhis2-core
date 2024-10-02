@@ -29,8 +29,6 @@ package org.hisp.dhis.tracker.export;
 
 import static org.hisp.dhis.changelog.ChangeLogType.READ;
 import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -48,8 +46,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -78,38 +75,40 @@ public class OperationsParamsValidator {
    * @throws BadRequestException if a validation error occurs for any of the three aforementioned
    *     modes
    */
-  public static void validateOrgUnitMode(OrganisationUnitSelectionMode orgUnitMode, Program program)
+  public static void validateOrgUnitMode(
+      OrganisationUnitSelectionMode orgUnitMode, Program program, UserDetails user)
       throws BadRequestException {
     switch (orgUnitMode) {
-      case ALL -> validateUserCanSearchOrgUnitModeALL();
-      case SELECTED, ACCESSIBLE, DESCENDANTS, CHILDREN -> validateUserScope(program);
-      case CAPTURE -> validateCaptureScope();
+      case ALL -> validateUserCanSearchOrgUnitModeALL(user);
+      case SELECTED, ACCESSIBLE, DESCENDANTS, CHILDREN -> validateUserScope(program, user);
+      case CAPTURE -> validateCaptureScope(user);
     }
   }
 
-  private static void validateUserCanSearchOrgUnitModeALL() throws BadRequestException {
-    if (!CurrentUserUtil.getCurrentUserDetails()
-        .isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS)) {
+  private static void validateUserCanSearchOrgUnitModeALL(UserDetails user)
+      throws BadRequestException {
+    if (!user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS)) {
       throw new BadRequestException(
-          "Current user is not authorized to query across all organisation units");
+          "User is not authorized to query across all organisation units");
     }
   }
 
-  private static void validateUserScope(Program program) throws BadRequestException {
+  private static void validateUserScope(Program program, UserDetails user)
+      throws BadRequestException {
 
     if (program != null && (program.isClosed() || program.isProtected())) {
-      if (getCurrentUserDetails().getUserOrgUnitIds().isEmpty()) {
+      if (user.getUserOrgUnitIds().isEmpty()) {
         throw new BadRequestException("User needs to be assigned data capture org units");
       }
 
-    } else if (getCurrentUserDetails().getUserEffectiveSearchOrgUnitIds().isEmpty()) {
+    } else if (user.getUserEffectiveSearchOrgUnitIds().isEmpty()) {
       throw new BadRequestException(
           "User needs to be assigned either search or data capture org units");
     }
   }
 
-  private static void validateCaptureScope() throws BadRequestException {
-    if (getCurrentUserDetails().getUserOrgUnitIds().isEmpty()) {
+  private static void validateCaptureScope(UserDetails user) throws BadRequestException {
+    if (user.getUserOrgUnitIds().isEmpty()) {
       throw new BadRequestException("User needs to be assigned data capture org units");
     }
   }
@@ -122,9 +121,9 @@ public class OperationsParamsValidator {
    * @throws ForbiddenException if the user has no data read access to the program or its tracked
    *     entity type
    */
-  public Program validateTrackerProgram(String programUid)
+  public Program validateTrackerProgram(String programUid, UserDetails user)
       throws BadRequestException, ForbiddenException {
-    Program program = validateProgramAccess(programUid);
+    Program program = validateProgramAccess(programUid, user);
 
     if (program == null) {
       return null;
@@ -135,9 +134,9 @@ public class OperationsParamsValidator {
     }
 
     if (program.getTrackedEntityType() != null
-        && !aclService.canDataRead(getCurrentUserDetails(), program.getTrackedEntityType())) {
+        && !aclService.canDataRead(user, program.getTrackedEntityType())) {
       throw new ForbiddenException(
-          "Current user is not authorized to read data from selected program's tracked entity type: "
+          "User is not authorized to read data from selected program's tracked entity type: "
               + program.getTrackedEntityType().getUid());
     }
 
@@ -152,7 +151,7 @@ public class OperationsParamsValidator {
    * @throws BadRequestException if the program uid does not exist
    * @throws ForbiddenException if the user has no data read access to the program
    */
-  public Program validateProgramAccess(String programUid)
+  public Program validateProgramAccess(String programUid, UserDetails user)
       throws BadRequestException, ForbiddenException {
     if (programUid == null) {
       return null;
@@ -163,7 +162,7 @@ public class OperationsParamsValidator {
       throw new BadRequestException("Program is specified but does not exist: " + programUid);
     }
 
-    if (!aclService.canDataRead(getCurrentUserDetails(), program)) {
+    if (!aclService.canDataRead(user, program)) {
       throw new ForbiddenException("User has no access to program: " + program.getUid());
     }
 
@@ -177,7 +176,7 @@ public class OperationsParamsValidator {
    * @throws BadRequestException if the tracked entity uid does not exist
    * @throws ForbiddenException if the user has no data read access to type of the tracked entity
    */
-  public TrackedEntity validateTrackedEntity(String trackedEntityUid, User user)
+  public TrackedEntity validateTrackedEntity(String trackedEntityUid, UserDetails user)
       throws BadRequestException, ForbiddenException {
     if (trackedEntityUid == null) {
       return null;
@@ -189,12 +188,12 @@ public class OperationsParamsValidator {
       throw new BadRequestException(
           "Tracked entity is specified but does not exist: " + trackedEntityUid);
     }
-    trackedEntityAuditService.addTrackedEntityAudit(trackedEntity, getCurrentUsername(), READ);
+    trackedEntityAuditService.addTrackedEntityAudit(trackedEntity, user.getUsername(), READ);
 
     if (trackedEntity.getTrackedEntityType() != null
         && !aclService.canDataRead(user, trackedEntity.getTrackedEntityType())) {
       throw new ForbiddenException(
-          "Current user is not authorized to read data from type of selected tracked entity: "
+          "User is not authorized to read data from type of selected tracked entity: "
               + trackedEntity.getTrackedEntityType().getUid());
     }
 
@@ -208,7 +207,7 @@ public class OperationsParamsValidator {
    * @throws BadRequestException if the tracked entity type uid does not exist
    * @throws ForbiddenException if the user has no data read access to the tracked entity type
    */
-  public TrackedEntityType validateTrackedEntityType(String uid)
+  public TrackedEntityType validateTrackedEntityType(String uid, UserDetails user)
       throws BadRequestException, ForbiddenException {
     if (uid == null) {
       return null;
@@ -219,9 +218,9 @@ public class OperationsParamsValidator {
       throw new BadRequestException("Tracked entity type is specified but does not exist: " + uid);
     }
 
-    if (!aclService.canDataRead(getCurrentUserDetails(), trackedEntityType)) {
+    if (!aclService.canDataRead(user, trackedEntityType)) {
       throw new ForbiddenException(
-          "Current user is not authorized to read data from selected tracked entity type: "
+          "User is not authorized to read data from selected tracked entity type: "
               + trackedEntityType.getUid());
     }
 
@@ -235,7 +234,7 @@ public class OperationsParamsValidator {
    * @throws BadRequestException if the org unit uid does not exist
    * @throws ForbiddenException if the org unit is not part of the user scope
    */
-  public Set<OrganisationUnit> validateOrgUnits(Set<String> orgUnitIds)
+  public Set<OrganisationUnit> validateOrgUnits(Set<String> orgUnitIds, UserDetails user)
       throws BadRequestException, ForbiddenException {
     Set<OrganisationUnit> orgUnits = new HashSet<>();
     for (String orgUnitUid : orgUnitIds) {
@@ -244,8 +243,7 @@ public class OperationsParamsValidator {
         throw new BadRequestException("Organisation unit does not exist: " + orgUnitUid);
       }
 
-      if (!getCurrentUserDetails().isSuper()
-          && !getCurrentUserDetails().isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getPath())) {
+      if (!user.isSuper() && !user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getPath())) {
         throw new ForbiddenException(
             "Organisation unit is not part of the search scope: " + orgUnit.getUid());
       }

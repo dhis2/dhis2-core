@@ -44,11 +44,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -57,7 +55,7 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjects;
@@ -285,16 +283,6 @@ public class UserController extends AbstractCrudController<User> {
   // -------------------------------------------------------------------------
   // POST
   // -------------------------------------------------------------------------
-
-  @OpenApi.Params(MetadataImportParams.class)
-  @OpenApi.Param(OpenApi.EntityType.class)
-  @Override
-  @PostMapping(consumes = {APPLICATION_XML_VALUE, TEXT_XML_VALUE})
-  @ResponseBody
-  public WebMessage postXmlObject(HttpServletRequest request)
-      throws IOException, ForbiddenException, ConflictException {
-    return postObject(renderService.fromXml(request.getInputStream(), getEntityClass()));
-  }
 
   @OpenApi.Params(MetadataImportParams.class)
   @OpenApi.Param(OpenApi.EntityType.class)
@@ -568,23 +556,6 @@ public class UserController extends AbstractCrudController<User> {
   @Override
   @PutMapping(
       value = "/{uid}",
-      consumes = {APPLICATION_XML_VALUE, TEXT_XML_VALUE},
-      produces = APPLICATION_XML_VALUE)
-  @ResponseBody
-  public WebMessage putXmlObject(
-      @PathVariable("uid") String pvUid,
-      @CurrentUser UserDetails currentUser,
-      HttpServletRequest request,
-      HttpServletResponse response)
-      throws IOException, ForbiddenException, ConflictException, NotFoundException {
-    User parsed = renderService.fromXml(request.getInputStream(), getEntityClass());
-
-    return importReport(updateUser(pvUid, parsed)).withPlainResponseBefore(DhisApiVersion.V38);
-  }
-
-  @Override
-  @PutMapping(
-      value = "/{uid}",
       consumes = APPLICATION_JSON_VALUE,
       produces = APPLICATION_JSON_VALUE)
   @ResponseBody
@@ -807,25 +778,16 @@ public class UserController extends AbstractCrudController<User> {
    * @param userReplica user for which to copy attribute values.
    */
   private void copyAttributeValues(User userReplica) {
-    if (userReplica.getAttributeValues() == null) {
-      return;
-    }
+    if (userReplica.getAttributeValues().isEmpty()) return;
 
-    Set<AttributeValue> newAttributeValues = new HashSet<>();
+    List<String> uniqueAttributeIds =
+        attributeService.getAttributesByIds(userReplica.getAttributeValues().keys()).stream()
+            .filter(Attribute::isUnique)
+            .map(Attribute::getUid)
+            .toList();
 
-    for (AttributeValue oldValue : userReplica.getAttributeValues()) {
-      if (!oldValue.getAttribute().isUnique()) {
-        AttributeValue newValue = new AttributeValue(oldValue.getValue(), oldValue.getAttribute());
-
-        newAttributeValues.add(newValue);
-      }
-    }
-
-    if (newAttributeValues.isEmpty()) {
-      userReplica.setAttributeValues(null);
-    }
-
-    userReplica.setAttributeValues(newAttributeValues);
+    userReplica.setAttributeValues(
+        userReplica.getAttributeValues().removedAll(uniqueAttributeIds::contains));
   }
 
   private User mergeLastLoginAttribute(User source, User target) {

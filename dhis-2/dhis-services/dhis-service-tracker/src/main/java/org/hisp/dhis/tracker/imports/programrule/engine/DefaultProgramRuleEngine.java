@@ -52,6 +52,7 @@ import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -94,7 +95,8 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
   public RuleEngineEffects evaluateEnrollmentAndEvents(
       Enrollment enrollment,
       Set<Event> events,
-      List<TrackedEntityAttributeValue> trackedEntityAttributeValues) {
+      List<TrackedEntityAttributeValue> trackedEntityAttributeValues,
+      UserDetails user) {
     List<ProgramRule> rules =
         getProgramRules(
             enrollment.getProgram(),
@@ -104,15 +106,18 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
             getRuleEnrollment(enrollment, trackedEntityAttributeValues),
             enrollment.getProgram(),
             getRuleEvents(events),
-            rules);
+            rules,
+            user);
     return RuleEngineEffects.of(ruleEffects);
   }
 
   @Override
-  public RuleEngineEffects evaluateProgramEvents(Set<Event> events, Program program) {
+  public RuleEngineEffects evaluateProgramEvents(
+      Set<Event> events, Program program, UserDetails user) {
     List<ProgramRule> rules = implementableRuleService.getProgramRules(program, null);
     return RuleEngineEffects.of(
-        evaluateProgramRulesForMultipleTrackerObjects(null, program, getRuleEvents(events), rules));
+        evaluateProgramRulesForMultipleTrackerObjects(
+            null, program, getRuleEvents(events), rules, user));
   }
 
   @Override
@@ -147,9 +152,10 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
       RuleEnrollment ruleEnrollment,
       Program program,
       List<RuleEvent> ruleEvents,
-      List<ProgramRule> rules) {
+      List<ProgramRule> rules,
+      UserDetails user) {
     try {
-      RuleEngineContext ruleEngineContext = getRuleEngineContext(program, rules);
+      RuleEngineContext ruleEngineContext = getRuleEngineContext(program, rules, user);
       return ruleEngine.evaluateAll(ruleEnrollment, ruleEvents, ruleEngineContext);
     } catch (Exception e) {
       log.error(DebugUtils.getStackTrace(e));
@@ -170,7 +176,8 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
     return List.copyOf(programRules);
   }
 
-  private RuleEngineContext getRuleEngineContext(Program program, List<ProgramRule> programRules) {
+  private RuleEngineContext getRuleEngineContext(
+      Program program, List<ProgramRule> programRules, UserDetails user) {
     List<ProgramRuleVariable> programRuleVariables =
         programRuleVariableService.getProgramRuleVariable(program);
 
@@ -180,7 +187,7 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
                 Collectors.toMap(Map.Entry::getKey, v -> Double.toString(v.getValue().getValue())));
 
     Map<String, List<String>> supplementaryData =
-        supplementaryDataProvider.getSupplementaryData(programRules);
+        supplementaryDataProvider.getSupplementaryData(programRules, user);
 
     return new RuleEngineContext(
         programRuleEntityMapperService.toMappedProgramRules(programRules),

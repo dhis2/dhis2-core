@@ -39,20 +39,32 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 
 /** Enum that maps database column names to their respective "business" names. */
 @RequiredArgsConstructor
 public enum TimeField {
-  EVENT_DATE("occurreddate"),
-  ENROLLMENT_DATE("enrollmentdate"),
-  INCIDENT_DATE("incidentdate", "occurreddate"),
+  EVENT_DATE(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
+  ENROLLMENT_DATE(
+      EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
+      EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
+      "enrollmentdate"),
+  INCIDENT_DATE(
+      EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
+      EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME,
+      "occurreddate"),
   OCCURRED_DATE("occurreddate"),
-  SCHEDULED_DATE("scheduleddate"),
-  COMPLETED_DATE("completeddate"),
-  CREATED("created"),
-  LAST_UPDATED("lastupdated");
+  SCHEDULED_DATE(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME),
+  COMPLETED_DATE(EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME),
+  CREATED(EventAnalyticsColumnName.CREATED_COLUMN_NAME),
+  LAST_UPDATED(
+      EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
+      EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
+      "lastupdated");
 
-  @Getter private final String eventAndEnrollmentColumnName;
+  @Getter private final String enrollmentColumnName;
+  @Getter private final String eventColumnName;
   @Getter private final String trackedEntityColumnName;
 
   public static final Collection<String> DEFAULT_TIME_FIELDS =
@@ -62,7 +74,7 @@ public enum TimeField {
    * These constants represent the columns that can be compared using the raw period column (in the
    * analytics tables), instead of dates. This is preferable for performance reasons.
    */
-  private static final Collection<TimeField> TIME_FIELDS_SUPPORT_RAW_PERIODS =
+  private static final Collection<TimeField> SUPPORTING_RAW_FIELD_TIME_FIELDS =
       List.of(EVENT_DATE, SCHEDULED_DATE, ENROLLMENT_DATE);
 
   private static final Set<String> FIELD_NAMES =
@@ -70,7 +82,8 @@ public enum TimeField {
 
   TimeField(final String field) {
     this.trackedEntityColumnName = field;
-    this.eventAndEnrollmentColumnName = field;
+    this.eventColumnName = field;
+    this.enrollmentColumnName = field;
   }
 
   public static Optional<TimeField> of(final String timeField) {
@@ -79,7 +92,7 @@ public enum TimeField {
 
   private static Optional<TimeField> from(final String field) {
     return Arrays.stream(values())
-        .filter(tf -> tf.getEventAndEnrollmentColumnName().equals(field))
+        .filter(timeField -> timeField.getEventColumnName().equals(field))
         .findFirst();
   }
 
@@ -88,14 +101,10 @@ public enum TimeField {
   }
 
   public boolean supportsRawPeriod() {
-    return Optional.of(eventAndEnrollmentColumnName)
+    return Optional.of(eventColumnName)
         .filter(StringUtils::isNotBlank)
         .flatMap(TimeField::from)
-        .map(this::supportsRawPeriods)
+        .map(SUPPORTING_RAW_FIELD_TIME_FIELDS::contains)
         .orElse(false);
-  }
-
-  private boolean supportsRawPeriods(TimeField timeField) {
-    return TIME_FIELDS_SUPPORT_RAW_PERIODS.contains(timeField);
   }
 }

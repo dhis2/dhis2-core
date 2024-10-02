@@ -51,16 +51,17 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
@@ -78,9 +79,9 @@ public class EventPersister
   public EventPersister(
       ReservedValueService reservedValueService,
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> eventConverter,
-      TrackedEntityAttributeValueChangeLogService trackedEntityAttributeValueChangeLogService,
+      TrackedEntityChangeLogService trackedEntityChangeLogService,
       EventChangeLogService eventChangeLogService) {
-    super(reservedValueService, trackedEntityAttributeValueChangeLogService);
+    super(reservedValueService, trackedEntityChangeLogService);
     this.eventConverter = eventConverter;
     this.eventChangeLogService = eventChangeLogService;
   }
@@ -104,7 +105,7 @@ public class EventPersister
         .eventNotifications(bundle.getEventNotifications().get(UID.of(event.getUid())))
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
-        .accessedBy(bundle.getUsername())
+        .accessedBy(bundle.getUser().getUsername())
         .event(event)
         .program(event.getProgramStage().getProgram())
         .triggers(triggers)
@@ -135,7 +136,7 @@ public class EventPersister
 
   @Override
   protected Event convert(TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event) {
-    return eventConverter.from(bundle.getPreheat(), event);
+    return eventConverter.from(bundle.getPreheat(), event, bundle.getUser());
   }
 
   @Override
@@ -148,7 +149,8 @@ public class EventPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Event event,
-      Event hibernateEntity) {
+      Event hibernateEntity,
+      UserDetails user) {
     // DO NOTHING - EVENT HAVE NO ATTRIBUTES
   }
 
@@ -157,15 +159,17 @@ public class EventPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Event event,
-      Event hibernateEntity) {
-    handleDataValues(entityManager, preheat, event.getDataValues(), hibernateEntity);
+      Event hibernateEntity,
+      UserDetails user) {
+    handleDataValues(entityManager, preheat, event.getDataValues(), hibernateEntity, user);
   }
 
   private void handleDataValues(
       EntityManager entityManager,
       TrackerPreheat preheat,
       Set<DataValue> payloadDataValues,
-      Event event) {
+      Event event,
+      UserDetails user) {
     Map<String, EventDataValue> dataValueDBMap =
         Optional.ofNullable(preheat.getEvent(event.getUid()))
             .map(
@@ -211,7 +215,7 @@ public class EventPersister
           }
 
           logTrackedEntityDataValueHistory(
-              preheat.getUsername(), dataElement, event, new Date(), valuesHolder);
+              user.getUsername(), dataElement, event, new Date(), valuesHolder);
         });
   }
 

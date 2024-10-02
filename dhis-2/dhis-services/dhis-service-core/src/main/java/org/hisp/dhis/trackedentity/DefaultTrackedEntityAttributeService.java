@@ -34,18 +34,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -169,51 +165,6 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
 
   @Override
   @Transactional(readOnly = true)
-  public List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInListNoProgram() {
-    return attributeStore.getDisplayInListNoProgram();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public String validateAttributeUniquenessWithinScope(
-      TrackedEntityAttribute trackedEntityAttribute,
-      String value,
-      TrackedEntity trackedEntity,
-      OrganisationUnit organisationUnit) {
-    Assert.notNull(trackedEntityAttribute, "tracked entity attribute is required.");
-    Assert.notNull(value, "tracked entity attribute value is required.");
-
-    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-    params.addAttribute(
-        new QueryItem(
-            trackedEntityAttribute,
-            QueryOperator.EQ,
-            value,
-            trackedEntityAttribute.getValueType(),
-            trackedEntityAttribute.getAggregationType(),
-            trackedEntityAttribute.getOptionSet()));
-
-    if (trackedEntityAttribute.getOrgUnitScopeNullSafe()) {
-      Assert.notNull(organisationUnit, "organisation unit is required for org unit scope");
-      params.addOrganisationUnit(organisationUnit);
-    }
-
-    Optional<String> fetchedTeiUid =
-        trackedEntityAttributeStore.getTrackedEntityUidWithUniqueAttributeValue(params);
-
-    if (fetchedTeiUid.isPresent()
-        && (trackedEntity == null || !fetchedTeiUid.get().equals(trackedEntity.getUid()))) {
-      return "Non-unique attribute value '"
-          + value
-          + "' for attribute "
-          + trackedEntityAttribute.getUid();
-    }
-
-    return null;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public String validateValueType(TrackedEntityAttribute trackedEntityAttribute, String value) {
     Assert.notNull(trackedEntityAttribute, "tracked entity attribute is required");
     ValueType valueType = trackedEntityAttribute.getValueType();
@@ -283,12 +234,6 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
     }
 
     return null;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes() {
-    return getAllUserReadableTrackedEntityAttributes(CurrentUserUtil.getCurrentUserDetails());
   }
 
   @Override

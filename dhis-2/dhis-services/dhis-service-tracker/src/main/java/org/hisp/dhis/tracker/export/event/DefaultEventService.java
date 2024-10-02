@@ -50,7 +50,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.tracker.access.TrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
@@ -81,7 +81,7 @@ class DefaultEventService implements EventService {
   private final EventOperationParamsMapper paramsMapper;
 
   @Override
-  public FileResourceStream getFileResource(UID event, UID dataElement)
+  public FileResourceStream getFileResource(@Nonnull UID event, @Nonnull UID dataElement)
       throws NotFoundException, ForbiddenException {
     FileResource fileResource = getFileResourceMetadata(event, dataElement);
     return FileResourceStream.of(fileResourceService, fileResource);
@@ -89,7 +89,7 @@ class DefaultEventService implements EventService {
 
   @Override
   public FileResourceStream getFileResourceImage(
-      UID event, UID dataElement, ImageFileDimension dimension)
+      @Nonnull UID event, @Nonnull UID dataElement, ImageFileDimension dimension)
       throws NotFoundException, ForbiddenException {
     FileResource fileResource = getFileResourceMetadata(event, dataElement);
     return FileResourceStream.ofImage(fileResourceService, fileResource, dimension);
@@ -137,13 +137,13 @@ class DefaultEventService implements EventService {
   }
 
   @Override
-  public Event getEvent(@Nonnull UID event, UserDetails user)
+  public Event getEvent(@Nonnull UID event, @Nonnull UserDetails user)
       throws ForbiddenException, NotFoundException {
     return getEvent(event, EventParams.FALSE, user);
   }
 
   @Override
-  public Event getEvent(@Nonnull UID event, EventParams eventParams)
+  public Event getEvent(@Nonnull UID event, @Nonnull EventParams eventParams)
       throws ForbiddenException, NotFoundException {
     return getEvent(event, eventParams, CurrentUserUtil.getCurrentUserDetails());
   }
@@ -163,7 +163,7 @@ class DefaultEventService implements EventService {
     return getEvent(event, eventParams, user);
   }
 
-  private Event getEvent(@Nonnull Event event, EventParams eventParams, UserDetails currentUser) {
+  private Event getEvent(@Nonnull Event event, EventParams eventParams, UserDetails user) {
     Event result = new Event();
     result.setId(event.getId());
     result.setUid(event.getUid());
@@ -221,7 +221,7 @@ class DefaultEventService implements EventService {
 
       for (RelationshipItem relationshipItem : event.getRelationshipItems()) {
         Relationship daoRelationship = relationshipItem.getRelationship();
-        if (trackerAccessManager.canRead(currentUser, daoRelationship).isEmpty()
+        if (trackerAccessManager.canRead(user, daoRelationship).isEmpty()
             && (!daoRelationship.isDeleted())) {
           relationshipItems.add(relationshipItem);
         }
@@ -234,22 +234,23 @@ class DefaultEventService implements EventService {
   }
 
   @Override
-  public List<Event> getEvents(EventOperationParams operationParams)
+  public List<Event> getEvents(@Nonnull EventOperationParams operationParams)
       throws BadRequestException, ForbiddenException, NotFoundException {
-    EventQueryParams queryParams = paramsMapper.map(operationParams);
+    EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
     return eventStore.getEvents(queryParams);
   }
 
   @Override
-  public Page<Event> getEvents(EventOperationParams operationParams, PageParams pageParams)
+  public Page<Event> getEvents(
+      @Nonnull EventOperationParams operationParams, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException, NotFoundException {
-    EventQueryParams queryParams = paramsMapper.map(operationParams);
+    EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
     return eventStore.getEvents(queryParams, pageParams);
   }
 
   @Override
-  public RelationshipItem getEventInRelationshipItem(String uid, EventParams eventParams)
-      throws NotFoundException {
+  public RelationshipItem getEventInRelationshipItem(
+      @Nonnull String uid, @Nonnull EventParams eventParams) throws NotFoundException {
     RelationshipItem relationshipItem = new RelationshipItem();
 
     Event event = manager.get(Event.class, uid);

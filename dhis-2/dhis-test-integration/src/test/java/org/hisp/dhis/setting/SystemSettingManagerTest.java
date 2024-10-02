@@ -36,14 +36,10 @@ import static org.hisp.dhis.setting.SettingKey.EMAIL_PORT;
 import static org.hisp.dhis.setting.SettingKey.HELP_PAGE_LINK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.Serializable;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeAll;
@@ -97,32 +93,6 @@ class SystemSettingManagerTest extends PostgresIntegrationTestBase {
     assertNull(systemSettingManager.getStringSetting(APPLICATION_INTRO));
     assertEquals(
         HELP_PAGE_LINK.getDefaultValue(), systemSettingManager.getStringSetting(HELP_PAGE_LINK));
-  }
-
-  @Test
-  void testGetAllSystemSettings() {
-    systemSettingManager.saveSystemSetting(APPLICATION_INTRO, "valueA");
-    systemSettingManager.saveSystemSetting(APPLICATION_NOTIFICATION, "valueB");
-    List<SystemSetting> settings = systemSettingManager.getAllSystemSettings();
-    assertNotNull(settings);
-    assertEquals(2, settings.size());
-  }
-
-  @Test
-  void testGetSystemSettingsAsMap() {
-    systemSettingManager.saveSystemSetting(SettingKey.APPLICATION_TITLE, "valueA");
-    systemSettingManager.saveSystemSetting(SettingKey.APPLICATION_NOTIFICATION, "valueB");
-    Map<String, Serializable> settingsMap = systemSettingManager.getSystemSettingsAsMap();
-    assertTrue(settingsMap.containsKey(SettingKey.APPLICATION_TITLE.getName()));
-    assertTrue(settingsMap.containsKey(SettingKey.APPLICATION_NOTIFICATION.getName()));
-    assertEquals("valueA", settingsMap.get(SettingKey.APPLICATION_TITLE.getName()));
-    assertEquals("valueB", settingsMap.get(SettingKey.APPLICATION_NOTIFICATION.getName()));
-    assertEquals(
-        SettingKey.CACHE_STRATEGY.getDefaultValue(),
-        settingsMap.get(SettingKey.CACHE_STRATEGY.getName()));
-    assertEquals(
-        SettingKey.CREDENTIALS_EXPIRES.getDefaultValue(),
-        settingsMap.get(SettingKey.CREDENTIALS_EXPIRES.getName()));
   }
 
   @Test

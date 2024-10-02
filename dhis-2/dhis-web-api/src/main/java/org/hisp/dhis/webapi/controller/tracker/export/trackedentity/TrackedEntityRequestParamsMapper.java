@@ -48,6 +48,7 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.TrackedEntityOperationParamsBuilder;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -68,13 +69,16 @@ class TrackedEntityRequestParamsMapper {
 
   private final TrackedEntityFieldsParamMapper fieldsParamMapper;
 
-  public TrackedEntityOperationParams map(TrackedEntityRequestParams trackedEntityRequestParams)
+  public TrackedEntityOperationParams map(
+      TrackedEntityRequestParams trackedEntityRequestParams, UserDetails user)
       throws BadRequestException {
-    return map(trackedEntityRequestParams, trackedEntityRequestParams.getFields());
+    return map(trackedEntityRequestParams, trackedEntityRequestParams.getFields(), user);
   }
 
   public TrackedEntityOperationParams map(
-      TrackedEntityRequestParams trackedEntityRequestParams, List<FieldPath> fields)
+      TrackedEntityRequestParams trackedEntityRequestParams,
+      List<FieldPath> fields,
+      UserDetails user)
       throws BadRequestException {
     validateRemovedParameters(trackedEntityRequestParams);
 
@@ -159,7 +163,8 @@ class TrackedEntityRequestParamsMapper {
             .assignedUserQueryParam(
                 new AssignedUserQueryParam(
                     trackedEntityRequestParams.getAssignedUserMode(),
-                    UID.toValueSet(assignedUsers)))
+                    UID.toValueSet(assignedUsers),
+                    user.getUid()))
             .trackedEntityUids(UID.toValueSet(trackedEntities))
             .filters(filters)
             .includeDeleted(trackedEntityRequestParams.isIncludeDeleted())

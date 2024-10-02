@@ -54,7 +54,7 @@ import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.access.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -110,12 +110,14 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   @BeforeEach
   public void setUp() {
-    when(bundle.getPreheat()).thenReturn(preheat);
-
-    setUpUser(List.of(), Set.of());
-
     organisationUnit = createOrganisationUnit('A');
     organisationUnit.setUid(ORG_UNIT_ID);
+
+    User u = makeUser("A");
+    user = UserDetails.fromUser(u);
+
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getUser()).thenReturn(user);
 
     trackedEntityType = createTrackedEntityType('A');
     trackedEntityType.setUid(TE_TYPE_ID);
@@ -140,19 +142,16 @@ class SecurityOwnershipValidatorTest extends TestBase {
     validator = new SecurityOwnershipValidator(aclService, ownershipAccessManager);
   }
 
-  private void setUpUser(List<String> auths, Set<OrganisationUnit> units) {
-    User u = makeUser("A", auths);
-    u.setOrganisationUnits(units);
-    user = UserDetails.fromUser(u);
-    when(bundle.getUser()).thenReturn(u);
+  private UserDetails setUpUserWithOrgUnit(List<String> auths) {
+    User userB = makeUser("B", auths);
+    userB.setOrganisationUnits(Set.of(organisationUnit));
+    UserDetails userDetails = UserDetails.fromUser(userB);
+    when(bundle.getUser()).thenReturn(userDetails);
+    return userDetails;
   }
 
-  private void setUpUserWithOrgUnit(List<String> auths) {
-    setUpUser(auths, Set.of(organisationUnit));
-  }
-
-  private void setUpUserWithOrgUnit() {
-    setUpUserWithOrgUnit(List.of());
+  private UserDetails setUpUserWithOrgUnit() {
+    return setUpUserWithOrgUnit(List.of());
   }
 
   @Test
@@ -193,9 +192,9 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
-    setUpUserWithOrgUnit();
-    when(aclService.canDataWrite(user, program)).thenReturn(true);
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    UserDetails userDetails = setUpUserWithOrgUnit();
+    when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -217,13 +216,13 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
     when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
-    when(aclService.canDataWrite(user, program)).thenReturn(true);
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    UserDetails userDetails = setUpUserWithOrgUnit();
+    when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
     when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
     when(ownershipAccessManager.hasAccess(
-            user, enrollment.getTrackedEntity(), organisationUnit, program))
+            userDetails, enrollment.getTrackedEntity(), organisationUnit, program))
         .thenReturn(true);
-    setUpUserWithOrgUnit();
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -245,12 +244,12 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent()).thenReturn(Collections.emptyList());
     when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
-    setUpUserWithOrgUnit();
-    when(aclService.canDataWrite(user, program)).thenReturn(true);
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    UserDetails userDetails = setUpUserWithOrgUnit();
+    when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
     when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
     when(ownershipAccessManager.hasAccess(
-            user, enrollment.getTrackedEntity(), organisationUnit, program))
+            userDetails, enrollment.getTrackedEntity(), organisationUnit, program))
         .thenReturn(true);
 
     validator.validate(reporter, bundle, enrollment);
@@ -275,12 +274,13 @@ class SecurityOwnershipValidatorTest extends TestBase {
         .thenReturn(Collections.singletonList(enrollment.getEnrollment()));
     when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
-    setUpUserWithOrgUnit(List.of(Authorities.F_ENROLLMENT_CASCADE_DELETE.name()));
-    when(aclService.canDataWrite(user, program)).thenReturn(true);
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    UserDetails userDetails =
+        setUpUserWithOrgUnit(List.of(Authorities.F_ENROLLMENT_CASCADE_DELETE.name()));
+    when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
     when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
     when(ownershipAccessManager.hasAccess(
-            user, enrollment.getTrackedEntity(), organisationUnit, program))
+            userDetails, enrollment.getTrackedEntity(), organisationUnit, program))
         .thenReturn(true);
 
     validator.validate(reporter, bundle, enrollment);
@@ -329,9 +329,9 @@ class SecurityOwnershipValidatorTest extends TestBase {
         .thenReturn(Collections.singletonList(enrollment.getEnrollment()));
     when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
-    setUpUserWithOrgUnit();
-    when(aclService.canDataWrite(user, program)).thenReturn(true);
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    UserDetails userDetails = setUpUserWithOrgUnit();
+    when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
     when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
 
     validator.validate(reporter, bundle, enrollment);
@@ -354,10 +354,10 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
     when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
-    when(aclService.canDataWrite(user, program)).thenReturn(false);
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    UserDetails userDetails = setUpUserWithOrgUnit();
+    when(aclService.canDataWrite(userDetails, program)).thenReturn(false);
+    when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
     when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
-    setUpUserWithOrgUnit();
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -379,10 +379,10 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
     when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
-    when(aclService.canDataWrite(user, program)).thenReturn(true);
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(false);
+    UserDetails userDetails = setUpUserWithOrgUnit();
+    when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(false);
     when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
-    setUpUserWithOrgUnit();
 
     validator.validate(reporter, bundle, enrollment);
 

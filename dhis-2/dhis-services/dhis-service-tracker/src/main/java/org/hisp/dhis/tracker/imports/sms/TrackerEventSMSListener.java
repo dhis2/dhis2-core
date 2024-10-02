@@ -27,136 +27,64 @@
  */
 package org.hisp.dhis.tracker.imports.sms;
 
-import java.util.List;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
+import static org.hisp.dhis.tracker.imports.sms.SmsImportMapper.map;
+
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
+import org.hisp.dhis.sms.listener.CompressionSMSListener;
 import org.hisp.dhis.sms.listener.SMSProcessingException;
 import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
-import org.hisp.dhis.smscompression.models.Uid;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.tracker.export.event.EventChangeLogService;
-import org.hisp.dhis.tracker.export.event.EventService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Component("org.hisp.dhis.tracker.sms.TrackerEventSMSListener")
 @Transactional
-public class TrackerEventSMSListener extends EventSavingSMSListener {
-  private final ProgramStageService programStageService;
-
-  private final EnrollmentService enrollmentService;
+public class TrackerEventSMSListener extends CompressionSMSListener {
+  private final TrackerImportService trackerImportService;
 
   public TrackerEventSMSListener(
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       UserService userService,
-      TrackedEntityTypeService trackedEntityTypeService,
-      TrackedEntityAttributeService trackedEntityAttributeService,
-      ProgramService programService,
-      OrganisationUnitService organisationUnitService,
-      CategoryService categoryService,
-      DataElementService dataElementService,
       IdentifiableObjectManager identifiableObjectManager,
-      EventService eventService,
-      EventChangeLogService eventChangeLogService,
-      FileResourceService fileResourceService,
-      DhisConfigurationProvider config,
-      ProgramStageService programStageService,
-      EnrollmentService enrollmentService) {
-    super(
-        incomingSmsService,
-        smsSender,
-        userService,
-        trackedEntityTypeService,
-        trackedEntityAttributeService,
-        programService,
-        organisationUnitService,
-        categoryService,
-        dataElementService,
-        identifiableObjectManager,
-        eventService,
-        eventChangeLogService,
-        fileResourceService,
-        config);
-    this.programStageService = programStageService;
-    this.enrollmentService = enrollmentService;
+      TrackerImportService trackerImportService) {
+    super(incomingSmsService, smsSender, userService, identifiableObjectManager);
+    this.trackerImportService = trackerImportService;
   }
 
   @Override
-  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, User user)
+  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, String username)
       throws SMSProcessingException {
     TrackerEventSmsSubmission subm = (TrackerEventSmsSubmission) submission;
 
-    Uid ouid = subm.getOrgUnit();
-    Uid stageid = subm.getProgramStage();
-    Uid enrolmentid = subm.getEnrollment();
-    Uid aocid = subm.getAttributeOptionCombo();
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
+            .build();
+    TrackerObjects trackerObjects = map(subm, username);
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(ouid.getUid());
-
-    Enrollment enrollment;
-    try {
-      enrollment =
-          enrollmentService.getEnrollment(enrolmentid.getUid(), UserDetails.fromUser(user));
-    } catch (ForbiddenException | NotFoundException e) {
-      throw new SMSProcessingException(SmsResponse.INVALID_ENROLL.set(enrolmentid));
+    if (Status.OK == importReport.getStatus()) {
+      return SmsResponse.SUCCESS;
     }
-
-    ProgramStage programStage = programStageService.getProgramStage(stageid.getUid());
-    if (programStage == null) {
-      throw new SMSProcessingException(SmsResponse.INVALID_STAGE.set(stageid));
-    }
-
-    CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo(aocid.getUid());
-    if (aoc == null) {
-      throw new SMSProcessingException(SmsResponse.INVALID_AOC.set(aocid));
-    }
-
-    List<Object> errorUIDs =
-        saveEvent(
-            subm.getEvent().getUid(),
-            orgUnit,
-            programStage,
-            enrollment,
-            aoc,
-            user,
-            subm.getValues(),
-            subm.getEventStatus(),
-            subm.getEventDate(),
-            subm.getDueDate(),
-            subm.getCoordinates());
-    if (!errorUIDs.isEmpty()) {
-      return SmsResponse.WARN_DVERR.setList(errorUIDs);
-    } else if (subm.getValues() == null || subm.getValues().isEmpty()) {
-      // TODO: Should we save the event if there are no data values?
-      return SmsResponse.WARN_DVEMPTY;
-    }
-
-    return SmsResponse.SUCCESS;
+    // TODO(DHIS2-18003) we need to map tracker import report errors/warnings to an sms
+    log.error("Failed to process SMS of submission type TRACKER_EVENT {}", importReport);
+    return SmsResponse.INVALID_EVENT.set(subm.getEvent());
   }
 
   @Override

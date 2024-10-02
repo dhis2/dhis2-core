@@ -62,8 +62,11 @@ public class HttpBasicAuth extends Auth {
       return;
     }
 
-    headers.add(
-        "Authorization",
-        "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes()));
+    headers.add("Authorization", getBasicAuth(username, password));
+  }
+
+  private String getBasicAuth(String username, String password) {
+    String string = String.format("%s:%s", username, password);
+    return "Basic " + Base64.getEncoder().encodeToString(string.getBytes());
   }
 }

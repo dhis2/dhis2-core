@@ -30,7 +30,7 @@ package org.hisp.dhis.program;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
@@ -38,17 +38,16 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class TrackedEntityDataValueChangeLogDeletionHandler
-    extends IdObjectDeletionHandler<DataElement> {
+public class TrackedEntityDataValueChangeLogDeletionHandler extends JdbcDeletionHandler {
 
   @Override
-  protected void registerHandler() {
+  protected void register() {
     whenDeleting(DataElement.class, this::deleteDataElement);
   }
 
   private void deleteDataElement(DataElement dataElement) {
     delete(
-        "delete from trackedentitydatavalueaudit d where d.dataelementid = :de",
-        Map.of("de", dataElement.getId()));
+        "delete from trackedentitydatavalueaudit where dataelementid = :id",
+        Map.of("id", dataElement.getId()));
   }
 }

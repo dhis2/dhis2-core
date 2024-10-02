@@ -45,6 +45,7 @@ import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -66,7 +67,7 @@ class RelationshipImportTest extends TrackerTest {
     userA = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(userA);
 
-    TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     assertNoErrors(trackerImportService.importTracker(params, fromJson("tracker/single_te.json")));
     assertNoErrors(
         trackerImportService.importTracker(params, fromJson("tracker/single_enrollment.json")));
@@ -75,10 +76,15 @@ class RelationshipImportTest extends TrackerTest {
     manager.flush();
   }
 
+  @BeforeEach
+  void setUpUser() {
+    injectSecurityContextUser(userA);
+  }
+
   @Test
   void successImportingRelationships() throws IOException {
-    userA = userService.getUser("M5zQapPyTZI");
-    TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
+    injectSecurityContextUser(userService.getUser("M5zQapPyTZI"));
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(params, fromJson("tracker/relationships.json"));
     assertThat(importReport.getStatus(), is(Status.OK));
@@ -87,8 +93,8 @@ class RelationshipImportTest extends TrackerTest {
 
   @Test
   void shouldFailWhenUserNotAuthorizedToCreateRelationship() throws IOException {
-    userA = userService.getUser("o1HMTIzBGo7");
-    TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
+    injectSecurityContextUser(userService.getUser("o1HMTIzBGo7"));
+    TrackerImportParams params = TrackerImportParams.builder().build();
 
     ImportReport importReport =
         trackerImportService.importTracker(params, fromJson("tracker/relationships.json"));
@@ -99,8 +105,7 @@ class RelationshipImportTest extends TrackerTest {
 
   @Test
   void successUpdateRelationships() throws IOException {
-    TrackerImportParams trackerImportParams =
-        TrackerImportParams.builder().userId(userA.getUid()).build();
+    TrackerImportParams trackerImportParams = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = fromJson("tracker/relationships.json");
     trackerImportService.importTracker(trackerImportParams, trackerObjects);
     trackerObjects = fromJson("tracker/relationshipToUpdate.json");
@@ -114,8 +119,7 @@ class RelationshipImportTest extends TrackerTest {
 
   @Test
   void shouldFailWhenTryingToUpdateADeletedRelationship() throws IOException {
-    TrackerImportParams trackerImportParams =
-        TrackerImportParams.builder().userId(userA.getUid()).build();
+    TrackerImportParams trackerImportParams = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = fromJson("tracker/relationships.json");
     trackerImportService.importTracker(trackerImportParams, trackerObjects);
 
