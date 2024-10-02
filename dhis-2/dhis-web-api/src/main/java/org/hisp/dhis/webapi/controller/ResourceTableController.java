@@ -48,12 +48,16 @@ import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -100,10 +104,17 @@ public class ResourceTableController {
       @RequestParam(defaultValue = "false") Boolean skipTrackedEntities,
       @RequestParam(defaultValue = "false") Boolean skipOrgUnitOwnership,
       @RequestParam(required = false) Integer lastYears,
-      @RequestParam(defaultValue = "false") Boolean skipOutliers)
+      @RequestParam(defaultValue = "false") Boolean skipOutliers,
+      @RequestParam(required = false) Set<String> skipCitusTables)
       throws ConflictException, @OpenApi.Ignore NotFoundException {
     Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
+    Set<AnalyticsTableType> skipCitusTypes = new HashSet<>(toAnalyticsTableTypes(skipCitusTables));
     Set<String> skipPrograms = new HashSet<>();
+
+    if (skipCitusTables.contains(TRACKED_ENTITY_INSTANCE)) {
+      skipCitusTypes.add(TRACKED_ENTITY_INSTANCE_EVENTS);
+      skipCitusTypes.add(TRACKED_ENTITY_INSTANCE_ENROLLMENTS);
+    }
 
     if (isTrue(skipAggregate)) {
       skipTableTypes.add(DATA_VALUE);
@@ -137,9 +148,29 @@ public class ResourceTableController {
     config.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
     config.setJobParameters(
         new AnalyticsJobParameters(
-            lastYears, skipTableTypes, skipPrograms, skipResourceTables, skipOutliers));
+            lastYears,
+            skipTableTypes,
+            skipCitusTypes,
+            skipPrograms,
+            skipResourceTables,
+            skipOutliers));
 
     return execute(config);
+  }
+
+  private Set<AnalyticsTableType> toAnalyticsTableTypes(Set<String> skipCitusTables) {
+    return CollectionUtils.emptyIfNull(skipCitusTables).stream()
+        .filter(StringUtils::isNotBlank)
+        .map(String::trim)
+        .map(this::toAnalyticsTableType)
+        .collect(Collectors.toSet());
+  }
+
+  private AnalyticsTableType toAnalyticsTableType(String typeName) {
+    return Arrays.stream(AnalyticsTableType.values())
+        .filter(type -> type.name().equalsIgnoreCase(typeName))
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException("Unknown table type: " + typeName));
   }
 
   @RequestMapping(method = {PUT, POST})

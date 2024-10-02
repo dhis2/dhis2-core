@@ -308,7 +308,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
     Calendar calendar = PeriodType.getCalendar();
     List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
     Logged logged = analyticsTableSettings.getTableLogged();
-    Distribution distribution = analyticsTableSettings.getDistribution();
+    Distribution distribution = getDistribution(params);
 
     for (TrackedEntityType tet : trackedEntityTypes) {
       List<Integer> dataYears = getDataYears(params, tet);

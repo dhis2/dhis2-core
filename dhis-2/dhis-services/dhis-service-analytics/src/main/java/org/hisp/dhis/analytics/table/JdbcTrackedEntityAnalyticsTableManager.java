@@ -307,7 +307,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
     params.addExtraParam("", PROGRAMS_BY_TET_KEY, programsByTetUid);
 
     Logged logged = analyticsTableSettings.getTableLogged();
-    Distribution distribution = analyticsTableSettings.getDistribution();
+    Distribution distribution = getDistribution(params);
 
     return trackedEntityTypeService.getAllTrackedEntityType().stream()
         .map(

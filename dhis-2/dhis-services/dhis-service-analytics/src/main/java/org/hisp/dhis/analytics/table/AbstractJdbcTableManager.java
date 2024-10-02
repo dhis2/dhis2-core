@@ -155,6 +155,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     return spatialSupport;
   }
 
+  protected Distribution getDistribution(AnalyticsTableUpdateParams params) {
+    if (params.isSkippedCitusType(getAnalyticsTableType())) {
+      return Distribution.NONE;
+    }
+    return analyticsTableSettings.getDistribution();
+  }
+
   /**
    * Encapsulates the SQL logic to get the correct date column based on the event status. If new
    * statuses need to be loaded into the analytics events tables, they have to be supported/added
@@ -392,7 +399,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     Calendar calendar = PeriodType.getCalendar();
     List<Integer> years = ListUtils.mutableCopy(dataYears);
     Logged logged = analyticsTableSettings.getTableLogged();
-    Distribution distribution = analyticsTableSettings.getDistribution();
+
+    Distribution distribution = getDistribution(params);
 
     Collections.sort(years);
 
@@ -431,7 +439,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         "A full analytics table update must be run prior to a latest partition update");
 
     Logged logged = analyticsTableSettings.getTableLogged();
-    Distribution distribution = analyticsTableSettings.getDistribution();
+    Distribution distribution = getDistribution(params);
     Date endDate = params.getStartTime();
     boolean hasUpdatedData = hasUpdatedLatestData(lastAnyTableUpdate, endDate);
 
