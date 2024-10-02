@@ -30,13 +30,11 @@ package org.hisp.dhis.analytics;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Objects;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.resourcetable.ResourceTableType;
-
-import java.util.Objects;
 
 /**
  * @author Lars Helge Overland
@@ -110,14 +108,14 @@ public class AnalyticsTableHook extends BaseIdentifiableObject implements Metada
   @Override
   public boolean equals(Object obj) {
     return this == obj
-            || obj instanceof AnalyticsTableHook && objectEquals((AnalyticsTableHook) obj);
+        || obj instanceof AnalyticsTableHook && objectEquals((AnalyticsTableHook) obj);
   }
 
   private boolean objectEquals(AnalyticsTableHook other) {
     return Objects.equals(this.phase, other.phase)
-            && Objects.equals(this.resourceTableType, other.resourceTableType)
-            && Objects.equals(this.analyticsTableType, other.analyticsTableType)
-            && Objects.equals(this.sql, other.sql);
+        && Objects.equals(this.resourceTableType, other.resourceTableType)
+        && Objects.equals(this.analyticsTableType, other.analyticsTableType)
+        && Objects.equals(this.sql, other.sql);
   }
 
   @JsonProperty
