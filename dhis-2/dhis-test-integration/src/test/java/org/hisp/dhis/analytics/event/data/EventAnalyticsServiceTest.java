@@ -115,6 +115,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -127,11 +128,13 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Tests event and enrollment analytics services.
@@ -141,6 +144,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
+@Order(1) // must run before other tests in analytics package (for some unknown reason)
 class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   @Autowired private EventQueryService eventQueryTarget;
 
@@ -171,6 +175,8 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryService categoryService;
 
   @Autowired private SystemSettingsService settingsService;
+
+  @Autowired private TransactionTemplate transactionTemplate;
 
   private OrganisationUnit ouA;
 
@@ -572,6 +578,14 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     Date oneSecondFromNow =
         Date.from(LocalDateTime.now().plusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
 
+    transactionTemplate.execute(
+        status -> {
+          settingsService.deleteAll(SystemSettings.keysWithDefaults());
+          return null;
+        });
+
+    settingsService.clearCurrentSettings();
+
     // Generate resource tables and analytics tables
     analyticsTableGenerator.generateAnalyticsTables(
         AnalyticsTableUpdateParams.newBuilder().withStartTime(oneSecondFromNow).build(),
@@ -581,7 +595,6 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   @BeforeEach
   public void beforeEach() {
     injectAdminIntoSecurityContext();
-    settingsService.clearCurrentSettings();
   }
 
   /** Adds a program ownership history entry. */
