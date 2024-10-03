@@ -1650,7 +1650,7 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
   void testInstructionTranslation() {
     createUserAndInjectSecurityContext(true);
     Locale locale = Locale.FRENCH;
-    SessionUserSettings.overrideCurrentUserSettings(Map.of("keyDbLocale", locale.toString()));
+    SessionUserSettings.overrideCurrentUserSettingsInThread(Map.of("keyDbLocale", locale.toString()));
 
     useDataValue(dataElementA, periodA, sourceA, "10");
     useDataValue(dataElementB, periodA, sourceA, "20");

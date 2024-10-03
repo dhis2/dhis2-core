@@ -262,7 +262,7 @@ class IndicatorServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testNumeratorTranslation() {
     Locale locale = Locale.FRENCH;
-    SessionUserSettings.overrideCurrentUserSettings(Map.of("keyDbLocale", locale.toString()));
+    SessionUserSettings.overrideCurrentUserSettingsInThread(Map.of("keyDbLocale", locale.toString()));
     IndicatorType type = new IndicatorType("IndicatorType", 100, false);
     indicatorService.addIndicatorType(type);
     Indicator indicatorA = createIndicator('A', type);

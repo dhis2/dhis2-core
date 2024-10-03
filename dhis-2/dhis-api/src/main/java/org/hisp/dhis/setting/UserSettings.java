@@ -45,7 +45,7 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
  * fallback. Keys that are not defined in DB use the default provided through their access method.
  *
  * <p>The only exception are individual request that make an override using {@link
- * SessionUserSettings#overrideCurrentUserSettings(Map)}.
+ * SessionUserSettings#overrideCurrentUserSettingsInThread(Map)}.
  *
  * <p>For that reason user has to log out and re-login to make changes to system or user settings
  * visible in the session. This choice is made to balance complexity, predictability and resource
@@ -66,7 +66,7 @@ public non-sealed interface UserSettings extends Settings {
    * <p>The settings are initialized from the current {@link org.hisp.dhis.user.UserDetails} but can
    * be overridden per request using request parameters. In such a case the object returned will
    * reflect the changes (which are applied using {@link
-   * SessionUserSettings#overrideCurrentUserSettings(Map)}) for the scope of the request only. The
+   * SessionUserSettings#overrideCurrentUserSettingsInThread(Map)}) for the scope of the request only. The
    * settings in {@link org.hisp.dhis.user.UserDetails} still reflect the state that was last stored
    * for the user.
    *

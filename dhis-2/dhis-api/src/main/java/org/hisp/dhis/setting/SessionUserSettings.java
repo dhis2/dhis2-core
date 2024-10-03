@@ -76,7 +76,7 @@ public final class SessionUserSettings {
    * Removes the use {@link UserSettings} instance from the current thread. This happens at the end
    * of each request.
    */
-  public static void clearCurrentUserSettings() {
+  public static void clearCurrentUserSettingsInThread() {
     REQUEST_CURRENT_USER_SETTINGS.remove();
   }
 
@@ -87,7 +87,7 @@ public final class SessionUserSettings {
    *
    * @param settings the overrides to apply on top of the user's session held settings
    */
-  public static void overrideCurrentUserSettings(Map<String, String> settings) {
+  public static void overrideCurrentUserSettingsInThread(Map<String, String> settings) {
     REQUEST_CURRENT_USER_SETTINGS.set(getCurrentUserSettings().withOverride(settings));
   }
 

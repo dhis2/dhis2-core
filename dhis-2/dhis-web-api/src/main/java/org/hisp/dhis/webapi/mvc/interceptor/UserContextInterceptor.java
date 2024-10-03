@@ -50,13 +50,13 @@ public class UserContextInterceptor implements HandlerInterceptor {
       final HttpServletRequest request,
       @Nonnull final HttpServletResponse response,
       @Nonnull final Object handler) {
-    SessionUserSettings.clearCurrentUserSettings();
+    SessionUserSettings.clearCurrentUserSettingsInThread();
     // Note: if there is no override happening the settings are initialized on access
     if (!"true".equals(request.getParameter("translate"))) return true;
     String locale = request.getParameter("locale");
     if (locale == null || locale.isEmpty()) return true;
     if (!CurrentUserUtil.hasCurrentUser()) return true;
-    SessionUserSettings.overrideCurrentUserSettings(Map.of("keyDbLocale", locale));
+    SessionUserSettings.overrideCurrentUserSettingsInThread(Map.of("keyDbLocale", locale));
     return true;
   }
 
@@ -67,6 +67,6 @@ public class UserContextInterceptor implements HandlerInterceptor {
       @Nonnull Object handler,
       ModelAndView modelAndView) {
     // cleanup: unset for the thread
-    SessionUserSettings.clearCurrentUserSettings();
+    SessionUserSettings.clearCurrentUserSettingsInThread();
   }
 }

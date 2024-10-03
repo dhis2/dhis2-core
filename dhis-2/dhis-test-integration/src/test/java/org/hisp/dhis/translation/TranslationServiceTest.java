@@ -88,7 +88,7 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
     this.userService = injectUserService;
     createUserAndInjectSecurityContext(true);
     locale = Locale.FRENCH;
-    SessionUserSettings.overrideCurrentUserSettings(Map.of("keyDbLocale", locale.toString()));
+    SessionUserSettings.overrideCurrentUserSettingsInThread(Map.of("keyDbLocale", locale.toString()));
   }
 
   @Test
