@@ -178,6 +178,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
     when(databaseInfoProvider.getDatabaseInfo()).thenReturn(DatabaseInfo.builder().build());
     when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
 
     subject =
         new JdbcEventAnalyticsTableManager(

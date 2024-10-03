@@ -100,6 +100,7 @@ class JdbcAnalyticsTableManagerTest {
   @BeforeEach
   public void setUp() {
     when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
     subject =
         new JdbcAnalyticsTableManager(
             mock(IdentifiableObjectManager.class),
@@ -250,7 +251,7 @@ class JdbcAnalyticsTableManagerTest {
             .build();
 
     when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
-    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(new Date(0L));
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(new Date(42L));
     when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
         .thenReturn(lastLatestPartitionUpdate);
 
