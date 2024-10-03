@@ -34,7 +34,6 @@ import static org.hisp.dhis.util.JsonValueUtils.toJavaString;
 import static org.hisp.dhis.webapi.utils.ContextUtils.noCacheNoStoreMustRevalidate;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 import java.util.Map;
@@ -95,9 +94,7 @@ public class SystemSettingsController {
     return ok("System setting '" + key + "' set to value '" + value + "'.");
   }
 
-  @PostMapping(
-      value = "/{key}",
-      consumes = {TEXT_HTML_VALUE, TEXT_PLAIN_VALUE})
+  @PostMapping(value = "/{key}", consumes = TEXT_PLAIN_VALUE)
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
   public WebMessage setSystemSettingPlainBody(

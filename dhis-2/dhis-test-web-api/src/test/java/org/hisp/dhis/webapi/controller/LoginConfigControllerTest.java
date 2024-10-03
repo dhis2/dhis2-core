@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.test.web.WebClient.Body;
+import static org.hisp.dhis.test.web.WebClient.ContentType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -48,6 +50,7 @@ import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.HtmlUtils;
 
@@ -183,8 +186,10 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
             </head>
             <body>test</body>
             </html>""";
-    POST("/systemSettings/loginPageTemplate", template).content(HttpStatus.OK);
-    POST("/systemSettings/loginPageLayout", "CUSTOM").content(HttpStatus.OK);
+    POST("/systemSettings/loginPageTemplate", Body(template), ContentType(MediaType.TEXT_PLAIN))
+        .content(HttpStatus.OK);
+    POST("/systemSettings/loginPageLayout", Body("CUSTOM"), ContentType(MediaType.TEXT_PLAIN))
+        .content(HttpStatus.OK);
     JsonObject response = GET("/loginConfig").content();
     String savedTemplate = response.getString("loginPageTemplate").string();
     assertFalse(savedTemplate.isEmpty());
@@ -194,7 +199,6 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void testRecaptchaSite() {
     JsonObject response = GET("/loginConfig").content();
-    // FIXME?? encoding of defaults?
     assertEquals(
         "6LcVwT0UAAAAAAkO_EGPiYOiymIszZUeHfqWIYX5", response.getString("recaptchaSite").string());
     POST("/systemSettings/recaptchaSite", "test_recaptcha_stie").content(HttpStatus.OK);

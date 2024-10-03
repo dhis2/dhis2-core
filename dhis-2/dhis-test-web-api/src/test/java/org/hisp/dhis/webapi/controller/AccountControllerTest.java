@@ -69,6 +69,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testRecoverAccount_NotEnabled() {
+    settingsService.put("keyAccountRecovery", false);
     User test = switchToNewUser("test");
     switchToAdminUser();
     clearSecurityContext();
