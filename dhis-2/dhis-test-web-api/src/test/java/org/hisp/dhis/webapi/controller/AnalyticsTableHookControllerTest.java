@@ -45,7 +45,7 @@ class AnalyticsTableHookControllerTest extends H2ControllerIntegrationTestBase {
         HttpStatus.CREATED,
         POST(
             "/analyticsTableHooks/",
-            "{'name':'NameA', 'phase':'RESOURCE_TABLE_POPULATED', 'resourceTableType':'ORG_UNIT_STRUCTURE', 'sql':'update analytics_rs_orgunitstructure set organisationunitid=1'}"));
+            "{'name':'NameA', 'phase':'RESOURCE_TABLE_POPULATED', 'resourceTableType':'ORG_UNIT_STRUCTURE', 'sql':'update analytics_rs_orgunitstructure set organisationunitid=3'}"));
   }
 
   @Test
