@@ -27,45 +27,53 @@
  */
 package org.hisp.dhis.setting;
 
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
+import static org.hisp.dhis.user.CurrentUserUtil.hasCurrentUser;
+
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 /**
- * Manages the {@link UserSettings} per session.
- *
- * <p>This state is managed from the outside by a service as this is based on spring events that
- * cannot be obtained statically.
+ * Manages the {@link ThreadLocal} state for {@link UserSettings} that cannot be included in a
+ * non-public way in the interface.
  *
  * @author Jan Bernitt
  * @since 2.42
  */
-public final class SessionUserSettings {
+public class ThreadUserSettings {
 
-  private SessionUserSettings() {
-    throw new UnsupportedOperationException("util");
-  }
+  private static final ThreadLocal<UserSettings> REQUEST_CURRENT_USER_SETTINGS =
+      new ThreadLocal<>();
 
-  /** {@link UserSettings} for users with an active session */
-  private static final Map<String, UserSettings> SESSION_USER_SETTINGS_BY_USERNAME =
-      new ConcurrentHashMap<>();
+  private static final UserSettings EMPTY = UserSettings.of(Map.of());
 
-  public static void clear(@Nonnull String username) {
-    SESSION_USER_SETTINGS_BY_USERNAME.remove(username);
-  }
-
-  public static void put(@Nonnull String username, @CheckForNull UserSettings settings) {
+  @Nonnull
+  static UserSettings get() {
+    UserSettings settings = REQUEST_CURRENT_USER_SETTINGS.get();
     if (settings == null) {
-      clear(username);
-    } else {
-      SESSION_USER_SETTINGS_BY_USERNAME.put(username, settings);
+      settings =
+          hasCurrentUser() ? SessionUserSettings.get(getCurrentUsername()).orElse(EMPTY) : EMPTY;
+      REQUEST_CURRENT_USER_SETTINGS.set(settings);
     }
+    return settings;
   }
 
-  public static Optional<UserSettings> get(@Nonnull String username) {
-    UserSettings settings = SESSION_USER_SETTINGS_BY_USERNAME.get(username);
-    return settings == null ? Optional.empty() : Optional.of(settings);
+  /**
+   * Removes the use {@link UserSettings} instance from the current thread. This happens at the end
+   * of each request.
+   */
+  public static void clear() {
+    REQUEST_CURRENT_USER_SETTINGS.remove();
+  }
+
+  /**
+   * Allows to overlay the current user's settings with overrides for the scope of the current
+   * request. This does not change the user's setting in the session nor the settings stored in the
+   * DB.
+   *
+   * @param settings the overrides to apply on top of the user's session held settings
+   */
+  public static void put(Map<String, String> settings) {
+    REQUEST_CURRENT_USER_SETTINGS.set(get().withOverride(settings));
   }
 }

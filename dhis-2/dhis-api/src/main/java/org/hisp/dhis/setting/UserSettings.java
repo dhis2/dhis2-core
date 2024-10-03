@@ -45,7 +45,7 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
  * fallback. Keys that are not defined in DB use the default provided through their access method.
  *
  * <p>The only exception are individual request that make an override using {@link
- * SessionUserSettings#overrideCurrentUserSettingsInThread(Map)}.
+ * ThreadUserSettings#put(Map)}.
  *
  * <p>For that reason user has to log out and re-login to make changes to system or user settings
  * visible in the session. This choice is made to balance complexity, predictability and resource
@@ -65,10 +65,9 @@ public non-sealed interface UserSettings extends Settings {
    *
    * <p>The settings are initialized from the current {@link org.hisp.dhis.user.UserDetails} but can
    * be overridden per request using request parameters. In such a case the object returned will
-   * reflect the changes (which are applied using {@link
-   * SessionUserSettings#overrideCurrentUserSettingsInThread(Map)}) for the scope of the request only. The
-   * settings in {@link org.hisp.dhis.user.UserDetails} still reflect the state that was last stored
-   * for the user.
+   * reflect the changes (which are applied using {@link ThreadUserSettings#put(Map)}) for the scope
+   * of the request only. The settings in {@link org.hisp.dhis.user.UserDetails} still reflect the
+   * state that was last stored for the user.
    *
    * @return an immutable instance of the current user's settings. It explicitly defines settings
    *     stored for the user as well as settings defined for the system in case they are not defined
@@ -76,7 +75,7 @@ public non-sealed interface UserSettings extends Settings {
    *     do not reflect any {@link SystemSettings} as fallback).
    */
   static UserSettings getCurrentSettings() {
-    return SessionUserSettings.getCurrentUserSettings();
+    return ThreadUserSettings.get();
   }
 
   /**

@@ -60,7 +60,7 @@ import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.setting.SessionUserSettings;
+import org.hisp.dhis.setting.ThreadUserSettings;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
@@ -88,7 +88,7 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
     this.userService = injectUserService;
     createUserAndInjectSecurityContext(true);
     locale = Locale.FRENCH;
-    SessionUserSettings.overrideCurrentUserSettingsInThread(Map.of("keyDbLocale", locale.toString()));
+    ThreadUserSettings.put(Map.of("keyDbLocale", locale.toString()));
   }
 
   @Test

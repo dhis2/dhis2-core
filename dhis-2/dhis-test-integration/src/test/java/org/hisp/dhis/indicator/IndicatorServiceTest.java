@@ -38,7 +38,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.setting.SessionUserSettings;
+import org.hisp.dhis.setting.ThreadUserSettings;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.UserService;
@@ -262,7 +262,7 @@ class IndicatorServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testNumeratorTranslation() {
     Locale locale = Locale.FRENCH;
-    SessionUserSettings.overrideCurrentUserSettingsInThread(Map.of("keyDbLocale", locale.toString()));
+    ThreadUserSettings.put(Map.of("keyDbLocale", locale.toString()));
     IndicatorType type = new IndicatorType("IndicatorType", 100, false);
     indicatorService.addIndicatorType(type);
     Indicator indicatorA = createIndicator('A', type);
