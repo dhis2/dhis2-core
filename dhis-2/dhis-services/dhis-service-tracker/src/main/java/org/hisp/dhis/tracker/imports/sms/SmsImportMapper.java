@@ -395,6 +395,41 @@ class SmsImportMapper {
     };
   }
 
+  /** Maps command SMS of parser type {@code ParserType.PROGRAM_STAGE_DATAENTRY_PARSER}. */
+  static @Nonnull TrackerObjects mapCommand(
+      @Nonnull IncomingSms sms,
+      @Nonnull SMSCommand smsCommand,
+      @Nonnull Map<String, String> dataValues,
+      @Nonnull OrganisationUnit orgUnit,
+      @Nonnull String username,
+      @Nonnull CategoryService dataElementCategoryService,
+      @Nonnull String trackedEntity,
+      @CheckForNull String enrollmentUid) {
+    List<Enrollment> enrollments = List.of();
+    if (enrollmentUid == null) {
+      enrollmentUid = CodeGenerator.generateUid();
+      Instant now = Instant.now();
+      Enrollment enrollment =
+          Enrollment.builder()
+              .enrollment(enrollmentUid)
+              .trackedEntity(trackedEntity)
+              .program(metadataUid(smsCommand.getProgram()))
+              .orgUnit(metadataUid(orgUnit))
+              .occurredAt(now)
+              .enrolledAt(now)
+              .status(EnrollmentStatus.ACTIVE)
+              .build();
+      enrollments = List.of(enrollment);
+    }
+
+    Event event =
+        mapCommandEvent(sms, smsCommand, dataValues, orgUnit, username, dataElementCategoryService);
+    event.setEnrollment(enrollmentUid);
+
+    return TrackerObjects.builder().enrollments(enrollments).events(List.of(event)).build();
+  }
+
+  /** Maps command SMS of parser type {@code ParserType.EVENT_REGISTRATION_PARSER}. */
   static @Nonnull TrackerObjects mapCommand(
       @Nonnull IncomingSms sms,
       @Nonnull SMSCommand smsCommand,
@@ -405,18 +440,29 @@ class SmsImportMapper {
     return TrackerObjects.builder()
         .events(
             List.of(
-                Event.builder()
-                    .event(CodeGenerator.generateUid())
-                    .orgUnit(metadataUid(orgUnit))
-                    .program(metadataUid(smsCommand.getProgram()))
-                    .programStage(metadataUid(smsCommand.getProgramStage()))
-                    .occurredAt(sms.getSentDate().toInstant())
-                    .scheduledAt(sms.getSentDate().toInstant())
-                    .attributeOptionCombo(
-                        metadataUid(dataElementCategoryService.getDefaultCategoryOptionCombo()))
-                    .storedBy(username)
-                    .dataValues(map(smsCommand.getCodes(), dataValues, username))
-                    .build()))
+                mapCommandEvent(
+                    sms, smsCommand, dataValues, orgUnit, username, dataElementCategoryService)))
+        .build();
+  }
+
+  static @Nonnull Event mapCommandEvent(
+      @Nonnull IncomingSms sms,
+      @Nonnull SMSCommand smsCommand,
+      @Nonnull Map<String, String> dataValues,
+      @Nonnull OrganisationUnit orgUnit,
+      @Nonnull String username,
+      @Nonnull CategoryService dataElementCategoryService) {
+    return Event.builder()
+        .event(CodeGenerator.generateUid())
+        .orgUnit(metadataUid(orgUnit))
+        .program(metadataUid(smsCommand.getProgram()))
+        .programStage(metadataUid(smsCommand.getProgramStage()))
+        .occurredAt(sms.getSentDate().toInstant())
+        .scheduledAt(sms.getSentDate().toInstant())
+        .attributeOptionCombo(
+            metadataUid(dataElementCategoryService.getDefaultCategoryOptionCombo()))
+        .storedBy(username)
+        .dataValues(map(smsCommand.getCodes(), dataValues, username))
         .build();
   }
 

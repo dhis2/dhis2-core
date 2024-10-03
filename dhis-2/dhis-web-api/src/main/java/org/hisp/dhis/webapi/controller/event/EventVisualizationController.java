@@ -38,6 +38,8 @@ import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABL
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_PNG;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -47,8 +49,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalObject;

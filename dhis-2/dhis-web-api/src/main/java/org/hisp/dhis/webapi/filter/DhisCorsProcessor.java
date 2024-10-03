@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,45 +27,25 @@
  */
 package org.hisp.dhis.webapi.filter;
 
-import java.io.IOException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpServletResponse;
+import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsProcessor;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.util.UriComponentsBuilder;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
 @Slf4j
 @Component
-public class CorsFilter implements Filter, InitializingBean {
-  private static CorsFilter instance;
-
-  @Override
-  public void afterPropertiesSet() throws Exception {
-    instance = this;
-  }
-
-  public static CorsFilter get() {
-    return instance;
-  }
-
+public class DhisCorsProcessor implements CorsProcessor {
   public static final String CORS_ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials";
 
   public static final String CORS_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
@@ -88,27 +68,29 @@ public class CorsFilter implements Filter, InitializingBean {
 
   private static final Integer MAX_AGE = 60 * 60; // 1hr max-age
 
-  @Autowired private ConfigurationService configurationService;
+  private final ConfigurationService configurationService;
+
+  public DhisCorsProcessor(ConfigurationService configurationService) {
+    this.configurationService = configurationService;
+  }
 
   @Override
-  public void doFilter(ServletRequest req, ServletResponse res, FilterChain filterChain)
-      throws IOException, ServletException {
-    HttpServletRequest request = (HttpServletRequest) req;
-    HttpServletResponse response = (HttpServletResponse) res;
+  public boolean processRequest(
+      @Nullable CorsConfiguration configuration,
+      HttpServletRequest request,
+      HttpServletResponse response) {
 
     String origin = request.getHeader(CORS_ORIGIN);
 
     // Origin header is required for CORS requests
 
     if (StringUtils.isEmpty(origin)) {
-      filterChain.doFilter(request, response);
-      return;
+      return true;
     }
 
     if (!isOriginWhitelisted(request, origin)) {
       log.debug("CORS request with origin " + origin + " is not whitelisted");
-      filterChain.doFilter(request, response);
-      return;
+      return false;
     }
 
     response.addHeader(CORS_ALLOW_CREDENTIALS, "true");
@@ -128,12 +110,10 @@ public class CorsFilter implements Filter, InitializingBean {
       // CORS preflight requires a 2xx status code, so short-circuit the
       // filter chain
 
-      return;
     } else {
       response.addHeader(CORS_EXPOSE_HEADERS, EXPOSED_HEADERS);
     }
-
-    filterChain.doFilter(request, response);
+    return true;
   }
 
   private boolean isPreflight(HttpServletRequest request) {
@@ -160,17 +140,11 @@ public class CorsFilter implements Filter, InitializingBean {
         && (localUrl.equals(origin) || configurationService.isCorsWhitelisted(origin));
   }
 
-  @Override
-  public void init(FilterConfig filterConfig) {}
-
-  @Override
-  public void destroy() {}
-
   /**
    * Simple HttpServletRequestWrapper implementation that makes sure that the query string is
    * properly encoded.
    */
-  class HttpServletRequestEncodingWrapper extends HttpServletRequestWrapper {
+  static class HttpServletRequestEncodingWrapper extends HttpServletRequestWrapper {
     public HttpServletRequestEncodingWrapper(HttpServletRequest request) {
       super(request);
     }

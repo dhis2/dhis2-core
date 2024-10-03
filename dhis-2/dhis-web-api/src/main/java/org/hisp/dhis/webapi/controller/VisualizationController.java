@@ -33,12 +33,12 @@ import static org.hisp.dhis.feedback.ErrorCode.E4002;
 import static org.hisp.dhis.visualization.OutlierAnalysis.MAX_RESULTS_MAX_VALUE;
 import static org.hisp.dhis.visualization.OutlierAnalysis.MAX_RESULTS_MIN_VALUE;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DataDimensionItem;

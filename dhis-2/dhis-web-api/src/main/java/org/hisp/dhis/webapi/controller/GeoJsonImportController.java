@@ -35,9 +35,9 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.OpenApi;
@@ -118,8 +118,7 @@ public class GeoJsonImportController {
       JobConfiguration jobConfig = new JobConfiguration(JobType.GEOJSON_IMPORT);
       jobConfig.setJobParameters(params);
       jobConfig.setExecutedBy(currentUser.getUid());
-      jobSchedulerService.executeNow(
-          jobConfigurationService.create(jobConfig, APPLICATION_JSON, request.getInputStream()));
+      jobSchedulerService.createThenExecute(jobConfig, APPLICATION_JSON, request.getInputStream());
 
       return jobConfigurationReport(jobConfig);
     }

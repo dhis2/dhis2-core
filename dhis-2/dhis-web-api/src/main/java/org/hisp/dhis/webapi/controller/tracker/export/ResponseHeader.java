@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 
 /** ResponseHeader sets HTTP headers common in tracker export endpoints. */

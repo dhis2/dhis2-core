@@ -43,12 +43,14 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link CompleteDataSetRegistrationController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class CompleteDataSetRegistrationControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test

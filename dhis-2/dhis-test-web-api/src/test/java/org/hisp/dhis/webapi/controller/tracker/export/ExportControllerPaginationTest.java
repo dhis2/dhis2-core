@@ -61,6 +61,7 @@ import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests how {@link org.hisp.dhis.webapi.controller.tracker.export} controllers serialize {@link
@@ -68,6 +69,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * org.hisp.dhis.webapi.controller.tracker.export.relationship} controller but hold true for any of
  * the export controllers.
  */
+@Transactional
 class ExportControllerPaginationTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;

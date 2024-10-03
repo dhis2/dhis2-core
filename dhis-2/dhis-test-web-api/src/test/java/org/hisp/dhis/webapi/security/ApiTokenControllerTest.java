@@ -47,10 +47,12 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Transactional
 class ApiTokenControllerTest extends H2ControllerIntegrationTestBase {
 
   public static final String USER_A_USERNAME = "userA";

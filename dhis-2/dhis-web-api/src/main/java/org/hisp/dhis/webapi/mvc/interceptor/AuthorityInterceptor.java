@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.webapi.mvc.interceptor;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.RequiresAuthority;

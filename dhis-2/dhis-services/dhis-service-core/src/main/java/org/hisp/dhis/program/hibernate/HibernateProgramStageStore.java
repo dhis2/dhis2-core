@@ -28,9 +28,9 @@
 package org.hisp.dhis.program.hibernate;
 
 import com.google.common.collect.Lists;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.program.Program;

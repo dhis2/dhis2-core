@@ -50,6 +50,7 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
@@ -57,6 +58,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired protected TransactionTemplate transactionTemplate;

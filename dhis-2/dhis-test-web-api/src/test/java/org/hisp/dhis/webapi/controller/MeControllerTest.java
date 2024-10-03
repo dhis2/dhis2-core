@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.concurrent.TimeUnit;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
@@ -46,16 +47,19 @@ import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.web.HttpStatus.Series;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonUser;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.MeController} API.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class MeControllerTest extends H2ControllerIntegrationTestBase {
   private User userA;
 
@@ -262,5 +266,17 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
     JsonValue id = patTokens.getObject(0).get("id");
 
     assertTrue(id.exists());
+  }
+
+  @Test
+  void testGetCurrentUserAttributeValues() {
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User userByUsername = userService.getUserByUsername(currentUsername);
+    userByUsername.setAttributeValues(
+        AttributeValues.of("{\"myattribute\": {\"value\": \"myvalue\"}}"));
+    userService.updateUser(userByUsername);
+
+    assertEquals(
+        "myvalue", GET("/me").content().as(JsonUser.class).getAttributeValues().get(0).getValue());
   }
 }

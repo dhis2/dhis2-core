@@ -38,12 +38,14 @@ import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonPeriodType;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link PeriodTypeController} using (mocked) REST requests.
  *
  * @author Morten Olav Hansen
  */
+@Transactional
 class PeriodTypeControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test

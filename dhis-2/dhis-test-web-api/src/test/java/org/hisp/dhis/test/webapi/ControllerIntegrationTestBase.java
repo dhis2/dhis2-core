@@ -32,11 +32,11 @@ import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.test.web.WebClientUtils.failOnException;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 
+import jakarta.servlet.http.Cookie;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
-import javax.servlet.http.Cookie;
 import lombok.Getter;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -63,7 +63,6 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -88,7 +87,6 @@ import org.springframework.web.context.WebApplicationContext;
  */
 @WebAppConfiguration
 @ContextConfiguration(classes = {MvcTestConfig.class, WebTestConfig.class})
-@Transactional
 public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
     implements WebClient {
 
@@ -198,7 +196,7 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
 
     MockHttpServletRequestBuilder request =
         MockMvcRequestBuilders.request(
-            org.springframework.http.HttpMethod.resolve(method.name()), makeApiUrl(url));
+            org.springframework.http.HttpMethod.valueOf(method.name()), makeApiUrl(url));
 
     for (Header header : headers) {
       request.header(header.getName(), header.getValue());

@@ -52,7 +52,6 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,10 +68,10 @@ public class SingleEventListener extends CommandSMSListener {
       CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      @Qualifier("smsMessageSender") MessageSender smsSender,
+      MessageSender smsMessageSender,
       SMSCommandService smsCommandService,
       TrackerImportService trackerImportService) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
+    super(dataElementCategoryService, userService, incomingSmsService, smsMessageSender);
     this.smsCommandService = smsCommandService;
     this.trackerImportService = trackerImportService;
   }

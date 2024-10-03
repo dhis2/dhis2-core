@@ -34,6 +34,7 @@ import static org.hisp.dhis.security.Authorities.F_ACCEPT_DATA_LOWER_LEVELS;
 import static org.hisp.dhis.security.Authorities.F_APPROVE_DATA;
 import static org.hisp.dhis.security.Authorities.F_APPROVE_DATA_LOWER_LEVELS;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -43,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;

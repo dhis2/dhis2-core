@@ -61,7 +61,7 @@ class DefaultMessageServiceTest {
   @Mock private DhisConfigurationProvider configurationProvider;
   @Mock private ConfigurationService configurationService;
 
-  @Mock private EmailMessageSender emailMessageSender;
+  @Mock private MessageSender emailMessageSender;
 
   @Mock private List<MessageSender> messageSenders = new ArrayList<>();
 

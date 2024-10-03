@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import jakarta.persistence.EntityManager;
 import java.util.List;
-import javax.persistence.EntityManager;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;

@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.organisationunit.hibernate;
 
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevelStore;

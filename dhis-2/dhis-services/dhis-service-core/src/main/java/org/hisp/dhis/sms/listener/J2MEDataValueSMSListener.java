@@ -297,7 +297,7 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
       reportBack = command.getSuccessMessage();
     }
 
-    smsSender.sendMessage(null, reportBack, sender);
+    smsMessageSender.sendMessage(null, reportBack, sender);
   }
 
   public Period getPeriod(String periodName, PeriodType periodType)

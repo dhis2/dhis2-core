@@ -49,6 +49,7 @@ import org.hisp.dhis.webapi.controller.tracker.JsonEnrollment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This Integration test using Postgres is necessary as the H2 DB doesn't work with {@link
@@ -58,6 +59,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author David Mackessy
  */
+@Transactional
 class ProgramControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private ObjectMapper jsonMapper;

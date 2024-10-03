@@ -45,12 +45,12 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.ContextParams;

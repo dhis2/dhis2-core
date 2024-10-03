@@ -74,6 +74,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the generic operations offered by the {@link AbstractCrudController} using specific
@@ -81,6 +82,7 @@ import org.springframework.http.MediaType;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
@@ -1141,6 +1143,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testFilterSharingEmptyTrue() {
     String userId = getCurrentUser().getUid();
+    // first create an object which can be shared
     String programId =
         assertStatus(
             HttpStatus.CREATED,
@@ -1162,6 +1165,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testFilterSharingEmptyFalse() {
     String userId = getCurrentUser().getUid();
+    // first create an object which can be shared
     String programId =
         assertStatus(
             HttpStatus.CREATED,
@@ -1182,6 +1186,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testFilterSharingEqTrue() {
     String userId = getCurrentUser().getUid();
+    // first create an object which can be shared
     String programId =
         assertStatus(
             HttpStatus.CREATED,
@@ -1202,6 +1207,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testFilterSharingGt() {
     String userId = getCurrentUser().getUid();
+    // first create an object which can be shared
     String programId =
         assertStatus(
             HttpStatus.CREATED,
@@ -1222,6 +1228,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testFilterSharingLt() {
     String userId = getCurrentUser().getUid();
+    // first create an object which can be shared
     String programId =
         assertStatus(
             HttpStatus.CREATED,
