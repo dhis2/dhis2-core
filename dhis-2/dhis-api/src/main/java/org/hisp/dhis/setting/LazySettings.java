@@ -255,6 +255,7 @@ final class LazySettings implements SystemSettings, UserSettings {
   }
 
   private int indexOf(String key) {
+    if (keys.length == 0) return -1;
     int i = Arrays.binarySearch(keys, key);
     if (i >= 0 || key.startsWith("key")) return i;
     // try with key prefix

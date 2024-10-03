@@ -323,17 +323,14 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   default String getLastSuccessfulAnalyticsTablesRuntime() {
-    // TODO duration ms?
     return asString("keyLastSuccessfulAnalyticsTablesRuntime", "");
   }
 
   default String getLastSuccessfulLatestAnalyticsPartitionRuntime() {
-    // TODO duration ms?
     return asString("keyLastSuccessfulLatestAnalyticsPartitionRuntime", "");
   }
 
   default Date getLastMonitoringRun() {
-    // TODO new default 0 - check usages
     return asDate("keyLastMonitoringRun", new Date(0L));
   }
 
@@ -354,32 +351,26 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   default Date getLastSuccessfulAnalyticsTablesUpdate() {
-    // TODO new default 0 - check usages
     return asDate("keyLastSuccessfulAnalyticsTablesUpdate", new Date(0L));
   }
 
   default Date getLastSuccessfulLatestAnalyticsPartitionUpdate() {
-    // TODO new default 0 - check usages
     return asDate("keyLastSuccessfulLatestAnalyticsPartitionUpdate", new Date(0L));
   }
 
   default Date getLastSuccessfulResourceTablesUpdate() {
-    // TODO new default 0 - check usages
     return asDate("keyLastSuccessfulResourceTablesUpdate", new Date(0L));
   }
 
   default Date getLastSuccessfulSystemMonitoringPush() {
-    // TODO new default 0 - check usages
     return asDate("keyLastSuccessfulSystemMonitoringPush", new Date(0L));
   }
 
   default Date getLastSuccessfulMonitoring() {
-    // TODO new default 0 - check usages
     return asDate("keyLastSuccessfulMonitoring", new Date(0L));
   }
 
   default Date getNextAnalyticsTableUpdate() {
-    // TODO new default 0 - check usages
     return asDate("keyNextAnalyticsTableUpdate", new Date(0L));
   }
 
@@ -505,7 +496,6 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   default Date getLastMetaDataSyncSuccess() {
-    // TODO new default 0 - check usages
     return asDate("keyLastMetaDataSyncSuccess", new Date(0));
   }
 
@@ -518,12 +508,10 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   default Date getMetadataLastFailedTime() {
-    // TODO new default 0 - check usages
     return asDate("keyMetadataLastFailedTime", new Date(0L));
   }
 
   default Date getLastSuccessfulScheduledProgramNotifications() {
-    // TODO new default 0 - check usages
     return asDate("keyLastSuccessfulScheduledProgramNotifications", new Date(0L));
   }
 
@@ -560,7 +548,6 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   default Date getLastSuccessfulDataStatistics() {
-    // TODO new default 0 - check usages
     return asDate("lastSuccessfulDataStatistics", new Date(0L));
   }
 

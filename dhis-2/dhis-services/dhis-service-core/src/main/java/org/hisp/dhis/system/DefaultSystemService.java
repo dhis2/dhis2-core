@@ -220,14 +220,6 @@ public class DefaultSystemService implements SystemService, InitializingBean {
 
   private Date getLastMetadataVersionSyncAttempt(
       Date lastSuccessfulMetadataSyncTime, Date lastFailedMetadataSyncTime) {
-    if (lastSuccessfulMetadataSyncTime == null && lastFailedMetadataSyncTime == null) {
-      return null;
-    }
-    if (lastSuccessfulMetadataSyncTime == null || lastFailedMetadataSyncTime == null) {
-      return (lastFailedMetadataSyncTime != null
-          ? lastFailedMetadataSyncTime
-          : lastSuccessfulMetadataSyncTime);
-    }
     return (lastSuccessfulMetadataSyncTime.compareTo(lastFailedMetadataSyncTime) < 0)
         ? lastFailedMetadataSyncTime
         : lastSuccessfulMetadataSyncTime;

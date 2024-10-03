@@ -385,8 +385,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     Date lastLatestPartitionUpdate = settings.getLastSuccessfulLatestAnalyticsPartitionUpdate();
     Date lastAnyTableUpdate = DateUtils.getLatest(lastLatestPartitionUpdate, lastFullTableUpdate);
 
-    Assert.notNull(
-        lastFullTableUpdate,
+    Assert.isTrue(
+        lastFullTableUpdate.getTime() > 0L,
         "A full analytics table update must be run prior to a latest partition update");
 
     Logged logged = analyticsTableSettings.getTableLogged();
@@ -443,7 +443,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     Date lastResourceTableUpdate =
         settingsProvider.getCurrentSettings().getLastSuccessfulResourceTablesUpdate();
 
-    if (lastResourceTableUpdate == null) {
+    if (lastResourceTableUpdate.getTime() == 0L) {
       return columns;
     }
 

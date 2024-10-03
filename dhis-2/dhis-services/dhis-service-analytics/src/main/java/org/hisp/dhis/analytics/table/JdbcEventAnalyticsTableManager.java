@@ -254,8 +254,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Date lastLatestPartitionUpdate = settings.getLastSuccessfulLatestAnalyticsPartitionUpdate();
     Date lastAnyTableUpdate = DateUtils.getLatest(lastLatestPartitionUpdate, lastFullTableUpdate);
 
-    Assert.notNull(
-        lastFullTableUpdate,
+    Assert.isTrue(
+        lastFullTableUpdate.getTime() > 0L,
         "A full analytics table update process must be run prior to a latest partition update process");
 
     Date startDate = lastFullTableUpdate;
