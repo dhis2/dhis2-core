@@ -31,9 +31,9 @@ import static java.util.Collections.emptyList;
 import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.query.JpaQueryUtils.generateHqlQueryForSharingCheck;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.datavalue.DataValue;

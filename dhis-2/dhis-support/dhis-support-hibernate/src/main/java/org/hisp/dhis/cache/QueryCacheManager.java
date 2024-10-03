@@ -29,13 +29,13 @@ package org.hisp.dhis.cache;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
+import jakarta.persistence.Query;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.persistence.Query;
 import org.hibernate.Cache;
 import org.springframework.stereotype.Service;
 

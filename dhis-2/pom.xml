@@ -78,13 +78,13 @@
 
     <!-- *Build* -->
     <jib.version>3.4.3</jib.version>
-    <jib.from.image>tomcat:9.0-jre17</jib.from.image>
+    <jib.from.image>tomcat:10.1.30-jre21</jib.from.image>
     <jib.to.image>dhis2/core-dev:local</jib.to.image>
     <!-- uid=65534(nobody) gid=65534(nogroup) present in Tomcat image -->
     <jib.container.user>65534</jib.container.user>
     <jib.container.appRoot>/usr/local/tomcat/webapps/ROOT</jib.container.appRoot>
 
-    <tomcat.version>8.5.47</tomcat.version>
+    <tomcat.version>10.1.30</tomcat.version>
     <jrebel-maven-plugin.version>1.1.6</jrebel-maven-plugin.version>
     <maven-war-plugin.version>3.4.0</maven-war-plugin.version>
     <properties-maven-plugin.version>1.2.1</properties-maven-plugin.version>
@@ -102,7 +102,7 @@
     <dhis-json-tree.version>1.5</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>5.8.14</spring-security.version>
+    <spring-security.version>6.3.1</spring-security.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
@@ -111,7 +111,8 @@
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>5.3.39</spring.version>
+    <spring.version>6.1.12</spring.version>
+    <spring-session-core.version>3.3.1</spring-session-core.version>
     <spring-data-redis.version>2.7.18</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -120,11 +121,14 @@
     <spring-ldap.version>2.4.1</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
     <lettuce.version>6.4.0.RELEASE</lettuce.version>
+    <jakarta-annotation-api.version>2.1.1</jakarta-annotation-api.version>
 
     <!--DBMS -->
     <flyway-database-postgresql.version>10.18.2</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
-    <hibernate-types.version>2.21.1</hibernate-types.version>
+    <ehcache3.version>3.10.8</ehcache3.version>
+    <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
+    <hypersistence-utils.version>3.8.2</hypersistence-utils.version>
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.10.1</c3p0.version>
     <HikariCP.version>6.0.0</HikariCP.version>
@@ -133,7 +137,7 @@
     <datasource-proxy.version>1.10</datasource-proxy.version>
 
     <!-- Servlet -->
-    <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
+    <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
 
     <!-- Velocity -->
     <velocity.version>2.4</velocity.version>
@@ -147,7 +151,7 @@
     <!-- JAXB -->
     <jaxb-api.version>2.4.0-b180830.0359</jaxb-api.version>
     <jaxws-ri.version>2.3.2</jaxws-ri.version>
-    <jakarta.xml.ws-api.version>3.0.1</jakarta.xml.ws-api.version>
+    <jakarta.xml.bind.version>3.0.1</jakarta.xml.bind.version>
     <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
     <xercesImpl.version>2.12.2</xercesImpl.version>
 
@@ -171,7 +175,7 @@
     <jts.version>1.20.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis.version>2.37.0</artemis.version>
+    <artemis-jakarta.version>2.37.0</artemis-jakarta.version>
     <netty-all.version>4.1.113.Final</netty-all.version>
     <classgraph.version>4.8.175</classgraph.version>
 
@@ -203,13 +207,14 @@
     <commons-codec.version>1.17.1</commons-codec.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
-    <httpcomponents-core.version>4.4.16</httpcomponents-core.version>
-    <httpcomponents-client.version>4.5.14</httpcomponents-client.version>
+    <httpcomponents-core.version>5.2.5</httpcomponents-core.version>
+    <httpcomponents-client5.version>5.3.1</httpcomponents-client5.version>
     <kafka.version>3.8.0</kafka.version>
 
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
-    <micrometer.version>1.12.6</micrometer.version>
+    <micrometer.version>1.13.3</micrometer.version>
+    <prometheus-metrics-model.version>1.3.1</prometheus-metrics-model.version>
 
     <!-- Logging -->
     <log4j.version>2.24.1</log4j.version>
@@ -227,7 +232,7 @@
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
     <h2.version>2.3.232</h2.version>
-    <javax.persistence-api.version>2.2</javax.persistence-api.version>
+    <jakarta.persistence-api.version>3.1.0</jakarta.persistence-api.version>
 
     <!-- Maven plugin versions -->
     <maven-surefire-plugin.version>3.5.0</maven-surefire-plugin.version>
@@ -465,6 +470,11 @@
         <version>${spring.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.springframework.session</groupId>
+        <artifactId>spring-session-core</artifactId>
+        <version>${spring-session-core.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-jdbc</artifactId>
         <version>${spring.version}</version>
@@ -508,6 +518,11 @@
         <groupId>org.springframework.ldap</groupId>
         <artifactId>spring-ldap-core</artifactId>
         <version>${spring-ldap.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.annotation</groupId>
+        <artifactId>jakarta.annotation-api</artifactId>
+        <version>${jakarta-annotation-api.version}</version>
       </dependency>
 
       <!-- Spring Security -->
@@ -616,6 +631,10 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava-jdk5</artifactId>
           </exclusion>
+          <exclusion>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+          </exclusion>
         </exclusions>
       </dependency>
       <dependency>
@@ -676,9 +695,9 @@
 
       <!-- Servlet -->
       <dependency>
-        <groupId>javax.servlet</groupId>
-        <artifactId>javax.servlet-api</artifactId>
-        <version>${javax.servlet-api.version}</version>
+        <groupId>jakarta.servlet</groupId>
+        <artifactId>jakarta.servlet-api</artifactId>
+        <version>${jakarta.servlet-api.version}</version>
       </dependency>
 
       <!-- Kafka -->
@@ -943,9 +962,9 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>org.apache.httpcomponents</groupId>
-        <artifactId>httpclient</artifactId>
-        <version>${httpcomponents-client.version}</version>
+        <groupId>org.apache.httpcomponents.client5</groupId>
+        <artifactId>httpclient5</artifactId>
+        <version>${httpcomponents-client5.version}</version>
         <exclusions>
           <exclusion>
             <groupId>commons-logging</groupId>
@@ -954,8 +973,8 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>org.apache.httpcomponents</groupId>
-        <artifactId>httpcore</artifactId>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5</artifactId>
         <version>${httpcomponents-core.version}</version>
       </dependency>
 
@@ -967,7 +986,7 @@
       </dependency>
       <dependency>
         <groupId>org.hibernate</groupId>
-        <artifactId>hibernate-core</artifactId>
+        <artifactId>hibernate-core-jakarta</artifactId>
         <version>${hibernate.version}</version>
         <exclusions>
           <exclusion>
@@ -977,19 +996,36 @@
         </exclusions>
       </dependency>
       <dependency>
+        <groupId>io.hypersistence</groupId>
+        <artifactId>hypersistence-utils-hibernate-55</artifactId>
+        <version>${hypersistence-utils.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-spatial</artifactId>
         <version>${hibernate.version}</version>
       </dependency>
       <dependency>
         <groupId>org.hibernate</groupId>
-        <artifactId>hibernate-ehcache</artifactId>
+        <artifactId>hibernate-jcache</artifactId>
         <version>${hibernate.version}</version>
       </dependency>
       <dependency>
-        <groupId>javax.persistence</groupId>
-        <artifactId>javax.persistence-api</artifactId>
-        <version>${javax.persistence-api.version}</version>
+        <groupId>org.ehcache</groupId>
+        <artifactId>ehcache</artifactId>
+        <version>${ehcache3.version}</version>
+        <classifier>jakarta</classifier>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.persistence</groupId>
+        <artifactId>jakarta.persistence-api</artifactId>
+        <version>${jakarta.persistence-api.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.glassfish.jaxb</groupId>
+        <artifactId>jaxb-runtime</artifactId>
+        <version>${jaxb-runtime.version}</version>
       </dependency>
 
       <!-- Logging -->
@@ -1248,7 +1284,7 @@
         <version>${fop.version}</version>
         <exclusions>
           <exclusion>
-            <groupId>javax.servlet</groupId>
+            <groupId>jakarta.servlet</groupId>
             <artifactId>servlet-api</artifactId>
           </exclusion>
           <exclusion>
@@ -1302,15 +1338,14 @@
 
       <!-- Jackson JSON Mapper -->
       <dependency>
+        <groupId>jakarta.xml.bind</groupId>
+        <artifactId>jakarta.xml.bind-api</artifactId>
+        <version>${jakarta.xml.bind.version}</version>
+      </dependency>
+      <dependency>
         <groupId>com.fasterxml.jackson.dataformat</groupId>
         <artifactId>jackson-dataformat-xml</artifactId>
         <version>${jackson.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>jakarta.xml.bind</groupId>
-            <artifactId>jakarta.xml.bind-api</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson</groupId>
@@ -1410,33 +1445,18 @@
 
       <!-- Apache Artemis -->
       <dependency>
-        <groupId>org.apache.geronimo.specs</groupId>
-        <artifactId>geronimo-jms_2.0_spec</artifactId>
-        <version>1.0-alpha-2</version>
+        <groupId>org.apache.activemq</groupId>
+        <artifactId>artemis-jakarta-client</artifactId>
+        <version>${artemis-jakarta.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.activemq</groupId>
-        <artifactId>artemis-jms-client</artifactId>
-        <version>${artemis.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>jakarta.jms</groupId>
-            <artifactId>jakarta.jms-api</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.activemq</groupId>
-        <artifactId>artemis-server</artifactId>
-        <version>${artemis.version}</version>
+        <artifactId>artemis-jakarta-server</artifactId>
+        <version>${artemis-jakarta.version}</version>
         <exclusions>
           <exclusion>
             <groupId>io.netty</groupId>
             <artifactId>netty-codec-socks</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-core</artifactId>
           </exclusion>
           <exclusion>
             <groupId>io.netty</groupId>
@@ -1722,13 +1742,39 @@
 
       <!-- Monitoring -->
       <dependency>
+        <groupId>io.prometheus</groupId>
+        <artifactId>prometheus-metrics-model</artifactId>
+        <version>${prometheus-metrics-model.version}</version>
+      </dependency>
+      <dependency>
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-spring-legacy</artifactId>
         <version>${micrometer-spring-legacy.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.hibernate</groupId>
+        <artifactId>hibernate-micrometer</artifactId>
+        <version>${hibernate.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-registry-prometheus</artifactId>
+        <version>${micrometer.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-registry-prometheus-simpleclient</artifactId>
+        <version>${micrometer.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-jakarta9</artifactId>
         <version>${micrometer.version}</version>
       </dependency>
       <dependency>
@@ -1854,6 +1900,7 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${maven-compiler-plugin.version}</version>
           <configuration>
+            <parameters>true</parameters>
             <release>${minimum-java.version}</release>
             <encoding>${project.build.sourceEncoding}</encoding>
             <annotationProcessorPaths>
@@ -2033,8 +2080,12 @@ jasperreports.version=${jasperreports.version}
               <ignoredUnusedDeclaredDependency>org.mockito:mockito-inline</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.logging.log4j:log4j-slf4j-impl</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.logging.log4j:log4j-layout-template-json</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>javax.servlet:javax.servlet-api</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>jakarta.servlet:jakarta.servlet-api</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.jclouds.provider:aws-s3</ignoredUnusedDeclaredDependency>
+              <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-jakarta9</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>org.hibernate:hibernate-micrometer</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-spring-legacy</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-registry-prometheus-simpleclient</ignoredUsedUndeclaredDependency>
               <!-- Needed by dhis-web-server modules -->
               <ignoredUnusedDeclaredDependency>org.apache.velocity.tools:velocity-tools-generic</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.springframework:spring-context-support</ignoredUnusedDeclaredDependency>
@@ -2049,6 +2100,7 @@ jasperreports.version=${jasperreports.version}
               <ignoredUnusedDeclaredDependency>org.apache.jclouds.api:s3</ignoredUnusedDeclaredDependency>
               <!-- Removing makes the startup fail -->
               <ignoredUnusedDeclaredDependency>org.hibernate:hibernate-ehcache</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>jakarta.xml.bind:jakarta.xml.bind-api</ignoredUnusedDeclaredDependency>
               <!-- Required only at runtime -->
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-hibernate</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-db-migration</ignoredUnusedDeclaredDependency>
@@ -2063,12 +2115,12 @@ jasperreports.version=${jasperreports.version}
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-commons</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-dataentry</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-approval</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.apache.activemq:artemis-jakarta-server</ignoredUnusedDeclaredDependency>
             </ignoredUnusedDeclaredDependencies>
             <ignoredUsedUndeclaredDependencies>
               <ignoredUsedUndeclaredDependency>org.flywaydb:flyway-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.antlr:antlr4-runtime</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.junit.jupiter:junit-jupiter-api</ignoredUsedUndeclaredDependency>
-              <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>io.prometheus:simpleclient</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.apache.activemq:artemis-commons</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.apache.kafka:connect-api</ignoredUsedUndeclaredDependency>
@@ -2076,6 +2128,8 @@ jasperreports.version=${jasperreports.version}
               <ignoredUsedUndeclaredDependency>org.springframework:spring-jcl</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>ognl:ognl</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.springframework.session:spring-session-core</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>jakarta.jms:jakarta.jms-api</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>org.apache.activemq:artemis-server</ignoredUsedUndeclaredDependency>
             </ignoredUsedUndeclaredDependencies>
             <ignoredNonTestScopedDependencies>
               <!-- Setting the scope to test makes the build fail -->

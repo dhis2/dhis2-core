@@ -63,6 +63,7 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -89,7 +90,6 @@ import org.hisp.dhis.smscompression.models.SimpleEventSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
-import org.hisp.dhis.test.message.FakeMessageSender;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
@@ -138,7 +138,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private IncomingSmsService incomingSmsService;
 
-  @Autowired private FakeMessageSender messageSender;
+  @Autowired private MessageSender smsMessageSender;
 
   private CategoryOptionCombo coc;
 
@@ -158,7 +158,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
-    messageSender.clearMessages();
+    smsMessageSender.clearMessages();
 
     coc = categoryService.getDefaultCategoryOptionCombo();
 
@@ -225,7 +225,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
   @AfterEach
   void afterEach() {
-    messageSender.clearMessages();
+    smsMessageSender.clearMessages();
   }
 
   @Test
@@ -267,7 +267,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEquals(sms.getReceivedDate(), sms.getSentDate()),
         () -> assertEquals("default", sms.getGatewayId()),
         () ->
-            assertSmsResponse(submissionId + ":" + SmsResponse.SUCCESS, originator, messageSender));
+            assertSmsResponse(
+                submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
     assertThrows(NotFoundException.class, () -> eventService.getEvent(UID.of(event.getUid())));
   }
 
@@ -310,7 +311,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
                 sms.getSentDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()),
         () -> assertEquals("Unknown", sms.getGatewayId()),
         () ->
-            assertSmsResponse(submissionId + ":" + SmsResponse.SUCCESS, originator, messageSender));
+            assertSmsResponse(
+                submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
     assertThrows(NotFoundException.class, () -> eventService.getEvent(UID.of(event.getUid())));
   }
 
@@ -354,7 +356,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
             assertSmsResponse(
                 submissionId + ":" + SmsResponse.INVALID_EVENT.set(uid.getValue()),
                 originator,
-                messageSender));
+                smsMessageSender));
   }
 
   @Test
@@ -402,7 +404,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEquals(originator, sms.getOriginator()),
         () -> assertEquals(user, sms.getCreatedBy()),
         () ->
-            assertSmsResponse(submissionId + ":" + SmsResponse.SUCCESS, originator, messageSender));
+            assertSmsResponse(
+                submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
     assertDoesNotThrow(() -> eventService.getEvent(UID.of(eventUid)));
     Event actual = eventService.getEvent(UID.of(eventUid));
     assertAll(
@@ -465,7 +468,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEquals(originator, sms.getOriginator()),
         () -> assertEquals(user, sms.getCreatedBy()),
         () ->
-            assertSmsResponse(submissionId + ":" + SmsResponse.SUCCESS, originator, messageSender));
+            assertSmsResponse(
+                submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
     assertDoesNotThrow(() -> eventService.getEvent(UID.of(event.getUid())));
     Event actual = eventService.getEvent(UID.of(event.getUid()));
     assertAll(
@@ -531,7 +535,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEquals(originator, sms.getOriginator()),
         () -> assertEquals(user, sms.getCreatedBy()),
         () ->
-            assertSmsResponse(submissionId + ":" + SmsResponse.SUCCESS, originator, messageSender));
+            assertSmsResponse(
+                submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
     assertDoesNotThrow(() -> eventService.getEvent(UID.of(eventUid)));
     Event actual = eventService.getEvent(UID.of(eventUid));
     assertAll(
@@ -593,7 +598,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEquals(user, smsResponse.getCreatedBy()),
         () ->
             assertSmsResponse(
-                "Command has been processed successfully", originator, messageSender));
+                "Command has been processed successfully", originator, smsMessageSender));
 
     List<Event> events =
         eventService.getEvents(

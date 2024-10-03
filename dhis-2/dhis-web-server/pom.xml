@@ -15,8 +15,8 @@
   <properties>
     <rootDir>../</rootDir>
     <build.time>${maven.build.timestamp}</build.time>
-    <tomcat.version>9.0.90</tomcat.version>
-    <spring-boot-maven-plugin.version>3.3.4</spring-boot-maven-plugin.version>
+    <tomcat.version>10.1.28</tomcat.version>
+    <spring-boot-maven-plugin.version>3.3.3</spring-boot-maven-plugin.version>
   </properties>
 
   <dependencies>
@@ -93,8 +93,8 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>

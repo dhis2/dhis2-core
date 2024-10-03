@@ -44,6 +44,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -62,7 +63,6 @@ import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.smscompression.SmsCompressionException;
 import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.RelationshipSmsSubmission;
-import org.hisp.dhis.test.message.FakeMessageSender;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
@@ -91,7 +91,7 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
 
   @Autowired private IncomingSmsService incomingSmsService;
 
-  @Autowired private FakeMessageSender messageSender;
+  @Autowired private MessageSender smsMessageSender;
 
   private CategoryOptionCombo coc;
 
@@ -111,7 +111,7 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
 
   @BeforeEach
   void setUp() {
-    messageSender.clearMessages();
+    smsMessageSender.clearMessages();
 
     coc = categoryService.getDefaultCategoryOptionCombo();
 
@@ -155,7 +155,7 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
 
   @AfterEach
   void afterEach() {
-    messageSender.clearMessages();
+    smsMessageSender.clearMessages();
   }
 
   @Test
@@ -190,7 +190,7 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
             .as(JsonWebMessage.class);
 
     IncomingSms sms = getSms(incomingSmsService, response);
-    assertSmsResponse(submissionId + ":" + SmsResponse.SUCCESS, originator, messageSender);
+    assertSmsResponse(submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender);
     assertAll(
         () -> assertEquals(SmsMessageStatus.PROCESSED, sms.getStatus()),
         () -> assertTrue(sms.isParsed()),
@@ -241,7 +241,7 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
             .as(JsonWebMessage.class);
 
     IncomingSms sms = getSms(incomingSmsService, response);
-    assertSmsResponse(submissionId + ":" + SmsResponse.UNKNOWN_ERROR, originator, messageSender);
+    assertSmsResponse(submissionId + ":" + SmsResponse.UNKNOWN_ERROR, originator, smsMessageSender);
     assertAll(
         () -> assertEquals(SmsMessageStatus.FAILED, sms.getStatus()),
         () -> assertTrue(sms.isParsed()),

@@ -83,13 +83,13 @@ public abstract class RegisterSMSListener extends CommandSMSListener {
       CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      MessageSender smsSender,
+      MessageSender smsMessageSender,
       EnrollmentService enrollmentService,
       EventChangeLogService eventChangeLogService,
       FileResourceService fileResourceService,
       DhisConfigurationProvider config,
       IdentifiableObjectManager identifiableObjectManager) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
+    super(dataElementCategoryService, userService, incomingSmsService, smsMessageSender);
     this.enrollmentService = enrollmentService;
     this.eventChangeLogService = eventChangeLogService;
     this.fileResourceService = fileResourceService;
