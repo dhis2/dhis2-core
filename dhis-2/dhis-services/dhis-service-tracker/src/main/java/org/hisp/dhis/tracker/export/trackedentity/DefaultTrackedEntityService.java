@@ -510,7 +510,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   @Override
-  public Page<TrackedEntity> getTrackedEntities(
+  public @Nonnull Page<TrackedEntity> getTrackedEntities(
       @Nonnull TrackedEntityOperationParams operationParams, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException, NotFoundException {
     TrackedEntityQueryParams queryParams = mapper.map(operationParams, getCurrentUserDetails());
