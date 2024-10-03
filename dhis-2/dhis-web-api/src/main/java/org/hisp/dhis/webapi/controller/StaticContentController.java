@@ -193,9 +193,7 @@ public class StaticContentController {
   @ResponseStatus(NO_CONTENT)
   @PostMapping("/{key}")
   public void updateStaticContent(
-      @PathVariable("key") String key,
-      @RequestParam(value = "file") MultipartFile file,
-      SystemSettings settings)
+      @PathVariable("key") String key, @RequestParam(value = "file") MultipartFile file)
       throws WebMessageException, BadRequestException {
     if (file == null || file.isEmpty()) {
       throw new BadRequestException("Missing parameter 'file'");

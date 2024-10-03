@@ -847,7 +847,10 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
         null,
         PUT(
                 "/38/users/" + userId,
-                user.node().addMember("settings", "{\"keyUiLocale\":\"de\"}").toString())
+                user.node()
+                    .addMembers(
+                        obj -> obj.addObject("settings", s -> s.addString("keyUiLocale", "de")))
+                    .toString())
             .content(HttpStatus.OK));
     assertEquals(
         "de",

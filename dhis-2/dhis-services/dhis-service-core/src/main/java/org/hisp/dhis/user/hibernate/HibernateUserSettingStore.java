@@ -129,7 +129,7 @@ public class HibernateUserSettingStore extends HibernateNativeStore<UserSetting>
     if (value == null) return "";
     if (value instanceof byte[] binary) {
       try {
-        ByteArrayInputStream bis = new ByteArrayInputStream((byte[]) value);
+        ByteArrayInputStream bis = new ByteArrayInputStream(binary);
         ObjectInputStream ois = new ObjectInputStream(bis);
         return Settings.valueOf((Serializable) ois.readObject());
       } catch (Exception ex) {
