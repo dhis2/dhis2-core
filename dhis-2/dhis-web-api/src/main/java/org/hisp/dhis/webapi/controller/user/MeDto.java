@@ -28,12 +28,17 @@
 package org.hisp.dhis.webapi.controller.user;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
+import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.attribute.AttributeValuesDeserializer;
+import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.fileresource.FileResource;
@@ -99,6 +104,8 @@ public class MeDto {
     this.programs = programs;
     this.dataSets = dataSets;
     this.patTokens = patTokens;
+
+    this.attributeValues = user.getAttributeValues();
   }
 
   @JsonProperty private String id;
@@ -196,4 +203,9 @@ public class MeDto {
   @JsonProperty private String impersonation;
 
   @JsonProperty private List<ApiToken> patTokens;
+
+  @JsonProperty
+  @JsonDeserialize(using = AttributeValuesDeserializer.class)
+  @JsonSerialize(using = AttributeValuesSerializer.class)
+  private AttributeValues attributeValues;
 }

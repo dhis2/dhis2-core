@@ -43,12 +43,14 @@ import org.hisp.dhis.test.webapi.json.domain.JsonUser;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.UserLookupController} API.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class UserLookupControllerTest extends H2ControllerIntegrationTestBase {
 
   private String roleId;

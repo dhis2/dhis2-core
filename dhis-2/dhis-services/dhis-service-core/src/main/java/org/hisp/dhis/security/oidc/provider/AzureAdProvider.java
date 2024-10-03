@@ -110,7 +110,7 @@ public class AzureAdProvider extends AbstractOidcProvider {
     builder.clientName(tenant);
     builder.clientId(clientId);
     builder.clientSecret(clientSecret);
-    builder.clientAuthenticationMethod(ClientAuthenticationMethod.BASIC);
+    builder.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC);
     builder.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE);
     builder.scope("openid", "profile", DEFAULT_MAPPING_CLAIM);
     builder.authorizationUri(tenantUriStart + "/oauth2/v2.0/authorize");

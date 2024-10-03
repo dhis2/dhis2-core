@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,7 +41,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;

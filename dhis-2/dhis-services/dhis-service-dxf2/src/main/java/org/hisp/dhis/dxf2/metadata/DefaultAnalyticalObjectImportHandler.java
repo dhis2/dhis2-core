@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;

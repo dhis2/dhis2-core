@@ -34,8 +34,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import jakarta.persistence.EntityManager;
 import java.util.Map;
-import javax.persistence.EntityManager;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettings;

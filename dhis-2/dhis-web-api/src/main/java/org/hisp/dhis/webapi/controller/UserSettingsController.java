@@ -33,9 +33,9 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.util.JsonValueUtils.toJavaString;
 import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;

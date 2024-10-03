@@ -48,11 +48,13 @@ import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.HtmlUtils;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Transactional
 class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired SystemSettingsService settingsService;

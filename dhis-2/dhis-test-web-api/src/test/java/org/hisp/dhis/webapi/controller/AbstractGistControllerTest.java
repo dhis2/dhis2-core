@@ -42,12 +42,14 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Base class for controller tests of the Gist API.
  *
  * @author Jan Bernitt
  */
+@Transactional
 abstract class AbstractGistControllerTest extends H2ControllerIntegrationTestBase {
   @Autowired protected OrganisationUnitService organisationUnitService;
 

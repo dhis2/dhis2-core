@@ -29,9 +29,9 @@ package org.hisp.dhis.scheduling;
 
 import static java.lang.Math.max;
 import static java.util.stream.Collectors.toSet;
-import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
-import com.vladmihalcea.hibernate.type.array.StringArrayType;
+import io.hypersistence.utils.hibernate.type.array.StringArrayType;
+import jakarta.persistence.EntityManager;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -39,7 +39,6 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
@@ -49,6 +48,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -270,8 +270,25 @@ public class HibernateJobConfigurationStore
   }
 
   @Override
-  @Transactional(propagation = REQUIRES_NEW)
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public boolean tryExecuteNow(@Nonnull String jobId) {
+    String sql =
+        """
+        update jobconfiguration
+        set
+          schedulingtype = 'ONCE_ASAP',
+          cancel = false,
+          jobstatus = 'SCHEDULED'
+        where uid = :id
+        and enabled = true
+        and jobstatus != 'RUNNING'
+        and (schedulingtype != 'ONCE_ASAP' or lastfinished is null)
+        """;
+    return nativeSynchronizedQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
+  }
+
+  @Override
+  public boolean executeNow(@Nonnull String jobId) {
     String sql =
         """
         update jobconfiguration

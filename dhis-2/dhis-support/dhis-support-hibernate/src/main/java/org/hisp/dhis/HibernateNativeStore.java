@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis;
 
+import jakarta.persistence.EntityManager;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.metamodel.spi.MetamodelImplementor;

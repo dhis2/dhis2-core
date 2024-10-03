@@ -31,7 +31,7 @@ import static org.hisp.dhis.security.Authorities.F_DATA_ELEMENT_MERGE;
 import static org.hisp.dhis.webapi.controller.CrudControllerAdvice.getHelpfulMessage;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import javax.persistence.PersistenceException;
+import jakarta.persistence.PersistenceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataelement.DataElement;

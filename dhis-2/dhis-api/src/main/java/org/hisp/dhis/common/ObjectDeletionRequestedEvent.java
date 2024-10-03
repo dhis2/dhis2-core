@@ -33,8 +33,9 @@ import org.springframework.context.ApplicationEvent;
  * @author Lars Helge Overland
  */
 public class ObjectDeletionRequestedEvent extends ApplicationEvent {
+
   /** Should rollback the transaction if DeleteNotAllowedException is thrown */
-  private boolean shouldRollBack = true;
+  private boolean rollback = true;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -44,15 +45,16 @@ public class ObjectDeletionRequestedEvent extends ApplicationEvent {
     super(source);
   }
 
+  public ObjectDeletionRequestedEvent(Object source, boolean rollback) {
+    super(source);
+    this.rollback = rollback;
+  }
+
   // -------------------------------------------------------------------------
   // Getter && Setter
   // -------------------------------------------------------------------------
 
-  public boolean isShouldRollBack() {
-    return shouldRollBack;
-  }
-
-  public void setShouldRollBack(boolean shouldRollBack) {
-    this.shouldRollBack = shouldRollBack;
+  public boolean isRollback() {
+    return rollback;
   }
 }

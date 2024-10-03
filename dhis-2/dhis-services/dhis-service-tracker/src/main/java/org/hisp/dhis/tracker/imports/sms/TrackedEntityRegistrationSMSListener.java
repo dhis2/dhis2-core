@@ -62,7 +62,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -90,14 +89,14 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
       CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      @Qualifier("smsMessageSender") MessageSender smsSender,
+      MessageSender smsMessageSender,
       SMSCommandService smsCommandService,
       TrackedEntityTypeService trackedEntityTypeService,
       TrackedEntityService trackedEntityService,
       SMSEnrollmentService smsEnrollmentService,
       IdentifiableObjectManager manager,
       TrackedEntityAttributeValueService trackedEntityAttributeValueService) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
+    super(dataElementCategoryService, userService, incomingSmsService, smsMessageSender);
     this.smsCommandService = smsCommandService;
     this.trackedEntityTypeService = trackedEntityTypeService;
     this.trackedEntityService = trackedEntityService;

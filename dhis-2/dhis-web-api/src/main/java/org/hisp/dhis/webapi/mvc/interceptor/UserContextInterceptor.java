@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.webapi.mvc.interceptor;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.setting.SessionUserSettings;
 import org.hisp.dhis.setting.UserSettings;

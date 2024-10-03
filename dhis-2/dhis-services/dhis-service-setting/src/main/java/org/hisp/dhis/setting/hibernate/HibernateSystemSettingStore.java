@@ -29,11 +29,11 @@ package org.hisp.dhis.setting.hibernate;
 
 import static java.util.stream.Collectors.toMap;
 
+import jakarta.persistence.EntityManager;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
 import org.hisp.dhis.HibernateNativeStore;
 import org.hisp.dhis.setting.SystemSetting;
 import org.hisp.dhis.setting.SystemSettingStore;

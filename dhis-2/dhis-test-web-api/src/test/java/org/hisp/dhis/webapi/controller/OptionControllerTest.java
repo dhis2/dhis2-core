@@ -37,7 +37,9 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.test.webapi.json.domain.JsonOptionSet;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class OptionControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testUpdateOptionWithSortOrderGap() {

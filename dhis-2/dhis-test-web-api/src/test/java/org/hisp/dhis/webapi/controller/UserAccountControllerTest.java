@@ -44,11 +44,11 @@ import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.setting.SystemSettingsService;
-import org.hisp.dhis.test.message.FakeMessageSender;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonUser;
@@ -62,14 +62,16 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
+@Transactional
 class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
 
-  @Autowired private FakeMessageSender messageSender;
+  @Autowired private MessageSender emailMessageSender;
   @Autowired private SystemSettingsService settingsService;
   @Autowired private PasswordManager passwordEncoder;
   @Autowired private DhisConfigurationProvider configurationProvider;
@@ -78,7 +80,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
 
   @BeforeEach
   final void setupHere() {
-    messageSender.clearMessages();
+    emailMessageSender.clearMessages();
     configurationProvider
         .getProperties()
         .put(ConfigurationKey.SERVER_BASE_URL.getKey(), "http://localhost:8080");
@@ -86,7 +88,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
 
   @AfterEach
   void afterEach() {
-    messageSender.clearMessages();
+    emailMessageSender.clearMessages();
   }
 
   @Test
@@ -116,7 +118,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
     settingsService.put("keyAccountRecovery", true);
     clearSecurityContext();
     sendForgotPasswordRequest("wrong@email.com");
-    assertTrue(messageSender.getAllMessages().isEmpty());
+    assertTrue(emailMessageSender.getAllMessages().isEmpty());
   }
 
   @Test
@@ -126,7 +128,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
     settingsService.put("keyAccountRecovery", true);
     clearSecurityContext();
     sendForgotPasswordRequest("wrong");
-    List<OutboundMessage> allMessages = messageSender.getAllMessages();
+    List<OutboundMessage> allMessages = emailMessageSender.getAllMessages();
     assertTrue(allMessages.isEmpty());
   }
 
@@ -144,7 +146,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
 
     clearSecurityContext();
     sendForgotPasswordRequest("wrong");
-    List<OutboundMessage> allMessages = messageSender.getAllMessages();
+    List<OutboundMessage> allMessages = emailMessageSender.getAllMessages();
     assertTrue(allMessages.isEmpty());
   }
 
@@ -159,7 +161,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
     userService.updateUser(user);
 
     sendForgotPasswordRequest("testC");
-    List<OutboundMessage> allMessages = messageSender.getAllMessages();
+    List<OutboundMessage> allMessages = emailMessageSender.getAllMessages();
     assertTrue(allMessages.isEmpty());
   }
 
@@ -599,7 +601,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   private OutboundMessage assertMessageSendTo(String email) {
-    List<OutboundMessage> messagesByEmail = messageSender.getMessagesByEmail(email);
+    List<OutboundMessage> messagesByEmail = emailMessageSender.getMessagesByEmail(email);
     assertFalse(messagesByEmail.isEmpty());
     return messagesByEmail.get(0);
   }

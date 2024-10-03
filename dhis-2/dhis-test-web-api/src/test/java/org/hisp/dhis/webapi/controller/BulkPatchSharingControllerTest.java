@@ -43,10 +43,12 @@ import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author viet@dhis2.org
  */
+@Transactional
 class BulkPatchSharingControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private ObjectMapper jsonMapper;

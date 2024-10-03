@@ -29,6 +29,7 @@ package org.hisp.dhis.user.hibernate;
 
 import static java.util.stream.Collectors.toMap;
 
+import jakarta.persistence.EntityManager;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
@@ -38,7 +39,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.HibernateNativeStore;
 import org.hisp.dhis.setting.Settings;

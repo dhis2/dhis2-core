@@ -37,6 +37,7 @@ import org.hisp.dhis.test.webapi.json.domain.JsonGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link EventQueryAnalyticsController}.
@@ -46,6 +47,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class EventQueryAnalyticsControllerTest extends H2ControllerIntegrationTestBase {
 
   private String programId;

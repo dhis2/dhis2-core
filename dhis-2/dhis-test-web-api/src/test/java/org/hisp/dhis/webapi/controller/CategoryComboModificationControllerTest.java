@@ -38,7 +38,9 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonCategoryOptionCombo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class CategoryComboModificationControllerTest extends H2ControllerIntegrationTestBase {
 
   String testCatCombo;

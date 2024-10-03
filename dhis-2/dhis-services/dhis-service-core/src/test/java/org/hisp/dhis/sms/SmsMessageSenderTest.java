@@ -52,6 +52,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
@@ -87,7 +88,7 @@ class SmsMessageSenderTest {
 
   private static final String NO_CONFIG = "No default gateway configured";
 
-  private SmsMessageSender smsMessageSender;
+  private MessageSender smsMessageSender;
 
   @Mock private UserSettingsService userSettingsService;
 

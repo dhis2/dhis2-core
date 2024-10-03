@@ -31,18 +31,17 @@ import static org.springframework.http.MediaType.parseMediaType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import javax.servlet.http.HttpServletRequest;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPathConverter;
-import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
@@ -85,11 +84,10 @@ import org.springframework.web.accept.FixedContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.multipart.MultipartResolver;
-import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.DelegatingWebMvcConfiguration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.servlet.resource.PathResourceResolver;
@@ -121,6 +119,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Autowired private AuthorityInterceptor authorityInterceptor;
 
   @Autowired private SystemSettingsInterceptor settingsInterceptor;
+
+  @Autowired private NodeService nodeService;
 
   @Autowired
   @Qualifier("jsonMapper")
@@ -164,7 +164,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Bean
   public MultipartResolver multipartResolver() {
-    return new CommonsMultipartResolver();
+    return new StandardServletMultipartResolver();
   }
 
   @Bean
@@ -188,11 +188,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   }
 
   @Bean
-  public NodeService nodeService() {
-    return new DefaultNodeService();
-  }
-
-  @Bean
   public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter() {
     return new MappingJackson2HttpMessageConverter(jsonMapper);
   }
@@ -213,11 +208,9 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Override
   public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
     Arrays.stream(Compression.values())
-        .forEach(
-            compression -> converters.add(new JsonMessageConverter(nodeService(), compression)));
+        .forEach(compression -> converters.add(new JsonMessageConverter(nodeService, compression)));
     Arrays.stream(Compression.values())
-        .forEach(
-            compression -> converters.add(new XmlMessageConverter(nodeService(), compression)));
+        .forEach(compression -> converters.add(new XmlMessageConverter(nodeService, compression)));
 
     Arrays.stream(Compression.values())
         .forEach(
@@ -265,6 +258,9 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     CustomRequestMappingHandlerMapping mapping = new CustomRequestMappingHandlerMapping();
     mapping.setOrder(0);
     mapping.setContentNegotiationManager(mvcContentNegotiationManager());
+    mapping.setUseTrailingSlashMatch(true);
+    mapping.setUseSuffixPatternMatch(true);
+    mapping.setUseRegisteredSuffixPatternMatch(true);
     return mapping;
   }
 
@@ -286,11 +282,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
         .defaultContentType(MediaType.APPLICATION_JSON)
         .mediaType("json", MediaType.APPLICATION_JSON)
         .mediaType("xml", MediaType.APPLICATION_XML);
-  }
-
-  @Override
-  public void configurePathMatch(PathMatchConfigurer config) {
-    config.setUseSuffixPatternMatch(true);
   }
 
   private Map<String, MediaType> mediaTypeMap =

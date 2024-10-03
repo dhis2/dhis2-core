@@ -31,6 +31,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.join;
 
 import com.google.common.collect.Lists;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NonUniqueResultException;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -38,15 +47,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
-import javax.persistence.NonUniqueResultException;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Order;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.criterion.DetachedCriteria;
@@ -179,6 +179,16 @@ public class HibernateGenericStore<T> extends HibernateNativeStore<T> implements
     return list != null && !list.isEmpty() ? list.get(0) : null;
   }
 
+  protected <V> V getSingleResult(Query<V> typedQuery) {
+    List<V> list = typedQuery.getResultList();
+
+    if (list != null && list.size() > 1) {
+      throw new NonUniqueResultException("More than one entity found for query");
+    }
+
+    return list != null && !list.isEmpty() ? list.get(0) : null;
+  }
+
   protected <V> V getSingleResult(NativeQuery<V> nativeQuery) {
     List<V> list = nativeQuery.getResultList();
 
@@ -195,6 +205,10 @@ public class HibernateGenericStore<T> extends HibernateNativeStore<T> implements
    * @return list result
    */
   protected final List<T> getList(TypedQuery<T> typedQuery) {
+    return typedQuery.getResultList();
+  }
+
+  protected final List<T> getList(Query<T> typedQuery) {
     return typedQuery.getResultList();
   }
 

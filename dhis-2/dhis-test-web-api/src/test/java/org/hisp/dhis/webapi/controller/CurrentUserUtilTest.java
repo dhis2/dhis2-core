@@ -37,10 +37,12 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author david mackessy
  */
+@Transactional
 class CurrentUserUtilTest extends H2ControllerIntegrationTestBase {
 
   @Test
