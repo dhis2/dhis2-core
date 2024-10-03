@@ -313,7 +313,7 @@ final class LazySettings implements SystemSettings, UserSettings {
     Method[] lastDefault = new Method[1];
     Object instance =
         Proxy.newProxyInstance(
-            ClassLoader.getSystemClassLoader(),
+            LazySettings.class.getClassLoader(),
             new Class[] {type},
             (proxy, method, args) -> {
               if (method.isDefault()) {
