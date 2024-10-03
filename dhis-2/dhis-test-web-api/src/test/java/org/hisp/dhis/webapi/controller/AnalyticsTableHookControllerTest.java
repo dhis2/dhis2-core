@@ -28,9 +28,13 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.junit.jupiter.api.Test;
 
 class AnalyticsTableHookControllerTest extends H2ControllerIntegrationTestBase {
@@ -46,6 +50,7 @@ class AnalyticsTableHookControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void cannotImportDuplicateTableHook() {
+
     assertStatus(
         HttpStatus.CREATED,
         POST(
@@ -58,10 +63,14 @@ class AnalyticsTableHookControllerTest extends H2ControllerIntegrationTestBase {
             "/analyticsTableHooks/",
             "{'name':'NameA', 'phase':'RESOURCE_TABLE_POPULATED', 'resourceTableType':'ORG_UNIT_STRUCTURE', 'sql':'update analytics_rs_orgunitstructure set organisationunitid=1'}"));
     // Different name but otherwise equal
-    assertStatus(
-        HttpStatus.CONFLICT,
+
+    JsonErrorReport error =
         POST(
-            "/analyticsTableHooks/",
-            "{'name':'NameB', 'phase':'RESOURCE_TABLE_POPULATED', 'resourceTableType':'ORG_UNIT_STRUCTURE', 'sql':'update analytics_rs_orgunitstructure set organisationunitid=2'}"));
+                "/analyticsTableHooks/",
+                "{'name':'NameB', 'phase':'RESOURCE_TABLE_POPULATED', 'resourceTableType':'ORG_UNIT_STRUCTURE', 'sql':'update analytics_rs_orgunitstructure set organisationunitid=1'}")
+            .content(HttpStatus.CONFLICT)
+            .find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E6400);
+    assertNotNull(error);
+    assertEquals("Analytics table hook `NameB` is a duplicate of `NameA`", error.getMessage());
   }
 }
