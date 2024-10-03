@@ -246,7 +246,10 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     return ResponseEntity.ok(
         new StreamingJsonRoot<>(
-            pager, getSchema().getCollectionName(), FieldFilterParams.of(entities, fields)));
+            pager,
+            getSchema().getCollectionName(),
+            FieldFilterParams.of(entities, fields),
+            Defaults.valueOf(options.get("defaults", DEFAULTS)).isExclude()));
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
@@ -452,7 +455,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     entities.forEach(e -> postProcessResponseEntity(e, options, rpParameters));
 
     return ResponseEntity.ok(
-        new StreamingJsonRoot<>(null, null, FieldFilterParams.of(entities, fields)));
+        new StreamingJsonRoot<>(
+            null, null, FieldFilterParams.of(entities, fields), query.getDefaults().isExclude()));
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
