@@ -92,7 +92,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 
-
 /**
  * Tests tracker SMS to enroll an existing or new tracked entity via a {@link
  * org.hisp.dhis.smscompression.models.EnrollmentSmsSubmission} implemented via {@link
