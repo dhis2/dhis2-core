@@ -115,7 +115,7 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
 
     assertNotNull(schema);
     assertFalse(schema.getProperties().isEmpty());
-    assertEquals(5, schema.getProperties().size());
+    assertEquals(6, schema.getProperties().size());
   }
 
   @Test
@@ -139,7 +139,7 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
 
     assertNotNull(schema);
     assertFalse(schema.getProperties().isEmpty());
-    assertEquals(5, schema.getProperties().size());
+    assertEquals(6, schema.getProperties().size());
   }
 
   @Test
