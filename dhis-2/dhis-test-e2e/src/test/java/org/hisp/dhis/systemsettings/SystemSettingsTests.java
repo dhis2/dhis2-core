@@ -152,7 +152,7 @@ class SystemSettingsTests extends ApiTest {
             APPLICATION_INTRO_KEY,
             ContentType.TEXT.toString(),
             ContentType.TEXT.toString(),
-            new QueryParamsBuilder());
+            new QueryParamsBuilder().add("locale="));
 
     response.validate().log().all().statusCode(200).body(containsString(ENGLISH_INTRO));
   }

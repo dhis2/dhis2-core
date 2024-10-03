@@ -55,7 +55,7 @@ public class QueryParamsBuilder {
       return this;
     }
 
-    queryParams.add(MutablePair.of(split[0], split[1]));
+    queryParams.add(MutablePair.of(split[0], split.length == 1 ? "" : split[1]));
 
     return this;
   }

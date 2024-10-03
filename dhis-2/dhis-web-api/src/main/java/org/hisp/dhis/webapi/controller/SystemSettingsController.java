@@ -29,13 +29,16 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.security.Authorities.F_SYSTEM_SETTING;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.util.JsonValueUtils.toJavaString;
+import static org.hisp.dhis.webapi.utils.ContextUtils.noCacheNoStoreMustRevalidate;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -58,6 +61,7 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.intellij.lang.annotations.Language;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -82,7 +86,7 @@ public class SystemSettingsController {
   private final SystemSettingsService settingsService;
   private final SystemSettingsTranslationService settingsTranslationService;
 
-  @PostMapping(value = "/{key}")
+  @PostMapping(value = "/{key}", params = "value")
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
   public WebMessage setSystemSettingPlain(
@@ -119,26 +123,32 @@ public class SystemSettingsController {
   }
 
   @GetMapping(value = "/{key}", produces = TEXT_PLAIN_VALUE)
-  public @ResponseBody String getSystemSettingPlain(
-      @PathVariable("key") String key, @CurrentUser UserDetails currentUser)
+  public ResponseEntity<String> getSystemSettingPlain(@PathVariable("key") String key)
       throws ForbiddenException, ConflictException {
-    if (SystemSettings.isConfidential(key) && !currentUser.isSuper())
+    if (SystemSettings.isConfidential(key) && !getCurrentUserDetails().isSuper())
       throw new ForbiddenException("Setting is marked as confidential");
-    return toJavaString(settingsService.getCurrentSettings().toJson(true, Set.of(key)).get(key));
+    return ResponseEntity.ok()
+        .headers(noCacheNoStoreMustRevalidate())
+        .body(
+            toJavaString(settingsService.getCurrentSettings().toJson(true, Set.of(key)).get(key)));
   }
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody SystemSettings getSystemSettingsJson() {
-    return settingsService.getCurrentSettings();
+  public ResponseEntity<SystemSettings> getSystemSettingsJson() {
+    return ResponseEntity.ok()
+        .headers(noCacheNoStoreMustRevalidate())
+        .body(settingsService.getCurrentSettings());
   }
 
   @GetMapping(value = "/{key}", produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody JsonMap<JsonMixed> getSystemSettingJson(
+  public ResponseEntity<JsonMap<JsonMixed>> getSystemSettingJson(
       @PathVariable("key") String key, @CurrentUser UserDetails currentUser)
       throws ForbiddenException {
     if (SystemSettings.isConfidential(key) && !currentUser.isSuper())
       throw new ForbiddenException("Setting is marked as confidential");
-    return settingsService.getCurrentSettings().toJson(true, Set.of(key));
+    return ResponseEntity.ok()
+        .headers(noCacheNoStoreMustRevalidate())
+        .body(settingsService.getCurrentSettings().toJson(true, Set.of(key)));
   }
 
   @DeleteMapping("/{key}")
@@ -162,29 +172,45 @@ public class SystemSettingsController {
    */
 
   @GetMapping(value = "/{key}", params = "locale", produces = TEXT_PLAIN_VALUE)
-  public @ResponseBody String getSystemSettingTranslation(
-      @PathVariable("key") String key, @RequestParam("locale") String locale) {
+  public @ResponseBody ResponseEntity<String> getSystemSettingTranslation(
+      @PathVariable("key") String key, @RequestParam("locale") String locale)
+      throws ForbiddenException, ConflictException {
     if (locale == null || locale.isEmpty())
       locale = UserSettings.getCurrentSettings().getUserUiLocale().getLanguage();
-    return settingsTranslationService.getSystemSettingTranslation(key, locale).orElse("");
+    Optional<String> translation =
+        settingsTranslationService.getSystemSettingTranslation(key, locale);
+    if (translation.isPresent())
+      return ResponseEntity.ok().headers(noCacheNoStoreMustRevalidate()).body(translation.get());
+    return getSystemSettingPlain(key);
   }
 
-  @PostMapping(value = "/{key}", params = "locale", consumes = TEXT_PLAIN_VALUE)
+  @PostMapping(
+      value = "/{key}",
+      params = {"locale", "value"})
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
   public WebMessage setSystemSettingTranslation(
       @PathVariable("key") String key,
       @RequestParam("locale") String locale,
-      @RequestParam("value") String value,
-      @RequestBody(required = false) String valuePayload)
+      @RequestParam("value") String value)
       throws ForbiddenException, BadRequestException {
-    if (value == null) value = valuePayload;
     if (value == null)
       throw new BadRequestException("Value must be specified as query param or as payload");
     settingsTranslationService.saveSystemSettingTranslation(key, locale, value);
     return ok(
         "Translation for system setting '%s' and locale: '%s' set to: '%s'"
             .formatted(key, locale, value));
+  }
+
+  @PostMapping(value = "/{key}", params = "locale", consumes = TEXT_PLAIN_VALUE)
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
+  @ResponseBody
+  public WebMessage setSystemSettingTranslationBody(
+      @PathVariable("key") String key,
+      @RequestParam("locale") String locale,
+      @RequestBody String value)
+      throws ForbiddenException, BadRequestException {
+    return setSystemSettingTranslation(key, locale, value);
   }
 
   @DeleteMapping(value = "/{key}", params = "locale")
