@@ -36,9 +36,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.geojson.GeoJsonObject;
 import org.geojson.Polygon;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -49,6 +57,7 @@ import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonAttributeValue;
+import org.hisp.dhis.webapi.json.domain.JsonDataElement;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
@@ -57,6 +66,7 @@ import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.metadata.MetadataImportExportController} using
@@ -65,6 +75,9 @@ import org.junit.jupiter.api.Test;
  * @author Jan Bernitt
  */
 class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
+
+  @Autowired private DataElementService dataElementService;
+
   @Test
   void testPostJsonMetadata() {
     assertWebMessage(
@@ -609,5 +622,92 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     assertEquals(
         "Device category 2",
         response.getArray("translations").getObject(0).getString("value").string());
+  }
+
+  @Test
+  @DisplayName(
+      "DataElements with default categoryCombo should be present in payload when defaults are INCLUDE by default")
+  void metadataWithCatComboFieldsIncludingDefaultsTest() {
+    CategoryCombo catComboA = createCategoryCombo('A');
+    CategoryCombo catComboB = createCategoryCombo('B');
+    CategoryCombo catComboC = createCategoryCombo('C');
+    categoryService.addCategoryCombo(catComboA);
+    categoryService.addCategoryCombo(catComboB);
+    categoryService.addCategoryCombo(catComboC);
+
+    setupDataElementsWithCatCombos(catComboA, catComboB, catComboC);
+
+    JsonArray dataElements =
+        GET("/metadata?fields=id,name,categoryCombo[id,name]&dataElements=true")
+            .content(HttpStatus.OK)
+            .getArray("dataElements");
+
+    assertEquals(
+        Set.of(catComboA.getUid(), catComboB.getUid(), catComboC.getUid(), "bjDvmb4bfuf"),
+        dataElements.stream()
+            .map(jde -> jde.as(JsonDataElement.class))
+            .map(JsonDataElement::getCategoryCombo)
+            .map(JsonIdentifiableObject::getId)
+            .collect(Collectors.toSet()),
+        "Returned cat combo IDs equal custom cat combos and default cat combo Ids");
+  }
+
+  @Test
+  @DisplayName(
+      "DataElements in payload should not include the default categoryCombo when EXCLUDE used")
+  void metadataExcludingDefaultCatComboTest() {
+    CategoryCombo catComboA = createCategoryCombo('A');
+    CategoryCombo catComboB = createCategoryCombo('B');
+    CategoryCombo catComboC = createCategoryCombo('C');
+    categoryService.addCategoryCombo(catComboA);
+    categoryService.addCategoryCombo(catComboB);
+    categoryService.addCategoryCombo(catComboC);
+
+    setupDataElementsWithCatCombos(catComboA, catComboB, catComboC);
+
+    JsonArray dataElements =
+        GET("/metadata?fields=id,name,categoryCombo[id,name]&defaults=EXCLUDE&dataElements=true")
+            .content(HttpStatus.OK)
+            .getArray("dataElements");
+
+    // get map of data elements with/without cat combo
+    Map<Boolean, List<JsonValue>> deWithCatCombo =
+        dataElements.stream()
+            .collect(
+                Collectors.partitioningBy(
+                    jv -> {
+                      JsonDataElement jsonDataElement = jv.as(JsonDataElement.class);
+                      return jsonDataElement.getCategoryCombo() != null;
+                    }));
+
+    assertEquals(
+        3,
+        deWithCatCombo.get(true).size(),
+        "There should be 3 dataElements with a cat combo field");
+
+    assertEquals(
+        1,
+        deWithCatCombo.get(false).size(),
+        "There should be 1 dataElement without a cat combo field");
+
+    assertEquals(
+        Set.of(catComboA.getUid(), catComboB.getUid(), catComboC.getUid()),
+        deWithCatCombo.get(true).stream()
+            .map(jde -> jde.as(JsonDataElement.class))
+            .map(JsonDataElement::getCategoryCombo)
+            .map(JsonIdentifiableObject::getId)
+            .collect(Collectors.toSet()),
+        "Returned cat combo IDs equal custom cat combos Ids only");
+  }
+
+  private void setupDataElementsWithCatCombos(CategoryCombo... categoryCombos) {
+    DataElement deA = createDataElement('A', categoryCombos[0]);
+    DataElement deB = createDataElement('B', categoryCombos[1]);
+    DataElement deC = createDataElement('C', categoryCombos[2]);
+    DataElement deZ = createDataElement('Z');
+    dataElementService.addDataElement(deA);
+    dataElementService.addDataElement(deB);
+    dataElementService.addDataElement(deC);
+    dataElementService.addDataElement(deZ);
   }
 }
