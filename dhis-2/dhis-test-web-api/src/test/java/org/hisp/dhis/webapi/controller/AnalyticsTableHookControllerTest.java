@@ -33,7 +33,7 @@ import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
-public class AnalyticsTableHookControllerTest extends H2ControllerIntegrationTestBase {
+class AnalyticsTableHookControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testImportAnalyticsTableHook() {
