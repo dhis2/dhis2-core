@@ -32,6 +32,8 @@ import static org.hisp.dhis.user.CurrentUserUtil.hasCurrentUser;
 
 import java.util.Map;
 import javax.annotation.Nonnull;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  * Manages the {@link ThreadLocal} state for {@link UserSettings} that cannot be included in a
@@ -42,6 +44,7 @@ import javax.annotation.Nonnull;
  * @author Jan Bernitt
  * @since 2.42
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ThreadUserSettings {
 
   private static final ThreadLocal<UserSettings> REQUEST_CURRENT_USER_SETTINGS =

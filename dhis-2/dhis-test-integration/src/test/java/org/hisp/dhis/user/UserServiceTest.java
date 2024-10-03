@@ -605,14 +605,15 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testFindNotifiableUsersWithLastLoginBetween() throws Exception {
+  void testFindNotifiableUsersWithLastLoginBetween() {
     ZonedDateTime now = ZonedDateTime.now();
     Date oneMonthsAgo = Date.from(now.minusMonths(1).toInstant());
     Date twoMonthsAgo = Date.from(now.minusMonths(2).toInstant());
     Date threeMonthAgo = Date.from(now.minusMonths(3).toInstant());
     Date fourMonthAgo = Date.from(now.minusMonths(4).toInstant());
     Date twentyTwoDaysAgo = Date.from(now.minusDays(22).toInstant());
-    User userA = addUser("A", User::setLastLogin, threeMonthAgo);
+
+    addUser("A", User::setLastLogin, threeMonthAgo);
     addUser(
         "B",
         credentials -> {

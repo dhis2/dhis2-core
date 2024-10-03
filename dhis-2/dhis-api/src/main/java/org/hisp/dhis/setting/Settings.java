@@ -98,7 +98,7 @@ public sealed interface Settings permits UserSettings, SystemSettings {
   JsonMap<JsonMixed> toJson(boolean includeConfidential, @Nonnull Set<String> keys);
 
   @Nonnull
-  <E extends Enum<E>> E asEnum(@Nonnull String key, @Nonnull E defaultValue);
+  <E extends Enum<?>> E asEnum(@Nonnull String key, @Nonnull E defaultValue);
 
   @Nonnull
   String asString(@Nonnull String key, @Nonnull String defaultValue);

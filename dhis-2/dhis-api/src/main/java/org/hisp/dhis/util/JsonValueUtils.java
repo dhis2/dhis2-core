@@ -29,6 +29,8 @@ package org.hisp.dhis.util;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.jsontree.JsonMixed;
 
@@ -37,11 +39,8 @@ import org.hisp.dhis.jsontree.JsonMixed;
  *
  * @author Jan Bernitt
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class JsonValueUtils {
-
-  private JsonValueUtils() {
-    throw new UnsupportedOperationException("utils");
-  }
 
   /**
    * Convert any JSON primitive to a Java {@link String}

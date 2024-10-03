@@ -61,7 +61,6 @@ import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilt
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,7 +74,6 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   private final IdentifiableObjectManager idObjectManager;
   private final OrganisationUnitLevelStore organisationUnitLevelStore;
   private final ConfigurationService configurationService;
-  private final UserSettingsService userSettingsService;
 
   private final Cache<Boolean> inUserOrgUnitHierarchyCache;
   private final Cache<Boolean> inUserOrgUnitSearchHierarchyCache;
@@ -85,21 +83,18 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitLevelStore organisationUnitLevelStore,
       ConfigurationService configurationService,
-      UserSettingsService userSettingsService,
       CacheProvider cacheProvider) {
 
     checkNotNull(organisationUnitStore);
     checkNotNull(idObjectManager);
     checkNotNull(organisationUnitLevelStore);
     checkNotNull(configurationService);
-    checkNotNull(userSettingsService);
     checkNotNull(cacheProvider);
 
     this.organisationUnitStore = organisationUnitStore;
     this.idObjectManager = idObjectManager;
     this.organisationUnitLevelStore = organisationUnitLevelStore;
     this.configurationService = configurationService;
-    this.userSettingsService = userSettingsService;
 
     this.inUserOrgUnitHierarchyCache = cacheProvider.createInUserOrgUnitHierarchyCache();
     this.inUserOrgUnitSearchHierarchyCache =

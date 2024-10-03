@@ -50,7 +50,7 @@ public abstract class HibernateNativeStore<T> {
   protected final Class<T> clazz;
   protected final String tableName;
 
-  public HibernateNativeStore(EntityManager entityManager, Class<T> clazz) {
+  protected HibernateNativeStore(EntityManager entityManager, Class<T> clazz) {
     this.entityManager = entityManager;
     this.clazz = clazz;
     this.tableName = getTableName(entityManager, clazz);

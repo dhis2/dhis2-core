@@ -32,6 +32,8 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  * Manages the {@link UserSettings} per session.
@@ -42,11 +44,8 @@ import javax.annotation.Nonnull;
  * @author Jan Bernitt
  * @since 2.42
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SessionUserSettings {
-
-  private SessionUserSettings() {
-    throw new UnsupportedOperationException("util");
-  }
 
   /** {@link UserSettings} for users with an active session */
   private static final Map<String, UserSettings> SESSION_USER_SETTINGS_BY_USERNAME =

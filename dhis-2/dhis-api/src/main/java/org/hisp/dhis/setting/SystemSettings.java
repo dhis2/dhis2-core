@@ -675,7 +675,6 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   default String getLoginPopup() {
-    // TODO also translateable!
     return asString("loginPopup", "");
   }
 

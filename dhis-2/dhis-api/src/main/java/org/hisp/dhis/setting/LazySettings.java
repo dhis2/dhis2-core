@@ -130,10 +130,18 @@ final class LazySettings implements SystemSettings, UserSettings {
       if (type == UserSettings.class) return EMPTY_USER_SETTINGS;
       if (type == SystemSettings.class) return EMPTY_SYSTEM_SETTINGS;
     }
-    String[] keys = new String[from.size()];
+    return of(type, from, decoder);
+  }
+
+  @Nonnull
+  private static LazySettings of(
+      Class<? extends Settings> type,
+      @Nonnull TreeMap<String, String> settings,
+      @Nonnull BinaryOperator<String> decoder) {
+    String[] keys = new String[settings.size()];
     String[] values = new String[keys.length];
     int i = 0;
-    for (Map.Entry<String, String> e : from.entrySet()) {
+    for (Map.Entry<String, String> e : settings.entrySet()) {
       String key = e.getKey();
       String value = e.getValue();
       keys[i] = key;
@@ -162,7 +170,7 @@ final class LazySettings implements SystemSettings, UserSettings {
   @Nonnull
   @Override
   @SuppressWarnings("unchecked")
-  public <E extends Enum<E>> E asEnum(@Nonnull String key, @Nonnull E defaultValue) {
+  public <E extends Enum<?>> E asEnum(@Nonnull String key, @Nonnull E defaultValue) {
     Serializable value = orDefault(key, defaultValue);
     if (value != null && value.getClass() == defaultValue.getClass()) return (E) value;
     return (E) asParseValue(key, defaultValue, raw -> Enum.valueOf(defaultValue.getClass(), raw));
@@ -245,7 +253,7 @@ final class LazySettings implements SystemSettings, UserSettings {
     if (defaultValue instanceof Number n) return Json.of(asInt(key, n.intValue()));
     if (defaultValue instanceof Boolean b) return Json.of(asBoolean(key, b));
     if (defaultValue instanceof Locale l) return Json.of(asLocale(key, l).toLanguageTag());
-    if (defaultValue instanceof Enum e) return Json.of(asEnum(key, e).toString());
+    if (defaultValue instanceof Enum<?> e) return Json.of(asEnum(key, e).toString());
     String value = asString(key, "");
     // auto-conversion based on regex when no default is known to tell the type
     if ("true".equals(value) || "false".equals(value)) return Json.of(parseBoolean(value));
@@ -309,7 +317,6 @@ final class LazySettings implements SystemSettings, UserSettings {
 
   private static Map<String, Serializable> extractDefaults(Class<? extends Settings> type) {
     Map<String, Serializable> defaults = new TreeMap<>();
-    // TODO capture could also make use of counting the number of accesses to only use those with 1
     Method[] lastDefault = new Method[1];
     Object instance =
         Proxy.newProxyInstance(
@@ -352,7 +359,7 @@ final class LazySettings implements SystemSettings, UserSettings {
               MethodType.methodType(method.getReturnType(), method.getParameterTypes()),
               declaringClass);
     } catch (Exception ex) {
-      throw new RuntimeException(ex);
+      throw new IllegalArgumentException(ex);
     }
   }
 

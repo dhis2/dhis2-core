@@ -584,8 +584,8 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
   @Override
   @Nonnull
-  public List<User> getLinkedUserAccounts(@Nonnull User currentUser) {
-    if (currentUser.getOpenId() == null) {
+  public List<User> getLinkedUserAccounts(@CheckForNull User currentUser) {
+    if (currentUser == null || currentUser.getOpenId() == null) {
       return List.of();
     }
 
