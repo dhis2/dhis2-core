@@ -92,7 +92,6 @@ public class DataValueSMSListener extends CommandSMSListener {
   private final DataElementService dataElementService;
 
   public DataValueSMSListener(
-      CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
       MessageSender smsMessageSender,
@@ -102,7 +101,7 @@ public class DataValueSMSListener extends CommandSMSListener {
       SMSCommandService smsCommandService,
       DataSetService dataSetService,
       DataElementService dataElementService) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsMessageSender);
+    super(userService, incomingSmsService, smsMessageSender);
     this.registrationService = registrationService;
     this.dataValueService = dataValueService;
     this.dataElementCategoryService = dataElementCategoryService1;

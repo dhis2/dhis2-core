@@ -78,18 +78,21 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
 
   private final CompleteDataSetRegistrationService registrationService;
 
+  private final CategoryService dataElementCategoryService;
+
   public J2MEDataValueSMSListener(
-      CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       DataValueService dataValueService,
       SMSCommandService smsCommandService,
-      CompleteDataSetRegistrationService registrationService) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
+      CompleteDataSetRegistrationService registrationService,
+      CategoryService dataElementCategoryService) {
+    super(userService, incomingSmsService, smsSender);
     this.dataValueService = dataValueService;
     this.smsCommandService = smsCommandService;
     this.registrationService = registrationService;
+    this.dataElementCategoryService = dataElementCategoryService;
   }
 
   @Transactional
