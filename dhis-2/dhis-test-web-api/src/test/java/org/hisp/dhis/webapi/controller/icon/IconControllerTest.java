@@ -56,7 +56,9 @@ import org.hisp.dhis.webapi.controller.json.JsonPager;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class IconControllerTest extends PostgresControllerIntegrationTestBase {
   private static final ObjectMapper mapper = new ObjectMapper();
 

@@ -57,6 +57,7 @@ import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.TestFactory;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This tests uses the {@link JsonSchema} information the server provides to create an object for
@@ -66,6 +67,7 @@ import org.springframework.http.MediaType;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
 
   private static final Set<String> IGNORED_SCHEMAS =

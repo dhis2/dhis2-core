@@ -79,12 +79,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.UserController}.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class UserControllerTest extends H2ControllerIntegrationTestBase {
   @Autowired private FakeMessageSender messageSender;
 

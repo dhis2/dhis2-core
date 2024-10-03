@@ -39,12 +39,14 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebLocale;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link LocaleController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class LocaleControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test

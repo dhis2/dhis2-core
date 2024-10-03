@@ -52,12 +52,14 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.MeController} API.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class MeControllerTest extends H2ControllerIntegrationTestBase {
   private User userA;
 

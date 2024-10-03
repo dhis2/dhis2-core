@@ -40,6 +40,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * A test for the {@code additionalNamespaces} features in the app manifest that allows to associate
@@ -47,6 +48,7 @@ import org.springframework.core.io.ClassPathResource;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class DatastoreControllerAppAdditionalNamespacesTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private AppManager appManager;
