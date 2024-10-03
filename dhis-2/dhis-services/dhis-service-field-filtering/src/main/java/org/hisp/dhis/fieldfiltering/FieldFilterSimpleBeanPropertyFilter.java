@@ -41,6 +41,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.system.util.AnnotationUtils;
 
@@ -58,6 +59,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
   private final List<FieldPath> fieldPaths;
 
   private final boolean skipSharing;
+  private final boolean excludeDefaults;
 
   /** Cache that contains true/false for classes that should always be expanded. */
   private static final Map<Class<?>, Boolean> ALWAYS_EXPAND_CACHE = new ConcurrentHashMap<>();
@@ -72,7 +74,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
     return true;
   }
 
-  protected boolean include(final PropertyWriter writer, final JsonGenerator jgen) {
+  protected boolean include(final PropertyWriter writer, final JsonGenerator jgen, Object object) {
     PathContext ctx = getPath(writer, jgen);
 
     if (ctx.getCurrentValue() == null) {
@@ -81,6 +83,11 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
     if (log.isDebugEnabled()) {
       log.debug(ctx.getCurrentValue().getClass().getSimpleName() + ": " + ctx.getFullPath());
+    }
+
+    if (excludeDefaults && (object instanceof SystemDefaultMetadataObject)) {
+      SystemDefaultMetadataObject sdmo = (SystemDefaultMetadataObject) object;
+      if (sdmo.isDefault()) return false;
     }
 
     if (skipSharing
@@ -146,7 +153,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
   public void serializeAsField(
       Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer)
       throws Exception {
-    if (include(writer, jgen)) {
+    if (include(writer, jgen, pojo)) {
       writer.serializeAsField(pojo, jgen, provider);
     } else if (!jgen.canOmitFields()) { // since 2.3
       writer.serializeAsOmittedField(pojo, jgen, provider);
