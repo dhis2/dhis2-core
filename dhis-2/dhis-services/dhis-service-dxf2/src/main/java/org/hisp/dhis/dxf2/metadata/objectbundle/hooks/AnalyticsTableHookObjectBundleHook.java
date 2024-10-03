@@ -39,7 +39,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class AnalyticsTableHookObjectBundleHook extends AbstractObjectBundleHook<AnalyticsTableHook> {
+public class AnalyticsTableHookObjectBundleHook
+    extends AbstractObjectBundleHook<AnalyticsTableHook> {
 
   private final AnalyticsTableHookService analyticsTableHookService;
 
