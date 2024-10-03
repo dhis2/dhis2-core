@@ -42,6 +42,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.common.auth.ApiTokenAuth;
 import org.hisp.dhis.common.auth.HttpBasicAuth;
 import org.hisp.dhis.eventhook.targets.JmsTarget;
@@ -63,6 +64,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
   private final List<FieldPath> fieldPaths;
 
   private final boolean skipSharing;
+  private final boolean excludeDefaults;
 
   /**
    * Field filtering ignore list. This is mainly because we don't want to inject custom serializers
@@ -90,7 +92,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
     return true;
   }
 
-  protected boolean include(final PropertyWriter writer, final JsonGenerator jgen) {
+  protected boolean include(final PropertyWriter writer, final JsonGenerator jgen, Object object) {
     PathContext ctx = getPath(writer, jgen);
 
     if (ctx.getCurrentValue() == null) {
@@ -103,6 +105,11 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
     if (isIgnoredProperty(ctx.getFullPath(), ctx.getCurrentValue().getClass())) {
       return false;
+    }
+
+    if (excludeDefaults && (object instanceof SystemDefaultMetadataObject)) {
+      SystemDefaultMetadataObject sdmo = (SystemDefaultMetadataObject) object;
+      if (sdmo.isDefault()) return false;
     }
 
     if (skipSharing
@@ -172,7 +179,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
   public void serializeAsField(
       Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer)
       throws Exception {
-    if (include(writer, jgen)) {
+    if (include(writer, jgen, pojo)) {
       writer.serializeAsField(pojo, jgen, provider);
     } else if (!jgen.canOmitFields()) { // since 2.3
       writer.serializeAsOmittedField(pojo, jgen, provider);
