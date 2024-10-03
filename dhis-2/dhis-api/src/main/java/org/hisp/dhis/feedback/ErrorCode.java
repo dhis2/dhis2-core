@@ -464,6 +464,9 @@ public enum ErrorCode {
       "The analytics outliers data does not exist. Please ensure analytics job was run and did not skip the outliers"),
   E7181("Column `{0}` specified, in orderBy, is not eligible for orderBy or does not exist"),
 
+  /* Citus */
+  E7190("Unknown table type: `{0}`"),
+
   /* Event analytics */
   E7200(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
   E7201("Dimensions cannot be specified more than once: `{0}`"),

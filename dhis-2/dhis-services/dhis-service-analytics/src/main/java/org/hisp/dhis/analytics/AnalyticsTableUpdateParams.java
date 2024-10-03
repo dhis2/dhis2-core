@@ -66,6 +66,9 @@ public class AnalyticsTableUpdateParams {
   /** Analytics table types to skip. */
   private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
 
+  /** Analytics table types for which to skip Citus distributed tables. */
+  private Set<AnalyticsTableType> skipCitusTypes = new HashSet<>();
+
   /** Analytics table programs to skip. */
   private Set<String> skipPrograms = new HashSet<>();
 
@@ -101,6 +104,16 @@ public class AnalyticsTableUpdateParams {
 
   public boolean isSkipPrograms() {
     return !skipPrograms.isEmpty();
+  }
+
+  /**
+   * Indicates whether the export process should skip Citus table for the given table type.
+   *
+   * @param type the table type
+   * @return true if Citus should be skipped, false otherwise
+   */
+  public boolean isSkipCitusType(AnalyticsTableType type) {
+    return skipCitusTypes.contains(type);
   }
 
   /**
@@ -167,6 +180,7 @@ public class AnalyticsTableUpdateParams {
     params.skipResourceTables = this.skipResourceTables;
     params.skipOutliers = this.skipOutliers;
     params.skipTableTypes = new HashSet<>(this.skipTableTypes);
+    params.skipCitusTypes = new HashSet<>(this.skipCitusTypes);
     params.skipPrograms = new HashSet<>(this.skipPrograms);
     params.jobId = this.jobId;
     params.startTime = this.startTime;
@@ -217,6 +231,11 @@ public class AnalyticsTableUpdateParams {
 
     public Builder withSkipTableTypes(Set<AnalyticsTableType> skipTableTypes) {
       this.params.skipTableTypes = skipTableTypes;
+      return this;
+    }
+
+    public Builder withSkipCitusTypes(Set<AnalyticsTableType> skipCitusTypes) {
+      this.params.skipCitusTypes = skipCitusTypes;
       return this;
     }
 

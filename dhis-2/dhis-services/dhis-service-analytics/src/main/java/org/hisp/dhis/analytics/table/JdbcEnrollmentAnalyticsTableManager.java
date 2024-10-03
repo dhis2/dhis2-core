@@ -143,7 +143,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     List<AnalyticsTable> tables = new UniqueArrayList<>();
 
     Logged logged = analyticsTableSettings.getTableLogged();
-    Distribution distribution = analyticsTableSettings.getDistribution();
+    Distribution distribution = getDistribution(params);
     List<Program> programs = idObjectManager.getAllNoAcl(Program.class);
 
     for (Program program : programs) {

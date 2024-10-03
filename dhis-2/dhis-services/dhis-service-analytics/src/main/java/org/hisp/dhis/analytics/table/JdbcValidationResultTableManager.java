@@ -141,7 +141,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
                 AnalyticsTableType.VALIDATION_RESULT,
                 List.of(),
                 Logged.LOGGED,
-                analyticsTableSettings.getDistribution())
+                getDistribution(params))
             : getRegularAnalyticsTable(params, getDataYears(params), getColumns());
 
     return table.hasTablePartitions() ? List.of(table) : List.of();

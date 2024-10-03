@@ -35,13 +35,16 @@ import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramTrackedEntityAttribute;
 import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
@@ -51,6 +54,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Distribution;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -68,6 +72,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -94,7 +99,9 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
 
   @BeforeEach
   public void setUp() {
-    when(databaseInfoProvider.getDatabaseInfo()).thenReturn(DatabaseInfo.builder().build());
+    Mockito.lenient()
+        .when(databaseInfoProvider.getDatabaseInfo())
+        .thenReturn(DatabaseInfo.builder().build());
     subject =
         new JdbcEnrollmentAnalyticsTableManager(
             idObjectManager,
@@ -110,6 +117,35 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
             analyticsTableSettings,
             periodDataProvider,
             sqlBuilder);
+  }
+
+  @Test
+  void verifyTableNotDistributedWhenCitusEnabledAndTableTypeIsSkipped() {
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .withSkipCitusTypes(Set.of(AnalyticsTableType.ENROLLMENT))
+            .withLastYears(2)
+            .withStartTime(START_TIME)
+            .build();
+
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(createProgram('A')));
+
+    List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);
+
+    assertFalse(analyticsTables.get(0).isDistributed());
+  }
+
+  @Test
+  void verifyTableIsDistributedWhenCitusEnabledAndTableTypeIsNotSkipped() {
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().withLastYears(2).withStartTime(START_TIME).build();
+
+    when(analyticsTableSettings.getDistribution()).thenReturn(Distribution.DISTRIBUTED);
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(createProgram('A')));
+
+    List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);
+
+    assertTrue(analyticsTables.get(0).isDistributed());
   }
 
   @Test

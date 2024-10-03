@@ -142,7 +142,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     Logged logged = analyticsTableSettings.getTableLogged();
-    Distribution distribution = analyticsTableSettings.getDistribution();
+    Distribution distribution = getDistribution(params);
 
     return params.isLatestUpdate()
         ? List.of()

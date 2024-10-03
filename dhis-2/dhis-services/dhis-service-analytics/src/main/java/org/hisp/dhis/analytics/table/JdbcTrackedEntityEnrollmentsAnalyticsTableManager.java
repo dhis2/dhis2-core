@@ -239,7 +239,7 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     Logged logged = analyticsTableSettings.getTableLogged();
-    Distribution distribution = analyticsTableSettings.getDistribution();
+    Distribution distribution = getDistribution(params);
 
     return trackedEntityTypeService.getAllTrackedEntityType().stream()
         .map(

@@ -204,7 +204,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Calendar calendar = PeriodType.getCalendar();
     List<AnalyticsTable> tables = new ArrayList<>();
     Logged logged = analyticsTableSettings.getTableLogged();
-    Distribution distribution = analyticsTableSettings.getDistribution();
+    Distribution distribution = getDistribution(params);
 
     List<Program> programs =
         params.isSkipPrograms()
@@ -269,7 +269,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     List<AnalyticsTable> tables = new ArrayList<>();
 
     Logged logged = analyticsTableSettings.getTableLogged();
-    Distribution distribution = analyticsTableSettings.getDistribution();
+    Distribution distribution = getDistribution(params);
 
     List<Program> programs =
         params.isSkipPrograms()

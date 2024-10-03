@@ -153,17 +153,18 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
   @Override
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
-    return params.isLatestUpdate() ? List.of() : getRegularAnalyticsTables();
+    return params.isLatestUpdate() ? List.of() : getRegularAnalyticsTables(params);
   }
 
   /**
    * Creates a list of {@link AnalyticsTable} for each program.
    *
+   * @param params the {@link AnalyticsTableUpdateParams}.
    * @return a list of {@link AnalyticsTableUpdateParams}.
    */
-  private List<AnalyticsTable> getRegularAnalyticsTables() {
+  private List<AnalyticsTable> getRegularAnalyticsTables(AnalyticsTableUpdateParams params) {
     Logged logged = analyticsTableSettings.getTableLogged();
-    Distribution distribution = analyticsTableSettings.getDistribution();
+    Distribution distribution = getDistribution(params);
 
     return idObjectManager.getAllNoAcl(Program.class).stream()
         .map(

@@ -56,6 +56,8 @@ import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
 import static org.hisp.dhis.test.TestBase.getDate;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -88,6 +90,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.db.model.Distribution;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -192,6 +195,37 @@ class JdbcEventAnalyticsTableManagerTest {
             periodDataProvider,
             sqlBuilder);
     assertThat(subject.getAnalyticsTableType(), is(AnalyticsTableType.EVENT));
+  }
+
+  @Test
+  void verifyTableNotDistributedWhenCitusEnabledAndTableTypeIsSkipped() {
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .withSkipCitusTypes(Set.of(AnalyticsTableType.EVENT))
+            .withLastYears(2)
+            .withStartTime(START_TIME)
+            .build();
+
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(createProgram('A')));
+    when(periodDataProvider.getAvailableYears(any())).thenReturn(List.of(2018));
+
+    List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);
+
+    assertFalse(analyticsTables.get(0).isDistributed());
+  }
+
+  @Test
+  void verifyTableIsDistributedWhenCitusEnabledAndTableTypeIsNotSkipped() {
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().withLastYears(2).withStartTime(START_TIME).build();
+
+    when(analyticsTableSettings.getDistribution()).thenReturn(Distribution.DISTRIBUTED);
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(createProgram('A')));
+    when(periodDataProvider.getAvailableYears(any())).thenReturn(List.of(2018));
+
+    List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);
+
+    assertTrue(analyticsTables.get(0).isDistributed());
   }
 
   @Test
