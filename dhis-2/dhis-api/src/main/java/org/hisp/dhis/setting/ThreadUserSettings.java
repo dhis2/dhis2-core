@@ -37,6 +37,8 @@ import javax.annotation.Nonnull;
  * Manages the {@link ThreadLocal} state for {@link UserSettings} that cannot be included in a
  * non-public way in the interface.
  *
+ * <p>The thread-state is backed by (initialized from) the {@link SessionUserSettings}.
+ *
  * @author Jan Bernitt
  * @since 2.42
  */

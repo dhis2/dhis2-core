@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.mvc.interceptor;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.springframework.stereotype.Component;
