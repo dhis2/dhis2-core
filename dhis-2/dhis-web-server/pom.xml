@@ -16,7 +16,7 @@
     <rootDir>../</rootDir>
     <build.time>${maven.build.timestamp}</build.time>
     <tomcat.version>9.0.90</tomcat.version>
-    <spring-boot-maven-plugin.version>3.3.3</spring-boot-maven-plugin.version>
+    <spring-boot-maven-plugin.version>3.3.4</spring-boot-maven-plugin.version>
   </properties>
 
   <dependencies>
