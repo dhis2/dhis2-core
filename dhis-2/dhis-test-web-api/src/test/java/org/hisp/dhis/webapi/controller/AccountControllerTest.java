@@ -50,12 +50,14 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link AccountController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class AccountControllerTest extends PostgresControllerIntegrationTestBase {
   @Autowired private SystemSettingManager systemSettingManager;
   @Autowired private MessageSender emailMessageSender;

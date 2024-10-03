@@ -40,12 +40,14 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Controller tests for {@link org.hisp.dhis.webapi.controller.event.EventChartController}.
  *
  * @author maikel arabori
  */
+@Transactional
 class EventChartControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;

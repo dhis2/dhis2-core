@@ -37,6 +37,7 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.sms.SmsOutboundController} using (mocked) REST
@@ -44,6 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class SmsOutboundControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private OutboundSmsService outboundSmsService;

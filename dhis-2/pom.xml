@@ -140,7 +140,7 @@
     <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
 
     <!-- Velocity -->
-    <velocity.version>2.3</velocity.version>
+    <velocity.version>2.4</velocity.version>
     <velocity-tools.version>3.1</velocity-tools.version>
 
     <!-- Jackson -->
@@ -188,7 +188,7 @@
     <jsoup.version>1.18.1</jsoup.version>
 
     <!-- Div. utils -->
-    <guava.version>33.3.0-jre</guava.version>
+    <guava.version>33.3.1-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
     <google-api-client.version>2.7.0</google-api-client.version>

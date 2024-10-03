@@ -35,12 +35,14 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.openapi.QueryController} with Mock MVC tests.
  *
  * @author Austin McGee
  */
+@Transactional
 class QueryControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetUninitializedAlias() {

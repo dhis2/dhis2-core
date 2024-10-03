@@ -42,7 +42,9 @@ import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class FileResourceControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test

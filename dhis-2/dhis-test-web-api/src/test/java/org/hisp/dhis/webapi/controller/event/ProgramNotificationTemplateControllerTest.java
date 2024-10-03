@@ -49,7 +49,9 @@ import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager idObjectManager;

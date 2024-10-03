@@ -75,11 +75,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests tracker SMS to create a relationship implemented via {@link
  * org.hisp.dhis.tracker.imports.sms.RelationshipSMSListener}.
  */
+@Transactional
 class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 

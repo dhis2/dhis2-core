@@ -32,11 +32,13 @@ import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.validation.ValidationRuleController} using
  * (mocked) REST requests.
  */
+@Transactional
 class ValidationRuleControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
