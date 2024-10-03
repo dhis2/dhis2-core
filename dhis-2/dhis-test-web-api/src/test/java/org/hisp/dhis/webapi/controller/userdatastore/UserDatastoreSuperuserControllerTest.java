@@ -42,6 +42,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.UserDatastoreController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the special ability of a superuser to impersonate other users when using the {@link
@@ -49,6 +50,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class UserDatastoreSuperuserControllerTest extends H2ControllerIntegrationTestBase {
   private User paul;
 

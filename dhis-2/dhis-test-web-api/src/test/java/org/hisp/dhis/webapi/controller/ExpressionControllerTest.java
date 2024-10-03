@@ -34,12 +34,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link ExpressionController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class ExpressionControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test

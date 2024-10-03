@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.system.startup;
 
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Enumeration;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.springframework.web.context.WebApplicationContext;

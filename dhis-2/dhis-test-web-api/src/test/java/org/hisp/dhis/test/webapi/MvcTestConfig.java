@@ -41,11 +41,10 @@ import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPathConverter;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
-import org.hisp.dhis.test.message.FakeMessageSender;
+import org.hisp.dhis.test.message.DefaultFakeMessageSender;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
@@ -62,7 +61,6 @@ import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.format.support.FormattingConversionService;
@@ -76,7 +74,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.accept.FixedContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
@@ -93,9 +91,8 @@ import org.springframework.web.servlet.resource.ResourceUrlProviderExposingInter
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Configuration
 @EnableWebMvc
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity
 public class MvcTestConfig implements WebMvcConfigurer {
   @Autowired private UserSettingService userSettingService;
 
@@ -104,6 +101,8 @@ public class MvcTestConfig implements WebMvcConfigurer {
   @Autowired private MetadataExportService metadataExportService;
 
   @Autowired private AuthorityInterceptor authorityInterceptor;
+
+  @Autowired private NodeService nodeService;
 
   @Autowired
   private CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
@@ -121,6 +120,8 @@ public class MvcTestConfig implements WebMvcConfigurer {
   @Autowired private FormattingConversionService mvcConversionService;
 
   @Autowired private ResourceUrlProvider mvcResourceUrlProvider;
+
+  private static MessageSender messageSender = new DefaultFakeMessageSender();
 
   @Bean
   @Primary
@@ -148,6 +149,10 @@ public class MvcTestConfig implements WebMvcConfigurer {
                 pathExtensionNegotiationStrategy,
                 new HeaderContentNegotiationStrategy(),
                 new FixedContentNegotiationStrategy(MediaType.APPLICATION_JSON))));
+
+    mapping.setUseTrailingSlashMatch(true);
+    mapping.setUseSuffixPatternMatch(true);
+    mapping.setUseRegisteredSuffixPatternMatch(true);
 
     return mapping;
   }
@@ -193,11 +198,6 @@ public class MvcTestConfig implements WebMvcConfigurer {
   }
 
   @Bean
-  public NodeService nodeService() {
-    return new DefaultNodeService();
-  }
-
-  @Bean
   public DatabaseInfoProvider databaseInfoProvider() {
     return () -> DatabaseInfo.builder().build();
   }
@@ -233,11 +233,9 @@ public class MvcTestConfig implements WebMvcConfigurer {
   @Override
   public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
     Arrays.stream(Compression.values())
-        .forEach(
-            compression -> converters.add(new JsonMessageConverter(nodeService(), compression)));
+        .forEach(compression -> converters.add(new JsonMessageConverter(nodeService, compression)));
     Arrays.stream(Compression.values())
-        .forEach(
-            compression -> converters.add(new XmlMessageConverter(nodeService(), compression)));
+        .forEach(compression -> converters.add(new XmlMessageConverter(nodeService, compression)));
 
     Arrays.stream(Compression.values())
         .forEach(
@@ -284,10 +282,14 @@ public class MvcTestConfig implements WebMvcConfigurer {
     return expressionHandler;
   }
 
-  @Bean(name = {"messageSender", "emailMessageSender", "smsMessageSender"})
-  @Primary
-  public MessageSender fakeMessageSender() {
-    return new FakeMessageSender();
+  @Bean("smsMessageSender")
+  public MessageSender smsMessageSender() {
+    return messageSender;
+  }
+
+  @Bean("emailMessageSender")
+  public MessageSender emailMessageSender() {
+    return messageSender;
   }
 
   static final class TestInterceptorRegistry extends InterceptorRegistry {

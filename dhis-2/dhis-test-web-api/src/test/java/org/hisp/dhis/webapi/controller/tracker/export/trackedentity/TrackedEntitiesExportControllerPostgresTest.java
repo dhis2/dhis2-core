@@ -74,7 +74,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private ObjectBundleService objectBundleService;

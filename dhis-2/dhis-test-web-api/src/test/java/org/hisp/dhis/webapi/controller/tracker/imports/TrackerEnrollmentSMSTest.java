@@ -68,7 +68,7 @@ import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.EnrollmentSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsAttributeValue;
 import org.hisp.dhis.smscompression.models.Uid;
-import org.hisp.dhis.test.message.FakeMessageSender;
+import org.hisp.dhis.test.message.DefaultFakeMessageSender;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
@@ -89,12 +89,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests tracker SMS to enroll an existing or new tracked entity via a {@link
  * org.hisp.dhis.smscompression.models.EnrollmentSmsSubmission} implemented via {@link
  * org.hisp.dhis.tracker.imports.sms.EnrollmentSMSListener}
  */
+@Transactional
 class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
@@ -104,7 +107,9 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private IncomingSmsService incomingSmsService;
 
-  @Autowired private FakeMessageSender messageSender;
+  @Autowired
+  @Qualifier("smsMessageSender")
+  private DefaultFakeMessageSender messageSender;
 
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 

@@ -30,10 +30,10 @@ package org.hisp.dhis.webapi.security.apikey;
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.isValidTokenChecksum;
 
 import com.google.common.net.HttpHeaders;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
-import javax.servlet.http.HttpServletRequest;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;

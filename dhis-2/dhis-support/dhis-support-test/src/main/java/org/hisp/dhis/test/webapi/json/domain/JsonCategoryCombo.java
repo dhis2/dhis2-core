@@ -41,6 +41,10 @@ public interface JsonCategoryCombo extends JsonIdentifiableObject {
     return getList("categories", JsonCategory.class);
   }
 
+  default JsonList<JsonCategoryOptionCombo> getCategoryOptionCombos() {
+    return getList("categoryOptionCombos", JsonCategoryOptionCombo.class);
+  }
+
   default DimensionType getDimensionType() {
     return getString("dimensionType").parsed(DimensionType::valueOf);
   }

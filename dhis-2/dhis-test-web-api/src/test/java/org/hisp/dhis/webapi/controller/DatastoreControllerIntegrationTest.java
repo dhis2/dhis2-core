@@ -51,6 +51,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Update related tests that were moved over from in-memory DB controller tests as they now use SQL
@@ -58,6 +59,7 @@ import org.springframework.core.io.ClassPathResource;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class DatastoreControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private AppManager appManager;

@@ -63,7 +63,6 @@ import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -96,14 +95,14 @@ public class DataValueSMSListener extends CommandSMSListener {
       CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      @Qualifier("smsMessageSender") MessageSender smsSender,
+      MessageSender smsMessageSender,
       CompleteDataSetRegistrationService registrationService,
       DataValueService dataValueService,
       CategoryService dataElementCategoryService1,
       SMSCommandService smsCommandService,
       DataSetService dataSetService,
       DataElementService dataElementService) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
+    super(dataElementCategoryService, userService, incomingSmsService, smsMessageSender);
     this.registrationService = registrationService;
     this.dataValueService = dataValueService;
     this.dataElementCategoryService = dataElementCategoryService1;
@@ -459,12 +458,12 @@ public class DataValueSMSListener extends CommandSMSListener {
 
     notInReport = notInReport.substring(0, notInReport.length() - 1);
 
-    if (smsSender.isConfigured()) {
+    if (smsMessageSender.isConfigured()) {
       if (command.getSuccessMessage() != null
           && !StringUtils.isEmpty(command.getSuccessMessage())) {
-        smsSender.sendMessage(null, command.getSuccessMessage(), sender);
+        smsMessageSender.sendMessage(null, command.getSuccessMessage(), sender);
       } else {
-        smsSender.sendMessage(null, reportBack, sender);
+        smsMessageSender.sendMessage(null, reportBack, sender);
       }
     } else {
       log.info("No sms configuration found.");

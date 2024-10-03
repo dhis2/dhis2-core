@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.version.hibernate;
 
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.version.Version;
 import org.hisp.dhis.version.VersionStore;

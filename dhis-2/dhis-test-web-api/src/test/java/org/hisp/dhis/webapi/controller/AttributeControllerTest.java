@@ -36,12 +36,14 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link AttributeController}.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class AttributeControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test

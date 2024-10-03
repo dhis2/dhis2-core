@@ -38,6 +38,8 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import io.github.classgraph.ClassGraph;
+import jakarta.persistence.PersistenceException;
+import jakarta.servlet.ServletException;
 import java.beans.PropertyEditorSupport;
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -48,8 +50,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import javax.persistence.PersistenceException;
-import javax.servlet.ServletException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -77,6 +77,7 @@ import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
+import org.hisp.dhis.system.util.HttpUtils;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateForbiddenException;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
@@ -452,19 +453,19 @@ public class CrudControllerAdvice {
   @ExceptionHandler(HttpStatusCodeException.class)
   @ResponseBody
   public WebMessage httpStatusCodeExceptionHandler(HttpStatusCodeException ex) {
-    return createWebMessage(ex.getMessage(), Status.ERROR, ex.getStatusCode());
+    return createWebMessage(ex.getMessage(), Status.ERROR, HttpUtils.resolve(ex.getStatusCode()));
   }
 
   @ExceptionHandler(HttpClientErrorException.class)
   @ResponseBody
   public WebMessage httpClientErrorExceptionHandler(HttpClientErrorException ex) {
-    return createWebMessage(ex.getMessage(), Status.ERROR, ex.getStatusCode());
+    return createWebMessage(ex.getMessage(), Status.ERROR, HttpUtils.resolve(ex.getStatusCode()));
   }
 
   @ExceptionHandler(HttpServerErrorException.class)
   @ResponseBody
   public WebMessage httpServerErrorExceptionHandler(HttpServerErrorException ex) {
-    return createWebMessage(ex.getMessage(), Status.ERROR, ex.getStatusCode());
+    return createWebMessage(ex.getMessage(), Status.ERROR, HttpUtils.resolve(ex.getStatusCode()));
   }
 
   @ExceptionHandler(HttpRequestMethodNotSupportedException.class)

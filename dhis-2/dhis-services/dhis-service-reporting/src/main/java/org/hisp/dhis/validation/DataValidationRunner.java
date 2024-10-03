@@ -38,6 +38,7 @@ import static org.hisp.dhis.system.util.ValidationUtils.getObjectValue;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import jakarta.persistence.PersistenceException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -47,7 +48,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import javax.persistence.PersistenceException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

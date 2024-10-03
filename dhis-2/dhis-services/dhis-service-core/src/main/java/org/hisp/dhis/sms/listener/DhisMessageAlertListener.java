@@ -51,7 +51,6 @@ import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,10 +66,10 @@ public class DhisMessageAlertListener extends CommandSMSListener {
       CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      @Qualifier("smsMessageSender") MessageSender smsSender,
+      MessageSender smsMessageSender,
       SMSCommandService smsCommandService,
       MessageService messageService) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
+    super(dataElementCategoryService, userService, incomingSmsService, smsMessageSender);
     this.smsCommandService = smsCommandService;
     this.messageService = messageService;
   }
@@ -127,8 +126,8 @@ public class DhisMessageAlertListener extends CommandSMSListener {
           confirmMessage = SMSCommand.ALERT_FEEDBACK;
         }
 
-        if (smsSender.isConfigured()) {
-          smsSender.sendMessage(
+        if (smsMessageSender.isConfigured()) {
+          smsMessageSender.sendMessage(
               smsCommand.getName(), confirmMessage, null, null, feedbackList, false);
         } else {
           log.info("No sms configuration found.");
