@@ -532,6 +532,7 @@ public class DefaultCsvImportService implements CsvImportService {
 
                     nonPersistedGroup.setUid(persistedGroup.getUid());
                     nonPersistedGroup.setName(persistedGroup.getName());
+                    nonPersistedGroup.setShortName(persistedGroup.getShortName());
 
                     return nonPersistedGroup;
                   });
