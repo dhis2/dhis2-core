@@ -35,7 +35,6 @@ import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
-import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.util.RelationshipKeySupport;
 import org.hisp.dhis.user.UserDetails;
@@ -48,17 +47,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class RelationshipTrackerConverterService
     implements TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> {
-
-  private RelationshipItem convertRelationshipType(
-      org.hisp.dhis.relationship.RelationshipItem from) {
-    RelationshipItem relationshipItem = new RelationshipItem();
-    relationshipItem.setEnrollment(
-        from.getEnrollment() != null ? from.getEnrollment().getUid() : null);
-    relationshipItem.setEvent(from.getEvent() != null ? from.getEvent().getUid() : null);
-    relationshipItem.setTrackedEntity(
-        from.getTrackedEntity() != null ? from.getTrackedEntity().getUid() : null);
-    return relationshipItem;
-  }
 
   @Override
   public org.hisp.dhis.relationship.Relationship from(

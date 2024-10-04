@@ -50,7 +50,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
-import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
@@ -218,14 +217,5 @@ public class EventTrackerConverterService
     // no valid enrollment given and program not single event, just return
     // null
     return null;
-  }
-
-  private User convertUserInfo(UserInfoSnapshot userInfoSnapshot) {
-    return User.builder()
-        .uid(userInfoSnapshot.getUid())
-        .username(userInfoSnapshot.getUsername())
-        .firstName(userInfoSnapshot.getFirstName())
-        .surname(userInfoSnapshot.getSurname())
-        .build();
   }
 }
