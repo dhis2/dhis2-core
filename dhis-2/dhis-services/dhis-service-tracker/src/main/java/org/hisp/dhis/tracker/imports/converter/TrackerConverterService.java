@@ -35,10 +35,6 @@ import org.hisp.dhis.user.UserDetails;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface TrackerConverterService<From, To> {
-  From to(To object);
-
-  List<From> to(List<To> objects);
-
   To from(TrackerPreheat preheat, From object, UserDetails user);
 
   List<To> from(TrackerPreheat preheat, List<From> objects, UserDetails user);

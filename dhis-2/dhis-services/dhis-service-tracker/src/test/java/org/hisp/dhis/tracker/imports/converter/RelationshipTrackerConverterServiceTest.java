@@ -146,30 +146,6 @@ class RelationshipTrackerConverterServiceTest extends TestBase {
         });
   }
 
-  @Test
-  void testConverterToRelationships() {
-    List<Relationship> to =
-        relationshipConverterService.to(List.of(relationshipAFromDB(), relationshipBFromDB()));
-    assertNotNull(to);
-    assertEquals(2, to.size());
-    to.forEach(
-        relationship -> {
-          if (TE_TO_ENROLLMENT_RELATIONSHIP_TYPE.equals(
-              relationship.getRelationshipType().getIdentifier())) {
-            assertEquals(TE, relationship.getFrom().getTrackedEntity());
-            assertEquals(ENROLLMENT, relationship.getTo().getEnrollment());
-          } else if (TE_TO_EVENT_RELATIONSHIP_TYPE.equals(
-              relationship.getRelationshipType().getIdentifier())) {
-            assertEquals(TE, relationship.getFrom().getTrackedEntity());
-            assertEquals(EVENT, relationship.getTo().getEvent());
-          } else {
-            fail("Unexpected relationshipType found.");
-          }
-          assertNotNull(relationship.getFrom());
-          assertNotNull(relationship.getTo());
-        });
-  }
-
   private Relationship relationshipA() {
     return Relationship.builder()
         .relationship(RELATIONSHIP_A)
