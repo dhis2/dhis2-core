@@ -107,7 +107,12 @@ public class EnrollmentTrackerConverterService
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
       UserDetails user) {
-    return from(preheat, enrollment, null, user);
+    Enrollment from = from(preheat, enrollment, null, user);
+    Enrollment preheatEnrollment = preheat.getEnrollment(enrollment.getUid());
+    if (preheatEnrollment != null) {
+      from.setCreated(preheatEnrollment.getCreated());
+    }
+    return from;
   }
 
   private Enrollment from(
