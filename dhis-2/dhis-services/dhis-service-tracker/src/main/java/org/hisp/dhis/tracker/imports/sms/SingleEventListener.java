@@ -64,16 +64,19 @@ public class SingleEventListener extends CommandSMSListener {
 
   private final TrackerImportService trackerImportService;
 
+  private final CategoryService dataElementCategoryService;
+
   public SingleEventListener(
-      CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
       MessageSender smsMessageSender,
       SMSCommandService smsCommandService,
-      TrackerImportService trackerImportService) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsMessageSender);
+      TrackerImportService trackerImportService,
+      CategoryService dataElementCategoryService) {
+    super(userService, incomingSmsService, smsMessageSender);
     this.smsCommandService = smsCommandService;
     this.trackerImportService = trackerImportService;
+    this.dataElementCategoryService = dataElementCategoryService;
   }
 
   @Override

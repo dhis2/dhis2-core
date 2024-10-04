@@ -56,7 +56,6 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -384,35 +383,6 @@ class EventTrackerConverterServiceTest extends TestBase {
     expect1.setDataElement(dataElement.getUid());
     expect1.setValue(updatedValue.getValue());
     assertContainsOnly(Set.of(expect1), actual.getEventDataValues());
-  }
-
-  @Test
-  void testToEvent() {
-    EventDataValue eventDataValue = new EventDataValue();
-    eventDataValue.setAutoFields();
-    eventDataValue.setCreated(today);
-    eventDataValue.setValue("sample-value");
-    eventDataValue.setStoredBy(user.getUsername());
-    eventDataValue.setCreatedByUserInfo(UserInfoSnapshot.from(user));
-    eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
-    dbEvent.getEventDataValues().add(eventDataValue);
-
-    org.hisp.dhis.tracker.imports.domain.Event event = converter.to(this.dbEvent);
-
-    assertEquals(ENROLLMENT_UID, event.getEnrollment());
-    assertEquals(event.getStoredBy(), user.getUsername());
-    event
-        .getDataValues()
-        .forEach(
-            e -> {
-              assertEquals(DateUtils.fromInstant(e.getCreatedAt()), this.dbEvent.getCreated());
-              assertEquals(
-                  e.getUpdatedBy().getUsername(),
-                  this.dbEvent.getLastUpdatedByUserInfo().getUsername());
-              assertEquals(
-                  e.getUpdatedBy().getUsername(),
-                  this.dbEvent.getCreatedByUserInfo().getUsername());
-            });
   }
 
   private void setUpMocks() {

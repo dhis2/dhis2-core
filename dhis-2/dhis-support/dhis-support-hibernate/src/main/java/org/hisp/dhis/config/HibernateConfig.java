@@ -75,7 +75,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 public class HibernateConfig {
 
   @Bean
-  public PersistenceExceptionTranslationPostProcessor exceptionTranslation() {
+  public static PersistenceExceptionTranslationPostProcessor exceptionTranslation() {
     return new PersistenceExceptionTranslationPostProcessor();
   }
 

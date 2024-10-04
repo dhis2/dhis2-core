@@ -558,6 +558,7 @@ class ProgramRuleEntityMapperServiceTest extends TestBase {
     assertEquals(event.getStatus().name(), ruleEvent.getStatus().name());
     assertDates(event.getOccurredDate(), ruleEvent.getEventDate());
     assertNull(ruleEvent.getCompletedDate());
+    assertDates(event.getCreated(), ruleEvent.getCreatedDate());
     assertEquals(event.getOrganisationUnit().getUid(), ruleEvent.getOrganisationUnit());
     assertEquals(event.getOrganisationUnit().getCode(), ruleEvent.getOrganisationUnitCode());
     assertDataValue(event.getEventDataValues().iterator().next(), ruleEvent.getDataValues().get(0));

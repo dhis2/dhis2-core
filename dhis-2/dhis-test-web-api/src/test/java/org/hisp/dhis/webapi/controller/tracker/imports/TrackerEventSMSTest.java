@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 import static java.lang.String.format;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
+import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.assertEqualUids;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.assertSmsResponse;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.encodeSms;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.getSms;
@@ -52,7 +53,6 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
@@ -88,7 +88,6 @@ import org.hisp.dhis.smscompression.models.GeoPoint;
 import org.hisp.dhis.smscompression.models.SimpleEventSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
-import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.test.message.DefaultFakeMessageSender;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
@@ -889,14 +888,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     a.setUser(user);
     a.setAccess(AccessStringHelper.FULL);
     return a;
-  }
-
-  private static void assertEqualUids(Uid expected, IdentifiableObject actual) {
-    assertEquals(expected.getUid(), actual.getUid());
-  }
-
-  private static void assertEqualUids(IdentifiableObject expected, IdentifiableObject actual) {
-    assertEquals(expected.getUid(), actual.getUid());
   }
 
   private static void assertGeometry(GeoPoint expected, Geometry actual) {
