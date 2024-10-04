@@ -90,7 +90,8 @@ public class SynchronizationController {
     String urlTrimmed = url.trim();
     if (configProvider.remoteServerIsInAllowedList(urlTrimmed)) {
       return synchronizationManager.executeMetadataPull(urlTrimmed);
-    } else throw new ConflictException("Provided URL is not in the remote servers allowed list");
+    }
+    throw new ConflictException("Provided URL is not in the remote servers allowed list");
   }
 
   @GetMapping(value = "/availability", produces = APPLICATION_JSON_VALUE)
