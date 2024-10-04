@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.message.MessageService;
@@ -63,13 +62,12 @@ public class DhisMessageAlertListener extends CommandSMSListener {
   private final MessageService messageService;
 
   public DhisMessageAlertListener(
-      CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
       MessageSender smsMessageSender,
       SMSCommandService smsCommandService,
       MessageService messageService) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsMessageSender);
+    super(userService, incomingSmsService, smsMessageSender);
     this.smsCommandService = smsCommandService;
     this.messageService = messageService;
   }

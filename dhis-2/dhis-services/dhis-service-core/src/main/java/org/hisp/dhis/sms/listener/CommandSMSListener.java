@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.sms.listener;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -41,7 +39,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -64,19 +61,11 @@ public abstract class CommandSMSListener extends BaseSMSListener {
 
   protected static final int ERROR = 3;
 
-  protected final CategoryService dataElementCategoryService;
-
   protected final UserService userService;
 
   public CommandSMSListener(
-      CategoryService dataElementCategoryService,
-      UserService userService,
-      IncomingSmsService incomingSmsService,
-      MessageSender smsSender) {
+      UserService userService, IncomingSmsService incomingSmsService, MessageSender smsSender) {
     super(incomingSmsService, smsSender);
-    checkNotNull(dataElementCategoryService);
-    checkNotNull(userService);
-    this.dataElementCategoryService = dataElementCategoryService;
     this.userService = userService;
   }
 

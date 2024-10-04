@@ -35,7 +35,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
@@ -63,6 +65,7 @@ import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.smscompression.models.SmsEvent;
 import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
+import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
@@ -442,6 +445,56 @@ class SmsImportMapper {
             List.of(
                 mapCommandEvent(
                     sms, smsCommand, dataValues, orgUnit, username, dataElementCategoryService)))
+        .build();
+  }
+
+  /** Maps command SMS of parser type {@code ParserType.TRACKED_ENTITY_REGISTRATION_PARSER}. */
+  static @Nonnull TrackerObjects mapTrackedEntityRegistrationParserCommand(
+      @Nonnull IncomingSms sms,
+      @Nonnull SMSCommand smsCommand,
+      @Nonnull Map<String, String> attributeValues,
+      @Nonnull OrganisationUnit orgUnit) {
+    String trackedEntity = CodeGenerator.generateUid();
+    Date now = new Date();
+    Date occurredDate = Objects.requireNonNullElse(SmsUtils.lookForDate(sms.getText()), now);
+
+    // ignore any sent attributes that are not present in the SMS command
+    Map<String, SMSCode> codes =
+        smsCommand.getCodes().stream()
+            .collect(Collectors.toMap(SMSCode::getCode, Function.identity()));
+    List<Attribute> attributes =
+        attributeValues.entrySet().stream()
+            .filter(av -> codes.containsKey(av.getKey()))
+            .map(
+                av ->
+                    Attribute.builder()
+                        .attribute(
+                            MetadataIdentifier.ofUid(
+                                codes.get(av.getKey()).getTrackedEntityAttribute()))
+                        .value(av.getValue())
+                        .build())
+            .toList();
+
+    return TrackerObjects.builder()
+        .trackedEntities(
+            List.of(
+                TrackedEntity.builder()
+                    .trackedEntity(trackedEntity)
+                    .orgUnit(metadataUid(orgUnit))
+                    .trackedEntityType(metadataUid(smsCommand.getProgram().getTrackedEntityType()))
+                    .attributes(attributes)
+                    .build()))
+        .enrollments(
+            List.of(
+                Enrollment.builder()
+                    .enrollment(CodeGenerator.generateUid())
+                    .trackedEntity(trackedEntity)
+                    .orgUnit(metadataUid(orgUnit))
+                    .program(metadataUid(smsCommand.getProgram()))
+                    .enrolledAt(now.toInstant())
+                    .occurredAt(toInstant(occurredDate))
+                    .status(EnrollmentStatus.ACTIVE)
+                    .build()))
         .build();
   }
 

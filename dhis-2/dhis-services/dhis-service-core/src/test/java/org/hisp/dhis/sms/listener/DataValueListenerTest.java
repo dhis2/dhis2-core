@@ -195,7 +195,6 @@ class DataValueListenerTest extends TestBase {
   public void initTest() {
     subject =
         new DataValueSMSListener(
-            dataElementCategoryService,
             userService,
             incomingSmsService,
             smsSender,
