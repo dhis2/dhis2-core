@@ -52,6 +52,13 @@ public class AnalyticsTableHookObjectBundleHook
     checkDuplicateAnalyticsTableHook(analyticsTableHook, addReports);
   }
 
+    static boolean equal(AnalyticsTableHook one, AnalyticsTableHook other) {
+      return one.getPhase() == other.getPhase()
+              && one.getResourceTableType() == other.getResourceTableType()
+              && one.getAnalyticsTableType() == other.getAnalyticsTableType()
+              && one.getSql().equals(other.getSql());
+    }
+
   private void checkDuplicateAnalyticsTableHook(
       AnalyticsTableHook analyticsTableHook, Consumer<ErrorReport> addReports) {
 
@@ -61,7 +68,7 @@ public class AnalyticsTableHookObjectBundleHook
 
     analyticsTableHooks.forEach(
         existingAnalyticsTableHook -> {
-          if (existingAnalyticsTableHook.equals(analyticsTableHook)) {
+          if (equal(analyticsTableHook, existingAnalyticsTableHook)) {
             addReports.accept(
                 new ErrorReport(
                     AnalyticsTableHook.class,

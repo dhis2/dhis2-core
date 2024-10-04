@@ -105,25 +105,6 @@ public class AnalyticsTableHook extends BaseIdentifiableObject implements Metada
     this.analyticsTableType = analyticsTableType;
   }
 
-  @Override
-  public int hashCode() {
-    return 31 * Objects.hash(this.phase, this.resourceTableType, this.analyticsTableType, this.sql);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    return this == obj
-        || (obj instanceof AnalyticsTableHook analyticstablehook
-            && objectEquals(analyticstablehook));
-  }
-
-  private boolean objectEquals(AnalyticsTableHook other) {
-    return Objects.equals(this.phase, other.phase)
-        && Objects.equals(this.resourceTableType, other.resourceTableType)
-        && Objects.equals(this.analyticsTableType, other.analyticsTableType)
-        && Objects.equals(this.sql, other.sql);
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getSql() {
