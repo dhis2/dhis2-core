@@ -186,13 +186,12 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     dataValue.setPeriod(storedPeriod);
 
     String sql =
-        """
-        select * from datavalue where dataelementid = :deid
-        and periodid = :periodid
-        and attributeoptioncomboid = :attributeOptionCombo
-        and categoryoptioncomboid = :categoryOptionCombo
-        and sourceid = :sourceid
-        and deleted is true""";
+        "select * from datavalue where dataelementid = :deid\n"
+            + "and periodid = :periodid\n"
+            + "and attributeoptioncomboid = :attributeOptionCombo\n"
+            + "and categoryoptioncomboid = :categoryOptionCombo\n"
+            + "and sourceid = :sourceid\n"
+            + "and deleted is true";
 
     return getSingleResult(
         getSession()
