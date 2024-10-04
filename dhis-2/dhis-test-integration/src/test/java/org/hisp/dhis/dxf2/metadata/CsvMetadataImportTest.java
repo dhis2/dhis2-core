@@ -47,6 +47,7 @@ import org.hisp.dhis.option.OptionGroup;
 import org.hisp.dhis.option.OptionGroupSet;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.schema.SchemaService;
@@ -226,6 +227,35 @@ class CsvMetadataImportTest extends SingleSetupIntegrationTestBase {
     assertEquals(1, ogsA.getMembers().size());
     assertEquals(1, ogsB.getMembers().size());
     assertEquals(2, ogsA.getMembers().get(0).getMembers().size());
+  }
+
+  @Test
+  void testImportOrganisationUnitGroupMembers() throws IOException {
+    ImportReport importReport =
+        runImport(
+            "metadata/organisationUnitMembers.csv",
+            CsvImportClass.ORGANISATION_UNIT,
+            metadata -> assertEquals(4, metadata.getOrganisationUnits().size()));
+    assertEquals(4, importReport.getStats().getCreated());
+    assertEquals(4, organisationUnitService.getAllOrganisationUnits().size());
+
+    importReport =
+        runImport(
+            "metadata/organisationUnitGroup.csv",
+            CsvImportClass.ORGANISATION_UNIT_GROUP,
+            metadata -> assertEquals(2, metadata.getOrganisationUnitGroups().size()));
+    assertEquals(2, importReport.getStats().getCreated());
+
+    importReport =
+        runImport(
+            "metadata/organisationUnitGroup_members.csv",
+            CsvImportClass.ORGANISATION_UNIT_GROUP_MEMBERSHIP,
+            metadata -> assertEquals(2, metadata.getOrganisationUnitGroups().size()));
+    assertEquals(2, importReport.getStats().getUpdated());
+    OrganisationUnitGroup orgUnitA = manager.get(OrganisationUnitGroup.class, "a1234567890");
+    assertEquals(2, orgUnitA.getMembers().size());
+    OrganisationUnitGroup orgUnitB = manager.get(OrganisationUnitGroup.class, "b1234567890");
+    assertEquals(2, orgUnitB.getMembers().size());
   }
 
   private ImportReport runImport(String csvFile, CsvImportClass importClass) throws IOException {
