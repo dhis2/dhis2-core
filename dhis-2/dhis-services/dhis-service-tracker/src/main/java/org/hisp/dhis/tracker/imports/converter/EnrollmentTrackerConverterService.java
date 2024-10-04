@@ -31,6 +31,7 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -69,7 +70,9 @@ public class EnrollmentTrackerConverterService
       TrackerPreheat preheat,
       List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments,
       UserDetails user) {
-    return enrollments.stream().map(enrollment -> from(preheat, enrollment, user)).toList();
+    return enrollments.stream()
+        .map(enrollment -> from(preheat, enrollment, user))
+        .collect(Collectors.toList());
   }
 
   @Override

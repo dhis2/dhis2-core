@@ -31,6 +31,7 @@ import static org.hisp.dhis.util.DateUtils.fromInstant;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
@@ -67,6 +68,9 @@ public class AttributeValueConverterService
   @Override
   public List<TrackedEntityAttributeValue> from(
       TrackerPreheat preheat, List<Attribute> attributes, UserDetails user) {
-    return attributes.stream().filter(Objects::nonNull).map(n -> from(preheat, n, user)).toList();
+    return attributes.stream()
+        .filter(Objects::nonNull)
+        .map(n -> from(preheat, n, user))
+        .collect(Collectors.toList());
   }
 }
