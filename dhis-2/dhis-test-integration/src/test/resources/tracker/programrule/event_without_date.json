@@ -3,7 +3,6 @@
   "enrollments": [],
   "events": [
     {
-      "event": "D9PbzJY8bZZ",
       "status": "COMPLETED",
       "program": {
         "idScheme": "UID",
@@ -34,8 +33,7 @@
           "dataElement": {
             "idScheme": "UID",
             "identifier": "DATAEL00001"
-          },
-          "value": "LAST"
+          }
         }
       ],
       "notes": []

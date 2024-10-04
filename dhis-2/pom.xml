@@ -59,7 +59,7 @@
   <properties>
     <!-- Build Properties -->
     <rootDir/>
-    <!-- Custom source directory property, as <build><sourceDirectory> cannot 
+    <!-- Custom source directory property, as <build><sourceDirectory> cannot
       be set in a profile. See https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 -->
     <sourceDir>${project.basedir}/src/main/java</sourceDir>
 
@@ -74,14 +74,14 @@
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <surefireArgLine>-Xmx2024m</surefireArgLine>
 
-    <!-- Needed so we can disable running tests when the default profile 
+    <!-- Needed so we can disable running tests when the default profile
       is used (activated by default). It does not honor -DskipTests otherwise https://maven.apache.org/surefire/maven-surefire-plugin/examples/skipping-tests.html -->
     <skipTests>false</skipTests>
 
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.0.1</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.1.0</dhis2-rule-engine.version>
     <kotlinx-datetime.version>0.6.1</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
@@ -1664,8 +1664,8 @@
         <version>${mockito.version}</version>
         <scope>test</scope>
       </dependency>
-      <!-- Depend only on mockito-inline (includes mockito-core already) 
-        if you must use mockStatic (can you rewrite your code, so it's not necessary 
+      <!-- Depend only on mockito-inline (includes mockito-core already)
+        if you must use mockStatic (can you rewrite your code, so it's not necessary
         ;)), otherwise depend on mockito-core only -->
       <dependency>
         <groupId>org.mockito</groupId>
@@ -1724,9 +1724,9 @@
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
           </exclusion>
-          <!-- 
+          <!--
             Junit 4 cannot be excluded yet, because of this issue
-            https://github.com/testcontainers/testcontainers-java/issues/970 
+            https://github.com/testcontainers/testcontainers-java/issues/970
           -->
           <!--
           <exclusion>
