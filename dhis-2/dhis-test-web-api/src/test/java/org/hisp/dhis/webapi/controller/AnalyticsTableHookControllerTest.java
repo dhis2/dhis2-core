@@ -38,7 +38,7 @@ import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
-@Transactional(readOnly = true)
+@Transactional
 class AnalyticsTableHookControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
