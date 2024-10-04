@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -209,11 +210,34 @@ public class FieldFilterService {
     return objectNodes;
   }
 
+  /**
+   * Method allowing calls without an exclude defaults boolean parameter. This keeps current
+   * behaviour as is. If callers require different behaviour regarding excluding defaults, then they
+   * can call the toObjectNodes method which takes a value for excluding defaults. This method
+   * passes false as the default value for excluding defaults.
+   *
+   * @param objects objects to render
+   * @param filter filters
+   * @param user user
+   * @param isSkipSharing skip sharing
+   * @param consumer consumer action
+   * @param <T> type of objects
+   */
   private <T> void toObjectNodes(
       List<T> objects,
       List<FieldPath> filter,
       User user,
       boolean isSkipSharing,
+      Consumer<ObjectNode> consumer) {
+    toObjectNodes(objects, filter, user, isSkipSharing, false, consumer);
+  }
+
+  private <T> void toObjectNodes(
+      List<T> objects,
+      List<FieldPath> filter,
+      User user,
+      boolean isSkipSharing,
+      boolean excludeDefaults,
       Consumer<ObjectNode> consumer) {
 
     UserDetails currentUserDetails = null;
@@ -229,7 +253,8 @@ public class FieldFilterService {
     List<FieldPath> paths =
         fieldPathHelper.apply(filter, HibernateProxyUtils.getRealClass(firstObject));
 
-    SimpleFilterProvider filterProvider = getSimpleFilterProvider(paths, isSkipSharing);
+    SimpleFilterProvider filterProvider =
+        getSimpleFilterProvider(paths, isSkipSharing, excludeDefaults);
 
     // only set filter provider on a local copy so that we don't affect
     // other object mappers (running across other threads)
@@ -246,7 +271,42 @@ public class FieldFilterService {
       applyAttributeValueFields(object, objectNode, paths);
       applyTransformers(objectNode, null, "", fieldTransformers);
 
+      if (excludeDefaults) removeEmptyObjects(objectNode);
+
       consumer.accept(objectNode);
+    }
+  }
+
+  /**
+   * Method that removes empty objects from an ObjectNode, at root level.
+   *
+   * <p>e.g. json input: <br>
+   * <code>
+   *   {
+   *      "name": "dhis2",
+   *      "system": {}
+   *   }
+   * </code>
+   *
+   * <p><br>
+   *
+   * <p>resulting output: <br>
+   * <code>
+   *   {
+   *      "name": "dhis2"
+   *   }
+   * </code>
+   *
+   * @param objectNode object node to process on
+   */
+  private void removeEmptyObjects(ObjectNode objectNode) {
+    Iterator<JsonNode> elements = objectNode.elements();
+
+    while (elements.hasNext()) {
+      JsonNode next = elements.next();
+      if (next.isObject() && next.isEmpty()) {
+        elements.remove();
+      }
     }
   }
 
@@ -259,7 +319,8 @@ public class FieldFilterService {
    *     to the generator
    */
   @Transactional(readOnly = true)
-  public void toObjectNodesStream(FieldFilterParams<?> params, JsonGenerator generator)
+  public void toObjectNodesStream(
+      FieldFilterParams<?> params, boolean excludeDefaults, JsonGenerator generator)
       throws IOException {
     if (params.getObjects().isEmpty()) {
       return;
@@ -272,6 +333,7 @@ public class FieldFilterService {
           fieldPaths,
           params.getUser(),
           params.isSkipSharing(),
+          excludeDefaults,
           n -> {
             try {
               generator.writeObject(n);
@@ -385,10 +447,11 @@ public class FieldFilterService {
   }
 
   private SimpleFilterProvider getSimpleFilterProvider(
-      List<FieldPath> fieldPaths, boolean skipSharing) {
+      List<FieldPath> fieldPaths, boolean skipSharing, boolean excludeDefaults) {
     SimpleFilterProvider filterProvider = new SimpleFilterProvider();
     filterProvider.addFilter(
-        "field-filter", new FieldFilterSimpleBeanPropertyFilter(fieldPaths, skipSharing));
+        "field-filter",
+        new FieldFilterSimpleBeanPropertyFilter(fieldPaths, skipSharing, excludeDefaults));
 
     return filterProvider;
   }
