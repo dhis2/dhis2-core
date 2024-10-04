@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
@@ -43,9 +42,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -229,24 +226,6 @@ class DefaultEnrollmentService implements EnrollmentService {
     return enrollments.stream()
         .map(e -> getEnrollment(e, EnrollmentParams.FALSE, false, user))
         .toList();
-  }
-
-  // TODO(tracker) This method should be removed as soon as we move the org unit validation into the
-  // service layer
-  @Deprecated(since = "2.42")
-  @Override
-  public List<Enrollment> getEnrollments(
-      String trackedEntityUid, Program program, EnrollmentStatus enrollmentStatus)
-      throws ForbiddenException, BadRequestException, NotFoundException {
-    EnrollmentOperationParams params =
-        EnrollmentOperationParams.builder()
-            .trackedEntityUid(trackedEntityUid)
-            .programUid(program.getUid())
-            .enrollmentStatus(enrollmentStatus)
-            .orgUnitMode(ACCESSIBLE)
-            .build();
-
-    return getEnrollments(params);
   }
 
   @Override

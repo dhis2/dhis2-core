@@ -114,8 +114,7 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
 
   private final I18nManager i18nManager;
 
-  @Qualifier("emailMessageSender")
-  private final MessageSender messageSender;
+  private final MessageSender emailMessageSender;
 
   @Qualifier("org.hisp.dhis.pushanalysis.PushAnalysisStore")
   private final IdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
@@ -220,7 +219,7 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
           // refactoring of EmailMessageSender
           @SuppressWarnings("unused")
           Future<OutboundMessageResponse> status =
-              messageSender.sendMessageAsync(title, html, "", null, Set.of(user), true);
+              emailMessageSender.sendMessageAsync(title, html, "", null, Set.of(user), true);
         });
   }
 

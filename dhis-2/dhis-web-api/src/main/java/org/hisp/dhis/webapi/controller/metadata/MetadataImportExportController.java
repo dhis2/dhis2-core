@@ -34,12 +34,12 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -267,8 +267,7 @@ public class MetadataImportExportController {
 
     config.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
     config.setJobParameters(params);
-    jobSchedulerService.executeNow(
-        jobConfigurationService.create(config, contentType, request.getInputStream()));
+    jobSchedulerService.createThenExecute(config, contentType, request.getInputStream());
     return jobConfigurationReport(config);
   }
 

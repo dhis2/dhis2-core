@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.document.impl;
 
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.document.Document;
@@ -63,6 +63,6 @@ public class HibernateDocumentStore extends HibernateIdentifiableObjectStore<Doc
     query.select(builder.count(root));
     query.where(builder.equal(root.get(BaseIdentifiableObject_.CREATED_BY), user));
 
-    return getSession().createQuery(query).getSingleResult();
+    return entityManager.createQuery(query).getSingleResult();
   }
 }

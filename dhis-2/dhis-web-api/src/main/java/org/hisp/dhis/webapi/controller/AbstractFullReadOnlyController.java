@@ -38,6 +38,8 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema.Builder;
 import com.fasterxml.jackson.dataformat.csv.CsvWriteException;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -51,8 +53,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.Value;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.CodeGenerator;
@@ -247,7 +247,10 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     return ResponseEntity.ok(
         new StreamingJsonRoot<>(
-            pager, getSchema().getCollectionName(), FieldFilterParams.of(entities, fields)));
+            pager,
+            getSchema().getCollectionName(),
+            FieldFilterParams.of(entities, fields),
+            Defaults.valueOf(options.get("defaults", DEFAULTS)).isExclude()));
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
@@ -451,7 +454,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     entities.forEach(e -> postProcessResponseEntity(e, options, rpParameters));
 
     return ResponseEntity.ok(
-        new StreamingJsonRoot<>(null, null, FieldFilterParams.of(entities, fields)));
+        new StreamingJsonRoot<>(
+            null, null, FieldFilterParams.of(entities, fields), query.getDefaults().isExclude()));
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)

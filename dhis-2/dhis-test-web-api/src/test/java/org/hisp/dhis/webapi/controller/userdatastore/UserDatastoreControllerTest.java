@@ -36,12 +36,14 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.webapi.controller.UserDatastoreController;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link UserDatastoreController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class UserDatastoreControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test

@@ -46,7 +46,9 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class DashboardControllerTest extends PostgresControllerIntegrationTestBase {
   @Autowired private AclService aclService;
 

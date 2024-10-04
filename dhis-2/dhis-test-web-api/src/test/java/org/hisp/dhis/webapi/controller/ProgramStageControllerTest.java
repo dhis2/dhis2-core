@@ -37,10 +37,12 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonTypeReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author viet@dhis2.org
  */
+@Transactional
 class ProgramStageControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test

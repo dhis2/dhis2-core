@@ -44,12 +44,14 @@ import org.hisp.dhis.test.webapi.json.domain.JsonOrganisationUnit;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.organisationunit.OrganisationUnit} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
   private String ou0, ou1, ou21, ou22;
 

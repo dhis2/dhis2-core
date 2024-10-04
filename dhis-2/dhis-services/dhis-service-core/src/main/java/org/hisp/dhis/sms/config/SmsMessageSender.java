@@ -60,19 +60,16 @@ import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 
 /**
  * @author Nguyen Kim Lai
  */
 @Slf4j
-@Component("smsMessageSender")
-@Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
+@Service
 public class SmsMessageSender implements MessageSender {
   private static final String NO_CONFIG = "No default gateway configured";
 

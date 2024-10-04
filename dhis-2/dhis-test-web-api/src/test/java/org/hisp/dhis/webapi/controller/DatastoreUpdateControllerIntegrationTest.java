@@ -40,6 +40,7 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the different scenarios for updating a datastore value.
@@ -49,6 +50,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class DatastoreUpdateControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
 
   @BeforeEach

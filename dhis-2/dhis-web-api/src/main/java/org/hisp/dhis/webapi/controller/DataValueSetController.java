@@ -42,6 +42,8 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.stripFormatCompressionExte
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -50,8 +52,6 @@ import java.util.function.BiConsumer;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.Compression;
@@ -317,8 +317,7 @@ public class DataValueSetController {
     config.setExecutedBy(currentUser.getUid());
     config.setJobParameters(importOptions);
 
-    jobSchedulerService.executeNow(
-        jobConfigurationService.create(config, mimeType, request.getInputStream()));
+    jobSchedulerService.createThenExecute(config, mimeType, request.getInputStream());
 
     return jobConfigurationReport(config);
   }

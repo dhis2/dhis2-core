@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.system.util.HttpUtils;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webmessage.WebMessageResponse;
@@ -79,7 +80,7 @@ public class WebMessageControllerAdvice implements ResponseBodyAdvice<WebMessage
     if (isPlainResponse(request, message)) {
       return ((WebMessage) body).getResponse();
     }
-    HttpStatus httpStatus = HttpStatus.resolve(message.getHttpStatusCode());
+    HttpStatus httpStatus = HttpUtils.resolve(message.getHttpStatusCode());
     if (httpStatus != null) {
       response.setStatusCode(httpStatus);
       if (httpStatus.is4xxClientError() || httpStatus.is5xxServerError()) {

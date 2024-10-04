@@ -64,12 +64,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Controller tests for {@link org.hisp.dhis.webapi.controller.event.EventVisualizationController}.
  *
  * @author maikel arabori
  */
+@Transactional
 class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
   @Autowired private ObjectMapper jsonMapper;
 
