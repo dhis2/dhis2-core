@@ -130,7 +130,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(p1));
 
     AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder().withLastYears(2).withStartTime(START_TIME).build();
+        AnalyticsTableUpdateParams.newBuilder().lastYears(2).startTime(START_TIME).build();
 
     List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);
     assertFalse(analyticsTables.isEmpty());

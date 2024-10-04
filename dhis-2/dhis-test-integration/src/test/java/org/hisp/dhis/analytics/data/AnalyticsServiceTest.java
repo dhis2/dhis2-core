@@ -272,7 +272,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
     processStartTime = new Date();
     // Generate analytics tables
     analyticsTableGenerator.generateAnalyticsTables(
-        AnalyticsTableUpdateParams.newBuilder().withStartTime(tenSecondsFromNow).build(),
+        AnalyticsTableUpdateParams.newBuilder().startTime(tenSecondsFromNow).build(),
         JobProgress.noop());
   }
 

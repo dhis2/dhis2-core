@@ -198,7 +198,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
 
     params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(AnalyticsTablePartition.LATEST_PARTITION)
+            .lastYears(AnalyticsTablePartition.LATEST_PARTITION)
             .build();
 
     assertEquals(emptyList(), target.getAnalyticsTables(params));
