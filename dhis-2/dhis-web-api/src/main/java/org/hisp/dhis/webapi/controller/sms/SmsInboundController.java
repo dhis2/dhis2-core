@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.CheckForNull;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -200,19 +201,23 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms> {
     return ok("Objects deleted");
   }
 
-  private User getUserByPhoneNumber(String phoneNumber, String text, User currentUser)
+  private @CheckForNull User getUserByPhoneNumber(String phoneNumber, String text, User currentUser)
       throws WebMessageException {
-    SMSCommand unregisteredParser =
-        smsCommandService.getSMSCommand(
-            SmsUtils.getCommandString(text), ParserType.UNREGISTERED_PARSER);
+    if (SmsUtils.isBase64(text)) { // compression bases SMS https://github.com/dhis2/sms-compression
+      if (!phoneNumber.equals(currentUser.getPhoneNumber())) {
+        // current user does not belong to this number
+        throw new WebMessageException(
+            conflict("Originator's number does not match user's Phone number"));
+      }
 
-    List<User> users = userService.getUsersByPhoneNumber(phoneNumber);
-
-    if (SmsUtils.isBase64(text)) {
-      return handleCompressedCommands(currentUser, phoneNumber);
+      return currentUser;
     }
 
-    if (users == null || users.isEmpty()) {
+    List<User> users = userService.getUsersByPhoneNumber(phoneNumber);
+    if (users.isEmpty()) {
+      SMSCommand unregisteredParser =
+          smsCommandService.getSMSCommand(
+              SmsUtils.getCommandString(text), ParserType.UNREGISTERED_PARSER);
       if (unregisteredParser != null) {
         return null;
       }
@@ -223,16 +228,5 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms> {
     }
 
     return users.iterator().next();
-  }
-
-  private User handleCompressedCommands(User currentUser, String phoneNumber)
-      throws WebMessageException {
-    if (currentUser != null && !phoneNumber.equals(currentUser.getPhoneNumber())) {
-      // current user does not belong to this number
-      throw new WebMessageException(
-          conflict("Originator's number does not match user's Phone number"));
-    }
-
-    return currentUser;
   }
 }

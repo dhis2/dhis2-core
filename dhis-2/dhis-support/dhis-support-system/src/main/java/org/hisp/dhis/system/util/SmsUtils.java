@@ -35,7 +35,6 @@ import java.util.Base64;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -101,19 +100,6 @@ public class SmsUtils {
     } catch (IllegalArgumentException e) {
       return null;
     }
-  }
-
-  public static Map<String, Set<OrganisationUnit>> getOrganisationUnitsByPhoneNumber(
-      String sender, Collection<User> users) {
-    Map<String, Set<OrganisationUnit>> userOrgUnitMap = new HashMap<>();
-
-    for (User u : users) {
-      if (u.getOrganisationUnits() != null) {
-        userOrgUnitMap.put(u.getUid(), u.getOrganisationUnits());
-      }
-    }
-
-    return userOrgUnitMap;
   }
 
   public static String encode(String value) {

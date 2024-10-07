@@ -28,7 +28,6 @@
 package org.hisp.dhis.sms.listener;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -45,7 +44,6 @@ import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.transaction.annotation.Transactional;
@@ -127,9 +125,7 @@ public abstract class CommandSMSListener extends BaseSMSListener {
       return new HashSet<>();
     }
 
-    return SmsUtils.getOrganisationUnitsByPhoneNumber(
-            sms.getOriginator(), Collections.singleton(user))
-        .get(user.getUid());
+    return user.getOrganisationUnits();
   }
 
   protected User getUser(IncomingSms sms) {
