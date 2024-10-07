@@ -50,6 +50,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,7 +87,7 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
   @Override
   protected void postProcess(
       @Nonnull IncomingSms sms,
-      @Nonnull String username,
+      @Nonnull UserDetails smsCreatedBy,
       @Nonnull SMSCommand smsCommand,
       @Nonnull Map<String, String> codeValues) {
     Collection<OrganisationUnit> orgUnits = getOrganisationUnits(sms);

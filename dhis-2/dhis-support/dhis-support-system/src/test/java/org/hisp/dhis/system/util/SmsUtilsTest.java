@@ -164,15 +164,6 @@ class SmsUtilsTest {
   }
 
   @Test
-  void testGetUser() {
-    User returnedUser = SmsUtils.getUser("", new SMSCommand(), Lists.newArrayList(userA));
-    assertEquals(userA, returnedUser);
-    assertThrows(
-        SMSParserException.class,
-        () -> SmsUtils.getUser("", new SMSCommand(), Lists.newArrayList(userA, userB)));
-  }
-
-  @Test
   void testSplitLongUnicodeString() {
     List<String> result = new ArrayList<>();
     assertEquals(

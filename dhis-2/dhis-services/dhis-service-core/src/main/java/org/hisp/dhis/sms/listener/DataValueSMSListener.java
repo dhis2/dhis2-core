@@ -62,6 +62,7 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -113,7 +114,7 @@ public class DataValueSMSListener extends CommandSMSListener {
   @Override
   protected void postProcess(
       @Nonnull IncomingSms sms,
-      @Nonnull String username,
+      @Nonnull UserDetails smsCreatedBy,
       @Nonnull SMSCommand smsCommand,
       @Nonnull Map<String, String> codeValues) {
     String message = sms.getText();
@@ -157,7 +158,8 @@ public class DataValueSMSListener extends CommandSMSListener {
 
     for (SMSCode code : smsCommand.getCodes()) {
       if (codeValues.containsKey(code.getCode())) {
-        valueStored = storeDataValue(sms, orgUnit, codeValues, code, smsCommand, date);
+        valueStored =
+            storeDataValue(sms, smsCreatedBy, orgUnit, codeValues, code, smsCommand, date);
       }
     }
 
@@ -182,7 +184,7 @@ public class DataValueSMSListener extends CommandSMSListener {
       return;
     }
 
-    if (markCompleteDataSet(sms, orgUnit, smsCommand, date)) {
+    if (markCompleteDataSet(sms, smsCreatedBy, orgUnit, smsCommand, date)) {
       sendSuccessFeedback(senderPhoneNumber, smsCommand, codeValues, date, orgUnit);
 
       update(sms, SmsMessageStatus.PROCESSED, true);
@@ -223,14 +225,15 @@ public class DataValueSMSListener extends CommandSMSListener {
 
   private boolean storeDataValue(
       IncomingSms sms,
+      UserDetails smsCreatedBy,
       OrganisationUnit orgunit,
       Map<String, String> parsedMessage,
       SMSCode code,
       SMSCommand command,
       Date date) {
+    validateUserOrgUnits(smsCreatedBy);
     String sender = sms.getOriginator();
-    String storedBy =
-        SmsUtils.getUser(sender, command, Collections.singletonList(getUser(sms))).getUsername();
+    String storedBy = smsCreatedBy.getUsername();
 
     if (StringUtils.isBlank(storedBy)) {
       storedBy = "[unknown] from [" + sender + "]";
@@ -356,7 +359,11 @@ public class DataValueSMSListener extends CommandSMSListener {
   }
 
   private boolean markCompleteDataSet(
-      IncomingSms sms, OrganisationUnit orgunit, SMSCommand command, Date date) {
+      IncomingSms sms,
+      UserDetails smsCreatedBy,
+      OrganisationUnit orgunit,
+      SMSCommand command,
+      Date date) {
     String sender = sms.getOriginator();
 
     Period period = null;
@@ -390,8 +397,8 @@ public class DataValueSMSListener extends CommandSMSListener {
     }
 
     // Go through the complete process
-    String storedBy =
-        SmsUtils.getUser(sender, command, Collections.singletonList(getUser(sms))).getUsername();
+    validateUserOrgUnits(smsCreatedBy);
+    String storedBy = smsCreatedBy.getUsername();
 
     if (StringUtils.isBlank(storedBy)) {
       storedBy = "[unknown] from [" + sender + "]";

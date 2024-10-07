@@ -238,6 +238,7 @@ public class SMSCommand extends BaseIdentifiableObject implements MetadataObject
 
   @JsonProperty
   @JacksonXmlProperty
+  @Nonnull
   public String getNoUserMessage() {
     return noUserMessage != null ? noUserMessage : NO_USER_MESSAGE;
   }
@@ -258,6 +259,7 @@ public class SMSCommand extends BaseIdentifiableObject implements MetadataObject
 
   @JsonProperty
   @JacksonXmlProperty
+  @Nonnull
   public String getMoreThanOneOrgUnitMessage() {
     return moreThanOneOrgUnitMessage != null
         ? moreThanOneOrgUnitMessage

@@ -151,36 +151,6 @@ public class SmsUtils {
     return date;
   }
 
-  public static User getUser(String sender, SMSCommand smsCommand, List<User> userList) {
-    OrganisationUnit orgunit = null;
-    User user = null;
-
-    for (User u : userList) {
-      OrganisationUnit ou = u.getOrganisationUnit();
-
-      if (ou != null) {
-        if (orgunit == null) {
-          orgunit = ou;
-        } else if (orgunit.getId() == ou.getId()) {
-        } else {
-          throw new SMSParserException(
-              StringUtils.defaultIfBlank(
-                  smsCommand.getMoreThanOneOrgUnitMessage(),
-                  SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE));
-        }
-      }
-
-      user = u;
-    }
-
-    if (user == null) {
-      throw new SMSParserException(
-          "User is not associated with any orgunit. Please contact your supervisor.");
-    }
-
-    return user;
-  }
-
   public static List<String> splitLongUnicodeString(String message, List<String> result) {
     String firstTempString = null;
     String secondTempString = null;

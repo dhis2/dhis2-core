@@ -45,7 +45,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
@@ -74,6 +73,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -131,12 +131,11 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
   @Override
   public void postProcess(
       @Nonnull IncomingSms sms,
-      @Nonnull String username,
+      @Nonnull UserDetails smsCreatedBy,
       @Nonnull SMSCommand smsCommand,
       @Nonnull Map<String, String> dataValues) {
-    Set<OrganisationUnit> orgUnits = getOrganisationUnits(sms);
     List<TrackedEntity> trackedEntities = getTrackedEntityByPhoneNumber(sms, smsCommand);
-    if (!validate(trackedEntities, orgUnits, sms)) {
+    if (!validate(trackedEntities, smsCreatedBy.getUserOrgUnitIds(), sms)) {
       return;
     }
     TrackedEntity trackedEntity = trackedEntities.get(0);
@@ -173,14 +172,13 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
 
     TrackerImportParams params =
         TrackerImportParams.builder().importStrategy(TrackerImportStrategy.CREATE).build();
-    OrganisationUnit orgUnit = orgUnits.iterator().next();
     TrackerObjects trackerObjects =
         mapCommand(
             sms,
             smsCommand,
             dataValues,
-            orgUnit,
-            username,
+            smsCreatedBy.getUserOrgUnitIds().iterator().next(),
+            smsCreatedBy.getUsername(),
             dataElementCategoryService,
             trackedEntity.getUid(),
             enrollment);
@@ -244,7 +242,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
   }
 
   private boolean validate(
-      List<TrackedEntity> trackedEntities, Set<OrganisationUnit> ous, IncomingSms sms) {
+      List<TrackedEntity> trackedEntities, Set<String> orgUnits, IncomingSms sms) {
     if (trackedEntities == null || trackedEntities.isEmpty()) {
       sendFeedback(NO_TE_EXIST, sms.getOriginator(), ERROR);
       return false;
@@ -255,7 +253,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
       return false;
     }
 
-    if (validateOrganisationUnits(ous)) {
+    if (validateOrganisationUnits(orgUnits)) {
       sendFeedback(NO_OU_FOUND, sms.getOriginator(), ERROR);
       return false;
     }
@@ -263,7 +261,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
     return true;
   }
 
-  private boolean validateOrganisationUnits(Set<OrganisationUnit> ous) {
-    return ous == null || ous.isEmpty();
+  private boolean validateOrganisationUnits(Set<String> orgUntis) {
+    return orgUntis == null || orgUntis.isEmpty();
   }
 }
