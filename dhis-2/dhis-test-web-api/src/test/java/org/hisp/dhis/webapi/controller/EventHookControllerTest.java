@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.test.web.WebClient.Body;
 import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Path;
 import org.hisp.dhis.common.auth.ApiTokenAuth;
 import org.hisp.dhis.common.auth.HttpBasicAuth;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
@@ -63,7 +63,7 @@ class EventHookControllerTest extends PostgresControllerIntegrationTestBase {
   void testCreateEventHookWebhookApiToken() {
     String id =
         assertStatus(
-            HttpStatus.CREATED, POST("/eventHooks", Body("event-hook/webhook-api-token.json")));
+            HttpStatus.CREATED, POST("/eventHooks", Path.of("event-hook/webhook-api-token.json")));
     assertEquals("bRNvL6NMQXb", id);
 
     JsonObject eventHook = GET("/eventHooks/{id}", id).content(HttpStatus.OK);
@@ -89,7 +89,7 @@ class EventHookControllerTest extends PostgresControllerIntegrationTestBase {
   void testCreateEventHookWebhookHttpBasic() {
     String id =
         assertStatus(
-            HttpStatus.CREATED, POST("/eventHooks", Body("event-hook/webhook-http-basic.json")));
+            HttpStatus.CREATED, POST("/eventHooks", Path.of("event-hook/webhook-http-basic.json")));
     assertEquals("bRNvL6NMQXb", id);
 
     JsonObject eventHook = GET("/eventHooks/{id}", id).content(HttpStatus.OK);
@@ -117,7 +117,7 @@ class EventHookControllerTest extends PostgresControllerIntegrationTestBase {
   void testCreateEventHookWebhookHttpBasicDefaultEnabled() {
     String id =
         assertStatus(
-            HttpStatus.CREATED, POST("/eventHooks", Body("event-hook/webhook-http-basic.json")));
+            HttpStatus.CREATED, POST("/eventHooks", Path.of("event-hook/webhook-http-basic.json")));
     assertEquals("bRNvL6NMQXb", id);
 
     JsonObject eventHook = GET("/eventHooks/{id}", id).content(HttpStatus.OK);
@@ -146,7 +146,7 @@ class EventHookControllerTest extends PostgresControllerIntegrationTestBase {
   void testDeleteEventHookWebhookHttpBasic() {
     String id =
         assertStatus(
-            HttpStatus.CREATED, POST("/eventHooks", Body("event-hook/webhook-http-basic.json")));
+            HttpStatus.CREATED, POST("/eventHooks", Path.of("event-hook/webhook-http-basic.json")));
     assertEquals("bRNvL6NMQXb", id);
 
     GET("/eventHooks/{id}", id).content(HttpStatus.OK);

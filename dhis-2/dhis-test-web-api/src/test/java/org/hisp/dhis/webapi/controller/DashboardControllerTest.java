@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Path;
 import java.util.Optional;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
@@ -54,7 +55,7 @@ class DashboardControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testUpdateWithNonAccessibleItems() {
-    POST("/metadata", Body("dashboard/create_dashboard_non_accessible_visualization.json"))
+    POST("/metadata", Path.of("dashboard/create_dashboard_non_accessible_visualization.json"))
         .content(HttpStatus.OK);
     User userA = userService.getUser("XThzKnyzeYW");
 
@@ -88,7 +89,7 @@ class DashboardControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testUpdateWithAccessibleItems() {
-    POST("/metadata", Body("dashboard/create_dashboard.json")).content(HttpStatus.OK);
+    POST("/metadata", Path.of("dashboard/create_dashboard.json")).content(HttpStatus.OK);
     User userA = userService.getUser("XThzKnyzeYW");
 
     // Verify if all objects created correctly.
