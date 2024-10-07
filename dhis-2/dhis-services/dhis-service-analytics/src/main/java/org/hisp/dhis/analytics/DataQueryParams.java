@@ -2466,7 +2466,7 @@ public class DataQueryParams {
             DataDimensionItemType.DATA_ELEMENT, getFilterOptions(DATA_X_DIM_ID)));
   }
 
-  /** Returns all data elements part of the data filter. */
+  /** Returns all data element operands part of the data filter. */
   public List<DimensionalItemObject> getFilterDataElementOperands() {
     return ImmutableList.copyOf(
             AnalyticsUtils.getByDataDimensionItemType(
