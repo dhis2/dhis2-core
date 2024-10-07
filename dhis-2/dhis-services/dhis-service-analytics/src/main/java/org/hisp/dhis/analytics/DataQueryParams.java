@@ -2170,7 +2170,8 @@ public class DataQueryParams {
 
   /** Returns all data element operands part of a dimension or filter. */
   public List<DimensionalItemObject> getAllDataElementOperands() {
-    return ImmutableList.copyOf(ListUtils.union(getDataElementOperands(), getFilterDataElementOperands()));
+    return ImmutableList.copyOf(
+        ListUtils.union(getDataElementOperands(), getFilterDataElementOperands()));
   }
 
   /** Returns all reporting rates part of a dimension or filter. */
@@ -2449,8 +2450,8 @@ public class DataQueryParams {
   /** Returns all data element operands part of the data filter. */
   public List<DimensionalItemObject> getFilterDataElementOperands() {
     return ImmutableList.copyOf(
-            AnalyticsUtils.getByDataDimensionItemType(
-                    DataDimensionItemType.DATA_ELEMENT_OPERAND, getFilterOptions(DATA_X_DIM_ID)));
+        AnalyticsUtils.getByDataDimensionItemType(
+            DataDimensionItemType.DATA_ELEMENT_OPERAND, getFilterOptions(DATA_X_DIM_ID)));
   }
 
   /** Returns all reporting rates part of the data filter. */
