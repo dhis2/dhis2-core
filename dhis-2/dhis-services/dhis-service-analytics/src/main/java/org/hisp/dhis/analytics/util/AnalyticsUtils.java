@@ -344,15 +344,13 @@ public class AnalyticsUtils {
       List<String> items =
           Lists.newArrayList(entry.getKey().split(DimensionalObject.DIMENSION_SEP));
 
-      if(items.size() < toIndex) {
+      if (items.size() < toIndex) {
         map.put(entry.getKey(), entry.getValue());
         continue;
       }
 
-      List<String> operands =
-          Lists.newArrayList(items.subList(0, toIndex));
-      List<String> dimensions =
-          Lists.newArrayList(items.subList(toIndex, items.size()));
+      List<String> operands = Lists.newArrayList(items.subList(0, toIndex));
+      List<String> dimensions = Lists.newArrayList(items.subList(toIndex, items.size()));
 
       // Add wild card in place of category option combination
 

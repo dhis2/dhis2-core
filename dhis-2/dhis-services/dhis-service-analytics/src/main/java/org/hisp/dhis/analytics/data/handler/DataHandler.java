@@ -745,63 +745,114 @@ public class DataHandler {
     List<DimensionalItemObject> attributeOptionCombos =
         newArrayList(getAttributeOptionCombos(operands));
 
-    List<DimensionalItemObject> dimensionDataElements = dataElements.stream()
-            .filter( de -> params.getDataElementOperands().stream().anyMatch(deo -> ((DataElementOperand)deo).getDataElement().getUid().equals(de.getUid())))
+    List<DimensionalItemObject> dimensionDataElements =
+        dataElements.stream()
+            .filter(
+                de ->
+                    params.getDataElementOperands().stream()
+                        .anyMatch(
+                            deo ->
+                                ((DataElementOperand) deo)
+                                    .getDataElement()
+                                    .getUid()
+                                    .equals(de.getUid())))
             .toList();
-    List<DimensionalItemObject> filterDataElements = dataElements.stream()
-            .filter( de -> params.getFilterDataElementOperands().stream().anyMatch(deo -> ((DataElementOperand)deo).getDataElement().getUid().equals(de.getUid())))
+    List<DimensionalItemObject> filterDataElements =
+        dataElements.stream()
+            .filter(
+                de ->
+                    params.getFilterDataElementOperands().stream()
+                        .anyMatch(
+                            deo ->
+                                ((DataElementOperand) deo)
+                                    .getDataElement()
+                                    .getUid()
+                                    .equals(de.getUid())))
             .toList();
 
-    List<DimensionalItemObject> dimensionCategoryOptionCombos = categoryOptionCombos.stream()
-            .filter( de -> params.getDataElementOperands().stream().anyMatch(deo -> ((DataElementOperand)deo).getCategoryOptionCombo().getUid().equals(de.getUid())))
+    List<DimensionalItemObject> dimensionCategoryOptionCombos =
+        categoryOptionCombos.stream()
+            .filter(
+                de ->
+                    params.getDataElementOperands().stream()
+                        .anyMatch(
+                            deo ->
+                                ((DataElementOperand) deo)
+                                    .getCategoryOptionCombo()
+                                    .getUid()
+                                    .equals(de.getUid())))
             .toList();
-    List<DimensionalItemObject> filterCategoryOptionCombos = categoryOptionCombos.stream()
-            .filter( de -> params.getFilterDataElementOperands().stream().anyMatch(deo -> ((DataElementOperand)deo).getCategoryOptionCombo().getUid().equals(de.getUid())))
+    List<DimensionalItemObject> filterCategoryOptionCombos =
+        categoryOptionCombos.stream()
+            .filter(
+                de ->
+                    params.getFilterDataElementOperands().stream()
+                        .anyMatch(
+                            deo ->
+                                ((DataElementOperand) deo)
+                                    .getCategoryOptionCombo()
+                                    .getUid()
+                                    .equals(de.getUid())))
             .toList();
 
-    List<DimensionalItemObject> dimensionAttributeOptionCombos = attributeOptionCombos.stream()
-            .filter( de -> params.getDataElementOperands().stream().anyMatch(deo -> ((DataElementOperand)deo).getAttributeOptionCombo().getUid().equals(de.getUid())))
+    List<DimensionalItemObject> dimensionAttributeOptionCombos =
+        attributeOptionCombos.stream()
+            .filter(
+                de ->
+                    params.getDataElementOperands().stream()
+                        .anyMatch(
+                            deo ->
+                                ((DataElementOperand) deo)
+                                    .getAttributeOptionCombo()
+                                    .getUid()
+                                    .equals(de.getUid())))
             .toList();
-    List<DimensionalItemObject> filterAttributeOptionCombos = attributeOptionCombos.stream()
-            .filter( de -> params.getFilterDataElementOperands().stream().anyMatch(deo -> ((DataElementOperand)deo).getAttributeOptionCombo().getUid().equals(de.getUid())))
+    List<DimensionalItemObject> filterAttributeOptionCombos =
+        attributeOptionCombos.stream()
+            .filter(
+                de ->
+                    params.getFilterDataElementOperands().stream()
+                        .anyMatch(
+                            deo ->
+                                ((DataElementOperand) deo)
+                                    .getAttributeOptionCombo()
+                                    .getUid()
+                                    .equals(de.getUid())))
             .toList();
 
+    DataQueryParams.Builder builder = newBuilder(params).removeDimension(DATA_X_DIM_ID);
 
-    DataQueryParams.Builder builder =
-        newBuilder(params)
-            .removeDimension(DATA_X_DIM_ID);
-
-    if(!dimensionDataElements.isEmpty()){
+    if (!dimensionDataElements.isEmpty()) {
       builder.addDimension(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, dimensionDataElements));
     }
 
-    if(!filterDataElements.isEmpty()){
+    if (!filterDataElements.isEmpty()) {
       builder.addFilter(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, filterDataElements));
     }
 
     if (totalType.isCategoryOptionCombo()) {
-      if(!dimensionCategoryOptionCombos.isEmpty()){
+      if (!dimensionCategoryOptionCombos.isEmpty()) {
         builder.addDimension(
-                new BaseDimensionalObject(
-                        CATEGORYOPTIONCOMBO_DIM_ID, CATEGORY_OPTION_COMBO, categoryOptionCombos));
+            new BaseDimensionalObject(
+                CATEGORYOPTIONCOMBO_DIM_ID, CATEGORY_OPTION_COMBO, categoryOptionCombos));
       }
-      if(!filterCategoryOptionCombos.isEmpty()){
+      if (!filterCategoryOptionCombos.isEmpty()) {
         builder.addFilter(
-                new BaseDimensionalObject(
-                        CATEGORYOPTIONCOMBO_DIM_ID, CATEGORY_OPTION_COMBO, categoryOptionCombos));
+            new BaseDimensionalObject(
+                CATEGORYOPTIONCOMBO_DIM_ID, CATEGORY_OPTION_COMBO, categoryOptionCombos));
       }
     }
 
     if (totalType.isAttributeOptionCombo()) {
-      if(!dimensionAttributeOptionCombos.isEmpty()){
+      if (!dimensionAttributeOptionCombos.isEmpty()) {
         builder.addDimension(
-                new BaseDimensionalObject(
-                        ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTE_OPTION_COMBO, attributeOptionCombos));
+            new BaseDimensionalObject(
+                ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTE_OPTION_COMBO, attributeOptionCombos));
       }
-      if(!filterAttributeOptionCombos.isEmpty()){
+      if (!filterAttributeOptionCombos.isEmpty()) {
         builder.addFilter(
-                new BaseDimensionalObject(
-                        ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTE_OPTION_COMBO, attributeOptionCombos));
+            new BaseDimensionalObject(
+                ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTE_OPTION_COMBO, attributeOptionCombos));
       }
     }
 
