@@ -1301,7 +1301,7 @@ public class DataHandler {
    * @param map the map of metadata identifiers to data values.
    * @param queries the list of {@link DataQueryParams} to execute.
    */
-  private void  executeQueries(
+  private void executeQueries(
       AnalyticsTableType tableType,
       int maxLimit,
       Map<String, Object> map,

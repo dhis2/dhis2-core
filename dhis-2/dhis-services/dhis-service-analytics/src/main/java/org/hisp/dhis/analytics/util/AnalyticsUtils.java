@@ -356,18 +356,21 @@ public final class AnalyticsUtils {
       Map<String, T> valueMap, TotalType totalType) {
     Map<String, T> map = Maps.newHashMap();
 
+    int toIndex = totalType.getPropertyCount() + 1;
+
     for (Entry<String, T> entry : valueMap.entrySet()) {
       List<String> items =
           Lists.newArrayList(entry.getKey().split(DimensionalObject.DIMENSION_SEP));
-      if(items.size() < totalType.getPropertyCount() +1) {
+
+      if(items.size() < toIndex) {
         map.put(entry.getKey(), entry.getValue());
         continue;
       }
 
       List<String> operands =
-          Lists.newArrayList(items.subList(0, totalType.getPropertyCount() + 1));
+          Lists.newArrayList(items.subList(0, toIndex));
       List<String> dimensions =
-          Lists.newArrayList(items.subList(totalType.getPropertyCount() + 1, items.size()));
+          Lists.newArrayList(items.subList(toIndex, items.size()));
 
       // Add wild card in place of category option combination
 
