@@ -132,7 +132,7 @@ public class WebClientUtils {
 
     Object[] urlArgs =
         Stream.of(args)
-            .filter(arg -> !(arg instanceof RequestComponent))
+            .filter(arg -> !(arg instanceof RequestComponent) && !(arg instanceof Path))
             .map(arg -> arg == null ? "" : arg)
             .toArray();
     return String.format(url.replaceAll("\\{[a-zA-Z]+}", "%s"), urlArgs);
@@ -165,6 +165,9 @@ public class WebClientUtils {
 
   public static RequestComponent[] requestComponentsIn(Object... args) {
     return Stream.of(args)
+        .map(
+            arg ->
+                arg instanceof Path path ? new WebClient.Body(fileContent(path.toString())) : arg)
         .filter(arg -> arg instanceof RequestComponent)
         .toArray(RequestComponent[]::new);
   }

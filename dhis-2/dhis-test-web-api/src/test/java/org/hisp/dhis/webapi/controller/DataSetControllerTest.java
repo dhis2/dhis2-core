@@ -134,8 +134,7 @@ class DataSetControllerTest extends H2ControllerIntegrationTestBase {
     assertStatus(
         HttpStatus.OK,
         PUT(
-            "/dataSets/{id}",
-            dataSetId,
+            "/dataSets/" + dataSetId,
             Path.of("dataset/dataset_with_compulsoryDataElementOperand_update.json")));
 
     dataSet = manager.get(DataSet.class, dataSetId);

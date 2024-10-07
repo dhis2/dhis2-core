@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.test.web.WebClient.Body;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -78,7 +77,7 @@ class DashboardControllerTest extends PostgresControllerIntegrationTestBase {
 
     // Add one more DashboardItem to the created Dashboard
     JsonMixed response =
-        PUT("/dashboards/f1OijtLnf8a", Body("dashboard/update_dashboard.json"))
+        PUT("/dashboards/f1OijtLnf8a", Path.of("dashboard/update_dashboard.json"))
             .content(HttpStatus.CONFLICT);
     assertEquals(
         "DashboardItem `KnmKNIFiAwC` object reference `VISUALIZATION` with id `gyYXi0rXAIc` not accessible",
@@ -109,7 +108,8 @@ class DashboardControllerTest extends PostgresControllerIntegrationTestBase {
     switchContextToUser(userA);
 
     // Add one more DashboardItem to the created Dashboard
-    PUT("/dashboards/f1OijtLnf8a", Body("dashboard/update_dashboard.json")).content(HttpStatus.OK);
+    PUT("/dashboards/f1OijtLnf8a", Path.of("dashboard/update_dashboard.json"))
+        .content(HttpStatus.OK);
     dashboard = manager.get(Dashboard.class, "f1OijtLnf8a");
 
     // Dashboard should have 2 items after update.

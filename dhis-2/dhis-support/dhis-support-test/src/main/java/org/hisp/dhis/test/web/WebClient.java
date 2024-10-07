@@ -172,6 +172,11 @@ public interface WebClient {
     return perform(HttpMethod.PUT, substitutePlaceholders(url, args), requestComponentsIn(args));
   }
 
+  default HttpResponse PUT(String url, Path body) {
+    return callAndFailOnException(
+        () -> PUT(url, Body(fileContent(body.toString())), ContentType(body)));
+  }
+
   default HttpResponse PUT(String url, @Language("json5") String body) {
     return perform(HttpMethod.PUT, url, new Body(body));
   }
