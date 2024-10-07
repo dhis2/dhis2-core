@@ -56,7 +56,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeTableManager;
 import org.hisp.dhis.webapi.controller.tracker.export.trigramsummary.TrigramSummary;
 import org.hisp.dhis.webapi.controller.tracker.export.trigramsummary.TrigramSummaryController;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -66,8 +66,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(MockitoExtension.class)
+@Transactional
 class TrigramSummaryControllerTest extends H2ControllerIntegrationTestBase {
 
   private static final List<FieldPath> DEFAULT_FIELDS =

@@ -74,7 +74,9 @@ import org.hisp.dhis.webapi.controller.tracker.JsonRelationshipItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class EnrollmentsExportControllerTest extends H2ControllerIntegrationTestBase {
 
   private static final String ATTRIBUTE_VALUE = "value";

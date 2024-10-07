@@ -28,57 +28,38 @@
 package org.hisp.dhis.tracker.imports.converter;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.note.Note;
-import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 
 /**
  * @author Luciano Fiandesio
  */
 @Service
+@RequiredArgsConstructor
 public class NotesConverterService
     implements TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Note, Note> {
-  @Override
-  public org.hisp.dhis.tracker.imports.domain.Note to(Note note) {
-    org.hisp.dhis.tracker.imports.domain.Note trackerNote =
-        new org.hisp.dhis.tracker.imports.domain.Note();
-    trackerNote.setNote(note.getUid());
-    trackerNote.setValue(note.getNoteText());
-    trackerNote.setStoredAt(DateUtils.instantFromDate(note.getCreated()));
-    trackerNote.setCreatedBy(
-        User.builder()
-            .username(note.getLastUpdatedBy().getUsername())
-            .uid(note.getLastUpdatedBy().getUid())
-            .firstName(note.getLastUpdatedBy().getFirstName())
-            .surname(note.getLastUpdatedBy().getSurname())
-            .build());
-    trackerNote.setStoredBy(note.getCreator());
-    return trackerNote;
-  }
 
   @Override
-  public List<org.hisp.dhis.tracker.imports.domain.Note> to(List<Note> notes) {
-    return notes.stream().map(this::to).collect(Collectors.toList());
-  }
-
-  @Override
-  public Note from(TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Note note) {
+  public Note from(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Note note, UserDetails user) {
     org.hisp.dhis.note.Note trackerNote = new org.hisp.dhis.note.Note();
     trackerNote.setUid(note.getNote());
     trackerNote.setAutoFields();
     trackerNote.setNoteText(note.getValue());
 
-    trackerNote.setLastUpdatedBy(preheat.getUser());
+    trackerNote.setLastUpdatedBy(preheat.getUserByUid(user.getUid()).orElse(null));
     trackerNote.setCreator(note.getStoredBy());
     return trackerNote;
   }
 
   @Override
   public List<Note> from(
-      TrackerPreheat preheat, List<org.hisp.dhis.tracker.imports.domain.Note> notes) {
-    return notes.stream().map(n -> from(preheat, n)).collect(Collectors.toList());
+      TrackerPreheat preheat,
+      List<org.hisp.dhis.tracker.imports.domain.Note> notes,
+      UserDetails user) {
+    return notes.stream().map(n -> from(preheat, n, user)).toList();
   }
 }

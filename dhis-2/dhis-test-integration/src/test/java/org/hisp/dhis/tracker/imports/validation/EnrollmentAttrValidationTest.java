@@ -32,7 +32,6 @@ import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 
 import java.io.IOException;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -46,8 +45,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 class EnrollmentAttrValidationTest extends TrackerTest {
-  @Autowired protected TrackedEntityService trackedEntityService;
-
   @Autowired private TrackerImportService trackerImportService;
 
   private User importUser;
@@ -59,7 +56,7 @@ class EnrollmentAttrValidationTest extends TrackerTest {
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     assertNoErrors(
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/enrollments_te_te-data_2.json")));
@@ -68,7 +65,7 @@ class EnrollmentAttrValidationTest extends TrackerTest {
 
   @Test
   void failValidationWhenTrackedEntityAttributeHasWrongOptionValue() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/enrollments_te_with_invalid_option_value.json"));
@@ -78,7 +75,7 @@ class EnrollmentAttrValidationTest extends TrackerTest {
 
   @Test
   void successValidationWhenTrackedEntityAttributeHasValidOptionValue() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/enrollments_te_with_valid_option_value.json"));
@@ -88,7 +85,7 @@ class EnrollmentAttrValidationTest extends TrackerTest {
 
   @Test
   void testAttributesMissingUid() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/enrollments_te_attr-missing-uuid.json"));
@@ -98,7 +95,7 @@ class EnrollmentAttrValidationTest extends TrackerTest {
 
   @Test
   void testAttributesMissingValues() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/enrollments_te_attr-missing-value.json"));
@@ -108,7 +105,7 @@ class EnrollmentAttrValidationTest extends TrackerTest {
 
   @Test
   void testAttributesMissingTeA() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/enrollments_te_attr-non-existing.json"));
@@ -118,7 +115,7 @@ class EnrollmentAttrValidationTest extends TrackerTest {
 
   @Test
   void testAttributesMissingMandatory() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/enrollments_te_attr-missing-mandatory.json"));
@@ -128,7 +125,7 @@ class EnrollmentAttrValidationTest extends TrackerTest {
 
   @Test
   void testAttributesUniquenessInSameTrackedEntity() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/enrollments_te_unique_attr_same_te.json"));
@@ -138,7 +135,7 @@ class EnrollmentAttrValidationTest extends TrackerTest {
 
   @Test
   void testAttributesUniquenessAlreadyInDB() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/enrollments_te_te-data_3.json"));
@@ -166,7 +163,7 @@ class EnrollmentAttrValidationTest extends TrackerTest {
 
   @Test
   void testAttributesUniquenessInDifferentTrackedEntities() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
 
     assertNoErrors(
         trackerImportService.importTracker(
@@ -183,7 +180,7 @@ class EnrollmentAttrValidationTest extends TrackerTest {
 
   @Test
   void testAttributesOnlyProgramAttrAllowed() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/enrollments_te_attr-only-program-attr.json"));

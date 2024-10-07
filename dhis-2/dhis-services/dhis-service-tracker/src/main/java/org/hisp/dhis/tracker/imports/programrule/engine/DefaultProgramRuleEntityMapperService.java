@@ -104,7 +104,10 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
   @Override
   public List<Rule> toMappedProgramRules(List<ProgramRule> programRules) {
-    return programRules.stream().map(this::toRule).filter(Objects::nonNull).toList();
+    return programRules.stream()
+        .map(this::toRule)
+        .filter(rule -> !rule.getActions().isEmpty())
+        .toList();
   }
 
   @Override
@@ -121,7 +124,6 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     return programRuleVariables.stream()
         .filter(Objects::nonNull)
         .map(this::toRuleVariable)
-        .filter(Objects::nonNull)
         .toList();
   }
 
@@ -166,11 +168,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
   @Override
   public RuleEnrollment toMappedRuleEnrollment(
-      Enrollment enrollment, List<TrackedEntityAttributeValue> trackedEntityAttributeValues) {
-    if (enrollment == null) {
-      return null;
-    }
-
+      @Nonnull Enrollment enrollment,
+      List<TrackedEntityAttributeValue> trackedEntityAttributeValues) {
     String orgUnit = "";
     String orgUnitCode = "";
 
@@ -207,15 +206,11 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
   @Override
   public List<RuleEvent> toMappedRuleEvents(Set<Event> events) {
-    return events.stream().filter(Objects::nonNull).map(this::toMappedRuleEvent).toList();
+    return events.stream().map(this::toMappedRuleEvent).toList();
   }
 
   @Override
-  public RuleEvent toMappedRuleEvent(Event eventToEvaluate) {
-    if (eventToEvaluate == null) {
-      return null;
-    }
-
+  public RuleEvent toMappedRuleEvent(@Nonnull Event eventToEvaluate) {
     String orgUnit = getOrgUnit(eventToEvaluate);
     String orgUnitCode = getOrgUnitCode(eventToEvaluate);
 
@@ -227,6 +222,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         eventToEvaluate.getOccurredDate() != null
             ? Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getOccurredDate().getTime())
             : Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getScheduledDate().getTime()),
+        Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getCreated().getTime()),
         eventToEvaluate.getScheduledDate() == null
             ? null
             : LocalDateTime.Formats.INSTANCE
@@ -244,17 +240,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         eventToEvaluate.getEventDataValues().stream()
             .filter(Objects::nonNull)
             .filter(dv -> dv.getValue() != null)
-            .map(
-                dv ->
-                    new RuleDataValue(
-                        eventToEvaluate.getOccurredDate() != null
-                            ? Instant.Companion.fromEpochMilliseconds(
-                                eventToEvaluate.getOccurredDate().getTime())
-                            : Instant.Companion.fromEpochMilliseconds(
-                                eventToEvaluate.getScheduledDate().getTime()),
-                        eventToEvaluate.getProgramStage().getUid(),
-                        dv.getDataElement(),
-                        dv.getValue()))
+            .map(dv -> new RuleDataValue(dv.getDataElement(), dv.getValue()))
             .toList());
   }
 
@@ -278,21 +264,13 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     return "";
   }
 
-  private Rule toRule(ProgramRule programRule) {
-    if (programRule == null) {
-      return null;
-    }
-
+  private Rule toRule(@Nonnull ProgramRule programRule) {
     try {
       List<RuleAction> ruleActions =
           programRule.getProgramRuleActions().stream()
               .map(this::toRuleAction)
               .filter(Objects::nonNull)
               .toList();
-
-      if (ruleActions.isEmpty()) {
-        return null;
-      }
 
       return new Rule(
           programRule.getCondition(),
@@ -310,7 +288,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     }
   }
 
-  private RuleAction toRuleAction(ProgramRuleAction pra) {
+  private RuleAction toRuleAction(@Nonnull ProgramRuleAction pra) {
     return switch (pra.getProgramRuleActionType()) {
       case ASSIGN ->
           new RuleAction(

@@ -30,9 +30,9 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.security.Authorities.M_DHIS_WEB_APP_MANAGEMENT;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.net.URISyntaxException;
 import java.util.UUID;
-import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.apphub.AppHubService;
 import org.hisp.dhis.appmanager.App;
@@ -46,11 +46,11 @@ import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -81,16 +81,19 @@ public class AppHubController {
     return appHubService.getAppHubApiResponse(apiVersion, query);
   }
 
-  @PostMapping(value = "/{versionId}")
+  @PostMapping(value = "/{versionId}", produces = APPLICATION_JSON_VALUE)
   @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void installAppFromAppHub(@PathVariable UUID versionId) throws ConflictException {
-    AppStatus status = appManager.installApp(versionId);
+  public ResponseEntity<App> installAppFromAppHub(@PathVariable UUID versionId)
+      throws ConflictException {
+    App app = appManager.installApp(versionId);
+    AppStatus status = app.getAppState();
 
     if (!status.ok()) {
       String message = i18nManager.getI18n().getString(status.getMessage());
 
       throw new ConflictException(message);
     }
+
+    return new ResponseEntity<>(app, HttpStatus.CREATED);
   }
 }

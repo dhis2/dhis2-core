@@ -57,7 +57,6 @@ import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -75,7 +74,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private ObjectBundleService objectBundleService;
@@ -85,8 +86,6 @@ class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerInte
   @Autowired private RenderService _renderService;
 
   @Autowired private TrackerImportService trackerImportService;
-
-  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -102,11 +101,11 @@ class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerInte
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     assertNoDataErrors(
         trackerImportService.importTracker(params, fromJson("tracker/single_te.json")));
 
-    trackedEntity = trackedEntityService.getTrackedEntity("IOR1AXXl24H");
+    trackedEntity = manager.get(TrackedEntity.class, "IOR1AXXl24H");
 
     JsonWebMessage importResponse =
         POST("/tracker?async=false&importStrategy=UPDATE", createJsonPayload(2))

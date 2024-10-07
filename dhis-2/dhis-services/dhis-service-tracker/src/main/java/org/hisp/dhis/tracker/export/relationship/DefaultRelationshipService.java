@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
@@ -40,7 +41,7 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -58,8 +59,8 @@ public class DefaultRelationshipService implements RelationshipService {
   private final RelationshipOperationParamsMapper mapper;
 
   @Override
-  public List<Relationship> getRelationships(RelationshipOperationParams params)
-      throws ForbiddenException, NotFoundException {
+  public List<Relationship> getRelationships(@Nonnull RelationshipOperationParams params)
+      throws ForbiddenException, NotFoundException, BadRequestException {
     RelationshipQueryParams queryParams = mapper.map(params);
 
     return getRelationships(queryParams);
@@ -67,15 +68,16 @@ public class DefaultRelationshipService implements RelationshipService {
 
   @Override
   public Page<Relationship> getRelationships(
-      RelationshipOperationParams params, PageParams pageParams)
-      throws ForbiddenException, NotFoundException {
+      @Nonnull RelationshipOperationParams params, @Nonnull PageParams pageParams)
+      throws ForbiddenException, NotFoundException, BadRequestException {
     RelationshipQueryParams queryParams = mapper.map(params);
 
     return getRelationships(queryParams, pageParams);
   }
 
   @Override
-  public Relationship getRelationship(String uid) throws ForbiddenException, NotFoundException {
+  public Relationship getRelationship(@Nonnull String uid)
+      throws ForbiddenException, NotFoundException {
     Relationship relationship = relationshipStore.getByUid(uid);
 
     if (relationship == null) {

@@ -29,9 +29,9 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.lang.String.format;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Optional;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -58,12 +58,6 @@ public class IdentifiableObjectController extends AbstractCrudController<Identif
       throw new NotFoundException(format("No identifiable object with id `%s` exists", uid));
     }
     return object.get();
-  }
-
-  @Override
-  public WebMessage postXmlObject(HttpServletRequest request)
-      throws HttpRequestMethodNotSupportedException {
-    throw new HttpRequestMethodNotSupportedException("POST");
   }
 
   @Override

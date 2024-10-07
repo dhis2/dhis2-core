@@ -34,6 +34,8 @@ import static org.hisp.dhis.security.Authorities.M_DHIS_WEB_APP_MANAGEMENT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.nimbusds.jose.util.StandardCharset;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -44,8 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
@@ -153,21 +153,23 @@ public class AppController {
     return ResponseEntity.ok(apps);
   }
 
-  @PostMapping
+  @PostMapping(produces = ContextUtils.CONTENT_TYPE_JSON)
   @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void installApp(@RequestParam("file") MultipartFile file)
+  public ResponseEntity<App> installApp(@RequestParam("file") MultipartFile file)
       throws IOException, WebMessageException {
     File tempFile = File.createTempFile("IMPORT_", "_ZIP");
     file.transferTo(tempFile);
 
-    AppStatus status = appManager.installApp(tempFile, file.getOriginalFilename());
+    App installedApp = appManager.installApp(tempFile, file.getOriginalFilename());
+    AppStatus appStatus = installedApp.getAppState();
 
-    if (!status.ok()) {
-      String message = i18nManager.getI18n().getString(status.getMessage());
+    if (!appStatus.ok()) {
+      String message = i18nManager.getI18n().getString(installedApp.getAppState().getMessage());
 
       throw new WebMessageException(conflict(message));
     }
+
+    return new ResponseEntity<>(installedApp, HttpStatus.CREATED);
   }
 
   @PutMapping

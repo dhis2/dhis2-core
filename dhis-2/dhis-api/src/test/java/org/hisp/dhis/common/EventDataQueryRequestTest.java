@@ -35,8 +35,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 public class EventDataQueryRequestTest {
@@ -45,10 +48,76 @@ public class EventDataQueryRequestTest {
     return new boolean[] {false, true};
   }
 
+  public static Stream<Arguments> deprecatedEventDateFieldTestCases() {
+    Object[][] testCases = {
+      {
+        (Consumer<EventsAnalyticsQueryCriteria>) criteria -> criteria.setEventDate("LAST_YEAR"),
+        "pe:LAST_YEAR:EVENT_DATE"
+      },
+      {
+        (Consumer<EventsAnalyticsQueryCriteria>) criteria -> criteria.setOccurredDate("LAST_MONTH"),
+        "pe:LAST_MONTH:OCCURRED_DATE"
+      },
+      {
+        (Consumer<EventsAnalyticsQueryCriteria>) criteria -> criteria.setIncidentDate("2021-06-30"),
+        "pe:2021-06-30:INCIDENT_DATE"
+      }
+    };
+
+    return Stream.of(testCases).map(Arguments::of);
+  }
+
+  @ParameterizedTest
+  @MethodSource(value = "deprecatedEventDateFieldTestCases")
+  void testDeprecatedEventDateFieldsAreCorrectlyMapped(
+      Consumer<EventsAnalyticsQueryCriteria> setter, String expectedDimension) {
+    EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
+    setter.accept(criteria);
+
+    EventDataQueryRequest eventDataQueryRequest =
+        EventDataQueryRequest.builder()
+            .fromCriteria((EventsAnalyticsQueryCriteria) criteria.withEndpointAction(QUERY))
+            .build();
+
+    assertEquals(Set.of(Set.of(expectedDimension)), eventDataQueryRequest.getDimension());
+  }
+
+  public static Stream<Arguments> deprecatedEnrollmentDateFieldTestCases() {
+    Object[][] testCases = {
+      {
+        (Consumer<EnrollmentAnalyticsQueryCriteria>)
+            criteria -> criteria.setOccurredDate("LAST_MONTH"),
+        "pe:LAST_MONTH:OCCURRED_DATE"
+      },
+      {
+        (Consumer<EnrollmentAnalyticsQueryCriteria>)
+            criteria -> criteria.setIncidentDate("2021-06-30"),
+        "pe:2021-06-30:INCIDENT_DATE"
+      }
+    };
+
+    return Stream.of(testCases).map(Arguments::of);
+  }
+
+  @ParameterizedTest
+  @MethodSource(value = "deprecatedEnrollmentDateFieldTestCases")
+  void testDeprecatedEnrollmentDateFieldsAreCorrectlyMapped(
+      Consumer<EnrollmentAnalyticsQueryCriteria> setter, String expectedDimension) {
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+    setter.accept(criteria);
+
+    EventDataQueryRequest eventDataQueryRequest =
+        EventDataQueryRequest.builder()
+            .fromCriteria((EnrollmentAnalyticsQueryCriteria) criteria.withEndpointAction(QUERY))
+            .build();
+
+    assertEquals(Set.of(Set.of(expectedDimension)), eventDataQueryRequest.getDimension());
+  }
+
   @Test
   void testDimensionRefactoringOnlyWhenQuery() {
     EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
-    criteria.setIncidentDate("YESTERDAY");
+    criteria.setOccurredDate("YESTERDAY");
     criteria.setDimension(Set.of("pe:TODAY"));
 
     EventDataQueryRequest eventDataQueryRequest =
@@ -62,10 +131,10 @@ public class EventDataQueryRequestTest {
             .build();
 
     assertEquals(
-        eventDataQueryRequest.getDimension(), Set.of(Set.of("pe:TODAY;YESTERDAY:INCIDENT_DATE")));
+        eventDataQueryRequest.getDimension(), Set.of(Set.of("pe:TODAY;YESTERDAY:OCCURRED_DATE")));
 
     criteria = new EventsAnalyticsQueryCriteria();
-    criteria.setIncidentDate("TODAY");
+    criteria.setOccurredDate("TODAY");
     criteria.setDimension(new HashSet<>());
 
     eventDataQueryRequest = EventDataQueryRequest.builder().fromCriteria(criteria).build();
@@ -77,7 +146,7 @@ public class EventDataQueryRequestTest {
             .fromCriteria((EventsAnalyticsQueryCriteria) criteria.withEndpointAction(QUERY))
             .build();
 
-    assertEquals(eventDataQueryRequest.getDimension(), Set.of(Set.of("pe:TODAY:INCIDENT_DATE")));
+    assertEquals(eventDataQueryRequest.getDimension(), Set.of(Set.of("pe:TODAY:OCCURRED_DATE")));
   }
 
   @Test
@@ -102,7 +171,7 @@ public class EventDataQueryRequestTest {
   @Test
   void testEnrollmentMultiOptionsAreCorrectlyParsed() {
     EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
-    criteria.setIncidentDate("202111,2021;TODAY");
+    criteria.setOccurredDate("202111,2021;TODAY");
     criteria.setEnrollmentDate("LAST_YEAR");
     criteria.setDimension(new HashSet<>(Set.of("pe:LAST_MONTH")));
 
@@ -115,14 +184,14 @@ public class EventDataQueryRequestTest {
         eventDataQueryRequest.getDimension(),
         Set.of(
             Set.of(
-                "pe:LAST_MONTH;LAST_YEAR:ENROLLMENT_DATE;202111:INCIDENT_DATE;2021:INCIDENT_DATE;TODAY:INCIDENT_DATE")));
+                "pe:LAST_MONTH;LAST_YEAR:ENROLLMENT_DATE;202111:OCCURRED_DATE;2021:OCCURRED_DATE;TODAY:OCCURRED_DATE")));
   }
 
   @Test
   void testAggregateEnrollmentMultiOptionsAreCorrectlyParsed() {
     // Given
     EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
-    criteria.setIncidentDate("202111,2021;TODAY");
+    criteria.setOccurredDate("202111,2021;TODAY");
     criteria.setEnrollmentDate("LAST_YEAR");
     criteria.setDimension(new HashSet<>(Set.of("pe:LAST_MONTH")));
 
@@ -138,7 +207,7 @@ public class EventDataQueryRequestTest {
         eventDataQueryRequest.getDimension(),
         Set.of(
             Set.of(
-                "pe:LAST_MONTH;LAST_YEAR:ENROLLMENT_DATE;202111:INCIDENT_DATE;2021:INCIDENT_DATE;TODAY:INCIDENT_DATE")));
+                "pe:LAST_MONTH;LAST_YEAR:ENROLLMENT_DATE;202111:OCCURRED_DATE;2021:OCCURRED_DATE;TODAY:OCCURRED_DATE")));
   }
 
   @ParameterizedTest

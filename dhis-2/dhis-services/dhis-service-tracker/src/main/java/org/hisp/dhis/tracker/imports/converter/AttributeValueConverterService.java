@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.imports.converter;
 
 import static org.hisp.dhis.util.DateUtils.fromInstant;
-import static org.hisp.dhis.util.DateUtils.instantFromDate;
 
 import java.util.List;
 import java.util.Objects;
@@ -36,8 +35,8 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
-import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 
 /**
@@ -46,29 +45,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class AttributeValueConverterService
     implements TrackerConverterService<Attribute, TrackedEntityAttributeValue> {
-  @Override
-  public Attribute to(TrackedEntityAttributeValue teav) {
-    Attribute attribute = new Attribute();
-
-    attribute.setAttribute(MetadataIdentifier.ofUid(teav.getAttribute().getUid()));
-    attribute.setCode(teav.getAttribute().getCode());
-    attribute.setDisplayName(teav.getAttribute().getDisplayName());
-    attribute.setCreatedAt(instantFromDate(teav.getCreated()));
-    attribute.setUpdatedAt(instantFromDate(teav.getLastUpdated()));
-    attribute.setStoredBy(teav.getStoredBy());
-    attribute.setValueType(teav.getAttribute().getValueType());
-    attribute.setValue(teav.getValue());
-
-    return attribute;
-  }
 
   @Override
-  public List<Attribute> to(List<TrackedEntityAttributeValue> attributeValues) {
-    return attributeValues.stream().map(this::to).collect(Collectors.toList());
-  }
-
-  @Override
-  public TrackedEntityAttributeValue from(TrackerPreheat preheat, Attribute at) {
+  public TrackedEntityAttributeValue from(TrackerPreheat preheat, Attribute at, UserDetails user) {
     TrackedEntityAttribute attribute = preheat.getTrackedEntityAttribute(at.getAttribute());
 
     if (attribute == null) {
@@ -88,10 +67,10 @@ public class AttributeValueConverterService
 
   @Override
   public List<TrackedEntityAttributeValue> from(
-      TrackerPreheat preheat, List<Attribute> attributes) {
+      TrackerPreheat preheat, List<Attribute> attributes, UserDetails user) {
     return attributes.stream()
         .filter(Objects::nonNull)
-        .map(n -> from(preheat, n))
+        .map(n -> from(preheat, n, user))
         .collect(Collectors.toList());
   }
 }

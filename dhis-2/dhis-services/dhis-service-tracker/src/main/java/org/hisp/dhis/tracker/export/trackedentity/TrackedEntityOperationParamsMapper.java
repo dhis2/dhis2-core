@@ -58,7 +58,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -88,10 +88,9 @@ class TrackedEntityOperationParamsMapper {
   private final OperationsParamsValidator paramsValidator;
 
   @Transactional(readOnly = true)
-  public TrackedEntityQueryParams map(TrackedEntityOperationParams operationParams)
+  public TrackedEntityQueryParams map(
+      TrackedEntityOperationParams operationParams, UserDetails user)
       throws BadRequestException, ForbiddenException {
-    User user = operationParams.getUser();
-
     Program program = paramsValidator.validateTrackerProgram(operationParams.getProgramUid(), user);
     ProgramStage programStage = validateProgramStage(operationParams, program);
 
@@ -104,7 +103,7 @@ class TrackedEntityOperationParamsMapper {
 
     Set<OrganisationUnit> orgUnits =
         paramsValidator.validateOrgUnits(operationParams.getOrganisationUnits(), user);
-    validateOrgUnitMode(operationParams.getOrgUnitMode(), user, program);
+    validateOrgUnitMode(operationParams.getOrgUnitMode(), program, user);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     mapAttributeFilters(params, operationParams.getFilters());
@@ -135,17 +134,16 @@ class TrackedEntityOperationParamsMapper {
         .setEventStartDate(operationParams.getEventStartDate())
         .setEventEndDate(operationParams.getEventEndDate())
         .setAssignedUserQueryParam(operationParams.getAssignedUserQueryParam())
-        .setUser(user)
         .setTrackedEntityUids(operationParams.getTrackedEntityUids())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setPotentialDuplicate(operationParams.getPotentialDuplicate());
 
-    validateGlobalSearchParameters(params);
+    validateGlobalSearchParameters(params, user);
 
     return params;
   }
 
-  private List<TrackedEntityType> getTrackedEntityTypes(Program program, User user)
+  private List<TrackedEntityType> getTrackedEntityTypes(Program program, UserDetails user)
       throws BadRequestException {
 
     if (program != null) {
@@ -155,7 +153,7 @@ class TrackedEntityOperationParamsMapper {
     }
   }
 
-  private List<TrackedEntityType> filterAndValidateTrackedEntityTypes(User user)
+  private List<TrackedEntityType> filterAndValidateTrackedEntityTypes(UserDetails user)
       throws BadRequestException {
     List<TrackedEntityType> trackedEntityTypes =
         trackedEntityTypeService.getAllTrackedEntityType().stream()
@@ -169,7 +167,7 @@ class TrackedEntityOperationParamsMapper {
     return trackedEntityTypes;
   }
 
-  private List<Program> getTrackerPrograms(Program program, User user) {
+  private List<Program> getTrackerPrograms(Program program, UserDetails user) {
     if (program == null) {
       return programService.getAllPrograms().stream()
           .filter(Program::isRegistration)
@@ -281,9 +279,9 @@ class TrackedEntityOperationParamsMapper {
     }
   }
 
-  private void validateGlobalSearchParameters(TrackedEntityQueryParams params)
+  private void validateGlobalSearchParameters(TrackedEntityQueryParams params, UserDetails user)
       throws IllegalQueryException {
-    if (!isLocalSearch(params, params.getUser())) {
+    if (!isLocalSearch(params, user)) {
 
       if (params.hasFilters()) {
         List<String> searchableAttributeIds = getSearchableAttributeIds(params);
@@ -361,9 +359,9 @@ class TrackedEntityOperationParamsMapper {
     return maxTeiLimit;
   }
 
-  private boolean isLocalSearch(TrackedEntityQueryParams params, User user) {
-    Set<OrganisationUnit> localOrgUnits = user.getOrganisationUnits();
-
+  private boolean isLocalSearch(TrackedEntityQueryParams params, UserDetails user) {
+    List<OrganisationUnit> localOrgUnits =
+        organisationUnitService.getOrganisationUnitsByUid(user.getUserOrgUnitIds());
     Set<OrganisationUnit> searchOrgUnits = new HashSet<>();
 
     if (params.isOrganisationUnitMode(SELECTED)) {
@@ -376,7 +374,8 @@ class TrackedEntityOperationParamsMapper {
     } else if (params.isOrganisationUnitMode(ALL)) {
       searchOrgUnits.addAll(organisationUnitService.getRootOrganisationUnits());
     } else {
-      searchOrgUnits.addAll(user.getTeiSearchOrganisationUnitsWithFallback());
+      searchOrgUnits.addAll(
+          organisationUnitService.getOrganisationUnitsByUid(user.getUserSearchOrgUnitIds()));
     }
 
     for (OrganisationUnit ou : searchOrgUnits) {

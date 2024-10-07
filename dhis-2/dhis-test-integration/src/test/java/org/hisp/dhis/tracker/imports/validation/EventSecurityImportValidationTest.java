@@ -53,12 +53,11 @@ import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
+import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -66,6 +65,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -73,8 +73,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 class EventSecurityImportValidationTest extends TrackerTest {
-
-  @Autowired protected TrackedEntityService trackedEntityService;
 
   @Autowired private TrackerImportService trackerImportService;
 
@@ -125,7 +123,7 @@ class EventSecurityImportValidationTest extends TrackerTest {
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     assertNoErrors(
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/enrollments_te_te-data.json")));
@@ -221,15 +219,20 @@ class EventSecurityImportValidationTest extends TrackerTest {
     manager.update(importUser);
   }
 
+  @BeforeEach
+  void setUpUser() {
+    injectSecurityContextUser(importUser);
+  }
+
   @Test
   void testNoWriteAccessToProgramStage() throws IOException {
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/events_error-no-programStage-access.json");
     TrackerImportParams params = new TrackerImportParams();
     User user = userService.getUser(USER_3);
-    params.setUserId(user.getUid());
     user.addOrganisationUnit(organisationUnitA);
     manager.update(user);
+    injectSecurityContextUser(user);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
@@ -239,7 +242,7 @@ class EventSecurityImportValidationTest extends TrackerTest {
   @Test
   void testNoUncompleteEventAuth() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/events_error-no-uncomplete.json");
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     params.setImportStrategy(TrackerImportStrategy.CREATE);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -259,9 +262,9 @@ class EventSecurityImportValidationTest extends TrackerTest {
     User user = userService.getUser(USER_4);
     user.addOrganisationUnit(organisationUnitA);
     manager.update(user);
+    injectSecurityContextUser(user);
     manager.flush();
     manager.clear();
-    params.setUserId(user.getUid());
     params.setImportStrategy(TrackerImportStrategy.UPDATE);
     importReport = trackerImportService.importTracker(params, trackerObjects);
     assertHasOnlyErrors(importReport, ValidationCode.E1083);

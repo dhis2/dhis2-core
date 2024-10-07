@@ -43,16 +43,19 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author luca@dhis2.org
  */
+@Transactional
 class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
   private static final String ENDPOINT = "/" + "potentialDuplicates/";
 
@@ -61,6 +64,7 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
   @Autowired private ObjectMapper objectMapper;
 
   private OrganisationUnit orgUnit;
+  private TrackedEntityType trackedEntityType;
   private TrackedEntity origin;
   private TrackedEntity duplicate1;
   private PotentialDuplicate potentialDuplicate1;
@@ -71,8 +75,13 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
     orgUnit = createOrganisationUnit(CodeGenerator.generateUid());
     dbmsManager.save(orgUnit);
 
+    trackedEntityType = createTrackedEntityType('A');
+    dbmsManager.save(trackedEntityType);
+
     origin = createTrackedEntity(orgUnit);
+    origin.setTrackedEntityType(trackedEntityType);
     duplicate1 = createTrackedEntity(orgUnit);
+    duplicate1.setTrackedEntityType(trackedEntityType);
     TrackedEntity duplicate2 = createTrackedEntity(orgUnit);
 
     dbmsManager.save(origin);
@@ -87,10 +96,11 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void shouldPostPotentialDuplicateWhenTrackedEntitiesExist() throws Exception {
-    TrackedEntity te = createTrackedEntity(orgUnit);
-    dbmsManager.save(te);
+    TrackedEntity trackedEntity = createTrackedEntity(orgUnit);
+    trackedEntity.setTrackedEntityType(trackedEntityType);
+    dbmsManager.save(trackedEntity);
     PotentialDuplicate potentialDuplicate =
-        new PotentialDuplicate(te.getUid(), duplicate1.getUid());
+        new PotentialDuplicate(trackedEntity.getUid(), duplicate1.getUid());
 
     assertStatus(
         HttpStatus.OK, POST(ENDPOINT, objectMapper.writeValueAsString(potentialDuplicate)));

@@ -31,6 +31,8 @@ import static java.util.stream.Collectors.toSet;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -41,8 +43,6 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.hisp.dhis.common.Maturity;
@@ -94,7 +94,7 @@ public class OpenApiController {
     Set<String> domain = Set.of();
 
     @OpenApi.Ignore
-    boolean isFull() {
+    boolean isCachable() {
       return path.isEmpty() && domain.isEmpty();
     }
   }
@@ -119,12 +119,27 @@ public class OpenApiController {
       Declarations can be logically inconsistent; for example a parameter that is both required and has a default value.
       Either this is ignored and only logs a warning (`false`) or the generation fails (`true`)""")
     boolean failOnInconsistency = false;
+
+    @OpenApi.Description(
+        """
+      Annotations that narrow the rendered type to one of the super-types of the type declared will be ignored
+      and as a consequence types occur fully expanded (with all their properties).
+      Note that this does not affect types that are re-defined as a different type using annotations.""")
+    @Maturity.Beta
+    @OpenApi.Since(42)
+    boolean expandedRefs = false;
+
+    @OpenApi.Ignore
+    boolean isCachable() {
+      return !skipCache && !expandedRefs;
+    }
   }
 
   /*
    * HTML
    */
 
+  @OpenApi.Since(42)
   @OpenApi.Description(
       """
     The HTML to browse (view) the DHIS2 API specification based on OpenAPI JSON
@@ -141,7 +156,8 @@ public class OpenApiController {
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
-    if (scope.isFull() && !generation.isSkipCache() && fullHtml != null) {
+    boolean cached = scope.isCachable() && generation.isCachable();
+    if (cached && fullHtml != null) {
       String fullHtml = OpenApiController.fullHtml.get();
       if (fullHtml != null) {
         getWriter(response, TEXT_HTML_VALUE).get().write(fullHtml);
@@ -154,7 +170,7 @@ public class OpenApiController {
         request, generation, scope, () -> new PrintWriter(json), OpenApiGenerator::generateJson);
 
     String html = OpenApiRenderer.render(json.toString(), rendering);
-    if (scope.isFull()) updateFullHtml(html);
+    if (cached) updateFullHtml(html);
     getWriter(response, TEXT_HTML_VALUE).get().write(html);
   }
 
@@ -220,7 +236,7 @@ public class OpenApiController {
    * JSON
    */
 
-  @OpenApi.Response(String.class)
+  @OpenApi.Response(OpenApiObject.class)
   @GetMapping(value = "/{path}/openapi.json", produces = APPLICATION_JSON_VALUE)
   public void getPathOpenApiJson(
       @PathVariable String path,
@@ -284,7 +300,7 @@ public class OpenApiController {
 
   @Nonnull
   private Api getApiCached(OpenApiGenerationParams generation, OpenApiScopeParams scope) {
-    if (scope.isFull() && !generation.isSkipCache()) {
+    if (scope.isCachable() && generation.isCachable()) {
       Api api = fullApi == null ? null : fullApi.get();
       if (api == null) {
         api = getApiUncached(generation, scope);
@@ -299,7 +315,9 @@ public class OpenApiController {
   private Api getApiUncached(OpenApiGenerationParams generation, OpenApiScopeParams scope) {
     Api api =
         ApiExtractor.extractApi(
-            new ApiExtractor.Scope(getAllControllerClasses(), scope.path, scope.domain));
+            new ApiExtractor.Configuration(
+                new ApiExtractor.Scope(getAllControllerClasses(), scope.path, scope.domain),
+                generation.expandedRefs));
     ApiIntegrator.integrateApi(
         api,
         ApiIntegrator.Configuration.builder()

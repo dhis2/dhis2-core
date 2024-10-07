@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.sms.listener;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,8 +37,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -63,53 +61,43 @@ public abstract class CommandSMSListener extends BaseSMSListener {
 
   protected static final int ERROR = 3;
 
-  protected final CategoryService dataElementCategoryService;
-
   protected final UserService userService;
 
   public CommandSMSListener(
-      CategoryService dataElementCategoryService,
-      UserService userService,
-      IncomingSmsService incomingSmsService,
-      MessageSender smsSender) {
+      UserService userService, IncomingSmsService incomingSmsService, MessageSender smsSender) {
     super(incomingSmsService, smsSender);
-    checkNotNull(dataElementCategoryService);
-    checkNotNull(userService);
-    this.dataElementCategoryService = dataElementCategoryService;
     this.userService = userService;
   }
 
   @Override
-  public boolean accept(IncomingSms sms) {
-    if (sms == null) {
-      return false;
-    }
-
-    SMSCommand smsCommand = getSMSCommand(sms);
-
-    return smsCommand != null;
+  public boolean accept(@Nonnull IncomingSms sms) {
+    return getSMSCommand(sms) != null;
   }
 
   @Override
-  public void receive(IncomingSms sms) {
+  public void receive(@Nonnull IncomingSms sms, @Nonnull String username) {
+    // we cannot annotate getSMSCommand itself with Nonnull as it can return null but
+    // receive is only called when accept returned true, which is if there is a non-null command
     SMSCommand smsCommand = getSMSCommand(sms);
 
-    Map<String, String> parsedMessage = this.parseMessageInput(sms, smsCommand);
+    Map<String, String> codeValues = parseCodeValuePairs(sms, smsCommand);
 
-    if (!hasCorrectFormat(sms, smsCommand)
-        || !validateInputValues(parsedMessage, smsCommand, sms)) {
+    if (!hasCorrectFormat(sms, smsCommand) || !validateInputValues(sms, smsCommand, codeValues)) {
       return;
     }
 
-    postProcess(sms, smsCommand, parsedMessage);
+    postProcess(sms, username, smsCommand, codeValues);
   }
 
   protected abstract void postProcess(
-      IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage);
+      @Nonnull IncomingSms sms,
+      @Nonnull String username,
+      @Nonnull SMSCommand smsCommand,
+      @Nonnull Map<String, String> codeValues);
 
-  protected abstract SMSCommand getSMSCommand(IncomingSms sms);
+  protected abstract SMSCommand getSMSCommand(@Nonnull IncomingSms sms);
 
-  protected boolean hasCorrectFormat(IncomingSms sms, SMSCommand smsCommand) {
+  protected boolean hasCorrectFormat(@Nonnull IncomingSms sms, @Nonnull SMSCommand smsCommand) {
     String regexp = DEFAULT_PATTERN;
 
     if (smsCommand.getSeparator() != null && !smsCommand.getSeparator().trim().isEmpty()) {
@@ -148,9 +136,11 @@ public abstract class CommandSMSListener extends BaseSMSListener {
     return userService.getUser(sms.getCreatedBy().getUid());
   }
 
-  protected boolean validateInputValues(
-      Map<String, String> commandValuePairs, SMSCommand smsCommand, IncomingSms sms) {
-    if (!hasMandatoryParameters(commandValuePairs.keySet(), smsCommand.getCodes())) {
+  private boolean validateInputValues(
+      @Nonnull IncomingSms sms,
+      @Nonnull SMSCommand smsCommand,
+      @Nonnull Map<String, String> commandValuePairs) {
+    if (!hasMandatoryCodes(smsCommand.getCodes(), commandValuePairs.keySet())) {
       sendFeedback(
           StringUtils.defaultIfEmpty(smsCommand.getDefaultMessage(), SMSCommand.PARAMETER_MISSING),
           sms.getOriginator(),
@@ -181,8 +171,14 @@ public abstract class CommandSMSListener extends BaseSMSListener {
     return true;
   }
 
-  protected Map<String, String> parseMessageInput(IncomingSms sms, SMSCommand smsCommand) {
-    HashMap<String, String> output = new HashMap<>();
+  /**
+   * Parses the code value pairs of an SMS command. For example SMS {@code visit bcgd=1,opvd=2} with
+   * command name {@code visit} will lead to a map of SMS code names to values {@code
+   * {bcgd=1,opvd=2}}.
+   */
+  private @Nonnull Map<String, String> parseCodeValuePairs(
+      @Nonnull IncomingSms sms, @Nonnull SMSCommand smsCommand) {
+    HashMap<String, String> result = new HashMap<>();
 
     Pattern pattern = Pattern.compile(DEFAULT_PATTERN);
 
@@ -198,16 +194,16 @@ public abstract class CommandSMSListener extends BaseSMSListener {
       String value = matcher.group(2).trim();
 
       if (!StringUtils.isEmpty(key) && !StringUtils.isEmpty(value)) {
-        output.put(key, value);
+        result.put(key, value);
       }
     }
 
-    return output;
+    return result;
   }
 
-  private boolean hasMandatoryParameters(Set<String> keySet, Set<SMSCode> smsCodes) {
-    for (SMSCode smsCode : smsCodes) {
-      if (smsCode.isCompulsory() && !keySet.contains(smsCode.getCode())) {
+  private boolean hasMandatoryCodes(Set<SMSCode> configuredCodes, Set<String> actualCodes) {
+    for (SMSCode configuredCode : configuredCodes) {
+      if (configuredCode.isCompulsory() && !actualCodes.contains(configuredCode.getCode())) {
         return false;
       }
     }

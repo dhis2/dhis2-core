@@ -37,10 +37,12 @@ import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar
  */
+@Transactional
 class RelationshipTypeControllerTest extends PostgresControllerIntegrationTestBase {
 
   private String program;

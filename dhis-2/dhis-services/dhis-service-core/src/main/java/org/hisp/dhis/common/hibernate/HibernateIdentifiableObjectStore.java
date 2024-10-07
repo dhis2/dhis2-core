@@ -28,7 +28,14 @@
 package org.hisp.dhis.common.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.query.JpaQueryUtils.generateHqlQueryForSharingCheck;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -37,21 +44,14 @@ import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
@@ -117,9 +117,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Override
   public void save(@Nonnull T object, boolean clearSharing) {
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    if (currentUserDetails == null) {
-      throw new IllegalArgumentException("Current user is not set, can not save object!");
-    }
     save(object, currentUserDetails, clearSharing);
   }
 
@@ -168,9 +165,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Override
   public void update(@Nonnull T object) {
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    if (currentUserDetails == null) {
-      throw new IllegalArgumentException("Current user is not set, can not update object");
-    }
     update(object, currentUserDetails);
   }
 
@@ -208,7 +202,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     if (userDetails.getId() != 0L && !(userDetails instanceof SystemUser)) {
 
       // See: https://www.baeldung.com/jpa-entity-manager-get-reference
-      User user = entityManager.getReference(User.class, userDetails.getId());
+      User user = entityManager.find(User.class, userDetails.getId());
       object.setLastUpdatedBy(user);
 
       if (object.getCreatedBy() == null) {
@@ -220,7 +214,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Override
   public void delete(@Nonnull T object) {
     UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
-    String username = userDetails != null ? userDetails.getUsername() : "system-process";
+    String username = userDetails.getUsername();
 
     if (!isDeleteAllowed(object, userDetails)) {
       AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_DELETE_DENIED);
@@ -400,55 +394,26 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
   @Override
   @CheckForNull
-  public T getByUniqueAttributeValue(@Nonnull Attribute attribute, @Nonnull String value) {
-    if (StringUtils.isEmpty(value) || !attribute.isUnique()) {
-      return null;
-    }
-
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    JpaQueryParameters<T> param =
-        new JpaQueryParameters<T>()
-            .addPredicates(getSharingPredicates(builder))
-            .addPredicate(
-                root ->
-                    builder.equal(
-                        builder.function(
-                            FUNCTION_JSONB_EXTRACT_PATH_TEXT,
-                            String.class,
-                            root.get("attributeValues"),
-                            builder.literal(attribute.getUid()),
-                            builder.literal("value")),
-                        value));
-
-    return getSingleResult(builder, param);
+  public T getByUniqueAttributeValue(@Nonnull UID attribute, @Nonnull String value) {
+    return getByUniqueAttributeValue(attribute, value, CurrentUserUtil.getCurrentUserDetails());
   }
 
   @Override
   @CheckForNull
   public T getByUniqueAttributeValue(
-      @Nonnull Attribute attribute, @Nonnull String value, @CheckForNull UserDetails user) {
-    if (StringUtils.isEmpty(value) || !attribute.isUnique()) {
-      return null;
-    }
-
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    JpaQueryParameters<T> param =
-        new JpaQueryParameters<T>()
-            .addPredicates(getSharingPredicates(builder, user))
-            .addPredicate(
-                root ->
-                    builder.equal(
-                        builder.function(
-                            FUNCTION_JSONB_EXTRACT_PATH_TEXT,
-                            String.class,
-                            root.get("attributeValues"),
-                            builder.literal(attribute.getUid()),
-                            builder.literal("value")),
-                        value));
-
-    return getSingleResult(builder, param);
+      @Nonnull UID attribute, @Nonnull String value, @Nonnull UserDetails user) {
+    String sharingClause =
+        !sharingEnabled(user) ? "1=1" : generateHqlQueryForSharingCheck("t", user, "r%");
+    // language=hql
+    String hql =
+        """
+        from %s t where jsonb_extract_path_text(t.attributeValues, '%s', 'value') = :value
+          and exists(select 1 from Attribute a where a.uid = :attr and a.unique = true)
+          and %s
+        """
+            .formatted(getClazz().getSimpleName(), attribute.getValue(), sharingClause);
+    return getSingleResult(
+        getQuery(hql).setParameter("attr", attribute.getValue()).setParameter("value", value));
   }
 
   @Nonnull
@@ -695,7 +660,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     query.orderBy(builder.desc(root.get("lastUpdated")));
 
-    TypedQuery<Date> typedQuery = getSession().createQuery(query);
+    TypedQuery<Date> typedQuery = entityManager.createQuery(query);
 
     typedQuery.setMaxResults(1);
 
@@ -807,7 +772,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     query.select(root.get("uid"));
     query.where(builder.lessThan(root.get("created"), date));
 
-    TypedQuery<String> typedQuery = getSession().createQuery(query);
+    TypedQuery<String> typedQuery = entityManager.createQuery(query);
     typedQuery.setHint(JpaQueryUtils.HIBERNATE_CACHEABLE_HINT, true);
 
     return typedQuery.getResultList();
@@ -850,8 +815,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     JpaQueryParameters<T> parameters =
         new JpaQueryParameters<T>().addPredicates(dataSharingPredicates);
 
-    List<T> list = getList(builder, parameters);
-    return list;
+    return getList(builder, parameters);
   }
 
   /** Remove given UserGroup UID from all sharing records in given tableName */
@@ -952,7 +916,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
       return false;
     }
     query.where(builder.or(predicates.toArray(new Predicate[0])));
-    return !getSession().createQuery(query).setMaxResults(1).getResultList().isEmpty();
+    return !entityManager.createQuery(query).setMaxResults(1).getResultList().isEmpty();
   }
 
   /**

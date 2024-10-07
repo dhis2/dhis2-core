@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.tracker.imports.domain;
 
+import static org.hisp.dhis.common.CodeGenerator.generateUid;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Set;
+import java.util.Map;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.imports.TrackerIdScheme;
@@ -98,7 +98,7 @@ class MetadataIdentifierTest {
   void isEqualToNull() {
 
     Program p = new Program();
-    p.setUid(CodeGenerator.generateUid());
+    p.setUid(generateUid());
 
     MetadataIdentifier id = MetadataIdentifier.ofUid(p);
 
@@ -109,7 +109,7 @@ class MetadataIdentifierTest {
   void isEqualToUID() {
 
     Program p = new Program();
-    p.setUid(CodeGenerator.generateUid());
+    p.setUid(generateUid());
 
     MetadataIdentifier id = MetadataIdentifier.ofUid(p);
 
@@ -120,9 +120,9 @@ class MetadataIdentifierTest {
   void isEqualToUIDWithDifferentUID() {
 
     Program p = new Program();
-    p.setUid(CodeGenerator.generateUid());
+    p.setUid(generateUid());
 
-    MetadataIdentifier id = MetadataIdentifier.ofUid(CodeGenerator.generateUid());
+    MetadataIdentifier id = MetadataIdentifier.ofUid(generateUid());
 
     assertFalse(id.isEqualTo(p));
   }
@@ -131,7 +131,7 @@ class MetadataIdentifierTest {
   void isEqualToUIDWithNull() {
 
     Program p = new Program();
-    p.setUid(CodeGenerator.generateUid());
+    p.setUid(generateUid());
 
     MetadataIdentifier id = MetadataIdentifier.ofUid((String) null);
 
@@ -198,8 +198,8 @@ class MetadataIdentifierTest {
 
     Program p = new Program();
     Attribute att = new Attribute();
-    att.setUid(CodeGenerator.generateUid());
-    p.setAttributeValues(Set.of(new AttributeValue(att, "sunshine")));
+    att.setUid(generateUid());
+    p.setAttributeValues(AttributeValues.of(Map.of(att.getUid(), "sunshine")));
 
     MetadataIdentifier id = MetadataIdentifier.ofAttribute(att.getUid(), "sunshine");
 
@@ -211,9 +211,10 @@ class MetadataIdentifierTest {
 
     Program p = new Program();
     p.setAttributeValues(
-        Set.of(attributeValue("sunshine"), attributeValue("grass"), attributeValue("rocks")));
+        AttributeValues.of(
+            Map.of(generateUid(), "sunshine", generateUid(), "grass", generateUid(), "rocks")));
 
-    MetadataIdentifier id = MetadataIdentifier.ofAttribute(CodeGenerator.generateUid(), "sunshine");
+    MetadataIdentifier id = MetadataIdentifier.ofAttribute(generateUid(), "sunshine");
 
     assertFalse(id.isEqualTo(p));
   }
@@ -222,10 +223,10 @@ class MetadataIdentifierTest {
   void isEqualToAttributeWithDifferentValue() {
 
     Program p = new Program();
-    Attribute att = new Attribute(CodeGenerator.generateUid());
+    Attribute att = new Attribute(generateUid());
     p.setAttributeValues(
-        Set.of(
-            new AttributeValue(att, "sunshine"), attributeValue("grass"), attributeValue("rocks")));
+        AttributeValues.of(
+            Map.of(att.getUid(), "sunshine", generateUid(), "grass", generateUid(), "rocks")));
 
     MetadataIdentifier id = MetadataIdentifier.ofAttribute(att.getUid(), "clouds");
 
@@ -282,13 +283,5 @@ class MetadataIdentifierTest {
   void isBlankFalseForAttributeIfIdentifierIsNotBlank() {
 
     assertFalse(MetadataIdentifier.ofAttribute("XkJ3MQigbiU", "a").isBlank());
-  }
-
-  private AttributeValue attributeValue(String value) {
-    return attributeValue(CodeGenerator.generateUid(), value);
-  }
-
-  private AttributeValue attributeValue(String uid, String value) {
-    return new AttributeValue(new Attribute(uid), value);
   }
 }

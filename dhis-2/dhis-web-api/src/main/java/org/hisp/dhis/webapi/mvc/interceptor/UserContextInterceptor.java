@@ -29,15 +29,15 @@ package org.hisp.dhis.webapi.mvc.interceptor;
 
 import static org.hisp.dhis.user.UserSettingKey.DB_LOCALE;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Locale;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserSettingService;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
  * This interceptor is ONLY responsible for setting the current user and its related settings into
@@ -47,7 +47,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
  * @author maikel arabori
  */
 @AllArgsConstructor
-public class UserContextInterceptor extends HandlerInterceptorAdapter implements InitializingBean {
+public class UserContextInterceptor implements InitializingBean, HandlerInterceptor {
   private static UserContextInterceptor instance;
 
   private static final String PARAM_TRANSLATE = "translate";

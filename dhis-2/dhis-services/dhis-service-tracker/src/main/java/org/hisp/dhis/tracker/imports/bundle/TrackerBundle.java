@@ -42,7 +42,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.FlushMode;
@@ -56,7 +55,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -65,10 +64,8 @@ import org.hisp.dhis.user.User;
 @Builder
 @AllArgsConstructor
 public class TrackerBundle {
-  /** User to use for import job. */
-  private User user;
-
-  private UserInfoSnapshot userInfo;
+  /** User making the import */
+  private UserDetails user;
 
   /** Should import be imported or just validated. */
   @Builder.Default private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
@@ -138,11 +135,6 @@ public class TrackerBundle {
     resolvedStrategyMap.put(TrackerType.TRACKED_ENTITY, new HashMap<>());
 
     return resolvedStrategyMap;
-  }
-
-  @JsonProperty
-  public String getUsername() {
-    return User.username(user);
   }
 
   @Builder.Default @JsonIgnore private Set<String> updatedTrackedEntities = new HashSet<>();

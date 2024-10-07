@@ -36,8 +36,8 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_HTML;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.analytics.outlier.data.OutlierQueryParams;
 import org.hisp.dhis.analytics.outlier.data.OutlierQueryParser;
@@ -125,6 +125,17 @@ public class AnalyticsOutlierDetectionController {
     contextUtils.configureResponse(response, CONTENT_TYPE_EXCEL, NO_CACHE, "outlierdata.xls", true);
 
     outlierService.getOutliersAsXls(request, response.getOutputStream());
+  }
+
+  @GetMapping(value = RESOURCE_PATH + ".xlsx")
+  public void getOutliersXlsx(OutlierQueryParams queryParams, HttpServletResponse response)
+      throws IOException {
+    outlierService.checkAnalyticsTableForOutliers();
+    OutlierRequest request = getFromQuery(queryParams, false);
+    contextUtils.configureResponse(
+        response, CONTENT_TYPE_EXCEL, NO_CACHE, "outlierdata.xlsx", true);
+
+    outlierService.getOutliersAsXlsx(request, response.getOutputStream());
   }
 
   @GetMapping(value = RESOURCE_PATH + ".html")

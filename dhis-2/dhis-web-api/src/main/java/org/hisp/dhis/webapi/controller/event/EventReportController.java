@@ -34,11 +34,11 @@ import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE_LIST;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABLE;
 import static org.hisp.dhis.feedback.ErrorCode.E7231;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;

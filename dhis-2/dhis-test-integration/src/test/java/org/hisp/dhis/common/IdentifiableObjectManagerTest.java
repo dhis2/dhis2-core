@@ -39,15 +39,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -158,8 +157,8 @@ class IdentifiableObjectManagerTest extends PostgresIntegrationTestBase {
     DataElement dataElementB = createDataElement('B');
     dataElementService.addDataElement(dataElementA);
     dataElementService.addDataElement(dataElementB);
-    attributeService.addAttributeValue(dataElementA, new AttributeValue(atA, "DEA"));
-    attributeService.addAttributeValue(dataElementB, new AttributeValue(atA, "DEB"));
+    attributeService.addAttributeValue(dataElementA, atA.getUid(), "DEA");
+    attributeService.addAttributeValue(dataElementB, atA.getUid(), "DEB");
     assertEquals(
         dataElementA, idObjectManager.getObject(DataElement.class, IdScheme.from(atA), "DEA"));
     assertEquals(

@@ -51,6 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link AppController}
@@ -61,6 +62,7 @@ import org.springframework.test.context.ContextConfiguration;
     classes = {
       DhisConfig.class,
     })
+@Transactional
 class AppControllerTest extends H2ControllerIntegrationTestBase {
 
   static class DhisConfig {
@@ -97,6 +99,19 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue(response.hasBody());
     String content = response.content("text/html");
     assertTrue(content.contains("<!doctype html>"));
+  }
+
+  @Test
+  void testInstallReturnsAppInfo() throws IOException {
+    var result =
+        appManager.installApp(
+            new ClassPathResource("app/test-app-with-index-html.zip").getFile(),
+            "test-app-with-index-html.zip");
+
+    assertEquals(
+        "31.0.0",
+        result.getVersion(),
+        "the version returned should match the version in the installed zip file");
   }
 
   @Test

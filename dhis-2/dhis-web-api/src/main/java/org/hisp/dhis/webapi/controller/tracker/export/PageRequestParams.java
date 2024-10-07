@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 
 /**
  * {@link PageRequestParams} represent the HTTP request parameters that configure whether it is
@@ -40,7 +39,7 @@ import org.hisp.dhis.common.OpenApi.Shared.Pattern;
  *
  * <p>{@code totalPages=true} is only supported on paginated responses.
  */
-@OpenApi.Shared(pattern = Pattern.TRACKER)
+@OpenApi.Shared(name = "TrackerPageRequestParams")
 public interface PageRequestParams {
   /** Returns the page number to be returned. */
   Integer getPage();

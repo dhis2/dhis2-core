@@ -40,7 +40,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -56,7 +56,8 @@ public class SupplementaryDataProvider {
 
   @Nonnull private final OrganisationUnitGroupService organisationUnitGroupService;
 
-  public Map<String, List<String>> getSupplementaryData(List<ProgramRule> programRules) {
+  public Map<String, List<String>> getSupplementaryData(
+      List<ProgramRule> programRules, UserDetails user) {
     List<String> orgUnitGroups = new ArrayList<>();
 
     for (ProgramRule programRule : programRules) {
@@ -84,10 +85,7 @@ public class SupplementaryDataProvider {
                               .toList()));
     }
 
-    if (CurrentUserUtil.getCurrentUsername() != null) {
-      supplementaryData.put(
-          USER, new ArrayList<>(CurrentUserUtil.getCurrentUserDetails().getUserRoleIds()));
-    }
+    supplementaryData.put(USER, new ArrayList<>(user.getUserRoleIds()));
 
     return supplementaryData;
   }

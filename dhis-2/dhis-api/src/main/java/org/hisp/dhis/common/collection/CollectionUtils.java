@@ -397,7 +397,7 @@ public class CollectionUtils {
    * @return the merged map
    */
   @SafeVarargs
-  public static <T> Map<T, T> merge(Map<T, T>... maps) {
+  public static <T> Map<T, T> mergeMaps(Map<T, T>... maps) {
     Map<T, T> result = new HashMap<>();
     Stream.of(maps).forEach(result::putAll);
     return ImmutableMap.copyOf(result);

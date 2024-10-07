@@ -28,30 +28,22 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 import com.google.common.collect.Sets;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.query.Query;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
-import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -99,66 +91,15 @@ public class HibernateTrackedEntityAttributeStore
   }
 
   @Override
-  public Optional<String> getTrackedEntityUidWithUniqueAttributeValue(
-      TrackedEntityQueryParams params) {
-    // ---------------------------------------------------------------------
-    // Select clause
-    // ---------------------------------------------------------------------
-
-    SqlHelper hlp = new SqlHelper(true);
-
-    String hql = "select te.uid from TrackedEntity te ";
-
-    if (params.hasOrganisationUnits()) {
-      String orgUnitUids =
-          params.getOrgUnits().stream()
-              .map(OrganisationUnit::getUid)
-              .collect(Collectors.joining(", ", "'", "'"));
-
-      hql += "inner join te.organisationUnit as ou ";
-      hql += hlp.whereAnd() + " ou.uid in (" + orgUnitUids + ") ";
-    }
-
-    for (QueryItem item : params.getAttributes()) {
-      for (QueryFilter filter : item.getFilters()) {
-        final String encodedFilter =
-            filter.getSqlFilter(SqlUtils.escape(StringUtils.lowerCase(filter.getFilter())));
-
-        hql +=
-            hlp.whereAnd()
-                + " exists (from TrackedEntityAttributeValue teav where teav.trackedEntity=te";
-        hql += " and teav.attribute.uid='" + item.getItemId() + "'";
-
-        if (item.isNumeric()) {
-          hql += " and teav.plainValue " + filter.getSqlOperator() + encodedFilter + ")";
-        } else {
-          hql += " and lower(teav.plainValue) " + filter.getSqlOperator() + encodedFilter + ")";
-        }
-      }
-    }
-
-    if (!params.isIncludeDeleted()) {
-      hql += hlp.whereAnd() + " te.deleted is false";
-    }
-
-    Query<String> query = getTypedQuery(hql);
-
-    Iterator<String> it = query.iterate();
-
-    if (it.hasNext()) {
-      return Optional.of(it.next());
-    }
-
-    return Optional.empty();
-  }
-
-  @Override
   @SuppressWarnings({"unchecked", "rawtypes"})
   public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes() {
-    Query query =
-        getSession().createQuery("select trackedEntityTypeAttributes from TrackedEntityType");
+    TypedQuery<TrackedEntityTypeAttribute> query =
+        entityManager.createQuery(
+            "select distinct tea from TrackedEntityType tet inner join tet.trackedEntityTypeAttributes tea",
+            TrackedEntityTypeAttribute.class);
 
-    Set<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new HashSet<>(query.list());
+    Set<TrackedEntityTypeAttribute> trackedEntityTypeAttributes =
+        new HashSet<>(query.getResultList());
 
     return trackedEntityTypeAttributes.stream()
         .map(TrackedEntityTypeAttribute::getTrackedEntityAttribute)
@@ -198,9 +139,12 @@ public class HibernateTrackedEntityAttributeStore
   public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram() {
     Map<Program, Set<TrackedEntityAttribute>> result = new HashMap<>();
 
-    Query query = getSession().createQuery("select p.programAttributes from Program p");
+    TypedQuery<ProgramTrackedEntityAttribute> query =
+        entityManager.createQuery(
+            "select distinct pa from Program p inner join p.programAttributes pa",
+            ProgramTrackedEntityAttribute.class);
 
-    List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = query.list();
+    List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = query.getResultList();
 
     for (ProgramTrackedEntityAttribute programTrackedEntityAttribute :
         programTrackedEntityAttributes) {

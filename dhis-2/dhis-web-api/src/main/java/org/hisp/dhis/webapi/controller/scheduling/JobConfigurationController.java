@@ -42,11 +42,11 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.jsontree.JsonMixed;
-import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobProgress.Progress;
+import org.hisp.dhis.scheduling.JobRunErrors;
 import org.hisp.dhis.scheduling.JobRunErrorsParams;
 import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.schema.Property;
@@ -80,18 +80,18 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
 
   @RequiresAuthority(anyOf = F_JOB_LOG_READ)
   @GetMapping("/errors")
-  public List<JsonObject> getJobRunErrors(JobRunErrorsParams params) {
+  public List<JobRunErrors> getJobRunErrors(JobRunErrorsParams params) {
     return jobConfigurationService.findJobRunErrors(params);
   }
 
   @GetMapping("{uid}/errors")
-  public JsonObject getJobRunErrors(
+  public JobRunErrors getJobRunErrors(
       @PathVariable("uid") @OpenApi.Param({UID.class, JobConfiguration.class}) UID uid)
       throws NotFoundException, ForbiddenException {
     checkExecutingUserOrAdmin(uid, true);
-    List<JsonObject> errors =
+    List<JobRunErrors> errors =
         jobConfigurationService.findJobRunErrors(new JobRunErrorsParams().setJob(uid));
-    return errors.isEmpty() ? JsonMixed.of("{}") : errors.get(0);
+    return errors.isEmpty() ? JsonMixed.of("{}").as(JobRunErrors.class) : errors.get(0);
   }
 
   @GetMapping("/due")
@@ -124,7 +124,7 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
   public ObjectReport executeNow(@PathVariable("uid") String uid)
       throws NotFoundException, ConflictException {
 
-    jobSchedulerService.executeNow(uid);
+    jobSchedulerService.runInTransaction(uid);
 
     // OBS! This response is kept for better backwards compatibility
     return new ObjectReport(JobConfiguration.class, 0);

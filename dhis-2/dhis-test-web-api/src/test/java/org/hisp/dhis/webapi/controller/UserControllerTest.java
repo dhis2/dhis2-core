@@ -58,7 +58,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.message.FakeMessageSender;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
@@ -74,19 +73,22 @@ import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.jboss.aerogear.security.otp.api.Base32;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.UserController}.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class UserControllerTest extends H2ControllerIntegrationTestBase {
-  @Autowired private MessageSender messageSender;
+  @Autowired private MessageSender emailMessageSender;
 
   @Autowired private SystemSettingManager systemSettingManager;
 
@@ -119,6 +121,11 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
     User user = userService.getUser(peter.getUid());
     assertEquals("peter@pan.net", user.getEmail());
+  }
+
+  @AfterEach
+  void afterEach() {
+    emailMessageSender.clearMessages();
   }
 
   @Test
@@ -1014,9 +1021,8 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   private OutboundMessage assertMessageSendTo(String email) {
-    List<OutboundMessage> messagesByEmail =
-        ((FakeMessageSender) messageSender).getMessagesByEmail(email);
-    assertTrue(messagesByEmail.size() > 0);
+    List<OutboundMessage> messagesByEmail = emailMessageSender.getMessagesByEmail(email);
+    assertFalse(messagesByEmail.isEmpty());
     return messagesByEmail.get(0);
   }
 

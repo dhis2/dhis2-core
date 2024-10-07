@@ -44,6 +44,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -63,8 +64,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.transaction.annotation.Transactional;
 
 @ContextConfiguration(classes = Config.class)
+@Transactional
 class EventsExportControllerTest extends H2ControllerIntegrationTestBase {
 
   static class Config {
@@ -169,7 +172,7 @@ class EventsExportControllerTest extends H2ControllerIntegrationTestBase {
   @MethodSource
   void shouldMatchContentTypeAndAttachment_whenEndpointForCompressedEventJsonIsInvoked(
       String url, String expectedContentType, String expectedAttachment, String encoding)
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
 
     when(eventService.getEvents(any())).thenReturn(List.of());
     injectSecurityContextUser(user);

@@ -44,10 +44,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -151,7 +151,7 @@ class EventsExportController {
       // from a browser
       )
   ResponseEntity<Page<ObjectNode>> getEvents(EventRequestParams requestParams)
-      throws BadRequestException, ForbiddenException {
+      throws BadRequestException, ForbiddenException, NotFoundException {
     validatePaginationParameters(requestParams);
     EventOperationParams eventOperationParams = eventParamsMapper.map(requestParams);
 
@@ -183,7 +183,7 @@ class EventsExportController {
 
   @GetMapping(produces = CONTENT_TYPE_JSON_GZIP)
   void getEventsAsJsonGzip(EventRequestParams eventRequestParams, HttpServletResponse response)
-      throws BadRequestException, IOException, ForbiddenException {
+      throws BadRequestException, IOException, ForbiddenException, NotFoundException {
     validatePaginationParameters(eventRequestParams);
 
     EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
@@ -204,7 +204,7 @@ class EventsExportController {
 
   @GetMapping(produces = CONTENT_TYPE_JSON_ZIP)
   void getEventsAsJsonZip(EventRequestParams eventRequestParams, HttpServletResponse response)
-      throws BadRequestException, ForbiddenException, IOException {
+      throws BadRequestException, ForbiddenException, IOException, NotFoundException {
     validatePaginationParameters(eventRequestParams);
 
     EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
@@ -231,7 +231,7 @@ class EventsExportController {
       EventRequestParams eventRequestParams,
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
-      throws IOException, BadRequestException, ForbiddenException {
+      throws IOException, BadRequestException, ForbiddenException, NotFoundException {
     EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
 
     List<Event> events = eventService.getEvents(eventOperationParams);
@@ -248,7 +248,7 @@ class EventsExportController {
       EventRequestParams eventRequestParams,
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
-      throws IOException, BadRequestException, ForbiddenException {
+      throws IOException, BadRequestException, ForbiddenException, NotFoundException {
     EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
 
     List<Event> events = eventService.getEvents(eventOperationParams);
@@ -266,7 +266,7 @@ class EventsExportController {
       EventRequestParams eventRequestParams,
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
-      throws IOException, BadRequestException, ForbiddenException {
+      throws IOException, BadRequestException, ForbiddenException, NotFoundException {
     EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
 
     List<Event> events = eventService.getEvents(eventOperationParams);

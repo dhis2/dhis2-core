@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.test;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.Getter;
 import org.hisp.dhis.test.config.IntegrationTestBaseConfig;
-import org.hisp.dhis.test.config.PostgresDhisTestConfig;
 import org.hisp.dhis.test.junit.SpringIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.springframework.test.context.ActiveProfiles;
@@ -58,13 +58,12 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(
     classes = {
       IntegrationTestBaseConfig.class,
-      PostgresDhisTestConfig.class,
     })
 @SpringIntegrationTest
 public abstract class IntegrationTestBase extends TestBase {
 
   @Getter private User adminUser;
-  public EntityManager entityManager;
+  public @PersistenceContext EntityManager entityManager;
 
   protected final void injectAdminIntoSecurityContext() {
     injectSecurityContextUser(getAdminUser());

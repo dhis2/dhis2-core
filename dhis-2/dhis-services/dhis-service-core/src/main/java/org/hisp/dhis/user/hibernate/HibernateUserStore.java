@@ -32,6 +32,11 @@ import static java.lang.String.format;
 import static java.time.ZoneId.systemDefault;
 import static java.util.stream.Collectors.toMap;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaUpdate;
+import jakarta.persistence.criteria.Root;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -51,11 +56,6 @@ import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaUpdate;
-import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.QueryHints;
@@ -453,7 +453,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
             builder.equal(user.get(DISABLED_COLUMN), false),
             builder.lessThanOrEqualTo(user.get("lastLogin"), inactiveSince)));
     update.set(DISABLED_COLUMN, true);
-    return getSession().createQuery(update).executeUpdate();
+    return entityManager.createQuery(update).executeUpdate();
   }
 
   @Override
@@ -522,7 +522,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   public User getUserByOpenId(@Nonnull String openId) {
     Query<User> query =
         getQuery(
-            "from User u where u.disabled = false and u.openId = :openId order by u.lastLogin desc");
+            "from User u where u.disabled = false and u.openId = :openId order by coalesce(u.lastLogin,'0001-01-01') desc");
     query.setParameter("openId", openId);
     List<User> list = query.getResultList();
     return list.isEmpty() ? null : list.get(0);
@@ -618,5 +618,22 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
       update(user);
     }
+  }
+
+  @Override
+  public User getUserByVerificationToken(String token) {
+    Query<User> query =
+        getSession()
+            .createQuery("from User u where u.emailVerificationToken like :token", User.class);
+    query.setParameter("token", token + "%");
+    return query.uniqueResult();
+  }
+
+  @Override
+  public User getUserByVerifiedEmail(String email) {
+    Query<User> query =
+        getSession().createQuery("from User u where u.verifiedEmail = :email", User.class);
+    query.setParameter("email", email);
+    return query.uniqueResult();
   }
 }

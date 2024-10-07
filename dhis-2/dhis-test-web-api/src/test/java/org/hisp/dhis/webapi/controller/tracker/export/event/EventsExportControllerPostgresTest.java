@@ -69,7 +69,9 @@ import org.hisp.dhis.webapi.controller.tracker.JsonUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class EventsExportControllerPostgresTest extends PostgresControllerIntegrationTestBase {
   private static final String DATA_ELEMENT_VALUE = "value 1";
 
@@ -106,6 +108,7 @@ class EventsExportControllerPostgresTest extends PostgresControllerIntegrationTe
     manager.save(orgUnit);
 
     user = createAndAddUser("username", orgUnit, ALL.name());
+    injectSecurityContextUser(user);
 
     trackedEntityType = trackedEntityTypeAccessible();
 

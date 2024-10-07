@@ -63,6 +63,7 @@ import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
@@ -77,6 +78,7 @@ import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeType;
 
@@ -137,6 +139,43 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   @Transactional
   public void createDefaultJob(JobType type) {
     createDefaultJob(type, CurrentUserUtil.getCurrentUserDetails());
+  }
+
+  @Override
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public String createInTransaction(
+      JobConfiguration jobConfiguration, MimeType contentType, InputStream content)
+      throws ConflictException, NotFoundException {
+    String jobId = jobCreationHelper.create(jobConfiguration, contentType, content);
+
+    if (!jobConfigurationStore.executeNow(jobId)) {
+      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+      if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
+      if (job.getJobStatus() == JobStatus.RUNNING)
+        throw new ConflictException("Job is already running.");
+      if (job.getSchedulingType() == SchedulingType.ONCE_ASAP && job.getLastFinished() != null)
+        throw new ConflictException("Job did already run once.");
+      throw new ConflictException("Failed to transition job into ONCE_ASAP state.");
+    }
+    return jobId;
+  }
+
+  @Override
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public String createInTransaction(JobConfiguration jobConfiguration)
+      throws ConflictException, NotFoundException {
+    String jobId = jobCreationHelper.create(jobConfiguration);
+
+    if (!jobConfigurationStore.executeNow(jobId)) {
+      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+      if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
+      if (job.getJobStatus() == JobStatus.RUNNING)
+        throw new ConflictException("Job is already running.");
+      if (job.getSchedulingType() == SchedulingType.ONCE_ASAP && job.getLastFinished() != null)
+        throw new ConflictException("Job did already run once.");
+      throw new ConflictException("Failed to transition job into ONCE_ASAP state.");
+    }
+    return jobId;
   }
 
   @Override
@@ -234,14 +273,14 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   @Nonnull
   @Override
   @Transactional(readOnly = true)
-  public List<JsonObject> findJobRunErrors(@Nonnull JobRunErrorsParams params) {
+  public List<JobRunErrors> findJobRunErrors(@Nonnull JobRunErrorsParams params) {
     return jobConfigurationStore
         .findJobRunErrors(params)
         .map(json -> errorEntryWithMessages(json, params))
         .toList();
   }
 
-  private JsonObject errorEntryWithMessages(String json, JobRunErrorsParams params) {
+  private JobRunErrors errorEntryWithMessages(String json, JobRunErrorsParams params) {
     JsonObject entry = JsonMixed.of(json);
     List<JsonNode> flatErrors = new ArrayList<>();
     JobType type = entry.getString("type").parsed(JobType::valueOf);
@@ -267,13 +306,14 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
                                 .forEach(error -> flatErrors.add(errorWithMessage(type, error)))));
 
     return JsonMixed.of(
-        errors
-            .node()
-            .replaceWith(createArray(arr -> flatErrors.forEach(arr::addElement)))
-            .addMembers(
-                obj ->
-                    obj.addString("codes", errorCodeNamespace)
-                        .addMember("input", getJobInput(params, fileResourceId))));
+            errors
+                .node()
+                .replaceWith(createArray(arr -> flatErrors.forEach(arr::addElement)))
+                .addMembers(
+                    obj ->
+                        obj.addString("codes", errorCodeNamespace)
+                            .addMember("input", getJobInput(params, fileResourceId))))
+        .as(JobRunErrors.class);
   }
 
   private JsonNode getJobInput(JobRunErrorsParams params, String fileResourceId) {

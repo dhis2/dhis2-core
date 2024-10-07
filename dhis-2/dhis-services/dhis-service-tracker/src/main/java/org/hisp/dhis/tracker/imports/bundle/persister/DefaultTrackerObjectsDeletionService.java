@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import static org.hisp.dhis.changelog.ChangeLogType.READ;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -42,17 +46,16 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipQueryParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
-import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -61,24 +64,23 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeletionService {
-  private final TrackedEntityService teService;
-
   private final IdentifiableObjectManager manager;
+
+  private final TrackedEntityAuditService trackedEntityAuditService;
 
   private final RelationshipStore relationshipStore;
 
   private final TrackedEntityAttributeValueService attributeValueService;
 
-  private final TrackedEntityDataValueChangeLogService dataValueChangeLogService;
+  private final EventChangeLogService eventChangeLogService;
 
-  private final TrackedEntityAttributeValueChangeLogService attributeValueAuditService;
+  private final TrackedEntityChangeLogService attributeValueAuditService;
 
   private final ProgramNotificationInstanceService programNotificationInstanceService;
 
   @Override
   public TrackerTypeReport deleteEnrollments(List<String> enrollments) throws NotFoundException {
-    UserInfoSnapshot userInfoSnapshot =
-        UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails());
+    UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.ENROLLMENT);
 
     for (String uid : enrollments) {
@@ -127,8 +129,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
   @Override
   public TrackerTypeReport deleteEvents(List<String> events) throws NotFoundException {
-    UserInfoSnapshot userInfoSnapshot =
-        UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails());
+    UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.EVENT);
     for (String uid : events) {
       Entity objectReport = new Entity(TrackerType.EVENT, uid);
@@ -145,8 +146,8 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       deleteRelationships(relationships);
 
       // This is needed until deprecated method
-      // TrackedEntityDataValueChangeLogService.getTrackedEntityDataValueChangeLogs is removed.
-      dataValueChangeLogService.deleteTrackedEntityDataValueChangeLog(event);
+      // eventChangeLogService.getTrackedEntityDataValueChangeLogs is removed.
+      eventChangeLogService.deleteTrackedEntityDataValueChangeLog(event);
 
       List<ProgramNotificationInstance> notificationInstances =
           programNotificationInstanceService.getProgramNotificationInstances(
@@ -178,14 +179,18 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   @Override
   public TrackerTypeReport deleteTrackedEntities(List<String> trackedEntities)
       throws NotFoundException {
-    UserInfoSnapshot userInfoSnapshot =
-        UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails());
+    UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.TRACKED_ENTITY);
 
     for (String uid : trackedEntities) {
       Entity objectReport = new Entity(TrackerType.TRACKED_ENTITY, uid);
 
-      TrackedEntity entity = teService.getTrackedEntity(uid);
+      TrackedEntity entity = manager.get(TrackedEntity.class, uid);
+      if (entity == null) {
+        throw new NotFoundException(TrackedEntity.class, uid);
+      }
+      trackedEntityAuditService.addTrackedEntityAudit(entity, getCurrentUsername(), READ);
+
       entity.setLastUpdatedByUserInfo(userInfoSnapshot);
 
       Set<Enrollment> daoEnrollments = entity.getEnrollments();

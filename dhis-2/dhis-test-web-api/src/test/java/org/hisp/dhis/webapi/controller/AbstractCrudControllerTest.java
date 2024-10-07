@@ -45,7 +45,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -59,6 +58,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.web.snippets.SomeUserId;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonAttributeValue;
 import org.hisp.dhis.test.webapi.json.domain.JsonError;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonGeoMap;
@@ -74,6 +74,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the generic operations offered by the {@link AbstractCrudController} using specific
@@ -81,6 +82,7 @@ import org.springframework.http.MediaType;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
@@ -1037,15 +1039,15 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     attribute.setDataElementAttribute(true);
     manager.save(attribute);
     DataElement dataElement = createDataElement('A');
-    dataElement.getAttributeValues().add(new AttributeValue("value", attribute));
+    dataElement.addAttributeValue(attribute.getUid(), "value");
     manager.save(dataElement);
 
     JsonList<JsonIdentifiableObject> response =
         GET("/dataElements?fields=id,name,attributeValues", dataElement.getUid())
             .content()
             .getList("dataElements", JsonIdentifiableObject.class);
-    assertEquals(
-        attribute.getUid(), response.get(0).getAttributeValues().get(0).getAttribute().getId());
+    JsonAttributeValue attributeValue0 = response.get(0).getAttributeValues().get(0);
+    assertEquals(attribute.getUid(), attributeValue0.getAttribute().getId());
 
     response =
         GET(
@@ -1053,10 +1055,9 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                 dataElement.getUid())
             .content()
             .getList("dataElements", JsonIdentifiableObject.class);
-    assertEquals(
-        attribute.getUid(), response.get(0).getAttributeValues().get(0).getAttribute().getId());
-    assertEquals(
-        attribute.getName(), response.get(0).getAttributeValues().get(0).getAttribute().getName());
+    attributeValue0 = response.get(0).getAttributeValues().get(0);
+    assertEquals(attribute.getUid(), attributeValue0.getAttribute().getId());
+    assertEquals("AttributeA", attributeValue0.getAttribute().getName());
   }
 
   @Test
@@ -1142,6 +1143,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testFilterSharingEmptyTrue() {
     String userId = getCurrentUser().getUid();
+    // first create an object which can be shared
     String programId =
         assertStatus(
             HttpStatus.CREATED,
@@ -1163,6 +1165,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testFilterSharingEmptyFalse() {
     String userId = getCurrentUser().getUid();
+    // first create an object which can be shared
     String programId =
         assertStatus(
             HttpStatus.CREATED,
@@ -1183,6 +1186,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testFilterSharingEqTrue() {
     String userId = getCurrentUser().getUid();
+    // first create an object which can be shared
     String programId =
         assertStatus(
             HttpStatus.CREATED,
@@ -1203,6 +1207,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testFilterSharingGt() {
     String userId = getCurrentUser().getUid();
+    // first create an object which can be shared
     String programId =
         assertStatus(
             HttpStatus.CREATED,
@@ -1223,6 +1228,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testFilterSharingLt() {
     String userId = getCurrentUser().getUid();
+    // first create an object which can be shared
     String programId =
         assertStatus(
             HttpStatus.CREATED,

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.config;
 
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManagerFactory;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator;
@@ -65,7 +65,9 @@ public class StartupConfig {
 
   @Bean("org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator")
   public DataElementDefaultDimensionPopulator dataElementDefaultDimensionPopulator(
-      DataElementService dataElementService, CategoryService categoryService) {
+      DataElementService dataElementService,
+      CategoryService categoryService,
+      UserService userService) {
     DataElementDefaultDimensionPopulator populator =
         new DataElementDefaultDimensionPopulator(dataElementService, categoryService);
     populator.setName("DataElementDefaultDimensionPopulator");

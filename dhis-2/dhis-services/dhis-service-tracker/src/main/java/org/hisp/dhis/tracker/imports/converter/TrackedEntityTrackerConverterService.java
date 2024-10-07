@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.tracker.imports.converter;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -45,51 +45,29 @@ import org.springframework.stereotype.Service;
 public class TrackedEntityTrackerConverterService
     implements TrackerConverterService<
         org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity> {
-  @Override
-  public org.hisp.dhis.tracker.imports.domain.TrackedEntity to(TrackedEntity trackedEntity) {
-    List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities =
-        to(Collections.singletonList(trackedEntity));
-
-    if (trackedEntities.isEmpty()) {
-      return null;
-    }
-
-    return trackedEntities.get(0);
-  }
-
-  @Override
-  public List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> to(
-      List<TrackedEntity> trackedEntities) {
-    return trackedEntities.stream()
-        .map(
-            te -> {
-              org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
-                  new org.hisp.dhis.tracker.imports.domain.TrackedEntity();
-              trackedEntity.setTrackedEntity(te.getUid());
-
-              return trackedEntity;
-            })
-        .collect(Collectors.toList());
-  }
 
   @Override
   public TrackedEntity from(
-      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity) {
+      TrackerPreheat preheat,
+      org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity,
+      UserDetails user) {
     TrackedEntity te = preheat.getTrackedEntity(trackedEntity.getTrackedEntity());
-    return from(preheat, trackedEntity, te);
+    return from(preheat, trackedEntity, te, user);
   }
 
   @Override
   public List<TrackedEntity> from(
       TrackerPreheat preheat,
-      List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities) {
-    return trackedEntities.stream().map(te -> from(preheat, te)).collect(Collectors.toList());
+      List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities,
+      UserDetails user) {
+    return trackedEntities.stream().map(te -> from(preheat, te, user)).toList();
   }
 
   private TrackedEntity from(
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity teFrom,
-      TrackedEntity teTo) {
+      TrackedEntity teTo,
+      UserDetails user) {
     OrganisationUnit organisationUnit = preheat.getOrganisationUnit(teFrom.getOrgUnit());
     TrackedEntityType trackedEntityType =
         preheat.getTrackedEntityType(teFrom.getTrackedEntityType());
@@ -100,10 +78,10 @@ public class TrackedEntityTrackerConverterService
       teTo = new TrackedEntity();
       teTo.setUid(teFrom.getTrackedEntity());
       teTo.setCreated(now);
-      teTo.setCreatedByUserInfo(preheat.getUserInfo());
+      teTo.setCreatedByUserInfo(UserInfoSnapshot.from(user));
     }
 
-    teTo.setLastUpdatedByUserInfo(preheat.getUserInfo());
+    teTo.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
     teTo.setStoredBy(teFrom.getStoredBy());
     teTo.setLastUpdated(now);
     teTo.setDeleted(false);

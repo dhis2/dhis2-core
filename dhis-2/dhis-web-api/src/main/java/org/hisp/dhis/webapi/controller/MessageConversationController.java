@@ -35,6 +35,8 @@ import static org.hisp.dhis.security.Authorities.F_METADATA_IMPORT;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,8 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.configuration.ConfigurationService;
@@ -179,7 +179,7 @@ public class MessageConversationController
       throws QueryParserException {
     List<org.hisp.dhis.message.MessageConversation> messageConversations;
 
-    if (options.getOptions().containsKey("query")) {
+    if (objects == null && options.getOptions().containsKey("query")) {
       messageConversations =
           Lists.newArrayList(manager.filter(getEntityClass(), options.getOptions().get("query")));
     } else {
@@ -244,14 +244,6 @@ public class MessageConversationController
   // --------------------------------------------------------------------------
   // POST for new MessageConversation
   // --------------------------------------------------------------------------
-
-  @Override
-  public WebMessage postXmlObject(HttpServletRequest request)
-      throws IOException, ConflictException, NotFoundException {
-    MessageConversation messageConversation =
-        renderService.fromXml(request.getInputStream(), MessageConversation.class);
-    return postObject(request, messageConversation);
-  }
 
   @Override
   public WebMessage postJsonObject(HttpServletRequest request)

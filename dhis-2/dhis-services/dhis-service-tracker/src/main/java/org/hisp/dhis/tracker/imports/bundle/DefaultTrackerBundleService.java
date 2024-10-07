@@ -29,16 +29,19 @@ package org.hisp.dhis.tracker.imports.bundle;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
+import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import javax.persistence.EntityManager;
+import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Session;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -54,7 +57,6 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleService;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -76,8 +78,6 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
 
   private final TrackerObjectDeletionService deletionService;
 
-  private final TrackedEntityService trackedEntityService;
-
   private final ObjectMapper mapper;
 
   private List<NotificationHandlerService> notificationHandlers = new ArrayList<>();
@@ -87,32 +87,31 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
     this.notificationHandlers = notificationHandlers;
   }
 
+  @Nonnull
   @Override
   public TrackerBundle create(
-      TrackerImportParams params, TrackerObjects trackerObjects, User user) {
-    UserInfoSnapshot userInfo = UserInfoSnapshot.from(UserDetails.fromUser(user));
-
-    TrackerPreheat preheat =
-        trackerPreheatService.preheat(trackerObjects, params.getIdSchemes(), user);
-    preheat.setUserInfo(userInfo);
-
+      @Nonnull TrackerImportParams params,
+      @Nonnull TrackerObjects trackerObjects,
+      @Nonnull UserDetails user) {
+    TrackerPreheat preheat = trackerPreheatService.preheat(trackerObjects, params.getIdSchemes());
     TrackerBundle trackerBundle = ParamsConverter.convert(params, trackerObjects, user);
-    trackerBundle.setUserInfo(userInfo);
     trackerBundle.setPreheat(preheat);
 
     return trackerBundle;
   }
 
+  @Nonnull
   @Override
-  public TrackerBundle runRuleEngine(TrackerBundle trackerBundle) {
+  public TrackerBundle runRuleEngine(@Nonnull TrackerBundle trackerBundle) {
     programRuleService.calculateRuleEffects(trackerBundle, trackerBundle.getPreheat());
 
     return trackerBundle;
   }
 
+  @Nonnull
   @Override
   @Transactional
-  public PersistenceReport commit(TrackerBundle bundle) {
+  public PersistenceReport commit(@Nonnull TrackerBundle bundle) {
     if (TrackerBundleMode.VALIDATE == bundle.getImportMode()) {
       return PersistenceReport.emptyReport();
     }
@@ -132,31 +131,55 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   }
 
   @Override
-  public void postCommit(TrackerBundle bundle) {
+  @Transactional
+  public void postCommit(@Nonnull TrackerBundle bundle) {
     updateTrackedEntitiesLastUpdated(bundle);
   }
 
   private void updateTrackedEntitiesLastUpdated(TrackerBundle bundle) {
-    if (!bundle.getUpdatedTrackedEntities().isEmpty()) {
-      try {
-        trackedEntityService.updateTrackedEntityLastUpdated(
-            bundle.getUpdatedTrackedEntities(),
-            new Date(),
-            mapper.writeValueAsString(bundle.getUserInfo()));
-      } catch (JsonProcessingException e) {
-        throw new PersistenceException(e);
+    Set<String> updatedTrackedEntities = bundle.getUpdatedTrackedEntities();
+
+    if (updatedTrackedEntities.isEmpty()) {
+      return;
+    }
+
+    List<List<String>> uidsPartitions =
+        Lists.partition(Lists.newArrayList(bundle.getUpdatedTrackedEntities()), 20000);
+
+    try (Session session = entityManager.unwrap(Session.class)) {
+      for (List<String> trackedEntities : uidsPartitions) {
+        if (trackedEntities.isEmpty()) {
+          continue;
+        }
+        executeLastUpdatedQuery(session, trackedEntities, bundle.getUser());
       }
     }
   }
 
-  @Override
-  public void sendNotifications(List<TrackerNotificationDataBundle> bundles) {
-    notificationHandlers.forEach(handler -> handler.handleNotifications(bundles));
+  private void executeLastUpdatedQuery(
+      Session session, List<String> trackedEntities, UserDetails user) {
+    try {
+      UserInfoSnapshot userInfo = UserInfoSnapshot.from(user);
+      session
+          .getNamedQuery("updateTrackedEntitiesLastUpdated")
+          .setParameter("trackedEntities", trackedEntities)
+          .setParameter("lastUpdated", new Date())
+          .setParameter("lastupdatedbyuserinfo", mapper.writeValueAsString(userInfo))
+          .executeUpdate();
+    } catch (JsonProcessingException e) {
+      throw new PersistenceException(e);
+    }
   }
 
   @Override
+  public void sendNotifications(@Nonnull List<TrackerNotificationDataBundle> bundles) {
+    notificationHandlers.forEach(handler -> handler.handleNotifications(bundles));
+  }
+
+  @Nonnull
+  @Override
   @Transactional
-  public PersistenceReport delete(TrackerBundle bundle)
+  public PersistenceReport delete(@Nonnull TrackerBundle bundle)
       throws ForbiddenException, NotFoundException {
     if (TrackerBundleMode.VALIDATE == bundle.getImportMode()) {
       return PersistenceReport.emptyReport();

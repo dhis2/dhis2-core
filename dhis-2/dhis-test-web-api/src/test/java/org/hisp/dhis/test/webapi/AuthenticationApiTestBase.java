@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.test.webapi;
 
-import org.hisp.dhis.test.config.H2DhisTestConfig;
+import org.hisp.dhis.test.config.H2TestConfig;
 import org.hisp.dhis.test.webapi.AuthenticationApiTestBase.AuthConfigProviderConfig;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +40,7 @@ import org.springframework.security.web.FilterChainProxy;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Base class for convenient testing of the web API on basis of {@link
@@ -54,10 +55,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 @ContextConfiguration(
     inheritLocations = false,
     classes = {
-      H2DhisTestConfig.class,
+      H2TestConfig.class,
       WebMvcConfig.class,
       AuthConfigProviderConfig.class,
     })
+@Transactional
 public abstract class AuthenticationApiTestBase extends H2ControllerIntegrationTestBase {
 
   static class AuthConfigProviderConfig {

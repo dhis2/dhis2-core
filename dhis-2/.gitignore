@@ -33,7 +33,6 @@
 /dhis-web-portal/target/
 /dhis-web-server/target/
 /dhis-web-reporting/target/
-/dhis-web-embedded-jetty/target/
 
 # Datasource local storage ignored files
 /.idea/dataSources/

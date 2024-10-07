@@ -36,11 +36,11 @@ import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -73,7 +73,7 @@ class TrackedEntityProgramAttributeEncryptionTest extends TrackerTest {
 
   @Test
   void testTrackedEntityProgramAttributeEncryptedValue() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, fromJson("tracker/te_program_with_tea_encryption_data.json"));

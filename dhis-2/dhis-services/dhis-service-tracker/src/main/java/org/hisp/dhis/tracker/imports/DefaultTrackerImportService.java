@@ -52,7 +52,8 @@ import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationResult;
 import org.hisp.dhis.tracker.imports.validation.ValidationService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 
 /**
@@ -67,8 +68,6 @@ public class DefaultTrackerImportService implements TrackerImportService {
 
   @Nonnull private final TrackerPreprocessService trackerPreprocessService;
 
-  @Nonnull private final TrackerUserService trackerUserService;
-
   private PersistenceReport commit(TrackerImportParams params, TrackerBundle trackerBundle)
       throws ForbiddenException, NotFoundException {
     if (TrackerImportStrategy.DELETE == params.getImportStrategy()) {
@@ -78,16 +77,19 @@ public class DefaultTrackerImportService implements TrackerImportService {
     }
   }
 
+  @Nonnull
   @Override
   @IndirectTransactional
   public ImportReport importTracker(
-      TrackerImportParams params, TrackerObjects trackerObjects, JobProgress jobProgress) {
-    User user = trackerUserService.getUser(params.getUserId());
-
+      @Nonnull TrackerImportParams params,
+      @Nonnull TrackerObjects trackerObjects,
+      @Nonnull JobProgress jobProgress) {
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     jobProgress.startingStage("Running PreHeat");
     TrackerBundle trackerBundle =
         jobProgress.nonNullStagePostCondition(
-            jobProgress.runStage(() -> trackerBundleService.create(params, trackerObjects, user)));
+            jobProgress.runStage(
+                () -> trackerBundleService.create(params, trackerObjects, currentUser)));
 
     jobProgress.startingStage("Calculating Payload Size");
     Map<TrackerType, Integer> bundleSize =
@@ -195,9 +197,10 @@ public class DefaultTrackerImportService implements TrackerImportService {
    *
    * @return a copy of the current TrackerImportReport
    */
+  @Nonnull
   @Override
   public ImportReport buildImportReport(
-      ImportReport originalImportReport, TrackerBundleReportMode reportMode) {
+      @Nonnull ImportReport originalImportReport, @Nonnull TrackerBundleReportMode reportMode) {
     ImportReport.ImportReportBuilder importReportBuilder =
         ImportReport.builder()
             .status(originalImportReport.getStatus())

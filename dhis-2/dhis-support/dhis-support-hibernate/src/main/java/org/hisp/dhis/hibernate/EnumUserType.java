@@ -40,7 +40,7 @@ import org.hibernate.usertype.UserType;
  * Template for storing enums. Borrowed from http://community.jboss.org/wiki/
  * UserTypeforpersistinganEnumwithaVARCHARcolumn
  */
-public class EnumUserType<E extends Enum<E>> implements UserType {
+public class EnumUserType<E extends Enum<E>> implements UserType, Serializable {
   private Class<E> clazz = null;
 
   protected EnumUserType(Class<E> c) {

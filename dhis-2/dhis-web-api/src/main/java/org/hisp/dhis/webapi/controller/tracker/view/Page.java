@@ -38,7 +38,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 import org.springframework.web.util.UriComponentsBuilder;
 
 // TODO(tracker): revisit if we can create a Page class used by all products when we remove the
@@ -47,7 +46,6 @@ import org.springframework.web.util.UriComponentsBuilder;
  * Translates {@link org.hisp.dhis.tracker.export.Page} to its JSON representation. Future changes
  * need to be consistent with how pagination is done across products.
  */
-@OpenApi.Shared(pattern = Pattern.TRACKER)
 @Getter
 @ToString
 @EqualsAndHashCode
@@ -186,7 +184,7 @@ public class Page<T> {
     return new Page<>(key, items);
   }
 
-  @OpenApi.Shared(pattern = Pattern.TRACKER)
+  @OpenApi.Shared(name = "TrackerPager")
   @Getter
   @ToString
   @EqualsAndHashCode

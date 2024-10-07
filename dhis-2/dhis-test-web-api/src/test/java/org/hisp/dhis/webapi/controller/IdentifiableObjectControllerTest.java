@@ -27,32 +27,24 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.test.web.WebClient.Body;
-import static org.hisp.dhis.test.web.WebClient.ContentType;
 import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
-import static org.springframework.http.MediaType.APPLICATION_XML;
 
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link IdentifiableObjectController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class IdentifiableObjectControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testPostJsonObject() {
     assertStatus(HttpStatus.METHOD_NOT_ALLOWED, POST("/identifiableObjects/", "{}"));
-  }
-
-  @Test
-  void testPostJsonObject_Xml() {
-    assertStatus(
-        HttpStatus.METHOD_NOT_ALLOWED,
-        POST("/identifiableObjects/", Body("{}"), ContentType(APPLICATION_XML)));
   }
 
   @Test

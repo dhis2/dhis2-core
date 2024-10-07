@@ -41,12 +41,12 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -76,7 +76,7 @@ class TeTaValidationTest extends TrackerTest {
 
   @Test
   void testTrackedEntityProgramAttributeFileResourceValue() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     FileResource fileResource =
         new FileResource(
             "test.pdf",
@@ -105,7 +105,7 @@ class TeTaValidationTest extends TrackerTest {
 
   @Test
   void testFileAlreadyAssign() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     FileResource fileResource =
         new FileResource(
             "test.pdf",
@@ -139,7 +139,7 @@ class TeTaValidationTest extends TrackerTest {
 
   @Test
   void testNoFileRef() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/te-program_with_tea_fileresource_data.json");
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -151,7 +151,7 @@ class TeTaValidationTest extends TrackerTest {
 
   @Test
   void testTeaMaxTextValueLength() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/te-program_with_tea_too_long_text_value.json");
 
@@ -162,7 +162,7 @@ class TeTaValidationTest extends TrackerTest {
 
   @Test
   void testTeaInvalidFormat() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/te-program_with_tea_invalid_format_value.json");
 
@@ -173,7 +173,7 @@ class TeTaValidationTest extends TrackerTest {
 
   @Test
   void testTeaInvalidImage() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/te-program_with_tea_invalid_image_value.json");
 
@@ -184,7 +184,7 @@ class TeTaValidationTest extends TrackerTest {
 
   @Test
   void testTeaIsNull() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/te-program_with_tea_invalid_value_isnull.json");
 

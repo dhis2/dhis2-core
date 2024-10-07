@@ -28,19 +28,22 @@
 package org.hisp.dhis.tracker.export.trackedentity;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -49,7 +52,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service("org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService")
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class DefaultTrackedEntityChangeLogService implements TrackedEntityChangeLogService {
 
@@ -63,13 +65,63 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
 
   private final JdbcTrackedEntityChangeLogStore jdbcTrackedEntityChangeLogStore;
 
+  private final TrackedEntityAttributeValueChangeLogStore attributeValueChangeLogStore;
+
   @Override
+  @Transactional
+  public void addTrackedEntityAttributeValueChangeLog(
+      TrackedEntityAttributeValueChangeLog attributeValueChangeLog) {
+    attributeValueChangeLogStore.addTrackedEntityAttributeValueChangeLog(attributeValueChangeLog);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<TrackedEntityAttributeValueChangeLog> getTrackedEntityAttributeValueChangeLogs(
+      TrackedEntityAttributeValueChangeLogQueryParams params) {
+    return aclFilter(attributeValueChangeLogStore.getTrackedEntityAttributeValueChangeLogs(params));
+  }
+
+  private List<TrackedEntityAttributeValueChangeLog> aclFilter(
+      List<TrackedEntityAttributeValueChangeLog> attributeValueChangeLogs) {
+    // Fetch all the Tracked Entity Attributes this user has access
+    // to (only store UIDs). Not a very efficient solution, but at the
+    // moment
+    // we do not have ACL API to check TE attributes.
+
+    Set<String> allUserReadableTrackedEntityAttributes =
+        trackedEntityAttributeService
+            .getAllUserReadableTrackedEntityAttributes(CurrentUserUtil.getCurrentUserDetails())
+            .stream()
+            .map(IdentifiableObject::getUid)
+            .collect(Collectors.toSet());
+
+    return attributeValueChangeLogs.stream()
+        .filter(
+            audit -> allUserReadableTrackedEntityAttributes.contains(audit.getAttribute().getUid()))
+        .toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public int countTrackedEntityAttributeValueChangeLogs(
+      TrackedEntityAttributeValueChangeLogQueryParams params) {
+    return attributeValueChangeLogStore.countTrackedEntityAttributeValueChangeLogs(params);
+  }
+
+  @Override
+  @Transactional
+  public void deleteTrackedEntityAttributeValueChangeLogs(TrackedEntity trackedEntity) {
+    attributeValueChangeLogStore.deleteTrackedEntityAttributeValueChangeLogs(trackedEntity);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public Page<TrackedEntityChangeLog> getTrackedEntityChangeLog(
       UID trackedEntityUid,
       UID programUid,
       TrackedEntityChangeLogOperationParams operationParams,
       PageParams pageParams)
-      throws NotFoundException {
+      throws NotFoundException, ForbiddenException, BadRequestException {
     TrackedEntity trackedEntity =
         trackedEntityService.getTrackedEntity(trackedEntityUid.getValue());
     if (trackedEntity == null) {
@@ -95,6 +147,7 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
   }
 
   @Override
+  @Transactional(readOnly = true)
   public Set<String> getOrderableFields() {
     return jdbcTrackedEntityChangeLogStore.getOrderableFields();
   }

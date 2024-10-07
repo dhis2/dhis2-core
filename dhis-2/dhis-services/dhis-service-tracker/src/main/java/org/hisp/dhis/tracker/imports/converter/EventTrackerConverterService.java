@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.imports.converter;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +37,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
@@ -52,9 +50,8 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
-import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -68,99 +65,29 @@ public class EventTrackerConverterService
   private final NotesConverterService notesConverterService;
 
   @Override
-  public org.hisp.dhis.tracker.imports.domain.Event to(Event event) {
-    List<org.hisp.dhis.tracker.imports.domain.Event> events = to(Collections.singletonList(event));
-
-    if (events.isEmpty()) {
-      return null;
-    }
-
-    return events.get(0);
-  }
-
-  @Override
-  public List<org.hisp.dhis.tracker.imports.domain.Event> to(List<Event> events) {
-    List<org.hisp.dhis.tracker.imports.domain.Event> result = new ArrayList<>();
-
-    events.forEach(
-        event -> {
-          org.hisp.dhis.tracker.imports.domain.Event e =
-              new org.hisp.dhis.tracker.imports.domain.Event();
-          e.setEvent(event.getUid());
-
-          e.setStatus(event.getStatus());
-          e.setOccurredAt(DateUtils.instantFromDate(event.getOccurredDate()));
-          e.setScheduledAt(DateUtils.instantFromDate(event.getScheduledDate()));
-          e.setStoredBy(event.getStoredBy());
-          e.setCompletedBy(event.getCompletedBy());
-          e.setCompletedAt(DateUtils.instantFromDate(event.getCompletedDate()));
-          e.setCreatedAt(DateUtils.instantFromDate(event.getCreated()));
-          e.setCreatedAtClient(DateUtils.instantFromDate(event.getCreatedAtClient()));
-          e.setUpdatedAt(DateUtils.instantFromDate(event.getLastUpdated()));
-          e.setUpdatedAtClient(DateUtils.instantFromDate(event.getLastUpdatedAtClient()));
-          e.setGeometry(event.getGeometry());
-          e.setDeleted(event.isDeleted());
-
-          OrganisationUnit ou = event.getOrganisationUnit();
-
-          if (ou != null) {
-            e.setOrgUnit(MetadataIdentifier.ofUid(ou));
-          }
-
-          e.setEnrollment(event.getEnrollment().getUid());
-          e.setProgramStage(MetadataIdentifier.ofUid(event.getProgramStage()));
-          e.setAttributeOptionCombo(MetadataIdentifier.ofUid(event.getAttributeOptionCombo()));
-          e.setAttributeCategoryOptions(
-              event.getAttributeOptionCombo().getCategoryOptions().stream()
-                  .map(CategoryOption::getUid)
-                  .map(MetadataIdentifier::ofUid)
-                  .collect(Collectors.toSet()));
-
-          Set<EventDataValue> dataValues = event.getEventDataValues();
-
-          for (EventDataValue dataValue : dataValues) {
-            DataValue value = new DataValue();
-            value.setCreatedAt(DateUtils.instantFromDate(dataValue.getCreated()));
-            value.setUpdatedAt(DateUtils.instantFromDate(dataValue.getLastUpdated()));
-            value.setDataElement(MetadataIdentifier.ofUid(dataValue.getDataElement()));
-            value.setValue(dataValue.getValue());
-            value.setProvidedElsewhere(dataValue.getProvidedElsewhere());
-            value.setStoredBy(dataValue.getStoredBy());
-            value.setUpdatedBy(
-                Optional.ofNullable(dataValue.getLastUpdatedByUserInfo())
-                    .map(this::convertUserInfo)
-                    .orElse(null));
-            value.setCreatedBy(
-                Optional.ofNullable(dataValue.getCreatedByUserInfo())
-                    .map(this::convertUserInfo)
-                    .orElse(null));
-
-            e.getDataValues().add(value);
-          }
-
-          result.add(e);
-        });
-
-    return result;
-  }
-
-  @Override
-  public Event from(TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event) {
-    return from(preheat, event, preheat.getEvent(event.getEvent()));
+  public Event from(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event, UserDetails user) {
+    return from(preheat, event, preheat.getEvent(event.getEvent()), user);
   }
 
   @Override
   public List<Event> from(
-      TrackerPreheat preheat, List<org.hisp.dhis.tracker.imports.domain.Event> events) {
-    return events.stream().map(e -> from(preheat, e)).collect(Collectors.toList());
+      TrackerPreheat preheat,
+      List<org.hisp.dhis.tracker.imports.domain.Event> events,
+      UserDetails user) {
+    return events.stream().map(e -> from(preheat, e, user)).toList();
   }
 
   @Override
   public Event fromForRuleEngine(
-      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event) {
-    Event result = from(preheat, event, null);
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event, UserDetails user) {
+    Event result = from(preheat, event, null, user);
     // merge data values from DB
     result.getEventDataValues().addAll(getDataValues(preheat, event));
+    Event preheatEvent = preheat.getEvent(event.getUid());
+    if (preheatEvent != null) {
+      result.setCreated(preheatEvent.getCreated());
+    }
     return result;
   }
 
@@ -189,7 +116,10 @@ public class EventTrackerConverterService
   }
 
   private Event from(
-      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event, Event result) {
+      TrackerPreheat preheat,
+      org.hisp.dhis.tracker.imports.domain.Event event,
+      Event result,
+      UserDetails user) {
     ProgramStage programStage = preheat.getProgramStage(event.getProgramStage());
     Program program = preheat.getProgram(event.getProgram());
     OrganisationUnit organisationUnit = preheat.getOrganisationUnit(event.getOrgUnit());
@@ -201,10 +131,10 @@ public class EventTrackerConverterService
       result.setUid(!StringUtils.isEmpty(event.getEvent()) ? event.getEvent() : event.getUid());
       result.setCreated(now);
       result.setStoredBy(event.getStoredBy());
-      result.setCreatedByUserInfo(preheat.getUserInfo());
-      result.setCreatedAtClient(DateUtils.fromInstant(event.getCreatedAtClient()));
+      result.setCreatedByUserInfo(UserInfoSnapshot.from(user));
     }
-    result.setLastUpdatedByUserInfo(preheat.getUserInfo());
+    result.setCreatedAtClient(DateUtils.fromInstant(event.getCreatedAtClient()));
+    result.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
     result.setLastUpdated(now);
     result.setDeleted(false);
     result.setLastUpdatedAtClient(DateUtils.fromInstant(event.getUpdatedAtClient()));
@@ -223,14 +153,20 @@ public class EventTrackerConverterService
 
     result.setGeometry(event.getGeometry());
 
+    EventStatus currentStatus = event.getStatus();
     EventStatus previousStatus = result.getStatus();
 
-    result.setStatus(event.getStatus());
-
-    if (previousStatus != result.getStatus() && result.isCompleted()) {
+    if (currentStatus != previousStatus && currentStatus == EventStatus.COMPLETED) {
       result.setCompletedDate(now);
-      result.setCompletedBy(preheat.getUsername());
+      result.setCompletedBy(user.getUsername());
     }
+
+    if (currentStatus != EventStatus.COMPLETED) {
+      result.setCompletedDate(null);
+      result.setCompletedBy(null);
+    }
+
+    result.setStatus(currentStatus);
 
     if (Boolean.TRUE.equals(programStage.isEnableUserAssignment())
         && event.getAssignedUser() != null
@@ -256,14 +192,14 @@ public class EventTrackerConverterService
       // dataElementIdSchemes are supported
       DataElement dataElement = preheat.getDataElement(dataValue.getDataElement());
       eventDataValue.setDataElement(dataElement.getUid());
-      eventDataValue.setLastUpdatedByUserInfo(preheat.getUserInfo());
-      eventDataValue.setCreatedByUserInfo(preheat.getUserInfo());
+      eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
+      eventDataValue.setCreatedByUserInfo(UserInfoSnapshot.from(user));
 
       result.getEventDataValues().add(eventDataValue);
     }
 
     if (isNotEmpty(event.getNotes())) {
-      result.getNotes().addAll(notesConverterService.from(preheat, event.getNotes()));
+      result.getNotes().addAll(notesConverterService.from(preheat, event.getNotes(), user));
     }
 
     return result;
@@ -281,14 +217,5 @@ public class EventTrackerConverterService
     // no valid enrollment given and program not single event, just return
     // null
     return null;
-  }
-
-  private User convertUserInfo(UserInfoSnapshot userInfoSnapshot) {
-    return User.builder()
-        .uid(userInfoSnapshot.getUid())
-        .username(userInfoSnapshot.getUsername())
-        .firstName(userInfoSnapshot.getFirstName())
-        .surname(userInfoSnapshot.getSurname())
-        .build();
   }
 }

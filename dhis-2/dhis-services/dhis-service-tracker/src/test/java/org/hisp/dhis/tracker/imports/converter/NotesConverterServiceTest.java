@@ -31,16 +31,16 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.test.TestBase;
-import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -55,62 +55,44 @@ class NotesConverterServiceTest extends TestBase {
 
   private TrackerPreheat preheat;
 
-  private final BeanRandomizer rnd = BeanRandomizer.create();
+  private UserDetails currentUser;
+
+  private User user;
 
   @BeforeEach
   void setUp() {
     this.notesConverterService = new NotesConverterService();
-    User user = makeUser("A");
+    user = makeUser("A");
+    currentUser = UserDetails.fromUser(user);
+
     this.preheat = new TrackerPreheat();
-    preheat.setUser(user);
+    this.preheat.addUsers(Set.of(user));
   }
 
   @Test
   void verifyConvertTrackerNoteToNote() {
-    org.hisp.dhis.tracker.imports.domain.Note trackerNote =
-        rnd.nextObject(org.hisp.dhis.tracker.imports.domain.Note.class);
-    final Note note = notesConverterService.from(preheat, trackerNote);
+    org.hisp.dhis.tracker.imports.domain.Note trackerNote = trackerNote();
+    final Note note = notesConverterService.from(preheat, trackerNote, currentUser);
     assertNoteValues(note, trackerNote);
   }
 
   @Test
   void verifyConvertTrackerNoteToNoteWithNoStoredByDefined() {
-    org.hisp.dhis.tracker.imports.domain.Note trackerNote =
-        rnd.nextObject(org.hisp.dhis.tracker.imports.domain.Note.class);
+    org.hisp.dhis.tracker.imports.domain.Note trackerNote = trackerNote();
     trackerNote.setStoredBy(null);
-    final Note note = notesConverterService.from(preheat, trackerNote);
+    final Note note = notesConverterService.from(preheat, trackerNote, currentUser);
     assertNoteValues(note, trackerNote);
   }
 
   @Test
   void verifyConvertTrackerNotesToNotes() {
     List<org.hisp.dhis.tracker.imports.domain.Note> trackerNotes =
-        rnd.objects(org.hisp.dhis.tracker.imports.domain.Note.class, 10)
-            .collect(Collectors.toList());
-    final List<Note> notes = notesConverterService.from(preheat, trackerNotes);
-    assertThat(notes, hasSize(10));
+        List.of(trackerNote(), trackerNote());
+    final List<Note> notes = notesConverterService.from(preheat, trackerNotes, currentUser);
+    assertThat(notes, hasSize(2));
     for (org.hisp.dhis.tracker.imports.domain.Note note : trackerNotes) {
       assertNoteValues(
           notes.stream().filter(c -> c.getUid().equals(note.getNote())).findFirst().get(), note);
-    }
-  }
-
-  @Test
-  void verifyConvertNoteToTrackerNote() {
-    Note note = rnd.nextObject(Note.class);
-    final org.hisp.dhis.tracker.imports.domain.Note trackerNote = notesConverterService.to(note);
-    assertNoteValues(trackerNote, note);
-  }
-
-  @Test
-  void verifyConvertNotesToTrackerNotes() {
-    List<Note> notes = rnd.objects(Note.class, 10).collect(Collectors.toList());
-    final List<org.hisp.dhis.tracker.imports.domain.Note> tackerNotes =
-        notesConverterService.to(notes);
-    for (Note note : notes) {
-      assertNoteValues(
-          tackerNotes.stream().filter(n -> n.getNote().equals(note.getUid())).findFirst().get(),
-          note);
     }
   }
 
@@ -122,13 +104,19 @@ class NotesConverterServiceTest extends TestBase {
     assertThat(note.getLastUpdatedBy().getUsername(), is(CURRENT_USER));
   }
 
-  private void assertNoteValues(org.hisp.dhis.tracker.imports.domain.Note trackerNotes, Note note) {
-    assertThat(trackerNotes, is(notNullValue()));
-    assertThat(trackerNotes.getNote(), is(note.getUid()));
-    assertThat(trackerNotes.getValue(), is(note.getNoteText()));
-    assertThat(trackerNotes.getStoredBy(), is(note.getCreator()));
-    assertEquals(trackerNotes.getStoredAt(), DateUtils.instantFromDate(note.getCreated()));
-    assertThat(
-        note.getLastUpdatedBy().getUsername(), is(trackerNotes.getCreatedBy().getUsername()));
+  private org.hisp.dhis.tracker.imports.domain.Note trackerNote() {
+    String uid = CodeGenerator.generateUid();
+    org.hisp.dhis.tracker.imports.domain.User trackerUser =
+        org.hisp.dhis.tracker.imports.domain.User.builder()
+            .uid(CodeGenerator.generateUid())
+            .username(CURRENT_USER)
+            .build();
+    return org.hisp.dhis.tracker.imports.domain.Note.builder()
+        .value("Note text for note: " + uid)
+        .note(uid)
+        .storedAt(new Date().toInstant())
+        .storedBy(CURRENT_USER)
+        .createdBy(trackerUser)
+        .build();
   }
 }

@@ -470,6 +470,8 @@ class DimensionalObjectProducerTest {
 
   @Test
   void testDynamicFrom() {
+    injectSecurityContext(new SystemUser());
+
     String categoryUid = "L6BswcbPGqs";
     String categoryName = "Category-A";
     Category category = createCategory(categoryName, categoryUid);

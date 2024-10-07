@@ -29,7 +29,7 @@ package org.hisp.dhis.test.webapi;
 
 import static org.hisp.dhis.test.web.WebClientUtils.failOnException;
 
-import org.hisp.dhis.test.config.H2DhisTestConfig;
+import org.hisp.dhis.test.config.H2TestConfig;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +37,7 @@ import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Base class for convenient testing of the web API on basis of {@link
@@ -50,7 +51,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
  */
 @ContextConfiguration(
     inheritLocations = false,
-    classes = {H2DhisTestConfig.class, WebMvcConfig.class})
+    classes = {H2TestConfig.class, WebMvcConfig.class})
+@Transactional
 public abstract class ControllerWithApiTokenAuthTestBase extends H2ControllerIntegrationTestBase {
   @Autowired private FilterChainProxy springSecurityFilterChain;
 

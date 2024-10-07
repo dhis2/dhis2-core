@@ -392,8 +392,8 @@ public class DataElement extends BaseDimensionalItemObject
    * Returns the maximum number of expiry days from the data sets of this data element. Returns
    * {@link DataSet#NO_EXPIRY} if any data set has no expiry.
    */
-  public int getExpiryDays() {
-    int expiryDays = Integer.MIN_VALUE;
+  public double getExpiryDays() {
+    double expiryDays = Double.MIN_VALUE;
 
     for (DataSet dataSet : getDataSets()) {
       if (dataSet.getExpiryDays() == NO_EXPIRY) {
@@ -405,7 +405,7 @@ public class DataElement extends BaseDimensionalItemObject
       }
     }
 
-    return expiryDays == Integer.MIN_VALUE ? NO_EXPIRY : expiryDays;
+    return expiryDays == Double.MIN_VALUE ? NO_EXPIRY : expiryDays;
   }
 
   /**
@@ -417,7 +417,7 @@ public class DataElement extends BaseDimensionalItemObject
    * @return true or false.
    */
   public boolean isExpired(Period period, Date now) {
-    int expiryDays = getExpiryDays();
+    double expiryDays = getExpiryDays();
     if (expiryDays == DataSet.NO_EXPIRY) {
       return false;
     }

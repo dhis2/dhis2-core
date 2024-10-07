@@ -38,13 +38,14 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.RelationshipTrackerConverterService;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
+import org.hisp.dhis.user.SystemUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -88,8 +89,10 @@ class SecurityOwnershipValidatorTest {
 
   @Test
   void shouldCreateWhenUserHasWriteAccessToRelationship() {
+    SystemUser user = new SystemUser();
     when(bundle.getStrategy(relationship)).thenReturn(CREATE);
-    when(converterService.from(preheat, relationship)).thenReturn(convertedRelationship);
+    when(bundle.getUser()).thenReturn(user);
+    when(converterService.from(preheat, relationship, user)).thenReturn(convertedRelationship);
     when(trackerAccessManager.canWrite(any(), eq(convertedRelationship))).thenReturn(List.of());
 
     validator.validate(reporter, bundle, relationship);
@@ -99,8 +102,10 @@ class SecurityOwnershipValidatorTest {
 
   @Test
   void shouldFailToCreateWhenUserHasNoWriteAccessToRelationship() {
+    SystemUser user = new SystemUser();
     when(bundle.getStrategy(relationship)).thenReturn(CREATE);
-    when(converterService.from(preheat, relationship)).thenReturn(convertedRelationship);
+    when(bundle.getUser()).thenReturn(user);
+    when(converterService.from(preheat, relationship, user)).thenReturn(convertedRelationship);
     when(trackerAccessManager.canWrite(any(), eq(convertedRelationship)))
         .thenReturn(List.of("error"));
 

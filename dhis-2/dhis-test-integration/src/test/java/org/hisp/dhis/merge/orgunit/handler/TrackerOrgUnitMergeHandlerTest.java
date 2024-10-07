@@ -30,9 +30,6 @@ package org.hisp.dhis.merge.orgunit.handler;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -42,7 +39,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -57,15 +53,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class TrackerOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
 
-  @Autowired private TrackedEntityService trackedEntityService;
-
-  @Autowired private CategoryService categoryService;
-
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackerOrgUnitMergeHandler mergeHandler;
-
-  @PersistenceContext private EntityManager entityManager;
 
   private ProgramStage psA;
 

@@ -36,14 +36,14 @@ import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_ABOVE;
 import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_READY;
 import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_WAITING;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -172,7 +172,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
     String hql = "delete from DataApproval d where d.organisationUnit = :unit";
 
-    getSession().createQuery(hql).setParameter("unit", organisationUnit).executeUpdate();
+    entityManager.createQuery(hql).setParameter("unit", organisationUnit).executeUpdate();
   }
 
   @Override
@@ -284,7 +284,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     User currentUser = userService.getUserByUsername(currentUsername);
 
     final String strArrayUserGroups =
-        (currentUser == null || CollectionUtils.isEmpty(currentUser.getGroups()))
+        (CollectionUtils.isEmpty(currentUser.getGroups()))
             ? null
             : "{"
                 + String.join(
@@ -308,9 +308,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
             : "";
 
     List<DataApprovalLevel> approvalLevels = workflow.getSortedLevels();
-
-    Set<OrganisationUnit> userOrgUnits =
-        currentUser != null ? currentUser.getDataViewOrganisationUnitsWithFallback() : null;
+    Set<OrganisationUnit> userOrgUnits = currentUser.getDataViewOrganisationUnitsWithFallback();
 
     boolean isDefaultCombo =
         attributeOptionCombos != null
@@ -320,9 +318,8 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
                 .equals(attributeOptionCombos.toArray()[0]);
 
     boolean maySeeDefaultCategoryCombo =
-        currentUser != null
-            && (CollectionUtils.isEmpty(currentUser.getCogsDimensionConstraints())
-                && CollectionUtils.isEmpty(currentUser.getCatDimensionConstraints()));
+        CollectionUtils.isEmpty(currentUser.getCogsDimensionConstraints())
+            && CollectionUtils.isEmpty(currentUser.getCatDimensionConstraints());
 
     // ---------------------------------------------------------------------
     // Validate

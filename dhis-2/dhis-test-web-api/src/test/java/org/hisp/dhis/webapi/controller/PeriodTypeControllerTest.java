@@ -38,12 +38,14 @@ import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonPeriodType;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link PeriodTypeController} using (mocked) REST requests.
  *
  * @author Morten Olav Hansen
  */
+@Transactional
 class PeriodTypeControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
@@ -51,7 +53,7 @@ class PeriodTypeControllerTest extends H2ControllerIntegrationTestBase {
     JsonObject object = GET("/periodTypes").content(HttpStatus.OK).as(JsonObject.class);
     JsonList<JsonPeriodType> periodTypes = object.getList("periodTypes", JsonPeriodType.class);
     assertTrue(periodTypes.exists());
-    assertEquals(19, periodTypes.size());
+    assertEquals(20, periodTypes.size());
     JsonPeriodType periodType = periodTypes.get(0);
     assertNotNull(periodType.getName());
     assertNotNull(periodType.getIsoDuration());
@@ -67,7 +69,7 @@ class PeriodTypeControllerTest extends H2ControllerIntegrationTestBase {
             .as(JsonObject.class)
             .getList("periodTypes", JsonPeriodType.class);
     assertTrue(periodTypes.exists());
-    assertEquals(19, periodTypes.size());
+    assertEquals(20, periodTypes.size());
     JsonPeriodType periodType = periodTypes.get(0);
     assertNotNull(periodType.getName());
     assertNotNull(periodType.getIsoFormat());

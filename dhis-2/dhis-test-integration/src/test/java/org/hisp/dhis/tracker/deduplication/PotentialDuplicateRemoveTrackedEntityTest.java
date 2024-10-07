@@ -48,10 +48,9 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,8 +59,6 @@ import org.springframework.transaction.annotation.Transactional;
 class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackerObjectDeletionService trackerObjectDeletionService;
-
-  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private RelationshipTypeService relationshipTypeService;
 
@@ -84,9 +81,9 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
     TrackedEntity trackedEntity = createTrackedEntity(trackedEntityAttribute);
-    assertNotNull(trackedEntityService.getTrackedEntity(trackedEntity.getUid()));
+    assertNotNull(manager.get(TrackedEntity.class, trackedEntity.getUid()));
     removeTrackedEntity(trackedEntity);
-    assertNull(trackedEntityService.getTrackedEntity(trackedEntity.getUid()));
+    assertNull(manager.get(TrackedEntity.class, trackedEntity.getUid()));
   }
 
   @Test
@@ -97,9 +94,9 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     trackedEntity
         .getTrackedEntityAttributeValues()
         .forEach(trackedEntityAttributeValueService::addTrackedEntityAttributeValue);
-    assertNotNull(trackedEntityService.getTrackedEntity(trackedEntity.getUid()));
+    assertNotNull(manager.get(TrackedEntity.class, trackedEntity.getUid()));
     removeTrackedEntity(trackedEntity);
-    assertNull(trackedEntityService.getTrackedEntity(trackedEntity.getUid()));
+    assertNull(manager.get(TrackedEntity.class, trackedEntity.getUid()));
     assertNull(
         trackedEntityAttributeValueService.getTrackedEntityAttributeValue(
             trackedEntity, trackedEntityAttribute));
@@ -129,10 +126,10 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     manager.save(relationship3);
     manager.save(relationship4);
     manager.save(relationship5);
-    assertNotNull(trackedEntityService.getTrackedEntity(original.getUid()));
-    assertNotNull(trackedEntityService.getTrackedEntity(duplicate.getUid()));
-    assertNotNull(trackedEntityService.getTrackedEntity(control1.getUid()));
-    assertNotNull(trackedEntityService.getTrackedEntity(control2.getUid()));
+    assertNotNull(manager.get(TrackedEntity.class, original.getUid()));
+    assertNotNull(manager.get(TrackedEntity.class, duplicate.getUid()));
+    assertNotNull(manager.get(TrackedEntity.class, control1.getUid()));
+    assertNotNull(manager.get(TrackedEntity.class, control2.getUid()));
     dbmsManager.clearSession();
     removeTrackedEntity(duplicate);
     assertNull(getRelationship(relationship3.getUid()));
@@ -140,7 +137,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     assertNotNull(getRelationship(relationship1.getUid()));
     assertNotNull(getRelationship(relationship2.getUid()));
     assertNotNull(getRelationship(relationship5.getUid()));
-    assertNull(trackedEntityService.getTrackedEntity(duplicate.getUid()));
+    assertNull(manager.get(TrackedEntity.class, duplicate.getUid()));
   }
 
   @Test
@@ -173,17 +170,17 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     manager.update(duplicate);
     manager.update(control1);
     manager.update(control2);
-    assertNotNull(trackedEntityService.getTrackedEntity(original.getUid()));
-    assertNotNull(trackedEntityService.getTrackedEntity(duplicate.getUid()));
-    assertNotNull(trackedEntityService.getTrackedEntity(control1.getUid()));
-    assertNotNull(trackedEntityService.getTrackedEntity(control2.getUid()));
+    assertNotNull(manager.get(TrackedEntity.class, original.getUid()));
+    assertNotNull(manager.get(TrackedEntity.class, duplicate.getUid()));
+    assertNotNull(manager.get(TrackedEntity.class, control1.getUid()));
+    assertNotNull(manager.get(TrackedEntity.class, control2.getUid()));
     removeTrackedEntity(duplicate);
     assertThrows(
         NotFoundException.class, () -> enrollmentService.getEnrollment(enrollment2.getUid()));
     assertNotNull(enrollmentService.getEnrollment(enrollment1.getUid()));
     assertNotNull(enrollmentService.getEnrollment(enrollment3.getUid()));
     assertNotNull(enrollmentService.getEnrollment(enrollment4.getUid()));
-    assertNull(trackedEntityService.getTrackedEntity(duplicate.getUid()));
+    assertNull(manager.get(TrackedEntity.class, duplicate.getUid()));
   }
 
   private TrackedEntity createTrackedEntity(TrackedEntityAttribute trackedEntityAttribute) {

@@ -44,12 +44,14 @@ import org.hisp.dhis.test.webapi.json.domain.JsonOrganisationUnit;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.organisationunit.OrganisationUnit} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
   private String ou0, ou1, ou21, ou22;
 
@@ -199,6 +201,14 @@ class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetLevel() {
     assertListOfOrganisationUnits(GET("/organisationUnits?level=3").content(), "L21", "L22", "L2x");
+  }
+
+  @Test
+  void testGetLevelAndQuery() {
+    // just to show what the result without level filter looks like
+    assertListOfOrganisationUnits(GET("/organisationUnits?query=x").content(), "L1x", "L2x", "L3x");
+    // now the filter of level and query combined only L2x matches x and level 3
+    assertListOfOrganisationUnits(GET("/organisationUnits?level=3&query=x").content(), "L2x");
   }
 
   @Test

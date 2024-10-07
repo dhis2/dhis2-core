@@ -160,6 +160,8 @@ public class DateUtils {
 
   private static final long MS_PER_S = 1000;
 
+  public static final long SECONDS_PER_DAY = 86400;
+
   private static final Pattern DURATION_PATTERN = Pattern.compile("^(\\d+)(d|h|m|s)$");
 
   private static final Map<String, ChronoUnit> TEMPORAL_MAP =
@@ -637,11 +639,11 @@ public class DateUtils {
    * @param date the date.
    * @param days the number of days to add.
    */
-  public static Date addDays(Date date, int days) {
-    Calendar cal = Calendar.getInstance();
-    cal.setTime(date);
-    cal.add(Calendar.DATE, days);
-    return cal.getTime();
+  public static Date addDays(Date date, double days) {
+    final long millisPerDay = SECONDS_PER_DAY * 1000;
+    long currentTimeInMillis = date.getTime();
+    long additionalMillis = (long) (days * millisPerDay);
+    return new Date(currentTimeInMillis + additionalMillis);
   }
 
   /**

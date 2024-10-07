@@ -46,17 +46,16 @@ import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class ProgramNotificationInstanceControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private ProgramNotificationInstanceService programNotificationInstanceService;
-
-  @Autowired private TrackedEntityService trackedEntityService;
 
   private Enrollment enrollment;
 

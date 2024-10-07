@@ -27,16 +27,8 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.security.Authorities.F_UNCOMPLETE_EVENT;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1083;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.EVENT_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
 import java.util.Map;
 import javax.annotation.Nonnull;
@@ -53,7 +45,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
@@ -61,8 +53,6 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -86,11 +76,6 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       Reporter reporter, TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event) {
     TrackerImportStrategy strategy = bundle.getStrategy(event);
     TrackerPreheat preheat = bundle.getPreheat();
-    User user = bundle.getUser();
-
-    checkNotNull(user, USER_CANT_BE_NULL);
-    checkNotNull(event, EVENT_CANT_BE_NULL);
-
     Event preheatEvent = bundle.getPreheat().getEvent(event.getEvent());
 
     ProgramStage programStage = bundle.getPreheat().getProgramStage(event.getProgramStage());
@@ -104,7 +89,6 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     if (strategy.isUpdateOrDelete()) {
       organisationUnit = preheatEvent.getOrganisationUnit();
     } else {
-      checkNotNull(event.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL);
       organisationUnit = bundle.getPreheat().getOrganisationUnit(event.getOrgUnit());
     }
 
@@ -114,7 +98,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       if (organisationUnit == null) {
         log.warn(ORG_UNIT_NO_USER_ASSIGNED, event.getUid());
       } else {
-        checkOrgUnitInCaptureScope(reporter, bundle, event, organisationUnit);
+        checkOrgUnitInCaptureScope(reporter, event, organisationUnit, bundle.getUser());
       }
     }
 
@@ -132,13 +116,13 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
           event,
           preheatEvent,
           trackedEntity == null ? null : trackedEntity.getUid(),
-          ownerOrgUnit);
+          ownerOrgUnit,
+          bundle.getUser());
     } else {
       validateCreateEvent(
           reporter,
           bundle,
           event,
-          user,
           categoryOptionCombo,
           programStage,
           teUid,
@@ -153,7 +137,6 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       Reporter reporter,
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.Event event,
-      User actingUser,
       CategoryOptionCombo categoryOptionCombo,
       ProgramStage programStage,
       String teUid,
@@ -161,10 +144,6 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       OrganisationUnit ownerOrgUnit,
       Program program,
       boolean isCreatableInSearchScope) {
-    checkNotNull(organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL);
-    checkNotNull(actingUser, USER_CANT_BE_NULL);
-    checkNotNull(program, PROGRAM_CANT_BE_NULL);
-
     boolean noProgramStageAndProgramIsWithoutReg =
         programStage == null && program.isWithoutRegistration();
 
@@ -190,13 +169,9 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       org.hisp.dhis.tracker.imports.domain.Event event,
       Event preheatEvent,
       String teUid,
-      OrganisationUnit ownerOrgUnit) {
+      OrganisationUnit ownerOrgUnit,
+      UserDetails user) {
     TrackerImportStrategy strategy = bundle.getStrategy(event);
-    User user = bundle.getUser();
-
-    checkNotNull(user, USER_CANT_BE_NULL);
-    checkNotNull(preheatEvent, EVENT_CANT_BE_NULL);
-    checkNotNull(event, EVENT_CANT_BE_NULL);
 
     checkEventWriteAccess(
         reporter,
@@ -252,12 +227,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
   }
 
   private void checkOrgUnitInCaptureScope(
-      Reporter reporter, TrackerBundle bundle, TrackerDto dto, OrganisationUnit orgUnit) {
-    UserDetails user = UserDetails.fromUser(bundle.getUser());
-
-    checkNotNull(user, USER_CANT_BE_NULL);
-    checkNotNull(orgUnit, ORGANISATION_UNIT_CANT_BE_NULL);
-
+      Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit, UserDetails user) {
     if (!user.isInUserHierarchy(orgUnit.getPath())) {
       reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
     }
@@ -266,15 +236,10 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
   private void checkTeTypeAndTeProgramAccess(
       Reporter reporter,
       TrackerDto dto,
-      UserDetails user,
       String trackedEntity,
       OrganisationUnit ownerOrganisationUnit,
-      Program program) {
-    checkNotNull(user, USER_CANT_BE_NULL);
-    checkNotNull(program, PROGRAM_CANT_BE_NULL);
-    checkNotNull(program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL);
-    checkNotNull(trackedEntity, TRACKED_ENTITY_CANT_BE_NULL);
-
+      Program program,
+      UserDetails user) {
     if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
       reporter.addError(dto, ValidationCode.E1104, user, program, program.getTrackedEntityType());
     }
@@ -295,30 +260,31 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       CategoryOptionCombo categoryOptionCombo,
       String trackedEntity,
       boolean isCreatableInSearchScope) {
-    UserDetails user = UserDetails.fromUser(bundle.getUser());
-
-    checkNotNull(user, USER_CANT_BE_NULL);
-    checkNotNull(programStage, PROGRAM_STAGE_CANT_BE_NULL);
-    checkNotNull(programStage.getProgram(), PROGRAM_CANT_BE_NULL);
 
     if (bundle.getStrategy(event) != TrackerImportStrategy.UPDATE) {
-      checkEventOrgUnitWriteAccess(reporter, event, eventOrgUnit, isCreatableInSearchScope, user);
+      checkEventOrgUnitWriteAccess(
+          reporter, event, eventOrgUnit, isCreatableInSearchScope, bundle.getUser());
     }
 
     if (programStage.getProgram().isWithoutRegistration()) {
-      checkProgramWriteAccess(reporter, event, user, programStage.getProgram());
+      checkProgramWriteAccess(reporter, event, programStage.getProgram(), bundle.getUser());
     } else {
-      checkProgramStageWriteAccess(reporter, event, user, programStage);
+      checkProgramStageWriteAccess(reporter, event, programStage, bundle.getUser());
       final Program program = programStage.getProgram();
 
-      checkProgramReadAccess(reporter, event, user, program);
+      checkProgramReadAccess(reporter, event, program, bundle.getUser());
 
       checkTeTypeAndTeProgramAccess(
-          reporter, event, user, trackedEntity, ownerOrgUnit, programStage.getProgram());
+          reporter,
+          event,
+          trackedEntity,
+          ownerOrgUnit,
+          programStage.getProgram(),
+          bundle.getUser());
     }
 
     if (categoryOptionCombo != null) {
-      checkWriteCategoryOptionComboAccess(reporter, user, event, categoryOptionCombo);
+      checkWriteCategoryOptionComboAccess(reporter, event, categoryOptionCombo, bundle.getUser());
     }
   }
 
@@ -338,30 +304,21 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
   }
 
   private void checkProgramReadAccess(
-      Reporter reporter, TrackerDto dto, UserDetails user, Program program) {
-    checkNotNull(user, USER_CANT_BE_NULL);
-    checkNotNull(program, PROGRAM_CANT_BE_NULL);
-
+      Reporter reporter, TrackerDto dto, Program program, UserDetails user) {
     if (!aclService.canDataRead(user, program)) {
       reporter.addError(dto, ValidationCode.E1096, user, program);
     }
   }
 
   private void checkProgramStageWriteAccess(
-      Reporter reporter, TrackerDto dto, UserDetails user, ProgramStage programStage) {
-    checkNotNull(user, USER_CANT_BE_NULL);
-    checkNotNull(programStage, PROGRAM_STAGE_CANT_BE_NULL);
-
+      Reporter reporter, TrackerDto dto, ProgramStage programStage, UserDetails user) {
     if (!aclService.canDataWrite(user, programStage)) {
       reporter.addError(dto, ValidationCode.E1095, user, programStage);
     }
   }
 
   private void checkProgramWriteAccess(
-      Reporter reporter, TrackerDto dto, UserDetails user, Program program) {
-    checkNotNull(user, USER_CANT_BE_NULL);
-    checkNotNull(program, PROGRAM_CANT_BE_NULL);
-
+      Reporter reporter, TrackerDto dto, Program program, UserDetails user) {
     if (!aclService.canDataWrite(user, program)) {
       reporter.addError(dto, ValidationCode.E1091, user, program);
     }
@@ -369,13 +326,9 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
 
   public void checkWriteCategoryOptionComboAccess(
       Reporter reporter,
-      UserDetails user,
       TrackerDto dto,
-      CategoryOptionCombo categoryOptionCombo) {
-    checkNotNull(user, USER_CANT_BE_NULL);
-    checkNotNull(
-        categoryOptionCombo, TrackerImporterAssertErrors.CATEGORY_OPTION_COMBO_CANT_BE_NULL);
-
+      CategoryOptionCombo categoryOptionCombo,
+      UserDetails user) {
     for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
       if (!aclService.canDataWrite(user, categoryOption)) {
         reporter.addError(dto, ValidationCode.E1099, user, categoryOption);

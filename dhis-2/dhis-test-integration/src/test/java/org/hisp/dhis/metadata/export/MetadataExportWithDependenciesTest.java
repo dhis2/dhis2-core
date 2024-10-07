@@ -31,8 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Map;
 import java.util.Set;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.program.Program;
@@ -48,7 +46,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class MetadataExportWithDependenciesTest extends PostgresIntegrationTestBase {
 
-  @PersistenceContext private EntityManager entityManager;
   @Autowired private MetadataExportService metadataExportService;
 
   @Test

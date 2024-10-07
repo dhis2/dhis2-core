@@ -23,7 +23,7 @@ pipeline {
         DHIS2_VERSION = readMavenPom(file: 'dhis-2/pom.xml').getVersion()
         DOCKER_IMAGE_NAME = "${DOCKER_HUB_OWNER}/core-dev"
         DOCKER_IMAGE_TAG = "${env.GIT_BRANCH}"
-        DOCKER_IMAGE_NAME_PUBLISH_SOURCE = "tomcat:9.0-jre17"
+        DOCKER_IMAGE_NAME_PUBLISH_SOURCE = "tomcat:10.0-jre17"
     }
 
     stages {
@@ -37,7 +37,7 @@ pipeline {
                     gitHelper.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
 
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
-                        sh 'mvn -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml -P -default --update-snapshots -pl -dhis-test-coverage'
+                        sh 'mvn --threads 4 --batch-mode --no-transfer-progress clean install --file dhis-2/pom.xml --activate-profiles -default --update-snapshots'
                     }
                 }
             }
@@ -61,7 +61,7 @@ pipeline {
                 axes {
                     axis {
                         name 'DOCKER_IMAGE_TAG_BASE'
-                        values '9.0-jre17', '8.5-jre17'
+                        values '10.0-jre17'
                     }
                 }
 
@@ -75,8 +75,8 @@ pipeline {
                         steps {
                             withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
                                 withMaven(options: [artifactsPublisher(disabled: true)]) {
-                                    sh "mvn --batch-mode --no-transfer-progress -DactiveProfile=PjibBuild -DskipTests -Dmaven.test.skip=true \
-                                            -f dhis-2/dhis-web-server/pom.xml jib:build -PjibBuild \
+                                    sh "mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true \
+                                            --file dhis-2/dhis-web-server/pom.xml --activate-profiles jibBuild jib:build \
                                             -Djib.from.image=${DOCKER_IMAGE_NAME_BASE_FULL} -Djib.to.image=${DOCKER_IMAGE_NAME_FULL} \
                                             -Djib.container.labels=DHIS2_VERSION=${DHIS2_VERSION},DHIS2_BUILD_REVISION=${GIT_COMMIT},DHIS2_BUILD_BRANCH=${env.GIT_BRANCH}"
                                 }

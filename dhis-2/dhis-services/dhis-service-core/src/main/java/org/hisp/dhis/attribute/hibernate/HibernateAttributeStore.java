@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.attribute.hibernate;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeStore;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;

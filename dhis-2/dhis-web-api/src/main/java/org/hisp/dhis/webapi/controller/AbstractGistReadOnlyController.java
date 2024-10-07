@@ -34,13 +34,13 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Locale;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.Value;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -84,7 +84,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Maturity.Stable
 @OpenApi.EntityType(OpenApi.EntityType.class)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@OpenApi.Document(group = OpenApi.Document.Group.QUERY)
+@OpenApi.Document(group = OpenApi.Document.GROUP_QUERY)
 public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject> {
   @Autowired protected ObjectMapper jsonMapper;
 

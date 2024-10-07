@@ -35,7 +35,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PagerUtils;
@@ -211,8 +210,7 @@ public class InMemoryQueryEngine<T extends IdentifiableObject> implements QueryE
 
       if (property == null) {
         if (i == paths.length - 1 && filter.isAttribute()) {
-          AttributeValue attr = ((BaseIdentifiableObject) object).getAttributeValue(paths[i]);
-          return attr == null ? null : attr.getValue();
+          return ((BaseIdentifiableObject) object).getAttributeValues().get(paths[i]);
         }
         throw new QueryException("No property found for path " + path);
       }

@@ -120,7 +120,9 @@ public class BaseDimensionalItemObject extends BaseNameableObject implements Dim
 
   @Override
   public TotalAggregationType getTotalAggregationType() {
-    return TotalAggregationType.SUM;
+    return getAggregationType() == AggregationType.NONE
+        ? TotalAggregationType.NONE
+        : TotalAggregationType.SUM;
   }
 
   // -------------------------------------------------------------------------
