@@ -66,8 +66,6 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
 
   protected abstract boolean handlesType(SubmissionType type);
 
-  protected final UserService userService;
-
   protected final IdentifiableObjectManager manager;
 
   public CompressionSMSListener(
@@ -76,7 +74,6 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
       UserService userService,
       IdentifiableObjectManager manager) {
     super(incomingSmsService, smsSender);
-    this.userService = userService;
     this.manager = manager;
   }
 
