@@ -359,6 +359,11 @@ public final class AnalyticsUtils {
     for (Entry<String, T> entry : valueMap.entrySet()) {
       List<String> items =
           Lists.newArrayList(entry.getKey().split(DimensionalObject.DIMENSION_SEP));
+      if(items.size() < totalType.getPropertyCount() +1) {
+        map.put(entry.getKey(), entry.getValue());
+        continue;
+      }
+
       List<String> operands =
           Lists.newArrayList(items.subList(0, totalType.getPropertyCount() + 1));
       List<String> dimensions =
