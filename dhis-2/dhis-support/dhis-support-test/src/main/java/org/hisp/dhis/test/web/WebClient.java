@@ -157,7 +157,11 @@ public interface WebClient {
 
   default HttpResponse PATCH(String url, Path body) {
     return callAndFailOnException(
-        () -> PATCH(url, Body(fileContent(body.toString())), ContentType(body)));
+        () ->
+            PATCH(
+                url,
+                Body(fileContent(body.toString())),
+                ContentType("application/json-patch+json")));
   }
 
   default HttpResponse PATCH(String url, @Language("json5") String body) {

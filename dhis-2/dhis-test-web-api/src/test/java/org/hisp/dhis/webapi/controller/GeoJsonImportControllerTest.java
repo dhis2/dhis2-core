@@ -245,7 +245,7 @@ class GeoJsonImportControllerTest extends H2ControllerIntegrationTestBase {
             200,
             "ERROR",
             "Import failed.",
-            POST("/organisationUnits/geometry", Path.of("not-valid-geojson"))
+            POST("/organisationUnits/geometry", "{'is':'not-valid-geojson'}")
                 .content(HttpStatus.OK));
     assertReportError(msg, ErrorCode.E7701, List.of());
   }
