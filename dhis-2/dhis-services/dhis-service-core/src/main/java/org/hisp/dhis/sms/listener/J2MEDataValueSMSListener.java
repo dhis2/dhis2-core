@@ -296,10 +296,7 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
       reportBack += notInReport;
     }
 
-    if (command.getSuccessMessage() != null && !StringUtils.isEmpty(command.getSuccessMessage())) {
-      reportBack = command.getSuccessMessage();
-    }
-
+    reportBack = command.getSuccessMessage();
     smsMessageSender.sendMessage(null, reportBack, sender);
   }
 

@@ -36,7 +36,6 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -189,10 +188,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
 
     if (Status.OK == importReport.getStatus()) {
       update(sms, SmsMessageStatus.PROCESSED, true);
-      sendFeedback(
-          StringUtils.defaultIfEmpty(smsCommand.getSuccessMessage(), SMSCommand.SUCCESS_MESSAGE),
-          sms.getOriginator(),
-          INFO);
+      sendFeedback(smsCommand.getSuccessMessage(), sms.getOriginator(), INFO);
       return;
     }
 

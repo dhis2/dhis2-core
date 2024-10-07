@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -101,10 +100,7 @@ public class SingleEventListener extends CommandSMSListener {
 
     if (Status.OK == importReport.getStatus()) {
       update(sms, SmsMessageStatus.PROCESSED, true);
-      sendFeedback(
-          StringUtils.defaultIfEmpty(smsCommand.getSuccessMessage(), SMSCommand.SUCCESS_MESSAGE),
-          sms.getOriginator(),
-          INFO);
+      sendFeedback(smsCommand.getSuccessMessage(), sms.getOriginator(), INFO);
       return;
     }
 

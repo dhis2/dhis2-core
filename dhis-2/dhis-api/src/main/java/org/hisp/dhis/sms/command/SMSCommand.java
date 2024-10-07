@@ -35,6 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import java.util.HashSet;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -247,7 +248,7 @@ public class SMSCommand extends BaseIdentifiableObject implements MetadataObject
 
   @JsonProperty
   @JacksonXmlProperty
-  public String getSuccessMessage() {
+  public @Nonnull String getSuccessMessage() {
     return successMessage != null ? successMessage : SUCCESS_MESSAGE;
   }
 

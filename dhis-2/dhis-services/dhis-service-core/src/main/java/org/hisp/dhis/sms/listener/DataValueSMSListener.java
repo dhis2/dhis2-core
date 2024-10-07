@@ -458,8 +458,7 @@ public class DataValueSMSListener extends CommandSMSListener {
     notInReport = notInReport.substring(0, notInReport.length() - 1);
 
     if (smsMessageSender.isConfigured()) {
-      if (command.getSuccessMessage() != null
-          && !StringUtils.isEmpty(command.getSuccessMessage())) {
+      if (command.getSuccessMessage() != null) {
         smsMessageSender.sendMessage(null, command.getSuccessMessage(), sender);
       } else {
         smsMessageSender.sendMessage(null, reportBack, sender);
