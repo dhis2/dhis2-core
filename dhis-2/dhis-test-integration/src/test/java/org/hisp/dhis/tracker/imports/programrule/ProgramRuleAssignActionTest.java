@@ -54,8 +54,7 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -81,7 +80,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
 
   @Autowired private ProgramRuleVariableService programRuleVariableService;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService settingsService;
 
   private Program program;
 
@@ -253,7 +252,8 @@ class ProgramRuleAssignActionTest extends TrackerTest {
       shouldImportWithWarningWhenDataElementWithDifferentValueIsAssignedByAssignRuleAndOverwriteKeyIsTrue()
           throws IOException {
     assignProgramRule();
-    systemSettingManager.saveSystemSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE, true);
+    settingsService.put("ruleEngineAssignOverwrite", true);
+    settingsService.clearCurrentSettings();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
         fromJson("tracker/programrule/event_update_datavalue_different_value.json");
@@ -269,7 +269,8 @@ class ProgramRuleAssignActionTest extends TrackerTest {
       shouldImportWithWarningWhenDataElementWithDifferentAndEmptyValueIsAssignedByAssignRuleAndOverwriteKeyIsTrue()
           throws IOException {
     assignProgramRule();
-    systemSettingManager.saveSystemSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE, true);
+    settingsService.put("ruleEngineAssignOverwrite", true);
+    settingsService.clearCurrentSettings();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
         fromJson("tracker/programrule/event_update_datavalue_empty_value.json");

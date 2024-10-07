@@ -27,31 +27,59 @@
  */
 package org.hisp.dhis.setting.hibernate;
 
+import static java.util.stream.Collectors.toMap;
+
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import org.hisp.dhis.hibernate.HibernateGenericStore;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.HibernateNativeStore;
 import org.hisp.dhis.setting.SystemSetting;
 import org.hisp.dhis.setting.SystemSettingStore;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
- * @author Lars Helge Overland
+ * @author Jan Bernitt (refactored version)
  */
-@Repository("org.hisp.dhis.setting.SystemSettingStore")
-public class HibernateSystemSettingStore extends HibernateGenericStore<SystemSetting>
+@Repository
+public class HibernateSystemSettingStore extends HibernateNativeStore<SystemSetting>
     implements SystemSettingStore {
-  public HibernateSystemSettingStore(
-      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
-    super(entityManager, jdbcTemplate, publisher, SystemSetting.class, true);
+
+  public HibernateSystemSettingStore(EntityManager em) {
+    super(em, SystemSetting.class);
+  }
+
+  @Nonnull
+  @Override
+  @SuppressWarnings("unchecked")
+  public Map<String, String> getAll() {
+    String sql = "select name, value from systemsetting";
+    Stream<Object[]> res = nativeSynchronizedQuery(sql).stream();
+    return res.collect(toMap(row -> (String) row[0], row -> (String) row[1]));
   }
 
   @Override
-  public SystemSetting getByName(String name) {
-    CriteriaBuilder builder = getCriteriaBuilder();
+  public void put(@Nonnull String key, @Nonnull String value) {
+    String sql = "update systemsetting set value = :value where name = :key";
+    int updated =
+        nativeSynchronizedQuery(sql)
+            .setParameter("key", key)
+            .setParameter("value", value)
+            .executeUpdate();
+    if (updated > 0) return;
+    sql =
+        "insert into systemsetting (systemsettingid, name, value) (select nextval('hibernate_sequence'), :key, :value)";
+    nativeSynchronizedQuery(sql)
+        .setParameter("key", key)
+        .setParameter("value", value)
+        .executeUpdate();
+  }
 
-    return getSingleResult(
-        builder, newJpaParameters().addPredicate(root -> builder.equal(root.get("name"), name)));
+  @Override
+  public int delete(@Nonnull Set<String> keys) {
+    if (keys.isEmpty()) return 0;
+    String sql = "delete from systemsetting where name in :keys";
+    return nativeSynchronizedQuery(sql).setParameterList("keys", keys).executeUpdate();
   }
 }

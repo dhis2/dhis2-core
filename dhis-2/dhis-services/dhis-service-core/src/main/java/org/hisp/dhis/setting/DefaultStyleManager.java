@@ -27,71 +27,68 @@
  */
 package org.hisp.dhis.setting;
 
-import com.google.common.collect.Lists;
+import static java.util.Map.entry;
+
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
+import java.util.TreeMap;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
-import org.hisp.dhis.util.ObjectUtils;
+import org.hisp.dhis.user.UserSettingsService;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
+@Component
 @RequiredArgsConstructor
 public class DefaultStyleManager implements StyleManager {
-  private static final String SEPARATOR = "/";
 
+  private static final String SEPARATOR = "/";
   private static final String SYSTEM_SEPARATOR = File.separator;
 
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
-  private final SystemSettingManager systemSettingManager;
-
-  private final UserSettingService userSettingService;
+  private final SystemSettingsService settingsService;
+  private final UserSettingsService userSettingsService;
+  private final I18nManager i18nManager;
 
   /**
    * Map for styles. The key refers to the user setting key and the value refers to the path to the
    * CSS file of the style relative to /dhis-web-commons/.
    */
-  private final SortedMap<String, String> styles;
-
-  private final I18nManager i18nManager;
-
-  // -------------------------------------------------------------------------
-  // StyleManager implementation
-  // -------------------------------------------------------------------------
+  private final SortedMap<String, String> styles =
+      new TreeMap<>(
+          Map.ofEntries(
+              entry("light_blue", "light_blue/light_blue.css"),
+              entry("green", "green/green.css"),
+              entry("myanmar", "myanmar/myanmar.css"),
+              entry("vietnam", "vietnam/vietnam.css"),
+              entry("india", "india/india.css")));
 
   @Override
   public void setSystemStyle(String style) {
-    systemSettingManager.saveSystemSetting(SettingKey.STYLE, style);
+    settingsService.put("keyStyle", style);
   }
 
   @Override
   public void setUserStyle(String style) {
-    userSettingService.saveUserSetting(UserSettingKey.STYLE, style);
+    userSettingsService.put("keyStyle", style);
   }
 
   @Override
   public String getCurrentStyle() {
-    if (CurrentUserUtil.hasCurrentUser()) {
-      String style = (String) userSettingService.getUserSetting(UserSettingKey.STYLE);
-      return ObjectUtils.firstNonNull(style, getSystemStyle());
-    } else {
-      return getSystemStyle();
-    }
+    if (CurrentUserUtil.hasCurrentUser()) return UserSettings.getCurrentSettings().getUserStyle();
+    return getSystemStyle();
   }
 
   @Override
   public String getSystemStyle() {
-    return systemSettingManager.getStringSetting(SettingKey.STYLE);
+    return settingsService.getCurrentSettings().getStyle();
   }
 
   @Override
@@ -113,7 +110,7 @@ public class DefaultStyleManager implements StyleManager {
   public List<StyleObject> getStyles() {
     I18n i18n = i18nManager.getI18n();
 
-    List<StyleObject> list = Lists.newArrayList();
+    List<StyleObject> list = new ArrayList<>();
 
     for (Entry<String, String> entry : styles.entrySet()) {
       String name = i18n.getString(entry.getKey());

@@ -27,36 +27,32 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+import static org.hisp.dhis.util.JsonValueUtils.toJavaString;
+import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 
-import com.google.common.collect.Sets;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
-import org.hisp.dhis.util.ObjectUtils;
+import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -66,6 +62,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -75,70 +72,43 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/userSettings")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-public class UserSettingController {
-  @Autowired private UserSettingService userSettingService;
+@RequiredArgsConstructor
+public class UserSettingsController {
 
-  @Autowired private UserService userService;
-
-  private static final Set<UserSettingKey> USER_SETTING_KEYS =
-      Sets.newHashSet(UserSettingKey.values()).stream().collect(Collectors.toSet());
-
-  // -------------------------------------------------------------------------
-  // Resources
-  // -------------------------------------------------------------------------
+  private final UserSettingsService userSettingsService;
+  private final UserService userService;
 
   @GetMapping
-  public Map<String, Serializable> getAllUserSettings(
+  public @ResponseBody UserSettings getAllUserSettings(
       @RequestParam(required = false, defaultValue = "true") boolean useFallback,
       @RequestParam(value = "user", required = false) String username,
       @OpenApi.Param({UID.class, User.class}) @RequestParam(value = "userId", required = false)
           String userId,
-      @RequestParam(value = "key", required = false) Set<String> keys,
       HttpServletResponse response)
-      throws WebMessageException {
-    User user = getUser(userId, username);
+      throws ForbiddenException, NotFoundException {
 
     response.setHeader(
         ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue());
 
-    if (keys == null) {
-      return userSettingService.getUserSettingsWithFallbackByUserAsMap(
-          user, USER_SETTING_KEYS, useFallback);
-    }
-
-    Map<String, Serializable> result = new HashMap<>();
-
-    for (String key : keys) {
-      UserSettingKey userSettingKey = getUserSettingKey(key);
-      result.put(userSettingKey.getName(), userSettingService.getUserSetting(userSettingKey));
-    }
-
-    return result;
+    return getUserSettings(userId, username, useFallback);
   }
 
-  @OpenApi.Response(Serializable.class)
   @GetMapping(value = "/{key}")
-  public void getUserSettingByKey(
+  public @ResponseBody String getUserSettingByKey(
       @PathVariable(value = "key") String key,
       @RequestParam(required = false, defaultValue = "true") boolean useFallback,
       @RequestParam(value = "user", required = false) String username,
       @OpenApi.Param({UID.class, User.class}) @RequestParam(value = "userId", required = false)
           String userId,
       HttpServletResponse response)
-      throws WebMessageException, IOException {
-    UserSettingKey userSettingKey = getUserSettingKey(key);
-    User user = getUser(userId, username);
-
-    Serializable value =
-        userSettingService
-            .getUserSettingsWithFallbackByUserAsMap(
-                user, Sets.newHashSet(userSettingKey), useFallback)
-            .get(key);
+      throws ForbiddenException, ConflictException, NotFoundException {
 
     response.setHeader(
         ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue());
     response.setHeader(HttpHeaders.CONTENT_TYPE, ContextUtils.CONTENT_TYPE_TEXT);
-    response.getWriter().print(value);
+
+    UserSettings settings = getUserSettings(userId, username, useFallback);
+    return toJavaString(settings.toJson(false, Set.of(key)).get(key));
   }
 
   @PostMapping(value = "/{key}")
@@ -149,18 +119,14 @@ public class UserSettingController {
           String userId,
       @RequestParam(required = false) String value,
       @RequestBody(required = false) String valuePayload)
-      throws WebMessageException {
-    UserSettingKey userSettingKey = getUserSettingKey(key);
-    User user = getUser(userId, username);
+      throws ForbiddenException, ConflictException, NotFoundException {
 
-    String newValue = ObjectUtils.firstNonNull(value, valuePayload);
+    String newValue = firstNonNull(value, valuePayload);
 
-    if (StringUtils.isEmpty(newValue)) {
-      throw new WebMessageException(conflict("You need to specify a new value"));
-    }
+    if (isEmpty(newValue)) throw new ConflictException("You need to specify a new value");
 
-    userSettingService.saveUserSetting(
-        userSettingKey, UserSettingKey.getAsRealClass(key, newValue), user);
+    if (username == null) username = getUsername(userId);
+    userSettingsService.put(key, newValue, username);
 
     return ok("User setting saved");
   }
@@ -171,28 +137,9 @@ public class UserSettingController {
       @RequestParam(value = "user", required = false) String username,
       @OpenApi.Param({UID.class, User.class}) @RequestParam(value = "userId", required = false)
           String userId)
-      throws WebMessageException {
-    UserSettingKey userSettingKey = getUserSettingKey(key);
-    User user = getUser(userId, username);
-
-    userSettingService.deleteUserSetting(userSettingKey, user.getUsername());
-  }
-
-  /**
-   * Attempts to resolve the UserSettingKey based on the name (key) supplied
-   *
-   * @param key the name of a UserSettingKey
-   * @return the UserSettingKey
-   * @throws WebMessageException throws an exception if no UserSettingKey was found
-   */
-  private UserSettingKey getUserSettingKey(String key) throws WebMessageException {
-    Optional<UserSettingKey> userSettingKey = UserSettingKey.getByName(key);
-
-    if (!userSettingKey.isPresent()) {
-      throw new WebMessageException(notFound("No user setting found with key: " + key));
-    }
-
-    return userSettingKey.get();
+      throws ForbiddenException, NotFoundException {
+    if (username == null) username = getUsername(userId);
+    userSettingsService.put(key, null, username);
   }
 
   /**
@@ -201,39 +148,28 @@ public class UserSettingController {
    * the user.
    *
    * @param uid the user uid
-   * @param username the user username
-   * @return the user found with uid or username, or current user if no uid or username was
-   *     specified
-   * @throws WebMessageException throws an exception if user was not found, or current user don't
-   *     have access
+   * @return the username
    */
-  private User getUser(String uid, String username) throws WebMessageException {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    User user;
+  private String getUsername(String uid) throws ForbiddenException, NotFoundException {
+    if (uid == null) return CurrentUserUtil.getCurrentUsername();
 
-    if (uid == null && username == null) {
-      return currentUser;
-    }
+    User user = userService.getUser(uid);
 
-    if (uid != null) {
-      user = userService.getUser(uid);
-    } else {
-      user = userService.getUserByUsername(username);
-    }
+    if (user == null) throw new NotFoundException(User.class, uid);
 
-    if (user == null) {
-      throw new WebMessageException(
-          conflict("Could not find user '" + ObjectUtils.firstNonNull(uid, username) + "'"));
-    } else {
-      Set<String> userGroups =
-          user.getGroups().stream().map(UserGroup::getUid).collect(Collectors.toSet());
+    Set<String> userGroups =
+        user.getGroups().stream().map(UserGroup::getUid).collect(Collectors.toSet());
 
-      if (!userService.canAddOrUpdateUser(userGroups) && !currentUser.canModifyUser(user)) {
-        throw new WebMessageException(
-            unauthorized("You are not authorized to access user: " + user.getUsername()));
-      }
-    }
+    UserDetails currentUser = getCurrentUserDetails();
+    if (!userService.canAddOrUpdateUser(userGroups) && !currentUser.canModifyUser(user))
+      throw new ForbiddenException("You are not authorized to access user: " + user.getUsername());
 
-    return user;
+    return user.getUsername();
+  }
+
+  private UserSettings getUserSettings(String userId, String username, boolean useFallback)
+      throws ForbiddenException, NotFoundException {
+    if (username == null) username = getUsername(userId);
+    return userSettingsService.getUserSettings(username, useFallback);
   }
 }

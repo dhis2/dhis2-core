@@ -60,8 +60,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterEach;
@@ -94,7 +93,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired protected DataSetService dataSetService;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService settingsService;
 
   @Autowired private TransactionTemplate transactionTemplate;
 
@@ -437,6 +436,9 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
     userB = makeUser("B");
     userService.addUser(userA);
     userService.addUser(userB);
+
+    settingsService.put("keyAcceptanceRequiredForApproval", false);
+    settingsService.clearCurrentSettings();
   }
 
   @AfterEach
@@ -3573,21 +3575,17 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
   // -------------------------------------------------------------------------
   @Test
   void testApprovalsWithCategories() {
+    settingsService.put("keyAcceptanceRequiredForApproval", true);
+    settingsService.clearCurrentSettings();
     Date date = new Date();
-    transactionTemplate.execute(
-        status -> {
-          systemSettingManager.saveSystemSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, true);
-          setUpCategories();
-          createUserAndInjectSecurityContext(
-              singleton(organisationUnitA),
-              false,
-              DataApproval.AUTH_APPROVE,
-              DataApproval.AUTH_APPROVE_LOWER_LEVELS,
-              DataApproval.AUTH_ACCEPT_LOWER_LEVELS,
-              AUTH_APPR_LEVEL);
-          dbmsManager.flushSession();
-          return null;
-        });
+    setUpCategories();
+    createUserAndInjectSecurityContext(
+        singleton(organisationUnitA),
+        false,
+        DataApproval.AUTH_APPROVE,
+        DataApproval.AUTH_APPROVE_LOWER_LEVELS,
+        DataApproval.AUTH_ACCEPT_LOWER_LEVELS,
+        AUTH_APPR_LEVEL);
     // Category A -> Options A,B,C,D
     // Category B -> Options E,F,G,H
     //
@@ -4107,15 +4105,11 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
             NOT_ACCEPTED,
             date,
             userA);
-    transactionTemplate.execute(
-        status -> {
-          systemSettingManager.saveSystemSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, true);
-          createUserAndInjectSecurityContext(singleton(organisationUnitA), false, AUTH_APPR_LEVEL);
-          dataApprovalStore.addDataApproval(dataApprovalA);
-          dataApprovalStore.addDataApproval(dataApprovalB);
-          dbmsManager.flushSession();
-          return null;
-        });
+    settingsService.put("keyAcceptanceRequiredForApproval", true);
+    settingsService.clearCurrentSettings();
+    createUserAndInjectSecurityContext(singleton(organisationUnitA), false, AUTH_APPR_LEVEL);
+    dataApprovalStore.addDataApproval(dataApprovalA);
+    dataApprovalStore.addDataApproval(dataApprovalB);
     DataApprovalStatus status =
         dataApprovalService.getDataApprovalStatus(
             workflow1234, periodA, organisationUnitA, defaultOptionCombo);

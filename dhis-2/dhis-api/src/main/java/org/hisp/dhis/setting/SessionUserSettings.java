@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,59 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.common;
+package org.hisp.dhis.setting;
 
-import java.util.Locale;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.OpenApi;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Manages the {@link UserSettings} per session.
+ *
+ * <p>This state is managed from the outside by a service as this is based on spring events that
+ * cannot be obtained statically.
+ *
+ * @author Jan Bernitt
+ * @since 2.42
  */
-@OpenApi.Shared
-public class TranslateParams {
-  private boolean translate = true;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class SessionUserSettings {
 
-  private String locale;
+  /** {@link UserSettings} for users with an active session */
+  private static final Map<String, UserSettings> SESSION_USER_SETTINGS_BY_USERNAME =
+      new ConcurrentHashMap<>();
 
-  public TranslateParams() {}
-
-  public TranslateParams(boolean translate) {
-    this.translate = translate;
+  public static void clear(@Nonnull String username) {
+    SESSION_USER_SETTINGS_BY_USERNAME.remove(username);
   }
 
-  public TranslateParams(boolean translate, String locale) {
-    this.translate = translate;
-    this.locale = locale;
-  }
-
-  public boolean isTranslate() {
-    return translate || !StringUtils.isEmpty(locale);
-  }
-
-  public void setTranslate(boolean translate) {
-    this.translate = translate;
-  }
-
-  public Locale getLocaleWithDefault(Locale defaultLocale) {
-    Locale locale = getLocale();
-    return locale != null ? locale : defaultLocale;
-  }
-
-  public Locale getLocale() {
-    try {
-      return Locale.forLanguageTag(locale);
-    } catch (Exception ignored) {
+  public static void put(@Nonnull String username, @CheckForNull UserSettings settings) {
+    if (settings == null) {
+      clear(username);
+    } else {
+      SESSION_USER_SETTINGS_BY_USERNAME.put(username, settings);
     }
-
-    return null;
   }
 
-  public void setLocale(String locale) {
-    this.locale = locale;
-  }
-
-  public boolean defaultLocale() {
-    return StringUtils.isEmpty(locale);
+  public static Optional<UserSettings> get(@Nonnull String username) {
+    UserSettings settings = SESSION_USER_SETTINGS_BY_USERNAME.get(username);
+    return settings == null ? Optional.empty() : Optional.of(settings);
   }
 }

@@ -49,8 +49,7 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.springframework.stereotype.Service;
 
@@ -58,7 +57,8 @@ import org.springframework.stereotype.Service;
 @Service("org.hisp.dhis.analytics.event.EventQueryValidator")
 @RequiredArgsConstructor
 public class DefaultEventQueryValidator implements EventQueryValidator {
-  private final SystemSettingManager systemSettingManager;
+
+  private final SystemSettingsProvider settingsProvider;
 
   // -------------------------------------------------------------------------
   // EventQueryValidator implementation
@@ -266,6 +266,6 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
 
   @Override
   public int getMaxLimit() {
-    return systemSettingManager.getIntSetting(SettingKey.ANALYTICS_MAX_LIMIT);
+    return settingsProvider.getCurrentSettings().getAnalyticsMaxLimit();
   }
 }

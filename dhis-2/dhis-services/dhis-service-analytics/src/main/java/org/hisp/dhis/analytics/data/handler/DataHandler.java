@@ -100,8 +100,6 @@ import static org.hisp.dhis.commons.util.DebugUtils.getStackTrace;
 import static org.hisp.dhis.commons.util.SystemUtils.getCpuCores;
 import static org.hisp.dhis.dataelement.DataElementOperand.TotalType.values;
 import static org.hisp.dhis.period.PeriodType.getPeriodTypeFromIsoString;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
-import static org.hisp.dhis.setting.SettingKey.DATABASE_SERVER_CPUS;
 import static org.hisp.dhis.system.grid.GridUtils.getGridIndexByDimensionItem;
 import static org.hisp.dhis.system.util.MathUtils.getWithin;
 import static org.hisp.dhis.system.util.MathUtils.isZero;
@@ -154,7 +152,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -181,7 +179,7 @@ public class DataHandler {
 
   private final QueryPlanner queryPlanner;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final AnalyticsManager analyticsManager;
 
@@ -1224,7 +1222,7 @@ public class DataHandler {
     int optimalQueries = getWithin(getProcessNo(), 1, MAX_QUERIES);
 
     int maxLimit =
-        params.isIgnoreLimit() ? 0 : systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT);
+        params.isIgnoreLimit() ? 0 : settingsProvider.getCurrentSettings().getAnalyticsMaxLimit();
 
     Timer timer = new Timer().start().disablePrint();
 
@@ -1301,9 +1299,8 @@ public class DataHandler {
    * @return the number of available cores.
    */
   private int getProcessNo() {
-    Integer cores = systemSettingManager.getIntegerSetting(DATABASE_SERVER_CPUS);
-
-    return (cores == null || cores == 0) ? getCpuCores() : cores;
+    int cores = settingsProvider.getCurrentSettings().getDatabaseServerCpus();
+    return cores == 0 ? getCpuCores() : cores;
   }
 
   /**

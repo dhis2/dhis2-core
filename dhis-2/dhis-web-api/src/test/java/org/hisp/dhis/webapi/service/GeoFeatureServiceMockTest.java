@@ -92,7 +92,7 @@ class GeoFeatureServiceMockTest {
     User user = rnd.nextObject(User.class);
     UserDetails details =
         UserDetails.createUserDetails(
-            user, true, true, new HashSet<>(), new HashSet<>(), new HashSet<>(), null);
+            user, true, true, new HashSet<>(), new HashSet<>(), new HashSet<>());
     injectUserInSecurityContext(details);
 
     DataQueryParams params =
@@ -129,7 +129,7 @@ class GeoFeatureServiceMockTest {
     User user = rnd.nextObject(User.class);
     UserDetails details =
         UserDetails.createUserDetails(
-            user, true, true, new HashSet<>(), new HashSet<>(), new HashSet<>(), null);
+            user, true, true, new HashSet<>(), new HashSet<>(), new HashSet<>());
 
     injectUserInSecurityContext(details);
     DataQueryParams params =

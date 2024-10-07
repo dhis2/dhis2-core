@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static java.util.Arrays.stream;
 import static org.hisp.dhis.test.web.WebClient.Accept;
 import static org.hisp.dhis.test.web.WebClient.Body;
 import static org.hisp.dhis.test.web.WebClient.ContentType;
@@ -38,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -46,31 +45,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Tests the {@link SystemSettingController} using (mocked) REST requests.
+ * Tests the {@link SystemSettingsController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
 @Transactional
-class SystemSettingControllerTest extends H2ControllerIntegrationTestBase {
-
-  @Test
-  void testSetSystemSettingOrTranslation_NoSuchObject() {
-    assertWebMessage(
-        "Conflict",
-        409,
-        "ERROR",
-        "Key is not supported: xyz",
-        POST("/systemSettings/xyz?value=abc").content(HttpStatus.CONFLICT));
-  }
+class SystemSettingsControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testSetSystemSettingOrTranslation_NoValue() {
-    assertWebMessage(
-        "Conflict",
-        409,
-        "ERROR",
-        "Value must be specified as query param or as payload",
-        POST("/systemSettings/xyz").content(HttpStatus.CONFLICT));
+    assertStatus(HttpStatus.BAD_REQUEST, POST("/systemSettings/xyz"));
   }
 
   @Test
@@ -99,23 +83,15 @@ class SystemSettingControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testSetSystemSettingOrTranslation_TranslationNoSetting() {
-    assertWebMessage(
-        "Conflict",
-        409,
-        "ERROR",
-        "No entry found for key: keyUiLocale",
-        POST("/systemSettings/keyUiLocale?locale=de&value=Sprache").content(HttpStatus.CONFLICT));
-  }
-
-  @Test
   void testSetSystemSettingV29() {
     assertWebMessage(
         "OK",
         200,
         "OK",
         "System settings imported",
-        POST("/systemSettings", "{'keyUiLocale':'en'}").content(HttpStatus.OK));
+        POST("/systemSettings", "{'keyUiLocale':'de'}").content(HttpStatus.OK));
+    assertEquals(
+        "de", GET("/systemSettings/keyUiLocale", Accept("text/plain")).content("text/plain"));
   }
 
   @Test
@@ -129,31 +105,19 @@ class SystemSettingControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testSetSystemSettingV29_NoSuchObject() {
-    assertWebMessage(
-        "Conflict",
-        409,
-        "ERROR",
-        "Key(s) is not supported: xyz, abc",
-        POST("/systemSettings", "{'xyz':'en','abc':'foo'}").content(HttpStatus.CONFLICT));
-  }
-
-  @Test
-  void testGetSystemSettingOrTranslationAsJson() {
+  void testGetSystemSettingJson() {
     assertStatus(HttpStatus.OK, POST("/systemSettings/keyUiLocale?value=de"));
-    JsonObject setting = GET("/systemSettings/keyUiLocale").content(HttpStatus.OK);
-    assertTrue(setting.isObject());
-    assertEquals(1, setting.size());
-    assertEquals("de", setting.getString("keyUiLocale").string());
+    JsonObject settings = GET("/systemSettings/keyUiLocale").content(HttpStatus.OK);
+    assertTrue(settings.isObject());
+    assertEquals("de", settings.getString("keyUiLocale").string());
   }
 
   @Test
   void testGetSystemSettingsJson() {
     assertStatus(HttpStatus.OK, POST("/systemSettings/keyUiLocale?value=de"));
-    JsonObject setting = GET("/systemSettings?key=keyUiLocale").content(HttpStatus.OK);
-    assertTrue(setting.isObject());
-    assertEquals(1, setting.size());
-    assertEquals("de", setting.getString("keyUiLocale").string());
+    JsonObject settings = GET("/systemSettings?key=keyUiLocale").content(HttpStatus.OK);
+    assertTrue(settings.isObject());
+    assertEquals("de", settings.getString("keyUiLocale").string());
   }
 
   @Test
@@ -161,72 +125,39 @@ class SystemSettingControllerTest extends H2ControllerIntegrationTestBase {
     assertStatus(HttpStatus.OK, POST("/systemSettings/keyUiLocale?value=de"));
     JsonObject setting = GET("/systemSettings").content(HttpStatus.OK);
     assertTrue(setting.isObject());
-    stream(SettingKey.values())
-        .filter(key -> !key.isConfidential() && key.getDefaultValue() != null)
-        .forEach(key -> assertTrue(setting.get(key.getName()).exists(), key.getName()));
-    stream(SettingKey.values())
-        .filter(SettingKey::isConfidential)
-        .forEach(key -> assertFalse(setting.get(key.getName()).exists(), key.getName()));
+    SystemSettings.keysWithDefaults().stream()
+        .filter(key -> !SystemSettings.isConfidential(key))
+        .forEach(key -> assertTrue(setting.get(key).exists(), "expected " + key));
+    SystemSettings.keysWithDefaults().stream()
+        .filter(SystemSettings::isConfidential)
+        .forEach(
+            key ->
+                assertFalse(
+                    setting.get(key).exists(), key + " is confidential and should not be exposed"));
   }
 
   @Test
-  void testGetSystemSettingAsText_KeyExists() {
+  void testGetSystemSettingPlain() {
     assertEquals(
         "yyyy-MM-dd",
         GET("/systemSettings/keyDateFormat", Accept("text/plain")).content("text/plain"));
   }
 
   @Test
-  void testGetSystemSettingAsJson_KeyDoesNotExist() {
-    assertWebMessage(
-        "Not Found",
-        404,
-        "ERROR",
-        "Setting does not exist or is marked as confidential",
-        GET("/systemSettings/keyDoesNotExist").content(HttpStatus.NOT_FOUND));
-  }
-
-  @Test
   void testGetSystemSettings_Forbidden() {
     switchToNewUser("someone");
-    assertStatus(HttpStatus.NOT_FOUND, GET("/systemSettings/keyEmailPassword"));
+    assertStatus(HttpStatus.FORBIDDEN, GET("/systemSettings/keyEmailPassword"));
     assertStatus(
-        HttpStatus.NOT_FOUND, GET("/systemSettings/keyEmailPassword", Accept("application/json")));
+        HttpStatus.FORBIDDEN, GET("/systemSettings/keyEmailPassword", Accept("application/json")));
     switchToAdminUser();
     assertStatus(HttpStatus.OK, GET("/systemSettings/keyEmailPassword"));
   }
 
   @Test
-  void testGetSystemSettingAsText_KeyDoesNotExist() {
-    HttpResponse response = GET("/systemSettings/keyDoesNotExist", Accept("text/plain"));
-    assertEquals(HttpStatus.NOT_FOUND, response.status());
-    assertEquals(
-        "Setting does not exist or is marked as confidential", response.content("text/plain"));
-  }
-
-  @Test
-  void testGetSystemSettingAsJsonQueryParam_KeyDoesNotExist() {
-    assertWebMessage(
-        "Not Found",
-        404,
-        "ERROR",
-        "Setting does not exist or is marked as confidential",
-        GET("/systemSettings?key=keyDoesNotExist").content(HttpStatus.NOT_FOUND));
-  }
-
-  @Test
   void testGetSystemSettingAsJsonQueryParam_MultipleKeysDoExist() {
-    JsonObject content =
+    JsonObject settings =
         GET("/systemSettings?key=keyDateFormat,jobsRescheduleAfterMinutes").content(HttpStatus.OK);
-    assertEquals(
-        "{\"keyDateFormat\":\"yyyy-MM-dd\",\"jobsRescheduleAfterMinutes\":10}", content.toString());
-  }
-
-  @Test
-  void testGetSystemSettingAsJsonQueryParam_OneKeyExistsFromTwo() {
-    JsonObject content =
-        GET("/systemSettings?key=keyDoesNotExist,jobsRescheduleAfterMinutes")
-            .content(HttpStatus.OK);
-    assertEquals("{\"jobsRescheduleAfterMinutes\":10}", content.toString());
+    assertEquals("yyyy-MM-dd", settings.getString("keyDateFormat").string());
+    assertEquals(10, settings.getNumber("jobsRescheduleAfterMinutes").intValue());
   }
 }

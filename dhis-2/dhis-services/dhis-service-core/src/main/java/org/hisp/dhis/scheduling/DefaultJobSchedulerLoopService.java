@@ -50,8 +50,7 @@ import org.hisp.dhis.eventhook.EventHookPublisher;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.AuthenticationService;
 import org.hisp.dhis.user.UserDetails;
@@ -70,7 +69,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
 
-  private final SystemSettingManager systemSettings;
+  private final SystemSettingsProvider settingsProvider;
   private final LeaderManager leaderManager;
   private final JobConfigurationStore jobConfigurationStore;
   private final JobConfigurationService jobConfigurationService;
@@ -266,7 +265,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
         job.getSchedulingType() != SchedulingType.ONCE_ASAP
             && job.getLastExecuted() != null
             && Duration.between(job.getLastExecuted().toInstant(), Instant.now()).getSeconds()
-                < systemSettings.getIntSetting(SettingKey.JOBS_LOG_DEBUG_BELOW_SECONDS);
+                < settingsProvider.getCurrentSettings().getJobsLogDebugBelowSeconds();
     RecordingJobProgress progress =
         new RecordingJobProgress(messages, job, tracker, true, observer, logInfoOnDebug, false);
     recordingsById.put(job.getUid(), progress);
