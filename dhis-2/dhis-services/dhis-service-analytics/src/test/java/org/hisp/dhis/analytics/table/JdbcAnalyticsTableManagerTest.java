@@ -124,7 +124,7 @@ class JdbcAnalyticsTableManagerTest {
     List<Integer> dataYears = List.of(2018, 2019);
 
     AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder().withStartTime(startTime).build();
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build();
 
     when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
     when(jdbcTemplate.queryForList(Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any()))
@@ -165,7 +165,7 @@ class JdbcAnalyticsTableManagerTest {
     List<Integer> dataYears = List.of(2018, 2019);
 
     AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder().withStartTime(startTime).build();
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build();
 
     when(analyticsTableSettings.getTableLogged()).thenReturn(LOGGED);
     when(jdbcTemplate.queryForList(Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any()))
@@ -206,10 +206,7 @@ class JdbcAnalyticsTableManagerTest {
     Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
 
     AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder()
-            .withStartTime(startTime)
-            .withLatestPartition()
-            .build();
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();
 
     List<Map<String, Object>> queryResp = new ArrayList<>();
     queryResp.add(Map.of("dataelementid", 1));
@@ -245,10 +242,7 @@ class JdbcAnalyticsTableManagerTest {
     Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
 
     AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder()
-            .withStartTime(startTime)
-            .withLatestPartition()
-            .build();
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();
 
     when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
     when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(new Date(42L));
@@ -275,10 +269,8 @@ class JdbcAnalyticsTableManagerTest {
             LOGGED);
     table.addTablePartition(List.of(), 2023, new DateTime(2023, 1, 1, 0, 0).toDate(), null);
     AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder()
-            .withStartTime(startTime)
-            .withLatestPartition()
-            .build();
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();
+
     when(jdbcTemplate.queryForList(any())).thenReturn(List.of(Map.of("table_name", "analytic")));
 
     Table swappedPartition = table.getTablePartitions().get(0).swapFromStaging();

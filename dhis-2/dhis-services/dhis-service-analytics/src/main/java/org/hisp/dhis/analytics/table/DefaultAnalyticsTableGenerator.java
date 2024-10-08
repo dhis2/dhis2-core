@@ -84,9 +84,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
             .collect(Collectors.toSet());
 
     AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder(params0)
-            .withLastSuccessfulUpdate(lastSuccessfulUpdate)
-            .build();
+        params0.toBuilder().lastSuccessfulUpdate(lastSuccessfulUpdate).build();
 
     log.info("Found {} analytics table types: {}", availableTypes.size(), availableTypes);
     log.info("Analytics table update: {}", params);
