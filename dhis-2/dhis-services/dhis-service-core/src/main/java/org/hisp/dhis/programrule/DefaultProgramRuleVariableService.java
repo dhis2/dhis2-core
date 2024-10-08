@@ -29,6 +29,7 @@ package org.hisp.dhis.programrule;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Program;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,6 +81,12 @@ public class DefaultProgramRuleVariableService implements ProgramRuleVariableSer
   @Override
   @Transactional(readOnly = true)
   public List<ProgramRuleVariable> getProgramRuleVariable(Program program) {
+    return programRuleVariableStore.get(UID.of(program.getUid()));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<ProgramRuleVariable> getProgramRuleVariable(UID program) {
     return programRuleVariableStore.get(program);
   }
 

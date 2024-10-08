@@ -29,6 +29,7 @@ package org.hisp.dhis.programrule;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Program;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,10 +73,10 @@ public interface ProgramRuleService {
   @Transactional(readOnly = true)
   List<String> getTrackedEntityAttributesPresentInProgramRules();
 
-  List<ProgramRule> getProgramRulesByActionTypes(Program program, Set<ProgramRuleActionType> types);
+  List<ProgramRule> getProgramRulesByActionTypes(UID programUid, Set<ProgramRuleActionType> types);
 
   List<ProgramRule> getProgramRulesByActionTypes(
-      Program program, Set<ProgramRuleActionType> serverSupportedTypes, String programStageUid);
+      UID programUid, Set<ProgramRuleActionType> serverSupportedTypes, String programStageUid);
 
   /**
    * Get validation by {@link Program}

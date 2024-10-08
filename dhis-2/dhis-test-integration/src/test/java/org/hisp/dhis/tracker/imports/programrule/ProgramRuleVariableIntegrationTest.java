@@ -64,7 +64,7 @@ class ProgramRuleVariableIntegrationTest extends TrackerTest {
   }
 
   @Test
-  public void shouldAssignValueTypeFromTrackedEntityAttributeToProgramRuleVariable() {
+  void shouldAssignValueTypeFromTrackedEntityAttributeToProgramRuleVariable() {
     Program program = programService.getProgram("BFcipDERJne");
     TrackedEntityAttribute trackedEntityAttribute =
         trackedEntityAttributeService.getTrackedEntityAttribute("sYn3tkL3XKa");
@@ -80,7 +80,7 @@ class ProgramRuleVariableIntegrationTest extends TrackerTest {
   }
 
   @Test
-  public void shouldAssignDefaultValueTypeToProgramRuleVariable() {
+  void shouldAssignDefaultValueTypeToProgramRuleVariable() {
     Program program = programService.getProgram("BFcipDERJne");
     List<ProgramRuleVariable> ruleVariables =
         programRuleVariableService.getProgramRuleVariable(program);

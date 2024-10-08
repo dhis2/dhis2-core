@@ -28,12 +28,11 @@
 package org.hisp.dhis.programrule.hibernate;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.Collection;
 import java.util.List;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.programrule.ProgramRuleVariableStore;
@@ -58,23 +57,14 @@ public class HibernateProgramRuleVariableStore
   }
 
   @Override
-  public List<ProgramRuleVariable> get(Program program) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters().addPredicate(root -> builder.equal(root.get("program"), program)));
-  }
-
-  @Override
-  public List<ProgramRuleVariable> getProgramVariables(Program program, DataElement dataElement) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("program"), program))
-            .addPredicate(root -> builder.equal(root.get("dataElement"), dataElement)));
+  public List<ProgramRuleVariable> get(UID program) {
+    return getQuery(
+            """
+                    FROM ProgramRuleVariable prv
+                    WHERE prv.program.uid = :programUid
+                    """)
+        .setParameter("programUid", program.getValue())
+        .getResultList();
   }
 
   @Override

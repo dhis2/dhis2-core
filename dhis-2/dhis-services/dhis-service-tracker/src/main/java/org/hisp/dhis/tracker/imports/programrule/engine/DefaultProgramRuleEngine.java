@@ -99,12 +99,12 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
       UserDetails user) {
     List<ProgramRule> rules =
         getProgramRules(
-            enrollment.getProgram(),
+            UID.of(enrollment.getProgram().getUid()),
             events.stream().map(Event::getProgramStage).distinct().toList());
     List<RuleEffects> ruleEffects =
         evaluateProgramRulesForMultipleTrackerObjects(
             getRuleEnrollment(enrollment, trackedEntityAttributeValues),
-            enrollment.getProgram(),
+            UID.of(enrollment.getProgram()),
             getRuleEvents(events),
             rules,
             user);
@@ -112,8 +112,7 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
   }
 
   @Override
-  public RuleEngineEffects evaluateProgramEvents(
-      Set<Event> events, Program program, UserDetails user) {
+  public RuleEngineEffects evaluateProgramEvents(Set<Event> events, UID program, UserDetails user) {
     List<ProgramRule> rules = implementableRuleService.getProgramRules(program, null);
     return RuleEngineEffects.of(
         evaluateProgramRulesForMultipleTrackerObjects(
@@ -150,7 +149,7 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
 
   private List<RuleEffects> evaluateProgramRulesForMultipleTrackerObjects(
       RuleEnrollment ruleEnrollment,
-      Program program,
+      UID program,
       List<RuleEvent> ruleEvents,
       List<ProgramRule> rules,
       UserDetails user) {
@@ -163,7 +162,7 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
     }
   }
 
-  private List<ProgramRule> getProgramRules(Program program, List<ProgramStage> programStage) {
+  private List<ProgramRule> getProgramRules(UID program, List<ProgramStage> programStage) {
     if (programStage.isEmpty()) {
       return implementableRuleService.getProgramRules(program, null);
     }
@@ -177,7 +176,7 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
   }
 
   private RuleEngineContext getRuleEngineContext(
-      Program program, List<ProgramRule> programRules, UserDetails user) {
+      UID program, List<ProgramRule> programRules, UserDetails user) {
     List<ProgramRuleVariable> programRuleVariables =
         programRuleVariableService.getProgramRuleVariable(program);
 

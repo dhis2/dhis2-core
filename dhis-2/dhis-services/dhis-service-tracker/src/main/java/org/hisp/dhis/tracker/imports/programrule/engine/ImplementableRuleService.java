@@ -32,7 +32,7 @@ import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.program.Program;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
@@ -49,8 +49,7 @@ public class ImplementableRuleService {
     this.programHasRulesCache = cacheProvider.createProgramHasRulesCache();
   }
 
-  protected List<ProgramRule> getProgramRulesByActionTypes(
-      Program program, String programStageUid) {
+  protected List<ProgramRule> getProgramRulesByActionTypes(UID program, String programStageUid) {
     Set<ProgramRuleActionType> programRuleActionTypes =
         ProgramRuleActionType.SERVER_SUPPORTED_TYPES;
     if (programStageUid == null) {
@@ -61,8 +60,8 @@ public class ImplementableRuleService {
     }
   }
 
-  public List<ProgramRule> getProgramRules(Program program, String programStageUid) {
-    Optional<Boolean> optionalCacheValue = this.programHasRulesCache.get(program.getUid());
+  public List<ProgramRule> getProgramRules(UID program, String programStageUid) {
+    Optional<Boolean> optionalCacheValue = this.programHasRulesCache.get(program.getValue());
 
     if (optionalCacheValue.isPresent() && Boolean.FALSE.equals(optionalCacheValue.get())) {
       return List.of();
@@ -74,7 +73,7 @@ public class ImplementableRuleService {
     if (programStageUid == null) // To populate programHasRulesCache at
     // enrollment
     {
-      this.programHasRulesCache.put(program.getUid(), !programRulesByActionTypes.isEmpty());
+      this.programHasRulesCache.put(program.getValue(), !programRulesByActionTypes.isEmpty());
 
       // At enrollment, only those rules should be selected for execution
       // which are not associated with any ProgramStage.

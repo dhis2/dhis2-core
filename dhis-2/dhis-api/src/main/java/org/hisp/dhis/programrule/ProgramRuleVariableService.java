@@ -28,6 +28,7 @@
 package org.hisp.dhis.programrule;
 
 import java.util.List;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 
@@ -80,6 +81,14 @@ public interface ProgramRuleVariableService {
    * @return ProgramRuleVariable list
    */
   List<ProgramRuleVariable> getProgramRuleVariable(Program program);
+
+  /**
+   * Get validation by {@link Program}
+   *
+   * @param program Program uid
+   * @return ProgramRuleVariable list
+   */
+  List<ProgramRuleVariable> getProgramRuleVariable(UID program);
 
   /**
    * @return all ProgramRuleVariables which are linked to {@link DataElement}.

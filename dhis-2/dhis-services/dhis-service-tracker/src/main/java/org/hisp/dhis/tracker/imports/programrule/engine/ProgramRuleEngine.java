@@ -45,24 +45,24 @@ public interface ProgramRuleEngine {
       List<TrackedEntityAttributeValue> trackedEntityAttributeValues,
       UserDetails user);
 
-  RuleEngineEffects evaluateProgramEvents(Set<Event> events, Program program, UserDetails user);
+  RuleEngineEffects evaluateProgramEvents(Set<Event> events, UID program, UserDetails user);
 
   /**
    * To getDescription rule condition in order to fetch its description
    *
    * @param condition of program rule
-   * @param programUid {@link Program} which the programRule is associated with.
+   * @param program {@link Program} which the programRule is associated with.
    * @return RuleValidationResult contains description of program rule condition or errorMessage
    */
-  RuleValidationResult getDescription(String condition, UID programUid) throws BadRequestException;
+  RuleValidationResult getDescription(String condition, UID program) throws BadRequestException;
 
   /**
    * To get description for program rule action data field.
    *
    * @param dataExpression of program rule action data field expression.
-   * @param programUid {@link Program} which the programRule is associated with.
+   * @param program {@link Program} which the programRule is associated with.
    * @return RuleValidationResult contains description of program rule condition or errorMessage
    */
-  RuleValidationResult getDataExpressionDescription(String dataExpression, UID programUid)
+  RuleValidationResult getDataExpressionDescription(String dataExpression, UID program)
       throws BadRequestException;
 }

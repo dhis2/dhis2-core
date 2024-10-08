@@ -31,12 +31,14 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -80,6 +82,7 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
   @Override
   public List<String> getTrackedEntityAttributesPresentInProgramRules(
       Set<ProgramRuleActionType> actionTypes) {
+    @Language("hql")
     String sql =
         """
                 SELECT distinct att.uid
@@ -91,28 +94,34 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
 
   @Override
   public List<ProgramRule> getProgramRulesByActionTypes(
-      Program program, Set<ProgramRuleActionType> actionTypes) {
+      UID programUid, Set<ProgramRuleActionType> actionTypes) {
     final String hql =
-        "SELECT distinct pr FROM ProgramRule pr JOIN pr.programRuleActions pra "
-            + "WHERE pr.program = :program AND pra.programRuleActionType IN ( :actionTypes ) ";
-
+        """
+            SELECT distinct pr FROM ProgramRule pr JOIN pr.programRuleActions pra
+            LEFT JOIN pr.programStage ps
+            LEFT JOIN pr.program p
+            WHERE p.uid = :programUid AND pra.programRuleActionType IN ( :actionTypes )
+            """;
     return getQuery(hql)
-        .setParameter("program", program)
+        .setParameter("programUid", programUid.getValue())
         .setParameter("actionTypes", actionTypes)
         .getResultList();
   }
 
   @Override
   public List<ProgramRule> getProgramRulesByActionTypes(
-      Program program, Set<ProgramRuleActionType> types, String programStageUid) {
+      UID programUid, Set<ProgramRuleActionType> types, String programStageUid) {
     final String hql =
-        "SELECT distinct pr FROM ProgramRule pr JOIN pr.programRuleActions pra "
-            + "LEFT JOIN pr.programStage ps "
-            + "WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes ) "
-            + "AND (pr.programStage IS NULL OR ps.uid = :programStageUid )";
+        """
+            SELECT distinct pr FROM ProgramRule pr JOIN pr.programRuleActions pra
+            LEFT JOIN pr.programStage ps
+            LEFT JOIN pr.program p
+            WHERE p.uid = :programUid AND pra.programRuleActionType IN ( :implementableTypes )
+            AND (pr.programStage IS NULL OR ps.uid = :programStageUid )
+        """;
 
     return getQuery(hql)
-        .setParameter("programId", program)
+        .setParameter("programUid", programUid.getValue())
         .setParameter("implementableTypes", types)
         .setParameter("programStageUid", programStageUid)
         .getResultList();

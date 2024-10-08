@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
@@ -288,7 +289,7 @@ class ProgramRuleServiceTest extends PostgresIntegrationTestBase {
     // Get all the 3 rules for programB
     List<ProgramRule> rules =
         programRuleService.getProgramRulesByActionTypes(
-            programB, ProgramRuleActionType.IMPLEMENTED_ACTIONS);
+            UID.of(programB.getUid()), ProgramRuleActionType.IMPLEMENTED_ACTIONS);
     assertEquals(1, rules.size());
     assertTrue(rules.contains(ruleD));
     assertFalse(rules.contains(ruleG));
@@ -350,7 +351,7 @@ class ProgramRuleServiceTest extends PostgresIntegrationTestBase {
 
     List<ProgramRule> rules =
         programRuleService.getProgramRulesByActionTypes(
-            programB, ProgramRuleActionType.SERVER_SUPPORTED_TYPES, null);
+            UID.of(programB.getUid()), ProgramRuleActionType.SERVER_SUPPORTED_TYPES, null);
 
     assertContainsOnly(rules, List.of(ruleD, ruleG));
   }

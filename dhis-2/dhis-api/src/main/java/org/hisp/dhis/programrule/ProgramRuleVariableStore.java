@@ -30,6 +30,7 @@ package org.hisp.dhis.programrule;
 import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 
@@ -43,14 +44,7 @@ public interface ProgramRuleVariableStore extends IdentifiableObjectStore<Progra
    * @param program {@link Program}
    * @return ProgramRuleVariable list
    */
-  List<ProgramRuleVariable> get(Program program);
-
-  /**
-   * @param program program
-   * @param dataElement to find association with
-   * @return list of ProgramRuleVariables associated with given dataElement
-   */
-  List<ProgramRuleVariable> getProgramVariables(Program program, DataElement dataElement);
+  List<ProgramRuleVariable> get(UID program);
 
   /**
    * @return all ProgramRuleVariables which are linked to {@link DataElement}.

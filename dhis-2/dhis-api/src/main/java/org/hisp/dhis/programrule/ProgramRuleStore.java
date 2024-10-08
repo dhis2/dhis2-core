@@ -30,6 +30,7 @@ package org.hisp.dhis.programrule;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Program;
 
 /**
@@ -45,10 +46,10 @@ public interface ProgramRuleStore extends IdentifiableObjectStore<ProgramRule> {
   List<ProgramRule> get(Program program);
 
   List<ProgramRule> getProgramRulesByActionTypes(
-      Program program, Set<ProgramRuleActionType> actionTypes);
+      UID programUid, Set<ProgramRuleActionType> actionTypes);
 
   List<ProgramRule> getProgramRulesByActionTypes(
-      Program program, Set<ProgramRuleActionType> actionTypes, String programStageUid);
+      UID programUid, Set<ProgramRuleActionType> actionTypes, String programStageUid);
 
   List<String> getDataElementsPresentInProgramRules(Set<ProgramRuleActionType> actionTypes);
 

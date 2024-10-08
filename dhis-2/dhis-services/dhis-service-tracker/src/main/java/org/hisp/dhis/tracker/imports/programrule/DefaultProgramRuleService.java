@@ -38,12 +38,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
@@ -158,10 +158,12 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
   private RuleEngineEffects calculateProgramEventRuleEffects(
       TrackerBundle bundle, TrackerPreheat preheat) {
-    Map<Program, List<org.hisp.dhis.tracker.imports.domain.Event>> programEvents =
+    Map<UID, List<org.hisp.dhis.tracker.imports.domain.Event>> programEvents =
         bundle.getEvents().stream()
             .filter(event -> preheat.getProgram(event.getProgram()).isWithoutRegistration())
-            .collect(Collectors.groupingBy(event -> preheat.getProgram(event.getProgram())));
+            .collect(
+                Collectors.groupingBy(
+                    event -> UID.of(preheat.getProgram(event.getProgram()).getUid())));
 
     return programEvents.entrySet().stream()
         .map(
