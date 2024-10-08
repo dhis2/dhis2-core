@@ -271,7 +271,7 @@ public interface WebClient {
       }
       String actualContentType = header("Content-Type");
       assertNotNull(actualContentType, "response content-type was not set");
-      if (actualContentType.startsWith(contentType)) assertEquals(contentType, actualContentType);
+      if (!actualContentType.startsWith(contentType)) assertEquals(contentType, actualContentType);
       return callAndFailOnException(response::getContent);
     }
 
