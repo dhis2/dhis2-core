@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.RecordingJobProgress;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -61,7 +62,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Zubair Asghar
  */
 @ExtendWith(MockitoExtension.class)
-class TrackerImporterServiceTest {
+class TrackerImporterServiceTest extends TestBase {
 
   @Mock private TrackerBundleService trackerBundleService;
 
@@ -84,6 +85,8 @@ class TrackerImporterServiceTest {
     subject =
         new DefaultTrackerImportService(
             trackerBundleService, validationService, trackerPreprocessService);
+
+    injectSecurityContext(user);
 
     Event event = new Event();
     event.setEvent("EventUid");
