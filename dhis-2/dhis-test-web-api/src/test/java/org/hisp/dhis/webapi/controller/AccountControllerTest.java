@@ -42,8 +42,7 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
@@ -59,7 +58,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class AccountControllerTest extends PostgresControllerIntegrationTestBase {
-  @Autowired private SystemSettingManager systemSettingManager;
+
+  @Autowired private SystemSettingsService settingsService;
   @Autowired private MessageSender emailMessageSender;
 
   @AfterEach
@@ -69,6 +69,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testRecoverAccount_NotEnabled() {
+    settingsService.put("keyAccountRecovery", false);
     User test = switchToNewUser("test");
     switchToAdminUser();
     clearSecurityContext();
@@ -93,7 +94,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testRecoverAccount_UsernameNotExist() {
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, Boolean.TRUE);
+    settingsService.put("keyAccountRecovery", true);
     clearSecurityContext();
     assertWebMessage(
         "Conflict",
@@ -105,7 +106,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testRecoverAccount_NotValidEmail() {
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, Boolean.TRUE);
+    settingsService.put("keyAccountRecovery", true);
     clearSecurityContext();
     assertWebMessage(
         "Conflict",
@@ -119,14 +120,14 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void testRecoverAccount_OK() {
     switchToNewUser("test");
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, Boolean.TRUE);
+    settingsService.put("keyAccountRecovery", true);
     clearSecurityContext();
     POST("/account/recovery?username=test").content(HttpStatus.OK);
   }
 
   @Test
   void testCreateAccount() {
-    systemSettingManager.saveSystemSetting(SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.TRUE);
+    settingsService.put("keySelfRegistrationNoRecaptcha", true);
     assertWebMessage(
         "Bad Request",
         400,

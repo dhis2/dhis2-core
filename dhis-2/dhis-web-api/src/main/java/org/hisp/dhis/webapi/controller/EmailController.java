@@ -31,20 +31,22 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.security.Authorities.F_SEND_EMAIL;
+import static org.hisp.dhis.system.util.ValidationUtils.emailIsValid;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.email.Email;
 import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.email.EmailService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -64,23 +66,17 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping("/api/email")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@RequiredArgsConstructor
 public class EmailController {
 
   private static final String SMTP_ERROR = "SMTP server not configured";
 
-  // --------------------------------------------------------------------------
-  // Dependencies
-  // --------------------------------------------------------------------------
-
-  @Autowired private EmailService emailService;
-
-  @Autowired private UserService userService;
-
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private final EmailService emailService;
+  @Autowired private final UserService userService;
 
   @PostMapping("/test")
   @ResponseBody
-  public WebMessage sendTestEmail() throws WebMessageException {
+  public WebMessage sendTestEmail() throws ConflictException {
     checkEmailSettings();
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
@@ -95,16 +91,13 @@ public class EmailController {
 
   @PostMapping(value = "/notification", consumes = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public WebMessage sendSystemNotificationEmail(@RequestBody Email email)
-      throws WebMessageException {
+  public WebMessage sendSystemNotificationEmail(@RequestBody Email email, SystemSettings settings)
+      throws ConflictException {
     checkEmailSettings();
 
-    boolean systemNotificationEmailValid = systemSettingManager.systemNotificationEmailValid();
-
-    if (!systemNotificationEmailValid) {
-      return conflict(
+    if (!emailIsValid(settings.getSystemNotificationsEmail()))
+      throw new ConflictException(
           "Could not send email, system notification email address not set or not valid");
-    }
 
     OutboundMessageResponse emailResponse = emailService.sendSystemEmail(email);
 
@@ -118,7 +111,7 @@ public class EmailController {
       @RequestParam Set<String> recipients,
       @RequestParam String message,
       @RequestParam(defaultValue = "DHIS 2") String subject)
-      throws WebMessageException {
+      throws ConflictException {
     checkEmailSettings();
 
     OutboundMessageResponse emailResponse = emailService.sendEmail(subject, message, recipients);
@@ -145,9 +138,9 @@ public class EmailController {
     return error(msg);
   }
 
-  private void checkEmailSettings() throws WebMessageException {
+  private void checkEmailSettings() throws ConflictException {
     if (!emailService.emailConfigured()) {
-      throw new WebMessageException(conflict(SMTP_ERROR));
+      throw new ConflictException(SMTP_ERROR);
     }
   }
 }

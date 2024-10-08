@@ -27,154 +27,50 @@
  */
 package org.hisp.dhis.tracker.imports.sms;
 
+import static org.hisp.dhis.tracker.imports.sms.SmsImportMapper.mapTrackedEntityRegistrationParserCommand;
+
 import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
-import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.listener.CommandSMSListener;
-import org.hisp.dhis.sms.listener.SMSProcessingException;
 import org.hisp.dhis.sms.parse.ParserType;
-import org.hisp.dhis.sms.parse.SMSParserException;
-import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.system.util.SmsUtils;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Component("org.hisp.dhis.tracker.sms.TrackedEntityRegistrationSMSListener")
 @Transactional
 public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
-  private static final String SUCCESS_MESSAGE = "Tracked Entity Registered Successfully with uid. ";
-
   private final SMSCommandService smsCommandService;
 
-  private final TrackedEntityTypeService trackedEntityTypeService;
-
-  private final TrackedEntityService trackedEntityService;
-
-  private final ProgramService programService;
-
-  private final SMSEnrollmentService smsEnrollmentService;
-
-  private final IdentifiableObjectManager manager;
-
-  private final TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+  private final TrackerImportService trackerImportService;
 
   public TrackedEntityRegistrationSMSListener(
-      ProgramService programService,
-      CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
       MessageSender smsMessageSender,
       SMSCommandService smsCommandService,
-      TrackedEntityTypeService trackedEntityTypeService,
-      TrackedEntityService trackedEntityService,
-      SMSEnrollmentService smsEnrollmentService,
-      IdentifiableObjectManager manager,
-      TrackedEntityAttributeValueService trackedEntityAttributeValueService) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsMessageSender);
+      TrackerImportService trackerImportService) {
+    super(userService, incomingSmsService, smsMessageSender);
     this.smsCommandService = smsCommandService;
-    this.trackedEntityTypeService = trackedEntityTypeService;
-    this.trackedEntityService = trackedEntityService;
-    this.programService = programService;
-    this.smsEnrollmentService = smsEnrollmentService;
-    this.manager = manager;
-    this.trackedEntityAttributeValueService = trackedEntityAttributeValueService;
-  }
-
-  @Override
-  protected void postProcess(
-      @Nonnull IncomingSms sms,
-      @Nonnull String username,
-      @Nonnull SMSCommand smsCommand,
-      @Nonnull Map<String, String> codeValues) {
-    String message = sms.getText();
-
-    Date occurredDate = SmsUtils.lookForDate(message);
-    String senderPhoneNumber = StringUtils.replace(sms.getOriginator(), "+", "");
-    Collection<OrganisationUnit> orgUnits = getOrganisationUnits(sms);
-
-    Program program = smsCommand.getProgram();
-
-    OrganisationUnit orgUnit = SmsUtils.selectOrganisationUnit(orgUnits, codeValues, smsCommand);
-
-    if (!programService.hasOrgUnit(program, orgUnit)) {
-      sendFeedback(SMSCommand.NO_OU_FOR_PROGRAM, senderPhoneNumber, WARNING);
-
-      throw new SMSParserException(SMSCommand.NO_OU_FOR_PROGRAM);
-    }
-
-    TrackedEntity trackedEntity = new TrackedEntity();
-    trackedEntity.setOrganisationUnit(orgUnit);
-    trackedEntity.setTrackedEntityType(
-        trackedEntityTypeService.getTrackedEntityByName(
-            smsCommand.getProgram().getTrackedEntityType().getName()));
-    Set<TrackedEntityAttributeValue> patientAttributeValues = new HashSet<>();
-
-    smsCommand.getCodes().stream()
-        .filter(code -> codeValues.containsKey(code.getCode()))
-        .forEach(
-            code -> {
-              TrackedEntityAttributeValue trackedEntityAttributeValue =
-                  this.createTrackedEntityAttributeValue(codeValues, code, trackedEntity);
-              patientAttributeValues.add(trackedEntityAttributeValue);
-            });
-
-    if (!patientAttributeValues.isEmpty()) {
-      manager.save(trackedEntity);
-
-      for (TrackedEntityAttributeValue pav : patientAttributeValues) {
-        trackedEntityAttributeValueService.addTrackedEntityAttributeValue(pav);
-        trackedEntity.getTrackedEntityAttributeValues().add(pav);
-      }
-
-      manager.update(trackedEntity);
-    } else {
-      sendFeedback("No TrackedEntityAttribute found", senderPhoneNumber, WARNING);
-    }
-
-    try {
-      smsEnrollmentService.enrollTrackedEntity(
-          trackedEntityService.getTrackedEntity(trackedEntity.getUid()),
-          program,
-          orgUnit,
-          occurredDate);
-    } catch (NotFoundException | ForbiddenException | BadRequestException e) {
-      // TODO(tracker) Improve this error message
-      throw new SMSProcessingException(SmsResponse.INVALID_TEI.set(trackedEntity.getUid()));
-    }
-
-    sendFeedback(
-        StringUtils.defaultIfBlank(
-            smsCommand.getSuccessMessage(), SUCCESS_MESSAGE + trackedEntity.getUid()),
-        senderPhoneNumber,
-        INFO);
-
-    update(sms, SmsMessageStatus.PROCESSED, true);
+    this.trackerImportService = trackerImportService;
   }
 
   @Override
@@ -183,15 +79,37 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
         SmsUtils.getCommandString(sms), ParserType.TRACKED_ENTITY_REGISTRATION_PARSER);
   }
 
-  private TrackedEntityAttributeValue createTrackedEntityAttributeValue(
-      Map<String, String> parsedMessage, SMSCode code, TrackedEntity trackedEntity) {
-    String value = parsedMessage.get(code.getCode());
-    TrackedEntityAttribute trackedEntityAttribute = code.getTrackedEntityAttribute();
+  /**
+   * @param codeValues key value pairs sent in sms which are attribute values but can also be an
+   *     ORG=uid pair to influence the orgUnit selection
+   */
+  @Override
+  protected void postProcess(
+      @Nonnull IncomingSms sms,
+      @Nonnull String username,
+      @Nonnull SMSCommand smsCommand,
+      @Nonnull Map<String, String> codeValues) {
+    Collection<OrganisationUnit> orgUnits = getOrganisationUnits(sms);
+    OrganisationUnit orgUnit = SmsUtils.selectOrganisationUnit(orgUnits, codeValues, smsCommand);
+    String senderPhoneNumber = StringUtils.replace(sms.getOriginator(), "+", "");
 
-    TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
-    trackedEntityAttributeValue.setAttribute(trackedEntityAttribute);
-    trackedEntityAttributeValue.setTrackedEntity(trackedEntity);
-    trackedEntityAttributeValue.setValue(value);
-    return trackedEntityAttributeValue;
+    TrackerImportParams params =
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.CREATE).build();
+    TrackerObjects trackerObjects =
+        mapTrackedEntityRegistrationParserCommand(sms, smsCommand, codeValues, orgUnit);
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
+    if (Status.OK == importReport.getStatus()) {
+      update(sms, SmsMessageStatus.PROCESSED, true);
+      sendFeedback(smsCommand.getSuccessMessage(), senderPhoneNumber, INFO);
+      return;
+    }
+
+    // TODO(DHIS2-18003) we need to map tracker import report errors/warnings to an sms
+    log.error(
+        "Failed to process SMS command {} of parser type TRACKED_ENTITY_REGISTRATION_PARSER {}",
+        smsCommand.getName(),
+        importReport);
+    throw new IllegalStateException(importReport.toString());
   }
 }

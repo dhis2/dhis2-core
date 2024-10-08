@@ -47,7 +47,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -66,7 +65,6 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.common.OrderParams;
-import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -86,10 +84,8 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
@@ -123,7 +119,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
   @Autowired protected IdentifiableObjectManager manager;
 
-  @Autowired protected UserSettingService userSettingService;
+  @Autowired protected UserSettingsService userSettingsService;
 
   @Autowired protected ContextService contextService;
 
@@ -465,14 +461,9 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
       @OpenApi.Param(PropertyNames.class) @PathVariable("property") String pvProperty,
       @RequestParam Map<String, String> rpParameters,
-      TranslateParams translateParams,
       @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
-
-    if (!"translations".equals(pvProperty)) {
-      setTranslationParams(translateParams);
-    }
 
     if (!aclService.canRead(currentUser, getEntityClass())) {
       throw new ForbiddenException(
@@ -659,18 +650,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
   // --------------------------------------------------------------------------
   // Helpers
   // --------------------------------------------------------------------------
-
-  protected final void setTranslationParams(TranslateParams translateParams) {
-    Locale dbLocale = getLocaleWithDefault(translateParams);
-    CurrentUserUtil.setUserSetting(UserSettingKey.DB_LOCALE, dbLocale);
-  }
-
-  private Locale getLocaleWithDefault(TranslateParams translateParams) {
-    return translateParams.isTranslate()
-        ? translateParams.getLocaleWithDefault(
-            (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE))
-        : null;
-  }
 
   protected final Pagination getPaginationData(WebOptions options) {
     return PaginationUtils.getPaginationData(options);

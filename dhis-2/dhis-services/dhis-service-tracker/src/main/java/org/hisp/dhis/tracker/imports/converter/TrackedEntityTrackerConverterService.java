@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.imports.converter;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -46,32 +45,6 @@ import org.springframework.stereotype.Service;
 public class TrackedEntityTrackerConverterService
     implements TrackerConverterService<
         org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity> {
-  @Override
-  public org.hisp.dhis.tracker.imports.domain.TrackedEntity to(TrackedEntity trackedEntity) {
-    List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities =
-        to(Collections.singletonList(trackedEntity));
-
-    if (trackedEntities.isEmpty()) {
-      return null;
-    }
-
-    return trackedEntities.get(0);
-  }
-
-  @Override
-  public List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> to(
-      List<TrackedEntity> trackedEntities) {
-    return trackedEntities.stream()
-        .map(
-            te -> {
-              org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
-                  new org.hisp.dhis.tracker.imports.domain.TrackedEntity();
-              trackedEntity.setTrackedEntity(te.getUid());
-
-              return trackedEntity;
-            })
-        .toList();
-  }
 
   @Override
   public TrackedEntity from(

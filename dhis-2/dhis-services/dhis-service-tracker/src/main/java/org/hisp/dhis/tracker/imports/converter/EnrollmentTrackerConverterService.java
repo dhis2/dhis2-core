@@ -29,8 +29,6 @@ package org.hisp.dhis.tracker.imports.converter;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -59,31 +57,6 @@ public class EnrollmentTrackerConverterService
   private final NotesConverterService notesConverterService;
 
   @Override
-  public org.hisp.dhis.tracker.imports.domain.Enrollment to(Enrollment enrollment) {
-    List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments =
-        to(Collections.singletonList(enrollment));
-
-    if (enrollments.isEmpty()) {
-      return null;
-    }
-
-    return enrollments.get(0);
-  }
-
-  @Override
-  public List<org.hisp.dhis.tracker.imports.domain.Enrollment> to(
-      List<Enrollment> preheatEnrollments) {
-    List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments = new ArrayList<>();
-
-    preheatEnrollments.forEach(
-        te -> {
-          // TODO: Add implementation
-        });
-
-    return enrollments;
-  }
-
-  @Override
   public Enrollment from(
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
@@ -107,7 +80,12 @@ public class EnrollmentTrackerConverterService
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
       UserDetails user) {
-    return from(preheat, enrollment, null, user);
+    Enrollment from = from(preheat, enrollment, null, user);
+    Enrollment preheatEnrollment = preheat.getEnrollment(enrollment.getUid());
+    if (preheatEnrollment != null) {
+      from.setCreated(preheatEnrollment.getCreated());
+    }
+    return from;
   }
 
   private Enrollment from(

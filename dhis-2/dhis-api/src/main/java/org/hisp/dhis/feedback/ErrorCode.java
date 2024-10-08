@@ -392,6 +392,9 @@ public enum ErrorCode {
   E6305(
       "Aggregate data exchange target API must specify either access token or username and password"),
 
+  /*Analytics table hook*/
+  E6400("Analytics table hook `{0}` is a duplicate of `{1}`"),
+
   /* Scheduling */
   E7000("Job of same type already scheduled with cron expression: `{0}`"),
   E7003("Only interval property can be configured for non configurable job type: `{0}`"),

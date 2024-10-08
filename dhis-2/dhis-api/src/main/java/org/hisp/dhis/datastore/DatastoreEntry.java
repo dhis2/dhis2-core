@@ -72,6 +72,10 @@ public class DatastoreEntry extends BaseIdentifiableObject {
     this(namespace, key, null, false);
   }
 
+  public DatastoreEntry(String namespace, String key, String value) {
+    this(namespace, key, value, false);
+  }
+
   public DatastoreEntry(String namespace, String key, String value, boolean encrypted) {
     this.namespace = namespace;
     this.key = key;
@@ -83,14 +87,19 @@ public class DatastoreEntry extends BaseIdentifiableObject {
   @ToString.Include
   @EqualsAndHashCode.Include
   public String getValue() {
-    return encrypted ? getEncryptedValue() : getJbPlainValue();
+    return isEncryptedInternal() ? getEncryptedValue() : getJbPlainValue();
   }
 
   public String getJbPlainValue() {
-    return !encrypted && value != null ? value : jbPlainValue;
+    return !isEncryptedInternal() && value != null ? value : jbPlainValue;
   }
 
   public String getEncryptedValue() {
-    return encrypted && value != null ? value : encryptedValue;
+    return isEncryptedInternal() && value != null ? value : encryptedValue;
+  }
+
+  /** Note: this must use a name that is not also a hibernate mapped property */
+  private boolean isEncryptedInternal() {
+    return encrypted != null && encrypted;
   }
 }

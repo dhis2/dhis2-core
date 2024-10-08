@@ -35,12 +35,14 @@ import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramTrackedEntityAttribute;
 import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
@@ -58,7 +60,8 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -95,12 +98,14 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
   @BeforeEach
   public void setUp() {
     when(databaseInfoProvider.getDatabaseInfo()).thenReturn(DatabaseInfo.builder().build());
+    SystemSettingsProvider settingsProvider = mock(SystemSettingsProvider.class);
+    lenient().when(settingsProvider.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
     subject =
         new JdbcEnrollmentAnalyticsTableManager(
             idObjectManager,
             mock(OrganisationUnitService.class),
             mock(CategoryService.class),
-            mock(SystemSettingManager.class),
+            settingsProvider,
             mock(DataApprovalLevelService.class),
             mock(ResourceTableService.class),
             mock(AnalyticsTableHookService.class),
@@ -130,7 +135,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(p1));
 
     AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder().withLastYears(2).withStartTime(START_TIME).build();
+        AnalyticsTableUpdateParams.newBuilder().lastYears(2).startTime(START_TIME).build();
 
     List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);
     assertFalse(analyticsTables.isEmpty());

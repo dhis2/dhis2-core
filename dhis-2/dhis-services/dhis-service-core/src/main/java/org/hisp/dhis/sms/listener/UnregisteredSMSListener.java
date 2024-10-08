@@ -29,7 +29,6 @@ package org.hisp.dhis.sms.listener;
 
 import java.util.Map;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.message.MessageService;
@@ -57,14 +56,13 @@ public class UnregisteredSMSListener extends CommandSMSListener {
   private final MessageService messageService;
 
   public UnregisteredSMSListener(
-      CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
       MessageSender smsMessageSender,
       SMSCommandService smsCommandService,
       UserService userService1,
       MessageService messageService) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsMessageSender);
+    super(userService, incomingSmsService, smsMessageSender);
     this.smsCommandService = smsCommandService;
     this.userService = userService1;
     this.messageService = messageService;

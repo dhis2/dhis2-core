@@ -34,8 +34,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Calendar;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.AuthenticationApiTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonLoginResponse;
@@ -44,6 +43,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.jboss.aerogear.security.otp.Totp;
 import org.jboss.aerogear.security.otp.api.Base32;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,8 +54,15 @@ import org.springframework.security.core.session.SessionRegistry;
  */
 class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
-  @Autowired SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService settingsService;
   @Autowired private SessionRegistry sessionRegistry;
+
+  @AfterEach
+  void tearDown() {
+    settingsService.put("keyLockMultipleFailedLogins", false);
+    settingsService.put("credentialsExpires", 0);
+    settingsService.clearCurrentSettings();
+  }
 
   @Test
   void testSuccessfulLoginWithOldUsername() {
@@ -141,7 +148,8 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
   @Test
   void testLoginWithLockedUser() {
-    systemSettingManager.saveSystemSetting(SettingKey.LOCK_MULTIPLE_FAILED_LOGINS, true);
+    settingsService.put("keyLockMultipleFailedLogins", true);
+    settingsService.clearCurrentSettings();
 
     User admin = userService.getUserByUsername("admin");
     userService.updateUser(admin);
@@ -177,7 +185,8 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
   @Test
   void testLoginWithCredentialsExpiredUser() {
-    systemSettingManager.saveSystemSetting(SettingKey.CREDENTIALS_EXPIRES, 1);
+    settingsService.put("credentialsExpires", 1);
+    settingsService.clearCurrentSettings();
 
     User admin = userService.getUserByUsername("admin");
 

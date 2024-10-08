@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,55 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
-
-import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.Locale;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.common.DxfNamespaces;
+package org.hisp.dhis.setting;
 
 /**
- * User Settings transfer object for settings as defined by {@link UserSettingKey}.
+ * Read-only access to {@link SystemSettings}
  *
  * @author Jan Bernitt
+ * @since 2.42
+ * @implNote This is marked {@link FunctionalInterface} to increase the chance nobody adds a method
+ *     to this as the sole purpose is to give access to the current {@link SystemSettings}. Anything
+ *     that goes beyond should be added to the {@link SystemSettingsService}.
  */
-@Getter
-@Setter
-@NoArgsConstructor
-@ToString
-@JacksonXmlRootElement(localName = "settings", namespace = DxfNamespaces.DXF_2_0)
-public class UserSettings {
-  @JsonAlias("keyStyle")
-  @JsonProperty
-  private String style;
+@FunctionalInterface
+public interface SystemSettingsProvider {
 
-  @JsonAlias("keyMessageEmailNotification")
-  @JsonProperty
-  private Boolean messageEmailNotification;
-
-  @JsonAlias("keyMessageSmsNotification")
-  @JsonProperty
-  private Boolean messageSmsNotification;
-
-  @JsonAlias("keyUiLocale")
-  @JsonProperty
-  private Locale uiLocale;
-
-  @JsonAlias("keyDbLocale")
-  @JsonProperty
-  private Locale dbLocale;
-
-  @JsonAlias("keyAnalysisDisplayProperty")
-  @JsonProperty
-  private DisplayProperty analysisDisplayProperty;
-
-  @JsonAlias("keyTrackerDashboardLayout")
-  @JsonProperty
-  private String trackerDashboardLayout;
+  /**
+   * During a request the methods always returns the same instance unless {@link
+   * SystemSettingsService#clearCurrentSettings()} is called manually.
+   *
+   * @return an immutable view of all settings (including confidential ones). For internal use only!
+   */
+  SystemSettings getCurrentSettings();
 }

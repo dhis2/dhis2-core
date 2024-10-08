@@ -91,10 +91,10 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -119,7 +119,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
   private final DataQueryService dataQueryService;
 
-  private final UserSettingService userSettingService;
+  private final UserSettingsService userSettingsService;
 
   @Override
   public EventQueryParams getFromRequest(EventDataQueryRequest request) {
@@ -132,7 +132,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     IdScheme idScheme = IdScheme.UID;
 
-    Locale locale = (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE);
+    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
 
     DataQueryParams dataQueryParams =
         DataQueryParams.newBuilder().withUserOrgUnitType(UserOrgUnitType.DATA_OUTPUT).build();
@@ -346,7 +346,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     Date date = object.getRelativePeriodDate();
 
-    Locale locale = (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE);
+    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
 
     object.populateAnalyticalProperties();
 

@@ -46,8 +46,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -75,8 +74,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class TwoFactorController {
   private final UserService defaultUserService;
 
-  private final SystemSettingManager systemSettingManager;
-
   /**
    * @deprecated Use {@link #generateQRCode}.
    */
@@ -96,7 +93,8 @@ public class TwoFactorController {
   @OpenApi.Response(byte[].class)
   @GetMapping(value = "/qrCode", produces = APPLICATION_OCTET_STREAM_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public void generateQRCode(@CurrentUser User currentUser, HttpServletResponse response)
+  public void generateQRCode(
+      @CurrentUser User currentUser, HttpServletResponse response, SystemSettings settings)
       throws IOException, WebMessageException {
     if (currentUser == null) {
       throw new WebMessageException(conflict(ErrorCode.E3027.getMessage(), ErrorCode.E3027));
@@ -109,7 +107,7 @@ public class TwoFactorController {
 
     defaultUserService.generateTwoFactorOtpSecretForApproval(currentUser);
 
-    String appName = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
+    String appName = settings.getApplicationTitle();
 
     List<ErrorCode> errorCodes = new ArrayList<>();
 

@@ -344,15 +344,6 @@ public class DefaultCacheProvider implements CacheProvider {
   }
 
   @Override
-  public <V> Cache<V> createUserSettingCache() {
-    return registerCache(
-        this.<V>newBuilder()
-            .forRegion(Region.userSetting.name())
-            .expireAfterWrite(12, TimeUnit.HOURS)
-            .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_10K))));
-  }
-
-  @Override
   public <V> Cache<V> createAttrOptionComboIdCache() {
     return registerCache(
         this.<V>newBuilder()
@@ -361,15 +352,6 @@ public class DefaultCacheProvider implements CacheProvider {
             .withInitialCapacity((int) getActualSize(SIZE_1K))
             .forceInMemory()
             .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_10K))));
-  }
-
-  @Override
-  public <V> Cache<V> createSystemSettingCache() {
-    return registerCache(
-        this.<V>newBuilder()
-            .forRegion(Region.systemSetting.name())
-            .expireAfterWrite(12, TimeUnit.HOURS)
-            .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_1K))));
   }
 
   /**

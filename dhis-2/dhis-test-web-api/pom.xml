@@ -82,7 +82,7 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-setting</artifactId>
-      <scope>compile</scope>
+      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -381,10 +381,10 @@
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-db-migration</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-hibernate</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-jdbc</ignoredUnusedDeclaredDependency>
+            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-setting</ignoredUnusedDeclaredDependency>
           </ignoredUnusedDeclaredDependencies>
           <ignoredNonTestScopedDependencies>
             <!-- compile dependency to get coverage in aggregate report -->
-            <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-setting</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-dxf2</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-commons</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-field-filtering</ignoredNonTestScopedDependency>

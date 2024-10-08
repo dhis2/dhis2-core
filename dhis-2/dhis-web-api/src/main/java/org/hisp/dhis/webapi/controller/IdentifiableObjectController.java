@@ -32,6 +32,7 @@ import static java.lang.String.format;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Optional;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -50,6 +51,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/api/identifiableObjects")
 public class IdentifiableObjectController extends AbstractCrudController<IdentifiableObject> {
 
+  @Nonnull
   @Override
   @SuppressWarnings("unchecked")
   public IdentifiableObject getEntity(String uid, WebOptions options) throws NotFoundException {

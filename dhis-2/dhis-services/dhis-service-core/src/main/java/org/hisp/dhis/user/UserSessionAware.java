@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.setting;
+package org.hisp.dhis.user;
 
-import org.hisp.dhis.common.DisplayProperty;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.security.core.session.SessionDestroyedEvent;
 
 /**
- * Unit tests for {@link SettingKey}.
+ * Event listeners in spring require the called method to be accessible though an interface of the
+ * implementing service. Therefore, these methods are exposed in this interface as we otherwise do
+ * not want to have them in {@link UserSettingsService}.
  *
- * @author Volker Schmidt
+ * @author Jan Bernitt
  */
-class SettingKeyTest {
+public interface UserSessionAware {
 
-  @Test
-  void getAsRealClassEnum() {
-    Assertions.assertSame(
-        DisplayProperty.SHORTNAME,
-        SettingKey.getAsRealClass(SettingKey.ANALYSIS_DISPLAY_PROPERTY.getName(), "shortName"));
-  }
+  /**
+   * @param event used to track newly created user sessions
+   */
+  void onSessionInit(AuthenticationSuccessEvent event);
 
-  @Test
-  void getAsRealClassOther() {
-    Assertions.assertSame(
-        "Test Layout",
-        SettingKey.getAsRealClass(SettingKey.TRACKER_DASHBOARD_LAYOUT.getName(), "Test Layout"));
-  }
+  /**
+   * @param event used to track session that are no longer valid
+   */
+  void onSessionExpired(SessionDestroyedEvent event);
 }
