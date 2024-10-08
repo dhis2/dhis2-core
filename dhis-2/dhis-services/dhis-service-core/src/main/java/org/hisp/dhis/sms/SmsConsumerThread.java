@@ -35,8 +35,6 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
-import org.hisp.dhis.user.AuthenticationService;
-import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -54,8 +52,6 @@ public class SmsConsumerThread {
 
   private final IncomingSmsService incomingSmsService;
 
-  private final AuthenticationService authenticationService;
-
   public void spawnSmsConsumer() {
     IncomingSms message = messageQueue.get();
 
@@ -63,9 +59,6 @@ public class SmsConsumerThread {
       log.info("Received SMS: " + message.getText());
 
       try {
-        User createdBy = message.getCreatedBy();
-        authenticationService.obtainAuthentication(createdBy.getUid());
-
         for (IncomingSmsListener listener : listeners) {
           if (listener.accept(message)) {
             listener.receive(message);
@@ -85,8 +78,6 @@ public class SmsConsumerThread {
         message.setStatus(SmsMessageStatus.FAILED);
         message.setParsed(false);
       } finally {
-        authenticationService.clearAuthentication();
-
         messageQueue.remove(message);
 
         incomingSmsService.update(message);
