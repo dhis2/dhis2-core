@@ -43,8 +43,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -75,7 +75,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -126,9 +125,9 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
   void verifyTableNotDistributedWhenCitusEnabledAndTableTypeIsSkipped() {
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withSkipCitusTypes(Set.of(AnalyticsTableType.ENROLLMENT))
-            .withLastYears(2)
-            .withStartTime(START_TIME)
+            .skipCitusTypes(Set.of(AnalyticsTableType.ENROLLMENT))
+            .lastYears(2)
+            .startTime(START_TIME)
             .build();
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(createProgram('A')));
@@ -141,7 +140,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
   @Test
   void verifyTableIsDistributedWhenCitusEnabledAndTableTypeIsNotSkipped() {
     AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder().withLastYears(2).withStartTime(START_TIME).build();
+        AnalyticsTableUpdateParams.newBuilder().lastYears(2).startTime(START_TIME).build();
 
     when(analyticsTableSettings.getDistribution()).thenReturn(Distribution.DISTRIBUTED);
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(createProgram('A')));

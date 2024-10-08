@@ -205,9 +205,9 @@ class JdbcEventAnalyticsTableManagerTest {
   void verifyTableNotDistributedWhenCitusEnabledAndTableTypeIsSkipped() {
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withSkipCitusTypes(Set.of(AnalyticsTableType.EVENT))
-            .withLastYears(2)
-            .withStartTime(START_TIME)
+            .skipCitusTypes(Set.of(AnalyticsTableType.EVENT))
+            .lastYears(2)
+            .startTime(START_TIME)
             .build();
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(createProgram('A')));
@@ -221,7 +221,7 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyTableIsDistributedWhenCitusEnabledAndTableTypeIsNotSkipped() {
     AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder().withLastYears(2).withStartTime(START_TIME).build();
+        AnalyticsTableUpdateParams.newBuilder().lastYears(2).startTime(START_TIME).build();
 
     when(analyticsTableSettings.getDistribution()).thenReturn(Distribution.DISTRIBUTED);
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(createProgram('A')));

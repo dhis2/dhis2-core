@@ -125,8 +125,8 @@ class JdbcAnalyticsTableManagerTest {
   void verifyTableNotDistributedWhenCitusEnabledAndTableTypeIsSkipped() {
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withSkipCitusTypes(Set.of(AnalyticsTableType.DATA_VALUE))
-            .withLastYears(1)
+            .skipCitusTypes(Set.of(AnalyticsTableType.DATA_VALUE))
+            .lastYears(1)
             .build();
 
     when(analyticsTableSettings.getDistribution()).thenReturn(Distribution.DISTRIBUTED);
@@ -141,7 +141,7 @@ class JdbcAnalyticsTableManagerTest {
   @Test
   void verifyTableIsDistributedWhenCitusEnabledAndTableTypeIsNotSkipped() {
     AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder().withLastYears(1).build();
+        AnalyticsTableUpdateParams.newBuilder().lastYears(1).build();
 
     when(analyticsTableSettings.getDistribution()).thenReturn(Distribution.DISTRIBUTED);
     when(jdbcTemplate.queryForList(anyString(), ArgumentMatchers.<Class<Integer>>any()))
