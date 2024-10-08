@@ -35,6 +35,7 @@ import static org.hisp.dhis.test.web.WebClientUtils.fileContent;
 import static org.hisp.dhis.test.web.WebClientUtils.requestComponentsIn;
 import static org.hisp.dhis.test.web.WebClientUtils.substitutePlaceholders;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -269,9 +270,8 @@ public interface WebClient {
         fail("Use one of the other content() methods for JSON");
       }
       String actualContentType = header("Content-Type");
-      assertTrue(
-          actualContentType.startsWith(contentType),
-          String.format("Expected %s but was: %s", contentType, actualContentType));
+      assertNotNull(actualContentType, "response content-type was not set");
+      if (actualContentType.startsWith(contentType)) assertEquals(contentType, actualContentType);
       return callAndFailOnException(response::getContent);
     }
 
@@ -332,6 +332,7 @@ public interface WebClient {
       return header("Location");
     }
 
+    @CheckForNull
     public String header(String name) {
       return response.getHeader(name);
     }

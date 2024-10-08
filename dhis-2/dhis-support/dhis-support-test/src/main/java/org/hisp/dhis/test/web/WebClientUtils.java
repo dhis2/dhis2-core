@@ -168,7 +168,7 @@ public class WebClientUtils {
         .map(
             arg ->
                 arg instanceof Path path ? new WebClient.Body(fileContent(path.toString())) : arg)
-        .filter(arg -> arg instanceof RequestComponent)
+        .filter(RequestComponent.class::isInstance)
         .toArray(RequestComponent[]::new);
   }
 
