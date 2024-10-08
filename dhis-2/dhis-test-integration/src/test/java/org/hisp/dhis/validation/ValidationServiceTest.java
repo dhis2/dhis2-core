@@ -86,12 +86,11 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.setting.ThreadUserSettings;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingKey;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1651,7 +1650,7 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
   void testInstructionTranslation() {
     createUserAndInjectSecurityContext(true);
     Locale locale = Locale.FRENCH;
-    CurrentUserUtil.setUserSetting(UserSettingKey.DB_LOCALE, locale);
+    ThreadUserSettings.put(Map.of("keyDbLocale", locale.toString()));
 
     useDataValue(dataElementA, periodA, sourceA, "10");
     useDataValue(dataElementB, periodA, sourceA, "20");

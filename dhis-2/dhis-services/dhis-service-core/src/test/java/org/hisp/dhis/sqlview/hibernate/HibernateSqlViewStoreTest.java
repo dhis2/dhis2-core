@@ -32,11 +32,14 @@ import static org.hisp.dhis.common.TransactionMode.WRITE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityManager;
+import java.util.Map;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,12 +57,13 @@ class HibernateSqlViewStoreTest {
   @Mock JdbcTemplate readOnlyJdbcTemplate;
   @Mock ApplicationEventPublisher publisher;
   @Mock AclService aclService;
-  @Mock SystemSettingManager systemSettingManager;
+  @Mock SystemSettingsProvider settingsProvider;
   @Mock Grid grid;
   HibernateSqlViewStore store;
 
   @BeforeEach
   public void setUp() throws Exception {
+    when(settingsProvider.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
     store =
         new HibernateSqlViewStore(
             entityManager,
@@ -67,7 +71,7 @@ class HibernateSqlViewStoreTest {
             publisher,
             aclService,
             readOnlyJdbcTemplate,
-            systemSettingManager);
+            settingsProvider);
   }
 
   @Test

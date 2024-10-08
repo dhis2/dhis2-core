@@ -36,7 +36,7 @@ import static org.hisp.dhis.test.TestBase.createCategoryOptionCombo;
 import static org.hisp.dhis.test.TestBase.createDataSet;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createPeriod;
-import static org.hisp.dhis.test.TestBase.injectSecurityContext;
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -83,8 +83,8 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -120,7 +120,8 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
 
   @Mock private BatchHandlerFactory batchHandlerFactory;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsProvider settingsProvider;
+  @Mock private SystemSettings settings;
 
   @Mock private CategoryService categoryService;
 
@@ -169,6 +170,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
     user = new User();
     user.setUsername("test");
 
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     when(environment.getActiveProfiles()).thenReturn(new String[] {"test"});
     when(dhisConfigurationProvider.getProperty(ConfigurationKey.SYSTEM_CACHE_MAX_SIZE_FACTOR))
         .thenReturn("1");
@@ -188,7 +190,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
             orgUnitService,
             i18nManager,
             batchHandlerFactory,
-            systemSettingManager,
+            settingsProvider,
             categoryService,
             periodService,
             registrationService,
@@ -205,7 +207,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
 
   @Test
   void verifyUserHasNoWritePermissionOnCategoryOption() {
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
     when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
 
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
@@ -266,16 +268,10 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
       when(aclService.canDataWrite(CurrentUserUtil.getCurrentUserDetails(), categoryOptionB))
           .thenReturn(true);
 
-      when(systemSettingManager.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_PERIODS))
-          .thenReturn(false);
-      when(systemSettingManager.getBoolSetting(
-              SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS))
-          .thenReturn(false);
-      when(systemSettingManager.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS))
-          .thenReturn(false);
-      when(systemSettingManager.getBoolSetting(
-              SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO))
-          .thenReturn(false);
+      when(settings.getDataImportStrictPeriods()).thenReturn(false);
+      when(settings.getDataImportStrictAttributeOptionCombos()).thenReturn(false);
+      when(settings.getDataImportStrictOrganisationUnits()).thenReturn(false);
+      when(settings.getDataImportRequireAttributeOptionCombo()).thenReturn(false);
 
       user.setOrganisationUnits(Collections.singleton(createOrganisationUnit('A')));
 

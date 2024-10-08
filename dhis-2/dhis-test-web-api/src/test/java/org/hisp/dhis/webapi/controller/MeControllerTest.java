@@ -121,13 +121,6 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testGetSetting_Missing() {
-    assertEquals(
-        "Key is not supported: missing",
-        GET("/me/settings/missing").error(Series.CLIENT_ERROR).getMessage());
-  }
-
-  @Test
   void testChangePassword() {
     assertStatus(
         HttpStatus.ACCEPTED,

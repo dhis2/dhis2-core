@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.util.Map.entry;
 import static org.hisp.dhis.common.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
@@ -47,8 +48,8 @@ import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.cache.OutliersCache;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.Settings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.stereotype.Service;
 
@@ -63,7 +64,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
   private final ResourceTableService resourceTableService;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsService settingsService;
 
   private final AnalyticsCache analyticsCache;
 
@@ -75,7 +76,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
   public void generateAnalyticsTables(AnalyticsTableUpdateParams params0, JobProgress progress) {
     Clock clock = new Clock(log).startClock();
     Date lastSuccessfulUpdate =
-        systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE);
+        settingsService.getCurrentSettings().getLastSuccessfulAnalyticsTablesUpdate();
 
     Set<AnalyticsTableType> availableTypes =
         analyticsTableServices.stream()
@@ -117,15 +118,19 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
   private void updateLastSuccessfulSystemSettings(AnalyticsTableUpdateParams params, Clock clock) {
     if (params.isLatestUpdate()) {
-      systemSettingManager.saveSystemSetting(
-          SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE, params.getStartTime());
-      systemSettingManager.saveSystemSetting(
-          SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_RUNTIME, clock.time());
+      settingsService.putAll(
+          Map.ofEntries(
+              entry(
+                  "keyLastSuccessfulLatestAnalyticsPartitionUpdate",
+                  Settings.valueOf(params.getStartTime())),
+              entry("keyLastSuccessfulLatestAnalyticsPartitionRuntime", clock.time())));
     } else {
-      systemSettingManager.saveSystemSetting(
-          SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, params.getStartTime());
-      systemSettingManager.saveSystemSetting(
-          SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME, clock.time());
+      settingsService.putAll(
+          Map.ofEntries(
+              entry(
+                  "keyLastSuccessfulAnalyticsTablesUpdate",
+                  Settings.valueOf(params.getStartTime())),
+              entry("keyLastSuccessfulAnalyticsTablesRuntime", clock.time())));
     }
   }
 
@@ -159,7 +164,6 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
     resourceTableService.createAllSqlViews(progress);
 
-    systemSettingManager.saveSystemSetting(
-        SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, new Date());
+    settingsService.put("keyLastSuccessfulResourceTablesUpdate", new Date());
   }
 }

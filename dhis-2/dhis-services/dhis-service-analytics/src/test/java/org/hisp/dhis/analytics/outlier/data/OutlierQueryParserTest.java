@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics.outlier.data;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createDataSet;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
-import static org.hisp.dhis.test.TestBase.injectSecurityContext;
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -86,7 +86,7 @@ class OutlierQueryParserTest {
     User user = new User();
     user.setUsername("test");
     user.setDataViewOrganisationUnits(Set.of(organisationUnit));
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
     when(userService.getUserByUsername(anyString())).thenReturn(user);
 
     subject = new OutlierQueryParser(idObjectManager, dimensionalObjectProducer, userService);

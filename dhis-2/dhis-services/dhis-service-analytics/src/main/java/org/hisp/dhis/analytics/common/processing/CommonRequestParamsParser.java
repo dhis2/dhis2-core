@@ -44,7 +44,6 @@ import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.feedback.ErrorCode.E7129;
 import static org.hisp.dhis.feedback.ErrorCode.E7250;
 import static org.hisp.dhis.feedback.ErrorCode.E7251;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
@@ -86,7 +85,7 @@ import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
 
@@ -94,7 +93,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class CommonRequestParamsParser implements Parser<CommonRequestParams, CommonParsedParams> {
-  @Nonnull private final SystemSettingManager systemSettingManager;
+  @Nonnull private final SystemSettingsProvider settingsProvider;
 
   @Nonnull private final DataQueryService dataQueryService;
 
@@ -144,7 +143,7 @@ public class CommonRequestParamsParser implements Parser<CommonRequestParams, Co
    * @return the computed {@link CommonRequestParams}.
    */
   private AnalyticsPagingParams computePagingParams(CommonRequestParams commonRequestParams) {
-    int maxLimit = systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT);
+    int maxLimit = settingsProvider.getCurrentSettings().getAnalyticsMaxLimit();
     boolean unlimited = maxLimit == 0;
     boolean ignoreLimit = commonRequestParams.isIgnoreLimit();
     boolean hasMaxLimit = !unlimited && !ignoreLimit;

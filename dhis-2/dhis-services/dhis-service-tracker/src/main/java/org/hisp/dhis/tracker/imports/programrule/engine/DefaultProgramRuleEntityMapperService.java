@@ -222,6 +222,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         eventToEvaluate.getOccurredDate() != null
             ? Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getOccurredDate().getTime())
             : Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getScheduledDate().getTime()),
+        Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getCreated().getTime()),
         eventToEvaluate.getScheduledDate() == null
             ? null
             : LocalDateTime.Formats.INSTANCE
@@ -239,17 +240,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         eventToEvaluate.getEventDataValues().stream()
             .filter(Objects::nonNull)
             .filter(dv -> dv.getValue() != null)
-            .map(
-                dv ->
-                    new RuleDataValue(
-                        eventToEvaluate.getOccurredDate() != null
-                            ? Instant.Companion.fromEpochMilliseconds(
-                                eventToEvaluate.getOccurredDate().getTime())
-                            : Instant.Companion.fromEpochMilliseconds(
-                                eventToEvaluate.getScheduledDate().getTime()),
-                        eventToEvaluate.getProgramStage().getUid(),
-                        dv.getDataElement(),
-                        dv.getValue()))
+            .map(dv -> new RuleDataValue(dv.getDataElement(), dv.getValue()))
             .toList());
   }
 

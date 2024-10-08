@@ -33,7 +33,6 @@ import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -62,8 +61,8 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -85,7 +84,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class JdbcAnalyticsTableManagerTest {
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsProvider settingsProvider;
+  @Mock private SystemSettings settings;
 
   @Mock private JdbcTemplate jdbcTemplate;
 
@@ -99,12 +99,14 @@ class JdbcAnalyticsTableManagerTest {
 
   @BeforeEach
   public void setUp() {
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
     subject =
         new JdbcAnalyticsTableManager(
             mock(IdentifiableObjectManager.class),
             mock(OrganisationUnitService.class),
             mock(CategoryService.class),
-            systemSettingManager,
+            settingsProvider,
             mock(DataApprovalLevelService.class),
             mock(ResourceTableService.class),
             mock(AnalyticsTableHookService.class),
@@ -209,10 +211,8 @@ class JdbcAnalyticsTableManagerTest {
     List<Map<String, Object>> queryResp = new ArrayList<>();
     queryResp.add(Map.of("dataelementid", 1));
 
-    when(systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE))
-        .thenReturn(lastFullTableUpdate);
-    when(systemSettingManager.getDateSetting(
-            SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE))
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
         .thenReturn(lastLatestPartitionUpdate);
     when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
     when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
@@ -244,14 +244,12 @@ class JdbcAnalyticsTableManagerTest {
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();
 
-    when(systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE))
-        .thenReturn(null);
-    when(systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE))
-        .thenReturn(null);
-    when(systemSettingManager.getDateSetting(
-            SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE))
+    when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(new Date(42L));
+    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
         .thenReturn(lastLatestPartitionUpdate);
-    assertThrows(IllegalArgumentException.class, () -> subject.getAnalyticsTables(params));
+
+    assertTrue(subject.getAnalyticsTables(params).isEmpty());
   }
 
   @Test

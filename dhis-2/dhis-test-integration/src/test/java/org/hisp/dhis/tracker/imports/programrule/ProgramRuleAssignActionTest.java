@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.imports.programrule;
 
 import static org.hisp.dhis.programrule.ProgramRuleActionType.ASSIGN;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyWarnings;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1307;
@@ -37,6 +38,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1310;
 
 import java.io.IOException;
 import java.util.List;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -52,8 +54,7 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -63,6 +64,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -78,7 +80,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
 
   @Autowired private ProgramRuleVariableService programRuleVariableService;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService settingsService;
 
   private Program program;
 
@@ -168,6 +170,57 @@ class ProgramRuleAssignActionTest extends TrackerTest {
   }
 
   @Test
+  void
+      shouldImportEventAndCorrectlyAssignPreviousEventDataValueConsideringCreateAtWhenOccurredAtIsSame()
+          throws IOException {
+    String firstEventUid = CodeGenerator.generateUid();
+    String secondEventUid = CodeGenerator.generateUid();
+    String thirdEventUid = CodeGenerator.generateUid();
+    String fourthEventUid = CodeGenerator.generateUid();
+    TrackerImportParams params = new TrackerImportParams();
+    params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+
+    // Events are imported separately to have different createdAt
+    TrackerObjects firstEvent = getEvent(firstEventUid, "2024-01-11", "FIRST");
+    trackerImportService.importTracker(params, firstEvent);
+
+    TrackerObjects fourthEvent = getEvent(fourthEventUid, "2024-01-26", "FOURTH");
+    trackerImportService.importTracker(params, fourthEvent);
+
+    TrackerObjects secondEvent = getEvent(secondEventUid, "2024-01-25", "SECOND");
+    trackerImportService.importTracker(params, secondEvent);
+
+    TrackerObjects thirdEvent = getEvent(thirdEventUid, "2024-01-25", "THIRD");
+    trackerImportService.importTracker(params, thirdEvent);
+
+    assignPreviousEventProgramRule();
+
+    TrackerObjects trackerObjects =
+        TrackerObjects.builder()
+            .events(
+                List.of(
+                    firstEvent.getEvents().get(0),
+                    secondEvent.getEvents().get(0),
+                    thirdEvent.getEvents().get(0),
+                    fourthEvent.getEvents().get(0)))
+            .build();
+
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
+    List<String> firstEventDataValues = getValueForAssignedDataElement(firstEventUid);
+    List<String> secondEventDataValues = getValueForAssignedDataElement(secondEventUid);
+    List<String> thirdEventDataValues = getValueForAssignedDataElement(thirdEventUid);
+    List<String> fourthEventDataValues = getValueForAssignedDataElement(fourthEventUid);
+
+    Assertions.assertAll(
+        () -> assertHasOnlyWarnings(importReport, E1308, E1308, E1308, E1308),
+        () -> assertIsEmpty(firstEventDataValues),
+        () -> assertContainsOnly(List.of("FIRST"), secondEventDataValues),
+        () -> assertContainsOnly(List.of("SECOND"), thirdEventDataValues),
+        () -> assertContainsOnly(List.of("THIRD"), fourthEventDataValues));
+  }
+
+  @Test
   void shouldImportWithWarningWhenDataElementWithSameValueIsAssignedByAssignRule()
       throws IOException {
     assignProgramRule();
@@ -199,7 +252,8 @@ class ProgramRuleAssignActionTest extends TrackerTest {
       shouldImportWithWarningWhenDataElementWithDifferentValueIsAssignedByAssignRuleAndOverwriteKeyIsTrue()
           throws IOException {
     assignProgramRule();
-    systemSettingManager.saveSystemSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE, true);
+    settingsService.put("ruleEngineAssignOverwrite", true);
+    settingsService.clearCurrentSettings();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
         fromJson("tracker/programrule/event_update_datavalue_different_value.json");
@@ -215,7 +269,8 @@ class ProgramRuleAssignActionTest extends TrackerTest {
       shouldImportWithWarningWhenDataElementWithDifferentAndEmptyValueIsAssignedByAssignRuleAndOverwriteKeyIsTrue()
           throws IOException {
     assignProgramRule();
-    systemSettingManager.saveSystemSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE, true);
+    settingsService.put("ruleEngineAssignOverwrite", true);
+    settingsService.clearCurrentSettings();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
         fromJson("tracker/programrule/event_update_datavalue_empty_value.json");
@@ -224,6 +279,26 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertHasOnlyWarnings(importReport, E1308);
+  }
+
+  private TrackerObjects getEvent(String eventUid, String occurredDate, String value)
+      throws IOException {
+    TrackerObjects trackerObjects = fromJson("tracker/programrule/event_without_date.json");
+    trackerObjects
+        .getEvents()
+        .get(0)
+        .setOccurredAt(DateUtils.instantFromDateAsString(occurredDate));
+    trackerObjects.getEvents().get(0).setEvent(eventUid);
+    trackerObjects.getEvents().get(0).getDataValues().iterator().next().setValue(value);
+
+    return trackerObjects;
+  }
+
+  private List<String> getValueForAssignedDataElement(String eventUid) {
+    return manager.get(Event.class, eventUid).getEventDataValues().stream()
+        .filter(dv -> dv.getDataElement().equals("DATAEL00002"))
+        .map(EventDataValue::getValue)
+        .toList();
   }
 
   private void assignProgramRule() {

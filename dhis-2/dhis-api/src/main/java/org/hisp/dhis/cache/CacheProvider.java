@@ -77,11 +77,7 @@ public interface CacheProvider {
 
   <V> Cache<V> createCurrentUserGroupInfoCache();
 
-  <V> Cache<V> createUserSettingCache();
-
   <V> Cache<V> createAttrOptionComboIdCache();
-
-  <V> Cache<V> createSystemSettingCache();
 
   <V> Cache<V> createGoogleAccessTokenCache();
 

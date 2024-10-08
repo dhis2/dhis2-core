@@ -56,8 +56,7 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
@@ -90,7 +89,7 @@ import org.springframework.transaction.annotation.Transactional;
 class UserControllerTest extends H2ControllerIntegrationTestBase {
   @Autowired private MessageSender emailMessageSender;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService settingsService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -280,7 +279,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testUpdateRolesWithNoAllAndCanAssignRoles() {
 
-    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
+    settingsService.put("keyCanGrantOwnUserAuthorityGroups", true);
 
     JsonImportSummary response = updateRolesNonAllAdmin();
 
@@ -299,7 +298,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testUpdateRolesWithNoAllAndNoCanAssignRoles() {
 
-    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.FALSE);
+    settingsService.put("keyCanGrantOwnUserAuthorityGroups", false);
 
     JsonImportSummary response = updateRolesNonAllAdmin();
 
@@ -397,7 +396,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testChangeOrgUnitLevelGivesAccessError() {
-    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
+    settingsService.put("keyCanGrantOwnUserAuthorityGroups", true);
 
     OrganisationUnit orgA = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(orgA);
@@ -438,7 +437,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void updateUserHasAccessToUpdateGroups() {
-    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
+    settingsService.put("keyCanGrantOwnUserAuthorityGroups", true);
 
     UserRole roleB = createUserRole("ROLE_B", "F_USER_ADD", "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS");
     userService.addUserRole(roleB);
@@ -839,19 +838,23 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testPutJsonObject_WithSettings() {
-    JsonUser user = GET("/users/{id}", peter.getUid()).content().as(JsonUser.class);
+    String userId = peter.getUid();
+    JsonUser user = GET("/users/{id}", userId).content().as(JsonUser.class);
     assertWebMessage(
         "OK",
         200,
         "OK",
         null,
         PUT(
-                "/38/users/" + peter.getUid(),
-                user.node().addMember("settings", "{\"uiLocale\":\"de\"}").toString())
+                "/38/users/" + userId,
+                user.node()
+                    .addMembers(
+                        obj -> obj.addObject("settings", s -> s.addString("keyUiLocale", "de")))
+                    .toString())
             .content(HttpStatus.OK));
     assertEquals(
         "de",
-        GET("/userSettings/keyUiLocale?userId=" + user.getId(), Accept("text/plain"))
+        GET("/userSettings/keyUiLocale?userId=" + userId, Accept("text/plain"))
             .content("text/plain"));
   }
 

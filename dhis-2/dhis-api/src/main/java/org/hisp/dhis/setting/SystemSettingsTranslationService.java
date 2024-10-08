@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,60 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.util;
+package org.hisp.dhis.setting;
 
-import java.io.Serializable;
+import java.util.Optional;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 
 /**
- * Optional for {@link Serializable} values. Accepts nulls.
- *
- * @author Lars Helge Overland
+ * @author Jan Bernitt
+ * @since 2.42
  */
-public class SerializableOptional implements Serializable {
-  private final Serializable value;
-
-  private SerializableOptional() {
-    this.value = null;
-  }
-
-  private SerializableOptional(Serializable value) {
-    this.value = value;
-  }
+public interface SystemSettingsTranslationService {
 
   /**
-   * Creates a {@link SerializableOptional} with the given value.
+   * Saves the translation for given setting key and locale if given setting key is translatable. If
+   * the translation string contains an empty string, the translation for given locale and key is
+   * removed.
    *
-   * @param value the value.
-   * @return a {@link SerializableOptional}.
+   * @param key of the related setting
+   * @param locale locale of the translation (should be a language tag)
+   * @param translation translation text, null or empty to delete
    */
-  public static SerializableOptional of(Serializable value) {
-    return new SerializableOptional(value);
-  }
+  void saveSystemSettingTranslation(
+      @Nonnull String key, @Nonnull String locale, @CheckForNull String translation)
+      throws ForbiddenException, BadRequestException;
 
   /**
-   * Returns a {@link SerializableOptional} with a null value.
+   * Returns the translation for given setting key and locale or empty Optional if no translation is
+   * available or setting key is not translatable.
    *
-   * @return a {@link SerializableOptional} with a null value.
+   * @param key SettingKey
+   * @param locale Locale of required translation
+   * @return The Optional with the actual translation or empty Optional
    */
-  public static SerializableOptional empty() {
-    return new SerializableOptional();
-  }
-
-  /**
-   * Indicates whether a value is present.
-   *
-   * @return true if a value is present.
-   */
-  public boolean isPresent() {
-    return value != null;
-  }
-
-  /**
-   * Returns the value, may be null.
-   *
-   * @return the value.
-   */
-  public Serializable get() {
-    return value;
-  }
+  Optional<String> getSystemSettingTranslation(@Nonnull String key, @Nonnull String locale);
 }

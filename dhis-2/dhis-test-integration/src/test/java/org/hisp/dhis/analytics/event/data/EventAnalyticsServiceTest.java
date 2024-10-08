@@ -115,6 +115,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -126,6 +127,7 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -140,14 +142,13 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
+@Order(1) // must run before other tests in analytics package (for some unknown reason)
 class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   @Autowired private EventQueryService eventQueryTarget;
 
   @Autowired private EventAggregateService eventAggregateService;
 
   @Autowired private EnrollmentQueryService enrollmentQueryTarget;
-
-  @Autowired private EnrollmentAggregateService enrollmentAggregateService;
 
   @Autowired private List<AnalyticsTableService> analyticsTableServices;
 
@@ -170,6 +171,8 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   @Autowired private CategoryService categoryService;
+
+  @Autowired private SystemSettingsService settingsService;
 
   private OrganisationUnit ouA;
 

@@ -62,8 +62,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -94,7 +93,7 @@ class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTest
 
   @Autowired protected IdentifiableObjectManager identifiableObjectManager;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService settingsService;
 
   @Autowired protected UserGroupService userGroupService;
 
@@ -624,14 +623,15 @@ class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTest
     dataSetService.addDataSet(dataSetB);
 
     // System settings
-    systemSettingManager.saveSystemSetting(SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD, 0);
-    systemSettingManager.saveSystemSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, true);
+    settingsService.put("keyIgnoreAnalyticsApprovalYearThreshold", 0);
+    settingsService.put("keyAcceptanceRequiredForApproval", true);
+    settingsService.clearCurrentSettings();
   }
 
   @AfterEach
   void tearDown() {
-    systemSettingManager.saveSystemSetting(SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD, -1);
-    systemSettingManager.saveSystemSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, false);
+    settingsService.deleteAll(
+        Set.of("keyIgnoreAnalyticsApprovalYearThreshold", "keyAcceptanceRequiredForApproval"));
     DataApprovalPermissionsEvaluator.invalidateCache();
   }
 

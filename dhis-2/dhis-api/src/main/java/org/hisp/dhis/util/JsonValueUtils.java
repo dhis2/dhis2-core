@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.util;
 
-import org.hisp.dhis.common.DisplayProperty;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.jsontree.JsonMixed;
 
 /**
- * Unit tests for {@link UserSettingKey}.
+ * Util around {@link org.hisp.dhis.jsontree.JsonValue} as input mostly to Java values as output.
  *
- * @author Volker Schmidt
+ * @author Jan Bernitt
  */
-class UserSettingKeyTest {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class JsonValueUtils {
 
-  @Test
-  void getAsRealClassEnum() {
-    Assertions.assertSame(
-        DisplayProperty.SHORTNAME,
-        UserSettingKey.getAsRealClass(
-            UserSettingKey.ANALYSIS_DISPLAY_PROPERTY.getName(), "shortName"));
-  }
-
-  @Test
-  void getAsRealClassOther() {
-    Assertions.assertSame(
-        "Test Layout",
-        UserSettingKey.getAsRealClass(
-            UserSettingKey.TRACKER_DASHBOARD_LAYOUT.getName(), "Test Layout"));
+  /**
+   * Convert any JSON primitive to a Java {@link String}
+   *
+   * @param value the value to convert, string, boolean, number or null
+   * @return the Java string
+   * @throws ConflictException in case the provided value is an array or object
+   */
+  @CheckForNull
+  public static String toJavaString(@Nonnull JsonMixed value) throws ConflictException {
+    return switch (value.node().getType()) {
+      case NULL -> null;
+      case STRING -> value.string();
+      case OBJECT, ARRAY ->
+          throw new ConflictException(
+              "Value must be a simple JSON value but was: " + value.toJson());
+      default -> value.toJson();
+    };
   }
 }

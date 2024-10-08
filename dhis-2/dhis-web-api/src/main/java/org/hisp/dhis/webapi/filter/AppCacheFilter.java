@@ -42,11 +42,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.i18n.ui.locale.UserSettingLocaleManager;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -60,7 +60,7 @@ public class AppCacheFilter implements Filter {
 
   @Autowired private UserSettingLocaleManager localeManager;
 
-  @Autowired private UserSettingService userSettingService;
+  @Autowired private UserSettingsService userSettingsService;
 
   @Override
   public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
@@ -81,8 +81,7 @@ public class AppCacheFilter implements Filter {
       writer.println("# DHIS2 " + systemInfo.getVersion() + " r" + systemInfo.getRevision());
       writer.println("# User: " + CurrentUserUtil.getCurrentUsername());
       writer.println("# User UI Language: " + localeManager.getCurrentLocale());
-      writer.println(
-          "# User DB Language: " + userSettingService.getUserSetting(UserSettingKey.DB_LOCALE));
+      writer.println("# User DB Language: " + UserSettings.getCurrentSettings().getUserDbLocale());
       writer.println("# Calendar: " + systemInfo.getCalendar());
     }
   }

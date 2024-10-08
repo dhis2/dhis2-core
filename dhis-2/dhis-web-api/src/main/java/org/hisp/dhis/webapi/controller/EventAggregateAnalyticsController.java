@@ -34,8 +34,6 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.EVENT;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_ANALYTICS_EXPLAIN;
-import static org.hisp.dhis.setting.SettingKey.ANALYSIS_RELATIVE_PERIOD;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 import static org.hisp.dhis.system.grid.GridUtils.toCsv;
 import static org.hisp.dhis.system.grid.GridUtils.toHtml;
 import static org.hisp.dhis.system.grid.GridUtils.toHtmlCss;
@@ -69,9 +67,9 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.util.PeriodCriteriaUtils;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
@@ -107,7 +105,7 @@ public class EventAggregateAnalyticsController {
 
   @Nonnull private final DimensionMapperService dimensionMapperService;
 
-  @Nonnull private final SystemSettingManager systemSettingManager;
+  @Nonnull private final SystemSettingsProvider settingsProvider;
 
   @RequiresAuthority(anyOf = F_PERFORM_ANALYTICS_EXPLAIN)
   @GetMapping(
@@ -272,11 +270,11 @@ public class EventAggregateAnalyticsController {
       DhisApiVersion apiVersion,
       boolean analyzeOnly,
       EndpointAction endpointAction) {
-    criteria.definePageSize(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT));
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    criteria.definePageSize(settings.getAnalyticsMaxLimit());
 
     PeriodCriteriaUtils.defineDefaultPeriodForCriteria(
-        criteria,
-        systemSettingManager.getSystemSetting(ANALYSIS_RELATIVE_PERIOD, RelativePeriodEnum.class));
+        criteria, settings.getAnalysisRelativePeriod());
 
     EventDataQueryRequest request =
         EventDataQueryRequest.builder()

@@ -38,7 +38,6 @@ import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import java.io.IOException;
-import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -79,7 +78,6 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -89,8 +87,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.filter.UserRoleCanIssueFilter;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
@@ -118,12 +115,12 @@ public class DefaultUserService implements UserService {
   private final UserStore userStore;
   private final UserGroupService userGroupService;
   private final UserRoleStore userRoleStore;
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
   private final PasswordManager passwordManager;
   private final AclService aclService;
   private final OrganisationUnitService organisationUnitService;
   private final SessionRegistry sessionRegistry;
-  private final UserSettingService userSettingService;
+  private final UserSettingsService userSettingsService;
   private final RestTemplate restTemplate;
   private final MessageSender emailMessageSender;
   private final I18nManager i18nManager;
@@ -135,7 +132,7 @@ public class DefaultUserService implements UserService {
   private final Cache<Integer> twoFaDisableFailedAttemptCache;
 
   public DefaultUserService(
-      UserSettingService userSettingService,
+      UserSettingsService userSettingsService,
       RestTemplate restTemplate,
       MessageSender emailMessageSender,
       I18nManager i18nManager,
@@ -143,7 +140,7 @@ public class DefaultUserService implements UserService {
       UserStore userStore,
       UserGroupService userGroupService,
       UserRoleStore userRoleStore,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       CacheProvider cacheProvider,
       PasswordManager passwordManager,
       AclService aclService,
@@ -153,12 +150,12 @@ public class DefaultUserService implements UserService {
     checkNotNull(userStore);
     checkNotNull(userGroupService);
     checkNotNull(userRoleStore);
-    checkNotNull(systemSettingManager);
+    checkNotNull(settingsProvider);
     checkNotNull(passwordManager);
     checkNotNull(aclService);
     checkNotNull(organisationUnitService);
     checkNotNull(sessionRegistry);
-    checkNotNull(userSettingService);
+    checkNotNull(userSettingsService);
     checkNotNull(restTemplate);
     checkNotNull(cacheProvider);
     checkNotNull(emailMessageSender);
@@ -168,14 +165,14 @@ public class DefaultUserService implements UserService {
     this.userStore = userStore;
     this.userGroupService = userGroupService;
     this.userRoleStore = userRoleStore;
-    this.systemSettingManager = systemSettingManager;
+    this.settingsProvider = settingsProvider;
     this.passwordManager = passwordManager;
     this.userDisplayNameCache = cacheProvider.createUserDisplayNameCache();
     this.aclService = aclService;
     this.organisationUnitService = organisationUnitService;
     this.sessionRegistry = sessionRegistry;
 
-    this.userSettingService = userSettingService;
+    this.userSettingsService = userSettingsService;
     this.restTemplate = restTemplate;
     this.emailMessageSender = emailMessageSender;
     this.i18nManager = i18nManager;
@@ -344,7 +341,7 @@ public class DefaultUserService implements UserService {
   private void handleUserQueryParams(UserQueryParams params) {
     boolean canSeeOwnRoles =
         params.isCanSeeOwnRoles()
-            || systemSettingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES);
+            || settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
     params.setDisjointRoles(!canSeeOwnRoles);
 
     if (!params.hasUser()) {
@@ -550,8 +547,7 @@ public class DefaultUserService implements UserService {
   public void canIssueFilter(Collection<UserRole> userRoles) {
     User user = getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    boolean canGrantOwnUserRoles =
-        systemSettingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES);
+    boolean canGrantOwnUserRoles = settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
 
     FilterUtils.filter(userRoles, new UserRoleCanIssueFilter(user, canGrantOwnUserRoles));
   }
@@ -654,7 +650,7 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public boolean userNonExpired(User user) {
-    int credentialsExpires = systemSettingManager.credentialsExpires();
+    int credentialsExpires = settingsProvider.getCurrentSettings().getCredentialsExpires();
 
     if (credentialsExpires == 0) {
       return true;
@@ -735,8 +731,7 @@ public class DefaultUserService implements UserService {
   private void checkHasAccessToUserRoles(User user, User currentUser, List<ErrorReport> errors) {
     Set<UserRole> userRoles = user.getUserRoles();
 
-    boolean canGrantOwnUserRoles =
-        systemSettingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES);
+    boolean canGrantOwnUserRoles = settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
 
     if (userRoles != null) {
       List<UserRole> roles =
@@ -939,8 +934,6 @@ public class DefaultUserService implements UserService {
               username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked));
     }
 
-    Map<String, Serializable> userSettings = userSettingService.getUserSettingsAsMap(user);
-
     List<String> organisationUnitsUidsByUser =
         organisationUnitService.getOrganisationUnitsUidsByUser(user.getUsername());
     List<String> searchOrganisationUnitsUidsByUser =
@@ -954,8 +947,7 @@ public class DefaultUserService implements UserService {
         credentialsNonExpired,
         new HashSet<>(organisationUnitsUidsByUser),
         new HashSet<>(searchOrganisationUnitsUidsByUser),
-        new HashSet<>(dataViewOrganisationUnitsUidsByUser),
-        userSettings);
+        new HashSet<>(dataViewOrganisationUnitsUidsByUser));
   }
 
   @Override
@@ -1126,7 +1118,7 @@ public class DefaultUserService implements UserService {
 
     RestoreType restoreType = restoreOptions.getRestoreType();
 
-    String applicationTitle = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
+    String applicationTitle = settingsProvider.getCurrentSettings().getApplicationTitle();
 
     if (applicationTitle == null || applicationTitle.isEmpty()) {
       applicationTitle = DEFAULT_APPLICATION_TITLE;
@@ -1143,11 +1135,9 @@ public class DefaultUserService implements UserService {
 
     I18n i18n =
         i18nManager.getI18n(
-            ObjectUtils.firstNonNull(
-                (Locale)
-                    userSettingService.getUserSetting(
-                        UserSettingKey.UI_LOCALE, persistedUser.getUsername()),
-                LocaleManager.DEFAULT_LOCALE));
+            userSettingsService
+                .getUserSettings(persistedUser.getUsername(), true)
+                .getUserUiLocale());
 
     vars.put("i18n", i18n);
 
@@ -1287,7 +1277,7 @@ public class DefaultUserService implements UserService {
   }
 
   private boolean isNotBlockOnFailedLogins() {
-    return !systemSettingManager.getBoolSetting(SettingKey.LOCK_MULTIPLE_FAILED_LOGINS);
+    return !settingsProvider.getCurrentSettings().getLockMultipleFailedLogins();
   }
 
   @Override
@@ -1300,7 +1290,7 @@ public class DefaultUserService implements UserService {
       user.setUsername(username);
     }
 
-    int minPasswordLength = systemSettingManager.getIntSetting(SettingKey.MIN_PASSWORD_LENGTH);
+    int minPasswordLength = settingsProvider.getCurrentSettings().getMinPasswordLength();
     char[] plaintextPassword = PasswordGenerator.generateValidPassword(minPasswordLength);
 
     user.setSurname(StringUtils.isEmpty(user.getSurname()) ? TBD_NAME : user.getSurname());
@@ -1448,7 +1438,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   public boolean canView(String type) {
-    boolean requireAddToView = systemSettingManager.getBoolSetting(SettingKey.REQUIRE_ADD_TO_VIEW);
+    boolean requireAddToView = settingsProvider.getCurrentSettings().getRequireAddToView();
 
     return !requireAddToView || (canCreatePrivate(type) || canCreatePublic(type));
   }
@@ -1495,7 +1485,7 @@ public class DefaultUserService implements UserService {
   public RecaptchaResponse verifyRecaptcha(String key, String remoteIp) throws IOException {
     MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 
-    params.add("secret", systemSettingManager.getStringSetting(SettingKey.RECAPTCHA_SECRET));
+    params.add("secret", settingsProvider.getCurrentSettings().getRecaptchaSecret());
     params.add("response", key);
     params.add("remoteip", remoteIp);
 
@@ -1530,7 +1520,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   public boolean sendEmailVerificationToken(User user, String token, String requestUrl) {
-    String applicationTitle = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
+    String applicationTitle = settingsProvider.getCurrentSettings().getApplicationTitle();
     if (applicationTitle == null || applicationTitle.isEmpty()) {
       applicationTitle = DEFAULT_APPLICATION_TITLE;
     }
@@ -1543,10 +1533,7 @@ public class DefaultUserService implements UserService {
     vars.put("email", user.getEmail());
     I18n i18n =
         i18nManager.getI18n(
-            ObjectUtils.firstNonNull(
-                (Locale)
-                    userSettingService.getUserSetting(UserSettingKey.UI_LOCALE, user.getUsername()),
-                LocaleManager.DEFAULT_LOCALE));
+            userSettingsService.getUserSettings(user.getUsername(), true).getUserUiLocale());
     vars.put("i18n", i18n);
 
     VelocityManager vm = new VelocityManager();
