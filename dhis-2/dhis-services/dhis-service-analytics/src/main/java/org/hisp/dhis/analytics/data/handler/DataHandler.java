@@ -739,6 +739,35 @@ public class DataHandler {
       return;
     }
 
+    DataQueryParams operandParams = getOperandDataQueryParams(params, operands, totalType);
+
+    Map<String, Object> aggregatedDataMap = getAggregatedDataValueMapObjectTyped(operandParams);
+
+    aggregatedDataMap = convertDxToOperand(aggregatedDataMap, totalType);
+
+    for (Map.Entry<String, Object> entry : aggregatedDataMap.entrySet()) {
+      Object value = getRoundedValueObject(operandParams, entry.getValue());
+
+      grid.addRow().addValues(entry.getKey().split(DIMENSION_SEP)).addValue(value);
+
+      if (params.isIncludeNumDen()) {
+        grid.addNullValues(NUMERATOR_DENOMINATOR_PROPERTIES_COUNT);
+      }
+    }
+  }
+
+  /**
+   * Delivers a DataQueryParams instance for DataElementOperands. The dimension and filter operands
+   * are added to the query parameters.
+   *
+   * @param params the {@link DataQueryParams}.
+   * @param operands the collection of {@link DataElementOperand}.
+   * @param totalType the {@link TotalType}.
+   * @return mapped DataQueryParams
+   */
+  private DataQueryParams getOperandDataQueryParams(
+      DataQueryParams params, List<DataElementOperand> operands, TotalType totalType) {
+
     List<DimensionalItemObject> dataElements = newArrayList(getDataElements(operands));
     List<DimensionalItemObject> categoryOptionCombos =
         newArrayList(getCategoryOptionCombos(operands));
@@ -773,51 +802,51 @@ public class DataHandler {
     List<DimensionalItemObject> dimensionCategoryOptionCombos =
         categoryOptionCombos.stream()
             .filter(
-                de ->
+                coc ->
                     params.getDataElementOperands().stream()
                         .anyMatch(
                             deo ->
                                 ((DataElementOperand) deo)
                                     .getCategoryOptionCombo()
                                     .getUid()
-                                    .equals(de.getUid())))
+                                    .equals(coc.getUid())))
             .toList();
     List<DimensionalItemObject> filterCategoryOptionCombos =
         categoryOptionCombos.stream()
             .filter(
-                de ->
+                coc ->
                     params.getFilterDataElementOperands().stream()
                         .anyMatch(
                             deo ->
                                 ((DataElementOperand) deo)
                                     .getCategoryOptionCombo()
                                     .getUid()
-                                    .equals(de.getUid())))
+                                    .equals(coc.getUid())))
             .toList();
 
     List<DimensionalItemObject> dimensionAttributeOptionCombos =
         attributeOptionCombos.stream()
             .filter(
-                de ->
+                aoc ->
                     params.getDataElementOperands().stream()
                         .anyMatch(
                             deo ->
                                 ((DataElementOperand) deo)
                                     .getAttributeOptionCombo()
                                     .getUid()
-                                    .equals(de.getUid())))
+                                    .equals(aoc.getUid())))
             .toList();
     List<DimensionalItemObject> filterAttributeOptionCombos =
         attributeOptionCombos.stream()
             .filter(
-                de ->
+                aoc ->
                     params.getFilterDataElementOperands().stream()
                         .anyMatch(
                             deo ->
                                 ((DataElementOperand) deo)
                                     .getAttributeOptionCombo()
                                     .getUid()
-                                    .equals(de.getUid())))
+                                    .equals(aoc.getUid())))
             .toList();
 
     DataQueryParams.Builder builder = newBuilder(params).removeDimension(DATA_X_DIM_ID);
@@ -834,12 +863,12 @@ public class DataHandler {
       if (!dimensionCategoryOptionCombos.isEmpty()) {
         builder.addDimension(
             new BaseDimensionalObject(
-                CATEGORYOPTIONCOMBO_DIM_ID, CATEGORY_OPTION_COMBO, categoryOptionCombos));
+                CATEGORYOPTIONCOMBO_DIM_ID, CATEGORY_OPTION_COMBO, dimensionCategoryOptionCombos));
       }
       if (!filterCategoryOptionCombos.isEmpty()) {
         builder.addFilter(
             new BaseDimensionalObject(
-                CATEGORYOPTIONCOMBO_DIM_ID, CATEGORY_OPTION_COMBO, categoryOptionCombos));
+                CATEGORYOPTIONCOMBO_DIM_ID, CATEGORY_OPTION_COMBO, filterCategoryOptionCombos));
       }
     }
 
@@ -847,30 +876,18 @@ public class DataHandler {
       if (!dimensionAttributeOptionCombos.isEmpty()) {
         builder.addDimension(
             new BaseDimensionalObject(
-                ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTE_OPTION_COMBO, attributeOptionCombos));
+                ATTRIBUTEOPTIONCOMBO_DIM_ID,
+                ATTRIBUTE_OPTION_COMBO,
+                dimensionAttributeOptionCombos));
       }
       if (!filterAttributeOptionCombos.isEmpty()) {
         builder.addFilter(
             new BaseDimensionalObject(
-                ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTE_OPTION_COMBO, attributeOptionCombos));
+                ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTE_OPTION_COMBO, filterAttributeOptionCombos));
       }
     }
 
-    DataQueryParams operandParams = builder.build();
-
-    Map<String, Object> aggregatedDataMap = getAggregatedDataValueMapObjectTyped(operandParams);
-
-    aggregatedDataMap = convertDxToOperand(aggregatedDataMap, totalType);
-
-    for (Map.Entry<String, Object> entry : aggregatedDataMap.entrySet()) {
-      Object value = getRoundedValueObject(operandParams, entry.getValue());
-
-      grid.addRow().addValues(entry.getKey().split(DIMENSION_SEP)).addValue(value);
-
-      if (params.isIncludeNumDen()) {
-        grid.addNullValues(NUMERATOR_DENOMINATOR_PROPERTIES_COUNT);
-      }
-    }
+    return builder.build();
   }
 
   /**
