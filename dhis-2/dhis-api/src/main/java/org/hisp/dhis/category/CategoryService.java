@@ -541,4 +541,6 @@ public interface CategoryService {
   CategoryOption getDefaultCategoryOption();
 
   Category getDefaultCategory();
+
+  List<CategoryOption> getCategoryOptionsByUid(List<String> catOptionUids);
 }
