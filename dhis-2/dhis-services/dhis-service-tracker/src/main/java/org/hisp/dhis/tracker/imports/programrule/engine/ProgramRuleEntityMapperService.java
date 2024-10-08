@@ -29,64 +29,29 @@ package org.hisp.dhis.tracker.imports.programrule.engine;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.rules.api.DataItem;
 import org.hisp.dhis.rules.models.Rule;
-import org.hisp.dhis.rules.models.RuleEnrollment;
-import org.hisp.dhis.rules.models.RuleEvent;
 import org.hisp.dhis.rules.models.RuleVariable;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
 /**
  * RuleEngine has its own domain model. This service is responsible for converting DHIS domain
- * objects to RuleEngine domain objects and vice versa.
- *
- * <p>Created by zubair@dhis2.org on 19.10.17.
+ * objects to RuleEngine domain objects.
  */
 public interface ProgramRuleEntityMapperService {
-  /**
-   * @param programRules The list of program rules to be mapped
-   * @return A list of mapped Rules for list of programs.
-   */
-  List<Rule> toMappedProgramRules(List<ProgramRule> programRules);
 
-  /***
-   * @return A list of mapped RuleVariables for all programs.
-   */
-  List<RuleVariable> toMappedProgramRuleVariables();
+  List<Rule> toRules(@Nonnull List<ProgramRule> programRules);
 
-  /**
-   * @param programRuleVariables The list of ProgramRuleVariable to be mapped.
-   * @return A list of mapped RuleVariables for list of programs.
-   */
-  List<RuleVariable> toMappedProgramRuleVariables(List<ProgramRuleVariable> programRuleVariables);
-
-  /**
-   * @param events list of events
-   * @return A list of mapped events for the list of DHIS events.
-   */
-  List<RuleEvent> toMappedRuleEvents(Set<Event> events);
-
-  /**
-   * @param eventToEvaluate event to converted.
-   * @return A mapped event for corresponding DHIS event.
-   */
-  RuleEvent toMappedRuleEvent(Event eventToEvaluate);
-
-  /**
-   * @return A mapped RuleEnrollment for DHIS enrollment.
-   */
-  RuleEnrollment toMappedRuleEnrollment(
-      Enrollment enrollment, List<TrackedEntityAttributeValue> trackedEntityAttributeValues);
+  List<RuleVariable> toRuleVariables(@Nonnull List<ProgramRuleVariable> programRuleVariables);
 
   /**
    * Fetch display name for {@link ProgramRuleVariable}, {@link org.hisp.dhis.constant.Constant}
    *
    * @return map containing item description
    */
-  Map<String, DataItem> getItemStore(List<ProgramRuleVariable> programRuleVariables);
+  Map<String, DataItem> getItemStore(
+      @Nonnull List<ProgramRuleVariable> programRuleVariables, @Nonnull List<Constant> constants);
 }

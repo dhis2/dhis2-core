@@ -29,14 +29,11 @@ package org.hisp.dhis.tracker.imports.converter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.TestBase;
@@ -71,17 +68,11 @@ class RelationshipTrackerConverterServiceTest extends TestBase {
 
   private static final String RELATIONSHIP_A = "RELATIONSHIP_A_UID";
 
-  private static final String RELATIONSHIP_B = "RELATIONSHIP_B_UID";
-
   private RelationshipType teToEnrollment;
-
-  private RelationshipType teToEvent;
 
   private TrackedEntity trackedEntity;
 
   private Enrollment enrollment;
-
-  private Event event;
 
   private TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship>
       relationshipConverterService;
@@ -97,53 +88,29 @@ class RelationshipTrackerConverterServiceTest extends TestBase {
     teToEnrollment = createTeToEnrollmentRelationshipType('A', program, teType, false);
     teToEnrollment.setUid(TE_TO_ENROLLMENT_RELATIONSHIP_TYPE);
 
-    teToEvent = createTeToEventRelationshipType('B', program, teType, false);
-    teToEvent.setUid(TE_TO_EVENT_RELATIONSHIP_TYPE);
-
     trackedEntity = createTrackedEntity(organisationUnit);
     trackedEntity.setTrackedEntityType(teType);
     trackedEntity.setUid(TE);
     enrollment = createEnrollment(program, trackedEntity, organisationUnit);
     enrollment.setUid(ENROLLMENT);
-    event = createEvent(createProgramStage('A', program), enrollment, organisationUnit);
-    event.setUid(EVENT);
 
     relationshipConverterService = new RelationshipTrackerConverterService();
   }
 
   @Test
-  void testConverterFromRelationships() {
+  void testConverterFromRelationship() {
     when(preheat.getRelationship(RELATIONSHIP_A)).thenReturn(relationshipAFromDB());
-    when(preheat.getRelationship(RELATIONSHIP_B)).thenReturn(relationshipBFromDB());
     when(preheat.getRelationshipType(MetadataIdentifier.ofUid(TE_TO_ENROLLMENT_RELATIONSHIP_TYPE)))
         .thenReturn(teToEnrollment);
-    when(preheat.getRelationshipType(MetadataIdentifier.ofUid(TE_TO_EVENT_RELATIONSHIP_TYPE)))
-        .thenReturn(teToEvent);
     when(preheat.getTrackedEntity(TE)).thenReturn(trackedEntity);
     when(preheat.getEnrollment(ENROLLMENT)).thenReturn(enrollment);
-    when(preheat.getEvent(EVENT)).thenReturn(event);
 
-    List<org.hisp.dhis.relationship.Relationship> from =
-        relationshipConverterService.from(
-            preheat, List.of(relationshipA(), relationshipB()), new SystemUser());
+    org.hisp.dhis.relationship.Relationship from =
+        relationshipConverterService.from(preheat, relationshipA(), new SystemUser());
+
     assertNotNull(from);
-    assertEquals(2, from.size());
-    from.forEach(
-        relationship -> {
-          if (TE_TO_ENROLLMENT_RELATIONSHIP_TYPE.equals(
-              relationship.getRelationshipType().getUid())) {
-            assertEquals(TE, relationship.getFrom().getTrackedEntity().getUid());
-            assertEquals(ENROLLMENT, relationship.getTo().getEnrollment().getUid());
-          } else if (TE_TO_EVENT_RELATIONSHIP_TYPE.equals(
-              relationship.getRelationshipType().getUid())) {
-            assertEquals(TE, relationship.getFrom().getTrackedEntity().getUid());
-            assertEquals(EVENT, relationship.getTo().getEvent().getUid());
-          } else {
-            fail("Unexpected relationshipType found.");
-          }
-          assertNotNull(relationship.getFrom());
-          assertNotNull(relationship.getTo());
-        });
+    assertEquals(TE, from.getFrom().getTrackedEntity().getUid());
+    assertEquals(ENROLLMENT, from.getTo().getEnrollment().getUid());
   }
 
   private Relationship relationshipA() {
@@ -155,20 +122,7 @@ class RelationshipTrackerConverterServiceTest extends TestBase {
         .build();
   }
 
-  private Relationship relationshipB() {
-    return Relationship.builder()
-        .relationship(RELATIONSHIP_B)
-        .relationshipType(MetadataIdentifier.ofUid(TE_TO_EVENT_RELATIONSHIP_TYPE))
-        .from(RelationshipItem.builder().trackedEntity(TE).build())
-        .to(RelationshipItem.builder().event(EVENT).build())
-        .build();
-  }
-
   private org.hisp.dhis.relationship.Relationship relationshipAFromDB() {
     return createTeToEnrollmentRelationship(trackedEntity, enrollment, teToEnrollment);
-  }
-
-  private org.hisp.dhis.relationship.Relationship relationshipBFromDB() {
-    return createTeToEventRelationship(trackedEntity, event, teToEvent);
   }
 }

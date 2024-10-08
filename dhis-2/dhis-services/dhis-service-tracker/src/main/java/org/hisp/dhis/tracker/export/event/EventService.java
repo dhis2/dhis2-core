@@ -80,15 +80,14 @@ public interface EventService {
   /**
    * Get all events matching given params under the privileges of the currently authenticated user.
    */
-  List<Event> getEvents(EventOperationParams params)
-      throws BadRequestException, ForbiddenException, NotFoundException;
+  List<Event> getEvents(EventOperationParams params) throws BadRequestException, ForbiddenException;
 
   /**
    * Get a page of events matching given params under the privileges of the currently authenticated
    * user.
    */
   Page<Event> getEvents(EventOperationParams params, PageParams pageParams)
-      throws BadRequestException, ForbiddenException, NotFoundException;
+      throws BadRequestException, ForbiddenException;
 
   RelationshipItem getEventInRelationshipItem(String uid, EventParams eventParams)
       throws NotFoundException;
