@@ -804,6 +804,7 @@ public class DataHandler {
             .filter(
                 coc ->
                     params.getDataElementOperands().stream()
+                        .filter(deo -> ((DataElementOperand) deo).getCategoryOptionCombo() != null)
                         .anyMatch(
                             deo ->
                                 ((DataElementOperand) deo)
@@ -816,6 +817,7 @@ public class DataHandler {
             .filter(
                 coc ->
                     params.getFilterDataElementOperands().stream()
+                        .filter(deo -> ((DataElementOperand) deo).getCategoryOptionCombo() != null)
                         .anyMatch(
                             deo ->
                                 ((DataElementOperand) deo)
@@ -829,6 +831,7 @@ public class DataHandler {
             .filter(
                 aoc ->
                     params.getDataElementOperands().stream()
+                        .filter(deo -> ((DataElementOperand) deo).getAttributeOptionCombo() != null)
                         .anyMatch(
                             deo ->
                                 ((DataElementOperand) deo)
@@ -836,11 +839,13 @@ public class DataHandler {
                                     .getUid()
                                     .equals(aoc.getUid())))
             .toList();
+
     List<DimensionalItemObject> filterAttributeOptionCombos =
         attributeOptionCombos.stream()
             .filter(
                 aoc ->
                     params.getFilterDataElementOperands().stream()
+                        .filter(deo -> ((DataElementOperand) deo).getAttributeOptionCombo() != null)
                         .anyMatch(
                             deo ->
                                 ((DataElementOperand) deo)
@@ -851,43 +856,116 @@ public class DataHandler {
 
     DataQueryParams.Builder builder = newBuilder(params).removeDimension(DATA_X_DIM_ID);
 
+    addDataElementDimensionToDataQueryParamBuilder(builder, dimensionDataElements);
+    addDataElementFilterToDataQueryParamBuilder(builder, filterDataElements);
+    addCategoryOptionComboDimensionToDataQueryParamBuilder(
+        builder, dimensionCategoryOptionCombos, totalType);
+    addCategoryOptionComboFilterToDataQueryParamBuilder(
+        builder, filterCategoryOptionCombos, totalType);
+    addAttributeOptionComboDimensionToDataQueryParamBuilder(
+        builder, dimensionAttributeOptionCombos, totalType);
+    addAttributeOptionComboFilterToDataQueryParamBuilder(
+        builder, filterAttributeOptionCombos, totalType);
+
+    return builder.build();
+  }
+
+  /**
+   * Add CategoryOptionCombo dimension to DataQueryParam builder.
+   *
+   * @param builder the {@link DataQueryParams.Builder}.
+   * @param dimensionCategoryOptionCombos the collection of the {@link DimensionalItemObject}.
+   * @param totalType the {@link TotalType}.
+   */
+  private void addCategoryOptionComboDimensionToDataQueryParamBuilder(
+      DataQueryParams.Builder builder,
+      List<DimensionalItemObject> dimensionCategoryOptionCombos,
+      TotalType totalType) {
+    if (totalType.isCategoryOptionCombo() && !dimensionCategoryOptionCombos.isEmpty()) {
+      builder.addDimension(
+          new BaseDimensionalObject(
+              CATEGORYOPTIONCOMBO_DIM_ID, CATEGORY_OPTION_COMBO, dimensionCategoryOptionCombos));
+    }
+  }
+
+  /**
+   * Add CategoryOptionCombo filter to DataQueryParam builder.
+   *
+   * @param builder the {@link DataQueryParams.Builder}.
+   * @param filterCategoryOptionCombos the collection of the {@link DimensionalItemObject}.
+   * @param totalType the {@link TotalType}.
+   */
+  private void addCategoryOptionComboFilterToDataQueryParamBuilder(
+      DataQueryParams.Builder builder,
+      List<DimensionalItemObject> filterCategoryOptionCombos,
+      TotalType totalType) {
+    if (totalType.isCategoryOptionCombo() && !filterCategoryOptionCombos.isEmpty()) {
+      builder.addFilter(
+          new BaseDimensionalObject(
+              CATEGORYOPTIONCOMBO_DIM_ID, CATEGORY_OPTION_COMBO, filterCategoryOptionCombos));
+    }
+  }
+
+  /**
+   * Add AttributeOptionCombo dimension to DataQueryParam builder.
+   *
+   * @param builder the {@link DataQueryParams.Builder}.
+   * @param dimensionAttributeOptionCombos the collection of the {@link DimensionalItemObject}.
+   * @param totalType the {@link TotalType}.
+   */
+  private void addAttributeOptionComboDimensionToDataQueryParamBuilder(
+      DataQueryParams.Builder builder,
+      List<DimensionalItemObject> dimensionAttributeOptionCombos,
+      TotalType totalType) {
+    if (totalType.isAttributeOptionCombo() && !dimensionAttributeOptionCombos.isEmpty()) {
+      builder.addDimension(
+          new BaseDimensionalObject(
+              ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTE_OPTION_COMBO, dimensionAttributeOptionCombos));
+    }
+  }
+
+  /**
+   * Add AttributeOptionCombo filter to DataQueryParam builder.
+   *
+   * @param builder the {@link DataQueryParams.Builder}.
+   * @param filterAttributeOptionCombos the collection of the {@link DimensionalItemObject}.
+   * @param totalType the {@link TotalType}.
+   */
+  private void addAttributeOptionComboFilterToDataQueryParamBuilder(
+      DataQueryParams.Builder builder,
+      List<DimensionalItemObject> filterAttributeOptionCombos,
+      TotalType totalType) {
+    if (totalType.isAttributeOptionCombo() && !filterAttributeOptionCombos.isEmpty()) {
+      builder.addFilter(
+          new BaseDimensionalObject(
+              ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTE_OPTION_COMBO, filterAttributeOptionCombos));
+    }
+  }
+
+  /**
+   * Add DataElement dimension to DataQueryParam builder.
+   *
+   * @param builder the {@link DataQueryParams.Builder}.
+   * @param dimensionDataElements the collection of the {@link DimensionalItemObject}.
+   */
+  private void addDataElementDimensionToDataQueryParamBuilder(
+      DataQueryParams.Builder builder, List<DimensionalItemObject> dimensionDataElements) {
     if (!dimensionDataElements.isEmpty()) {
       builder.addDimension(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, dimensionDataElements));
     }
+  }
 
+  /**
+   * Add DataElement filter to DataQueryParam builder.
+   *
+   * @param builder the {@link DataQueryParams.Builder}.
+   * @param filterDataElements the collection of the {@link DimensionalItemObject}.
+   */
+  private void addDataElementFilterToDataQueryParamBuilder(
+      DataQueryParams.Builder builder, List<DimensionalItemObject> filterDataElements) {
     if (!filterDataElements.isEmpty()) {
       builder.addFilter(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, filterDataElements));
     }
-
-    if (totalType.isCategoryOptionCombo()) {
-      if (!dimensionCategoryOptionCombos.isEmpty()) {
-        builder.addDimension(
-            new BaseDimensionalObject(
-                CATEGORYOPTIONCOMBO_DIM_ID, CATEGORY_OPTION_COMBO, dimensionCategoryOptionCombos));
-      }
-      if (!filterCategoryOptionCombos.isEmpty()) {
-        builder.addFilter(
-            new BaseDimensionalObject(
-                CATEGORYOPTIONCOMBO_DIM_ID, CATEGORY_OPTION_COMBO, filterCategoryOptionCombos));
-      }
-    }
-
-    if (totalType.isAttributeOptionCombo()) {
-      if (!dimensionAttributeOptionCombos.isEmpty()) {
-        builder.addDimension(
-            new BaseDimensionalObject(
-                ATTRIBUTEOPTIONCOMBO_DIM_ID,
-                ATTRIBUTE_OPTION_COMBO,
-                dimensionAttributeOptionCombos));
-      }
-      if (!filterAttributeOptionCombos.isEmpty()) {
-        builder.addFilter(
-            new BaseDimensionalObject(
-                ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTE_OPTION_COMBO, filterAttributeOptionCombos));
-      }
-    }
-
-    return builder.build();
   }
 
   /**
