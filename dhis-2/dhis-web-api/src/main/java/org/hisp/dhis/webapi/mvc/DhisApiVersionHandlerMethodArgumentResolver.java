@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.mvc;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.servlet.http.HttpServletRequest;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;

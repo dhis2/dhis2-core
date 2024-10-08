@@ -39,7 +39,6 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_DR
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_COLUMN;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET;
 import static org.hisp.dhis.util.ObjectUtils.isNull;
 
 import com.google.common.collect.Lists;
@@ -55,7 +54,8 @@ import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Distribution;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.stereotype.Component;
 
 /**
@@ -69,7 +69,7 @@ import org.springframework.stereotype.Component;
 public class AnalyticsTableSettings {
   private final DhisConfigurationProvider config;
 
-  private final SystemSettingManager systemSettings;
+  private final SystemSettingsProvider settingsProvider;
 
   private final CitusSettings citusSettings;
 
@@ -102,15 +102,14 @@ public class AnalyticsTableSettings {
   }
 
   /**
-   * Returns the years' offset defined for the period generation. See {@link
-   * org.hisp.dhis.setting.SettingKey#ANALYTICS_MAX_PERIOD_YEARS_OFFSET}.
+   * Returns the years' offset defined for the period generation configured by {@link
+   * SystemSettings#getAnalyticsPeriodYearsOffset()}
    *
    * @return the offset defined in system settings, or null if nothing is set.
    */
   public Integer getMaxPeriodYearsOffset() {
-    return systemSettings.getIntSetting(ANALYTICS_MAX_PERIOD_YEARS_OFFSET) < 0
-        ? null
-        : systemSettings.getIntSetting(ANALYTICS_MAX_PERIOD_YEARS_OFFSET);
+    int yearsOffset = settingsProvider.getCurrentSettings().getAnalyticsPeriodYearsOffset();
+    return yearsOffset < 0 ? null : yearsOffset;
   }
 
   /**

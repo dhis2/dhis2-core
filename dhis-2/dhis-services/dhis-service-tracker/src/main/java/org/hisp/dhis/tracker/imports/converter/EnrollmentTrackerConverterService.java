@@ -28,11 +28,7 @@
 package org.hisp.dhis.tracker.imports.converter;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -45,6 +41,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
@@ -60,55 +57,42 @@ public class EnrollmentTrackerConverterService
   private final NotesConverterService notesConverterService;
 
   @Override
-  public org.hisp.dhis.tracker.imports.domain.Enrollment to(Enrollment enrollment) {
-    List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments =
-        to(Collections.singletonList(enrollment));
-
-    if (enrollments.isEmpty()) {
-      return null;
-    }
-
-    return enrollments.get(0);
-  }
-
-  @Override
-  public List<org.hisp.dhis.tracker.imports.domain.Enrollment> to(
-      List<Enrollment> preheatEnrollments) {
-    List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments = new ArrayList<>();
-
-    preheatEnrollments.forEach(
-        te -> {
-          // TODO: Add implementation
-        });
-
-    return enrollments;
-  }
-
-  @Override
   public Enrollment from(
-      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Enrollment enrollment) {
+      TrackerPreheat preheat,
+      org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
+      UserDetails user) {
     Enrollment preheatEnrollment = preheat.getEnrollment(enrollment.getEnrollment());
-    return from(preheat, enrollment, preheatEnrollment);
+    return from(preheat, enrollment, preheatEnrollment, user);
   }
 
   @Override
   public List<Enrollment> from(
-      TrackerPreheat preheat, List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments) {
+      TrackerPreheat preheat,
+      List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments,
+      UserDetails user) {
     return enrollments.stream()
-        .map(enrollment -> from(preheat, enrollment))
+        .map(enrollment -> from(preheat, enrollment, user))
         .collect(Collectors.toList());
   }
 
   @Override
   public Enrollment fromForRuleEngine(
-      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Enrollment enrollment) {
-    return from(preheat, enrollment, null);
+      TrackerPreheat preheat,
+      org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
+      UserDetails user) {
+    Enrollment from = from(preheat, enrollment, null, user);
+    Enrollment preheatEnrollment = preheat.getEnrollment(enrollment.getUid());
+    if (preheatEnrollment != null) {
+      from.setCreated(preheatEnrollment.getCreated());
+    }
+    return from;
   }
 
   private Enrollment from(
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
-      Enrollment dbEnrollment) {
+      Enrollment dbEnrollment,
+      UserDetails user) {
     OrganisationUnit organisationUnit = preheat.getOrganisationUnit(enrollment.getOrgUnit());
 
     Program program = preheat.getProgram(enrollment.getProgram());
@@ -125,11 +109,11 @@ public class EnrollmentTrackerConverterService
               : enrollment.getUid());
       dbEnrollment.setCreated(now);
       dbEnrollment.setStoredBy(enrollment.getStoredBy());
-      dbEnrollment.setCreatedByUserInfo(UserInfoSnapshot.from(getCurrentUserDetails()));
+      dbEnrollment.setCreatedByUserInfo(UserInfoSnapshot.from(user));
     }
 
     dbEnrollment.setLastUpdated(now);
-    dbEnrollment.setLastUpdatedByUserInfo(UserInfoSnapshot.from(getCurrentUserDetails()));
+    dbEnrollment.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
     dbEnrollment.setDeleted(false);
     dbEnrollment.setCreatedAtClient(DateUtils.fromInstant(enrollment.getCreatedAtClient()));
     dbEnrollment.setLastUpdatedAtClient(DateUtils.fromInstant(enrollment.getUpdatedAtClient()));
@@ -152,14 +136,16 @@ public class EnrollmentTrackerConverterService
     if (previousStatus != dbEnrollment.getStatus()) {
       if (dbEnrollment.isCompleted()) {
         dbEnrollment.setCompletedDate(now);
-        dbEnrollment.setCompletedBy(getCurrentUsername());
+        dbEnrollment.setCompletedBy(user.getUsername());
       } else if (EnrollmentStatus.CANCELLED == dbEnrollment.getStatus()) {
         dbEnrollment.setCompletedDate(now);
       }
     }
 
     if (isNotEmpty(enrollment.getNotes())) {
-      dbEnrollment.getNotes().addAll(notesConverterService.from(preheat, enrollment.getNotes()));
+      dbEnrollment
+          .getNotes()
+          .addAll(notesConverterService.from(preheat, enrollment.getNotes(), user));
     }
     return dbEnrollment;
   }

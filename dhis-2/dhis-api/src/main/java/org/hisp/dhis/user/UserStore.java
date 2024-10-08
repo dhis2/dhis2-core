@@ -87,15 +87,17 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    */
   List<UserAccountExpiryInfo> getExpiringUserAccounts(int inDays);
 
+  @CheckForNull
+  User getUserByUsername(String username);
+
   /**
    * Returns User for given username. Returns null if no user is found.
    *
    * @param username username for which the User will be returned
-   * @param ignoreCase
+   * @param ignoreCase match name ignoreing case
    * @return User for given username or null
    */
-  User getUserByUsername(String username);
-
+  @CheckForNull
   User getUserByUsername(String username, boolean ignoreCase);
 
   /**

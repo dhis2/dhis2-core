@@ -38,6 +38,7 @@ import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This tests verifies the protection of the {@link
@@ -46,6 +47,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class DatastoreControllerAndroidSettingsAppTest extends H2ControllerIntegrationTestBase {
 
   @BeforeEach

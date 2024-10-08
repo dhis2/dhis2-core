@@ -46,6 +46,7 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.SystemUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -123,7 +124,8 @@ class RelationshipTrackerConverterServiceTest extends TestBase {
     when(preheat.getEvent(EVENT)).thenReturn(event);
 
     List<org.hisp.dhis.relationship.Relationship> from =
-        relationshipConverterService.from(preheat, List.of(relationshipA(), relationshipB()));
+        relationshipConverterService.from(
+            preheat, List.of(relationshipA(), relationshipB()), new SystemUser());
     assertNotNull(from);
     assertEquals(2, from.size());
     from.forEach(
@@ -136,30 +138,6 @@ class RelationshipTrackerConverterServiceTest extends TestBase {
               relationship.getRelationshipType().getUid())) {
             assertEquals(TE, relationship.getFrom().getTrackedEntity().getUid());
             assertEquals(EVENT, relationship.getTo().getEvent().getUid());
-          } else {
-            fail("Unexpected relationshipType found.");
-          }
-          assertNotNull(relationship.getFrom());
-          assertNotNull(relationship.getTo());
-        });
-  }
-
-  @Test
-  void testConverterToRelationships() {
-    List<Relationship> to =
-        relationshipConverterService.to(List.of(relationshipAFromDB(), relationshipBFromDB()));
-    assertNotNull(to);
-    assertEquals(2, to.size());
-    to.forEach(
-        relationship -> {
-          if (TE_TO_ENROLLMENT_RELATIONSHIP_TYPE.equals(
-              relationship.getRelationshipType().getIdentifier())) {
-            assertEquals(TE, relationship.getFrom().getTrackedEntity());
-            assertEquals(ENROLLMENT, relationship.getTo().getEnrollment());
-          } else if (TE_TO_EVENT_RELATIONSHIP_TYPE.equals(
-              relationship.getRelationshipType().getIdentifier())) {
-            assertEquals(TE, relationship.getFrom().getTrackedEntity());
-            assertEquals(EVENT, relationship.getTo().getEvent());
           } else {
             fail("Unexpected relationshipType found.");
           }

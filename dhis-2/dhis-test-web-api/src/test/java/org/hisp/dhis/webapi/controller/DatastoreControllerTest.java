@@ -56,12 +56,14 @@ import org.hisp.dhis.test.webapi.json.domain.JsonDatastoreValue;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link DatastoreController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class DatastoreControllerTest extends H2ControllerIntegrationTestBase {
   /**
    * Only used directly to setup namespace protection as this is by intention not possible using the

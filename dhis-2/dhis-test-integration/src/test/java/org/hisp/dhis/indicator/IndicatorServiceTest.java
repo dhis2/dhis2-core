@@ -35,13 +35,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.setting.ThreadUserSettings;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingKey;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -262,7 +262,7 @@ class IndicatorServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testNumeratorTranslation() {
     Locale locale = Locale.FRENCH;
-    CurrentUserUtil.setUserSetting(UserSettingKey.DB_LOCALE, locale);
+    ThreadUserSettings.put(Map.of("keyDbLocale", locale.toString()));
     IndicatorType type = new IndicatorType("IndicatorType", 100, false);
     indicatorService.addIndicatorType(type);
     Indicator indicatorA = createIndicator('A', type);

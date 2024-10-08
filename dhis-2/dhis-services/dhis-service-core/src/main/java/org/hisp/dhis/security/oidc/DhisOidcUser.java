@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.security.oidc;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
@@ -192,12 +191,6 @@ public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, Oidc
   @Override
   public boolean isAuthorized(@Nonnull Authorities auth) {
     return isAuthorized(auth.toString());
-  }
-
-  @Nonnull
-  @Override
-  public Map<String, Serializable> getUserSettings() {
-    return user.getUserSettings();
   }
 
   @Nonnull

@@ -52,12 +52,11 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.message.FakeMessageSender;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
@@ -79,16 +78,18 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.UserController}.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class UserControllerTest extends H2ControllerIntegrationTestBase {
-  @Autowired private FakeMessageSender messageSender;
+  @Autowired private MessageSender emailMessageSender;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService settingsService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -123,7 +124,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @AfterEach
   void afterEach() {
-    messageSender.clearMessages();
+    emailMessageSender.clearMessages();
   }
 
   @Test
@@ -278,7 +279,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testUpdateRolesWithNoAllAndCanAssignRoles() {
 
-    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
+    settingsService.put("keyCanGrantOwnUserAuthorityGroups", true);
 
     JsonImportSummary response = updateRolesNonAllAdmin();
 
@@ -297,7 +298,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testUpdateRolesWithNoAllAndNoCanAssignRoles() {
 
-    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.FALSE);
+    settingsService.put("keyCanGrantOwnUserAuthorityGroups", false);
 
     JsonImportSummary response = updateRolesNonAllAdmin();
 
@@ -395,7 +396,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testChangeOrgUnitLevelGivesAccessError() {
-    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
+    settingsService.put("keyCanGrantOwnUserAuthorityGroups", true);
 
     OrganisationUnit orgA = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(orgA);
@@ -436,7 +437,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void updateUserHasAccessToUpdateGroups() {
-    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
+    settingsService.put("keyCanGrantOwnUserAuthorityGroups", true);
 
     UserRole roleB = createUserRole("ROLE_B", "F_USER_ADD", "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS");
     userService.addUserRole(roleB);
@@ -837,19 +838,23 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testPutJsonObject_WithSettings() {
-    JsonUser user = GET("/users/{id}", peter.getUid()).content().as(JsonUser.class);
+    String userId = peter.getUid();
+    JsonUser user = GET("/users/{id}", userId).content().as(JsonUser.class);
     assertWebMessage(
         "OK",
         200,
         "OK",
         null,
         PUT(
-                "/38/users/" + peter.getUid(),
-                user.node().addMember("settings", "{\"uiLocale\":\"de\"}").toString())
+                "/38/users/" + userId,
+                user.node()
+                    .addMembers(
+                        obj -> obj.addObject("settings", s -> s.addString("keyUiLocale", "de")))
+                    .toString())
             .content(HttpStatus.OK));
     assertEquals(
         "de",
-        GET("/userSettings/keyUiLocale?userId=" + user.getId(), Accept("text/plain"))
+        GET("/userSettings/keyUiLocale?userId=" + userId, Accept("text/plain"))
             .content("text/plain"));
   }
 
@@ -1019,8 +1024,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   private OutboundMessage assertMessageSendTo(String email) {
-    List<OutboundMessage> messagesByEmail =
-        ((FakeMessageSender) messageSender).getMessagesByEmail(email);
+    List<OutboundMessage> messagesByEmail = emailMessageSender.getMessagesByEmail(email);
     assertFalse(messagesByEmail.isEmpty());
     return messagesByEmail.get(0);
   }

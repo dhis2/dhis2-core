@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import jakarta.persistence.EntityManager;
 import java.util.List;
-import javax.persistence.EntityManager;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
@@ -38,6 +38,7 @@ import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -62,7 +63,7 @@ public class RelationshipPersister
   @Override
   protected org.hisp.dhis.relationship.Relationship convert(
       TrackerBundle bundle, Relationship trackerDto) {
-    return relationshipConverter.from(bundle.getPreheat(), trackerDto);
+    return relationshipConverter.from(bundle.getPreheat(), trackerDto, bundle.getUser());
   }
 
   @Override
@@ -70,7 +71,8 @@ public class RelationshipPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       Relationship trackerDto,
-      org.hisp.dhis.relationship.Relationship hibernateEntity) {
+      org.hisp.dhis.relationship.Relationship hibernateEntity,
+      UserDetails user) {
     // NOTHING TO DO
   }
 
@@ -79,7 +81,8 @@ public class RelationshipPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       Relationship trackerDto,
-      org.hisp.dhis.relationship.Relationship hibernateEntity) {
+      org.hisp.dhis.relationship.Relationship hibernateEntity,
+      UserDetails user) {
     // NOTHING TO DO
   }
 

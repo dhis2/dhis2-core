@@ -43,7 +43,7 @@ import org.hisp.dhis.configuration.CitusSettings.PgExtension;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,7 +58,7 @@ class AnalyticsTableSettingsTest {
 
   @Mock private JdbcTemplate jdbcTemplate;
 
-  @Mock private SystemSettingManager systemSettings;
+  @Mock private SystemSettingsService systemSettings;
 
   private AnalyticsTableSettings settings;
 

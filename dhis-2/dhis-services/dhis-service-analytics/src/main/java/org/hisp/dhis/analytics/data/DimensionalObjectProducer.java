@@ -73,7 +73,6 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.getSortedGrandChil
 import static org.hisp.dhis.period.PeriodType.getCalendar;
 import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 import static org.hisp.dhis.period.RelativePeriods.getRelativePeriodsFromEnum;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_FINANCIAL_YEAR_START;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.ArrayList;
@@ -106,7 +105,7 @@ import org.hisp.dhis.period.DateField;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -122,7 +121,7 @@ public class DimensionalObjectProducer {
 
   private final OrganisationUnitService organisationUnitService;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final I18nManager i18nManager;
 
@@ -193,8 +192,7 @@ public class DimensionalObjectProducer {
     List<Period> periods = new ArrayList<>();
     DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
     AnalyticsFinancialYearStartKey financialYearStart =
-        systemSettingManager.getSystemSetting(
-            ANALYTICS_FINANCIAL_YEAR_START, AnalyticsFinancialYearStartKey.class);
+        settingsProvider.getCurrentSettings().getAnalyticsFinancialYearStart();
 
     for (String isoPeriod : items) {
       // Contains isoPeriod and timeField

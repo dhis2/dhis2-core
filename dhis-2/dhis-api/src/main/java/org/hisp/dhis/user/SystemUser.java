@@ -27,10 +27,8 @@
  */
 package org.hisp.dhis.user;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
@@ -163,12 +161,6 @@ public class SystemUser implements UserDetails {
   @Override
   public boolean isAuthorized(@Nonnull Authorities auth) {
     return true;
-  }
-
-  @Nonnull
-  @Override
-  public Map<String, Serializable> getUserSettings() {
-    return Map.of();
   }
 
   @Nonnull

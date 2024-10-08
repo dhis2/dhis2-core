@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.message;
 
-import static org.hisp.dhis.test.TestBase.injectSecurityContext;
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -82,7 +82,7 @@ class ProgramMessageOperationParamsMapperTest {
     user = new User();
     user.setUsername("admin");
 
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     program = new Program();
     program.setName("TB-Program");

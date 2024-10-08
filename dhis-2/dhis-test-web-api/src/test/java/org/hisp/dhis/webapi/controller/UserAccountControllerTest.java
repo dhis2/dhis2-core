@@ -44,12 +44,11 @@ import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.security.PasswordManager;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.message.FakeMessageSender;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonUser;
@@ -63,15 +62,17 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
+@Transactional
 class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
 
-  @Autowired private FakeMessageSender messageSender;
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private MessageSender emailMessageSender;
+  @Autowired private SystemSettingsService settingsService;
   @Autowired private PasswordManager passwordEncoder;
   @Autowired private DhisConfigurationProvider configurationProvider;
 
@@ -79,7 +80,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
 
   @BeforeEach
   final void setupHere() {
-    messageSender.clearMessages();
+    emailMessageSender.clearMessages();
     configurationProvider
         .getProperties()
         .put(ConfigurationKey.SERVER_BASE_URL.getKey(), "http://localhost:8080");
@@ -87,13 +88,13 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
 
   @AfterEach
   void afterEach() {
-    messageSender.clearMessages();
+    emailMessageSender.clearMessages();
   }
 
   @Test
   @DisplayName("Happy path for forgot password with username as input")
   void testResetPasswordOkUsername() {
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    settingsService.put("keyAccountRecovery", true);
     User user = switchToNewUser("testA");
     clearSecurityContext();
     sendForgotPasswordRequest(user.getUsername());
@@ -103,7 +104,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   @DisplayName("Happy path for forgot password with email as input")
   void testResetPasswordOkEmail() {
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    settingsService.put("keyAccountRecovery", true);
     User user = switchToNewUser("testB");
     clearSecurityContext();
     sendForgotPasswordRequest(user.getEmail());
@@ -114,20 +115,20 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @DisplayName(
       "Send wrong/non-existent email, should return OK to avoid email enumeration and not send any email")
   void testResetPasswordWrongEmail() {
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    settingsService.put("keyAccountRecovery", true);
     clearSecurityContext();
     sendForgotPasswordRequest("wrong@email.com");
-    assertTrue(messageSender.getAllMessages().isEmpty());
+    assertTrue(emailMessageSender.getAllMessages().isEmpty());
   }
 
   @Test
   @DisplayName(
       "Send wrong/non-existent username, should return OK to avoid username enumeration and not send any email")
   void testResetPasswordWrongUsername() {
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    settingsService.put("keyAccountRecovery", true);
     clearSecurityContext();
     sendForgotPasswordRequest("wrong");
-    List<OutboundMessage> allMessages = messageSender.getAllMessages();
+    List<OutboundMessage> allMessages = emailMessageSender.getAllMessages();
     assertTrue(allMessages.isEmpty());
   }
 
@@ -135,7 +136,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @DisplayName(
       "Send non-unique email, should return OK to avoid username enumeration and not send any email")
   void testResetPasswordNonUniqueEmail() {
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    settingsService.put("keyAccountRecovery", true);
 
     switchToAdminUser();
     User userA = createUserWithAuth("userA");
@@ -145,7 +146,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
 
     clearSecurityContext();
     sendForgotPasswordRequest("wrong");
-    List<OutboundMessage> allMessages = messageSender.getAllMessages();
+    List<OutboundMessage> allMessages = emailMessageSender.getAllMessages();
     assertTrue(allMessages.isEmpty());
   }
 
@@ -153,21 +154,21 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @DisplayName(
       "Try to reset password for external auth user, should return OK to avoid username enumeration and not send any email")
   void testResetPasswordExternalAuthUser() {
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    settingsService.put("keyAccountRecovery", true);
     clearSecurityContext();
     User user = switchToNewUser("testC");
     user.setExternalAuth(true);
     userService.updateUser(user);
 
     sendForgotPasswordRequest("testC");
-    List<OutboundMessage> allMessages = messageSender.getAllMessages();
+    List<OutboundMessage> allMessages = emailMessageSender.getAllMessages();
     assertTrue(allMessages.isEmpty());
   }
 
   @Test
   void testResetPasswordNoBaseUrl() {
     configurationProvider.getProperties().put(ConfigurationKey.SERVER_BASE_URL.getKey(), "");
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    settingsService.put("keyAccountRecovery", true);
     clearSecurityContext();
     POST("/auth/forgotPassword", "{'emailOrUsername':'%s'}".formatted("userA"))
         .content(HttpStatus.CONFLICT);
@@ -413,8 +414,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   @DisplayName("Self registration error when recaptcha enabled and null input")
   void selfRegRecaptcha() {
-    systemSettingManager.saveSystemSetting(
-        SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.FALSE);
+    settingsService.put("keySelfRegistrationNoRecaptcha", false);
 
     assertWebMessage(
         "Bad Request",
@@ -542,8 +542,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   @DisplayName("Invite registration error when recaptcha enabled and null input")
   void inviteRegRecaptcha() {
-    systemSettingManager.saveSystemSetting(
-        SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.FALSE);
+    settingsService.put("keySelfRegistrationNoRecaptcha", false);
 
     assertWebMessage(
         "Bad Request",
@@ -569,7 +568,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   private void disableRecaptcha() {
-    systemSettingManager.saveSystemSetting(SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.TRUE);
+    settingsService.put("keySelfRegistrationNoRecaptcha", true);
   }
 
   private static Stream<Arguments> passwordData() {
@@ -602,7 +601,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   private OutboundMessage assertMessageSendTo(String email) {
-    List<OutboundMessage> messagesByEmail = messageSender.getMessagesByEmail(email);
+    List<OutboundMessage> messagesByEmail = emailMessageSender.getMessagesByEmail(email);
     assertFalse(messagesByEmail.isEmpty());
     return messagesByEmail.get(0);
   }

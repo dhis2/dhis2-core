@@ -90,7 +90,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class EventsExportControllerByIdTest extends H2ControllerIntegrationTestBase {
   private static final String DATA_ELEMENT_VALUE = "value";
 

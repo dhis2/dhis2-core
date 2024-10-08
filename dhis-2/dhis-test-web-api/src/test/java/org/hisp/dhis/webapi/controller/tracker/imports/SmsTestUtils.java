@@ -27,11 +27,25 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import java.util.Base64;
+import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
+import org.hisp.dhis.sms.incoming.IncomingSms;
+import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SmsCompressionException;
 import org.hisp.dhis.smscompression.SmsSubmissionWriter;
 import org.hisp.dhis.smscompression.models.SmsMetadata;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
+import org.hisp.dhis.smscompression.models.Uid;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 
 class SmsTestUtils {
   private static final int SMS_COMPRESSION_VERSION = 2;
@@ -44,5 +58,30 @@ class SmsTestUtils {
     SmsSubmissionWriter smsSubmissionWriter = new SmsSubmissionWriter(new SmsMetadata());
     byte[] compressedText = smsSubmissionWriter.compress(submission, SMS_COMPRESSION_VERSION);
     return Base64.getEncoder().encodeToString(compressedText);
+  }
+
+  /** Get the the incoming SMS stored in the DB with the id from the HTTP response body. */
+  static IncomingSms getSms(IncomingSmsService incomingSmsService, JsonWebMessage response) {
+    assertStartsWith("Received SMS: ", response.getMessage());
+
+    String smsUid = response.getMessage().replaceFirst("^Received SMS: ", "");
+    IncomingSms sms = incomingSmsService.get(smsUid);
+    assertNotNull(sms, "failed to find SMS in DB with UID " + smsUid);
+    return sms;
+  }
+
+  static void assertSmsResponse(
+      String expectedText, String expectedRecipient, MessageSender messageSender) {
+    OutboundMessage expectedMessage =
+        new OutboundMessage(null, expectedText, Set.of(expectedRecipient));
+    assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages());
+  }
+
+  static void assertEqualUids(Uid expected, IdentifiableObject actual) {
+    assertEquals(expected.getUid(), actual.getUid());
+  }
+
+  static void assertEqualUids(IdentifiableObject expected, IdentifiableObject actual) {
+    assertEquals(expected.getUid(), actual.getUid());
   }
 }

@@ -42,12 +42,14 @@ import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link SharingController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class SharingControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test

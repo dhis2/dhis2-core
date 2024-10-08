@@ -59,12 +59,17 @@ public class TrackerImportExportActions extends RestApiActions {
   public void waitUntilJobIsCompleted(String jobId) {
     logger.info(String.format("Waiting until tracker job with id %s is completed", jobId));
 
-    Callable<Boolean> jobIsCompleted =
-        () -> getJob(jobId).validateStatus(200).extractList("completed").contains(true);
+    Callable<Boolean> jobIsCompleted = () -> getJobIsCompleted(jobId);
 
     with().atMost(20, TimeUnit.SECONDS).await().until(jobIsCompleted::call);
 
     logger.info("Tracker job is completed. Message: {}", getJob(jobId).extract("message"));
+  }
+
+  private boolean getJobIsCompleted(String jobId) {
+    ApiResponse job = getJob(jobId);
+    logger.info(job.getAsString());
+    return job.extractList("completed").contains(true);
   }
 
   public TrackerApiResponse postAndGetJobReport(File file) {

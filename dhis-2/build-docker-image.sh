@@ -215,7 +215,7 @@ jdk_version="$(
   echo "$stable_versions_json" |
   jq -r --argjson major "$major" '.versions[] | select(.version == $major) .jdk'
 )"
-BASE_IMAGE="${BASE_IMAGE:-"tomcat:9.0-jre$jdk_version"}"
+BASE_IMAGE="${BASE_IMAGE:-"tomcat:10.0-jre$jdk_version"}"
 
 build_main_image
 

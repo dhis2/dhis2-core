@@ -41,12 +41,14 @@ import org.hisp.dhis.user.UserGroup;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link MessageConversationController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class MessageConversationControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private ConfigurationService configurationService;

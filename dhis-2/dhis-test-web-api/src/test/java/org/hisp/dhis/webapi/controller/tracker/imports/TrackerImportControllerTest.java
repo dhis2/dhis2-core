@@ -32,6 +32,7 @@ import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportController} using
@@ -39,6 +40,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void shouldSucceedWhenAllValidParametersArePassed() {

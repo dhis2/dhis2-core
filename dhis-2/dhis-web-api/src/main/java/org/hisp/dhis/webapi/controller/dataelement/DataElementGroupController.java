@@ -41,7 +41,6 @@ import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -69,13 +68,9 @@ public class DataElementGroupController extends AbstractCrudController<DataEleme
 
   @GetMapping("/{uid}/operands")
   public String getOperands(
-      @PathVariable("uid") String uid,
-      @RequestParam Map<String, String> parameters,
-      Model model,
-      TranslateParams translateParams)
+      @PathVariable("uid") String uid, @RequestParam Map<String, String> parameters, Model model)
       throws NotFoundException {
     WebOptions options = new WebOptions(parameters);
-    setTranslationParams(translateParams);
 
     WebMetadata metadata = new WebMetadata();
     List<DataElementOperand> dataElementOperands =
@@ -104,11 +99,9 @@ public class DataElementGroupController extends AbstractCrudController<DataEleme
       @PathVariable("uid") String uid,
       @PathVariable("q") String q,
       @RequestParam Map<String, String> parameters,
-      TranslateParams translateParams,
       Model model)
       throws NotFoundException {
     WebOptions options = new WebOptions(parameters);
-    setTranslationParams(translateParams);
 
     WebMetadata metadata = new WebMetadata();
     List<DataElementOperand> dataElementOperands = Lists.newArrayList();

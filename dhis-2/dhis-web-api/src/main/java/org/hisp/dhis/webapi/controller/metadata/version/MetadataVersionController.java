@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.metadata.version;
 import static org.hisp.dhis.security.Authorities.F_METADATA_MANAGE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -37,7 +38,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -53,8 +53,7 @@ import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -77,7 +76,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequestMapping("/api/metadata")
 public class MetadataVersionController {
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsProvider settingsProvider;
 
   @Autowired private MetadataVersionService versionService;
 
@@ -298,7 +297,7 @@ public class MetadataVersionController {
   // ----------------------------------------------------------------------------------------
 
   private boolean isMetadataVersioningEnabled() {
-    return systemSettingManager.getBoolSetting(SettingKey.METADATAVERSION_ENABLED);
+    return settingsProvider.getCurrentSettings().getVersionEnabled();
   }
 
   private RootNode getMetadataVersionsAsNode(List<MetadataVersion> versions) {

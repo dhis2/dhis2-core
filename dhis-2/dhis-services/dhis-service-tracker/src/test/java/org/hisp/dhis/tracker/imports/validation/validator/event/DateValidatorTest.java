@@ -81,11 +81,11 @@ class DateValidatorTest extends TestBase {
   public void setUp() {
     validator = new DateValidator();
 
-    bundle = TrackerBundle.builder().preheat(preheat).build();
+    bundle =
+        TrackerBundle.builder().user(UserDetails.fromUser(makeUser("A"))).preheat(preheat).build();
 
     TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new Reporter(idSchemes);
-    injectSecurityContext(UserDetails.fromUser(makeUser("A")));
   }
 
   @Test

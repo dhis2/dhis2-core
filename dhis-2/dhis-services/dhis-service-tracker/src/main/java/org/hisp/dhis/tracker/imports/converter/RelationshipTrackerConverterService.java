@@ -31,16 +31,13 @@ import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
 import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
 import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.hisp.dhis.relationship.RelationshipKey;
-import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
-import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.util.RelationshipKeySupport;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -52,52 +49,8 @@ public class RelationshipTrackerConverterService
     implements TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> {
 
   @Override
-  public Relationship to(org.hisp.dhis.relationship.Relationship relationship) {
-    List<Relationship> relationships = to(Collections.singletonList(relationship));
-
-    if (relationships.isEmpty()) {
-      return null;
-    }
-
-    return relationships.get(0);
-  }
-
-  @Override
-  public List<Relationship> to(List<org.hisp.dhis.relationship.Relationship> relationships) {
-    return relationships.stream()
-        .map(
-            fromRelationship -> {
-              Relationship toRelationship = new Relationship();
-              toRelationship.setRelationship(fromRelationship.getUid());
-              toRelationship.setBidirectional(
-                  fromRelationship.getRelationshipType().isBidirectional());
-              toRelationship.setCreatedAt(DateUtils.instantFromDate(fromRelationship.getCreated()));
-              toRelationship.setFrom(convertRelationshipType(fromRelationship.getFrom()));
-              toRelationship.setTo(convertRelationshipType(fromRelationship.getTo()));
-              toRelationship.setUpdatedAt(
-                  DateUtils.instantFromDate(fromRelationship.getLastUpdated()));
-              toRelationship.setRelationshipType(
-                  MetadataIdentifier.ofUid(fromRelationship.getRelationshipType().getUid()));
-
-              return toRelationship;
-            })
-        .collect(Collectors.toList());
-  }
-
-  private RelationshipItem convertRelationshipType(
-      org.hisp.dhis.relationship.RelationshipItem from) {
-    RelationshipItem relationshipItem = new RelationshipItem();
-    relationshipItem.setEnrollment(
-        from.getEnrollment() != null ? from.getEnrollment().getUid() : null);
-    relationshipItem.setEvent(from.getEvent() != null ? from.getEvent().getUid() : null);
-    relationshipItem.setTrackedEntity(
-        from.getTrackedEntity() != null ? from.getTrackedEntity().getUid() : null);
-    return relationshipItem;
-  }
-
-  @Override
   public org.hisp.dhis.relationship.Relationship from(
-      TrackerPreheat preheat, Relationship fromRelationship) {
+      TrackerPreheat preheat, Relationship fromRelationship, UserDetails user) {
     org.hisp.dhis.relationship.Relationship toRelationship =
         preheat.getRelationship(fromRelationship.getRelationship());
     return from(preheat, fromRelationship, toRelationship);
@@ -105,8 +58,8 @@ public class RelationshipTrackerConverterService
 
   @Override
   public List<org.hisp.dhis.relationship.Relationship> from(
-      TrackerPreheat preheat, List<Relationship> fromRelationships) {
-    return fromRelationships.stream().map(r -> from(preheat, r)).collect(Collectors.toList());
+      TrackerPreheat preheat, List<Relationship> fromRelationships, UserDetails user) {
+    return fromRelationships.stream().map(r -> from(preheat, r, user)).toList();
   }
 
   private org.hisp.dhis.relationship.Relationship from(

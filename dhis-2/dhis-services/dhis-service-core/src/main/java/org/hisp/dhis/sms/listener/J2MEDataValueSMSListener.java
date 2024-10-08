@@ -78,18 +78,21 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
 
   private final CompleteDataSetRegistrationService registrationService;
 
+  private final CategoryService dataElementCategoryService;
+
   public J2MEDataValueSMSListener(
-      CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       DataValueService dataValueService,
       SMSCommandService smsCommandService,
-      CompleteDataSetRegistrationService registrationService) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
+      CompleteDataSetRegistrationService registrationService,
+      CategoryService dataElementCategoryService) {
+    super(userService, incomingSmsService, smsSender);
     this.dataValueService = dataValueService;
     this.smsCommandService = smsCommandService;
     this.registrationService = registrationService;
+    this.dataElementCategoryService = dataElementCategoryService;
   }
 
   @Transactional
@@ -147,13 +150,16 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
   }
 
   @Override
-  protected SMSCommand getSMSCommand(IncomingSms sms) {
+  protected SMSCommand getSMSCommand(@Nonnull IncomingSms sms) {
     return null;
   }
 
   @Override
   protected void postProcess(
-      IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage) {}
+      @Nonnull IncomingSms sms,
+      @Nonnull String username,
+      @Nonnull SMSCommand smsCommand,
+      @Nonnull Map<String, String> codeValues) {}
 
   private Map<String, String> parse(String sms, SMSCommand smsCommand) {
     String[] keyValuePairs;
@@ -294,7 +300,7 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
       reportBack = command.getSuccessMessage();
     }
 
-    smsSender.sendMessage(null, reportBack, sender);
+    smsMessageSender.sendMessage(null, reportBack, sender);
   }
 
   public Period getPeriod(String periodName, PeriodType periodType)

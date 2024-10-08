@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
-
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -51,7 +49,7 @@ class SecurityOwnershipValidator implements Validator<Relationship> {
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Relationship relationship) {
     TrackerImportStrategy strategy = bundle.getStrategy(relationship);
-    UserDetails user = getCurrentUserDetails();
+    UserDetails user = bundle.getUser();
 
     if (strategy.isDelete()
         && (!trackerAccessManager
@@ -63,7 +61,9 @@ class SecurityOwnershipValidator implements Validator<Relationship> {
     if (strategy.isCreate()
         && (!trackerAccessManager
             .canWrite(
-                user, relationshipTrackerConverterService.from(bundle.getPreheat(), relationship))
+                user,
+                relationshipTrackerConverterService.from(
+                    bundle.getPreheat(), relationship, bundle.getUser()))
             .isEmpty())) {
       reporter.addError(relationship, ValidationCode.E4020, user, relationship.getRelationship());
     }

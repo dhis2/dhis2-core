@@ -40,33 +40,36 @@ import java.util.Set;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.message.FakeMessageSender;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link AccountController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class AccountControllerTest extends PostgresControllerIntegrationTestBase {
-  @Autowired private SystemSettingManager systemSettingManager;
-  @Autowired private FakeMessageSender messageSender;
+
+  @Autowired private SystemSettingsService settingsService;
+  @Autowired private MessageSender emailMessageSender;
 
   @AfterEach
   void afterEach() {
-    messageSender.clearMessages();
+    emailMessageSender.clearMessages();
   }
 
   @Test
   void testRecoverAccount_NotEnabled() {
+    settingsService.put("keyAccountRecovery", false);
     User test = switchToNewUser("test");
     switchToAdminUser();
     clearSecurityContext();
@@ -91,7 +94,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testRecoverAccount_UsernameNotExist() {
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, Boolean.TRUE);
+    settingsService.put("keyAccountRecovery", true);
     clearSecurityContext();
     assertWebMessage(
         "Conflict",
@@ -103,7 +106,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testRecoverAccount_NotValidEmail() {
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, Boolean.TRUE);
+    settingsService.put("keyAccountRecovery", true);
     clearSecurityContext();
     assertWebMessage(
         "Conflict",
@@ -117,14 +120,14 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void testRecoverAccount_OK() {
     switchToNewUser("test");
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, Boolean.TRUE);
+    settingsService.put("keyAccountRecovery", true);
     clearSecurityContext();
     POST("/account/recovery?username=test").content(HttpStatus.OK);
   }
 
   @Test
   void testCreateAccount() {
-    systemSettingManager.saveSystemSetting(SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.TRUE);
+    settingsService.put("keySelfRegistrationNoRecaptcha", true);
     assertWebMessage(
         "Bad Request",
         400,
@@ -336,7 +339,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   private OutboundMessage assertMessageSendTo(String email) {
-    List<OutboundMessage> messagesByEmail = messageSender.getMessagesByEmail(email);
+    List<OutboundMessage> messagesByEmail = emailMessageSender.getMessagesByEmail(email);
     assertFalse(messagesByEmail.isEmpty());
     return messagesByEmail.get(0);
   }

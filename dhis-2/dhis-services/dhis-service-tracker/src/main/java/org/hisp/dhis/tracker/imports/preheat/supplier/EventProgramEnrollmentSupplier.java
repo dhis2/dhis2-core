@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.supplier;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import java.util.List;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
