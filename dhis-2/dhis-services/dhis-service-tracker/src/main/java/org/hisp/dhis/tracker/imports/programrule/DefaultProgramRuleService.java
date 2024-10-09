@@ -67,8 +67,6 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
   private final RuleActionEnrollmentMapper ruleActionEnrollmentMapper;
 
-  private final RuleEngineMapper ruleEngineMapper;
-
   private final RuleActionEventMapper ruleActionEventMapper;
 
   /**
@@ -108,7 +106,8 @@ class DefaultProgramRuleService implements ProgramRuleService {
             e -> {
               List<RuleAttributeValue> attributes =
                   getAttributes(e.getEnrollment(), e.getTrackedEntity(), bundle, preheat);
-              RuleEnrollment enrollment = ruleEngineMapper.toRuleEnrollment(e, attributes, preheat);
+              RuleEnrollment enrollment =
+                  RuleEngineMapper.mapPayloadEnrollment(preheat, e, attributes);
 
               return programRuleEngine.evaluateEnrollmentAndEvents(
                   enrollment,
@@ -134,7 +133,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
             e -> {
               List<RuleAttributeValue> attributes =
                   getAttributes(e.getUid(), e.getTrackedEntity().getUid(), bundle, preheat);
-              RuleEnrollment enrollment = ruleEngineMapper.toRuleEnrollment(e, attributes);
+              RuleEnrollment enrollment = RuleEngineMapper.mapSavedEnrollment(e, attributes);
               return programRuleEngine.evaluateEnrollmentAndEvents(
                   enrollment,
                   getEventsFromEnrollment(e.getUid(), bundle, preheat),
@@ -155,7 +154,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
     return programEvents.entrySet().stream()
         .map(
             entry -> {
-              List<RuleEvent> events = ruleEngineMapper.toRuleEvents(entry.getValue(), preheat);
+              List<RuleEvent> events = RuleEngineMapper.mapPayloadEvents(preheat, entry.getValue());
 
               return programRuleEngine.evaluateProgramEvents(
                   events, entry.getKey(), bundle.getUser());
@@ -172,13 +171,13 @@ class DefaultProgramRuleService implements ProgramRuleService {
         bundle
             .findEnrollmentByUid(enrollmentUid)
             .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getAttributes)
-            .map(attributes -> ruleEngineMapper.toRuleAttributes(attributes, preheat))
+            .map(attributes -> RuleEngineMapper.mapAttributes(preheat, attributes))
             .orElse(Collections.emptyList());
 
     List<RuleAttributeValue> payloadTrackedEntityAttributes =
         bundle
             .findTrackedEntityByUid(teUid)
-            .map(te -> ruleEngineMapper.toRuleAttributes(te.getAttributes(), preheat))
+            .map(te -> RuleEngineMapper.mapAttributes(preheat, te.getAttributes()))
             .orElse(Collections.emptyList());
 
     TrackedEntity trackedEntity = preheat.getTrackedEntity(teUid);
@@ -221,14 +220,14 @@ class DefaultProgramRuleService implements ProgramRuleService {
     }
 
     List<RuleEvent> ruleEvents =
-        ruleEngineMapper.toRuleEvents(
+        RuleEngineMapper.mapPayloadEvents(
+            preheat,
             bundle.getEvents().stream()
                 .filter(e -> e.getEnrollment().equals(enrollmentUid))
-                .toList(),
-            preheat);
+                .toList());
 
     return Stream.concat(
-            ruleEngineMapper.toRuleEvents(events.toList()).stream(), ruleEvents.stream())
+            RuleEngineMapper.mapSavedEvents(events.toList()).stream(), ruleEvents.stream())
         .toList();
   }
 }

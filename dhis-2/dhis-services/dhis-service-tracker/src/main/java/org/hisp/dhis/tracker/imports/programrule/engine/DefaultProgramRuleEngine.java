@@ -89,7 +89,10 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
 
   @Override
   public RuleEngineEffects evaluateEnrollmentAndEvents(
-      RuleEnrollment enrollment, List<RuleEvent> events, Program program, UserDetails user) {
+      RuleEnrollment enrollment,
+      List<RuleEvent> events,
+      Program program,
+      UserDetails evaluatingUser) {
     List<ProgramRule> rules =
         getProgramRules(
             program, events.stream().map(RuleEvent::getProgramStage).collect(Collectors.toSet()));
@@ -99,13 +102,14 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
     }
 
     List<RuleEffects> ruleEffects =
-        evaluateProgramRulesForMultipleTrackerObjects(enrollment, program, events, rules, user);
+        evaluateProgramRulesForMultipleTrackerObjects(
+            enrollment, program, events, rules, evaluatingUser);
     return RuleEngineEffects.of(ruleEffects);
   }
 
   @Override
   public RuleEngineEffects evaluateProgramEvents(
-      List<RuleEvent> events, Program program, UserDetails user) {
+      List<RuleEvent> events, Program program, UserDetails evaluatingUser) {
     List<ProgramRule> rules = implementableRuleService.getProgramRules(program, null);
 
     if (rules.isEmpty()) {
@@ -113,7 +117,8 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
     }
 
     return RuleEngineEffects.of(
-        evaluateProgramRulesForMultipleTrackerObjects(null, program, events, rules, user));
+        evaluateProgramRulesForMultipleTrackerObjects(
+            null, program, events, rules, evaluatingUser));
   }
 
   @Override

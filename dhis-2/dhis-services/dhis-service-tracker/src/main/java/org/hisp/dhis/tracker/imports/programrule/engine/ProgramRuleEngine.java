@@ -37,13 +37,21 @@ import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.hisp.dhis.user.UserDetails;
 
 public interface ProgramRuleEngine {
-  /** Evaluate program rules for {@link Program} for enrollment and tracker events */
+  /**
+   * Evaluate program rules as the given {@link UserDetails} for {@link Program} for enrollment and
+   * tracker events.
+   */
   RuleEngineEffects evaluateEnrollmentAndEvents(
-      RuleEnrollment enrollment, List<RuleEvent> events, Program program, UserDetails user);
+      RuleEnrollment enrollment,
+      List<RuleEvent> events,
+      Program program,
+      UserDetails evaluatingUser);
 
-  /** Evaluate program rules for {@link Program} for program events */
+  /**
+   * Evaluate program rules as the given {@link UserDetails} for {@link Program} for program events.
+   */
   RuleEngineEffects evaluateProgramEvents(
-      List<RuleEvent> events, Program program, UserDetails user);
+      List<RuleEvent> events, Program program, UserDetails evaluatingUser);
 
   /**
    * To getDescription rule condition in order to fetch its description

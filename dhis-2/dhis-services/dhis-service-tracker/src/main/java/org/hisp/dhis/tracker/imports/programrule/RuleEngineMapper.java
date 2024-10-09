@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.tracker.imports.programrule;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 import kotlinx.datetime.Clock;
 import kotlinx.datetime.Instant;
+import kotlinx.datetime.LocalDate;
 import kotlinx.datetime.LocalDateTime;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -51,29 +53,25 @@ import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.stereotype.Service;
 
 /** RuleEngineMapper maps tracker objects from DB and payload to rule engine model objects. */
-@Service
-public class RuleEngineMapper {
-  public @Nonnull RuleEnrollment toRuleEnrollment(
+class RuleEngineMapper {
+  private RuleEngineMapper() {
+    throw new IllegalStateException("Utility class");
+  }
+
+  static @Nonnull RuleEnrollment mapPayloadEnrollment(
+      @Nonnull TrackerPreheat preheat,
       @Nonnull org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
-      @Nonnull List<RuleAttributeValue> attributeValues,
-      @Nonnull TrackerPreheat preheat) {
+      @Nonnull List<RuleAttributeValue> attributeValues) {
     OrganisationUnit organisationUnit = preheat.getOrganisationUnit(enrollment.getOrgUnit());
     Program program = preheat.getProgram(enrollment.getProgram());
 
     return new RuleEnrollment(
         enrollment.getUid(),
         program.getName(),
-        LocalDateTime.Formats.INSTANCE
-            .getISO()
-            .parse(DateUtils.toIso8601NoTz(DateUtils.fromInstant(enrollment.getOccurredAt())))
-            .getDate(),
-        LocalDateTime.Formats.INSTANCE
-            .getISO()
-            .parse(DateUtils.toIso8601NoTz(DateUtils.fromInstant(enrollment.getEnrolledAt())))
-            .getDate(),
+        getDate(ObjectUtils.firstNonNull(enrollment.getOccurredAt(), enrollment.getEnrolledAt())),
+        getDate(enrollment.getEnrolledAt()),
         RuleEnrollmentStatus.valueOf(
             ObjectUtils.firstNonNull(enrollment.getStatus(), EnrollmentStatus.ACTIVE).toString()),
         organisationUnit.getUid(),
@@ -81,7 +79,7 @@ public class RuleEngineMapper {
         attributeValues);
   }
 
-  public @Nonnull RuleEnrollment toRuleEnrollment(
+  static @Nonnull RuleEnrollment mapSavedEnrollment(
       @Nonnull Enrollment enrollment, @Nonnull List<RuleAttributeValue> attributeValues) {
     String orgUnit = "";
     String orgUnitCode = "";
@@ -94,32 +92,28 @@ public class RuleEngineMapper {
     return new RuleEnrollment(
         enrollment.getUid(),
         enrollment.getProgram().getName(),
-        LocalDateTime.Formats.INSTANCE
-            .getISO()
-            .parse(DateUtils.toIso8601NoTz(enrollment.getOccurredDate()))
-            .getDate(),
-        LocalDateTime.Formats.INSTANCE
-            .getISO()
-            .parse(DateUtils.toIso8601NoTz(enrollment.getEnrollmentDate()))
-            .getDate(),
-        RuleEnrollmentStatus.valueOf(enrollment.getStatus().toString()),
+        getDate(
+            ObjectUtils.firstNonNull(enrollment.getOccurredDate(), enrollment.getEnrollmentDate())),
+        getDate(enrollment.getEnrollmentDate()),
+        RuleEnrollmentStatus.valueOf(
+            ObjectUtils.firstNonNull(enrollment.getStatus(), EnrollmentStatus.ACTIVE).toString()),
         orgUnit,
         orgUnitCode,
         attributeValues);
   }
 
-  public @Nonnull List<RuleEvent> toRuleEvents(
-      @Nonnull List<org.hisp.dhis.tracker.imports.domain.Event> events,
-      @Nonnull TrackerPreheat preheat) {
-    return events.stream().map(e -> toRuleEvent(e, preheat)).toList();
+  static @Nonnull List<RuleEvent> mapPayloadEvents(
+      @Nonnull TrackerPreheat preheat,
+      @Nonnull List<org.hisp.dhis.tracker.imports.domain.Event> events) {
+    return events.stream().map(e -> mapPayloadEvent(preheat, e)).toList();
   }
 
-  public @Nonnull List<RuleEvent> toRuleEvents(@Nonnull List<Event> events) {
-    return events.stream().map(this::toRuleEvent).toList();
+  static @Nonnull List<RuleEvent> mapSavedEvents(@Nonnull List<Event> events) {
+    return events.stream().map(RuleEngineMapper::mapSavedEvent).toList();
   }
 
-  public @Nonnull List<RuleAttributeValue> toRuleAttributes(
-      @Nonnull List<Attribute> attributes, @Nonnull TrackerPreheat preheat) {
+  static @Nonnull List<RuleAttributeValue> mapAttributes(
+      @Nonnull TrackerPreheat preheat, @Nonnull List<Attribute> attributes) {
     return attributes.stream()
         .map(
             a -> {
@@ -132,7 +126,20 @@ public class RuleEngineMapper {
         .toList();
   }
 
-  private String getValue(String value, ValueType valueType) {
+  @Nonnull
+  private static LocalDate getDate(Date date) {
+    return LocalDateTime.Formats.INSTANCE.getISO().parse(DateUtils.toIso8601NoTz(date)).getDate();
+  }
+
+  @Nonnull
+  private static LocalDate getDate(java.time.Instant instant) {
+    return LocalDateTime.Formats.INSTANCE
+        .getISO()
+        .parse(DateUtils.toIso8601NoTz(DateUtils.fromInstant(instant)))
+        .getDate();
+  }
+
+  private static String getValue(String value, ValueType valueType) {
     if (value != null) {
       return value;
     }
@@ -147,8 +154,8 @@ public class RuleEngineMapper {
     return "";
   }
 
-  private RuleEvent toRuleEvent(
-      org.hisp.dhis.tracker.imports.domain.Event eventToEvaluate, TrackerPreheat preheat) {
+  private static RuleEvent mapPayloadEvent(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event eventToEvaluate) {
     OrganisationUnit organisationUnit = preheat.getOrganisationUnit(eventToEvaluate.getOrgUnit());
     ProgramStage programStage = preheat.getProgramStage(eventToEvaluate.getProgramStage());
     Event event = preheat.getEvent(eventToEvaluate.getUid());
@@ -168,22 +175,8 @@ public class RuleEngineMapper {
             : Instant.Companion.fromEpochMilliseconds(
                 eventToEvaluate.getScheduledAt().toEpochMilli()),
         createdDate,
-        eventToEvaluate.getScheduledAt() == null
-            ? null
-            : LocalDateTime.Formats.INSTANCE
-                .getISO()
-                .parse(
-                    DateUtils.toIso8601NoTz(
-                        DateUtils.fromInstant(eventToEvaluate.getScheduledAt())))
-                .getDate(),
-        eventToEvaluate.getCompletedAt() == null
-            ? null
-            : LocalDateTime.Formats.INSTANCE
-                .getISO()
-                .parse(
-                    DateUtils.toIso8601NoTz(
-                        DateUtils.fromInstant(eventToEvaluate.getCompletedAt())))
-                .getDate(),
+        eventToEvaluate.getScheduledAt() == null ? null : getDate(eventToEvaluate.getScheduledAt()),
+        eventToEvaluate.getCompletedAt() == null ? null : getDate(eventToEvaluate.getCompletedAt()),
         organisationUnit.getUid(),
         organisationUnit.getCode(),
         eventToEvaluate.getDataValues().stream()
@@ -196,7 +189,7 @@ public class RuleEngineMapper {
             .toList());
   }
 
-  private RuleEvent toRuleEvent(Event eventToEvaluate) {
+  private static RuleEvent mapSavedEvent(Event eventToEvaluate) {
     OrganisationUnit organisationUnit = eventToEvaluate.getOrganisationUnit();
     String orgUnit = organisationUnit == null ? "" : organisationUnit.getUid();
     String orgUnitCode = organisationUnit == null ? "" : organisationUnit.getCode();
@@ -212,16 +205,10 @@ public class RuleEngineMapper {
         Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getCreated().getTime()),
         eventToEvaluate.getScheduledDate() == null
             ? null
-            : LocalDateTime.Formats.INSTANCE
-                .getISO()
-                .parse(DateUtils.toIso8601NoTz(eventToEvaluate.getScheduledDate()))
-                .getDate(),
+            : getDate(eventToEvaluate.getScheduledDate()),
         eventToEvaluate.getCompletedDate() == null
             ? null
-            : LocalDateTime.Formats.INSTANCE
-                .getISO()
-                .parse(DateUtils.toIso8601NoTz(eventToEvaluate.getCompletedDate()))
-                .getDate(),
+            : getDate(eventToEvaluate.getCompletedDate()),
         orgUnit,
         orgUnitCode,
         eventToEvaluate.getEventDataValues().stream()

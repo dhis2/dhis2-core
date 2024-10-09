@@ -27,17 +27,15 @@
  */
 package org.hisp.dhis.tracker.imports.programrule;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import kotlinx.datetime.Instant;
 import kotlinx.datetime.LocalDate;
 import org.hisp.dhis.common.CodeGenerator;
@@ -66,7 +64,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class RuleEngineMapperTest extends TestBase {
+class RuleEngineRuleEngineMapperTest extends TestBase {
   private static final String SAMPLE_VALUE_A = "textValueA";
 
   private static final Date NOW = new Date();
@@ -88,10 +86,8 @@ class RuleEngineMapperTest extends TestBase {
 
   private TrackedEntityAttribute booleanTrackedEntityAttribute;
 
-  private RuleEngineMapper mapper = new RuleEngineMapper();
-
   @BeforeEach
-  public void initTest() {
+  void setUp() {
 
     program = createProgram('P');
     programStage = createProgramStage('S', program);
@@ -107,12 +103,12 @@ class RuleEngineMapperTest extends TestBase {
 
   @Test
   void shouldMapEventsToRuleEventWhenOrganisationUnitCodeIsNull() {
-    OrganisationUnit organisationUnitWithNullCode = createOrganisationUnit('A');
-    organisationUnitWithNullCode.setCode(null);
+    OrganisationUnit orgUnit = createOrganisationUnit('A');
+    orgUnit.setCode(null);
     Event event = dbEvent();
-    event.setOrganisationUnit(organisationUnitWithNullCode);
+    event.setOrganisationUnit(orgUnit);
 
-    List<RuleEvent> ruleEvent = mapper.toRuleEvents(List.of(event));
+    List<RuleEvent> ruleEvent = RuleEngineMapper.mapSavedEvents(List.of(event));
 
     assertEquals(1, ruleEvent.size());
     assertEvent(event, ruleEvent.get(0));
@@ -128,7 +124,8 @@ class RuleEngineMapperTest extends TestBase {
     trackerPreheat.put(TrackerIdSchemeParam.UID, organisationUnit);
     trackerPreheat.put(TrackerIdSchemeParam.UID, dataElement);
 
-    List<RuleEvent> ruleEvents = mapper.toRuleEvents(List.of(eventA, eventB), trackerPreheat);
+    List<RuleEvent> ruleEvents =
+        RuleEngineMapper.mapPayloadEvents(trackerPreheat, List.of(eventA, eventB));
 
     assertEquals(2, ruleEvents.size());
     assertEvent(
@@ -143,7 +140,8 @@ class RuleEngineMapperTest extends TestBase {
   void shouldMapDBEventsToRuleEvents() {
     Event eventA = dbEvent();
     Event eventB = dbEvent();
-    List<RuleEvent> ruleEvents = mapper.toRuleEvents(List.of(eventA, eventB));
+
+    List<RuleEvent> ruleEvents = RuleEngineMapper.mapSavedEvents(List.of(eventA, eventB));
 
     assertEquals(2, ruleEvents.size());
     assertEvent(
@@ -167,7 +165,8 @@ class RuleEngineMapperTest extends TestBase {
         new RuleAttributeValue(trackedEntityAttribute.getUid(), SAMPLE_VALUE_A);
 
     RuleEnrollment ruleEnrollment =
-        mapper.toRuleEnrollment(enrollment, List.of(trackedEntityAttributeValue), trackerPreheat);
+        RuleEngineMapper.mapPayloadEnrollment(
+            trackerPreheat, enrollment, List.of(trackedEntityAttributeValue));
 
     assertEnrollment(enrollment, ruleEnrollment);
   }
@@ -179,7 +178,7 @@ class RuleEngineMapperTest extends TestBase {
         new RuleAttributeValue(trackedEntityAttribute.getUid(), SAMPLE_VALUE_A);
 
     RuleEnrollment ruleEnrollment =
-        mapper.toRuleEnrollment(enrollment, List.of(trackedEntityAttributeValue));
+        RuleEngineMapper.mapSavedEnrollment(enrollment, List.of(trackedEntityAttributeValue));
 
     assertEnrollment(enrollment, ruleEnrollment);
   }
@@ -194,7 +193,7 @@ class RuleEngineMapperTest extends TestBase {
         new RuleAttributeValue(trackedEntityAttribute.getUid(), SAMPLE_VALUE_A);
 
     RuleEnrollment ruleEnrollment =
-        mapper.toRuleEnrollment(enrollment, List.of(trackedEntityAttributeValue));
+        RuleEngineMapper.mapSavedEnrollment(enrollment, List.of(trackedEntityAttributeValue));
 
     assertEnrollment(enrollment, ruleEnrollment);
   }
@@ -222,28 +221,18 @@ class RuleEngineMapperTest extends TestBase {
         TrackerIdSchemeParam.UID,
         List.of(
             trackedEntityAttribute, numericTrackedEntityAttribute, booleanTrackedEntityAttribute));
-    List<RuleAttributeValue> ruleAttributes = mapper.toRuleAttributes(attributes, preheat);
 
-    assertAttributes(SAMPLE_VALUE_A, trackedEntityAttribute, ruleAttributes);
-    assertAttributes("", trackedEntityAttribute, ruleAttributes);
-    assertAttributes("3", numericTrackedEntityAttribute, ruleAttributes);
-    assertAttributes("0", numericTrackedEntityAttribute, ruleAttributes);
-    assertAttributes("true", booleanTrackedEntityAttribute, ruleAttributes);
-    assertAttributes("false", booleanTrackedEntityAttribute, ruleAttributes);
-  }
+    List<RuleAttributeValue> ruleAttributes = RuleEngineMapper.mapAttributes(preheat, attributes);
 
-  private void assertAttributes(
-      @Nonnull String value,
-      TrackedEntityAttribute trackedEntityAttribute,
-      List<RuleAttributeValue> ruleAttributes) {
-    Optional<RuleAttributeValue> ruleAttributeValue =
-        ruleAttributes.stream()
-            .filter(ruleAttribute -> value.equals(ruleAttribute.getValue()))
-            .findFirst();
-    assertTrue(ruleAttributeValue.isPresent());
-    assertEquals(value, ruleAttributeValue.get().getValue());
-    assertEquals(
-        trackedEntityAttribute.getUid(), ruleAttributeValue.get().getTrackedEntityAttribute());
+    assertContainsOnly(
+        List.of(
+            new RuleAttributeValue(trackedEntityAttribute.getUid(), SAMPLE_VALUE_A),
+            new RuleAttributeValue(trackedEntityAttribute.getUid(), ""),
+            new RuleAttributeValue(numericTrackedEntityAttribute.getUid(), "3"),
+            new RuleAttributeValue(numericTrackedEntityAttribute.getUid(), "0"),
+            new RuleAttributeValue(booleanTrackedEntityAttribute.getUid(), "true"),
+            new RuleAttributeValue(booleanTrackedEntityAttribute.getUid(), "false")),
+        ruleAttributes);
   }
 
   private void assertEvent(Event event, RuleEvent ruleEvent) {
