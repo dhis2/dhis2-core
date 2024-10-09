@@ -58,7 +58,6 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.system.util.SmsUtils;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.transaction.annotation.Transactional;
@@ -238,7 +237,7 @@ public abstract class CommandSMSListener extends BaseSMSListener {
     Enrollment enrollment = enrollments.get(0);
 
     UserInfoSnapshot currentUserInfo =
-        UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails());
+        UserInfoSnapshot.from(userService.getUser(sms.getCreatedBy().getId()));
 
     Event event = new Event();
     event.setOrganisationUnit(ous.iterator().next());
