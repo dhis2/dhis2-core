@@ -56,7 +56,7 @@ import org.hisp.dhis.smscompression.models.AggregateDatasetSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,7 +80,6 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
   public AggregateDataSetSMSListener(
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
-      UserService userService,
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
       DataElementService dataElementService,
@@ -88,7 +87,7 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
       DataValueService dataValueService,
       CompleteDataSetRegistrationService registrationService,
       IdentifiableObjectManager identifiableObjectManager) {
-    super(incomingSmsService, smsSender, userService, identifiableObjectManager);
+    super(incomingSmsService, smsSender, identifiableObjectManager);
     this.dataSetService = dataSetService;
     this.dataValueService = dataValueService;
     this.registrationService = registrationService;
@@ -98,7 +97,8 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
   }
 
   @Override
-  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, String username)
+  protected SmsResponse postProcess(
+      IncomingSms sms, SmsSubmission submission, UserDetails smsCreatedBy)
       throws SMSProcessingException {
     AggregateDatasetSmsSubmission subm = (AggregateDatasetSmsSubmission) submission;
 
@@ -133,7 +133,8 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
       throw new SMSProcessingException(SmsResponse.DATASET_LOCKED.set(dsid, per));
     }
 
-    List<Object> errorElems = submitDataValues(subm.getValues(), period, orgUnit, aoc, username);
+    List<Object> errorElems =
+        submitDataValues(subm.getValues(), period, orgUnit, aoc, smsCreatedBy);
 
     if (subm.isComplete()) {
       CompleteDataSetRegistration existingReg =
@@ -144,7 +145,15 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
       Date now = new Date();
       CompleteDataSetRegistration newReg =
           new CompleteDataSetRegistration(
-              dataSet, period, orgUnit, aoc, now, username, now, username, true);
+              dataSet,
+              period,
+              orgUnit,
+              aoc,
+              now,
+              smsCreatedBy.getUsername(),
+              now,
+              smsCreatedBy.getUsername(),
+              true);
       registrationService.saveCompleteDataSetRegistration(newReg);
     }
 
@@ -163,7 +172,7 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
       Period period,
       OrganisationUnit orgUnit,
       CategoryOptionCombo aoc,
-      String username) {
+      UserDetails smsCreatedBy) {
     ArrayList<Object> errorElems = new ArrayList<>();
 
     if (values == null) {
@@ -212,7 +221,7 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
 
       dv.setValue(val);
       dv.setLastUpdated(new Date());
-      dv.setStoredBy(username);
+      dv.setStoredBy(smsCreatedBy.getUsername());
 
       if (newDataValue) {
         boolean addedDataValue = dataValueService.addDataValue(dv);

@@ -40,6 +40,7 @@ import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -70,10 +71,24 @@ public class InboundSmsProcessingJob implements Job {
       return;
     }
 
+    UserDetails smsCreatedBy = CurrentUserUtil.getCurrentUserDetails();
+    if (sms.getCreatedBy() == null || !smsCreatedBy.getId().equals(sms.getCreatedBy().getId())) {
+      sms.setStatus(SmsMessageStatus.FAILED);
+      sms.setParsed(false);
+      incomingSmsService.update(sms);
+
+      progress.failedProcess(
+          "IncomingSms createdBy user {} does not match user {} running job {}",
+          sms.getCreatedBy(),
+          smsCreatedBy.getId(),
+          params.getSms());
+      return;
+    }
+
     try {
       for (IncomingSmsListener listener : listeners) {
         if (listener.accept(sms)) {
-          listener.receive(sms, CurrentUserUtil.getCurrentUsername());
+          listener.receive(sms, smsCreatedBy);
           progress.completedProcess("Processed SMS with UID {}", params.getSms());
           return;
         }
