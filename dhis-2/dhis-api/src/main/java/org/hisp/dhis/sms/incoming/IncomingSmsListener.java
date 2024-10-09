@@ -28,10 +28,11 @@
 package org.hisp.dhis.sms.incoming;
 
 import javax.annotation.Nonnull;
+import org.hisp.dhis.user.UserDetails;
 
 public interface IncomingSmsListener {
   boolean accept(@Nonnull IncomingSms sms);
 
-  /** Receive processes an sms sent by the given username. */
-  void receive(@Nonnull IncomingSms sms, @Nonnull String username);
+  /** Receive processes an sms sent by the given user. */
+  void receive(@Nonnull IncomingSms sms, @Nonnull UserDetails smsCreatedBy);
 }
