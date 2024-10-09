@@ -76,6 +76,20 @@
       "version": {
         "min": 42
       }
+    },
+    {
+      "name": "dataElementOperandsAndDataElementsAsDimension",
+      "query": "/api/42/analytics?dimension=pe:MONTHS_THIS_YEAR,dx:cYeuwXTCPkU.pq2XI5kz2BY;cYeuwXTCPkU&filter=ou:ImspTQPwCqd&displayProperty=NAME&relativePeriodDate=2021-10-04\n",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "dataElementOperandsAndDataElementsAsFilter",
+      "query": "/api/42/analytics?dimension=pe:MONTHS_THIS_YEAR&filter=dx:cYeuwXTCPkU.pq2XI5kz2BY;cYeuwXTCPkU&filter=ou:ImspTQPwCqd&displayProperty=NAME&relativePeriodDate=2021-10-04&skipMeta=true&skipData=false\n",
+      "version": {
+        "min": 42
+      }
     }
   ]
 }

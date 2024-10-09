@@ -246,4 +246,126 @@ public class AnalyticsQueryDv13AutoTest extends AnalyticsApiTest {
     validateRow(response, List.of("202103", "15409"));
     validateRow(response, List.of("202104", "13984"));
   }
+
+  @Test
+  public void dataElementOperandsAndDataElementsAsDimension() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:ImspTQPwCqd")
+            .add("displayProperty=NAME")
+            .add("dimension=pe:MONTHS_THIS_YEAR,dx:cYeuwXTCPkU.pq2XI5kz2BY;cYeuwXTCPkU")
+            .add("relativePeriodDate=2021-10-04");
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(3)))
+        .body("rows", hasSize(equalTo(24)))
+        .body("height", equalTo(24))
+        .body("width", equalTo(3))
+        .body("headerWidth", equalTo(3));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"ou\":{\"name\":\"Organisation unit\"},\"202109\":{\"name\":\"September 2021\"},\"MONTHS_THIS_YEAR\":{\"name\":\"Months this year\"},\"202107\":{\"name\":\"July 2021\"},\"202108\":{\"name\":\"August 2021\"},\"202105\":{\"name\":\"May 2021\"},\"202106\":{\"name\":\"June 2021\"},\"202103\":{\"name\":\"March 2021\"},\"202104\":{\"name\":\"April 2021\"},\"202101\":{\"name\":\"January 2021\"},\"202112\":{\"name\":\"December 2021\"},\"202102\":{\"name\":\"February 2021\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202110\":{\"name\":\"October 2021\"},\"202111\":{\"name\":\"November 2021\"},\"dx\":{\"name\":\"Data\"},\"pq2XI5kz2BY\":{\"name\":\"Fixed\"},\"pe\":{\"name\":\"Period\"},\"cYeuwXTCPkU\":{\"name\":\"ANC 2nd visit\"},\"PT59n8BQbqM\":{\"name\":\"Outreach\"},\"cYeuwXTCPkU.pq2XI5kz2BY\":{\"name\":\"ANC 2nd visit Fixed\"}},\"dimensions\":{\"dx\":[\"cYeuwXTCPkU.pq2XI5kz2BY\",\"cYeuwXTCPkU\"],\"pe\":[\"202101\",\"202102\",\"202103\",\"202104\",\"202105\",\"202106\",\"202107\",\"202108\",\"202109\",\"202110\",\"202111\",\"202112\"],\"ou\":[\"ImspTQPwCqd\"],\"co\":[\"pq2XI5kz2BY\",\"PT59n8BQbqM\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 1, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // Assert rows.
+    validateRow(response, List.of("cYeuwXTCPkU", "202106", "23904"));
+    validateRow(response, List.of("cYeuwXTCPkU", "202107", "21130"));
+    validateRow(response, List.of("cYeuwXTCPkU", "202108", "20413"));
+    validateRow(response, List.of("cYeuwXTCPkU", "202109", "20433"));
+    validateRow(response, List.of("cYeuwXTCPkU", "202102", "18488"));
+    validateRow(response, List.of("cYeuwXTCPkU", "202103", "19574"));
+    validateRow(response, List.of("cYeuwXTCPkU", "202104", "18403"));
+    validateRow(response, List.of("cYeuwXTCPkU", "202105", "23726"));
+    validateRow(response, List.of("cYeuwXTCPkU", "202110", "16113"));
+    validateRow(response, List.of("cYeuwXTCPkU", "202111", "19453"));
+    validateRow(response, List.of("cYeuwXTCPkU", "202112", "15183"));
+    validateRow(response, List.of("cYeuwXTCPkU", "202101", "17269"));
+    validateRow(response, List.of("cYeuwXTCPkU.pq2XI5kz2BY", "202104", "13984"));
+    validateRow(response, List.of("cYeuwXTCPkU.pq2XI5kz2BY", "202103", "15409"));
+    validateRow(response, List.of("cYeuwXTCPkU.pq2XI5kz2BY", "202106", "19307"));
+    validateRow(response, List.of("cYeuwXTCPkU.pq2XI5kz2BY", "202105", "19287"));
+    validateRow(response, List.of("cYeuwXTCPkU.pq2XI5kz2BY", "202108", "16366"));
+    validateRow(response, List.of("cYeuwXTCPkU.pq2XI5kz2BY", "202107", "16618"));
+    validateRow(response, List.of("cYeuwXTCPkU.pq2XI5kz2BY", "202109", "16071"));
+    validateRow(response, List.of("cYeuwXTCPkU.pq2XI5kz2BY", "202111", "15278"));
+    validateRow(response, List.of("cYeuwXTCPkU.pq2XI5kz2BY", "202110", "12797"));
+    validateRow(response, List.of("cYeuwXTCPkU.pq2XI5kz2BY", "202102", "13646"));
+    validateRow(response, List.of("cYeuwXTCPkU.pq2XI5kz2BY", "202112", "12393"));
+    validateRow(response, List.of("cYeuwXTCPkU.pq2XI5kz2BY", "202101", "13065"));
+  }
+
+  @Test
+  public void dataElementOperandsAndDataElementsAsFilter() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=dx:cYeuwXTCPkU.pq2XI5kz2BY;cYeuwXTCPkU,ou:ImspTQPwCqd")
+            .add("skipData=false")
+            .add("displayProperty=NAME")
+            .add("skipMeta=true")
+            .add("dimension=pe:MONTHS_THIS_YEAR")
+            .add("relativePeriodDate=2021-10-04");
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(2)))
+        .body("rows", hasSize(equalTo(24)))
+        .body("height", equalTo(24))
+        .body("width", equalTo(2))
+        .body("headerWidth", equalTo(2));
+
+    // Assert metaData.
+    String expectedMetaData = "{}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(response, 0, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 1, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // Assert rows.
+    validateRow(response, List.of("202109", "20433"));
+    validateRow(response, List.of("202107", "21130"));
+    validateRow(response, List.of("202108", "20413"));
+    validateRow(response, List.of("202105", "23726"));
+    validateRow(response, List.of("202106", "23904"));
+    validateRow(response, List.of("202103", "19574"));
+    validateRow(response, List.of("202104", "18403"));
+    validateRow(response, List.of("202101", "17269"));
+    validateRow(response, List.of("202112", "15183"));
+    validateRow(response, List.of("202102", "18488"));
+    validateRow(response, List.of("202110", "16113"));
+    validateRow(response, List.of("202111", "19453"));
+    validateRow(response, List.of("202101", "13065"));
+    validateRow(response, List.of("202112", "12393"));
+    validateRow(response, List.of("202102", "13646"));
+    validateRow(response, List.of("202110", "12797"));
+    validateRow(response, List.of("202111", "15278"));
+    validateRow(response, List.of("202109", "16071"));
+    validateRow(response, List.of("202107", "16618"));
+    validateRow(response, List.of("202108", "16366"));
+    validateRow(response, List.of("202105", "19287"));
+    validateRow(response, List.of("202106", "19307"));
+    validateRow(response, List.of("202103", "15409"));
+    validateRow(response, List.of("202104", "13984"));
+  }
 }
