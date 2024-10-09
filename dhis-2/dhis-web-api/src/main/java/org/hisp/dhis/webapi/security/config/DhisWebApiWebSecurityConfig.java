@@ -71,6 +71,7 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
@@ -182,12 +183,12 @@ public class DhisWebApiWebSecurityConfig {
     return providerManager;
   }
 
-
   final class SpaCsrfTokenRequestHandler extends CsrfTokenRequestAttributeHandler {
     private final CsrfTokenRequestHandler delegate = new XorCsrfTokenRequestAttributeHandler();
 
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, Supplier<CsrfToken> csrfToken) {
+    public void handle(
+        HttpServletRequest request, HttpServletResponse response, Supplier<CsrfToken> csrfToken) {
       /*
        * Always use XorCsrfTokenRequestAttributeHandler to provide BREACH protection of
        * the CsrfToken when it is rendered in the response body.
@@ -219,7 +220,8 @@ public class DhisWebApiWebSecurityConfig {
   final class CsrfCookieFilter extends OncePerRequestFilter {
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(
+        HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
         throws ServletException, IOException {
       CsrfToken csrfToken = (CsrfToken) request.getAttribute("_csrf");
       // Render the token value to a cookie by causing the deferred token to be loaded
@@ -231,12 +233,15 @@ public class DhisWebApiWebSecurityConfig {
 
   @Bean
   protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http.csrf((csrf) -> csrf
-        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-        .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
-    ).addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
-
-//    http.csrf().disable();
+    if (dhisConfig.isEnabled(ConfigurationKey.CSRF_ENABLED)) {
+      http.csrf(
+              c ->
+                  c.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                      .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
+          .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
+    } else {
+      http.csrf(AbstractHttpConfigurer::disable);
+    }
 
     http.requestCache().requestCache(requestCache);
 

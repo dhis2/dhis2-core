@@ -667,7 +667,10 @@ public enum ConfigurationKey {
   SWITCH_USER_ALLOW_LISTED_IPS(
       "switch_user_allow_listed_ips", "localhost,127.0.0.1,[0:0:0:0:0:0:0:1]", false),
 
-  MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false);
+  MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false),
+
+  /** CSRF feature. Enable or disable the feature. */
+  CSRF_ENABLED("csrf.enabled", Constants.OFF, true);
 
   private final String key;
 
