@@ -182,7 +182,6 @@ public class DhisWebApiWebSecurityConfig {
     configureMatchers(http);
     configureFormLogin(http);
     configureCspFilter(http, dhisConfig, configurationService);
-    //    configureCorsFilter(http);
     configureApiTokenAuthorizationFilter(http);
     configureOAuthTokenFilters(http);
 
