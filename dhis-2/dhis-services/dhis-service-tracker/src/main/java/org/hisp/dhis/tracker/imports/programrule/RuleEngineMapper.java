@@ -33,6 +33,7 @@ import javax.annotation.Nonnull;
 import kotlinx.datetime.Clock;
 import kotlinx.datetime.Instant;
 import kotlinx.datetime.LocalDateTime;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -44,6 +45,8 @@ import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEnrollmentStatus;
 import org.hisp.dhis.rules.models.RuleEvent;
 import org.hisp.dhis.rules.models.RuleEventStatus;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
@@ -110,6 +113,35 @@ public class RuleEngineMapper {
 
   public @Nonnull List<RuleEvent> toRuleEvents(@Nonnull List<Event> events) {
     return events.stream().map(this::toRuleEvent).toList();
+  }
+
+  public @Nonnull List<RuleAttributeValue> toRuleAttributes(
+      @Nonnull List<Attribute> attributes, @Nonnull TrackerPreheat preheat) {
+    return attributes.stream()
+        .map(
+            a -> {
+              TrackedEntityAttribute trackedEntityAttribute =
+                  preheat.getTrackedEntityAttribute(a.getAttribute());
+              return new RuleAttributeValue(
+                  trackedEntityAttribute.getUid(),
+                  getValue(a.getValue(), trackedEntityAttribute.getValueType()));
+            })
+        .toList();
+  }
+
+  private String getValue(String value, ValueType valueType) {
+    if (value != null) {
+      return value;
+    }
+    if (valueType.isBoolean()) {
+      return "false";
+    }
+
+    if (valueType.isNumeric()) {
+      return "0";
+    }
+
+    return "";
   }
 
   private RuleEvent toRuleEvent(

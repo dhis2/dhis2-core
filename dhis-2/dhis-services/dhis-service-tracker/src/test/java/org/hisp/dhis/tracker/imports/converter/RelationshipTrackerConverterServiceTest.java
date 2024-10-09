@@ -58,13 +58,9 @@ class RelationshipTrackerConverterServiceTest extends TestBase {
 
   private static final String TE_TO_ENROLLMENT_RELATIONSHIP_TYPE = "xLmPUYJX8Ks";
 
-  private static final String TE_TO_EVENT_RELATIONSHIP_TYPE = "TV9oB9LT3sh";
-
   private static final String TE = CodeGenerator.generateUid();
 
   private static final String ENROLLMENT = "ENROLLMENT_UID";
-
-  private static final String EVENT = "EVENT_UID";
 
   private static final String RELATIONSHIP_A = "RELATIONSHIP_A_UID";
 

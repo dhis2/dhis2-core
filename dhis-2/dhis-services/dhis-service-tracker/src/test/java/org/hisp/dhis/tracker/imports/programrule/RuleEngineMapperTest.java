@@ -30,11 +30,14 @@ package org.hisp.dhis.tracker.imports.programrule;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import kotlinx.datetime.Instant;
 import kotlinx.datetime.LocalDate;
 import org.hisp.dhis.common.CodeGenerator;
@@ -55,6 +58,7 @@ import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -80,6 +84,10 @@ class RuleEngineMapperTest extends TestBase {
 
   private TrackedEntityAttribute trackedEntityAttribute;
 
+  private TrackedEntityAttribute numericTrackedEntityAttribute;
+
+  private TrackedEntityAttribute booleanTrackedEntityAttribute;
+
   private RuleEngineMapper mapper = new RuleEngineMapper();
 
   @BeforeEach
@@ -93,6 +101,8 @@ class RuleEngineMapperTest extends TestBase {
     dataElement.setValueType(ValueType.TEXT);
 
     trackedEntityAttribute = createTrackedEntityAttribute('Z');
+    numericTrackedEntityAttribute = createTrackedEntityAttribute('X', ValueType.INTEGER);
+    booleanTrackedEntityAttribute = createTrackedEntityAttribute('Y', ValueType.BOOLEAN);
   }
 
   @Test
@@ -189,6 +199,53 @@ class RuleEngineMapperTest extends TestBase {
     assertEnrollment(enrollment, ruleEnrollment);
   }
 
+  @Test
+  void shouldMapAttributes() {
+    Attribute textAttribute = attribute(trackedEntityAttribute, SAMPLE_VALUE_A);
+    Attribute nullTextAttribute = attribute(trackedEntityAttribute, null);
+    Attribute numericAttribute = attribute(numericTrackedEntityAttribute, "3");
+    Attribute nullNumericAttribute = attribute(numericTrackedEntityAttribute, null);
+    Attribute booleanAttribute = attribute(booleanTrackedEntityAttribute, "true");
+    Attribute nullBooleanAttribute = attribute(booleanTrackedEntityAttribute, null);
+
+    List<Attribute> attributes =
+        List.of(
+            textAttribute,
+            nullTextAttribute,
+            numericAttribute,
+            nullNumericAttribute,
+            booleanAttribute,
+            nullBooleanAttribute);
+
+    TrackerPreheat preheat = new TrackerPreheat();
+    preheat.put(
+        TrackerIdSchemeParam.UID,
+        List.of(
+            trackedEntityAttribute, numericTrackedEntityAttribute, booleanTrackedEntityAttribute));
+    List<RuleAttributeValue> ruleAttributes = mapper.toRuleAttributes(attributes, preheat);
+
+    assertAttributes(SAMPLE_VALUE_A, trackedEntityAttribute, ruleAttributes);
+    assertAttributes("", trackedEntityAttribute, ruleAttributes);
+    assertAttributes("3", numericTrackedEntityAttribute, ruleAttributes);
+    assertAttributes("0", numericTrackedEntityAttribute, ruleAttributes);
+    assertAttributes("true", booleanTrackedEntityAttribute, ruleAttributes);
+    assertAttributes("false", booleanTrackedEntityAttribute, ruleAttributes);
+  }
+
+  private void assertAttributes(
+      @Nonnull String value,
+      TrackedEntityAttribute trackedEntityAttribute,
+      List<RuleAttributeValue> ruleAttributes) {
+    Optional<RuleAttributeValue> ruleAttributeValue =
+        ruleAttributes.stream()
+            .filter(ruleAttribute -> value.equals(ruleAttribute.getValue()))
+            .findFirst();
+    assertTrue(ruleAttributeValue.isPresent());
+    assertEquals(value, ruleAttributeValue.get().getValue());
+    assertEquals(
+        trackedEntityAttribute.getUid(), ruleAttributeValue.get().getTrackedEntityAttribute());
+  }
+
   private void assertEvent(Event event, RuleEvent ruleEvent) {
     assertEquals(event.getUid(), ruleEvent.getEvent());
     assertEquals(event.getProgramStage().getUid(), ruleEvent.getProgramStage());
@@ -264,6 +321,13 @@ class RuleEngineMapperTest extends TestBase {
 
   private void assertDates(Date expected, LocalDate actual) {
     assertEquals(DateUtils.toMediumDate(expected), actual.toString());
+  }
+
+  private Attribute attribute(TrackedEntityAttribute trackedEntityAttribute, String value) {
+    return Attribute.builder()
+        .attribute(MetadataIdentifier.ofUid(trackedEntityAttribute))
+        .value(value)
+        .build();
   }
 
   private TrackedEntity trackedEntity() {

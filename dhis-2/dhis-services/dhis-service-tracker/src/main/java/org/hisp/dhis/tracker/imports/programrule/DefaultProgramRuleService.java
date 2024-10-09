@@ -49,7 +49,6 @@ import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.tracker.imports.programrule.engine.RuleEngineEffects;
@@ -173,13 +172,13 @@ class DefaultProgramRuleService implements ProgramRuleService {
         bundle
             .findEnrollmentByUid(enrollmentUid)
             .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getAttributes)
-            .map(attributes -> toRuleAttributes(attributes, preheat))
+            .map(attributes -> ruleEngineMapper.toRuleAttributes(attributes, preheat))
             .orElse(Collections.emptyList());
 
     List<RuleAttributeValue> payloadTrackedEntityAttributes =
         bundle
             .findTrackedEntityByUid(teUid)
-            .map(te -> toRuleAttributes(te.getAttributes(), preheat))
+            .map(te -> ruleEngineMapper.toRuleAttributes(te.getAttributes(), preheat))
             .orElse(Collections.emptyList());
 
     TrackedEntity trackedEntity = preheat.getTrackedEntity(teUid);
@@ -199,16 +198,6 @@ class DefaultProgramRuleService implements ProgramRuleService {
             .filter(av -> !payloadAttributeValuesIds.contains(av.getAttribute().getUid()))
             .map(av -> new RuleAttributeValue(av.getAttribute().getUid(), av.getValue()));
     return Stream.concat(payloadAttributes.stream(), dbAttributesNotPresentInPayload).toList();
-  }
-
-  private List<RuleAttributeValue> toRuleAttributes(
-      List<Attribute> attributes, TrackerPreheat preheat) {
-    return attributes.stream()
-        .map(
-            a ->
-                new RuleAttributeValue(
-                    preheat.getTrackedEntityAttribute(a.getAttribute()).getUid(), a.getValue()))
-        .toList();
   }
 
   // Get all the events linked to enrollment from the payload and the DB,

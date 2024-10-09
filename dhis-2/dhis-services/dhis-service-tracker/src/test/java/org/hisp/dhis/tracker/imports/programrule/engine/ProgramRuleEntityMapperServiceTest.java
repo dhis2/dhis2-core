@@ -147,11 +147,6 @@ class ProgramRuleEntityMapperServiceTest extends TestBase {
             program,
             dataElement1,
             null);
-    List<ProgramRuleVariable> programRuleVariables = new ArrayList<>();
-
-    programRuleVariables.add(programRuleVariableA);
-    programRuleVariables.add(programRuleVariableB);
-    programRuleVariables.add(programRuleVariableC);
 
     ProgramRuleAction assignAction = createProgramRuleAction('I', ASSIGN, "test_variable", "2+2");
     ProgramRuleAction displayText =

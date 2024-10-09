@@ -43,8 +43,15 @@ import org.hisp.dhis.rules.models.RuleVariable;
  */
 public interface ProgramRuleEntityMapperService {
 
+  /**
+   * @param programRules The list of program rules to be mapped
+   * @return A list of mapped Rules
+   */
   List<Rule> toRules(@Nonnull List<ProgramRule> programRules);
 
+  /**
+   * @return A list of mapped RuleVariables.
+   */
   List<RuleVariable> toRuleVariables(@Nonnull List<ProgramRuleVariable> programRuleVariables);
 
   /**
