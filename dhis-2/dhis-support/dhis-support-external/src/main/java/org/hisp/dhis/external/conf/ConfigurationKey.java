@@ -670,7 +670,7 @@ public enum ConfigurationKey {
   MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false),
 
   /** CSRF feature. Enable or disable the feature. */
-  CSRF_ENABLED("csrf.enabled", Constants.OFF, true);
+  CSRF_ENABLED("http.security.csrf.enabled", Constants.OFF, true);
 
   private final String key;
 
