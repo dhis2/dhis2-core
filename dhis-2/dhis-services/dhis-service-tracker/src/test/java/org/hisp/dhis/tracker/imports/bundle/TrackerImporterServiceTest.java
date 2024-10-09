@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,7 +41,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.RecordingJobProgress;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -62,7 +62,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Zubair Asghar
  */
 @ExtendWith(MockitoExtension.class)
-class TrackerImporterServiceTest extends TestBase {
+class TrackerImporterServiceTest {
 
   @Mock private TrackerBundleService trackerBundleService;
 
@@ -86,7 +86,7 @@ class TrackerImporterServiceTest extends TestBase {
         new DefaultTrackerImportService(
             trackerBundleService, validationService, trackerPreprocessService);
 
-    injectSecurityContext(user);
+    injectSecurityContextNoSettings(user);
 
     Event event = new Event();
     event.setEvent("EventUid");
