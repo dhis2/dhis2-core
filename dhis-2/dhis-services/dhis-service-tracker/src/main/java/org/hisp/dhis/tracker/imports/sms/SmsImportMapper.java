@@ -403,7 +403,7 @@ class SmsImportMapper {
       @Nonnull IncomingSms sms,
       @Nonnull SMSCommand smsCommand,
       @Nonnull Map<String, String> dataValues,
-      @Nonnull OrganisationUnit orgUnit,
+      @Nonnull String orgUnit,
       @Nonnull String username,
       @Nonnull CategoryService dataElementCategoryService,
       @Nonnull String trackedEntity,
@@ -417,7 +417,7 @@ class SmsImportMapper {
               .enrollment(enrollmentUid)
               .trackedEntity(trackedEntity)
               .program(metadataUid(smsCommand.getProgram()))
-              .orgUnit(metadataUid(orgUnit))
+              .orgUnit(MetadataIdentifier.ofUid(orgUnit))
               .occurredAt(now)
               .enrolledAt(now)
               .status(EnrollmentStatus.ACTIVE)
@@ -437,7 +437,7 @@ class SmsImportMapper {
       @Nonnull IncomingSms sms,
       @Nonnull SMSCommand smsCommand,
       @Nonnull Map<String, String> dataValues,
-      @Nonnull OrganisationUnit orgUnit,
+      @Nonnull String orgUnit,
       @Nonnull String username,
       @Nonnull CategoryService dataElementCategoryService) {
     return TrackerObjects.builder()
@@ -502,12 +502,12 @@ class SmsImportMapper {
       @Nonnull IncomingSms sms,
       @Nonnull SMSCommand smsCommand,
       @Nonnull Map<String, String> dataValues,
-      @Nonnull OrganisationUnit orgUnit,
+      @Nonnull String orgUnit,
       @Nonnull String username,
       @Nonnull CategoryService dataElementCategoryService) {
     return Event.builder()
         .event(CodeGenerator.generateUid())
-        .orgUnit(metadataUid(orgUnit))
+        .orgUnit(MetadataIdentifier.ofUid(orgUnit))
         .program(metadataUid(smsCommand.getProgram()))
         .programStage(metadataUid(smsCommand.getProgramStage()))
         .occurredAt(sms.getSentDate().toInstant())

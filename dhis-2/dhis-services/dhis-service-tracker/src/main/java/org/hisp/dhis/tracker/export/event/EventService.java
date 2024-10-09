@@ -39,7 +39,6 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -64,12 +63,6 @@ public interface EventService {
    * Use {@link #getEvent(UID, EventParams)} instead to also get the events relationships.
    */
   Event getEvent(UID uid) throws NotFoundException, ForbiddenException;
-
-  /**
-   * Get event matching given {@code UID} under the privileges of given user. This method does not
-   * get the events relationships.
-   */
-  Event getEvent(UID uid, UserDetails user) throws NotFoundException, ForbiddenException;
 
   /**
    * Get event matching given {@code UID} and params under the privileges of the currently
