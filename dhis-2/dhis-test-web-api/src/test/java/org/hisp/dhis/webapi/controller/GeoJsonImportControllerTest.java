@@ -33,6 +33,7 @@ import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -93,7 +94,7 @@ class GeoJsonImportControllerTest extends H2ControllerIntegrationTestBase {
             "Import partially successful.",
             POST(
                     "/organisationUnits/geometry?geoJsonId=false&geoJsonProperty=name&orgUnitProperty=name",
-                    "geo-json/sierra-leone-districts.geojson")
+                    Path.of("geo-json/sierra-leone-districts.geojson"))
                 .content());
 
     assertImportedAndIgnored(msg, 7, 8);
@@ -113,7 +114,7 @@ class GeoJsonImportControllerTest extends H2ControllerIntegrationTestBase {
             "Import partially successful.",
             POST(
                     "/organisationUnits/geometry?geoJsonId=false&geoJsonProperty=name&orgUnitProperty=name",
-                    "geo-json/sierra-leone-districts-triplets.geojson")
+                    Path.of("geo-json/sierra-leone-districts-triplets.geojson"))
                 .content());
 
     assertImportedAndIgnored(msg, 7, 8);
@@ -143,7 +144,7 @@ class GeoJsonImportControllerTest extends H2ControllerIntegrationTestBase {
             POST(
                     "/organisationUnits/geometry?geoJsonId=false&geoJsonProperty=name&orgUnitProperty=name&attributeId="
                         + attrId,
-                    "geo-json/sierra-leone-districts.geojson")
+                    Path.of("geo-json/sierra-leone-districts.geojson"))
                 .content());
 
     assertImportedAndIgnored(msg, 7, 8);
@@ -161,7 +162,7 @@ class GeoJsonImportControllerTest extends H2ControllerIntegrationTestBase {
             200,
             "WARNING",
             "Import partially successful.",
-            POST("/organisationUnits/geometry", "geo-json/sierra-leone-districts.geojson")
+            POST("/organisationUnits/geometry", Path.of("geo-json/sierra-leone-districts.geojson"))
                 .content());
 
     assertImportedAndIgnored(msg, 4, 11);
@@ -183,7 +184,7 @@ class GeoJsonImportControllerTest extends H2ControllerIntegrationTestBase {
             "Import partially successful.",
             POST(
                     "/organisationUnits/geometry?attributeId=" + attrId,
-                    "geo-json/sierra-leone-districts.geojson")
+                    Path.of("geo-json/sierra-leone-districts.geojson"))
                 .content());
 
     assertImportedAndIgnored(msg, 4, 11);
@@ -204,7 +205,7 @@ class GeoJsonImportControllerTest extends H2ControllerIntegrationTestBase {
             "Import partially successful.",
             POST(
                     "/organisationUnits/geometry?geoJsonId=false&geoJsonProperty=code&orgUnitProperty=code",
-                    "geo-json/sierra-leone-districts.geojson")
+                    Path.of("geo-json/sierra-leone-districts.geojson"))
                 .content());
 
     assertImportedAndIgnored(msg, 6, 9);
@@ -227,7 +228,7 @@ class GeoJsonImportControllerTest extends H2ControllerIntegrationTestBase {
             POST(
                     "/organisationUnits/geometry?geoJsonId=false&geoJsonProperty=code&orgUnitProperty=code&attributeId="
                         + attrId,
-                    "geo-json/sierra-leone-districts.geojson")
+                    Path.of("geo-json/sierra-leone-districts.geojson"))
                 .content());
 
     assertImportedAndIgnored(msg, 6, 9);
@@ -244,7 +245,8 @@ class GeoJsonImportControllerTest extends H2ControllerIntegrationTestBase {
             200,
             "ERROR",
             "Import failed.",
-            POST("/organisationUnits/geometry", "not-valid-geojson").content(HttpStatus.OK));
+            POST("/organisationUnits/geometry", "{'is':'not-valid-geojson'}")
+                .content(HttpStatus.OK));
     assertReportError(msg, ErrorCode.E7701, List.of());
   }
 
@@ -256,7 +258,7 @@ class GeoJsonImportControllerTest extends H2ControllerIntegrationTestBase {
             200,
             "ERROR",
             "Import failed.",
-            POST("/organisationUnits/geometry?attributeId=fake", "does not matter")
+            POST("/organisationUnits/geometry?attributeId=fake", "\"does not matter\"")
                 .content(HttpStatus.OK));
     assertReportError(msg, ErrorCode.E7702, List.of());
   }
@@ -271,7 +273,7 @@ class GeoJsonImportControllerTest extends H2ControllerIntegrationTestBase {
             200,
             "ERROR",
             "Import failed.",
-            POST("/organisationUnits/geometry?attributeId=" + attrId, "does not matter")
+            POST("/organisationUnits/geometry?attributeId=" + attrId, "\"does not matter\"")
                 .content(HttpStatus.OK));
     assertReportError(msg, ErrorCode.E7703, List.of());
   }
@@ -286,7 +288,7 @@ class GeoJsonImportControllerTest extends H2ControllerIntegrationTestBase {
             200,
             "ERROR",
             "Import failed.",
-            POST("/organisationUnits/geometry?attributeId=" + attrId, "does not matter")
+            POST("/organisationUnits/geometry?attributeId=" + attrId, "\"does not matter\"")
                 .content(HttpStatus.OK));
     assertReportError(msg, ErrorCode.E7704, List.of());
   }
