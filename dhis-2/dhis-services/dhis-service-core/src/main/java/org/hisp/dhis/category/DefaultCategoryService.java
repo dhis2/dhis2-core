@@ -197,6 +197,11 @@ public class DefaultCategoryService implements CategoryService {
     return categoryStore.getCategoriesNoAcl(DataDimensionType.ATTRIBUTE, true);
   }
 
+  @Override
+  public List<Category> getCategoriesByCategoryOption(Collection<CategoryOption> categoryOptions) {
+    return categoryStore.getCategoriesByCategoryOption(categoryOptions);
+  }
+
   // -------------------------------------------------------------------------
   // CategoryOption
   // -------------------------------------------------------------------------

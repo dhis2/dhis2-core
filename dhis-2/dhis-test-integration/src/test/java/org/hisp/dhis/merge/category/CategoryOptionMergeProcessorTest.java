@@ -28,10 +28,20 @@
 package org.hisp.dhis.merge.category;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Collection;
 import java.util.List;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.MergeReport;
+import org.hisp.dhis.merge.DataMergeStrategy;
+import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -56,6 +66,8 @@ import org.springframework.transaction.annotation.Transactional;
 class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
+  @Autowired private IdentifiableObjectManager manager;
+  @Autowired private CategoryOptionMergeProcessor mergeProcessor;
 
   private CategoryOption coSource1;
   private CategoryOption coSource2;
@@ -64,11 +76,10 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   public void setUp() {
-    // data elements
     coSource1 = createCategoryOption('A');
     coSource2 = createCategoryOption('B');
-    coTarget = createCategoryOption('C');
-    coRandom = createCategoryOption('D');
+    coTarget = createCategoryOption('T');
+    coRandom = createCategoryOption('R');
     categoryService.addCategoryOption(coSource1);
     categoryService.addCategoryOption(coSource2);
     categoryService.addCategoryOption(coTarget);
@@ -82,7 +93,100 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // when trying to retrieve data
     List<CategoryOption> categoryOptions = categoryService.getAllCategoryOptions();
 
+    // then 5 are expected (4 created + 1 default)
+    assertEquals(5, categoryOptions.size());
+  }
+
+  // -----------------------------
+  // --------- Category ----------
+  // -----------------------------
+  @Test
+  @DisplayName("Category refs to source CategoryOptions are replaced, sources not deleted")
+  void categoryRefsReplacedSourcesNotDeletedTest() throws ConflictException {
+    // given
+    Category c1 = createCategory('1', coSource1);
+    Category c2 = createCategory('2', coSource2);
+    Category c3 = createCategory('3', coTarget);
+    Category c4 = createCategory('4', coRandom);
+
+    manager.save(List.of(c1, c2, c3, c4));
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
     // then
-    assertEquals(4, categoryOptions.size());
+    List<Category> categorySources =
+        categoryService.getCategoriesByCategoryOption(List.of(coSource1, coSource2));
+    List<Category> categoryTarget =
+        categoryService.getCategoriesByCategoryOption(List.of(coTarget));
+    List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
+
+    assertMergeSuccessfulSourcesNotDeleted(
+        report, categorySources, categoryTarget, allCategoryOptions);
+  }
+
+  @Test
+  @DisplayName("Category refs to source CategoryOptions are replaced, sources are deleted")
+  void categoryRefsReplacedSourcesDeletedTest() throws ConflictException {
+    // given
+    Category c1 = createCategory('1', coSource1);
+    c1.addCategoryOption(coSource2);
+    Category c2 = createCategory('2', coSource2);
+    Category c3 = createCategory('3', coTarget);
+    Category c4 = createCategory('4', coRandom);
+
+    manager.save(List.of(c1, c2, c3, c4));
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<Category> sourceCategories =
+        categoryService.getCategoriesByCategoryOption(List.of(coSource1, coSource2));
+    List<Category> targetCategories =
+        categoryService.getCategoriesByCategoryOption(List.of(coTarget));
+    List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
+
+    assertMergeSuccessfulSourcesDeleted(
+        report, sourceCategories, targetCategories, allCategoryOptions);
+  }
+
+  private MergeParams getMergeParams() {
+    MergeParams mergeParams = new MergeParams();
+    mergeParams.setSources(UID.of(List.of(coSource1.getUid(), coSource2.getUid())));
+    mergeParams.setTarget(UID.of(coTarget.getUid()));
+    mergeParams.setDataMergeStrategy(DataMergeStrategy.LAST_UPDATED);
+    return mergeParams;
+  }
+
+  private void assertMergeSuccessfulSourcesNotDeleted(
+      MergeReport report,
+      Collection<?> sources,
+      Collection<?> target,
+      Collection<CategoryOption> categoryOptions) {
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sources.size(), "Expect 0 entries with source category option refs");
+    assertEquals(3, target.size(), "Expect 3 entries with target category option refs");
+    assertEquals(5, categoryOptions.size(), "Expect 5 category options present");
+    assertTrue(categoryOptions.containsAll(List.of(coTarget, coSource1, coSource2)));
+  }
+
+  private void assertMergeSuccessfulSourcesDeleted(
+      MergeReport report,
+      Collection<?> sources,
+      Collection<?> target,
+      Collection<CategoryOption> categoryOptions) {
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sources.size(), "Expect 0 entries with source category option refs");
+    assertEquals(3, target.size(), "Expect 3 entries with target category option refs");
+    assertEquals(3, categoryOptions.size(), "Expect 3 category options present");
+    assertTrue(categoryOptions.contains(coTarget));
   }
 }
