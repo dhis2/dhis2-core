@@ -34,6 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -90,6 +91,10 @@ public class Category extends BaseDimensionalObject implements SystemDefaultMeta
   public void removeCategoryOption(CategoryOption categoryOption) {
     categoryOptions.remove(categoryOption);
     categoryOption.getCategories().remove(this);
+  }
+
+  public void removeCategoryOptions(Collection<CategoryOption> categoryOptions) {
+    categoryOptions.forEach(this::removeCategoryOption);
   }
 
   public void removeAllCategoryOptions() {

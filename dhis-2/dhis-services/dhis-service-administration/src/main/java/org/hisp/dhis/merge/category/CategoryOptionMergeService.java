@@ -28,7 +28,6 @@
 package org.hisp.dhis.merge.category;
 
 import com.google.common.collect.ImmutableList;
-import jakarta.persistence.EntityManager;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,11 +38,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
-import org.hisp.dhis.merge.CommonMergeHandler;
-import org.hisp.dhis.merge.MergeHandler;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeService;
@@ -62,10 +60,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class CategoryOptionMergeService implements MergeService {
 
   private final CategoryService categoryService;
-  private final CommonMergeHandler commonMergeHandler;
+  private final CategoryOptionMergeHandler categoryOptionMergeHandler;
   private final MergeValidator validator;
-  private final EntityManager entityManager;
-  private ImmutableList<MergeHandler> commonMergeHandlers;
+  private ImmutableList<MetadataMergeHandler> metadataMergeHandlers;
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
@@ -97,12 +94,7 @@ public class CategoryOptionMergeService implements MergeService {
 
     // merge metadata
     log.info("Handling CategoryOption reference associations and merges");
-    commonMergeHandlers.forEach(h -> h.merge(sources, target));
-
-    // a flush is required here to bring Hibernate into a consistent state, due to some of the
-    // above merge operations involving required native queries (queries involving JSONB). This
-    // eliminates possible stale state issues.
-    entityManager.flush();
+    metadataMergeHandlers.forEach(h -> h.merge(sources, target));
 
     // handle deletes
     if (request.isDeleteSources()) handleDeleteSources(sources, mergeReport);
@@ -120,10 +112,19 @@ public class CategoryOptionMergeService implements MergeService {
 
   @PostConstruct
   private void initMergeHandlers() {
-    commonMergeHandlers =
-        ImmutableList.<MergeHandler>builder()
-            .add(commonMergeHandler::handleRefsInIndicatorExpression)
-            .add(commonMergeHandler::handleRefsInCustomForms)
+    metadataMergeHandlers =
+        ImmutableList.<MetadataMergeHandler>builder()
+            .add(categoryOptionMergeHandler::handleCategories)
             .build();
+  }
+
+  /**
+   * Functional interface representing a {@link DataElement} data merge operation.
+   *
+   * @author david mackessy
+   */
+  @FunctionalInterface
+  public interface MetadataMergeHandler {
+    void merge(@Nonnull List<CategoryOption> sources, @Nonnull CategoryOption target);
   }
 }

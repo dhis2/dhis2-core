@@ -145,6 +145,14 @@ public interface CategoryService {
    */
   List<Category> getAttributeDataDimensionCategoriesNoAcl();
 
+  /**
+   * Retrieves all Categories with a ref to any of the CategoryOptions passed in.
+   *
+   * @param categoryOptions refs to search for
+   * @return categories with refs to categoryOptions
+   */
+  List<Category> getCategoriesByCategoryOption(Collection<CategoryOption> categoryOptions);
+
   // -------------------------------------------------------------------------
   // CategoryOption
   // -------------------------------------------------------------------------

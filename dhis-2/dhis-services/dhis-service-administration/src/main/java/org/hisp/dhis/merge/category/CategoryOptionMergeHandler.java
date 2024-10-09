@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.merge.category;
 
-import java.util.Collection;
 import java.util.List;
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.GenericDimensionalObjectStore;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryStore;
+import org.springframework.stereotype.Service;
 
 /**
- * @author Lars Helge Overland
+ * Merge handler for metadata entities.
+ *
+ * @author david mackessy
  */
-public interface CategoryStore extends GenericDimensionalObjectStore<Category> {
-  List<Category> getCategoriesByDimensionType(DataDimensionType dataDimensionType);
+@Service
+@RequiredArgsConstructor
+public class CategoryOptionMergeHandler {
 
-  List<Category> getCategories(DataDimensionType dataDimensionType, boolean dataDimension);
+  private final CategoryStore categoryStore;
 
-  List<Category> getCategoriesNoAcl(DataDimensionType dataDimensionType, boolean dataDimension);
-
-  List<Category> getCategoriesByCategoryOption(Collection<CategoryOption> categoryOptions);
+  /**
+   * Remove sources from {@link Category} and add target to {@link Category}
+   *
+   * @param sources to be removed
+   * @param target to add
+   */
+  public void handleCategories(List<CategoryOption> sources, CategoryOption target) {
+    List<Category> sourceCategories = categoryStore.getCategoriesByCategoryOption(sources);
+    sourceCategories.forEach(
+        c -> {
+          c.removeCategoryOptions(sources);
+          c.addCategoryOption(target);
+        });
+  }
 }
