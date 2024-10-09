@@ -882,7 +882,7 @@ public class DataHandler {
                                     .getCategoryOptionCombo()
                                     .getUid()
                                     .equals(coc.getUid())))
-            .toList();
+            .collect(toList());
 
     if (!dimensionCategoryOptionCombos.isEmpty()) {
       builder.addDimension(
@@ -914,7 +914,7 @@ public class DataHandler {
                                     .getCategoryOptionCombo()
                                     .getUid()
                                     .equals(coc.getUid())))
-            .toList();
+            .collect(toList());
 
     if (!filterCategoryOptionCombos.isEmpty()) {
       builder.addFilter(
@@ -946,7 +946,7 @@ public class DataHandler {
                                     .getAttributeOptionCombo()
                                     .getUid()
                                     .equals(aoc.getUid())))
-            .toList();
+            .collect(toList());
 
     if (!dimensionAttributeOptionCombos.isEmpty()) {
       builder.addDimension(
@@ -978,7 +978,7 @@ public class DataHandler {
                                     .getAttributeOptionCombo()
                                     .getUid()
                                     .equals(aoc.getUid())))
-            .toList();
+            .collect(toList());
 
     if (!filterAttributeOptionCombos.isEmpty()) {
       builder.addFilter(
@@ -1010,7 +1010,7 @@ public class DataHandler {
                                     .getDataElement()
                                     .getUid()
                                     .equals(de.getUid())))
-            .toList();
+            .collect(toList());
     if (!dimensionDataElements.isEmpty()) {
       builder.addDimension(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, dimensionDataElements));
     }
@@ -1038,7 +1038,7 @@ public class DataHandler {
                                     .getDataElement()
                                     .getUid()
                                     .equals(de.getUid())))
-            .toList();
+            .collect(toList());
     if (!filterDataElements.isEmpty()) {
       builder.addFilter(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, filterDataElements));
     }
