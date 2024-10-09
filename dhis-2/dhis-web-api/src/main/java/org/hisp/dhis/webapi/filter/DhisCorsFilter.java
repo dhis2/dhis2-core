@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.filter;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.stereotype.Component;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
@@ -38,8 +37,8 @@ import org.springframework.web.filter.CorsFilter;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-@Component
-public class DhisCorsFilter implements InitializingBean {
+// @Component
+public class DhisCorsFilter {
 
   private static CorsFilter instance;
 
@@ -49,12 +48,4 @@ public class DhisCorsFilter implements InitializingBean {
     this.configurationService = configurationService;
   }
 
-  @Override
-  public void afterPropertiesSet() {
-    get().setCorsProcessor(new DhisCorsProcessor(configurationService));
-  }
-
-  public static CorsFilter get() {
-    return instance == null ? new CorsFilter(new UrlBasedCorsConfigurationSource()) : instance;
-  }
 }
