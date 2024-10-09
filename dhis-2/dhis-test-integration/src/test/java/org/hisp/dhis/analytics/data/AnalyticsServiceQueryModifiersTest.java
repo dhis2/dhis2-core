@@ -181,7 +181,7 @@ class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
 
     // Generate analytics tables
     analyticsTableGenerator.generateAnalyticsTables(
-        AnalyticsTableUpdateParams.newBuilder().withStartTime(oneSecondFromNow).build(),
+        AnalyticsTableUpdateParams.newBuilder().startTime(oneSecondFromNow).build(),
         JobProgress.noop());
   }
 

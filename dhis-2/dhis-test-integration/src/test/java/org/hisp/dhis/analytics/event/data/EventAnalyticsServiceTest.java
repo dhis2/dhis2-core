@@ -576,7 +576,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
     // Generate resource tables and analytics tables
     analyticsTableGenerator.generateAnalyticsTables(
-        AnalyticsTableUpdateParams.newBuilder().withStartTime(oneSecondFromNow).build(),
+        AnalyticsTableUpdateParams.newBuilder().startTime(oneSecondFromNow).build(),
         JobProgress.noop());
   }
 

@@ -216,10 +216,10 @@ class JdbcEventAnalyticsTableManagerTest {
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withStartTime(startTime)
-            .withLatestPartition()
-            .withSkipPrograms(skipPrograms)
-            .build();
+            .startTime(startTime)
+            .skipPrograms(skipPrograms)
+            .build()
+            .withLatestPartition();
 
     List<Map<String, Object>> queryResp = new ArrayList<>();
     queryResp.add(Map.of("dataelementid", 1));
@@ -277,9 +277,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(2)
-            .withStartTime(START_TIME)
-            .withToday(today)
+            .lastYears(2)
+            .startTime(START_TIME)
+            .today(today)
             .build();
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
@@ -322,9 +322,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(2)
-            .withStartTime(START_TIME)
-            .withToday(today)
+            .lastYears(2)
+            .startTime(START_TIME)
+            .today(today)
             .build();
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
@@ -358,9 +358,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(2)
-            .withStartTime(START_TIME)
-            .withToday(today)
+            .lastYears(2)
+            .startTime(START_TIME)
+            .today(today)
             .build();
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
@@ -444,9 +444,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(2)
-            .withStartTime(START_TIME)
-            .withToday(today)
+            .lastYears(2)
+            .startTime(START_TIME)
+            .today(today)
             .build();
 
     when(periodDataProvider.getAvailableYears(DATABASE))
@@ -548,9 +548,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(2)
-            .withStartTime(START_TIME)
-            .withToday(today)
+            .lastYears(2)
+            .startTime(START_TIME)
+            .today(today)
             .build();
 
     when(periodDataProvider.getAvailableYears(DATABASE))
@@ -612,9 +612,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(2)
-            .withStartTime(START_TIME)
-            .withToday(today)
+            .lastYears(2)
+            .startTime(START_TIME)
+            .today(today)
             .build();
 
     when(periodDataProvider.getAvailableYears(DATABASE))
@@ -669,9 +669,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(2)
-            .withStartTime(START_TIME)
-            .withToday(today)
+            .lastYears(2)
+            .startTime(START_TIME)
+            .today(today)
             .build();
 
     when(jdbcTemplate.queryForList(
@@ -719,9 +719,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(2)
-            .withStartTime(START_TIME)
-            .withToday(today)
+            .lastYears(2)
+            .startTime(START_TIME)
+            .today(today)
             .build();
 
     when(jdbcTemplate.queryForList(
@@ -780,7 +780,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .thenReturn(List.of(2018, 2019));
 
     AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder().withStartTime(START_TIME).build();
+        AnalyticsTableUpdateParams.newBuilder().startTime(START_TIME).build();
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
 
@@ -820,7 +820,7 @@ class JdbcEventAnalyticsTableManagerTest {
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
 
     AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder().withStartTime(START_TIME).build();
+        AnalyticsTableUpdateParams.newBuilder().startTime(START_TIME).build();
     when(jdbcTemplate.queryForList(
             getYearQueryForCurrentYear(programA, false, availableDataYears), Integer.class))
         .thenReturn(List.of(2018, 2019));
@@ -865,7 +865,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .thenReturn(List.of(2018, 2019));
 
     AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder().withStartTime(START_TIME).build();
+        AnalyticsTableUpdateParams.newBuilder().startTime(START_TIME).build();
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
 
@@ -966,9 +966,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(2)
-            .withStartTime(START_TIME)
-            .withToday(today)
+            .lastYears(2)
+            .startTime(START_TIME)
+            .today(today)
             .build();
 
     List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);

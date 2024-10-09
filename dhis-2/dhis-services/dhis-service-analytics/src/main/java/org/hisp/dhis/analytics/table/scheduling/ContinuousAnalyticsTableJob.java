@@ -99,12 +99,12 @@ public class ContinuousAnalyticsTableJob implements Job {
 
       AnalyticsTableUpdateParams params =
           AnalyticsTableUpdateParams.newBuilder()
-              .withLastYears(parameters.getLastYears())
-              .withSkipResourceTables(false)
-              .withSkipOutliers(parameters.getSkipOutliers())
-              .withSkipTableTypes(parameters.getSkipTableTypes())
-              .withJobId(jobConfiguration)
-              .withStartTime(startTime)
+              .lastYears(parameters.getLastYears())
+              .skipResourceTables(false)
+              .skipOutliers(parameters.getSkipOutliers())
+              .skipTableTypes(parameters.getSkipTableTypes())
+              .jobId(jobConfiguration)
+              .startTime(startTime)
               .build();
 
       try {
@@ -119,13 +119,13 @@ public class ContinuousAnalyticsTableJob implements Job {
 
       AnalyticsTableUpdateParams params =
           AnalyticsTableUpdateParams.newBuilder()
-              .withLatestPartition()
-              .withSkipResourceTables(true)
-              .withSkipOutliers(parameters.getSkipOutliers())
-              .withSkipTableTypes(parameters.getSkipTableTypes())
-              .withJobId(jobConfiguration)
-              .withStartTime(startTime)
-              .build();
+              .skipResourceTables(true)
+              .skipOutliers(parameters.getSkipOutliers())
+              .skipTableTypes(parameters.getSkipTableTypes())
+              .jobId(jobConfiguration)
+              .startTime(startTime)
+              .build()
+              .withLatestPartition();
 
       analyticsTableGenerator.generateAnalyticsTables(params, progress);
     }
