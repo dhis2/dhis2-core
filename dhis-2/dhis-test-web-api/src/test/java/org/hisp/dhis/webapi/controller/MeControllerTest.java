@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePersonalAccessToken;
+import static org.hisp.dhis.test.web.WebClient.Body;
+import static org.hisp.dhis.test.web.WebClient.ContentType;
 import static org.hisp.dhis.test.web.WebClientUtils.assertSeries;
 import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -148,12 +150,12 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testVerifyPasswordText() {
     assertTrue(
-        POST("/me/verifyPassword", "text/plain:district")
+        POST("/me/verifyPassword", ContentType("text/plain"), Body("district"))
             .content()
             .getBoolean("isCorrectPassword")
             .booleanValue());
     assertFalse(
-        POST("/me/verifyPassword", "text/plain:wrong")
+        POST("/me/verifyPassword", ContentType("text/plain"), Body("wrong"))
             .content()
             .getBoolean("isCorrectPassword")
             .booleanValue());
@@ -187,7 +189,7 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testValidatePasswordText() {
     JsonPasswordValidation result =
-        POST("/me/validatePassword", "text/plain:$ecrEt42")
+        POST("/me/validatePassword", ContentType("text/plain"), Body("$ecrEt42"))
             .content()
             .as(JsonPasswordValidation.class);
     assertTrue(result.isValidPassword());
@@ -197,7 +199,7 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testValidatePasswordText_TooShort() {
     JsonPasswordValidation result =
-        POST("/me/validatePassword", "text/plain:secret")
+        POST("/me/validatePassword", ContentType("text/plain"), Body("secret"))
             .content()
             .as(JsonPasswordValidation.class);
     assertFalse(result.isValidPassword());
@@ -210,7 +212,8 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
     JsonPasswordValidation result =
         POST(
                 "/me/validatePassword",
-                "text/plain:supersecretsupersecretsupersecretsupersecretsupersecretsupersecretsuperse")
+                ContentType("text/plain"),
+                Body("supersecretsupersecretsupersecretsupersecretsupersecretsupersecretsuperse"))
             .content()
             .as(JsonPasswordValidation.class);
     assertFalse(result.isValidPassword());
@@ -223,7 +226,8 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
     JsonPasswordValidation result =
         POST(
                 "/me/validatePassword",
-                "text/plain:supersecretsupersecretsupersecretsupersecretsupersecretsupersecretsupers")
+                ContentType("text/plain"),
+                Body("supersecretsupersecretsupersecretsupersecretsupersecretsupersecretsupers"))
             .content()
             .as(JsonPasswordValidation.class);
     assertFalse(result.isValidPassword());
