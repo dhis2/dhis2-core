@@ -27,33 +27,60 @@
  */
 package org.hisp.dhis.test.web;
 
+import static org.apache.commons.lang3.ArrayUtils.insert;
+import static org.hisp.dhis.test.web.WebClientUtils.assertSeries;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClientUtils.callAndFailOnException;
+import static org.hisp.dhis.test.web.WebClientUtils.fileContent;
+import static org.hisp.dhis.test.web.WebClientUtils.requestComponentsIn;
+import static org.hisp.dhis.test.web.WebClientUtils.substitutePlaceholders;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import org.apache.commons.lang3.ArrayUtils;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.test.webapi.json.domain.JsonError;
+import org.intellij.lang.annotations.Language;
 
 /**
  * The purpose of this interface is to allow mixin style addition of the convenience web API by
- * implementing this interface's essential method {@link #webRequest(HttpMethod, String, List,
- * String, String)}.
+ * implementing this interface's essential method {@link #perform(HttpMethod, String, List, String,
+ * String)}.
  *
  * @author Jan Bernitt
  */
 @FunctionalInterface
 @SuppressWarnings("java:S100")
 public interface WebClient {
-  HttpResponse webRequest(
-      HttpMethod method, String url, List<Header> headers, String contentType, String content);
 
-  interface RequestComponent {}
+  /**
+   * Execute the request with the provided parameters.
+   *
+   * <p>This is the adapter method to the underlying implementation to perform the actual request.
+   *
+   * @param method used method
+   * @param url called URL
+   * @param headers provided HTTP request headers
+   * @param contentType of the request body content
+   * @param content the request body
+   * @return the HTTP response
+   */
+  @Nonnull
+  HttpResponse perform(
+      @Nonnull HttpMethod method,
+      @Nonnull String url,
+      @Nonnull List<Header> headers,
+      @CheckForNull String contentType,
+      @CheckForNull String content);
+
+  sealed interface RequestComponent permits Header, Body {}
 
   static Header Header(String name, Object value) {
     return new Header(name, value);
@@ -79,6 +106,14 @@ public interface WebClient {
     return Header("ContentType", mimeType);
   }
 
+  static Header ContentType(Path file) {
+    String name = file.toString();
+    if (name.endsWith(".json")) return ContentType("application/json; charset=utf8");
+    if (name.endsWith(".geojson")) return ContentType("application/geo+json; charset=utf8");
+    if (name.endsWith(".xml")) return ContentType("application/xml; charset=utf8");
+    return null;
+  }
+
   static Header Accept(Object mimeType) {
     return Accept(mimeType.toString());
   }
@@ -91,100 +126,79 @@ public interface WebClient {
     return new Body(body);
   }
 
-  final class Header implements RequestComponent {
+  record Header(String name, Object value) implements RequestComponent {}
 
-    final String name;
-
-    final Object value;
-
-    Header(String name, Object value) {
-      this.name = name;
-      this.value = value;
-    }
-
-    public String getName() {
-      return name;
-    }
-
-    public Object getValue() {
-      return value;
-    }
-  }
-
-  final class Body implements RequestComponent {
-    final String content;
-
-    Body(String content) {
-      this.content = content;
-    }
-  }
+  record Body(String content) implements RequestComponent {}
 
   default HttpResponse GET(String url, Object... args) {
-    return webRequest(
-        HttpMethod.GET,
-        WebClientUtils.substitutePlaceholders(url, args),
-        WebClientUtils.requestComponentsIn(args));
+    return perform(HttpMethod.GET, substitutePlaceholders(url, args), requestComponentsIn(args));
   }
 
   default HttpResponse POST(String url, Object... args) {
-    return webRequest(
-        HttpMethod.POST,
-        WebClientUtils.substitutePlaceholders(url, args),
-        WebClientUtils.requestComponentsIn(args));
+    return perform(HttpMethod.POST, substitutePlaceholders(url, args), requestComponentsIn(args));
   }
 
-  default HttpResponse POST(String url, String body) {
-    return webRequest(HttpMethod.POST, url, new Body(body));
+  default HttpResponse POST(String url, @Language("json5") String body) {
+    return perform(HttpMethod.POST, url, new Body(body));
+  }
+
+  default HttpResponse POST(String url, Path body) {
+    return callAndFailOnException(
+        () -> POST(url, Body(fileContent(body.toString())), ContentType(body)));
   }
 
   default HttpResponse PATCH(String url, Object... args) {
     // Default mime-type is added as first element so that content type in
     // arguments does not override it
-    return webRequest(
+    return perform(
         HttpMethod.PATCH,
-        WebClientUtils.substitutePlaceholders(url, args),
-        ArrayUtils.insert(
-            0,
-            WebClientUtils.requestComponentsIn(args),
-            ContentType("application/json-patch+json")));
+        substitutePlaceholders(url, args),
+        insert(0, requestComponentsIn(args), ContentType("application/json-patch+json")));
   }
 
-  default HttpResponse PATCH(String url, String body) {
-    return webRequest(
-        HttpMethod.PATCH, url, ContentType("application/json-patch+json"), Body(body));
+  default HttpResponse PATCH(String url, Path body) {
+    return callAndFailOnException(
+        () ->
+            PATCH(
+                url,
+                Body(fileContent(body.toString())),
+                ContentType("application/json-patch+json")));
+  }
+
+  default HttpResponse PATCH(String url, @Language("json5") String body) {
+    return perform(HttpMethod.PATCH, url, ContentType("application/json-patch+json"), Body(body));
   }
 
   default HttpResponse PUT(String url, Object... args) {
-    return webRequest(
-        HttpMethod.PUT,
-        WebClientUtils.substitutePlaceholders(url, args),
-        WebClientUtils.requestComponentsIn(args));
+    return perform(HttpMethod.PUT, substitutePlaceholders(url, args), requestComponentsIn(args));
   }
 
-  default HttpResponse PUT(String url, String body) {
-    return webRequest(HttpMethod.PUT, url, new Body(body));
+  default HttpResponse PUT(String url, Path body) {
+    return callAndFailOnException(
+        () -> PUT(url, Body(fileContent(body.toString())), ContentType(body)));
+  }
+
+  default HttpResponse PUT(String url, @Language("json5") String body) {
+    return perform(HttpMethod.PUT, url, new Body(body));
   }
 
   default HttpResponse DELETE(String url, Object... args) {
-    return webRequest(
-        HttpMethod.DELETE,
-        WebClientUtils.substitutePlaceholders(url, args),
-        WebClientUtils.requestComponentsIn(args));
+    return perform(HttpMethod.DELETE, substitutePlaceholders(url, args), requestComponentsIn(args));
   }
 
-  default HttpResponse DELETE(String url, String body) {
-    return webRequest(HttpMethod.DELETE, url, new Body(body));
+  default HttpResponse DELETE(String url, @Language("json5") String body) {
+    return perform(HttpMethod.DELETE, url, new Body(body));
   }
 
-  default HttpResponse webRequest(HttpMethod method, String url, RequestComponent... components) {
+  default HttpResponse perform(HttpMethod method, String url, RequestComponent... components) {
     // configure headers
     String contentMediaType = null;
     List<Header> headers = new ArrayList<>();
     for (RequestComponent c : components) {
-      if (c instanceof Header) {
-        Header header = (Header) c;
-        if (header.name.equalsIgnoreCase("ContentType")) {
-          contentMediaType = header.value.toString();
+      if (c instanceof Header header) {
+        if (header.name().equalsIgnoreCase("ContentType")) {
+          // last provided content type wins
+          contentMediaType = header.value().toString();
         } else {
           headers.add(header);
         }
@@ -192,61 +206,44 @@ public interface WebClient {
     }
     // configure body
     Body bodyComponent = WebClientUtils.getComponent(Body.class, components);
-    String body = bodyComponent == null ? "" : bodyComponent.content;
-    if (body != null && body.endsWith(".json")) {
-      String fileContentType =
-          contentMediaType != null ? contentMediaType : "application/json; charset=utf8";
-      return WebClientUtils.failOnException(
-          () ->
-              webRequest(method, url, headers, fileContentType, WebClientUtils.fileContent(body)));
-    }
-    if (body != null && body.endsWith(".geojson")) {
-      String fileContentType =
-          contentMediaType != null ? contentMediaType : "application/geo+json; charset=utf8";
-      return WebClientUtils.failOnException(
-          () ->
-              webRequest(method, url, headers, fileContentType, WebClientUtils.fileContent(body)));
-    }
-    if (WebClientUtils.startsWithMediaType(body)) {
-      return webRequest(
-          method,
-          url,
-          headers,
-          body.substring(0, body.indexOf(':')),
-          body.substring(body.indexOf(':') + 1));
-    }
+    String body = bodyComponent == null ? "" : bodyComponent.content();
     String mediaType = contentMediaType != null ? contentMediaType : "application/json";
-    return body == null || body.isEmpty()
-        ? webRequest(method, url, headers, null, null)
-        : webRequest(method, url, headers, mediaType, WebClientUtils.plainTextOrJson(body));
+    if (body == null || body.isEmpty()) return perform(method, url, headers, null, null);
+    if (mediaType.startsWith("application/json")) body = body.replace('\'', '"');
+    return perform(method, url, headers, mediaType, body);
   }
 
-  default <T> T run(Function<WebClient, ? extends WebSnippet<T>> snippet) {
-    return snippet.apply(this).run();
-  }
+  /** Implemented to adapt the {@link WebClient} API to an actual implementation response */
+  interface HttpResponseAdapter {
 
-  default <A, B> B run(BiFunction<WebClient, A, ? extends WebSnippet<B>> snippet, A argument) {
-    return snippet.apply(this, argument).run();
-  }
-
-  interface ResponseAdapter {
-
+    /**
+     * @return HTTP status code
+     */
     int getStatus();
 
+    /**
+     * @return HTTP response body content
+     */
     String getContent();
 
+    /**
+     * @return HTTP response error message
+     */
     String getErrorMessage();
 
+    /**
+     * @param name of the header to read
+     * @return HTTP response header value for the provided name
+     */
+    @CheckForNull
     String getHeader(String name);
-
-    String[] getCookies();
   }
 
   final class HttpResponse {
 
-    private final ResponseAdapter response;
+    private final HttpResponseAdapter response;
 
-    public HttpResponse(ResponseAdapter response) {
+    public HttpResponse(HttpResponseAdapter response) {
       this.response = response;
     }
 
@@ -273,10 +270,9 @@ public interface WebClient {
         fail("Use one of the other content() methods for JSON");
       }
       String actualContentType = header("Content-Type");
-      assertTrue(
-          actualContentType.startsWith(contentType),
-          String.format("Expected %s but was: %s", contentType, actualContentType));
-      return WebClientUtils.failOnException(response::getContent);
+      assertNotNull(actualContentType, "response content-type was not set");
+      if (!actualContentType.startsWith(contentType)) assertEquals(contentType, actualContentType);
+      return callAndFailOnException(response::getContent);
     }
 
     public JsonMixed content() {
@@ -284,12 +280,12 @@ public interface WebClient {
     }
 
     public JsonMixed content(HttpStatus.Series expected) {
-      WebClientUtils.assertSeries(expected, this);
+      assertSeries(expected, this);
       return contentUnchecked();
     }
 
     public JsonMixed content(HttpStatus expected) {
-      WebClientUtils.assertStatus(expected, this);
+      assertStatus(expected, this);
       return contentUnchecked();
     }
 
@@ -299,7 +295,7 @@ public interface WebClient {
     }
 
     public JsonError error(HttpStatus expected) {
-      WebClientUtils.assertStatus(expected, this);
+      assertStatus(expected, this);
       return errorInternal();
     }
 
@@ -329,19 +325,16 @@ public interface WebClient {
     }
 
     public JsonMixed contentUnchecked() {
-      return WebClientUtils.failOnException(() -> JsonMixed.of(response.getContent()));
+      return callAndFailOnException(() -> JsonMixed.of(response.getContent()));
     }
 
     public String location() {
       return header("Location");
     }
 
+    @CheckForNull
     public String header(String name) {
       return response.getHeader(name);
-    }
-
-    public String[] cookies() {
-      return response.getCookies();
     }
   }
 }

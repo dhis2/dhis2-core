@@ -41,13 +41,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -152,13 +149,6 @@ class SmsUtilsTest {
   }
 
   @Test
-  void testGetOrganisationUnitsByPhoneNumber() {
-    Collection<User> params = Collections.singleton(userA);
-    Map<String, Set<OrganisationUnit>> expected = Map.of(userA.getUid(), Set.of(organisationUnitA));
-    assertEquals(expected, SmsUtils.getOrganisationUnitsByPhoneNumber("sender", params));
-  }
-
-  @Test
   void testLookForDate() throws ParseException {
     GregorianCalendar gc = new GregorianCalendar(2019, 12, 31);
     SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
@@ -174,15 +164,6 @@ class SmsUtilsTest {
   }
 
   @Test
-  void testGetUser() {
-    User returnedUser = SmsUtils.getUser("", new SMSCommand(), Lists.newArrayList(userA));
-    assertEquals(userA, returnedUser);
-    assertThrows(
-        SMSParserException.class,
-        () -> SmsUtils.getUser("", new SMSCommand(), Lists.newArrayList(userA, userB)));
-  }
-
-  @Test
   void testSplitLongUnicodeString() {
     List<String> result = new ArrayList<>();
     assertEquals(
@@ -190,7 +171,8 @@ class SmsUtilsTest {
             "000000000000000000000000000000000000000000000000000000000000000000red-green-blue",
             "red.green.blue000000000000000000000000000000000000000000000000000000000000000000"),
         SmsUtils.splitLongUnicodeString(
-            "000000000000000000000000000000000000000000000000000000000000000000red-green-blue red.green.blue"
+            "000000000000000000000000000000000000000000000000000000000000000000red-green-blue"
+                + " red.green.blue"
                 + "000000000000000000000000000000000000000000000000000000000000000000",
             result));
     result = new ArrayList<>();
@@ -200,9 +182,9 @@ class SmsUtilsTest {
             "red.green.blue000000000000000000000000000000000000000000000000000000000000000000",
             "000000000000000000000000000000000000000000000000000000000000000000red.green.blue"),
         SmsUtils.splitLongUnicodeString(
-            "000000000000000000000000000000000000000000000000000000000000000000red-green-blue red.green.blue"
-                + "000000000000000000000000000000000000000000000000000000000000000000 "
-                + "000000000000000000000000000000000000000000000000000000000000000000red.green.blue",
+            "000000000000000000000000000000000000000000000000000000000000000000red-green-blue"
+                + " red.green.blue000000000000000000000000000000000000000000000000000000000000000000"
+                + " 000000000000000000000000000000000000000000000000000000000000000000red.green.blue",
             result));
   }
 

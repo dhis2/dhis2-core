@@ -137,12 +137,6 @@ class DefaultEventService implements EventService {
   }
 
   @Override
-  public Event getEvent(@Nonnull UID event, @Nonnull UserDetails user)
-      throws ForbiddenException, NotFoundException {
-    return getEvent(event, EventParams.FALSE, user);
-  }
-
-  @Override
   public Event getEvent(@Nonnull UID event, @Nonnull EventParams eventParams)
       throws ForbiddenException, NotFoundException {
     return getEvent(event, eventParams, CurrentUserUtil.getCurrentUserDetails());

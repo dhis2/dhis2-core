@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.test.web.WebClient.Body;
+import static org.hisp.dhis.test.web.WebClient.ContentType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.jsontree.JsonMixed;
@@ -48,7 +50,10 @@ class SynchronizationControllerTest extends H2ControllerIntegrationTestBase {
   @DisplayName("Calling the metadataPull endpoint with an invalid url returns an error message")
   void invalidUrlTest() {
     JsonMixed content =
-        POST("/synchronization/metadataPull", "https://invalidurl.com/metadata")
+        POST(
+                "/synchronization/metadataPull",
+                ContentType("text/plain"),
+                Body("https://invalidurl.com/metadata"))
             .content(HttpStatus.CONFLICT);
 
     assertEquals(

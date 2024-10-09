@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.file.Path;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
@@ -40,7 +41,6 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.web.HttpStatus;
-import org.hisp.dhis.test.web.WebClient;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -87,7 +87,7 @@ class ProgramControllerIntegrationTest extends PostgresControllerIntegrationTest
     POST("/trackedEntityAttributes", jsonMapper.writeValueAsString(tea2))
         .content(HttpStatus.CREATED);
 
-    POST("/metadata", WebClient.Body("program/create_program.json")).content(HttpStatus.OK);
+    POST("/metadata", Path.of("program/create_program.json")).content(HttpStatus.OK);
   }
 
   @Test

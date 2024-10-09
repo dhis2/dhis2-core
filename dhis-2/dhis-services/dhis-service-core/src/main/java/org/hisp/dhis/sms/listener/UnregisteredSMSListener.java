@@ -41,6 +41,7 @@ import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
@@ -82,7 +83,7 @@ public class UnregisteredSMSListener extends CommandSMSListener {
   @Override
   protected void postProcess(
       @Nonnull IncomingSms sms,
-      @Nonnull String username,
+      @Nonnull UserDetails smsCreatedBy,
       @Nonnull SMSCommand smsCommand,
       @Nonnull Map<String, String> codeValues) {
     UserGroup userGroup = smsCommand.getUserGroup();

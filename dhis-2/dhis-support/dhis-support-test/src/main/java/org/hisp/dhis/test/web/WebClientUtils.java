@@ -36,22 +36,14 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Callable;
-import java.util.regex.Pattern;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.jsontree.JsonList;
+import java.util.stream.Stream;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.web.HttpStatus.Series;
 import org.hisp.dhis.test.web.WebClient.HttpResponse;
 import org.hisp.dhis.test.web.WebClient.RequestComponent;
 import org.hisp.dhis.test.webapi.json.domain.JsonError;
-import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
-import org.hisp.dhis.test.webapi.json.domain.JsonObjectReport;
-import org.hisp.dhis.test.webapi.json.domain.JsonTypeReport;
 
 /**
  * Helpers needed when testing with {@link WebClient} and {@code
@@ -60,19 +52,6 @@ import org.hisp.dhis.test.webapi.json.domain.JsonTypeReport;
  * @author Jan Bernitt
  */
 public class WebClientUtils {
-
-  private static final Pattern IS_MEDIA_TYPE = Pattern.compile("^[-a-z]+/[-a-z]+:");
-
-  public static String plainTextOrJson(String body) {
-    if (startsWithMediaType(body)) {
-      return body.substring(body.indexOf(':') + 1);
-    }
-    return body == null ? null : body.replace('\'', '"');
-  }
-
-  public static boolean startsWithMediaType(String body) {
-    return body != null && IS_MEDIA_TYPE.matcher(body).find();
-  }
 
   /**
    * Asserts that the {@link HttpResponse} has the expected {@link HttpStatus}.
@@ -148,31 +127,12 @@ public class WebClientUtils {
     return location == null ? null : location.substring(location.lastIndexOf('/') + 1);
   }
 
-  /**
-   * Assumes the {@link JsonError} has a {@link JsonTypeReport} containing a single {@link
-   * JsonErrorReport} with the expected properties.
-   *
-   * @param expectedCode The code the single error is expected to have
-   * @param expectedMessage The message the single error is expected to have
-   * @param actual the actual error from the {@link HttpResponse}
-   */
-  public static void assertError(ErrorCode expectedCode, String expectedMessage, JsonError actual) {
-    JsonList<JsonObjectReport> reports = actual.getTypeReport().getObjectReports();
-    assertEquals(1, reports.size());
-    JsonList<JsonErrorReport> errors = reports.get(0).getErrorReports();
-    assertEquals(1, errors.size());
-    JsonErrorReport error = errors.get(0);
-    assertEquals(expectedCode, error.getErrorCode());
-    assertEquals(expectedMessage, error.getMessage());
-  }
-
   public static String substitutePlaceholders(String url, Object[] args) {
-    if (args.length == 0) {
-      return url;
-    }
+    if (args.length == 0) return url;
+
     Object[] urlArgs =
-        Arrays.stream(args)
-            .filter(arg -> !(arg instanceof RequestComponent))
+        Stream.of(args)
+            .filter(arg -> !(arg instanceof RequestComponent) && !(arg instanceof Path))
             .map(arg -> arg == null ? "" : arg)
             .toArray();
     return String.format(url.replaceAll("\\{[a-zA-Z]+}", "%s"), urlArgs);
@@ -195,7 +155,7 @@ public class WebClientUtils {
     return String.format("{\"id\":\"%s\"}", uid);
   }
 
-  public static <T> T failOnException(Callable<T> op) {
+  public static <T> T callAndFailOnException(Callable<T> op) {
     try {
       return op.call();
     } catch (Exception ex) {
@@ -204,24 +164,23 @@ public class WebClientUtils {
   }
 
   public static RequestComponent[] requestComponentsIn(Object... args) {
-    List<RequestComponent> components = new ArrayList<>();
-    for (Object arg : args) {
-      if (arg instanceof RequestComponent) {
-        components.add((RequestComponent) arg);
-      }
-    }
-    return components.toArray(new RequestComponent[0]);
+    return Stream.of(args)
+        .map(
+            arg ->
+                arg instanceof Path path ? new WebClient.Body(fileContent(path.toString())) : arg)
+        .filter(RequestComponent.class::isInstance)
+        .toArray(RequestComponent[]::new);
   }
 
   @SuppressWarnings("unchecked")
   public static <T extends RequestComponent> T getComponent(
       Class<T> type, RequestComponent[] components) {
-    for (RequestComponent c : components) {
-      if (c.getClass() == type) {
-        return (T) c;
-      }
-    }
-    return null;
+    return (T)
+        Stream.of(components)
+            .filter(Objects::nonNull)
+            .filter(c -> c.getClass() == type)
+            .findFirst()
+            .orElse(null);
   }
 
   public static String fileContent(String filename) {

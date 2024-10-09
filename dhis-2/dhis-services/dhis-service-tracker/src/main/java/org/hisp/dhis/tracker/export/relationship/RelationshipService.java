@@ -47,14 +47,6 @@ public interface RelationshipService {
   Page<Relationship> getRelationships(RelationshipOperationParams params, PageParams pageParams)
       throws ForbiddenException, NotFoundException, BadRequestException;
 
-  /**
-   * Fields the {@link #getRelationships(RelationshipOperationParams)} can order relationships by.
-   * Ordering by fields other than these is considered a programmer error. Validation of user
-   * provided field names should occur before calling {@link
-   * #getRelationships(RelationshipOperationParams)}.
-   */
-  Set<String> getOrderableFields();
-
   Relationship getRelationship(String uid) throws ForbiddenException, NotFoundException;
 
   /**
@@ -63,4 +55,12 @@ public interface RelationshipService {
    */
   List<Relationship> getRelationships(@Nonnull List<String> uids)
       throws ForbiddenException, NotFoundException;
+
+  /**
+   * Fields the {@link #getRelationships(RelationshipOperationParams)} can order relationships by.
+   * Ordering by fields other than these is considered a programmer error. Validation of user
+   * provided field names should occur before calling {@link
+   * #getRelationships(RelationshipOperationParams)}.
+   */
+  Set<String> getOrderableFields();
 }

@@ -109,9 +109,7 @@ public enum HttpStatus {
   }
 
   private final int code;
-
   private final Series series;
-
   private final String reasonPhrase;
 
   HttpStatus(int code, String reasonPhrase) {
@@ -136,7 +134,6 @@ public enum HttpStatus {
     private final int nxx;
 
     Series(int nxx) {
-
       this.nxx = nxx;
     }
 

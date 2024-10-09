@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -84,6 +85,8 @@ class TrackerImporterServiceTest {
     subject =
         new DefaultTrackerImportService(
             trackerBundleService, validationService, trackerPreprocessService);
+
+    injectSecurityContextNoSettings(user);
 
     Event event = new Event();
     event.setEvent("EventUid");
