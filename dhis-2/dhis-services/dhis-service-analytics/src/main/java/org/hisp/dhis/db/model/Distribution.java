@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,39 +25,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.db.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.HashSet;
-import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.scheduling.JobParameters;
-
-/**
- * @author Henning Håkonsen
- */
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class AnalyticsJobParameters implements JobParameters {
-  @JsonProperty private Integer lastYears;
-
-  @JsonProperty private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
-
-  @JsonProperty private Set<AnalyticsTableType> skipCitusTypes = new HashSet<>();
-
-  @JsonProperty
-  @OpenApi.Property({UID[].class, Program.class})
-  private Set<String> skipPrograms = new HashSet<>();
-
-  @JsonProperty private boolean skipResourceTables = false;
-  @JsonProperty private boolean skipOutliers = false;
+/** Represents the way tables are going to be created at database level. */
+public enum Distribution {
+  DISTRIBUTED,
+  NONE;
 }

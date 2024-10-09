@@ -109,19 +109,21 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testCanScanJobParameters() {
     JobParameters parameters =
-        new AnalyticsJobParameters(10, new HashSet<>(), new HashSet<>(), true, true);
+        new AnalyticsJobParameters(
+            10, new HashSet<>(), new HashSet<>(), new HashSet<>(), true, true);
     Schema schema = schemaService.getDynamicSchema(parameters.getClass());
 
     assertNotNull(schema);
     assertFalse(schema.getProperties().isEmpty());
-    assertEquals(5, schema.getProperties().size());
+    assertEquals(6, schema.getProperties().size());
   }
 
   @Test
   void testCanScanJobConfigurationWithJobParameters() {
     JobConfiguration configuration = new JobConfiguration();
     configuration.setJobParameters(
-        new AnalyticsJobParameters(10, new HashSet<>(), new HashSet<>(), true, true));
+        new AnalyticsJobParameters(
+            10, new HashSet<>(), new HashSet<>(), new HashSet<>(), true, true));
 
     Schema schema = schemaService.getDynamicSchema(configuration.getClass());
     assertNotNull(schema);
@@ -137,7 +139,7 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
 
     assertNotNull(schema);
     assertFalse(schema.getProperties().isEmpty());
-    assertEquals(5, schema.getProperties().size());
+    assertEquals(6, schema.getProperties().size());
   }
 
   @Test
