@@ -36,6 +36,7 @@ import kotlinx.datetime.LocalDateTime;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -49,6 +50,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 /** RuleEngineMapper maps tracker objects from DB and payload to rule engine model objects. */
@@ -72,7 +74,8 @@ public class RuleEngineMapper {
             .getISO()
             .parse(DateUtils.toIso8601NoTz(DateUtils.fromInstant(enrollment.getEnrolledAt())))
             .getDate(),
-        RuleEnrollmentStatus.valueOf(enrollment.getStatus().toString()),
+        RuleEnrollmentStatus.valueOf(
+            ObjectUtils.firstNonNull(enrollment.getStatus(), EnrollmentStatus.ACTIVE).toString()),
         organisationUnit.getUid(),
         organisationUnit.getCode(),
         attributeValues);
