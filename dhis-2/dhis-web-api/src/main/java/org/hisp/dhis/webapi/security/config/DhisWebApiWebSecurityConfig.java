@@ -447,18 +447,18 @@ public class DhisWebApiWebSecurityConfig {
     return new org.springframework.security.web.util.matcher.RegexRequestMatcher(pattern, "GET");
   }
 
-  private void configureCspFilter(
-      HttpSecurity http,
-      DhisConfigurationProvider dhisConfig,
-      ConfigurationService configurationService) {
-    http.addFilterBefore(new CspFilter(dhisConfig, configurationService), HeaderWriterFilter.class);
-  }
-
   @Bean
   public CorsFilter corsFilter(ConfigurationService configurationService) {
     CorsFilter corsFilter = new CorsFilter(new UrlBasedCorsConfigurationSource());
     corsFilter.setCorsProcessor(new DhisCorsProcessor(configurationService));
     return corsFilter;
+  }
+
+  private void configureCspFilter(
+      HttpSecurity http,
+      DhisConfigurationProvider dhisConfig,
+      ConfigurationService configurationService) {
+    http.addFilterBefore(new CspFilter(dhisConfig, configurationService), HeaderWriterFilter.class);
   }
 
   private void configureApiTokenAuthorizationFilter(HttpSecurity http) {
