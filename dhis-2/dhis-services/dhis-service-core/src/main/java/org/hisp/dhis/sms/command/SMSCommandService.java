@@ -42,8 +42,6 @@ public interface SMSCommandService {
 
   void delete(SMSCommand cmd);
 
-  List<SMSCommand> getJ2MESMSCommands();
-
   SMSCommand getSMSCommand(String commandName, ParserType parserType);
 
   void addSpecialCharacterSet(Set<SMSSpecialCharacter> specialCharacters, long commandId);
