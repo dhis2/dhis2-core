@@ -69,7 +69,7 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
             .as(JsonLoginResponse.class);
 
     assertEquals("SUCCESS", response.getLoginStatus());
-    assertEquals("/dhis-web-dashboard/", response.getRedirectUrl());
+    assertEquals("/dhis-web-dashboard", response.getRedirectUrl());
   }
 
   @Test
