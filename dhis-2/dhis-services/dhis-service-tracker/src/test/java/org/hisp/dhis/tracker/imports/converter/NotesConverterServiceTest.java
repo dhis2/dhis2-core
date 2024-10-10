@@ -30,10 +30,8 @@ package org.hisp.dhis.tracker.imports.converter;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.note.Note;
@@ -82,18 +80,6 @@ class NotesConverterServiceTest extends TestBase {
     trackerNote.setStoredBy(null);
     final Note note = notesConverterService.from(preheat, trackerNote, currentUser);
     assertNoteValues(note, trackerNote);
-  }
-
-  @Test
-  void verifyConvertTrackerNotesToNotes() {
-    List<org.hisp.dhis.tracker.imports.domain.Note> trackerNotes =
-        List.of(trackerNote(), trackerNote());
-    final List<Note> notes = notesConverterService.from(preheat, trackerNotes, currentUser);
-    assertThat(notes, hasSize(2));
-    for (org.hisp.dhis.tracker.imports.domain.Note note : trackerNotes) {
-      assertNoteValues(
-          notes.stream().filter(c -> c.getUid().equals(note.getNote())).findFirst().get(), note);
-    }
   }
 
   private void assertNoteValues(Note note, org.hisp.dhis.tracker.imports.domain.Note trackerNote) {

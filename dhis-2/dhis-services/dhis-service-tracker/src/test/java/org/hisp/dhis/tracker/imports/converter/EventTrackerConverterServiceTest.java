@@ -27,11 +27,9 @@
  */
 package org.hisp.dhis.tracker.imports.converter;
 
-import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
@@ -82,7 +80,7 @@ class EventTrackerConverterServiceTest extends TestBase {
 
   private final NotesConverterService notesConverterService = new NotesConverterService();
 
-  private RuleEngineConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> converter;
+  private TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> converter;
 
   @Mock public TrackerPreheat preheat;
 
@@ -262,129 +260,6 @@ class EventTrackerConverterServiceTest extends TestBase {
         });
   }
 
-  @Test
-  void fromForRuleEngineGivenNewEvent() {
-    setUpMocks();
-
-    DataElement dataElement = new DataElement();
-    dataElement.setUid(CodeGenerator.generateUid());
-    MetadataIdentifier metadataIdentifier = MetadataIdentifier.ofUid(dataElement.getUid());
-    when(preheat.getDataElement(metadataIdentifier)).thenReturn(dataElement);
-
-    DataValue dataValue = dataValue(metadataIdentifier, "900");
-    org.hisp.dhis.tracker.imports.domain.Event event = event(dataValue);
-
-    Event result = converter.fromForRuleEngine(preheat, event, currentUser);
-
-    assertNotNull(result);
-    assertNotNull(result.getProgramStage());
-    assertNotNull(result.getProgramStage().getProgram());
-    assertNotNull(result.getOrganisationUnit());
-    assertEquals(PROGRAM_UID, result.getProgramStage().getProgram().getUid());
-    assertEquals(PROGRAM_STAGE_UID, result.getProgramStage().getUid());
-    assertEquals(ORGANISATION_UNIT_UID, result.getOrganisationUnit().getUid());
-    assertEquals(ORGANISATION_UNIT_UID, result.getOrganisationUnit().getUid());
-    assertEquals(1, result.getEventDataValues().size());
-    EventDataValue actual = result.getEventDataValues().stream().findFirst().get();
-    assertEquals(dataValue.getDataElement(), MetadataIdentifier.ofUid(actual.getDataElement()));
-    assertEquals(dataValue.getValue(), actual.getValue());
-    assertTrue(actual.getProvidedElsewhere());
-    assertEquals(USERNAME, actual.getCreatedByUserInfo().getUsername());
-    assertEquals(USERNAME, actual.getLastUpdatedByUserInfo().getUsername());
-  }
-
-  @Test
-  void fromForRuleEngineGivenExistingEventMergesNewDataValuesWithDBOnes() {
-    setUpMocks();
-
-    Event existingEvent = event();
-    EventDataValue existingDataValue = eventDataValue(CodeGenerator.generateUid(), "658");
-    existingEvent.setEventDataValues(Set.of(existingDataValue));
-
-    DataElement dataElement = new DataElement();
-    dataElement.setUid(CodeGenerator.generateUid());
-    MetadataIdentifier metadataIdentifier = MetadataIdentifier.ofUid(dataElement.getUid());
-    when(preheat.getDataElement(metadataIdentifier)).thenReturn(dataElement);
-
-    // event refers to a different dataElement then currently associated
-    // with the event in the DB; thus both
-    // dataValues will be merged
-    DataValue newDataValue = dataValue(metadataIdentifier, "900");
-    org.hisp.dhis.tracker.imports.domain.Event event = event(existingEvent.getUid(), newDataValue);
-    when(preheat.getEvent(existingEvent.getUid())).thenReturn(existingEvent);
-
-    Event result = converter.fromForRuleEngine(preheat, event, currentUser);
-
-    assertEquals(2, result.getEventDataValues().size());
-    EventDataValue expect1 = new EventDataValue();
-    expect1.setDataElement(existingDataValue.getDataElement());
-    expect1.setValue(existingDataValue.getValue());
-    EventDataValue expect2 = new EventDataValue();
-    expect2.setDataElement(dataElement.getUid());
-    expect2.setValue(newDataValue.getValue());
-    assertContainsOnly(Set.of(expect1, expect2), result.getEventDataValues());
-  }
-
-  @Test
-  void fromForRuleEngineGivenExistingEventUpdatesValueOfExistingDataValueOnIdSchemeUID() {
-    setUpMocks();
-
-    DataElement dataElement = new DataElement();
-    dataElement.setUid(CodeGenerator.generateUid());
-    MetadataIdentifier metadataIdentifier = MetadataIdentifier.ofUid(dataElement.getUid());
-    when(preheat.getDataElement(metadataIdentifier)).thenReturn(dataElement);
-
-    Event existingEvent = event();
-    existingEvent.setEventDataValues(Set.of(eventDataValue(dataElement.getUid(), "658")));
-
-    // dataElement is of idScheme UID if the NTI dataElementIdScheme is set
-    // to UID
-    DataValue updatedValue = dataValue(metadataIdentifier, "900");
-    org.hisp.dhis.tracker.imports.domain.Event event = event(existingEvent.getUid(), updatedValue);
-    when(preheat.getEvent(event.getEvent())).thenReturn(existingEvent);
-
-    Event result = converter.fromForRuleEngine(preheat, event, currentUser);
-
-    assertEquals(1, result.getEventDataValues().size());
-    EventDataValue expect1 = new EventDataValue();
-    expect1.setDataElement(dataElement.getUid());
-    expect1.setValue(updatedValue.getValue());
-    assertContainsOnly(Set.of(expect1), result.getEventDataValues());
-  }
-
-  @Test
-  void fromForRuleEngineGivenExistingEventUpdatesValueOfExistingDataValueOnIdSchemeCode() {
-    // NTI supports multiple idSchemes. Event.dataElement can thus be any of
-    // the supported ones
-    // UID, CODE, ATTRIBUTE, NAME
-    // merging existing & new data values on events needs to respect the
-    // user configured idScheme
-    setUpMocks();
-
-    DataElement dataElement = new DataElement();
-    dataElement.setUid(CodeGenerator.generateUid());
-    dataElement.setCode("DE_424050");
-    when(preheat.getDataElement(MetadataIdentifier.ofCode(dataElement.getCode())))
-        .thenReturn(dataElement);
-
-    Event existingEvent = event();
-    existingEvent.setEventDataValues(Set.of(eventDataValue(dataElement.getUid(), "658")));
-
-    // dataElement is of idScheme CODE if the NTI dataElementIdScheme is set
-    // to CODE
-    DataValue updatedValue = dataValue(MetadataIdentifier.ofCode(dataElement.getCode()), "900");
-    org.hisp.dhis.tracker.imports.domain.Event event = event(existingEvent.getUid(), updatedValue);
-    when(preheat.getEvent(event.getEvent())).thenReturn(existingEvent);
-
-    Event actual = converter.fromForRuleEngine(preheat, event, currentUser);
-
-    assertEquals(1, actual.getEventDataValues().size());
-    EventDataValue expect1 = new EventDataValue();
-    expect1.setDataElement(dataElement.getUid());
-    expect1.setValue(updatedValue.getValue());
-    assertContainsOnly(Set.of(expect1), actual.getEventDataValues());
-  }
-
   private void setUpMocks() {
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
     when(preheat.getProgram(MetadataIdentifier.ofUid(program))).thenReturn(program);
@@ -405,19 +280,6 @@ class EventTrackerConverterServiceTest extends TestBase {
         .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
         .dataValues(Sets.newHashSet(dataValue))
         .build();
-  }
-
-  private Event event() {
-    Event event = new Event();
-    event.setUid(CodeGenerator.generateUid());
-    return event;
-  }
-
-  private EventDataValue eventDataValue(String dataElement, String value) {
-    EventDataValue eventDataValue = new EventDataValue();
-    eventDataValue.setDataElement(dataElement);
-    eventDataValue.setValue(value);
-    return eventDataValue;
   }
 
   private DataValue dataValue(MetadataIdentifier dataElement, String value) {
