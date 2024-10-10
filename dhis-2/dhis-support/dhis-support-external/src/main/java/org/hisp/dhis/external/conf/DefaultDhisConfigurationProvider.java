@@ -103,6 +103,13 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
         "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect");
 
     // ---------------------------------------------------------------------
+    // If mandatory config is not present stop startup
+    // ---------------------------------------------------------------------
+    String serverBaseUrl = this.properties.getProperty(ConfigurationKey.SERVER_BASE_URL.getKey());
+    if (serverBaseUrl == null)
+      throw new IllegalStateException("server.base.url value is required on startup");
+
+    // ---------------------------------------------------------------------
     // Load Google JSON authentication file into properties bundle
     // ---------------------------------------------------------------------
 
