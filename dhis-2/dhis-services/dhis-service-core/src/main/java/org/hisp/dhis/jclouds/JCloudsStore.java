@@ -51,7 +51,9 @@ import org.jclouds.domain.Location;
 import org.jclouds.domain.LocationBuilder;
 import org.jclouds.domain.LocationScope;
 import org.jclouds.filesystem.reference.FilesystemConstants;
+import org.jclouds.http.HttpResponseException;
 import org.jclouds.logging.slf4j.config.SLF4JLoggingModule;
+import org.jclouds.rest.AuthorizationException;
 import org.jclouds.s3.reference.S3Constants;
 import org.springframework.stereotype.Component;
 
@@ -149,13 +151,32 @@ public class JCloudsStore {
   @PostConstruct
   public void init() {
     Location location = createLocation(fileStoreConfig.provider, fileStoreConfig.location);
-    blobStoreContext.getBlobStore().createContainerInLocation(location, fileStoreConfig.container);
 
-    log.info(
-        "File store configured with provider: '{}', container: '{}' and location: '{}'.",
-        fileStoreConfig.provider,
-        fileStoreConfig.container,
-        fileStoreConfig.location);
+    try {
+      blobStoreContext
+          .getBlobStore()
+          .createContainerInLocation(location, fileStoreConfig.container);
+
+      log.info(
+          "File store configured with provider: '{}', container: '{}' and location: '{}'.",
+          fileStoreConfig.provider,
+          fileStoreConfig.container,
+          fileStoreConfig.location);
+    } catch (HttpResponseException ex) {
+      log.error(
+          String.format(
+              "Could not configure file store with provider '%s' and container '%s'.\n"
+                  + "File storage will not be available.",
+              fileStoreConfig.provider, fileStoreConfig.container),
+          ex);
+    } catch (AuthorizationException ex) {
+      log.error(
+          String.format(
+              "Could not authenticate with file store provider '%s' and container '%s'. "
+                  + "File storage will not be available.",
+              fileStoreConfig.provider, fileStoreConfig.location),
+          ex);
+    }
   }
 
   @PreDestroy
