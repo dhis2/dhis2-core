@@ -29,7 +29,7 @@ pipeline {
         IM_ENVIRONMENT = 'im.dhis2.org'
         IM_HOST = "https://api.$IM_ENVIRONMENT"
         INSTANCE_GROUP_NAME = 'qa'
-        DATABASE_GROUP_NAME = 'test-dbs'
+        DATABASE_GROUP_NAME = 'qa'
         INSTANCE_NAME = "core-${env.GIT_BRANCH.replaceAll("\\P{Alnum}", "").toLowerCase()}-$BUILD_NUMBER"
         INSTANCE_DOMAIN = "https://${INSTANCE_GROUP_NAME}.$IM_ENVIRONMENT"
         INSTANCE_URL = "$INSTANCE_DOMAIN/$INSTANCE_NAME"
@@ -76,7 +76,7 @@ pipeline {
                             dir('scripts/databases') {
                                 env.DATABASE_ID = sh(
                                     returnStdout: true,
-                                    script: "./list.sh | jq -r '.[] | select(.name == \"$DATABASE_GROUP_NAME\") .databases[] | select(.name == \"sierra-leone/${DB_VERSION_TAG}.sql.gz\") .id'"
+                                    script: "./list.sh | jq -r '.[] | select(.name == \"$DATABASE_GROUP_NAME\") .databases[] | select(.name == \"${DB_VERSION_TAG}.sql.gz\") .id'"
                                 ).trim()
 
                                 if (!env.DATABASE_ID) {
@@ -85,7 +85,7 @@ pipeline {
                                     try {
                                         env.DATABASE_ID = sh(
                                             returnStdout: true,
-                                            script: "./upload.sh $DATABASE_GROUP_NAME \"sierra-leone/${DB_VERSION_TAG}.sql.gz\" ${DB_VERSION_TAG}.sql.gz | jq -r '.id'"
+                                            script: "./upload.sh $DATABASE_GROUP_NAME \"${DB_VERSION_TAG}.sql.gz\" ${DB_VERSION_TAG}.sql.gz | jq -r '.id'"
                                         ).trim()
                                     } catch (err) {
                                         echo "Couldn't download or upload database for ${DB_VERSION_TAG}: ${err}"
@@ -93,7 +93,7 @@ pipeline {
                                         DHIS2_SHORT_VERSION = DB_VERSION_TAG.split('\\.').take(2).join('.')
                                         env.DATABASE_ID = sh(
                                             returnStdout: true,
-                                            script: "./list.sh | jq -r '.[] | select(.name == \"$DATABASE_GROUP_NAME\") .databases[] | select(.name == \"sierra-leone/${DHIS2_SHORT_VERSION}.sql.gz\") .id'"
+                                            script: "./list.sh | jq -r '.[] | select(.name == \"$DATABASE_GROUP_NAME\") .databases[] | select(.name == \"${DHIS2_SHORT_VERSION}.sql.gz\") .id'"
                                         ).trim()
                                     }
                                 }
