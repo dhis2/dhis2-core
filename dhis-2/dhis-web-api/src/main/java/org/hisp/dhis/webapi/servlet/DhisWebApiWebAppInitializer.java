@@ -141,6 +141,13 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         .addFilter("GlobalShellFilter", new DelegatingFilterProxy("globalShellFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
 
+    /* Intercept index.html, plugin.html, and other html requests to inject no-cache
+      headers using ContextUtils.setNoStore(response).
+    */
+    context
+        .addFilter("HtmlFileNoCacheFilter", new DelegatingFilterProxy("htmlFileNoCacheFilter"))
+        .addMappingForUrlPatterns(null, true, "/*");
+
     context.addServlet("RootPageServlet", LoginFallbackServlet.class).addMapping("/login.html");
 
     String profile = System.getProperty("spring.profiles.active");
