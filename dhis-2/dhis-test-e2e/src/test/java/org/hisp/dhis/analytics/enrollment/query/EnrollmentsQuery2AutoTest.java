@@ -160,7 +160,7 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "RESIDENT_IN_THE_FOCUS"));
+            ""));
     validateRow(
         response,
         List.of(
@@ -383,8 +383,8 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(8)))
-        .body("rows", hasSize(equalTo(2)))
-        .body("height", equalTo(2))
+        .body("rows", hasSize(equalTo(1)))
+        .body("height", equalTo(1))
         .body("width", equalTo(8))
         .body("headerWidth", equalTo(8));
 

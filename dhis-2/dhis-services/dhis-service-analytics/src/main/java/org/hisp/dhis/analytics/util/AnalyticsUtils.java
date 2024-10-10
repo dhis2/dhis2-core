@@ -339,13 +339,23 @@ public class AnalyticsUtils {
       Map<String, T> valueMap, TotalType totalType) {
     Map<String, T> map = Maps.newHashMap();
 
+    final int upperBoundaryMarginOfDimensionalObjectItems = 1;
+    final int upperBoundaryOfDimensionalObjectItems =
+        totalType.getPropertyCount() + upperBoundaryMarginOfDimensionalObjectItems;
+
     for (Entry<String, T> entry : valueMap.entrySet()) {
       List<String> items =
           Lists.newArrayList(entry.getKey().split(DimensionalObject.DIMENSION_SEP));
+
+      if (items.size() < upperBoundaryOfDimensionalObjectItems) {
+        map.put(entry.getKey(), entry.getValue());
+        continue;
+      }
+
       List<String> operands =
-          Lists.newArrayList(items.subList(0, totalType.getPropertyCount() + 1));
+          Lists.newArrayList(items.subList(0, upperBoundaryOfDimensionalObjectItems));
       List<String> dimensions =
-          Lists.newArrayList(items.subList(totalType.getPropertyCount() + 1, items.size()));
+          Lists.newArrayList(items.subList(upperBoundaryOfDimensionalObjectItems, items.size()));
 
       // Add wild card in place of category option combination
 
