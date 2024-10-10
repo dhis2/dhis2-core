@@ -186,7 +186,7 @@ public class DhisWebApiWebSecurityConfig {
     return providerManager;
   }
 
-  final class SpaCsrfTokenRequestHandler extends CsrfTokenRequestAttributeHandler {
+  static final class SpaCsrfTokenRequestHandler extends CsrfTokenRequestAttributeHandler {
     private final CsrfTokenRequestHandler delegate = new XorCsrfTokenRequestAttributeHandler();
 
     @Override
@@ -220,7 +220,7 @@ public class DhisWebApiWebSecurityConfig {
     }
   }
 
-  final class CsrfCookieFilter extends OncePerRequestFilter {
+  static final class CsrfCookieFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(
