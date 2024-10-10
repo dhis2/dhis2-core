@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.web;
+package org.hisp.dhis.http;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Objects;
 import java.util.concurrent.Callable;
-import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.web.HttpStatus.Series;
-import org.hisp.dhis.test.web.WebClient.HttpResponse;
-import org.hisp.dhis.test.web.WebClient.RequestComponent;
 import org.hisp.dhis.test.webapi.json.domain.JsonError;
 
 /**
- * Helpers needed when testing with {@link WebClient} and {@code
- * org.springframework.test.web.servlet.MockMvc}.
+ * Assertions for {@link HttpClientAdapter} API based tests.
  *
  * @author Jan Bernitt
+ * @since 2.42 (extracted from existing utils)
  */
-public class WebClientUtils {
-
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class HttpAssertions {
   /**
-   * Asserts that the {@link HttpResponse} has the expected {@link HttpStatus}.
+   * Asserts that the {@link HttpClientAdapter.HttpResponse} has the expected {@link HttpStatus}.
    *
    * <p>If status is {@link HttpStatus#CREATED} the method returns the UID of the created object in
    * case it is provided by the response. This is based on a convention used in DHIS2.
@@ -63,7 +56,7 @@ public class WebClientUtils {
    * @param actual the response we actually got
    * @return UID of the created object (if available) or {@code null}
    */
-  public static String assertStatus(HttpStatus expected, HttpResponse actual) {
+  public static String assertStatus(HttpStatus expected, HttpClientAdapter.HttpResponse actual) {
     HttpStatus actualStatus = actual.status();
     if (expected != actualStatus) {
       // OBS! we use the actual state to not fail the check in error
@@ -80,19 +73,22 @@ public class WebClientUtils {
   }
 
   /**
-   * Asserts that the {@link HttpResponse} has the expected {@link Series}. This is useful on cases
-   * where it only matters that operation was {@link Series#SUCCESSFUL} or say {@link
-   * Series#CLIENT_ERROR} but not which exact code of the series.
+   * Asserts that the {@link HttpClientAdapter.HttpResponse} has the expected {@link
+   * HttpStatus.Series}. This is useful on cases where it only matters that operation was {@link
+   * HttpStatus.Series#SUCCESSFUL} or say {@link HttpStatus.Series#CLIENT_ERROR} but not which exact
+   * code of the series.
    *
    * <p>If status is {@link HttpStatus#CREATED} the method returns the UID of the created object in
    * case it is provided by the response. This is based on a convention used in DHIS2.
    *
-   * @param expected status {@link Series} we should get
+   * @param expected status {@link HttpStatus.Series} we should get
    * @param actual the response we actually got
    * @return UID of the created object (if available) or {@code null}
    */
-  public static String assertSeries(Series expected, HttpResponse actual) {
-    Series actualSeries = actual.series();
+  @CheckForNull
+  public static String assertSeries(
+      @Nonnull HttpStatus.Series expected, @Nonnull HttpClientAdapter.HttpResponse actual) {
+    HttpStatus.Series actualSeries = actual.series();
     if (expected != actualSeries) {
       // OBS! we use the actual state to not fail the check in error
       String msg = actual.error(actualSeries).summary();
@@ -102,7 +98,7 @@ public class WebClientUtils {
     return getCreatedId(actual);
   }
 
-  public static void assertValidLocation(HttpResponse actual) {
+  public static void assertValidLocation(@Nonnull HttpClientAdapter.HttpResponse actual) {
     String location = actual.location();
     if (location == null) {
       return;
@@ -115,7 +111,8 @@ public class WebClientUtils {
         "Location header does contain multiple protocol parts");
   }
 
-  private static String getCreatedId(HttpResponse response) {
+  @CheckForNull
+  private static String getCreatedId(HttpClientAdapter.HttpResponse response) {
     HttpStatus actual = response.status();
     if (actual == HttpStatus.CREATED) {
       JsonObject report = response.contentUnchecked().getObject("response");
@@ -127,76 +124,11 @@ public class WebClientUtils {
     return location == null ? null : location.substring(location.lastIndexOf('/') + 1);
   }
 
-  public static String substitutePlaceholders(String url, Object[] args) {
-    if (args.length == 0) return url;
-
-    Object[] urlArgs =
-        Stream.of(args)
-            .filter(arg -> !(arg instanceof RequestComponent) && !(arg instanceof Path))
-            .map(arg -> arg == null ? "" : arg)
-            .toArray();
-    return String.format(url.replaceAll("\\{[a-zA-Z]+}", "%s"), urlArgs);
-  }
-
-  public static String objectReferences(String... uids) {
-    StringBuilder str = new StringBuilder();
-    str.append('[');
-    for (String uid : uids) {
-      if (str.length() > 1) {
-        str.append(',');
-      }
-      str.append(objectReference(uid));
-    }
-    str.append(']');
-    return str.toString();
-  }
-
-  public static String objectReference(String uid) {
-    return String.format("{\"id\":\"%s\"}", uid);
-  }
-
-  public static <T> T callAndFailOnException(Callable<T> op) {
+  public static <T> T exceptionAsFail(Callable<T> op) {
     try {
       return op.call();
     } catch (Exception ex) {
       throw new AssertionError(ex);
     }
-  }
-
-  public static RequestComponent[] requestComponentsIn(Object... args) {
-    return Stream.of(args)
-        .map(
-            arg ->
-                arg instanceof Path path ? new WebClient.Body(fileContent(path.toString())) : arg)
-        .filter(RequestComponent.class::isInstance)
-        .toArray(RequestComponent[]::new);
-  }
-
-  @SuppressWarnings("unchecked")
-  public static <T extends RequestComponent> T getComponent(
-      Class<T> type, RequestComponent[] components) {
-    return (T)
-        Stream.of(components)
-            .filter(Objects::nonNull)
-            .filter(c -> c.getClass() == type)
-            .findFirst()
-            .orElse(null);
-  }
-
-  public static String fileContent(String filename) {
-    try {
-      return Files.readString(
-          Path.of(
-              Objects.requireNonNull(WebClientUtils.class.getClassLoader().getResource(filename))
-                  .toURI()),
-          StandardCharsets.UTF_8);
-    } catch (IOException | URISyntaxException e) {
-      fail(e);
-      return null;
-    }
-  }
-
-  private WebClientUtils() {
-    throw new UnsupportedOperationException("util");
   }
 }
