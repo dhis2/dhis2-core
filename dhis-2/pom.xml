@@ -2362,10 +2362,8 @@ jasperreports.version=${jasperreports.version}
             <goals>
               <goal>analyze-only</goal>
             </goals>
-            <phase>process-test-classes</phase>
             <configuration>
               <failOnWarning>true</failOnWarning>
-              <skip>${skipTests}</skip>
             </configuration>
           </execution>
         </executions>
