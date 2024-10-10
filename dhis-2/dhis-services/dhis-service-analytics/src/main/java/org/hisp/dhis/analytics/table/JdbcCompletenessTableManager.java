@@ -33,9 +33,9 @@ import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.BOOLEAN;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
-import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
@@ -256,7 +256,8 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
   private List<AnalyticsTableColumn> getColumns() {
     String idColAlias = "concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',ao.uid) as id ";
-    String timelyDateDiff = "cast(cdr.date as date) - ps.enddate";
+    String timelyDateDiff =
+        "extract(epoch from (cdr.date - ps.enddate)) / ( " + DateUtils.SECONDS_PER_DAY + " )";
     String timelyAlias = "((" + timelyDateDiff + ") <= ds.timelydays) as timely";
 
     List<AnalyticsTableColumn> columns = new ArrayList<>();
@@ -281,7 +282,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     columns.add(
         AnalyticsTableColumn.builder()
             .name("value")
-            .dataType(DATE)
+            .dataType(TIMESTAMP)
             .valueType(FACT)
             .selectExpression("cdr.date as value")
             .build());
@@ -304,7 +305,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
       sql +=
           replace(
               "and pe.startdate >= '${fromDate}'",
-              Map.of("fromDate", DateUtils.toMediumDate(params.getFromDate())));
+              Map.of("fromDate", DateUtils.toLongDate(params.getFromDate())));
     }
 
     return jdbcTemplate.queryForList(sql, Integer.class);
