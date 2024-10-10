@@ -2155,6 +2155,14 @@ jasperreports.version=${jasperreports.version}
                 <goal>prepare-agent</goal>
               </goals>
             </execution>
+            <!-- bind it to test instead of default verify so we get coverage reports when only running mvn test -->
+            <execution>
+              <id>report</id>
+              <goals>
+                <goal>report</goal>
+              </goals>
+              <phase>test</phase>
+            </execution>
           </executions>
         </plugin>
       </plugins>
