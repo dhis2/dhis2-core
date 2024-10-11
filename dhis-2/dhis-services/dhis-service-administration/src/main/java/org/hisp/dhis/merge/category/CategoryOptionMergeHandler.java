@@ -31,6 +31,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.category.CategoryStore;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +46,7 @@ import org.springframework.stereotype.Service;
 public class CategoryOptionMergeHandler {
 
   private final CategoryStore categoryStore;
+  private final CategoryOptionComboStore categoryOptionComboStore;
 
   /**
    * Remove sources from {@link Category} and add target to {@link Category}
@@ -57,6 +60,23 @@ public class CategoryOptionMergeHandler {
         c -> {
           c.removeCategoryOptions(sources);
           c.addCategoryOption(target);
+        });
+  }
+
+  /**
+   * Remove sources from {@link CategoryOptionCombo} and add target to {@link CategoryOptionCombo}
+   *
+   * @param sources to be removed
+   * @param target to add
+   */
+  public void handleCategoryOptionCombos(List<CategoryOption> sources, CategoryOption target) {
+    List<CategoryOptionCombo> sourceCocs =
+        categoryOptionComboStore.getCategoryOptionCombosByCategoryOption(sources);
+
+    sourceCocs.forEach(
+        coc -> {
+          coc.removeCategoryOptions(sources);
+          coc.addCategoryOption(target);
         });
   }
 }

@@ -28,6 +28,7 @@
 package org.hisp.dhis.category.hibernate;
 
 import jakarta.persistence.EntityManager;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import org.hibernate.NonUniqueResultException;
@@ -142,5 +143,19 @@ public class HibernateCategoryOptionComboStore
     publisher.publishEvent(event);
 
     getSession().delete(categoryOptionCombo);
+  }
+
+  @Override
+  public List<CategoryOptionCombo> getCategoryOptionCombosByCategoryOption(
+      Collection<CategoryOption> categoryOptions) {
+    return getQuery(
+            """
+            select distinct coc from CategoryOptionCombo coc
+            join coc.categoryOptions co
+            where co in :categoryOptions
+            """,
+            CategoryOptionCombo.class)
+        .setParameter("categoryOptions", categoryOptions)
+        .getResultList();
   }
 }

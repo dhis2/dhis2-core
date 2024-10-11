@@ -661,6 +661,12 @@ public class DefaultCategoryService implements CategoryService {
     categoryOptionComboStore.updateNames();
   }
 
+  @Override
+  public List<CategoryOptionCombo> getCategoryOptionCombosByCategoryOption(
+      Collection<CategoryOption> categoryOptions) {
+    return categoryOptionComboStore.getCategoryOptionCombosByCategoryOption(categoryOptions);
+  }
+
   // -------------------------------------------------------------------------
   // DataElementOperand
   // -------------------------------------------------------------------------

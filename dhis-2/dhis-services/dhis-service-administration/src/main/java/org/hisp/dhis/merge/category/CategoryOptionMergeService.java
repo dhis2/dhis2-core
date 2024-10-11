@@ -28,6 +28,7 @@
 package org.hisp.dhis.merge.category;
 
 import com.google.common.collect.ImmutableList;
+import jakarta.persistence.EntityManager;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -62,6 +63,7 @@ public class CategoryOptionMergeService implements MergeService {
   private final CategoryService categoryService;
   private final CategoryOptionMergeHandler categoryOptionMergeHandler;
   private final MergeValidator validator;
+  private final EntityManager entityManager;
   private ImmutableList<MetadataMergeHandler> metadataMergeHandlers;
 
   @Override
@@ -96,6 +98,11 @@ public class CategoryOptionMergeService implements MergeService {
     log.info("Handling CategoryOption reference associations and merges");
     metadataMergeHandlers.forEach(h -> h.merge(sources, target));
 
+    // a flush is required here to bring the system into a consistent state. This is required so
+    // that the deletion handler hooks, which are usually done using JDBC (non-Hibernate), can
+    // see the most up-to-date state, including merges done using Hibernate.
+    entityManager.flush();
+
     // handle deletes
     if (request.isDeleteSources()) handleDeleteSources(sources, mergeReport);
 
@@ -115,6 +122,7 @@ public class CategoryOptionMergeService implements MergeService {
     metadataMergeHandlers =
         ImmutableList.<MetadataMergeHandler>builder()
             .add(categoryOptionMergeHandler::handleCategories)
+            .add(categoryOptionMergeHandler::handleCategoryOptionCombos)
             .build();
   }
 
