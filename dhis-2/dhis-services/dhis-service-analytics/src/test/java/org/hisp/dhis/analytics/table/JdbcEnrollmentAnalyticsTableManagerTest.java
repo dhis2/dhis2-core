@@ -101,7 +101,9 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
 
   @BeforeEach
   public void setUp() {
-    when(databaseInfoProvider.getDatabaseInfo()).thenReturn(DatabaseInfo.builder().build());
+    lenient()
+        .when(databaseInfoProvider.getDatabaseInfo())
+        .thenReturn(DatabaseInfo.builder().build());
     SystemSettingsProvider settingsProvider = mock(SystemSettingsProvider.class);
     lenient().when(settingsProvider.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
     subject =
