@@ -45,14 +45,15 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+// TODO(DHIS2-18222) Remove unused fields
 public class Note implements Serializable {
   @JsonProperty private String note;
 
-  @JsonProperty private Instant storedAt;
+  @JsonProperty private Instant storedAt; // remove
 
   @JsonProperty private String value;
 
-  @JsonProperty private User createdBy;
+  @JsonProperty private User createdBy; // remove
 
   @JsonProperty private String storedBy;
 }

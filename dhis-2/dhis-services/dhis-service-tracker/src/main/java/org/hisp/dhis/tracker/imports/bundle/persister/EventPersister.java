@@ -56,7 +56,7 @@ import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
+import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
@@ -71,29 +71,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class EventPersister
     extends AbstractTrackerPersister<org.hisp.dhis.tracker.imports.domain.Event, Event> {
-  private final TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event>
-      eventConverter;
-
   private final EventChangeLogService eventChangeLogService;
 
   public EventPersister(
       ReservedValueService reservedValueService,
-      TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> eventConverter,
       TrackedEntityChangeLogService trackedEntityChangeLogService,
       EventChangeLogService eventChangeLogService) {
     super(reservedValueService, trackedEntityChangeLogService);
-    this.eventConverter = eventConverter;
     this.eventChangeLogService = eventChangeLogService;
   }
 
   @Override
   protected void updatePreheat(TrackerPreheat preheat, Event event) {
     preheat.putEvents(Collections.singletonList(event));
-  }
-
-  @Override
-  protected boolean isNew(TrackerPreheat preheat, String uid) {
-    return preheat.getEvent(uid) == null;
   }
 
   @Override
@@ -136,7 +126,7 @@ public class EventPersister
 
   @Override
   protected Event convert(TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event) {
-    return eventConverter.from(bundle.getPreheat(), event, bundle.getUser());
+    return TrackerObjectsMapper.map(bundle.getPreheat(), event, bundle.getUser());
   }
 
   @Override

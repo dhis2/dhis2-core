@@ -30,13 +30,12 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 import jakarta.persistence.EntityManager;
 import java.util.Collections;
 import java.util.List;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
+import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -50,18 +49,11 @@ import org.springframework.stereotype.Component;
 public class TrackedEntityPersister
     extends AbstractTrackerPersister<
         org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity> {
-  @Nonnull
-  private final TrackerConverterService<
-          org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity>
-      teConverter;
 
   public TrackedEntityPersister(
       ReservedValueService reservedValueService,
-      TrackerConverterService<org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity>
-          teConverter,
       TrackedEntityChangeLogService trackedEntityChangeLogService) {
     super(reservedValueService, trackedEntityChangeLogService);
-    this.teConverter = teConverter;
   }
 
   @Override
@@ -93,17 +85,12 @@ public class TrackedEntityPersister
   @Override
   protected TrackedEntity convert(
       TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto) {
-    return teConverter.from(bundle.getPreheat(), trackerDto, bundle.getUser());
+    return TrackerObjectsMapper.map(bundle.getPreheat(), trackerDto, bundle.getUser());
   }
 
   @Override
   protected TrackerType getType() {
     return TrackerType.TRACKED_ENTITY;
-  }
-
-  @Override
-  protected boolean isNew(TrackerPreheat preheat, String uid) {
-    return preheat.getTrackedEntity(uid) == null;
   }
 
   @Override
