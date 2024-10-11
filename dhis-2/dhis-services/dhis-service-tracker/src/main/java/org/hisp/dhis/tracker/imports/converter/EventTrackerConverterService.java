@@ -29,18 +29,12 @@ package org.hisp.dhis.tracker.imports.converter;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -52,8 +46,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
-import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
@@ -65,138 +57,13 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service
 public class EventTrackerConverterService
-    implements RuleEngineConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> {
+    implements TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> {
   private final NotesConverterService notesConverterService;
-
-  @Override
-  public org.hisp.dhis.tracker.imports.domain.Event to(Event event) {
-    List<org.hisp.dhis.tracker.imports.domain.Event> events = to(Collections.singletonList(event));
-
-    if (events.isEmpty()) {
-      return null;
-    }
-
-    return events.get(0);
-  }
-
-  @Override
-  public List<org.hisp.dhis.tracker.imports.domain.Event> to(List<Event> events) {
-    List<org.hisp.dhis.tracker.imports.domain.Event> result = new ArrayList<>();
-
-    events.forEach(
-        event -> {
-          org.hisp.dhis.tracker.imports.domain.Event e =
-              new org.hisp.dhis.tracker.imports.domain.Event();
-          e.setEvent(event.getUid());
-
-          e.setStatus(event.getStatus());
-          e.setOccurredAt(DateUtils.instantFromDate(event.getOccurredDate()));
-          e.setScheduledAt(DateUtils.instantFromDate(event.getScheduledDate()));
-          e.setStoredBy(event.getStoredBy());
-          e.setCompletedBy(event.getCompletedBy());
-          e.setCompletedAt(DateUtils.instantFromDate(event.getCompletedDate()));
-          e.setCreatedAt(DateUtils.instantFromDate(event.getCreated()));
-          e.setCreatedAtClient(DateUtils.instantFromDate(event.getCreatedAtClient()));
-          e.setUpdatedAt(DateUtils.instantFromDate(event.getLastUpdated()));
-          e.setUpdatedAtClient(DateUtils.instantFromDate(event.getLastUpdatedAtClient()));
-          e.setGeometry(event.getGeometry());
-          e.setDeleted(event.isDeleted());
-
-          OrganisationUnit ou = event.getOrganisationUnit();
-
-          if (ou != null) {
-            e.setOrgUnit(MetadataIdentifier.ofUid(ou));
-          }
-
-          e.setEnrollment(event.getEnrollment().getUid());
-          e.setProgramStage(MetadataIdentifier.ofUid(event.getProgramStage()));
-          e.setAttributeOptionCombo(MetadataIdentifier.ofUid(event.getAttributeOptionCombo()));
-          e.setAttributeCategoryOptions(
-              event.getAttributeOptionCombo().getCategoryOptions().stream()
-                  .map(CategoryOption::getUid)
-                  .map(MetadataIdentifier::ofUid)
-                  .collect(Collectors.toSet()));
-
-          Set<EventDataValue> dataValues = event.getEventDataValues();
-
-          for (EventDataValue dataValue : dataValues) {
-            DataValue value = new DataValue();
-            value.setCreatedAt(DateUtils.instantFromDate(dataValue.getCreated()));
-            value.setUpdatedAt(DateUtils.instantFromDate(dataValue.getLastUpdated()));
-            value.setDataElement(MetadataIdentifier.ofUid(dataValue.getDataElement()));
-            value.setValue(dataValue.getValue());
-            value.setProvidedElsewhere(dataValue.getProvidedElsewhere());
-            value.setStoredBy(dataValue.getStoredBy());
-            value.setUpdatedBy(
-                Optional.ofNullable(dataValue.getLastUpdatedByUserInfo())
-                    .map(this::convertUserInfo)
-                    .orElse(null));
-            value.setCreatedBy(
-                Optional.ofNullable(dataValue.getCreatedByUserInfo())
-                    .map(this::convertUserInfo)
-                    .orElse(null));
-
-            e.getDataValues().add(value);
-          }
-
-          result.add(e);
-        });
-
-    return result;
-  }
 
   @Override
   public Event from(
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event, UserDetails user) {
-    return from(preheat, event, preheat.getEvent(event.getEvent()), user);
-  }
-
-  @Override
-  public List<Event> from(
-      TrackerPreheat preheat,
-      List<org.hisp.dhis.tracker.imports.domain.Event> events,
-      UserDetails user) {
-    return events.stream().map(e -> from(preheat, e, user)).toList();
-  }
-
-  @Override
-  public Event fromForRuleEngine(
-      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event, UserDetails user) {
-    Event result = from(preheat, event, null, user);
-    // merge data values from DB
-    result.getEventDataValues().addAll(getDataValues(preheat, event));
-    return result;
-  }
-
-  private List<EventDataValue> getDataValues(
-      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event) {
-    List<EventDataValue> eventDataValues = new ArrayList<>();
-    if (preheat.getEvent(event.getEvent()) == null) {
-      return eventDataValues;
-    }
-
-    // Normalize identifiers as EventDataValue.dataElement are UIDs and
-    // payload dataElements can be in any idScheme
-    Set<String> dataElements =
-        event.getDataValues().stream()
-            .map(DataValue::getDataElement)
-            .map(preheat::getDataElement)
-            .filter(java.util.Objects::nonNull)
-            .map(IdentifiableObject::getUid)
-            .collect(Collectors.toSet());
-    for (EventDataValue eventDataValue : preheat.getEvent(event.getEvent()).getEventDataValues()) {
-      if (!dataElements.contains(eventDataValue.getDataElement())) {
-        eventDataValues.add(eventDataValue);
-      }
-    }
-    return eventDataValues;
-  }
-
-  private Event from(
-      TrackerPreheat preheat,
-      org.hisp.dhis.tracker.imports.domain.Event event,
-      Event result,
-      UserDetails user) {
+    Event result = preheat.getEvent(event.getEvent());
     ProgramStage programStage = preheat.getProgramStage(event.getProgramStage());
     Program program = preheat.getProgram(event.getProgram());
     OrganisationUnit organisationUnit = preheat.getOrganisationUnit(event.getOrgUnit());
@@ -209,8 +76,8 @@ public class EventTrackerConverterService
       result.setCreated(now);
       result.setStoredBy(event.getStoredBy());
       result.setCreatedByUserInfo(UserInfoSnapshot.from(user));
-      result.setCreatedAtClient(DateUtils.fromInstant(event.getCreatedAtClient()));
     }
+    result.setCreatedAtClient(DateUtils.fromInstant(event.getCreatedAtClient()));
     result.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
     result.setLastUpdated(now);
     result.setDeleted(false);
@@ -276,7 +143,12 @@ public class EventTrackerConverterService
     }
 
     if (isNotEmpty(event.getNotes())) {
-      result.getNotes().addAll(notesConverterService.from(preheat, event.getNotes(), user));
+      result
+          .getNotes()
+          .addAll(
+              event.getNotes().stream()
+                  .map(note -> notesConverterService.from(preheat, note, user))
+                  .collect(Collectors.toSet()));
     }
 
     return result;
@@ -294,14 +166,5 @@ public class EventTrackerConverterService
     // no valid enrollment given and program not single event, just return
     // null
     return null;
-  }
-
-  private User convertUserInfo(UserInfoSnapshot userInfoSnapshot) {
-    return User.builder()
-        .uid(userInfoSnapshot.getUid())
-        .username(userInfoSnapshot.getUsername())
-        .firstName(userInfoSnapshot.getFirstName())
-        .surname(userInfoSnapshot.getSurname())
-        .build();
   }
 }

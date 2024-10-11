@@ -27,16 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSetting;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.IndexResource;
@@ -50,26 +50,17 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Document(domain = SystemSetting.class)
 @Controller
+@RequiredArgsConstructor
 public class IndexController {
 
-  private final SystemSettingManager settingManager;
   private final SchemaService schemaService;
   private final ContextService contextService;
 
-  public IndexController(
-      SchemaService schemaService,
-      ContextService contextService,
-      SystemSettingManager settingManager) {
-    this.schemaService = schemaService;
-    this.contextService = contextService;
-    this.settingManager = settingManager;
-  }
-
   @GetMapping("/")
-  public void getIndexWithSlash(HttpServletRequest request, HttpServletResponse response)
+  public void getIndexWithSlash(
+      HttpServletRequest request, HttpServletResponse response, SystemSettings settings)
       throws IOException {
-    String redirectUrl =
-        request.getContextPath() + "/" + settingManager.getStringSetting(SettingKey.START_MODULE);
+    String redirectUrl = request.getContextPath() + "/" + settings.getStartModule();
 
     if (!redirectUrl.endsWith("/")) {
       redirectUrl += "/";

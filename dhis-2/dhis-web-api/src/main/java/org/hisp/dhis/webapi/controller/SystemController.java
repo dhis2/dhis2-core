@@ -37,6 +37,8 @@ import com.fasterxml.jackson.dataformat.csv.CsvFactory;
 import com.fasterxml.jackson.dataformat.csv.CsvGenerator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Deque;
@@ -45,8 +47,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -60,7 +60,6 @@ import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.StyleObject;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.statistics.StatisticsProvider;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
@@ -98,8 +97,6 @@ public class SystemController {
   @Autowired private SystemService systemService;
 
   @Autowired private StyleManager styleManager;
-
-  @Autowired private SystemSettingManager systemSettingManager;
 
   @Autowired private Notifier notifier;
 

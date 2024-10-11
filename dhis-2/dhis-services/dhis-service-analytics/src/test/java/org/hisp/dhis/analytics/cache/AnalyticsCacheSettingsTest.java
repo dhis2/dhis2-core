@@ -36,9 +36,6 @@ import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_10_MINUTES;
 import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_1_MINUTE;
 import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_TWO_WEEKS;
 import static org.hisp.dhis.common.cache.CacheStrategy.NO_CACHE;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TTL_MODE;
-import static org.hisp.dhis.setting.SettingKey.CACHE_STRATEGY;
 import static org.hisp.dhis.util.DateUtils.calculateDateFrom;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -48,7 +45,8 @@ import static org.mockito.Mockito.when;
 import java.util.Date;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
 import org.hisp.dhis.common.cache.CacheStrategy;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,13 +58,16 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class AnalyticsCacheSettingsTest {
-  @Mock private SystemSettingManager systemSettingManager;
+
+  @Mock private SystemSettingsProvider settingsProvider;
+  @Mock private SystemSettings settings;
 
   private AnalyticsCacheSettings analyticsCacheSettings;
 
   @BeforeEach
   public void setUp() {
-    analyticsCacheSettings = new AnalyticsCacheSettings(systemSettingManager);
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    analyticsCacheSettings = new AnalyticsCacheSettings(settingsProvider);
   }
 
   @Test
@@ -104,8 +105,7 @@ class AnalyticsCacheSettingsTest {
     long theExpectedTtl = aTtlFactor * oneDayDiff;
     Date aDateBeforeToday = calculateDateFrom(new Date(), minus(oneDayDiff), DATE);
 
-    when(systemSettingManager.getIntegerSetting(ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR))
-        .thenReturn(aTtlFactor);
+    when(settings.getAnalyticsCacheProgressiveTtlFactor()).thenReturn(aTtlFactor);
     long expirationTime =
         analyticsCacheSettings.progressiveExpirationTimeOrDefault(aDateBeforeToday);
 
@@ -114,13 +114,12 @@ class AnalyticsCacheSettingsTest {
 
   @Test
   void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsNotSet() {
-    int theDefaultTtlFactor = (Integer) ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR.getDefaultValue();
+    int theDefaultTtlFactor = 160;
     int oneDayDiff = 1;
     long theExpectedTtl = theDefaultTtlFactor * oneDayDiff;
     Date aDateBeforeToday = calculateDateFrom(new Date(), minus(oneDayDiff), DATE);
 
-    when(systemSettingManager.getIntegerSetting(ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR))
-        .thenReturn(theDefaultTtlFactor);
+    when(settings.getAnalyticsCacheProgressiveTtlFactor()).thenReturn(theDefaultTtlFactor);
     long expirationTime =
         analyticsCacheSettings.progressiveExpirationTimeOrDefault(aDateBeforeToday);
 
@@ -133,8 +132,7 @@ class AnalyticsCacheSettingsTest {
     int oneDayDiff = 1;
     Date aDateBeforeToday = calculateDateFrom(new Date(), minus(oneDayDiff), DATE);
 
-    when(systemSettingManager.getIntegerSetting(ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR))
-        .thenReturn(aTtlFactor);
+    when(settings.getAnalyticsCacheProgressiveTtlFactor()).thenReturn(aTtlFactor);
 
     assertEquals(1, analyticsCacheSettings.progressiveExpirationTimeOrDefault(aDateBeforeToday));
   }
@@ -181,11 +179,8 @@ class AnalyticsCacheSettingsTest {
   }
 
   private void given(AnalyticsCacheTtlMode mode, CacheStrategy strategy) {
-    when(systemSettingManager.getSystemSetting(
-            ANALYTICS_CACHE_TTL_MODE, AnalyticsCacheTtlMode.class))
-        .thenReturn(mode);
-    when(systemSettingManager.getSystemSetting(CACHE_STRATEGY, CacheStrategy.class))
-        .thenReturn(strategy);
+    when(settings.getAnalyticsCacheTtlMode()).thenReturn(mode);
+    when(settings.getCacheStrategy()).thenReturn(strategy);
   }
 
   private int minus(int value) {

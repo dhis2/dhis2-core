@@ -29,11 +29,14 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Base64;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
@@ -41,7 +44,7 @@ import org.hisp.dhis.smscompression.SmsCompressionException;
 import org.hisp.dhis.smscompression.SmsSubmissionWriter;
 import org.hisp.dhis.smscompression.models.SmsMetadata;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
-import org.hisp.dhis.test.message.FakeMessageSender;
+import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 
 class SmsTestUtils {
@@ -68,9 +71,17 @@ class SmsTestUtils {
   }
 
   static void assertSmsResponse(
-      String expectedText, String expectedRecipient, FakeMessageSender messageSender) {
+      String expectedText, String expectedRecipient, MessageSender messageSender) {
     OutboundMessage expectedMessage =
         new OutboundMessage(null, expectedText, Set.of(expectedRecipient));
     assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages());
+  }
+
+  static void assertEqualUids(Uid expected, IdentifiableObject actual) {
+    assertEquals(expected.getUid(), actual.getUid());
+  }
+
+  static void assertEqualUids(IdentifiableObject expected, IdentifiableObject actual) {
+    assertEquals(expected.getUid(), actual.getUid());
   }
 }

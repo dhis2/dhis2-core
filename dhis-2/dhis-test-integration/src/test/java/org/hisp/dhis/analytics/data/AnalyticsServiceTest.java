@@ -35,10 +35,10 @@ import static org.hisp.dhis.common.ValueType.DATE;
 import static org.hisp.dhis.common.ValueType.INTEGER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.expression.Operator.equal_to;
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.hisp.dhis.test.utils.Assertions.assertMapEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -87,9 +87,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.validation.ValidationResult;
@@ -222,7 +221,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService settingsService;
 
   private Date processStartTime;
 
@@ -254,6 +253,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws IOException {
+
     setUpMetadata();
     setUpDataValues();
     setUpValidation();
@@ -263,17 +263,13 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
     Date tenSecondsFromNow =
         Date.from(LocalDateTime.now().plusSeconds(10).atZone(ZoneId.systemDefault()).toInstant());
 
-    assertNull(
-        systemSettingManager.getSystemSetting(
-            SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, Date.class));
-    assertNull(
-        systemSettingManager.getSystemSetting(
-            SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, Date.class));
+    SystemSettings settings = settingsService.getCurrentSettings();
+    assertEquals(new Date(0L), settings.getLastSuccessfulResourceTablesUpdate());
+    assertEquals(new Date(0L), settings.getLastSuccessfulAnalyticsTablesUpdate());
     processStartTime = new Date();
     // Generate analytics tables
     analyticsTableGenerator.generateAnalyticsTables(
-        AnalyticsTableUpdateParams.newBuilder().withStartTime(tenSecondsFromNow).build(),
-        JobProgress.noop());
+        AnalyticsTableUpdateParams.newBuilder().startTime(tenSecondsFromNow).build(), transitory());
   }
 
   private void setUpMetadata() {
@@ -1581,19 +1577,17 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
   @Test
   void resourceTablesTimestampUpdated() {
 
-    Date tableLastUpdated =
-        systemSettingManager.getSystemSetting(
-            SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, Date.class);
-    assertNotEquals(null, tableLastUpdated);
-    Date resourceTablesUpdated =
-        systemSettingManager.getSystemSetting(
-            SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, Date.class);
-    assertNotEquals(null, resourceTablesUpdated);
+    settingsService.clearCurrentSettings();
+    SystemSettings settings = settingsService.getCurrentSettings();
+    Date tableLastUpdated = settings.getLastSuccessfulAnalyticsTablesUpdate();
+    assertNotEquals(new Date(0L), tableLastUpdated);
+    Date resourceTablesUpdated = settings.getLastSuccessfulResourceTablesUpdate();
+    assertNotEquals(new Date(0L), resourceTablesUpdated);
     assertTrue(
-        tableLastUpdated.compareTo(processStartTime) > 0,
+        tableLastUpdated.after(processStartTime),
         String.format("%s > %s", tableLastUpdated, processStartTime));
     assertTrue(
-        resourceTablesUpdated.compareTo(processStartTime) > 0,
+        resourceTablesUpdated.after(processStartTime),
         String.format("%s > %s", resourceTablesUpdated, processStartTime));
   }
 }

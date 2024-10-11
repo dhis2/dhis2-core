@@ -124,7 +124,7 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
   public ObjectReport executeNow(@PathVariable("uid") String uid)
       throws NotFoundException, ConflictException {
 
-    jobSchedulerService.executeNow(uid);
+    jobSchedulerService.runInTransaction(uid);
 
     // OBS! This response is kept for better backwards compatibility
     return new ObjectReport(JobConfiguration.class, 0);

@@ -28,24 +28,23 @@
 package org.hisp.dhis.test.webapi;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
-import static org.hisp.dhis.test.web.WebClientUtils.failOnException;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.exceptionAsFail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.List;
-import javax.servlet.http.Cookie;
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.http.HttpClientAdapter;
+import org.hisp.dhis.http.HttpMethod;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.IntegrationTestBase;
-import org.hisp.dhis.test.web.HttpMethod;
-import org.hisp.dhis.test.web.HttpStatus;
-import org.hisp.dhis.test.web.WebClient;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +62,6 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -88,9 +86,8 @@ import org.springframework.web.context.WebApplicationContext;
  */
 @WebAppConfiguration
 @ContextConfiguration(classes = {MvcTestConfig.class, WebTestConfig.class})
-@Transactional
 public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
-    implements WebClient {
+    implements HttpClientAdapter {
 
   @Autowired protected WebApplicationContext webApplicationContext;
 
@@ -165,22 +162,27 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
         SecurityContextHolder.getContext());
   }
 
-  public static ResponseAdapter toResponse(MockHttpServletResponse response) {
-    return new MockMvcResponseAdapter(response);
+  public static HttpResponseAdapter toResponse(MockHttpServletResponse response) {
+    return new MockMvcHttpResponseAdapter(response);
   }
 
+  @Nonnull
   @Override
-  public HttpResponse webRequest(
-      HttpMethod method, String url, List<Header> headers, String contentType, String content) {
-    return webRequest(buildMockRequest(method, url, headers, contentType, content));
+  public final HttpResponse perform(
+      @Nonnull HttpMethod method,
+      @Nonnull String url,
+      @Nonnull List<Header> headers,
+      String contentType,
+      String content) {
+    return perform(buildMockRequest(method, url, headers, contentType, content));
   }
 
   protected final HttpResponse POST_MULTIPART(String url, MockMultipartFile part) {
-    return webRequest(multipart(makeApiUrl(url)).file(part));
+    return perform(multipart(makeApiUrl(url)).file(part));
   }
 
-  protected HttpResponse webRequest(MockHttpServletRequestBuilder request) {
-    return failOnException(
+  protected HttpResponse perform(MockHttpServletRequestBuilder request) {
+    return exceptionAsFail(
         () ->
             new HttpResponse(
                 toResponse(mvc.perform(request.session(session)).andReturn().getResponse())));
@@ -198,10 +200,10 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
 
     MockHttpServletRequestBuilder request =
         MockMvcRequestBuilders.request(
-            org.springframework.http.HttpMethod.resolve(method.name()), makeApiUrl(url));
+            org.springframework.http.HttpMethod.valueOf(method.name()), makeApiUrl(url));
 
     for (Header header : headers) {
-      request.header(header.getName(), header.getValue());
+      request.header(header.name(), header.value());
     }
     if (contentType != null) {
       request.contentType(contentType);
@@ -213,11 +215,11 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
     return request;
   }
 
-  private static class MockMvcResponseAdapter implements ResponseAdapter {
+  private static class MockMvcHttpResponseAdapter implements HttpResponseAdapter {
 
     private final MockHttpServletResponse response;
 
-    MockMvcResponseAdapter(MockHttpServletResponse response) {
+    MockMvcHttpResponseAdapter(MockHttpServletResponse response) {
       this.response = response;
     }
 
@@ -244,16 +246,10 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
     public String getHeader(String name) {
       return response.getHeader(name);
     }
-
-    @Override
-    public String[] getCookies() {
-      Cookie[] cookies = response.getCookies();
-      return Arrays.stream(cookies).map(Cookie::getValue).toArray(String[]::new);
-    }
   }
 
   protected final MvcResult webRequestWithMvcResult(MockHttpServletRequestBuilder request) {
-    return failOnException(() -> mvc.perform(request.session(session)).andReturn());
+    return exceptionAsFail(() -> mvc.perform(request.session(session)).andReturn());
   }
 
   protected final String addDataElement(

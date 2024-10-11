@@ -81,8 +81,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
@@ -126,7 +126,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected final CategoryService categoryService;
 
-  protected final SystemSettingManager systemSettingManager;
+  protected final SystemSettingsProvider settingsProvider;
 
   protected final DataApprovalLevelService dataApprovalLevelService;
 
@@ -380,15 +380,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   protected AnalyticsTable getLatestAnalyticsTable(
       AnalyticsTableUpdateParams params, List<AnalyticsTableColumn> columns) {
-    Date lastFullTableUpdate =
-        systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE);
-    Date lastLatestPartitionUpdate =
-        systemSettingManager.getDateSetting(
-            SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE);
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    Date lastFullTableUpdate = settings.getLastSuccessfulAnalyticsTablesUpdate();
+    Date lastLatestPartitionUpdate = settings.getLastSuccessfulLatestAnalyticsPartitionUpdate();
     Date lastAnyTableUpdate = DateUtils.getLatest(lastLatestPartitionUpdate, lastFullTableUpdate);
 
-    Assert.notNull(
-        lastFullTableUpdate,
+    Assert.isTrue(
+        lastFullTableUpdate.getTime() > 0L,
         "A full analytics table update must be run prior to a latest partition update");
 
     Logged logged = analyticsTableSettings.getTableLogged();
@@ -443,9 +441,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   protected List<AnalyticsTableColumn> filterDimensionColumns(List<AnalyticsTableColumn> columns) {
     Date lastResourceTableUpdate =
-        systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE);
+        settingsProvider.getCurrentSettings().getLastSuccessfulResourceTablesUpdate();
 
-    if (lastResourceTableUpdate == null) {
+    if (lastResourceTableUpdate.getTime() == 0L) {
       return columns;
     }
 

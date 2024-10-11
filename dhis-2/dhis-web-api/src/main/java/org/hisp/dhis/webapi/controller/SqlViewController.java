@@ -33,10 +33,10 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.sqlview.SqlView.getCriteria;
 
 import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridResponse;
@@ -50,13 +50,12 @@ import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.SqlViewUpdateParameters;
 import org.hisp.dhis.schema.descriptors.SqlViewSchemaDescriptor;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewQuery;
 import org.hisp.dhis.sqlview.SqlViewService;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -168,7 +167,7 @@ public class SqlViewController extends AbstractCrudController<SqlView> {
     Grid grid = querySQLView(uid, criteria, vars, response, ContextUtils.CONTENT_TYPE_PDF);
 
     GridUtils.toPdf(
-        CurrentUserUtil.getUserSetting(UserSettingKey.DB_LOCALE), grid, response.getOutputStream());
+        UserSettings.getCurrentSettings().getUserDbLocale(), grid, response.getOutputStream());
   }
 
   private Grid querySQLView(

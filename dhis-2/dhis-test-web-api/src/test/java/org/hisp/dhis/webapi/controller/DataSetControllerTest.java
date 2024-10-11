@@ -27,25 +27,27 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.test.web.WebClient.Body;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Path;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link DataSetController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class DataSetControllerTest extends H2ControllerIntegrationTestBase {
 
   private String dsId;
@@ -123,7 +125,7 @@ class DataSetControllerTest extends H2ControllerIntegrationTestBase {
 
     assertStatus(
         HttpStatus.OK,
-        POST("/metadata/", Body("dataset/dataset_with_compulsoryDataElementOperand.json")));
+        POST("/metadata/", Path.of("dataset/dataset_with_compulsoryDataElementOperand.json")));
 
     DataSet dataSet = manager.get(DataSet.class, dataSetId);
 
@@ -132,9 +134,8 @@ class DataSetControllerTest extends H2ControllerIntegrationTestBase {
     assertStatus(
         HttpStatus.OK,
         PUT(
-            "/dataSets/{id}",
-            dataSetId,
-            Body("dataset/dataset_with_compulsoryDataElementOperand_update.json")));
+            "/dataSets/" + dataSetId,
+            Path.of("dataset/dataset_with_compulsoryDataElementOperand_update.json")));
 
     dataSet = manager.get(DataSet.class, dataSetId);
 

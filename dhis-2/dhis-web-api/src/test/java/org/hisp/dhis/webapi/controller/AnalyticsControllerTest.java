@@ -61,7 +61,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.test.TestBase;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -103,7 +103,7 @@ class AnalyticsControllerTest {
             dimensionalObjectProducer,
             mock(IdentifiableObjectManager.class),
             mock(AnalyticsSecurityManager.class),
-            mock(UserSettingService.class));
+            mock(UserSettingsService.class));
 
     when(dimensionalObjectProducer.getPeriodDimension(Mockito.any(), Mockito.any()))
         .thenAnswer(

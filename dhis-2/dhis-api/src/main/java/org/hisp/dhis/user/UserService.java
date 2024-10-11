@@ -248,6 +248,7 @@ public interface UserService {
    */
   int getUserCount();
 
+  @Nonnull
   List<User> getUsersByPhoneNumber(String phoneNumber);
 
   /**

@@ -28,7 +28,7 @@
 package org.hisp.dhis.audit.consumers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import javax.jms.TextMessage;
+import jakarta.jms.TextMessage;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.audit.AbstractAuditConsumer;
 import org.hisp.dhis.audit.AuditService;

@@ -30,13 +30,10 @@ package org.hisp.dhis.tracker.imports.sms;
 import static org.hisp.dhis.tracker.imports.sms.SmsImportMapper.mapCommand;
 
 import java.util.Map;
-import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -51,8 +48,8 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,16 +62,19 @@ public class SingleEventListener extends CommandSMSListener {
 
   private final TrackerImportService trackerImportService;
 
+  private final CategoryService dataElementCategoryService;
+
   public SingleEventListener(
-      CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      @Qualifier("smsMessageSender") MessageSender smsSender,
+      MessageSender smsMessageSender,
       SMSCommandService smsCommandService,
-      TrackerImportService trackerImportService) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
+      TrackerImportService trackerImportService,
+      CategoryService dataElementCategoryService) {
+    super(userService, incomingSmsService, smsMessageSender);
     this.smsCommandService = smsCommandService;
     this.trackerImportService = trackerImportService;
+    this.dataElementCategoryService = dataElementCategoryService;
   }
 
   @Override
@@ -86,23 +86,24 @@ public class SingleEventListener extends CommandSMSListener {
   @Override
   protected void postProcess(
       @Nonnull IncomingSms sms,
-      @Nonnull String username,
+      @Nonnull UserDetails smsCreatedBy,
       @Nonnull SMSCommand smsCommand,
       @Nonnull Map<String, String> dataValues) {
     TrackerImportParams params =
         TrackerImportParams.builder().importStrategy(TrackerImportStrategy.CREATE).build();
-    Set<OrganisationUnit> ous = getOrganisationUnits(sms);
-    OrganisationUnit orgUnit = ous.iterator().next();
     TrackerObjects trackerObjects =
-        mapCommand(sms, smsCommand, dataValues, orgUnit, username, dataElementCategoryService);
+        mapCommand(
+            sms,
+            smsCommand,
+            dataValues,
+            smsCreatedBy.getUserOrgUnitIds().iterator().next(),
+            smsCreatedBy.getUsername(),
+            dataElementCategoryService);
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     if (Status.OK == importReport.getStatus()) {
       update(sms, SmsMessageStatus.PROCESSED, true);
-      sendFeedback(
-          StringUtils.defaultIfEmpty(smsCommand.getSuccessMessage(), SMSCommand.SUCCESS_MESSAGE),
-          sms.getOriginator(),
-          INFO);
+      sendFeedback(smsCommand.getSuccessMessage(), sms.getOriginator(), INFO);
       return;
     }
 

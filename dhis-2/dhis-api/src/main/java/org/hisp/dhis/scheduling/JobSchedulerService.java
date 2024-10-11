@@ -27,15 +27,18 @@
  */
 package org.hisp.dhis.scheduling;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobProgress.Progress;
+import org.springframework.util.MimeType;
 
 /**
  * This is the external API (called by users via controller API) for the scheduling.
@@ -59,6 +62,22 @@ public interface JobSchedulerService {
    *     job is already running or is disabled
    */
   void executeNow(@Nonnull String jobId) throws ConflictException, NotFoundException;
+
+  /**
+   * Executes a job configuration in a separate transaction.
+   *
+   * @param jobId the job id to execute
+   * @throws NotFoundException
+   * @throws ConflictException
+   */
+  void runInTransaction(String jobId) throws NotFoundException, ConflictException;
+
+  @NonTransactional
+  void createThenExecute(JobConfiguration config, MimeType contentType, InputStream content)
+      throws ConflictException, NotFoundException;
+
+  @NonTransactional
+  void createThenExecute(JobConfiguration config) throws ConflictException, NotFoundException;
 
   /**
    * Reverts the {@link JobStatus} of the job from {@link JobStatus#RUNNING} to the appropriate

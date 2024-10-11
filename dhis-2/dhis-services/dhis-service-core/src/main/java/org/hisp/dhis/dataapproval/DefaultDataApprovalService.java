@@ -57,8 +57,7 @@ import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeUnapprovedException;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -82,7 +81,7 @@ public class DefaultDataApprovalService implements DataApprovalService {
 
   private final IdentifiableObjectManager idObjectManager;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final UserService userService;
 
@@ -139,8 +138,7 @@ public class DefaultDataApprovalService implements DataApprovalService {
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    boolean accepted =
-        !systemSettingManager.getBoolSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL);
+    boolean accepted = !settingsProvider.getCurrentSettings().getAcceptanceRequiredForApproval();
 
     validateAttributeOptionCombos(dataApprovalList);
 
@@ -821,6 +819,9 @@ public class DefaultDataApprovalService implements DataApprovalService {
   /** Makes a DataApprovalPermissionsEvaluator object for the current user. */
   private DataApprovalPermissionsEvaluator makePermissionsEvaluator() {
     return DataApprovalPermissionsEvaluator.makePermissionsEvaluator(
-        userService, idObjectManager, systemSettingManager, dataApprovalLevelService);
+        userService,
+        idObjectManager,
+        settingsProvider.getCurrentSettings(),
+        dataApprovalLevelService);
   }
 }

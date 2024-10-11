@@ -27,20 +27,20 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.file.Path;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.web.HttpStatus;
-import org.hisp.dhis.test.web.WebClient;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -49,6 +49,7 @@ import org.hisp.dhis.webapi.controller.tracker.JsonEnrollment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This Integration test using Postgres is necessary as the H2 DB doesn't work with {@link
@@ -58,6 +59,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author David Mackessy
  */
+@Transactional
 class ProgramControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private ObjectMapper jsonMapper;
@@ -85,7 +87,7 @@ class ProgramControllerIntegrationTest extends PostgresControllerIntegrationTest
     POST("/trackedEntityAttributes", jsonMapper.writeValueAsString(tea2))
         .content(HttpStatus.CREATED);
 
-    POST("/metadata", WebClient.Body("program/create_program.json")).content(HttpStatus.OK);
+    POST("/metadata", Path.of("program/create_program.json")).content(HttpStatus.OK);
   }
 
   @Test

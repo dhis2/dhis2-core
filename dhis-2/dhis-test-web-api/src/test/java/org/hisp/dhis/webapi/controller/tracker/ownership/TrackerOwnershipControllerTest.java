@@ -27,24 +27,26 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.ownership;
 
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link TrackerOwnershipController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBase {
 
   private String orgUnitAUid;

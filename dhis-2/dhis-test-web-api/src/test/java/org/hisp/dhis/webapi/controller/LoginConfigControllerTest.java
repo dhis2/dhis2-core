@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.http.HttpClientAdapter.Body;
+import static org.hisp.dhis.http.HttpClientAdapter.ContentType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.Properties;
 import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -40,21 +43,25 @@ import org.hisp.dhis.security.LoginPageLayout;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.oidc.provider.GoogleProvider;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.setting.SystemSettingsTranslationService;
 import org.hisp.dhis.system.SystemService;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.HtmlUtils;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Transactional
 class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
 
-  @Autowired SystemSettingManager systemSettingManager;
+  @Autowired SystemSettingsService settingsService;
+  @Autowired SystemSettingsTranslationService settingsTranslationService;
   @Autowired SystemService systemService;
   @Autowired DhisOidcProviderRepository dhisOidcProviderRepository;
 
@@ -67,39 +74,37 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
-  void shouldGetLoginConfig() {
+  void shouldGetLoginConfig() throws Exception {
 
     addGoogleProvider("testClientId");
 
-    systemSettingManager.saveSystemSetting(SettingKey.APPLICATION_TITLE, "DHIS2");
-    systemSettingManager.saveSystemSettingTranslation(
-        SettingKey.APPLICATION_TITLE, "no", "Distrikstshelsesinformasjonssystem versjon 2");
+    settingsService.put("applicationTitle", "DHIS2");
+    settingsTranslationService.saveSystemSettingTranslation(
+        "applicationTitle", "no", "Distrikstshelsesinformasjonssystem versjon 2");
 
-    systemSettingManager.saveSystemSetting(SettingKey.LOGIN_POPUP, "<html>TEXT</html>");
-    systemSettingManager.saveSystemSettingTranslation(
-        SettingKey.LOGIN_POPUP, "no", "<html>tekst</html>");
+    settingsService.put("loginPopup", "<html>TEXT</html>");
+    settingsTranslationService.saveSystemSettingTranslation(
+        "loginPopup", "no", "<html>tekst</html>");
 
-    systemSettingManager.saveSystemSetting(SettingKey.APPLICATION_FOOTER, "APPLICATION_FOOTER");
-    systemSettingManager.saveSystemSettingTranslation(
-        SettingKey.APPLICATION_FOOTER, "no", "Søknadsbunntekst");
+    settingsService.put("keyApplicationFooter", "APPLICATION_FOOTER");
+    settingsTranslationService.saveSystemSettingTranslation(
+        "keyApplicationFooter", "no", "Søknadsbunntekst");
 
-    systemSettingManager.saveSystemSetting(
-        SettingKey.APPLICATION_RIGHT_FOOTER, "APPLICATION_RIGHT_FOOTER");
-    systemSettingManager.saveSystemSettingTranslation(
-        SettingKey.APPLICATION_RIGHT_FOOTER, "no", "Høyre søknadsbunntekst");
+    settingsService.put("keyApplicationRightFooter", "APPLICATION_RIGHT_FOOTER");
+    settingsTranslationService.saveSystemSettingTranslation(
+        "keyApplicationRightFooter", "no", "Høyre søknadsbunntekst");
 
-    systemSettingManager.saveSystemSetting(SettingKey.APPLICATION_INTRO, "APPLICATION_INTRO");
-    systemSettingManager.saveSystemSettingTranslation(
-        SettingKey.APPLICATION_INTRO, "no", "Søknadsintroduksjon");
+    settingsService.put("keyApplicationIntro", "APPLICATION_INTRO");
+    settingsTranslationService.saveSystemSettingTranslation(
+        "keyApplicationIntro", "no", "Søknadsintroduksjon");
 
-    systemSettingManager.saveSystemSetting(
-        SettingKey.APPLICATION_NOTIFICATION, "APPLICATION_NOTIFICATION");
-    systemSettingManager.saveSystemSettingTranslation(
-        SettingKey.APPLICATION_NOTIFICATION, "no", "Søknadsmelding");
+    settingsService.put("keyApplicationNotification", "APPLICATION_NOTIFICATION");
+    settingsTranslationService.saveSystemSettingTranslation(
+        "keyApplicationNotification", "no", "Søknadsmelding");
 
-    systemSettingManager.saveSystemSetting(SettingKey.FLAG, "FLAG_IMAGE");
-    systemSettingManager.saveSystemSetting(SettingKey.USE_CUSTOM_LOGO_FRONT, true);
-    systemSettingManager.saveSystemSetting(SettingKey.CUSTOM_TOP_MENU_LOGO, true);
+    settingsService.put("keyFlag", "FLAG_IMAGE");
+    settingsService.put("keyUseCustomLogoFront", true);
+    settingsService.put("keyCustomTopMenuLogo", true);
 
     JsonObject responseDefaultLocale = GET("/loginConfig").content();
     JsonObject responseNorwegianLocale = GET("/loginConfig?locale=no").content();
@@ -168,10 +173,11 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testLoginPageLayout() {
+    @Language("html")
     String template =
         """
             <!DOCTYPE HTML>
-            <html class="loginPage" dir="ltr">
+            <html class="loginPage" dir="ltr" lang="en">
             <head>
             <title>DHIS 2 Demo</title>
             <meta name="description" content="DHIS 2">
@@ -180,8 +186,10 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
             </head>
             <body>test</body>
             </html>""";
-    POST("/systemSettings/loginPageTemplate", template).content(HttpStatus.OK);
-    POST("/systemSettings/loginPageLayout", "CUSTOM").content(HttpStatus.OK);
+    POST("/systemSettings/loginPageTemplate", Body(template), ContentType(MediaType.TEXT_PLAIN))
+        .content(HttpStatus.OK);
+    POST("/systemSettings/loginPageLayout", Body("CUSTOM"), ContentType(MediaType.TEXT_PLAIN))
+        .content(HttpStatus.OK);
     JsonObject response = GET("/loginConfig").content();
     String savedTemplate = response.getString("loginPageTemplate").string();
     assertFalse(savedTemplate.isEmpty());
@@ -192,12 +200,9 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
   void testRecaptchaSite() {
     JsonObject response = GET("/loginConfig").content();
     assertEquals(
-        SettingKey.RECAPTCHA_SITE.getDefaultValue(),
-        response.getString(SettingKey.RECAPTCHA_SITE.getName()).string());
-    POST("/systemSettings/" + SettingKey.RECAPTCHA_SITE.getName(), "test_recaptcha_stie")
-        .content(HttpStatus.OK);
+        "6LcVwT0UAAAAAAkO_EGPiYOiymIszZUeHfqWIYX5", response.getString("recaptchaSite").string());
+    POST("/systemSettings/recaptchaSite", "test_recaptcha_stie").content(HttpStatus.OK);
     response = GET("/loginConfig").content();
-    assertEquals(
-        "test_recaptcha_stie", response.getString(SettingKey.RECAPTCHA_SITE.getName()).string());
+    assertEquals("test_recaptcha_stie", response.getString("recaptchaSite").string());
   }
 }

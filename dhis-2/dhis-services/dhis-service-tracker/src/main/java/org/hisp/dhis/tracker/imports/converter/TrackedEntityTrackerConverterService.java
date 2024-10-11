@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.converter;
 
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -46,80 +44,39 @@ import org.springframework.stereotype.Service;
 public class TrackedEntityTrackerConverterService
     implements TrackerConverterService<
         org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity> {
-  @Override
-  public org.hisp.dhis.tracker.imports.domain.TrackedEntity to(TrackedEntity trackedEntity) {
-    List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities =
-        to(Collections.singletonList(trackedEntity));
-
-    if (trackedEntities.isEmpty()) {
-      return null;
-    }
-
-    return trackedEntities.get(0);
-  }
-
-  @Override
-  public List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> to(
-      List<TrackedEntity> trackedEntities) {
-    return trackedEntities.stream()
-        .map(
-            te -> {
-              org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
-                  new org.hisp.dhis.tracker.imports.domain.TrackedEntity();
-              trackedEntity.setTrackedEntity(te.getUid());
-
-              return trackedEntity;
-            })
-        .toList();
-  }
 
   @Override
   public TrackedEntity from(
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity,
       UserDetails user) {
-    TrackedEntity te = preheat.getTrackedEntity(trackedEntity.getTrackedEntity());
-    return from(preheat, trackedEntity, te, user);
-  }
-
-  @Override
-  public List<TrackedEntity> from(
-      TrackerPreheat preheat,
-      List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities,
-      UserDetails user) {
-    return trackedEntities.stream().map(te -> from(preheat, te, user)).toList();
-  }
-
-  private TrackedEntity from(
-      TrackerPreheat preheat,
-      org.hisp.dhis.tracker.imports.domain.TrackedEntity teFrom,
-      TrackedEntity teTo,
-      UserDetails user) {
-    OrganisationUnit organisationUnit = preheat.getOrganisationUnit(teFrom.getOrgUnit());
+    TrackedEntity dbTrackedEntity = preheat.getTrackedEntity(trackedEntity.getTrackedEntity());
+    OrganisationUnit organisationUnit = preheat.getOrganisationUnit(trackedEntity.getOrgUnit());
     TrackedEntityType trackedEntityType =
-        preheat.getTrackedEntityType(teFrom.getTrackedEntityType());
+        preheat.getTrackedEntityType(trackedEntity.getTrackedEntityType());
 
     Date now = new Date();
 
-    if (isNewEntity(teTo)) {
-      teTo = new TrackedEntity();
-      teTo.setUid(teFrom.getTrackedEntity());
-      teTo.setCreated(now);
-      teTo.setCreatedByUserInfo(UserInfoSnapshot.from(user));
+    if (isNewEntity(dbTrackedEntity)) {
+      dbTrackedEntity = new TrackedEntity();
+      dbTrackedEntity.setUid(trackedEntity.getTrackedEntity());
+      dbTrackedEntity.setCreated(now);
+      dbTrackedEntity.setCreatedByUserInfo(UserInfoSnapshot.from(user));
     }
 
-    teTo.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
-    teTo.setStoredBy(teFrom.getStoredBy());
-    teTo.setLastUpdated(now);
-    teTo.setDeleted(false);
-    teTo.setPotentialDuplicate(teFrom.isPotentialDuplicate());
-    teTo.setCreatedAtClient(DateUtils.fromInstant(teFrom.getCreatedAtClient()));
-    teTo.setLastUpdatedAtClient(DateUtils.fromInstant(teFrom.getUpdatedAtClient()));
-    teTo.setOrganisationUnit(organisationUnit);
-    teTo.setTrackedEntityType(trackedEntityType);
-    teTo.setInactive(teFrom.isInactive());
-    teTo.setGeometry(teFrom.getGeometry());
+    dbTrackedEntity.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
+    dbTrackedEntity.setStoredBy(trackedEntity.getStoredBy());
+    dbTrackedEntity.setLastUpdated(now);
+    dbTrackedEntity.setDeleted(false);
+    dbTrackedEntity.setPotentialDuplicate(trackedEntity.isPotentialDuplicate());
+    dbTrackedEntity.setCreatedAtClient(DateUtils.fromInstant(trackedEntity.getCreatedAtClient()));
+    dbTrackedEntity.setLastUpdatedAtClient(
+        DateUtils.fromInstant(trackedEntity.getUpdatedAtClient()));
+    dbTrackedEntity.setOrganisationUnit(organisationUnit);
+    dbTrackedEntity.setTrackedEntityType(trackedEntityType);
+    dbTrackedEntity.setInactive(trackedEntity.isInactive());
+    dbTrackedEntity.setGeometry(trackedEntity.getGeometry());
 
-    return teTo;
+    return dbTrackedEntity;
   }
 }

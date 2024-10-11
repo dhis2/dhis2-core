@@ -28,12 +28,16 @@
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static java.lang.String.format;
+import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
+import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.assertEqualUids;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.assertSmsResponse;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.encodeSms;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.getSms;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.List;
@@ -42,13 +46,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -59,17 +64,18 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.sms.command.SMSCommand;
+import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
+import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.smscompression.SmsCompressionException;
 import org.hisp.dhis.smscompression.SmsConsts.SmsEnrollmentStatus;
 import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.EnrollmentSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsAttributeValue;
-import org.hisp.dhis.smscompression.models.Uid;
-import org.hisp.dhis.test.message.FakeMessageSender;
-import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.message.DefaultFakeMessageSender;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -77,6 +83,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
@@ -89,12 +96,22 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Tests tracker SMS to enroll an existing or new tracked entity via a {@link
- * org.hisp.dhis.smscompression.models.EnrollmentSmsSubmission} implemented via {@link
- * org.hisp.dhis.tracker.imports.sms.EnrollmentSMSListener}
+ * Tests tracker compression and command based SMS
+ *
+ * <ul>
+ *   <li>to enroll an existing or new tracked entity via a compressed SMS of type {@link
+ *       org.hisp.dhis.smscompression.models.EnrollmentSmsSubmission} implemented by {@link
+ *       org.hisp.dhis.tracker.imports.sms.EnrollmentSMSListener}
+ *   <li>to create and enroll a tracked entity via an SMS command of type {@code
+ *       ParserType.TRACKED_ENTITY_REGISTRATION_PARSER} implemented by {@link
+ *       org.hisp.dhis.tracker.imports.sms.TrackedEntityRegistrationSMSListener}
+ * </ul>
  */
+@Transactional
 class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
@@ -104,13 +121,16 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private IncomingSmsService incomingSmsService;
 
-  @Autowired private FakeMessageSender messageSender;
+  @Autowired
+  @Qualifier("smsMessageSender")
+  private DefaultFakeMessageSender messageSender;
 
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
   private OrganisationUnit orgUnit;
 
-  private Program program;
+  private Program trackerProgram;
+  private ProgramStage trackerProgramStage;
 
   private User user;
 
@@ -124,8 +144,11 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     messageSender.clearMessages();
 
     orgUnit = createOrganisationUnit('A');
+    manager.save(orgUnit, false);
 
-    user = createUserWithAuth("tester", Authorities.toStringArray(Authorities.F_MOBILE_SETTINGS));
+    user =
+        createUserWithAuth(
+            "tester", Authorities.toStringArray(Authorities.F_MOBILE_SETTINGS, Authorities.ALL));
     user.addOrganisationUnit(orgUnit);
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
     user.setPhoneNumber("7654321");
@@ -162,30 +185,30 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
             new TrackedEntityTypeAttribute(trackedEntityType, teaB)));
     manager.save(trackedEntityType, false);
 
-    program = createProgram('A');
-    program.addOrganisationUnit(orgUnit);
-    program.getSharing().setOwner(user);
-    program.getSharing().addUserAccess(fullAccess(user));
-    program.setTrackedEntityType(trackedEntityType);
-    program.setProgramType(ProgramType.WITH_REGISTRATION);
-    program.setProgramAttributes(
+    trackerProgram = createProgram('A');
+    trackerProgram.addOrganisationUnit(orgUnit);
+    trackerProgram.getSharing().setOwner(user);
+    trackerProgram.getSharing().addUserAccess(fullAccess(user));
+    trackerProgram.setTrackedEntityType(trackedEntityType);
+    trackerProgram.setProgramType(ProgramType.WITH_REGISTRATION);
+    trackerProgram.setProgramAttributes(
         List.of(
-            createProgramTrackedEntityAttribute(program, teaB),
-            createProgramTrackedEntityAttribute(program, teaC)));
-    manager.save(program, false);
+            createProgramTrackedEntityAttribute(trackerProgram, teaB),
+            createProgramTrackedEntityAttribute(trackerProgram, teaC)));
+    manager.save(trackerProgram, false);
 
     DataElement de = createDataElement('A', ValueType.TEXT, AggregationType.NONE);
     de.getSharing().setOwner(user);
     manager.save(de, false);
 
-    ProgramStage programStage = createProgramStage('A', program);
-    programStage.setFeatureType(FeatureType.POINT);
-    programStage.getSharing().setOwner(user);
-    programStage.getSharing().addUserAccess(fullAccess(user));
+    trackerProgramStage = createProgramStage('A', trackerProgram);
+    trackerProgramStage.setFeatureType(FeatureType.POINT);
+    trackerProgramStage.getSharing().setOwner(user);
+    trackerProgramStage.getSharing().addUserAccess(fullAccess(user));
     ProgramStageDataElement programStageDataElement =
-        createProgramStageDataElement(programStage, de, 1, false);
-    programStage.setProgramStageDataElements(Set.of(programStageDataElement));
-    manager.save(programStage, false);
+        createProgramStageDataElement(trackerProgramStage, de, 1, false);
+    trackerProgramStage.setProgramStageDataElements(Set.of(programStageDataElement));
+    manager.save(trackerProgramStage, false);
   }
 
   @AfterEach
@@ -201,7 +224,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     submission.setSubmissionId(submissionId);
     submission.setUserId(user.getUid());
     submission.setOrgUnit(orgUnit.getUid());
-    submission.setTrackerProgram(program.getUid());
+    submission.setTrackerProgram(trackerProgram.getUid());
     submission.setTrackedEntityInstance(CodeGenerator.generateUid());
     submission.setTrackedEntityType(trackedEntityType.getUid());
     String enrollmentUid = CodeGenerator.generateUid();
@@ -299,7 +322,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     submission.setSubmissionId(submissionId);
     submission.setUserId(user.getUid());
     submission.setOrgUnit(orgUnit.getUid());
-    submission.setTrackerProgram(program.getUid());
+    submission.setTrackerProgram(trackerProgram.getUid());
     submission.setTrackedEntityInstance(trackedEntity.getUid());
     submission.setTrackedEntityType(trackedEntityType.getUid());
     submission.setEnrollment(enrollment.getUid());
@@ -367,6 +390,89 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
         });
   }
 
+  @Test
+  void shouldCreateTrackedEntityAndEnrollItViaTrackedEntityRegistrationParserCommand()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    SMSCommand command = new SMSCommand();
+    command.setName("register");
+    command.setParserType(ParserType.TRACKED_ENTITY_REGISTRATION_PARSER);
+    command.setProgram(trackerProgram);
+    command.setProgramStage(trackerProgramStage);
+    SMSCode code1 = new SMSCode();
+    code1.setCode("a");
+    code1.setTrackedEntityAttribute(teaA);
+    SMSCode code2 = new SMSCode();
+    code2.setCode("c");
+    code2.setTrackedEntityAttribute(teaC);
+    command.setCodes(Set.of(code1, code2));
+    manager.save(command);
+
+    String originator = user.getPhoneNumber();
+
+    switchContextToUser(user);
+
+    JsonWebMessage response =
+        POST(
+                "/sms/inbound",
+                format(
+                    """
+{
+"text": "register a=hello|c=there|x=codeIsNotFoundOnCommand",
+"originator": "%s"
+}
+""",
+                    originator))
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+
+    IncomingSms smsResponse = getSms(incomingSmsService, response);
+    assertAll(
+        () -> assertEquals(SmsMessageStatus.PROCESSED, smsResponse.getStatus()),
+        () -> assertTrue(smsResponse.isParsed()),
+        () -> assertEquals(originator, smsResponse.getOriginator()),
+        () -> assertEquals(user, smsResponse.getCreatedBy()),
+        () ->
+            assertSmsResponse(
+                "Command has been processed successfully", originator, messageSender));
+
+    List<Enrollment> enrollments =
+        enrollmentService.getEnrollments(
+            EnrollmentOperationParams.builder()
+                .programUid(trackerProgram.getUid())
+                .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
+                .build());
+    assertHasSize(1, enrollments);
+    Enrollment actualEnrollment = enrollments.get(0);
+    assertAll(
+        "created enrollment",
+        () -> assertEqualUids(orgUnit, actualEnrollment.getOrganisationUnit()),
+        () -> assertEqualUids(trackerProgram, actualEnrollment.getProgram()),
+        () -> assertEquals(EnrollmentStatus.ACTIVE, actualEnrollment.getStatus()));
+
+    TrackedEntity trackedEntity = actualEnrollment.getTrackedEntity();
+    assertNotNull(trackedEntity);
+    assertDoesNotThrow(
+        () ->
+            trackedEntityService.getTrackedEntity(
+                trackedEntity.getUid(), trackerProgram.getUid(), TrackedEntityParams.FALSE));
+    TrackedEntity actualTe =
+        trackedEntityService.getTrackedEntity(
+            trackedEntity.getUid(),
+            trackerProgram.getUid(),
+            TrackedEntityParams.FALSE.withIncludeAttributes(true));
+    assertAll(
+        "created tracked entity with tracked entity attribute values",
+        () -> {
+          Map<String, String> actualTeav =
+              actualTe.getTrackedEntityAttributeValues().stream()
+                  .collect(
+                      Collectors.toMap(
+                          teav -> teav.getAttribute().getUid(),
+                          TrackedEntityAttributeValue::getValue));
+          assertEquals(Map.of(teaA.getUid(), "hello", teaC.getUid(), "there"), actualTeav);
+        });
+  }
+
   private TrackedEntityType trackedEntityTypeAccessible() {
     TrackedEntityType type = trackedEntityType('A');
     type.getSharing().setOwner(user);
@@ -376,7 +482,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
   }
 
   private Enrollment enrollment(TrackedEntity te) {
-    Enrollment enrollment = new Enrollment(program, te, te.getOrganisationUnit());
+    Enrollment enrollment = new Enrollment(trackerProgram, te, te.getOrganisationUnit());
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
     enrollment.setOccurredDate(new Date());
@@ -418,9 +524,5 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     a.setUser(user);
     a.setAccess(AccessStringHelper.FULL);
     return a;
-  }
-
-  private static void assertEqualUids(Uid expected, IdentifiableObject actual) {
-    assertEquals(expected.getUid(), actual.getUid());
   }
 }

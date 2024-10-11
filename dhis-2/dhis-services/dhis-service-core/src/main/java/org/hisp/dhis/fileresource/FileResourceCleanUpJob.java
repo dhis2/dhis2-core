@@ -41,8 +41,7 @@ import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.stereotype.Component;
 
 /**
@@ -57,7 +56,7 @@ import org.springframework.stereotype.Component;
 public class FileResourceCleanUpJob implements Job {
   private final FileResourceService fileResourceService;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final FileResourceContentStore fileResourceContentStore;
 
@@ -70,8 +69,7 @@ public class FileResourceCleanUpJob implements Job {
   public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
     progress.startingProcess("Clean-up file resources");
     FileResourceRetentionStrategy retentionStrategy =
-        systemSettingManager.getSystemSetting(
-            SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.class);
+        settingsProvider.getCurrentSettings().getFileResourceRetentionStrategy();
 
     List<Entry<String, String>> deletedOrphans = new ArrayList<>();
     List<Entry<String, String>> deletedAuditFiles = new ArrayList<>();

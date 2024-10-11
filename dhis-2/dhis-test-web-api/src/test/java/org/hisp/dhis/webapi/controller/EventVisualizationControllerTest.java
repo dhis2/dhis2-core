@@ -35,11 +35,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.dataelement.DataElementDomain.TRACKER;
 import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE;
-import static org.hisp.dhis.test.web.HttpStatus.BAD_REQUEST;
-import static org.hisp.dhis.test.web.HttpStatus.CONFLICT;
-import static org.hisp.dhis.test.web.HttpStatus.CREATED;
-import static org.hisp.dhis.test.web.HttpStatus.OK;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
+import static org.hisp.dhis.http.HttpStatus.CONFLICT;
+import static org.hisp.dhis.http.HttpStatus.CREATED;
+import static org.hisp.dhis.http.HttpStatus.OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -64,12 +64,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Controller tests for {@link org.hisp.dhis.webapi.controller.event.EventVisualizationController}.
  *
  * @author maikel arabori
  */
+@Transactional
 class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
   @Autowired private ObjectMapper jsonMapper;
 

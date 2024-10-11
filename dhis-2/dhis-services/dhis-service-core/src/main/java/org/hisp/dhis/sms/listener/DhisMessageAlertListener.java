@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.message.MessageService;
@@ -49,9 +48,9 @@ import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,13 +63,12 @@ public class DhisMessageAlertListener extends CommandSMSListener {
   private final MessageService messageService;
 
   public DhisMessageAlertListener(
-      CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      @Qualifier("smsMessageSender") MessageSender smsSender,
+      MessageSender smsMessageSender,
       SMSCommandService smsCommandService,
       MessageService messageService) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
+    super(userService, incomingSmsService, smsMessageSender);
     this.smsCommandService = smsCommandService;
     this.messageService = messageService;
   }
@@ -83,7 +81,7 @@ public class DhisMessageAlertListener extends CommandSMSListener {
   @Override
   protected void postProcess(
       @Nonnull IncomingSms sms,
-      @Nonnull String username,
+      @Nonnull UserDetails smsCreatedBy,
       @Nonnull SMSCommand smsCommand,
       @Nonnull Map<String, String> codeValues) {
     String message = sms.getText();
@@ -127,8 +125,8 @@ public class DhisMessageAlertListener extends CommandSMSListener {
           confirmMessage = SMSCommand.ALERT_FEEDBACK;
         }
 
-        if (smsSender.isConfigured()) {
-          smsSender.sendMessage(
+        if (smsMessageSender.isConfigured()) {
+          smsMessageSender.sendMessage(
               smsCommand.getName(), confirmMessage, null, null, feedbackList, false);
         } else {
           log.info("No sms configuration found.");

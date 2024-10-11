@@ -27,6 +27,14 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -34,14 +42,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Order;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Subquery;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SoftDeletableObject;
@@ -163,7 +163,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
       T entity, RelationshipQueryParams queryParams, PageParams pageParams) {
     CriteriaQuery<Relationship> criteriaQuery = criteriaQuery(entity, queryParams);
 
-    TypedQuery<Relationship> query = getSession().createQuery(criteriaQuery);
+    TypedQuery<Relationship> query = entityManager.createQuery(criteriaQuery);
 
     if (pageParams != null) {
       query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
@@ -194,7 +194,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         whereConditionPredicates(
             entity, builder, criteriaQuery, root, queryParams.isIncludeDeleted()));
 
-    return getSession().createQuery(criteriaQuery).getSingleResult().longValue();
+    return entityManager.createQuery(criteriaQuery).getSingleResult().longValue();
   }
 
   private <T extends SoftDeletableObject> CriteriaQuery<Relationship> criteriaQuery(

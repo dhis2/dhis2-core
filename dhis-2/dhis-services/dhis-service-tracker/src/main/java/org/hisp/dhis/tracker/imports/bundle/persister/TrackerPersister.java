@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;

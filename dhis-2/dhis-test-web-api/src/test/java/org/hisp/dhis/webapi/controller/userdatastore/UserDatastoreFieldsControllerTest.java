@@ -31,10 +31,10 @@ import static org.hisp.dhis.test.utils.JavaToJson.toJson;
 import static org.hisp.dhis.test.webapi.Assertions.assertJson;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.datastore.DatastoreParams;
-import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.webapi.controller.AbstractUserDatastoreControllerTest;
 import org.hisp.dhis.webapi.controller.UserDatastoreController;
 import org.junit.jupiter.api.BeforeEach;

@@ -29,13 +29,14 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.sms.SmsInboundController} using (mocked) REST
@@ -43,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class SmsInboundControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private IncomingSmsService incomingSMSService;

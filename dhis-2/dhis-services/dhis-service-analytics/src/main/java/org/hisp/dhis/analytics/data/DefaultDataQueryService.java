@@ -81,9 +81,9 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -99,7 +99,7 @@ public class DefaultDataQueryService implements DataQueryService {
 
   private final AnalyticsSecurityManager securityManager;
 
-  private final UserSettingService userSettingService;
+  private final UserSettingsService userSettingsService;
 
   // -------------------------------------------------------------------------
   // DataQueryService implementation
@@ -112,7 +112,7 @@ public class DefaultDataQueryService implements DataQueryService {
 
     IdScheme inputIdScheme = firstNonNull(request.getInputIdScheme(), UID);
 
-    Locale locale = (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE);
+    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
 
     if (isNotEmpty(request.getDimension())) {
       params.addDimensions(getDimensionalObjects(request));
@@ -184,7 +184,7 @@ public class DefaultDataQueryService implements DataQueryService {
 
     Date date = object.getRelativePeriodDate();
 
-    Locale locale = (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE);
+    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
 
     String userOrgUnit =
         object.getRelativeOrganisationUnit() != null

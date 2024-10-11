@@ -40,18 +40,17 @@ import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -70,7 +69,6 @@ import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -95,6 +93,7 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
@@ -107,8 +106,6 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
-import org.hisp.dhis.user.UserSetting;
-import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
@@ -258,13 +255,11 @@ public class UserController extends AbstractCrudController<User> {
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
       @OpenApi.Param(OpenApi.PropertyNames.class) @PathVariable("property") String pvProperty,
       @RequestParam Map<String, String> rpParameters,
-      TranslateParams translateParams,
       @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
     if (!"dataApprovalWorkflows".equals(pvProperty)) {
-      return super.getObjectProperty(
-          pvUid, pvProperty, rpParameters, translateParams, currentUser, response);
+      return super.getObjectProperty(pvUid, pvProperty, rpParameters, currentUser, response);
     }
 
     User user = userService.getUser(pvUid);
@@ -422,7 +417,7 @@ public class UserController extends AbstractCrudController<User> {
   @ResponseBody
   public WebMessage replicateUser(
       @PathVariable String uid, HttpServletRequest request, HttpServletResponse response)
-      throws IOException, ForbiddenException, ConflictException {
+      throws IOException, ForbiddenException, ConflictException, NotFoundException {
     User existingUser = userService.getUser(uid);
     if (existingUser == null) {
       return conflict("User not found: " + uid);
@@ -489,13 +484,8 @@ public class UserController extends AbstractCrudController<User> {
     // Replicate user settings
     // ---------------------------------------------------------------------
 
-    List<UserSetting> settings = userSettingService.getUserSettings(existingUser);
-    for (UserSetting setting : settings) {
-      Optional<UserSettingKey> key = UserSettingKey.getByName(setting.getName());
-      key.ifPresent(
-          userSettingKey ->
-              userSettingService.saveUserSetting(userSettingKey, setting.getValue(), userReplica));
-    }
+    UserSettings settings = userSettingsService.getUserSettings(existingUser.getUsername(), false);
+    userSettingsService.putAll(settings.toMap(), userReplica.getUsername());
 
     return created("User replica created")
         .setLocation(UserSchemaDescriptor.API_ENDPOINT + "/" + userReplica.getUid());

@@ -27,29 +27,23 @@
  */
 package org.hisp.dhis.sms.listener;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.system.util.SmsUtils;
+import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,19 +58,11 @@ public abstract class CommandSMSListener extends BaseSMSListener {
 
   protected static final int ERROR = 3;
 
-  protected final CategoryService dataElementCategoryService;
-
   protected final UserService userService;
 
   public CommandSMSListener(
-      CategoryService dataElementCategoryService,
-      UserService userService,
-      IncomingSmsService incomingSmsService,
-      MessageSender smsSender) {
+      UserService userService, IncomingSmsService incomingSmsService, MessageSender smsSender) {
     super(incomingSmsService, smsSender);
-    checkNotNull(dataElementCategoryService);
-    checkNotNull(userService);
-    this.dataElementCategoryService = dataElementCategoryService;
     this.userService = userService;
   }
 
@@ -86,23 +72,24 @@ public abstract class CommandSMSListener extends BaseSMSListener {
   }
 
   @Override
-  public void receive(@Nonnull IncomingSms sms, @Nonnull String username) {
+  public void receive(@Nonnull IncomingSms sms, @Nonnull UserDetails smsCreatedBy) {
     // we cannot annotate getSMSCommand itself with Nonnull as it can return null but
     // receive is only called when accept returned true, which is if there is a non-null command
     SMSCommand smsCommand = getSMSCommand(sms);
 
     Map<String, String> codeValues = parseCodeValuePairs(sms, smsCommand);
 
-    if (!hasCorrectFormat(sms, smsCommand) || !validateInputValues(sms, smsCommand, codeValues)) {
+    if (!hasCorrectFormat(sms, smsCommand)
+        || !validateInputValues(sms, smsCreatedBy, smsCommand, codeValues)) {
       return;
     }
 
-    postProcess(sms, username, smsCommand, codeValues);
+    postProcess(sms, smsCreatedBy, smsCommand, codeValues);
   }
 
   protected abstract void postProcess(
       @Nonnull IncomingSms sms,
-      @Nonnull String username,
+      @Nonnull UserDetails smsCreatedBy,
       @Nonnull SMSCommand smsCommand,
       @Nonnull Map<String, String> codeValues);
 
@@ -132,23 +119,18 @@ public abstract class CommandSMSListener extends BaseSMSListener {
   }
 
   protected Set<OrganisationUnit> getOrganisationUnits(IncomingSms sms) {
-    User user = getUser(sms);
+    User user = userService.getUser(sms.getCreatedBy().getUid());
 
     if (user == null) {
       return new HashSet<>();
     }
 
-    return SmsUtils.getOrganisationUnitsByPhoneNumber(
-            sms.getOriginator(), Collections.singleton(user))
-        .get(user.getUid());
-  }
-
-  protected User getUser(IncomingSms sms) {
-    return userService.getUser(sms.getCreatedBy().getUid());
+    return user.getOrganisationUnits();
   }
 
   private boolean validateInputValues(
       @Nonnull IncomingSms sms,
+      @Nonnull UserDetails smsCreatedBy,
       @Nonnull SMSCommand smsCommand,
       @Nonnull Map<String, String> commandValuePairs) {
     if (!hasMandatoryCodes(smsCommand.getCodes(), commandValuePairs.keySet())) {
@@ -160,21 +142,14 @@ public abstract class CommandSMSListener extends BaseSMSListener {
       return false;
     }
 
-    if (!hasOrganisationUnit(sms)) {
-      sendFeedback(
-          StringUtils.defaultIfEmpty(smsCommand.getNoUserMessage(), SMSCommand.NO_USER_MESSAGE),
-          sms.getOriginator(),
-          ERROR);
+    if (!hasOrganisationUnit(smsCreatedBy)) {
+      sendFeedback(smsCommand.getNoUserMessage(), sms.getOriginator(), ERROR);
 
       return false;
     }
 
-    if (hasMultipleOrganisationUnits(sms)) {
-      sendFeedback(
-          StringUtils.defaultIfEmpty(
-              smsCommand.getMoreThanOneOrgUnitMessage(), SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE),
-          sms.getOriginator(),
-          ERROR);
+    if (hasMultipleOrganisationUnits(smsCreatedBy)) {
+      sendFeedback(smsCommand.getMoreThanOneOrgUnitMessage(), sms.getOriginator(), ERROR);
 
       return false;
     }
@@ -222,20 +197,18 @@ public abstract class CommandSMSListener extends BaseSMSListener {
     return true;
   }
 
-  private boolean hasOrganisationUnit(IncomingSms sms) {
-    Collection<OrganisationUnit> orgUnits = getOrganisationUnits(sms);
-
-    return !(orgUnits == null || orgUnits.isEmpty());
+  static void validateUserOrgUnits(UserDetails userDetails) {
+    if (userDetails.getUserOrgUnitIds().isEmpty()) {
+      throw new SMSParserException(
+          "User is not associated with any orgunit. Please contact your supervisor.");
+    }
   }
 
-  private boolean hasMultipleOrganisationUnits(IncomingSms sms) {
-    List<User> users = userService.getUsersByPhoneNumber(sms.getOriginator());
+  private static boolean hasOrganisationUnit(UserDetails smsCreatedBy) {
+    return !smsCreatedBy.getUserOrgUnitIds().isEmpty();
+  }
 
-    Set<OrganisationUnit> organisationUnits =
-        users.stream()
-            .flatMap(user -> user.getOrganisationUnits().stream())
-            .collect(Collectors.toSet());
-
-    return organisationUnits.size() > 1;
+  private static boolean hasMultipleOrganisationUnits(UserDetails smsCreatedBy) {
+    return smsCreatedBy.getUserOrgUnitIds().size() > 1;
   }
 }
