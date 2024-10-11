@@ -124,6 +124,11 @@
       <artifactId>dhis-support-system</artifactId>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <scope>test</scope>
+    </dependency>
 
     <!-- Test -->
     <dependency>

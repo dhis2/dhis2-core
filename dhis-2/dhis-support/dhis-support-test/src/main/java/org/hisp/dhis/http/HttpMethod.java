@@ -25,24 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.converter;
-
-import java.util.List;
-import java.util.stream.Collectors;
-import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.user.UserDetails;
+package org.hisp.dhis.http;
 
 /**
- * Converts rule-engine domain objects to tracker domain objects and vice versa.
+ * Valid HTTP methods.
  *
- * @author Enrico Colasante
+ * <p>Basically a copy of springs enum to not being dependent on spring web where this is used.
+ *
+ * @author Jan Bernitt
  */
-public interface RuleEngineConverterService<From, To> extends TrackerConverterService<From, To> {
-  To fromForRuleEngine(TrackerPreheat preheat, From object, UserDetails user);
-
-  default List<To> fromForRuleEngine(TrackerPreheat preheat, List<From> objects, UserDetails user) {
-    return objects.stream()
-        .map(object -> fromForRuleEngine(preheat, object, user))
-        .collect(Collectors.toList());
-  }
+public enum HttpMethod {
+  GET,
+  HEAD,
+  POST,
+  PUT,
+  PATCH,
+  DELETE,
+  OPTIONS,
+  TRACE
 }

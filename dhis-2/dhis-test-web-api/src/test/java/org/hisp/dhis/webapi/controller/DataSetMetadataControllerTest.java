@@ -29,11 +29,11 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.nio.file.Path;
 import java.util.stream.Stream;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.web.HttpStatus;
-import org.hisp.dhis.test.web.WebClient;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -59,7 +59,7 @@ class DataSetMetadataControllerTest extends PostgresControllerIntegrationTestBas
       String catComboSizeCondition,
       String defaultCatComboCondition) {
     // given
-    POST("/metadata", WebClient.Body(testData)).content(HttpStatus.OK);
+    POST("/metadata", Path.of(testData)).content(HttpStatus.OK);
 
     // when the data entry metadata is retrieved
     JsonArray categoryCombos = GET("/dataEntry/metadata").content().getArray("categoryCombos");
@@ -92,7 +92,7 @@ class DataSetMetadataControllerTest extends PostgresControllerIntegrationTestBas
         """;
 
     // given
-    POST("/metadata", WebClient.Body(dataSetsBody)).content(HttpStatus.OK);
+    POST("/metadata", dataSetsBody).content(HttpStatus.OK);
 
     // when the data entry metadata is retrieves
     JsonObject dataEntryMetadata = GET("/dataEntry/metadata").content();

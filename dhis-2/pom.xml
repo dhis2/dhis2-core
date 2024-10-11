@@ -70,11 +70,9 @@
 
     <sonar.organization>dhis2</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-    <surefireArgLine>-Xmx2024m</surefireArgLine>
+    <sonar.projectKey>dhis2_dhis2-core</sonar.projectKey>
 
-    <!-- Needed so we can disable running tests when the default profile
-      is used (activated by default). It does not honor -DskipTests otherwise https://maven.apache.org/surefire/maven-surefire-plugin/examples/skipping-tests.html -->
-    <skipTests>false</skipTests>
+    <surefireArgLine>-Xmx2024m</surefireArgLine>
 
     <!-- *Build* -->
     <jib.version>3.4.3</jib.version>
@@ -1931,6 +1929,11 @@
           <version>${maven-surefire-plugin.version}</version>
         </plugin>
         <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-report-plugin</artifactId>
+          <version>${maven-surefire-plugin.version}</version>
+        </plugin>
+        <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>exec-maven-plugin</artifactId>
           <version>${maven-exec-plugin.version}</version>
@@ -2147,12 +2150,23 @@ jasperreports.version=${jasperreports.version}
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
           <version>${jacoco-maven-plugin.version}</version>
+          <!-- disable the jacoco coverage agent if we skip running tests -->
+          <configuration>
+            <skip>${skipTests}</skip>
+          </configuration>
+          <executions>
+            <execution>
+              <id>prepare-agent</id>
+              <goals>
+                <goal>prepare-agent</goal>
+              </goals>
+            </execution>
+          </executions>
         </plugin>
       </plugins>
     </pluginManagement>
 
     <plugins>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
@@ -2357,14 +2371,6 @@ jasperreports.version=${jasperreports.version}
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>prepare-agent</id>
-            <goals>
-              <goal>prepare-agent</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
     <!-- <build><sourceDirectory> cannot be set in a profile, so it needs
@@ -2394,13 +2400,9 @@ jasperreports.version=${jasperreports.version}
   </reporting>
 
   <profiles>
-
-    <!-- Default profile, runs all unit tests, not integration tests -->
+    <!-- runs all unit tests -->
     <profile>
-      <id>default</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
+      <id>unit-test</id>
       <build>
         <plugins>
           <plugin>
@@ -2425,10 +2427,9 @@ jasperreports.version=${jasperreports.version}
       </build>
     </profile>
 
-    <!-- Integration test profile, runs all integrations tests, not unit
-      tests -->
+    <!-- runs all integration tests using Postgres DB -->
     <profile>
-      <id>integration</id>
+      <id>integration-test</id>
       <build>
         <plugins>
           <plugin>
@@ -2451,10 +2452,9 @@ jasperreports.version=${jasperreports.version}
       </build>
     </profile>
 
-    <!-- IntegrationH2 test profile, runs all integrations tests with H2,
-      not unit tests -->
+    <!-- runs all integrations tests using H2 in-memory DB -->
     <profile>
-      <id>integrationH2</id>
+      <id>integration-h2-test</id>
       <build>
         <plugins>
           <plugin>
@@ -2472,42 +2472,6 @@ jasperreports.version=${jasperreports.version}
                 <log4j2.configurationFile>log4j2-test.xml</log4j2.configurationFile>
               </systemPropertyVariables>
             </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>dev</id>
-      <properties>
-        <skipTests>true</skipTests>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <skipTests>true</skipTests>
-              <trimStackTrace>false</trimStackTrace>
-              <argLine>@{argLine} ${surefireArgLine}</argLine>
-              <excludedGroups>integration,integrationH2</excludedGroups>
-            </configuration>
-          </plugin>
-          <plugin>
-            <groupId>org.zeroturnaround</groupId>
-            <artifactId>jrebel-maven-plugin</artifactId>
-            <version>${jrebel-x-maven-plugin.version}</version>
-            <executions>
-              <execution>
-                <id>generate-rebel-xml</id>
-                <goals>
-                  <goal>generate</goal>
-                </goals>
-                <phase>process-resources</phase>
-                <configuration/>
-              </execution>
-            </executions>
           </plugin>
         </plugins>
       </build>
@@ -2547,7 +2511,5 @@ jasperreports.version=${jasperreports.version}
         </plugins>
       </build>
     </profile>
-
   </profiles>
-
 </project>

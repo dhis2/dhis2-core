@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.test.webapi;
 
-import static org.hisp.dhis.test.web.WebClientUtils.failOnException;
+import static org.hisp.dhis.http.HttpAssertions.exceptionAsFail;
 
 import org.hisp.dhis.test.config.H2TestConfig;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
@@ -65,8 +65,8 @@ public abstract class ControllerWithApiTokenAuthTestBase extends H2ControllerInt
   }
 
   @Override
-  protected final HttpResponse webRequest(MockHttpServletRequestBuilder request) {
-    return failOnException(
+  protected final HttpResponse perform(MockHttpServletRequestBuilder request) {
+    return exceptionAsFail(
         () -> new HttpResponse(toResponse(mvc.perform(request).andReturn().getResponse())));
   }
 }

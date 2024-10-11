@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.test.web.WebClient.Body;
-import static org.hisp.dhis.test.web.WebClient.ContentType;
+import static org.hisp.dhis.http.HttpClientAdapter.Body;
+import static org.hisp.dhis.http.HttpClientAdapter.ContentType;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,13 +48,12 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
-import org.hisp.dhis.test.web.HttpStatus;
-import org.hisp.dhis.test.web.WebClient;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonAttributeValue;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataElement;
@@ -415,7 +415,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
       "Should not include null objects in collection Category.categorycombos or"
           + " CategoryCombo.categories after importing")
   void testImportCategoryComboAndCategory() {
-    POST("/metadata", Body("metadata/category_and_categorycombo.json")).content(HttpStatus.OK);
+    POST("/metadata", Path.of("metadata/category_and_categorycombo.json")).content(HttpStatus.OK);
     JsonMixed response = GET("/categories/{uid}?fields=id,categoryCombos", "IjOK1aXkjVO").content();
     JsonList<JsonObject> catCombos = response.getList("categoryCombos", JsonObject.class);
     assertNotNull(catCombos);
@@ -430,7 +430,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
   @Test
   void testImportDashboardWithInvalidLayout_UpdateFlow() {
     JsonImportSummary createReport =
-        POST("/metadata", WebClient.Body("dashboard/import_dashboard_with_valid_layout.json"))
+        POST("/metadata", Path.of("dashboard/import_dashboard_with_valid_layout.json"))
             .content(HttpStatus.OK)
             .get("response")
             .as(JsonImportSummary.class);
@@ -442,7 +442,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     assertEquals(1, createReport.getStats().getTotal());
 
     JsonImportSummary updateReport =
-        POST("/metadata", WebClient.Body("dashboard/import_dashboard_with_invalid_layout.json"))
+        POST("/metadata", Path.of("dashboard/import_dashboard_with_invalid_layout.json"))
             .content(HttpStatus.CONFLICT)
             .get("response")
             .as(JsonImportSummary.class);
@@ -457,7 +457,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
   @Test
   void testImportDashboardWithValidLayout_CreateFlow() {
     JsonImportSummary report =
-        POST("/metadata", WebClient.Body("dashboard/import_dashboard_with_valid_layout.json"))
+        POST("/metadata", Path.of("dashboard/import_dashboard_with_valid_layout.json"))
             .content(HttpStatus.OK)
             .get("response")
             .as(JsonImportSummary.class);
@@ -472,7 +472,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
   @Test
   void testImportDashboardWithInvalidLayout_CreateFlow() {
     JsonImportSummary report =
-        POST("/metadata", WebClient.Body("dashboard/import_dashboard_with_invalid_layout.json"))
+        POST("/metadata", Path.of("dashboard/import_dashboard_with_invalid_layout.json"))
             .content(HttpStatus.CONFLICT)
             .get("response")
             .as(JsonImportSummary.class);
@@ -571,7 +571,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
   @Test()
   @DisplayName("Should not return error E6305 when PATCH any property of an AggregateDataExchange")
   void testPatchAggregateDataExchange() {
-    POST("/metadata/", Body("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
+    POST("/metadata/", Path.of("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
     PATCH(
             "/aggregateDataExchanges/PnWccbwCJLQ",
             Body(
@@ -590,7 +590,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
           + " details")
   void testCreateAggregateDataExchangeWithoutAuthentication() {
     JsonImportSummary report =
-        POST("/metadata/", Body("metadata/aggregate_data_exchange_no_auth.json"))
+        POST("/metadata/", Path.of("metadata/aggregate_data_exchange_no_auth.json"))
             .content(HttpStatus.CONFLICT)
             .get("response")
             .as(JsonImportSummary.class);
@@ -608,7 +608,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
       "Should return error if user doesn't have Data Write permission for given"
           + " AggregateDataExchange")
   void testAggregateDataExchangeFail() {
-    POST("/metadata/", Body("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
+    POST("/metadata/", Path.of("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
     User userA = createAndAddUser("UserA");
     PATCH(
             "/aggregateDataExchanges/iFOyIpQciyk",
@@ -635,7 +635,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
 
   @Test
   void testAggregateDataExchangeSuccess() {
-    POST("/metadata/", Body("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
+    POST("/metadata/", Path.of("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
     JsonTypeReport typeReport =
         POST("/aggregateDataExchanges/iFOyIpQciyk/exchange")
             .content(HttpStatus.OK)

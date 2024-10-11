@@ -29,12 +29,12 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.http.HttpAssertions.assertSeries;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpClientAdapter.Body;
+import static org.hisp.dhis.http.HttpClientAdapter.ContentType;
+import static org.hisp.dhis.http.HttpStatus.Series.SUCCESSFUL;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
-import static org.hisp.dhis.test.web.HttpStatus.Series.SUCCESSFUL;
-import static org.hisp.dhis.test.web.WebClient.Body;
-import static org.hisp.dhis.test.web.WebClient.ContentType;
-import static org.hisp.dhis.test.web.WebClientUtils.assertSeries;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -50,13 +50,12 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.web.HttpStatus;
-import org.hisp.dhis.test.web.snippets.SomeUserId;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonAttributeValue;
 import org.hisp.dhis.test.webapi.json.domain.JsonError;
@@ -96,7 +95,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetObject() {
-    String id = run(SomeUserId::new);
+    String id = GET("/users/").content().getList("users", JsonUser.class).get(0).getId();
     JsonUser userById = GET("/users/{id}", id).content(HttpStatus.OK).as(JsonUser.class);
 
     assertTrue(userById.exists());
@@ -106,8 +105,9 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetObjectProperty() {
     // response will look like: { "surname": <name> }
+    String userId = GET("/users/").content().getList("users", JsonUser.class).get(0).getId();
     JsonUser userProperty =
-        GET("/users/{id}/surname", run(SomeUserId::new)).content(HttpStatus.OK).as(JsonUser.class);
+        GET("/users/{id}/surname", userId).content(HttpStatus.OK).as(JsonUser.class);
     assertStartsWith("Surname", userProperty.getSurname());
     assertEquals(1, userProperty.size());
   }
@@ -200,7 +200,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testPartialUpdateObject_Validation() {
-    String id = run(SomeUserId::new);
+    String id = GET("/users/").content().getList("users", JsonUser.class).get(0).getId();
     JsonError error =
         PATCH(
                 "/users/" + id + "?importReportMode=ERRORS",
