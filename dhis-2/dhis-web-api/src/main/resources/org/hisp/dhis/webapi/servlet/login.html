@@ -1,72 +1,206 @@
-<!DOCTYPE HTML>
-<html class="loginPage" dir="ltr">
-<head>
-  <title>DHIS2 Demo</title>
-  <meta name="description" content="DHIS2">
-  <meta name="keywords" content="DHIS2">
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  <link rel="shortcut icon" href="../dhis-web-commons/favicon.ico"/>
-  <script type="text/javascript"
-          src="./dhis-web-commons/javascripts/jQuery/jquery-3.6.1.min.js"></script>
-  <script>
-    $.ajaxSetup({
-      beforeSend: function (xhr) {
-        xhr.setRequestHeader(
-            'X-Requested-With',
-            {
-              toString: function () {
-                return '';
-              }
-            }
-        );
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DHIS2 Demo - Sierra Leone</title>
+    <style>
+      body {
+        background-color: #1c5ba6;
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
       }
-    });
-  </script>
-  <script type="text/javascript" src="./dhis-web-commons/javascripts/login.js"></script>
-  <link type="text/css" rel="stylesheet" href="./dhis-web-commons/css/widgets.css">
-  <link type="text/css" rel="stylesheet" href="./dhis-web-commons/css/login.css">
-</head>
 
-<body class="loginPage">
-<h1 style="display:none">DHIS2</h1>
-<div style="display:none">DHIS2</div>
-<div>
-  <span id="titleArea">DHIS2</span>
-  <span id="introArea">Welcome to the DHIS2</span>
-</div>
-<div id="loginField">
-  <div id="loginArea">
-    <div id="bannerArea">
-      <a href="https://www.dhis2.org"><img src="./api/staticContent/logo_front" style="border:none"></a>
+      .login-container {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 20%;
+        margin: auto;
+        text-align: center;
+      }
+
+      .login-container h1 {
+        margin-bottom: 7px;
+        font-size: 1.2rem;
+        color: #333;
+      }
+
+      .login-container label {
+        font-size: 0.9rem;
+        color: #333;
+        display: block;
+        text-align: left;
+      }
+
+      form {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+
+      form div {
+        width: 100%;
+      }
+
+      input {
+        width: 93%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+
+      .login-container input[type="submit"] {
+        background-color: #005fb3;
+        color: white;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        width: 100%;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .login-container input[type="submit"]:hover {
+        background-color: #004a8b;
+      }
+
+      .logo-container {
+        color: white;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+
+      .footer {
+        text-align: center;
+        position: fixed;
+        bottom: 10px;
+        left: 0;
+        right: 0;
+        color: white;
+        border-top: solid 1px #004a8b;
+        width: 100%;
+        padding-top: 5px;
+      }
+
+      .footer a {
+        color: #fff;
+      }
+
+      /* Loading spinner */
+      .spinner {
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top: 4px solid #005fb3;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 10px auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Error message */
+      .error-message {
+        color: red;
+        margin-top: 10px;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Logo and Title Section -->
+    <div class="logo-container">
+      <div></div>
+      <img src="/dhis-web-commons/security/logo_front.png" alt="DHIS2 Logo" />
     </div>
 
-    <form id="loginForm" action="./api/authentication/login" method="post">
-      <div>
-        <div id="signInLabel">Sign in</div>
-        <div><input type="text" id="j_username" name="j_username" placeholder="Username" required
-                    autofocus></div>
-        <div><input type="password" id="j_password" name="j_password" autocomplete="off"
-                    placeholder="Password" required></div>
-      </div>
-      <div id="submitDiv">
-        <input id="submit" class="button" type="submit" value="Sign in">
-      </div>
-    </form>
+    <!-- Login Form Section -->
+    <div class="login-container">
+      <h1>Log in</h1>
+      <form id="loginForm">
+        <div>
+          <label for="username">Username</label>
+          <input type="text" id="username" required />
+        </div>
 
-    <!--[if lte IE 8]>
-    <div id="notificationArea" style="color: white; background-color: red;">Please upgrade your
-      browser. Internet
-      Explorer version 8 and earlier is not supported.
+        <div>
+          <label for="password">Password</label>
+          <input type="password" id="password" required />
+        </div>
+
+        <input type="submit" value="Log in" />
+      </form>
+
+      <div id="spinner" class="spinner" style="display: none"></div>
+      <div id="errorMessage" class="error-message"></div>
     </div>
-    <![endif]-->
-  </div>
-</div>
-<div id="footerArea">
-  <div id="leftFooterArea" class="innerFooterArea">
-    <span id="poweredByLabel">Powered by </span><a href="https://www.dhis2.org">DHIS2</a>&nbsp;
-    <span
-        id="applicationFooter">Learn more at <a href="https://www.dhis2.org">dhis2.org</a></span>
-  </div>
-</div>
-</body>
+
+    <!-- Footer Section -->
+    <div class="footer">
+      <span>Powered by DHIS2. Learn more at </span>
+      <a href="https://www.dhis2.org">dhis2.org</a>
+    </div>
+
+    <script>
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+
+          const username = document.getElementById("username").value;
+          const password = document.getElementById("password").value;
+          const submitButton = document.querySelector('input[type="submit"]');
+          const spinner = document.getElementById("spinner");
+          const errorMessage = document.getElementById("errorMessage");
+
+          // Show loading state
+          spinner.style.display = "block";
+          errorMessage.innerText = "";
+          submitButton.disabled = true;
+
+          try {
+            const response = await fetch(
+              "http://localhost:8080/api/auth/login",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ username, password, twoFA: true }),
+              }
+            );
+
+            if (!response.ok) {
+              throw new Error("Login failed: " + response.status);
+            }
+
+            const user = await response.json();
+            console.log("Logged in user:", user);
+          } catch (error) {
+            errorMessage.innerText = error.message;
+          } finally {
+            spinner.style.display = "none";
+            submitButton.disabled = false;
+          }
+        });
+    </script>
+  </body>
 </html>
