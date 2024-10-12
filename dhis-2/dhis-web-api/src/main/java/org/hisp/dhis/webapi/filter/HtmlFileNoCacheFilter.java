@@ -30,10 +30,10 @@ package org.hisp.dhis.webapi.filter;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
@@ -57,7 +57,8 @@ public class HtmlFileNoCacheFilter extends OncePerRequestFilter {
 
     String uri = request.getRequestURI();
     Matcher m = HTML_PATH_PATTERN.matcher(uri);
-    if (m.find() && HttpMethod.GET == HttpMethod.resolve(request.getMethod())) {
+
+    if (m.find() && HttpMethod.GET.matches(request.getMethod())) {
       ContextUtils.setNoStore(response);
     }
 
