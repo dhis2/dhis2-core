@@ -28,8 +28,8 @@
 package org.hisp.dhis.test.webapi;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
-import static org.hisp.dhis.test.web.WebClientUtils.callAndFailOnException;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.exceptionAsFail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 
 import java.io.UnsupportedEncodingException;
@@ -40,11 +40,11 @@ import lombok.Getter;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.http.HttpClientAdapter;
+import org.hisp.dhis.http.HttpMethod;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.IntegrationTestBase;
-import org.hisp.dhis.test.web.HttpMethod;
-import org.hisp.dhis.test.web.HttpStatus;
-import org.hisp.dhis.test.web.WebClient;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,7 +87,7 @@ import org.springframework.web.context.WebApplicationContext;
 @WebAppConfiguration
 @ContextConfiguration(classes = {MvcTestConfig.class, WebTestConfig.class})
 public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
-    implements WebClient {
+    implements HttpClientAdapter {
 
   @Autowired protected WebApplicationContext webApplicationContext;
 
@@ -182,7 +182,7 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
   }
 
   protected HttpResponse perform(MockHttpServletRequestBuilder request) {
-    return callAndFailOnException(
+    return exceptionAsFail(
         () ->
             new HttpResponse(
                 toResponse(mvc.perform(request.session(session)).andReturn().getResponse())));
@@ -249,7 +249,7 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
   }
 
   protected final MvcResult webRequestWithMvcResult(MockHttpServletRequestBuilder request) {
-    return callAndFailOnException(() -> mvc.perform(request.session(session)).andReturn());
+    return exceptionAsFail(() -> mvc.perform(request.session(session)).andReturn());
   }
 
   protected final String addDataElement(

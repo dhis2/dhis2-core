@@ -43,58 +43,35 @@ import static org.hisp.dhis.tracker.imports.programrule.engine.RuleActionKey.NOT
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import kotlinx.datetime.Instant;
-import kotlinx.datetime.LocalDate;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.rules.api.DataItem;
 import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.Rule;
 import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleDataValue;
-import org.hisp.dhis.rules.models.RuleEnrollment;
-import org.hisp.dhis.rules.models.RuleEvent;
-import org.hisp.dhis.rules.models.RuleVariable;
-import org.hisp.dhis.rules.models.RuleVariableAttribute;
-import org.hisp.dhis.rules.models.RuleVariableCalculatedValue;
 import org.hisp.dhis.test.TestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -108,21 +85,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class ProgramRuleEntityMapperServiceTest extends TestBase {
-
-  private static final String SAMPLE_VALUE_A = "textValueA";
-
-  private static final Date NOW = new Date();
-  private static final Date TOMORROW = DateUtils.addDays(NOW, 1);
-  private static final Date YESTERDAY = DateUtils.addDays(NOW, -1);
-  private static final Date AFTER_TOMORROW = DateUtils.addDays(NOW, 2);
-
-  private List<ProgramRule> programRules = new ArrayList<>();
-
-  private final List<ProgramRuleVariable> programRuleVariables = new ArrayList<>();
+  private final List<ProgramRule> programRules = new ArrayList<>();
 
   private Program program;
-
-  private ProgramStage programStage;
 
   private ProgramRuleVariable programRuleVariableA;
 
@@ -130,15 +95,7 @@ class ProgramRuleEntityMapperServiceTest extends TestBase {
 
   private ProgramRuleVariable programRuleVariableC;
 
-  private OrganisationUnit organisationUnit;
-
-  private TrackedEntityAttribute trackedEntityAttribute;
-
   private DataElement dataElement;
-
-  @Mock private ProgramRuleVariableService programRuleVariableService;
-
-  @Mock private ConstantService constantService;
 
   @Mock private I18nManager i18nManager;
 
@@ -150,7 +107,6 @@ class ProgramRuleEntityMapperServiceTest extends TestBase {
   public void initTest() {
 
     program = createProgram('P');
-    programStage = createProgramStage('S', program);
 
     TrackedEntityAttribute attribute = createTrackedEntityAttribute('Z');
     attribute.setName("Tracked_entity_attribute_A");
@@ -171,9 +127,6 @@ class ProgramRuleEntityMapperServiceTest extends TestBase {
 
     dataElement = createDataElement('D');
     dataElement.setValueType(ValueType.TEXT);
-    organisationUnit = createOrganisationUnit('O');
-
-    trackedEntityAttribute = createTrackedEntityAttribute('A', ValueType.TEXT);
 
     programRuleVariableA =
         createProgramRuleVariable(
@@ -194,10 +147,6 @@ class ProgramRuleEntityMapperServiceTest extends TestBase {
             program,
             dataElement1,
             null);
-
-    programRuleVariables.add(programRuleVariableA);
-    programRuleVariables.add(programRuleVariableB);
-    programRuleVariables.add(programRuleVariableC);
 
     ProgramRuleAction assignAction = createProgramRuleAction('I', ASSIGN, "test_variable", "2+2");
     ProgramRuleAction displayText =
@@ -232,120 +181,11 @@ class ProgramRuleEntityMapperServiceTest extends TestBase {
 
   @Test
   void shouldMapProgramRules() {
-    List<Rule> mappedProgramRules = mapper.toMappedProgramRules(programRules);
+    List<Rule> mappedProgramRules = mapper.toRules(programRules);
 
     for (int i = 0; i < mappedProgramRules.size(); i++) {
       assertRule(programRules.get(i), mappedProgramRules.get(i));
     }
-  }
-
-  @Test
-  void shouldToMapProgramRuleVariables() {
-    when(programRuleVariableService.getAllProgramRuleVariable()).thenReturn(programRuleVariables);
-    RuleVariableAttribute ruleVariableAttribute;
-    RuleVariableCalculatedValue ruleVariableCalculatedValue;
-
-    List<RuleVariable> ruleVariables = mapper.toMappedProgramRuleVariables();
-
-    assertEquals(ruleVariables.size(), programRuleVariables.size());
-
-    for (RuleVariable variable : ruleVariables) {
-      if (variable instanceof RuleVariableAttribute) {
-        ruleVariableAttribute = (RuleVariableAttribute) variable;
-        assertEquals(
-            ruleVariableAttribute.getField(), programRuleVariableB.getAttribute().getUid());
-        assertEquals(ruleVariableAttribute.getName(), programRuleVariableB.getName());
-      }
-
-      if (variable instanceof RuleVariableCalculatedValue) {
-        ruleVariableCalculatedValue = (RuleVariableCalculatedValue) variable;
-        assertEquals(ruleVariableCalculatedValue.getName(), programRuleVariableA.getName());
-      }
-    }
-  }
-
-  @Test
-  void shouldFailToMapEventWhenProgramStageIsNull() {
-    Event event = event();
-    event.setProgramStage(null);
-
-    assertThrows(NullPointerException.class, () -> mapper.toMappedRuleEvent(event));
-  }
-
-  @Test
-  void shouldMapEventToRuleEvent() {
-    Event event = event();
-
-    RuleEvent ruleEvent = mapper.toMappedRuleEvent(event);
-
-    assertEvent(event, ruleEvent);
-  }
-
-  @Test
-  void shouldMapEventToRuleEventWhenOrganisationUnitCodeIsNull() {
-    OrganisationUnit organisationUnitWithNullCode = createOrganisationUnit('A');
-    organisationUnitWithNullCode.setCode(null);
-    Event event = event();
-    event.setOrganisationUnit(organisationUnitWithNullCode);
-
-    RuleEvent ruleEvent = mapper.toMappedRuleEvent(event);
-
-    assertEvent(event, ruleEvent);
-  }
-
-  @Test
-  void shouldMapEventsToRuleEvents() {
-    Event eventA = event();
-    Event eventB = event();
-    List<RuleEvent> ruleEvents = mapper.toMappedRuleEvents(Sets.newHashSet(eventA, eventB));
-
-    assertEquals(2, ruleEvents.size());
-    assertEvent(
-        eventA,
-        ruleEvents.stream().filter(e -> e.getEvent().equals(eventA.getUid())).findFirst().get());
-    assertEvent(
-        eventB,
-        ruleEvents.stream().filter(e -> e.getEvent().equals(eventB.getUid())).findFirst().get());
-  }
-
-  @Test
-  void shouldFailToMapEnrollmentWhenProgramIsNull() {
-    Enrollment enrollment = enrollment();
-    enrollment.setProgram(null);
-    List<TrackedEntityAttributeValue> trackedEntityAttributeValues = Collections.emptyList();
-
-    assertThrows(
-        NullPointerException.class,
-        () -> mapper.toMappedRuleEnrollment(enrollment, trackedEntityAttributeValues));
-  }
-
-  @Test
-  void shouldMapEnrollmentToRuleEnrollment() {
-    Enrollment enrollment = enrollment();
-    TrackedEntityAttributeValue trackedEntityAttributeValue =
-        createTrackedEntityAttributeValue('E', trackedEntity(), trackedEntityAttribute);
-    trackedEntityAttributeValue.setValue(SAMPLE_VALUE_A);
-
-    RuleEnrollment ruleEnrollment =
-        mapper.toMappedRuleEnrollment(enrollment, List.of(trackedEntityAttributeValue));
-
-    assertEnrollment(enrollment, ruleEnrollment);
-  }
-
-  @Test
-  void shouldMapEnrollmentToRuleEnrollmentWhenOrganisationUnitCodeIsNull() {
-    OrganisationUnit organisationUnitWithNullCode = createOrganisationUnit('A');
-    organisationUnitWithNullCode.setCode(null);
-    Enrollment enrollment = enrollment();
-    enrollment.setOrganisationUnit(organisationUnitWithNullCode);
-    TrackedEntityAttributeValue trackedEntityAttributeValue =
-        createTrackedEntityAttributeValue('E', trackedEntity(), trackedEntityAttribute);
-    trackedEntityAttributeValue.setValue(SAMPLE_VALUE_A);
-
-    RuleEnrollment ruleEnrollment =
-        mapper.toMappedRuleEnrollment(enrollment, List.of(trackedEntityAttributeValue));
-
-    assertEnrollment(enrollment, ruleEnrollment);
   }
 
   @Test
@@ -355,15 +195,14 @@ class ProgramRuleEntityMapperServiceTest extends TestBase {
     constant.setValue(7.8);
     constant.setAutoFields();
     constant.setName("Gravity");
-    List<Constant> constants = List.of(constant);
 
-    when(constantService.getAllConstants()).thenReturn(constants);
     when(i18nManager.getI18n()).thenReturn(i18n);
     when(i18n.getString(anyString())).thenReturn(envVariable);
 
     Map<String, DataItem> itemStore =
         mapper.getItemStore(
-            List.of(programRuleVariableA, programRuleVariableB, programRuleVariableC));
+            List.of(programRuleVariableA, programRuleVariableB, programRuleVariableC),
+            List.of(constant));
 
     assertNotNull(itemStore);
     assertTrue(itemStore.containsKey(programRuleVariableA.getName()));
@@ -448,37 +287,6 @@ class ProgramRuleEntityMapperServiceTest extends TestBase {
     return variable;
   }
 
-  private TrackedEntity trackedEntity() {
-    return createTrackedEntity('I', organisationUnit, trackedEntityAttribute);
-  }
-
-  private Enrollment enrollment() {
-    Enrollment enrollment = new Enrollment(NOW, TOMORROW, trackedEntity(), program);
-    enrollment.setOrganisationUnit(organisationUnit);
-    enrollment.setStatus(EnrollmentStatus.ACTIVE);
-    enrollment.setAutoFields();
-    return enrollment;
-  }
-
-  private Event event() {
-    Event event = new Event(enrollment(), programStage);
-    event.setUid(CodeGenerator.generateUid());
-    event.setOrganisationUnit(organisationUnit);
-    event.setAutoFields();
-    event.setScheduledDate(YESTERDAY);
-    event.setOccurredDate(AFTER_TOMORROW);
-    event.setEventDataValues(Sets.newHashSet(eventDataValue(dataElement.getUid(), SAMPLE_VALUE_A)));
-    return event;
-  }
-
-  private EventDataValue eventDataValue(String dataElementUid, String value) {
-    EventDataValue eventDataValue = new EventDataValue();
-    eventDataValue.setDataElement(dataElementUid);
-    eventDataValue.setValue(value);
-    eventDataValue.setAutoFields();
-    return eventDataValue;
-  }
-
   private void assertRule(ProgramRule expectedRule, Rule actualRule) {
     String expectedProgramStage =
         expectedRule.getProgramStage() == null ? "" : expectedRule.getProgramStage().getUid();
@@ -549,43 +357,5 @@ class ProgramRuleEntityMapperServiceTest extends TestBase {
         expectedRuleAction.getDataElement().getUid(), actualRuleAction.getValues().get(FIELD));
     assertEquals(
         AttributeType.DATA_ELEMENT.name(), actualRuleAction.getValues().get(ATTRIBUTE_TYPE));
-  }
-
-  private void assertEvent(Event event, RuleEvent ruleEvent) {
-    assertEquals(event.getUid(), ruleEvent.getEvent());
-    assertEquals(event.getProgramStage().getUid(), ruleEvent.getProgramStage());
-    assertEquals(event.getProgramStage().getName(), ruleEvent.getProgramStageName());
-    assertEquals(event.getStatus().name(), ruleEvent.getStatus().name());
-    assertDates(event.getOccurredDate(), ruleEvent.getEventDate());
-    assertNull(ruleEvent.getCompletedDate());
-    assertDates(event.getCreated(), ruleEvent.getCreatedDate());
-    assertEquals(event.getOrganisationUnit().getUid(), ruleEvent.getOrganisationUnit());
-    assertEquals(event.getOrganisationUnit().getCode(), ruleEvent.getOrganisationUnitCode());
-    assertDataValue(event.getEventDataValues().iterator().next(), ruleEvent.getDataValues().get(0));
-  }
-
-  private void assertDates(Date expected, Instant actual) {
-    assertEquals(expected.getTime(), actual.getValue$kotlinx_datetime().toEpochMilli());
-  }
-
-  private void assertDataValue(EventDataValue expectedDataValue, RuleDataValue actualDataValue) {
-    assertEquals(expectedDataValue.getValue(), actualDataValue.getValue());
-    assertEquals(expectedDataValue.getDataElement(), actualDataValue.getDataElement());
-  }
-
-  private void assertEnrollment(Enrollment enrollment, RuleEnrollment ruleEnrollment) {
-    assertEquals(enrollment.getUid(), ruleEnrollment.getEnrollment());
-    assertEquals(enrollment.getProgram().getName(), ruleEnrollment.getProgramName());
-    assertDates(enrollment.getOccurredDate(), ruleEnrollment.getIncidentDate());
-    assertDates(enrollment.getEnrollmentDate(), ruleEnrollment.getEnrollmentDate());
-    assertEquals(enrollment.getStatus().name(), ruleEnrollment.getStatus().name());
-    assertEquals(enrollment.getOrganisationUnit().getUid(), ruleEnrollment.getOrganisationUnit());
-    assertEquals(
-        enrollment.getOrganisationUnit().getCode(), ruleEnrollment.getOrganisationUnitCode());
-    assertEquals(SAMPLE_VALUE_A, ruleEnrollment.getAttributeValues().get(0).getValue());
-  }
-
-  private void assertDates(Date expected, LocalDate actual) {
-    assertEquals(DateUtils.toMediumDate(expected), actual.toString());
   }
 }

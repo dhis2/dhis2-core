@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.imports.converter;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -53,13 +52,5 @@ public class NotesConverterService
     trackerNote.setLastUpdatedBy(preheat.getUserByUid(user.getUid()).orElse(null));
     trackerNote.setCreator(note.getStoredBy());
     return trackerNote;
-  }
-
-  @Override
-  public List<Note> from(
-      TrackerPreheat preheat,
-      List<org.hisp.dhis.tracker.imports.domain.Note> notes,
-      UserDetails user) {
-    return notes.stream().map(n -> from(preheat, n, user)).toList();
   }
 }

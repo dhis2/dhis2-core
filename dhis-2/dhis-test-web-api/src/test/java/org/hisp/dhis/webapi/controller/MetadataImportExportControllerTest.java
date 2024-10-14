@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.test.web.WebClient.Body;
-import static org.hisp.dhis.test.web.WebClient.ContentType;
+import static org.hisp.dhis.http.HttpClientAdapter.Body;
+import static org.hisp.dhis.http.HttpClientAdapter.ContentType;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -48,12 +48,12 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonAttributeValue;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataElement;

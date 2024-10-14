@@ -34,7 +34,7 @@ import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import org.hisp.dhis.datastore.DatastoreParams;
-import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.http.HttpClientAdapter.Accept;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertGreaterOrEqual;
 import static org.hisp.dhis.test.utils.Assertions.assertLessOrEqual;
-import static org.hisp.dhis.test.web.WebClient.Accept;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;

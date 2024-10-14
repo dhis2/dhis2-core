@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.utils.CsvUtils.getRowCountFromCsv;
 import static org.hisp.dhis.test.utils.CsvUtils.getRowFromCsv;
 import static org.hisp.dhis.test.utils.CsvUtils.getValueFromCsv;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.webapi.controller.AbstractGistControllerTest.assertHasNoPager;
 import static org.hisp.dhis.webapi.controller.AbstractGistControllerTest.assertHasPager;
 import static org.hisp.dhis.webapi.controller.AbstractGistControllerTest.assertHasPagerLinks;
@@ -46,11 +46,11 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

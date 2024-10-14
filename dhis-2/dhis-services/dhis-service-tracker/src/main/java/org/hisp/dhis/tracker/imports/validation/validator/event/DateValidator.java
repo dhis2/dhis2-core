@@ -60,7 +60,7 @@ class DateValidator implements Validator<Event> {
     TrackerPreheat preheat = bundle.getPreheat();
     Program program = preheat.getProgram(event.getProgram());
 
-    if (event.getOccurredAt() == null && occuredAtDateIsMandatory(event, program)) {
+    if (event.getOccurredAt() == null && occurredAtDateIsMandatory(event, program)) {
       reporter.addError(event, E1031, event);
       return;
     }
@@ -115,7 +115,7 @@ class DateValidator implements Validator<Event> {
     }
   }
 
-  private boolean occuredAtDateIsMandatory(Event event, Program program) {
+  private boolean occurredAtDateIsMandatory(Event event, Program program) {
     if (program.isWithoutRegistration()) {
       return true;
     }

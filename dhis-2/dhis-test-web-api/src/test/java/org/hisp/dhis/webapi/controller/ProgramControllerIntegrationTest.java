@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -37,10 +37,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;

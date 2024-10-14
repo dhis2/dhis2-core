@@ -30,21 +30,19 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.common.CodeGenerator.generateUid;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
-import static org.hisp.dhis.test.web.WebClientUtils.objectReference;
-import static org.hisp.dhis.test.web.WebClientUtils.objectReferences;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegrityReport;
 import org.hisp.dhis.webapi.controller.DataIntegrityController;
 import org.junit.jupiter.api.Test;
@@ -640,5 +638,22 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     return GET("/system/taskSummaries/{type}/{id}", jobType, id)
         .content()
         .as(JsonDataIntegrityReport.class);
+  }
+
+  private static String objectReferences(String... uids) {
+    StringBuilder str = new StringBuilder();
+    str.append('[');
+    for (String uid : uids) {
+      if (str.length() > 1) {
+        str.append(',');
+      }
+      str.append(objectReference(uid));
+    }
+    str.append(']');
+    return str.toString();
+  }
+
+  private static String objectReference(String uid) {
+    return String.format("{\"id\":\"%s\"}", uid);
   }
 }

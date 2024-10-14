@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.utils.JavaToJson.toJson;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 
 import java.util.List;
 import java.util.Map;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.utils.JavaToJson;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.springframework.transaction.annotation.Transactional;
 

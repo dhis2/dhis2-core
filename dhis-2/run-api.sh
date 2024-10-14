@@ -59,7 +59,7 @@ function build_dhis2() {
     --file "$(dirname "$0")/pom.xml" \
     --batch-mode --threads 100C \
     -DskipTests -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true \
-    --activate-profiles dev,embedded
+    --activate-profiles embedded
 }
 
 # Read command line options

@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.imports.converter;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.util.Date;
-import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -52,7 +51,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service
 public class EnrollmentTrackerConverterService
-    implements RuleEngineConverterService<
+    implements TrackerConverterService<
         org.hisp.dhis.tracker.imports.domain.Enrollment, Enrollment> {
   private final NotesConverterService notesConverterService;
 
@@ -61,38 +60,7 @@ public class EnrollmentTrackerConverterService
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
       UserDetails user) {
-    Enrollment preheatEnrollment = preheat.getEnrollment(enrollment.getEnrollment());
-    return from(preheat, enrollment, preheatEnrollment, user);
-  }
-
-  @Override
-  public List<Enrollment> from(
-      TrackerPreheat preheat,
-      List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments,
-      UserDetails user) {
-    return enrollments.stream()
-        .map(enrollment -> from(preheat, enrollment, user))
-        .collect(Collectors.toList());
-  }
-
-  @Override
-  public Enrollment fromForRuleEngine(
-      TrackerPreheat preheat,
-      org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
-      UserDetails user) {
-    Enrollment from = from(preheat, enrollment, null, user);
-    Enrollment preheatEnrollment = preheat.getEnrollment(enrollment.getUid());
-    if (preheatEnrollment != null) {
-      from.setCreated(preheatEnrollment.getCreated());
-    }
-    return from;
-  }
-
-  private Enrollment from(
-      TrackerPreheat preheat,
-      org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
-      Enrollment dbEnrollment,
-      UserDetails user) {
+    Enrollment dbEnrollment = preheat.getEnrollment(enrollment.getEnrollment());
     OrganisationUnit organisationUnit = preheat.getOrganisationUnit(enrollment.getOrgUnit());
 
     Program program = preheat.getProgram(enrollment.getProgram());
@@ -145,7 +113,10 @@ public class EnrollmentTrackerConverterService
     if (isNotEmpty(enrollment.getNotes())) {
       dbEnrollment
           .getNotes()
-          .addAll(notesConverterService.from(preheat, enrollment.getNotes(), user));
+          .addAll(
+              enrollment.getNotes().stream()
+                  .map(note -> notesConverterService.from(preheat, note, user))
+                  .collect(Collectors.toSet()));
     }
     return dbEnrollment;
   }

@@ -46,24 +46,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import kotlinx.datetime.Instant;
-import kotlinx.datetime.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.constant.ConstantService;
+import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.rules.api.DataItem;
 import org.hisp.dhis.rules.api.EnvironmentVariables;
 import org.hisp.dhis.rules.api.ItemValueType;
@@ -71,12 +65,6 @@ import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.Option;
 import org.hisp.dhis.rules.models.Rule;
 import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleAttributeValue;
-import org.hisp.dhis.rules.models.RuleDataValue;
-import org.hisp.dhis.rules.models.RuleEnrollment;
-import org.hisp.dhis.rules.models.RuleEnrollmentStatus;
-import org.hisp.dhis.rules.models.RuleEvent;
-import org.hisp.dhis.rules.models.RuleEventStatus;
 import org.hisp.dhis.rules.models.RuleValueType;
 import org.hisp.dhis.rules.models.RuleVariable;
 import org.hisp.dhis.rules.models.RuleVariableAttribute;
@@ -85,8 +73,6 @@ import org.hisp.dhis.rules.models.RuleVariableCurrentEvent;
 import org.hisp.dhis.rules.models.RuleVariableNewestEvent;
 import org.hisp.dhis.rules.models.RuleVariableNewestStageEvent;
 import org.hisp.dhis.rules.models.RuleVariablePreviousEvent;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -96,14 +82,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleEntityMapperService")
 public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityMapperService {
-  private final ProgramRuleVariableService programRuleVariableService;
-
-  private final ConstantService constantService;
-
   private final I18nManager i18nManager;
 
   @Override
-  public List<Rule> toMappedProgramRules(List<ProgramRule> programRules) {
+  public List<Rule> toRules(@Nonnull List<ProgramRule> programRules) {
     return programRules.stream()
         .map(this::toRule)
         .filter(rule -> !rule.getActions().isEmpty())
@@ -111,16 +93,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
   }
 
   @Override
-  public List<RuleVariable> toMappedProgramRuleVariables() {
-    List<ProgramRuleVariable> programRuleVariables =
-        programRuleVariableService.getAllProgramRuleVariable();
-
-    return toMappedProgramRuleVariables(programRuleVariables);
-  }
-
-  @Override
-  public List<RuleVariable> toMappedProgramRuleVariables(
-      List<ProgramRuleVariable> programRuleVariables) {
+  public List<RuleVariable> toRuleVariables(
+      @Nonnull List<ProgramRuleVariable> programRuleVariables) {
     return programRuleVariables.stream()
         .filter(Objects::nonNull)
         .map(this::toRuleVariable)
@@ -128,7 +102,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
   }
 
   @Override
-  public Map<String, DataItem> getItemStore(List<ProgramRuleVariable> programRuleVariables) {
+  public Map<String, DataItem> getItemStore(
+      @Nonnull List<ProgramRuleVariable> programRuleVariables, @Nonnull List<Constant> constants) {
     Map<String, DataItem> itemStore = new HashMap<>();
 
     // program rule variables
@@ -138,19 +113,16 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                 ObjectUtils.firstNonNull(prv.getName(), prv.getDisplayName()),
                 getDescription(prv)));
 
-    // constants
-    constantService
-        .getAllConstants()
-        .forEach(
-            constant ->
-                itemStore.put(
-                    constant.getUid(),
-                    new DataItem(
-                        ObjectUtils.firstNonNull(
-                            constant.getDisplayName(),
-                            constant.getDisplayFormName(),
-                            constant.getName()),
-                        ItemValueType.NUMBER)));
+    constants.forEach(
+        constant ->
+            itemStore.put(
+                constant.getUid(),
+                new DataItem(
+                    ObjectUtils.firstNonNull(
+                        constant.getDisplayName(),
+                        constant.getDisplayFormName(),
+                        constant.getName()),
+                    ItemValueType.NUMBER)));
 
     // program variables
     EnvironmentVariables.INSTANCE
@@ -164,104 +136,6 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                         value)));
 
     return itemStore;
-  }
-
-  @Override
-  public RuleEnrollment toMappedRuleEnrollment(
-      @Nonnull Enrollment enrollment,
-      List<TrackedEntityAttributeValue> trackedEntityAttributeValues) {
-    String orgUnit = "";
-    String orgUnitCode = "";
-
-    if (enrollment.getOrganisationUnit() != null) {
-      orgUnit = enrollment.getOrganisationUnit().getUid();
-      orgUnitCode = enrollment.getOrganisationUnit().getCode();
-    }
-
-    List<RuleAttributeValue> ruleAttributeValues =
-        trackedEntityAttributeValues.stream()
-            .filter(Objects::nonNull)
-            .map(
-                attr ->
-                    new RuleAttributeValue(
-                        attr.getAttribute().getUid(), getTrackedEntityAttributeValue(attr)))
-            .toList();
-
-    return new RuleEnrollment(
-        enrollment.getUid(),
-        enrollment.getProgram().getName(),
-        LocalDateTime.Formats.INSTANCE
-            .getISO()
-            .parse(DateUtils.toIso8601NoTz(enrollment.getOccurredDate()))
-            .getDate(),
-        LocalDateTime.Formats.INSTANCE
-            .getISO()
-            .parse(DateUtils.toIso8601NoTz(enrollment.getEnrollmentDate()))
-            .getDate(),
-        RuleEnrollmentStatus.valueOf(enrollment.getStatus().toString()),
-        orgUnit,
-        orgUnitCode,
-        ruleAttributeValues);
-  }
-
-  @Override
-  public List<RuleEvent> toMappedRuleEvents(Set<Event> events) {
-    return events.stream().map(this::toMappedRuleEvent).toList();
-  }
-
-  @Override
-  public RuleEvent toMappedRuleEvent(@Nonnull Event eventToEvaluate) {
-    String orgUnit = getOrgUnit(eventToEvaluate);
-    String orgUnitCode = getOrgUnitCode(eventToEvaluate);
-
-    return new RuleEvent(
-        eventToEvaluate.getUid(),
-        eventToEvaluate.getProgramStage().getUid(),
-        eventToEvaluate.getProgramStage().getName(),
-        RuleEventStatus.valueOf(eventToEvaluate.getStatus().toString()),
-        eventToEvaluate.getOccurredDate() != null
-            ? Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getOccurredDate().getTime())
-            : Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getScheduledDate().getTime()),
-        Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getCreated().getTime()),
-        eventToEvaluate.getScheduledDate() == null
-            ? null
-            : LocalDateTime.Formats.INSTANCE
-                .getISO()
-                .parse(DateUtils.toIso8601NoTz(eventToEvaluate.getScheduledDate()))
-                .getDate(),
-        eventToEvaluate.getCompletedDate() == null
-            ? null
-            : LocalDateTime.Formats.INSTANCE
-                .getISO()
-                .parse(DateUtils.toIso8601NoTz(eventToEvaluate.getCompletedDate()))
-                .getDate(),
-        orgUnit,
-        orgUnitCode,
-        eventToEvaluate.getEventDataValues().stream()
-            .filter(Objects::nonNull)
-            .filter(dv -> dv.getValue() != null)
-            .map(dv -> new RuleDataValue(dv.getDataElement(), dv.getValue()))
-            .toList());
-  }
-
-  // ---------------------------------------------------------------------
-  // Supportive Methods
-  // ---------------------------------------------------------------------
-
-  private String getOrgUnit(Event event) {
-    if (event.getOrganisationUnit() != null) {
-      return event.getOrganisationUnit().getUid();
-    }
-
-    return "";
-  }
-
-  private String getOrgUnitCode(Event event) {
-    if (event.getOrganisationUnit() != null) {
-      return event.getOrganisationUnit().getCode();
-    }
-
-    return "";
   }
 
   private Rule toRule(@Nonnull ProgramRule programRule) {
@@ -536,20 +410,6 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             programRuleAction.getProgramRule().getUid()));
 
     return StringUtils.EMPTY;
-  }
-
-  private String getTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue) {
-    ValueType valueType = attributeValue.getAttribute().getValueType();
-
-    if (valueType.isBoolean()) {
-      return attributeValue.getValue() != null ? attributeValue.getValue() : "false";
-    }
-
-    if (valueType.isNumeric()) {
-      return attributeValue.getValue() != null ? attributeValue.getValue() : "0";
-    }
-
-    return attributeValue.getValue() != null ? attributeValue.getValue() : "";
   }
 
   private ItemValueType getItemValueType(ValueType valueType) {

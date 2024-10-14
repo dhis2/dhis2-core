@@ -29,16 +29,12 @@ package org.hisp.dhis.tracker.imports.converter;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -61,65 +57,13 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service
 public class EventTrackerConverterService
-    implements RuleEngineConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> {
+    implements TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> {
   private final NotesConverterService notesConverterService;
 
   @Override
   public Event from(
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event, UserDetails user) {
-    return from(preheat, event, preheat.getEvent(event.getEvent()), user);
-  }
-
-  @Override
-  public List<Event> from(
-      TrackerPreheat preheat,
-      List<org.hisp.dhis.tracker.imports.domain.Event> events,
-      UserDetails user) {
-    return events.stream().map(e -> from(preheat, e, user)).toList();
-  }
-
-  @Override
-  public Event fromForRuleEngine(
-      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event, UserDetails user) {
-    Event result = from(preheat, event, null, user);
-    // merge data values from DB
-    result.getEventDataValues().addAll(getDataValues(preheat, event));
-    Event preheatEvent = preheat.getEvent(event.getUid());
-    if (preheatEvent != null) {
-      result.setCreated(preheatEvent.getCreated());
-    }
-    return result;
-  }
-
-  private List<EventDataValue> getDataValues(
-      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event) {
-    List<EventDataValue> eventDataValues = new ArrayList<>();
-    if (preheat.getEvent(event.getEvent()) == null) {
-      return eventDataValues;
-    }
-
-    // Normalize identifiers as EventDataValue.dataElement are UIDs and
-    // payload dataElements can be in any idScheme
-    Set<String> dataElements =
-        event.getDataValues().stream()
-            .map(DataValue::getDataElement)
-            .map(preheat::getDataElement)
-            .filter(java.util.Objects::nonNull)
-            .map(IdentifiableObject::getUid)
-            .collect(Collectors.toSet());
-    for (EventDataValue eventDataValue : preheat.getEvent(event.getEvent()).getEventDataValues()) {
-      if (!dataElements.contains(eventDataValue.getDataElement())) {
-        eventDataValues.add(eventDataValue);
-      }
-    }
-    return eventDataValues;
-  }
-
-  private Event from(
-      TrackerPreheat preheat,
-      org.hisp.dhis.tracker.imports.domain.Event event,
-      Event result,
-      UserDetails user) {
+    Event result = preheat.getEvent(event.getEvent());
     ProgramStage programStage = preheat.getProgramStage(event.getProgramStage());
     Program program = preheat.getProgram(event.getProgram());
     OrganisationUnit organisationUnit = preheat.getOrganisationUnit(event.getOrgUnit());
@@ -199,7 +143,12 @@ public class EventTrackerConverterService
     }
 
     if (isNotEmpty(event.getNotes())) {
-      result.getNotes().addAll(notesConverterService.from(preheat, event.getNotes(), user));
+      result
+          .getNotes()
+          .addAll(
+              event.getNotes().stream()
+                  .map(note -> notesConverterService.from(preheat, note, user))
+                  .collect(Collectors.toSet()));
     }
 
     return result;

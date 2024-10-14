@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -35,10 +35,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Locale;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.setting.SystemSettingsService;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingsService;

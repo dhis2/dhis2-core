@@ -28,13 +28,13 @@
 package org.hisp.dhis.webapi.controller;
 
 import static com.google.common.collect.Sets.newHashSet;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
-import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;

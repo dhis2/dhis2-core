@@ -25,15 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.web;
+package org.hisp.dhis.http;
 
 import static org.apache.commons.lang3.ArrayUtils.insert;
-import static org.hisp.dhis.test.web.WebClientUtils.assertSeries;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
-import static org.hisp.dhis.test.web.WebClientUtils.callAndFailOnException;
-import static org.hisp.dhis.test.web.WebClientUtils.fileContent;
-import static org.hisp.dhis.test.web.WebClientUtils.requestComponentsIn;
-import static org.hisp.dhis.test.web.WebClientUtils.substitutePlaceholders;
+import static org.hisp.dhis.http.HttpAssertions.assertSeries;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.exceptionAsFail;
+import static org.hisp.dhis.http.HttpClientUtils.fileContent;
+import static org.hisp.dhis.http.HttpClientUtils.requestComponentsIn;
+import static org.hisp.dhis.http.HttpClientUtils.substitutePlaceholders;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -58,7 +58,7 @@ import org.intellij.lang.annotations.Language;
  */
 @FunctionalInterface
 @SuppressWarnings("java:S100")
-public interface WebClient {
+public interface HttpClientAdapter {
 
   /**
    * Execute the request with the provided parameters.
@@ -130,23 +130,27 @@ public interface WebClient {
 
   record Body(String content) implements RequestComponent {}
 
+  @Nonnull
   default HttpResponse GET(String url, Object... args) {
     return perform(HttpMethod.GET, substitutePlaceholders(url, args), requestComponentsIn(args));
   }
 
+  @Nonnull
   default HttpResponse POST(String url, Object... args) {
     return perform(HttpMethod.POST, substitutePlaceholders(url, args), requestComponentsIn(args));
   }
 
+  @Nonnull
   default HttpResponse POST(String url, @Language("json5") String body) {
     return perform(HttpMethod.POST, url, new Body(body));
   }
 
+  @Nonnull
   default HttpResponse POST(String url, Path body) {
-    return callAndFailOnException(
-        () -> POST(url, Body(fileContent(body.toString())), ContentType(body)));
+    return exceptionAsFail(() -> POST(url, Body(fileContent(body.toString())), ContentType(body)));
   }
 
+  @Nonnull
   default HttpResponse PATCH(String url, Object... args) {
     // Default mime-type is added as first element so that content type in
     // arguments does not override it
@@ -156,8 +160,9 @@ public interface WebClient {
         insert(0, requestComponentsIn(args), ContentType("application/json-patch+json")));
   }
 
+  @Nonnull
   default HttpResponse PATCH(String url, Path body) {
-    return callAndFailOnException(
+    return exceptionAsFail(
         () ->
             PATCH(
                 url,
@@ -165,31 +170,37 @@ public interface WebClient {
                 ContentType("application/json-patch+json")));
   }
 
+  @Nonnull
   default HttpResponse PATCH(String url, @Language("json5") String body) {
     return perform(HttpMethod.PATCH, url, ContentType("application/json-patch+json"), Body(body));
   }
 
+  @Nonnull
   default HttpResponse PUT(String url, Object... args) {
     return perform(HttpMethod.PUT, substitutePlaceholders(url, args), requestComponentsIn(args));
   }
 
+  @Nonnull
   default HttpResponse PUT(String url, Path body) {
-    return callAndFailOnException(
-        () -> PUT(url, Body(fileContent(body.toString())), ContentType(body)));
+    return exceptionAsFail(() -> PUT(url, Body(fileContent(body.toString())), ContentType(body)));
   }
 
+  @Nonnull
   default HttpResponse PUT(String url, @Language("json5") String body) {
     return perform(HttpMethod.PUT, url, new Body(body));
   }
 
+  @Nonnull
   default HttpResponse DELETE(String url, Object... args) {
     return perform(HttpMethod.DELETE, substitutePlaceholders(url, args), requestComponentsIn(args));
   }
 
+  @Nonnull
   default HttpResponse DELETE(String url, @Language("json5") String body) {
     return perform(HttpMethod.DELETE, url, new Body(body));
   }
 
+  @Nonnull
   default HttpResponse perform(HttpMethod method, String url, RequestComponent... components) {
     // configure headers
     String contentMediaType = null;
@@ -205,7 +216,7 @@ public interface WebClient {
       }
     }
     // configure body
-    Body bodyComponent = WebClientUtils.getComponent(Body.class, components);
+    Body bodyComponent = HttpClientUtils.getComponent(Body.class, components);
     String body = bodyComponent == null ? "" : bodyComponent.content();
     String mediaType = contentMediaType != null ? contentMediaType : "application/json";
     if (body == null || body.isEmpty()) return perform(method, url, headers, null, null);
@@ -213,7 +224,7 @@ public interface WebClient {
     return perform(method, url, headers, mediaType, body);
   }
 
-  /** Implemented to adapt the {@link WebClient} API to an actual implementation response */
+  /** Implemented to adapt the {@link HttpClientAdapter} API to an actual implementation response */
   interface HttpResponseAdapter {
 
     /**
@@ -272,7 +283,7 @@ public interface WebClient {
       String actualContentType = header("Content-Type");
       assertNotNull(actualContentType, "response content-type was not set");
       if (!actualContentType.startsWith(contentType)) assertEquals(contentType, actualContentType);
-      return callAndFailOnException(response::getContent);
+      return exceptionAsFail(response::getContent);
     }
 
     public JsonMixed content() {
@@ -325,7 +336,7 @@ public interface WebClient {
     }
 
     public JsonMixed contentUnchecked() {
-      return callAndFailOnException(() -> JsonMixed.of(response.getContent()));
+      return exceptionAsFail(() -> JsonMixed.of(response.getContent()));
     }
 
     public String location() {

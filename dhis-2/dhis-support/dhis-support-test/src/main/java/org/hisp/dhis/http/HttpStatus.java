@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.web;
+package org.hisp.dhis.http;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toUnmodifiableMap;

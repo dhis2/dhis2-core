@@ -34,8 +34,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Calendar;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.setting.SystemSettingsService;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.AuthenticationApiTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonLoginResponse;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;

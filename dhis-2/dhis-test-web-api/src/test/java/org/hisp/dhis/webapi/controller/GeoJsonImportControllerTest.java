@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -41,11 +41,11 @@ import java.util.stream.IntStream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonNumber;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonImportConflict;
 import org.hisp.dhis.test.webapi.json.domain.JsonImportCount;

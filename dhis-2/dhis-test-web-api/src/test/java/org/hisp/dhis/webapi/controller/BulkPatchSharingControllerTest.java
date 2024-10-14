@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -37,8 +37,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.user.sharing.Sharing;

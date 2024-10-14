@@ -32,7 +32,6 @@ import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTAN
 import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 
 import java.util.Date;
-import java.util.List;
 import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -53,19 +52,6 @@ public class RelationshipTrackerConverterService
       TrackerPreheat preheat, Relationship fromRelationship, UserDetails user) {
     org.hisp.dhis.relationship.Relationship toRelationship =
         preheat.getRelationship(fromRelationship.getRelationship());
-    return from(preheat, fromRelationship, toRelationship);
-  }
-
-  @Override
-  public List<org.hisp.dhis.relationship.Relationship> from(
-      TrackerPreheat preheat, List<Relationship> fromRelationships, UserDetails user) {
-    return fromRelationships.stream().map(r -> from(preheat, r, user)).toList();
-  }
-
-  private org.hisp.dhis.relationship.Relationship from(
-      TrackerPreheat preheat,
-      Relationship fromRelationship,
-      org.hisp.dhis.relationship.Relationship toRelationship) {
     org.hisp.dhis.relationship.RelationshipType relationshipType =
         preheat.getRelationshipType(fromRelationship.getRelationshipType());
     org.hisp.dhis.relationship.RelationshipItem fromItem =

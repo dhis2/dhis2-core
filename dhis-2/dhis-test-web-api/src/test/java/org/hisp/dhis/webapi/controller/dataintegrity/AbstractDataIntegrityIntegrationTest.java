@@ -27,17 +27,18 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegrityDetails.JsonDataIntegrityIssue;
@@ -320,6 +321,7 @@ class AbstractDataIntegrityIntegrationTest extends PostgresControllerIntegration
     return ccDefault.getArray("categoryOptionCombos").getString(0).string();
   }
 
+  @Nonnull
   @Override
   public HttpResponse GET(String url, Object... args) {
     return super.GET(url, args);

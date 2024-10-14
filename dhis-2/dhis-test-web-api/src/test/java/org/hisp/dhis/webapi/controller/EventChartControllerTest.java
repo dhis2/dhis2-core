@@ -29,8 +29,8 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.test.web.HttpStatus.CREATED;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpStatus.CREATED;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
