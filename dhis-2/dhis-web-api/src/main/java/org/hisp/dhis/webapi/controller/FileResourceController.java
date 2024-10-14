@@ -30,6 +30,9 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeAvatarToDefaultSize;
+import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeIconToDefaultSize;
+import static org.hisp.dhis.webapi.utils.FileResourceUtils.validateCustomIconFile;
 
 import com.google.common.base.MoreObjects;
 import java.io.IOException;
@@ -145,8 +148,19 @@ public class FileResourceController {
       @RequestParam MultipartFile file,
       @RequestParam(defaultValue = "DATA_VALUE") FileResourceDomain domain,
       @RequestParam(required = false) String uid)
-      throws WebMessageException, IOException {
-    FileResource fileResource = fileResourceUtils.saveFileResource(uid, file, domain);
+      throws IOException, WebMessageException {
+    FileResource fileResource;
+
+    if (domain.equals(FileResourceDomain.ICON)) {
+      validateCustomIconFile(file);
+      fileResource = fileResourceUtils.saveFileResource(uid, resizeIconToDefaultSize(file), domain);
+    } else if (domain.equals(FileResourceDomain.USER_AVATAR)) {
+      fileResourceUtils.validateUserAvatar(file);
+      fileResource =
+          fileResourceUtils.saveFileResource(uid, resizeAvatarToDefaultSize(file), domain);
+    } else {
+      fileResource = fileResourceUtils.saveFileResource(uid, file, domain);
+    }
 
     WebMessage webMessage = new WebMessage(Status.OK, HttpStatus.ACCEPTED);
     webMessage.setResponse(new FileResourceWebMessageResponse(fileResource));

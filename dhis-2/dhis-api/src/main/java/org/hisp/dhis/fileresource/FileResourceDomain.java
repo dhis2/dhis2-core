@@ -38,7 +38,9 @@ public enum FileResourceDomain {
   DOCUMENT("document"),
   MESSAGE_ATTACHMENT("messageAttachment"),
   USER_AVATAR("userAvatar"),
-  ORG_UNIT("organisationUnit");
+  ORG_UNIT("organisationUnit"),
+  ICON("icon"),
+  JOB_DATA("jobData");
 
   /** Container name to use when storing blobs of this FileResourceDomain */
   private String containerName;
