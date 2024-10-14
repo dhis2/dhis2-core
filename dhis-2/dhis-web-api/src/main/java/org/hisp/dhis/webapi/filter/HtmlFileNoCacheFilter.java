@@ -48,8 +48,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Component
 public class HtmlFileNoCacheFilter extends OncePerRequestFilter {
   // Match paths with '/dhis-web-' or '/api/apps' that end with '.html' or '/'
-  // public static final String HTML_PATH_REGEX = "\\/(dhis-web-|api\\/apps).*(\\.html|\\/)$";
-  public static final String HTML_PATH_REGEX = "\\.html$|/$";
+  public static final String HTML_PATH_REGEX = "\\/(dhis-web-|api\\/apps).*(\\.html|\\/)$";
   public static final Pattern HTML_PATH_PATTERN = Pattern.compile(HTML_PATH_REGEX);
 
   @Override
