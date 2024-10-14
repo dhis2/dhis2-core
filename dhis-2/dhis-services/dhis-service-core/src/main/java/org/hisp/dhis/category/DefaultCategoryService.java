@@ -778,6 +778,12 @@ public class DefaultCategoryService implements CategoryService {
   }
 
   @Override
+  public List<CategoryOptionGroup> getCategoryOptionGroupByCategoryOption(
+      Collection<CategoryOption> categoryOptions) {
+    return categoryOptionGroupStore.getByCategoryOption(categoryOptions);
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public Set<CategoryOptionGroup> getCogDimensionConstraints(User user) {
     Set<CategoryOptionGroup> groups = null;

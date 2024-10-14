@@ -526,6 +526,9 @@ public interface CategoryService {
 
   List<CategoryOptionGroup> getCategoryOptionGroups(CategoryOptionGroupSet groupSet);
 
+  List<CategoryOptionGroup> getCategoryOptionGroupByCategoryOption(
+      Collection<CategoryOption> coSource1A);
+
   /**
    * Returns a set of CategoryOptionGroups that may be seen by the current user, if the current user
    * has any CategoryOptionGroupSet constraint(s).

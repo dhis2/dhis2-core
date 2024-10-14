@@ -30,7 +30,9 @@ package org.hisp.dhis.category.hibernate;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Join;
+import java.util.Collection;
 import java.util.List;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryOptionGroupStore;
@@ -73,5 +75,18 @@ public class HibernateCategoryOptionGroupStore
                 });
 
     return getList(builder, parameters);
+  }
+
+  @Override
+  public List<CategoryOptionGroup> getByCategoryOption(Collection<CategoryOption> categoryOptions) {
+    return getQuery(
+            """
+            select distinct cog from CategoryOptionGroup cog
+            join cog.members co
+            where co in :categoryOptions
+            """,
+            CategoryOptionGroup.class)
+        .setParameter("categoryOptions", categoryOptions)
+        .getResultList();
   }
 }

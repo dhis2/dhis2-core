@@ -33,6 +33,8 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupStore;
 import org.hisp.dhis.category.CategoryStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
@@ -49,6 +51,7 @@ public class CategoryOptionMergeHandler {
 
   private final CategoryStore categoryStore;
   private final CategoryOptionComboStore categoryOptionComboStore;
+  private final CategoryOptionGroupStore categoryOptionGroupStore;
   private final OrganisationUnitStore organisationUnitStore;
 
   /**
@@ -96,6 +99,22 @@ public class CategoryOptionMergeHandler {
         ou -> {
           ou.removeCategoryOptions(sources);
           ou.addCategoryOption(target);
+        });
+  }
+
+  /**
+   * Remove sources from {@link CategoryOptionGroup} and add target to {@link CategoryOptionGroup}
+   *
+   * @param sources to be removed
+   * @param target to add
+   */
+  public void handleCategoryOptionGroups(List<CategoryOption> sources, CategoryOption target) {
+    List<CategoryOptionGroup> sourceCogs = categoryOptionGroupStore.getByCategoryOption(sources);
+
+    sourceCogs.forEach(
+        cog -> {
+          cog.removeCategoryOptions(sources);
+          cog.addCategoryOption(target);
         });
   }
 }
