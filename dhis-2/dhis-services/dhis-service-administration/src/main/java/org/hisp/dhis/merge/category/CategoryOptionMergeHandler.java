@@ -34,6 +34,8 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.category.CategoryStore;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.springframework.stereotype.Service;
 
 /**
@@ -47,6 +49,7 @@ public class CategoryOptionMergeHandler {
 
   private final CategoryStore categoryStore;
   private final CategoryOptionComboStore categoryOptionComboStore;
+  private final OrganisationUnitStore organisationUnitStore;
 
   /**
    * Remove sources from {@link Category} and add target to {@link Category}
@@ -77,6 +80,22 @@ public class CategoryOptionMergeHandler {
         coc -> {
           coc.removeCategoryOptions(sources);
           coc.addCategoryOption(target);
+        });
+  }
+
+  /**
+   * Remove sources from {@link OrganisationUnit} and add target to {@link OrganisationUnit}
+   *
+   * @param sources to be removed
+   * @param target to add
+   */
+  public void handleOrganisationUnits(List<CategoryOption> sources, CategoryOption target) {
+    List<OrganisationUnit> sourceOus = organisationUnitStore.getByCategoryOption(sources);
+
+    sourceOus.forEach(
+        ou -> {
+          ou.removeCategoryOptions(sources);
+          ou.addCategoryOption(target);
         });
   }
 }

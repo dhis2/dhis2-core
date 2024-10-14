@@ -47,6 +47,7 @@ import javax.annotation.Nonnull;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.SortProperty;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -654,6 +655,11 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   @Override
   public List<String> getSearchOrganisationUnitsUidsByUser(String username) {
     return organisationUnitStore.getSearchOrganisationUnitsUidsByUser(username);
+  }
+
+  @Override
+  public List<OrganisationUnit> getByCategoryOption(Collection<CategoryOption> categoryOptions) {
+    return organisationUnitStore.getByCategoryOption(categoryOptions);
   }
 
   @Override

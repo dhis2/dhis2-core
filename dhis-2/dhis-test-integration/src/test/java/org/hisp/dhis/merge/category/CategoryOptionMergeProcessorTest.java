@@ -45,6 +45,8 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeParams;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -66,6 +68,7 @@ import org.springframework.transaction.annotation.Transactional;
 class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
+  @Autowired private OrganisationUnitService organisationUnitService;
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private CategoryOptionMergeProcessor mergeProcessor;
 
@@ -266,6 +269,93 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     assertEquals(5, targetCocs.size(), "Expect 5 entries with target category option refs");
 
     // 6 custom + 1 default
+    assertEquals(7, allCategoryOptions.size(), "Expect 7 category options present");
+    assertTrue(allCategoryOptions.contains(coTarget3A));
+    assertFalse(allCategoryOptions.containsAll(List.of(coSource1A, coSource2B)));
+  }
+
+  // -----------------------------
+  // --------- Org Unit ----------
+  // -----------------------------
+  @Test
+  @DisplayName("OrgUnit refs to source CategoryOptions are replaced, sources not deleted")
+  void orgUnitRefsReplacedSourcesNotDeletedTest() throws ConflictException {
+    // given
+    OrganisationUnit ou1 = createOrganisationUnit('x');
+    ou1.addCategoryOption(coSource1A);
+    ou1.addCategoryOption(co1B);
+
+    OrganisationUnit ou2 = createOrganisationUnit('y');
+    ou2.addCategoryOption(coSource2B);
+    ou2.addCategoryOption(co2A);
+
+    OrganisationUnit ou3 = createOrganisationUnit('z');
+    ou3.addCategoryOption(coTarget3A);
+    ou3.addCategoryOption(co4A);
+
+    OrganisationUnit ou4 = createOrganisationUnit('p');
+    ou4.addCategoryOption(co3B);
+    ou4.addCategoryOption(co4B);
+
+    manager.save(List.of(ou1, ou2, ou3, ou4));
+
+    // when
+    MergeParams mergeParams = getMergeParams();
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<OrganisationUnit> orgUnitSources =
+        organisationUnitService.getByCategoryOption(List.of(coSource1A, coSource2B));
+    List<OrganisationUnit> orgUnitTarget =
+        organisationUnitService.getByCategoryOption(List.of(coTarget3A));
+    List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, orgUnitSources.size(), "Expect 0 entries with source org units refs");
+    assertEquals(3, orgUnitTarget.size(), "Expect 3 entries with target org unit refs");
+
+    assertEquals(9, allCategoryOptions.size(), "Expect 9 category options present");
+    assertTrue(allCategoryOptions.containsAll(List.of(coTarget3A, coSource1A, coSource2B)));
+  }
+
+  @Test
+  @DisplayName("OrgUnit refs to source CategoryOptions are replaced, sources deleted")
+  void orgUnitRefsReplacedSourcesDeletedTest() throws ConflictException {
+    // given
+    OrganisationUnit ou1 = createOrganisationUnit('x');
+    ou1.addCategoryOption(coSource1A);
+    ou1.addCategoryOption(co1B);
+
+    OrganisationUnit ou2 = createOrganisationUnit('y');
+    ou2.addCategoryOption(coSource2B);
+    ou2.addCategoryOption(co2A);
+
+    OrganisationUnit ou3 = createOrganisationUnit('z');
+    ou3.addCategoryOption(coTarget3A);
+    ou3.addCategoryOption(co4A);
+
+    OrganisationUnit ou4 = createOrganisationUnit('p');
+    ou4.addCategoryOption(co3B);
+    ou4.addCategoryOption(co4B);
+
+    manager.save(List.of(ou1, ou2, ou3, ou4));
+
+    // when
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<OrganisationUnit> orgUnitSources =
+        organisationUnitService.getByCategoryOption(List.of(coSource1A, coSource2B));
+    List<OrganisationUnit> orgUnitTarget =
+        organisationUnitService.getByCategoryOption(List.of(coTarget3A));
+    List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, orgUnitSources.size(), "Expect 0 entries with source org units refs");
+    assertEquals(3, orgUnitTarget.size(), "Expect 3 entries with target org unit refs");
+
     assertEquals(7, allCategoryOptions.size(), "Expect 7 category options present");
     assertTrue(allCategoryOptions.contains(coTarget3A));
     assertFalse(allCategoryOptions.containsAll(List.of(coSource1A, coSource2B)));

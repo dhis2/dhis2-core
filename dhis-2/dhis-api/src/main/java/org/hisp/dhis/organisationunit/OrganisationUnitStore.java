@@ -32,6 +32,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.Program;
@@ -186,4 +187,12 @@ public interface OrganisationUnitStore
   List<String> getOrganisationUnitUids(OrganisationUnitQueryParams params);
 
   int updateAllOrganisationUnitsGeometryToNull();
+
+  /**
+   * Get OrganisationUnits with refs to any of the CategoryOptions passed in
+   *
+   * @param categoryOptions categoryOptions refs
+   * @return OrganisationUnits with refs to any of the CategoryOptions passed in
+   */
+  List<OrganisationUnit> getByCategoryOption(Collection<CategoryOption> categoryOptions);
 }
