@@ -29,21 +29,26 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
 
 class FileResourceControllerTest extends DhisControllerConvenienceTest {
 
   @Test
-  void testSaveOrgUnitImage() {
+  void testSaveOrgUnitImage() throws IOException {
+    File file = new ClassPathResource("file/dhis2.png").getFile();
     MockMultipartFile image =
         new MockMultipartFile(
-            "file", "OU_profile_image.png", "image/png", "<<png data>>".getBytes());
+            "file", "OU_profile_image.png", "image/png", Files.readAllBytes(file.toPath()));
     HttpResponse response = POST_MULTIPART("/fileResources?domain=ORG_UNIT", image);
     JsonObject savedObject =
         response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
@@ -51,10 +56,11 @@ class FileResourceControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testSaveOrgUnitImageWithUid() {
+  void testSaveOrgUnitImageWithUid() throws IOException {
+    File file = new ClassPathResource("file/dhis2.png").getFile();
     MockMultipartFile image =
         new MockMultipartFile(
-            "file", "OU_profile_image.png", "image/png", "<<png data>>".getBytes());
+            "file", "OU_profile_image.png", "image/png", Files.readAllBytes(file.toPath()));
     HttpResponse response = POST_MULTIPART("/fileResources?domain=ORG_UNIT&uid=0123456789a", image);
     JsonObject savedObject =
         response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
@@ -63,10 +69,11 @@ class FileResourceControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testSaveOrgUnitImageWithUid_Update() {
+  void testSaveOrgUnitImageWithUid_Update() throws IOException {
+    File file = new ClassPathResource("file/dhis2.png").getFile();
     MockMultipartFile image =
         new MockMultipartFile(
-            "file", "OU_profile_image.png", "image/png", "<<png data>>".getBytes());
+            "file", "OU_profile_image.png", "image/png", Files.readAllBytes(file.toPath()));
     HttpResponse response = POST_MULTIPART("/fileResources?domain=ORG_UNIT&uid=0123456789x", image);
     JsonObject savedObject =
         response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
@@ -76,7 +83,7 @@ class FileResourceControllerTest extends DhisControllerConvenienceTest {
     // now update the resource with a different image but the same UID
     MockMultipartFile image2 =
         new MockMultipartFile(
-            "file", "OU_profile_image2.png", "image/png", "<<png data>>".getBytes());
+            "file", "OU_profile_image2.png", "image/png", Files.readAllBytes(file.toPath()));
 
     JsonWebMessage message =
         assertWebMessage(

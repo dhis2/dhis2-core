@@ -34,7 +34,7 @@ import org.apache.commons.io.FilenameUtils;
  * @author Lars Helge Overland
  */
 public class FileResourceBlocklist {
-  private static final ImmutableSet<String> CONTENT_TYPES =
+  private static final ImmutableSet<String> BLOCKED_CONTENT_TYPES =
       ImmutableSet.of(
           // Web
           "text/html",
@@ -54,7 +54,7 @@ public class FileResourceBlocklist {
           "application/x-sh",
           "application/x-csh");
 
-  private static final ImmutableSet<String> FILE_EXTENSIONS =
+  private static final ImmutableSet<String> BLOCKED_FILE_EXTENSIONS =
       ImmutableSet.of(
           // Web
           "html",
@@ -93,11 +93,11 @@ public class FileResourceBlocklist {
       return false;
     }
 
-    if (CONTENT_TYPES.contains(fileResource.getContentType().toLowerCase())) {
+    if (BLOCKED_CONTENT_TYPES.contains(fileResource.getContentType().toLowerCase())) {
       return false;
     }
 
-    if (FILE_EXTENSIONS.contains(
+    if (BLOCKED_FILE_EXTENSIONS.contains(
         FilenameUtils.getExtension(fileResource.getName().toLowerCase()))) {
       return false;
     }
