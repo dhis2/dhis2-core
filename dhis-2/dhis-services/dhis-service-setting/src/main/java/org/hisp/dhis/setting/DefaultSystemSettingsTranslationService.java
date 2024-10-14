@@ -77,6 +77,8 @@ public class DefaultSystemSettingsTranslationService implements SystemSettingsTr
   public void saveSystemSettingTranslation(
       @Nonnull String key, @Nonnull String locale, String translation)
       throws ForbiddenException, BadRequestException {
+    if (!SystemSettings.isTranslatable(key))
+      throw new BadRequestException("Not translatable: " + key);
     DatastoreEntry e = datastore.getEntry(NS, key);
     if (translation == null || translation.isEmpty()) {
       if (e == null) return;

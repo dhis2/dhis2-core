@@ -39,6 +39,7 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -47,6 +48,8 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.jsontree.Json;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -89,8 +92,9 @@ public class SystemSettingsController {
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
   public WebMessage setSystemSettingPlain(
-      @PathVariable("key") String key, @RequestParam(value = "value") String value) {
-    settingsService.put(key, value);
+      @PathVariable("key") String key, @RequestParam(value = "value") String value)
+      throws NotFoundException, BadRequestException {
+    settingsService.putAll(Map.of(key, value));
     return ok("System setting '" + key + "' set to value '" + value + "'.");
   }
 
@@ -98,7 +102,8 @@ public class SystemSettingsController {
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
   public WebMessage setSystemSettingPlainBody(
-      @PathVariable("key") String key, @RequestBody String value) {
+      @PathVariable("key") String key, @RequestBody String value)
+      throws NotFoundException, BadRequestException {
     return setSystemSettingPlain(key, value);
   }
 
@@ -107,27 +112,32 @@ public class SystemSettingsController {
   @ResponseBody
   public WebMessage setSystemSettingJson(
       @PathVariable("key") String key, @Language("json") @RequestBody String value)
-      throws ConflictException {
+      throws ConflictException, NotFoundException, BadRequestException {
     return setSystemSettingPlain(key, toJavaString(JsonMixed.of(value)));
   }
 
   @PostMapping(consumes = ContextUtils.CONTENT_TYPE_JSON)
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
-  public WebMessage setSystemSettingsJson(@RequestBody Map<String, String> settings) {
+  public WebMessage setSystemSettingsJson(@RequestBody Map<String, String> settings)
+      throws NotFoundException, BadRequestException {
     settingsService.putAll(settings);
     return ok("System settings imported");
   }
 
   @GetMapping(value = "/{key}", produces = TEXT_PLAIN_VALUE)
   public ResponseEntity<String> getSystemSettingPlain(@PathVariable("key") String key)
-      throws ForbiddenException, ConflictException {
+      throws ForbiddenException, ConflictException, NotFoundException {
+    checkExists(key);
     if (SystemSettings.isConfidential(key) && !getCurrentUserDetails().isSuper())
       throw new ForbiddenException("Setting is marked as confidential");
-    return ResponseEntity.ok()
-        .headers(noCacheNoStoreMustRevalidate())
-        .body(
-            toJavaString(settingsService.getCurrentSettings().toJson(true, Set.of(key)).get(key)));
+
+    String value = "";
+    // Note: This exception is added in for backwards compatibility
+    if (SystemSettings.isTranslatable(key)) value = getSystemSettingTranslation(key);
+    if (value.isEmpty())
+      value = toJavaString(settingsService.getCurrentSettings().toJson(true, Set.of(key)).get(key));
+    return ResponseEntity.ok().headers(noCacheNoStoreMustRevalidate()).body(value);
   }
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
@@ -140,18 +150,27 @@ public class SystemSettingsController {
   @GetMapping(value = "/{key}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonMap<JsonMixed>> getSystemSettingJson(
       @PathVariable("key") String key, @CurrentUser UserDetails currentUser)
-      throws ForbiddenException {
+      throws ForbiddenException, NotFoundException {
+    checkExists(key);
     if (SystemSettings.isConfidential(key) && !currentUser.isSuper())
       throw new ForbiddenException("Setting is marked as confidential");
-    return ResponseEntity.ok()
-        .headers(noCacheNoStoreMustRevalidate())
-        .body(settingsService.getCurrentSettings().toJson(true, Set.of(key)));
+
+    JsonMap<JsonMixed> value = Json.ofNull().asMap(JsonMixed.class);
+    if (SystemSettings.isTranslatable(key)) {
+      String translation = getSystemSettingTranslation(key);
+      if (!translation.isEmpty()) {
+        value = Json.object(obj -> obj.addString(key, translation)).asMap(JsonMixed.class);
+      }
+    }
+    if (value.isNull()) value = settingsService.getCurrentSettings().toJson(true, Set.of(key));
+    return ResponseEntity.ok().headers(noCacheNoStoreMustRevalidate()).body(value);
   }
 
   @DeleteMapping("/{key}")
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseStatus(value = NO_CONTENT)
-  public void removeSystemSetting(@PathVariable("key") String key) {
+  public void removeSystemSetting(@PathVariable("key") String key) throws NotFoundException {
+    checkExists(key);
     settingsService.deleteAll(Set.of(key));
   }
 
@@ -171,14 +190,21 @@ public class SystemSettingsController {
   @GetMapping(value = "/{key}", params = "locale", produces = TEXT_PLAIN_VALUE)
   public @ResponseBody ResponseEntity<String> getSystemSettingTranslation(
       @PathVariable("key") String key, @RequestParam("locale") String locale)
-      throws ForbiddenException, ConflictException {
-    if (locale == null || locale.isEmpty())
-      locale = UserSettings.getCurrentSettings().getUserUiLocale().getLanguage();
+      throws ForbiddenException, ConflictException, NotFoundException {
+    checkExists(key);
+    if (locale == null || locale.isEmpty()) locale = getUserUiLanguage();
     Optional<String> translation =
         settingsTranslationService.getSystemSettingTranslation(key, locale);
     if (translation.isPresent())
       return ResponseEntity.ok().headers(noCacheNoStoreMustRevalidate()).body(translation.get());
     return getSystemSettingPlain(key);
+  }
+
+  @Nonnull
+  private String getSystemSettingTranslation(String key) {
+    return settingsTranslationService
+        .getSystemSettingTranslation(key, getUserUiLanguage())
+        .orElse("");
   }
 
   @PostMapping(
@@ -217,5 +243,14 @@ public class SystemSettingsController {
       @PathVariable("key") String key, @RequestParam("locale") String locale)
       throws ForbiddenException, BadRequestException {
     settingsTranslationService.saveSystemSettingTranslation(key, locale, StringUtils.EMPTY);
+  }
+
+  private static void checkExists(String key) throws NotFoundException {
+    if (!SystemSettings.keysWithDefaults().contains(key))
+      throw new NotFoundException("Setting does not exist");
+  }
+
+  private static String getUserUiLanguage() {
+    return UserSettings.getCurrentSettings().getUserUiLocale().getLanguage();
   }
 }

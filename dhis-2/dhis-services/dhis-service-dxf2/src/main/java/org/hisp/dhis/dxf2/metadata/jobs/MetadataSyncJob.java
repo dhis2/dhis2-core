@@ -28,11 +28,9 @@
 package org.hisp.dhis.dxf2.metadata.jobs;
 
 import static java.lang.String.format;
-import static java.util.Map.entry;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +48,6 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
-import org.hisp.dhis.setting.Settings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
@@ -204,10 +201,8 @@ public class MetadataSyncJob implements Job {
 
     if (version != null) {
       MetadataVersion metadataVersion = (MetadataVersion) version;
-      settingsService.putAll(
-          Map.ofEntries(
-              entry("keyMetadataFailedVersion", metadataVersion.getName()),
-              entry("keyMetadataLastFailedTime", Settings.valueOf(new Date()))));
+      settingsService.put("keyMetadataFailedVersion", metadataVersion.getName());
+      settingsService.put("keyMetadataLastFailedTime", new Date());
     }
   }
 

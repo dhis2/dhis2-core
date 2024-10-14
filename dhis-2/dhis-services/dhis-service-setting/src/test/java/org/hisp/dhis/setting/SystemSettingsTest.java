@@ -31,8 +31,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
@@ -55,6 +57,15 @@ class SystemSettingsTest {
   private static final List<String> CONFIDENTIAL_KEYS =
       List.of("keyEmailPassword", "keyRemoteInstancePassword", "recaptchaSite", "recaptchaSecret");
 
+  private static final List<String> TRANSLATABLE_KEYS =
+      List.of(
+          "applicationTitle",
+          "keyApplicationIntro",
+          "keyApplicationNotification",
+          "keyApplicationFooter",
+          "keyApplicationRightFooter",
+          "loginPopup");
+
   @Test
   void testIsConfidential() {
     CONFIDENTIAL_KEYS.forEach(
@@ -63,6 +74,16 @@ class SystemSettingsTest {
                 SystemSettings.isConfidential(key), "%s should be confidential".formatted(key)));
 
     assertFalse(SystemSettings.isConfidential("keyEmailHostName"));
+  }
+
+  @Test
+  void testIsTranslatable() {
+    TRANSLATABLE_KEYS.forEach(
+        key ->
+            assertTrue(
+                SystemSettings.isTranslatable(key), "%s should be translatable".formatted(key)));
+
+    assertFalse(SystemSettings.isTranslatable("recaptchaSite"));
   }
 
   @Test
@@ -127,5 +148,70 @@ class SystemSettingsTest {
         SystemSettings.of(
             Map.of("keyLastSuccessfulResourceTablesUpdate", Settings.valueOf(new Date(123456L))));
     assertEquals(new Date(123456L), settings.getLastSuccessfulResourceTablesUpdate());
+  }
+
+  @Test
+  void testAsLocale() {
+    assertEquals(
+        Locale.forLanguageTag("fr"), SystemSettings.of(Map.of("keyUiLocale", "fr")).getUiLocale());
+  }
+
+  @Test
+  void testIsValid_Boolean() {
+    SystemSettings settings = SystemSettings.of(Map.of());
+    assertTrue(settings.isValid("keyEmailTls", "true"));
+    assertTrue(settings.isValid("keyEmailTls", "false"));
+    assertFalse(settings.isValid("keyEmailTls", "hello"));
+    assertFalse(settings.isValid("keyEmailTls", "1"));
+  }
+
+  @Test
+  void testIsValid_Int() {
+    SystemSettings settings = SystemSettings.of(Map.of());
+    assertTrue(settings.isValid("keyEmailPort", "1"));
+    assertTrue(settings.isValid("keyEmailPort", "42"));
+    assertTrue(settings.isValid("keyEmailPort", "-567"));
+    assertFalse(settings.isValid("keyEmailPort", "hello"));
+    assertFalse(settings.isValid("keyEmailPort", "true"));
+  }
+
+  @Test
+  void testIsValid_Double() {
+    SystemSettings settings = SystemSettings.of(Map.of());
+    assertTrue(settings.isValid("factorDeviation", "1"));
+    assertTrue(settings.isValid("factorDeviation", "42.5"));
+    assertTrue(settings.isValid("factorDeviation", "-0.567"));
+    assertFalse(settings.isValid("factorDeviation", "hello"));
+    assertFalse(settings.isValid("factorDeviation", "true"));
+  }
+
+  @Test
+  void testIsValid_Locale() {
+    SystemSettings settings = SystemSettings.of(Map.of());
+    assertTrue(settings.isValid("keyDbLocale", "fr"));
+    assertTrue(settings.isValid("keyDbLocale", "de_DE"));
+    assertFalse(settings.isValid("keyDbLocale", "hello"));
+    assertFalse(settings.isValid("keyDbLocale", "true"));
+    assertFalse(settings.isValid("keyDbLocale", "42"));
+  }
+
+  @Test
+  void testIsValid_Enum() {
+    SystemSettings settings = SystemSettings.of(Map.of());
+    assertTrue(settings.isValid("keyCacheStrategy", "NO_CACHE"));
+    assertTrue(settings.isValid("keyCacheStrategy", "CACHE_1_HOUR"));
+    assertFalse(settings.isValid("keyCacheStrategy", "hello"));
+    assertFalse(settings.isValid("keyCacheStrategy", "true"));
+    assertFalse(settings.isValid("keyCacheStrategy", "42"));
+  }
+
+  @Test
+  void testIsValid_Date() {
+    SystemSettings settings = SystemSettings.of(Map.of());
+    assertTrue(settings.isValid("keyLastMonitoringRun", "42789654"));
+    String date = LocalDateTime.of(2020, 12, 12, 0, 0).toString();
+    assertTrue(settings.isValid("keyLastMonitoringRun", date));
+    assertFalse(settings.isValid("keyLastMonitoringRun", "hello"));
+    assertFalse(settings.isValid("keyLastMonitoringRun", "true"));
   }
 }
