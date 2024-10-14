@@ -323,7 +323,7 @@ class DataElementMergeTest extends ApiTest {
   }
 
   private void setupMinMaxDataElements(String sourceUid1, String sourceUid2, String targetUid) {
-    metadataApiActions.importMetadata(metadata()).validateStatus(200);
+    metadataApiActions.importMetadata(metadata(), "async=false").validateStatus(200);
     minMaxActions.post(minMaxDataElements("OrgUnit0001", sourceUid1, "CatOptCom01"));
     minMaxActions.post(minMaxDataElements("OrgUnit0001", sourceUid2, "CatOptCom01"));
     minMaxActions.post(minMaxDataElements("OrgUnit0001", targetUid, "CatOptCom01"));
