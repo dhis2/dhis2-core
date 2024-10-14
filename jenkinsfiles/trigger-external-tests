@@ -66,7 +66,7 @@ pipeline {
             }
         }
 
-        stage('Deploy DHIS2 instance') {
+        stage('Deploy DHIS2 Instance') {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
@@ -123,10 +123,33 @@ pipeline {
             }
         }
 
+        stage('Install Apps from App Hub') {
+            steps {
+                script {
+                    echo 'Installing necessary apps from App Hub...'
+                    sh """
+                        chmod +x $WORKSPACE/scripts/install_apps_from_app_hub.sh
+                        BASE_URL=$INSTANCE_URL USERNAME=$USERNAME PASSWORD=$PASSWORD $WORKSPACE/scripts/install_apps_from_app_hub.sh
+                    """
+                }
+            }
+        }
+
+        stage('Generate Analytics Tables') {
+            steps {
+                script {
+                    echo 'Generating analytics tables...'
+                    sh """
+                        chmod +x $WORKSPACE/scripts/generate_analytics_tables.sh
+                        BASE_URL=$INSTANCE_URL USERNAME=$USERNAME PASSWORD=$PASSWORD $WORKSPACE/scripts/generate_analytics_tables.sh
+                    """
+                }
+            }
+        }
+
         stage('Trigger Cypress Tests') {
             steps {
                 script {
-                    // def repos = ['dhis2/line-listing-app', 'dhis2/data-visualizer-app', 'dhis2/aggregate-data-entry-app', 'dhis2/dashboard-app', 'dhis2/capture-app', 'dhis2/maps-app', 'dhis2/user-app']
                     def repos = ['dhis2/line-listing-app', 'dhis2/aggregate-data-entry-app']
                     def payload = [
                         dhis2_version: env.DOCKER_IMAGE_TAG,
