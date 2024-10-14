@@ -124,6 +124,7 @@ public class CategoryOptionMergeService implements MergeService {
             .add(categoryOptionMergeHandler::handleCategories)
             .add(categoryOptionMergeHandler::handleCategoryOptionCombos)
             .add(categoryOptionMergeHandler::handleOrganisationUnits)
+            .add(categoryOptionMergeHandler::handleCategoryOptionGroups)
             .build();
   }
 

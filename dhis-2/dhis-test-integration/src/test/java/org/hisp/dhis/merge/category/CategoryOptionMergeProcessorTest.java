@@ -37,6 +37,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -355,6 +356,94 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     assertFalse(report.hasErrorMessages());
     assertEquals(0, orgUnitSources.size(), "Expect 0 entries with source org units refs");
     assertEquals(3, orgUnitTarget.size(), "Expect 3 entries with target org unit refs");
+
+    assertEquals(7, allCategoryOptions.size(), "Expect 7 category options present");
+    assertTrue(allCategoryOptions.contains(coTarget3A));
+    assertFalse(allCategoryOptions.containsAll(List.of(coSource1A, coSource2B)));
+  }
+
+  // -----------------------------
+  // --- Category Option Group ---
+  // -----------------------------
+  @Test
+  @DisplayName(
+      "CategoryOptionGroup refs to source CategoryOptions are replaced, sources not deleted")
+  void catOptionGroupSourcesNotDeletedTest() throws ConflictException {
+    // given
+    CategoryOptionGroup cog1 = createCategoryOptionGroup('x');
+    cog1.addCategoryOption(coSource1A);
+    cog1.addCategoryOption(co1B);
+
+    CategoryOptionGroup cog2 = createCategoryOptionGroup('y');
+    cog2.addCategoryOption(coSource2B);
+    cog2.addCategoryOption(co2A);
+
+    CategoryOptionGroup cog3 = createCategoryOptionGroup('z');
+    cog3.addCategoryOption(coTarget3A);
+    cog3.addCategoryOption(co4A);
+
+    CategoryOptionGroup cog4 = createCategoryOptionGroup('p');
+    cog4.addCategoryOption(co3B);
+    cog4.addCategoryOption(co4B);
+
+    manager.save(List.of(cog1, cog2, cog3, cog4));
+
+    // when
+    MergeParams mergeParams = getMergeParams();
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<CategoryOptionGroup> cogSources =
+        categoryService.getCategoryOptionGroupByCategoryOption(List.of(coSource1A, coSource2B));
+    List<CategoryOptionGroup> cogTarget =
+        categoryService.getCategoryOptionGroupByCategoryOption(List.of(coTarget3A));
+    List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, cogSources.size(), "Expect 0 entries with source cat option group refs");
+    assertEquals(3, cogTarget.size(), "Expect 3 entries with target cat option group refs");
+
+    assertEquals(9, allCategoryOptions.size(), "Expect 9 category options present");
+    assertTrue(allCategoryOptions.containsAll(List.of(coTarget3A, coSource1A, coSource2B)));
+  }
+
+  @Test
+  @DisplayName("CategoryOptionGroup refs to source CategoryOptions are replaced, sources deleted")
+  void catOptionGroupSourcesDeletedTest() throws ConflictException {
+    // given
+    CategoryOptionGroup cog1 = createCategoryOptionGroup('x');
+    cog1.addCategoryOption(coSource1A);
+    cog1.addCategoryOption(co1B);
+
+    CategoryOptionGroup cog2 = createCategoryOptionGroup('y');
+    cog2.addCategoryOption(coSource2B);
+    cog2.addCategoryOption(co2A);
+
+    CategoryOptionGroup cog3 = createCategoryOptionGroup('z');
+    cog3.addCategoryOption(coTarget3A);
+    cog3.addCategoryOption(co4A);
+
+    CategoryOptionGroup cog4 = createCategoryOptionGroup('p');
+    cog4.addCategoryOption(co3B);
+    cog4.addCategoryOption(co4B);
+
+    manager.save(List.of(cog1, cog2, cog3, cog4));
+
+    // when
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<CategoryOptionGroup> cogSources =
+        categoryService.getCategoryOptionGroupByCategoryOption(List.of(coSource1A, coSource2B));
+    List<CategoryOptionGroup> cogTarget =
+        categoryService.getCategoryOptionGroupByCategoryOption(List.of(coTarget3A));
+    List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, cogSources.size(), "Expect 0 entries with source cat option group refs");
+    assertEquals(3, cogTarget.size(), "Expect 3 entries with target cat option group refs");
 
     assertEquals(7, allCategoryOptions.size(), "Expect 7 category options present");
     assertTrue(allCategoryOptions.contains(coTarget3A));
