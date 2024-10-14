@@ -123,6 +123,7 @@ public class CategoryOptionMergeService implements MergeService {
         ImmutableList.<MetadataMergeHandler>builder()
             .add(categoryOptionMergeHandler::handleCategories)
             .add(categoryOptionMergeHandler::handleCategoryOptionCombos)
+            .add(categoryOptionMergeHandler::handleOrganisationUnits)
             .build();
   }
 

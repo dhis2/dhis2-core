@@ -43,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -406,6 +407,19 @@ public class HibernateOrganisationUnitStore
   @Override
   public int updateAllOrganisationUnitsGeometryToNull() {
     return getQuery("update OrganisationUnit o set o.geometry = null").executeUpdate();
+  }
+
+  @Override
+  public List<OrganisationUnit> getByCategoryOption(Collection<CategoryOption> categoryOptions) {
+    return getQuery(
+            """
+            select distinct ou from OrganisationUnit ou
+            join ou.categoryOptions co
+            where co in :categoryOptions
+            """,
+            OrganisationUnit.class)
+        .setParameter("categoryOptions", categoryOptions)
+        .getResultList();
   }
 
   private String buildOrganisationUnitDistinctUidsSql(OrganisationUnitQueryParams params) {
