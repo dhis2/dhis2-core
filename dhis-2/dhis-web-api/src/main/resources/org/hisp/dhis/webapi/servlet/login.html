@@ -3,10 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DHIS2 Demo - Sierra Leone</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <title>DHIS2 Demo Login</title>
     <style>
       body {
-        background-color: #1c5ba6;
+        background-color: #2a5298;
         font-family: Arial, sans-serif;
         display: flex;
         flex-direction: column;
@@ -15,13 +19,45 @@
         margin: 0;
       }
 
+      .wrapper {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 10px;
+        width: 20%;
+      }
+
+      .notification-container {
+        background: #f5fbff;
+        display: flex;
+        gap: 8px;
+        width: 100%;
+        padding: 2rem;
+        align-items: start;
+        justify-content: center;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .notification-content{
+        font-size: 14px;
+        display: flex;
+        flex-direction: column;
+        gap:10px;
+        line-height: 20px;
+      }
+.fa-circle-info{
+  color: #093371;
+  font-size: 20px;
+}
       .login-container {
         background-color: white;
         padding: 2rem;
         border-radius: 5px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        width: 20%;
-        margin: auto;
+        width: 100%;
         text-align: center;
       }
 
@@ -57,7 +93,7 @@
       }
 
       .login-container input[type="submit"] {
-        background-color: #005fb3;
+        background-color: #1565c0;
         color: white;
         padding: 10px;
         border: none;
@@ -132,25 +168,42 @@
       <img src="/dhis-web-commons/security/logo_front.png" alt="DHIS2 Logo" />
     </div>
 
-    <!-- Login Form Section -->
-    <div class="login-container">
-      <h1>Log in</h1>
-      <form id="loginForm">
-        <div>
-          <label for="username">Username</label>
-          <input type="text" id="username" required />
+    <div class="wrapper">
+      <!-- Login Form Section -->
+      <div class="login-container">
+        <h1>Log in</h1>
+        <form id="loginForm">
+          <div>
+            <label for="username">Username</label>
+            <input type="text" id="username" required />
+          </div>
+
+          <div>
+            <label for="password">Password</label>
+            <input type="password" id="password" required />
+          </div>
+
+          <input type="submit" value="Log in" />
+        </form>
+
+        <div id="spinner" class="spinner" style="display: none"></div>
+        <div id="errorMessage" class="error-message"></div>
+      </div>
+
+      <!-- Notification  -->
+      <div class="notification-container">
+        <i class="fa-solid fa-circle-info"></i>
+        <div class="notification-content">
+          <span>
+            Log in with admin / district and feel free to do changes as system
+            is reset every night.
+          </span>
+          <i>
+            Note: In order to maintain access for everyone, changes to the admin
+            user password are blocked in the DHIS2 play environment.</i
+          >
         </div>
-
-        <div>
-          <label for="password">Password</label>
-          <input type="password" id="password" required />
-        </div>
-
-        <input type="submit" value="Log in" />
-      </form>
-
-      <div id="spinner" class="spinner" style="display: none"></div>
-      <div id="errorMessage" class="error-message"></div>
+      </div>
     </div>
 
     <!-- Footer Section -->
