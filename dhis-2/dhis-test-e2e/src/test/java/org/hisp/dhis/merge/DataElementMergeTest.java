@@ -324,9 +324,9 @@ class DataElementMergeTest extends ApiTest {
 
   private void setupMinMaxDataElements(String sourceUid1, String sourceUid2, String targetUid) {
     metadataApiActions.importMetadata(metadata(), "async=false").validateStatus(200);
-    minMaxActions.post(minMaxDataElements("OrgUnit0001", sourceUid1, "CatOptCom01"));
-    minMaxActions.post(minMaxDataElements("OrgUnit0001", sourceUid2, "CatOptCom01"));
-    minMaxActions.post(minMaxDataElements("OrgUnit0001", targetUid, "CatOptCom01"));
+    minMaxActions.post(minMaxDataElements("OrgUnitzzz1", sourceUid1, "CatOptComo1"));
+    minMaxActions.post(minMaxDataElements("OrgUnitzzz1", sourceUid2, "CatOptComo1"));
+    minMaxActions.post(minMaxDataElements("OrgUnitzzz1", targetUid, "CatOptComo1"));
   }
 
   private String programWithStageAndDataElements(
@@ -425,36 +425,36 @@ class DataElementMergeTest extends ApiTest {
     {
         "organisationUnits": [
            {
-               "id": "OrgUnit0001",
-               "name": "test org 1",
-               "shortName": "test org 1",
+               "id": "OrgUnitzzz1",
+               "name": "test org z1",
+               "shortName": "test org z1",
                "openingDate": "2023-06-15"
            }
        ],
        "categoryCombos": [
            {
-               "id": "CatCombo001",
-               "name": "cat combo 1",
+               "id": "CatCombo0o1",
+               "name": "cat combo z1",
                "dataDimensionType": "DISAGGREGATION"
            }
        ],
        "categoryOptions": [
            {
-               "id": "CatOpt00001",
-               "name": "cat opt 1",
-               "shortName": "cat opt 1"
+               "id": "CatOpt000o1",
+               "name": "cat opt z1",
+               "shortName": "cat opt z1"
            }
        ],
        "categoryOptionCombos": [
            {
-               "id":"CatOptCom01",
-               "name": "cat option combo 1",
+               "id":"CatOptComo1",
+               "name": "cat option combo z1",
                "categoryCombo": {
-                   "id": "CatCombo001"
+                   "id": "CatCombo0o1"
                },
                "categoryOptions": [
                    {
-                       "id": "CatOpt00001"
+                       "id": "CatOpt000o1"
                    }
                ]
            }
