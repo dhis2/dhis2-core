@@ -156,11 +156,19 @@ public class EnrollmentTrackerConverterService
     dbEnrollment.setStatus(enrollment.getStatus().getProgramStatus());
 
     if (previousStatus != dbEnrollment.getStatus()) {
-      if (dbEnrollment.isCompleted()) {
-        dbEnrollment.setCompletedDate(now);
-        dbEnrollment.setCompletedBy(preheat.getUsername());
-      } else if (dbEnrollment.getStatus().equals(ProgramStatus.CANCELLED)) {
-        dbEnrollment.setCompletedDate(now);
+      switch (dbEnrollment.getStatus()) {
+        case ACTIVE:
+          dbEnrollment.setCompletedDate(null);
+          dbEnrollment.setCompletedBy(null);
+          break;
+        case COMPLETED:
+          dbEnrollment.setCompletedDate(now);
+          dbEnrollment.setCompletedBy(preheat.getUsername());
+          break;
+        case CANCELLED:
+          dbEnrollment.setCompletedDate(now);
+          dbEnrollment.setCompletedBy(null);
+          break;
       }
     }
 
