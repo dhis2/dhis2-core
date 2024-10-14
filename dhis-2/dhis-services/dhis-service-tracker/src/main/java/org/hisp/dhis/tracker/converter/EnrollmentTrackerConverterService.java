@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.converter;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import com.google.common.base.Objects;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -150,12 +149,20 @@ public class EnrollmentTrackerConverterService
     ProgramStatus previousStatus = programInstance.getStatus();
     programInstance.setStatus(enrollment.getStatus().getProgramStatus());
 
-    if (!Objects.equal(previousStatus, programInstance.getStatus())) {
-      if (programInstance.isCompleted()) {
-        programInstance.setEndDate(new Date());
-        programInstance.setCompletedBy(preheat.getUsername());
-      } else if (programInstance.getStatus().equals(ProgramStatus.CANCELLED)) {
-        programInstance.setEndDate(new Date());
+    if (previousStatus != programInstance.getStatus()) {
+      switch (programInstance.getStatus()) {
+        case ACTIVE:
+          programInstance.setEndDate(null);
+          programInstance.setCompletedBy(null);
+          break;
+        case COMPLETED:
+          programInstance.setEndDate(now);
+          programInstance.setCompletedBy(preheat.getUsername());
+          break;
+        case CANCELLED:
+          programInstance.setEndDate(now);
+          programInstance.setCompletedBy(null);
+          break;
       }
     }
 
