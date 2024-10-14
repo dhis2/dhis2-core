@@ -423,42 +423,42 @@ class DataElementMergeTest extends ApiTest {
   private String metadata() {
     return """
     {
-          "organisationUnits": [
-             {
-                 "id": "OrgUnit0001",
-                 "name": "test org 1",
-                 "shortName": "test org 1",
-                 "openingDate": "2023-06-15T23:00:00.000Z"
-             }
-         ],
-         "categoryCombos": [
-             {
-                 "id": "CatCombo001",
-                 "name": "cat combo 1",
-                 "dataDimensionType": "DISAGGREGATION"
-             }
-         ],
-         "categoryOptions": [
-             {
-                 "id": "CatOpt00001",
-                 "name": "cat opt 1",
-                 "shortName": "cat opt 1"
-             }
-         ],
-         "categoryOptionCombos": [
-             {
-                 "id":"CatOptCom01",
-                 "name": "cat option combo 1",
-                 "categoryCombo": {
-                     "id": "CatCombo001"
-                 },
-                 "categoryOptions": [
-                     {
-                         "id": "CatOpt00001"
-                     }
-                 ]
-             }
-         ]
+        "organisationUnits": [
+           {
+               "id": "OrgUnit0001",
+               "name": "test org 1",
+               "shortName": "test org 1",
+               "openingDate": "2023-06-15"
+           }
+       ],
+       "categoryCombos": [
+           {
+               "id": "CatCombo001",
+               "name": "cat combo 1",
+               "dataDimensionType": "DISAGGREGATION"
+           }
+       ],
+       "categoryOptions": [
+           {
+               "id": "CatOpt00001",
+               "name": "cat opt 1",
+               "shortName": "cat opt 1"
+           }
+       ],
+       "categoryOptionCombos": [
+           {
+               "id":"CatOptCom01",
+               "name": "cat option combo 1",
+               "categoryCombo": {
+                   "id": "CatCombo001"
+               },
+               "categoryOptions": [
+                   {
+                       "id": "CatOpt00001"
+                   }
+               ]
+           }
+       ]
      }
     """;
   }
