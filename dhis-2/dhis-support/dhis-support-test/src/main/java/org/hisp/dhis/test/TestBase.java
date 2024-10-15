@@ -72,6 +72,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
@@ -726,6 +727,19 @@ public abstract class TestBase {
     categoryOption.setUid(uid);
 
     return categoryOption;
+  }
+
+  /**
+   * Creates a {@see CategoryDimension} with name and uid.
+   *
+   * @param dimension desired category
+   * @return {@see CategoryDimension}
+   */
+  public static CategoryDimension createCategoryDimension(Category dimension) {
+    CategoryDimension categoryDimension = new CategoryDimension();
+    categoryDimension.setDimension(dimension);
+
+    return categoryDimension;
   }
 
   /**

@@ -33,8 +33,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
 import java.util.List;
+import org.hisp.dhis.analytics.CategoryDimensionStore;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
@@ -70,6 +72,7 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
   @Autowired private OrganisationUnitService organisationUnitService;
+  @Autowired private CategoryDimensionStore dimensionStore;
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private CategoryOptionMergeProcessor mergeProcessor;
 
@@ -444,6 +447,89 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     assertFalse(report.hasErrorMessages());
     assertEquals(0, cogSources.size(), "Expect 0 entries with source cat option group refs");
     assertEquals(3, cogTarget.size(), "Expect 3 entries with target cat option group refs");
+
+    assertEquals(7, allCategoryOptions.size(), "Expect 7 category options present");
+    assertTrue(allCategoryOptions.contains(coTarget3A));
+    assertFalse(allCategoryOptions.containsAll(List.of(coSource1A, coSource2B)));
+  }
+
+  // -----------------------------
+  // ----- Category Dimension ----
+  // -----------------------------
+  @Test
+  @DisplayName("CategoryDimension refs to source CategoryOptions are replaced, sources not deleted")
+  void catDimensionSourcesNotDeletedTest() throws ConflictException {
+    // given
+    CategoryDimension cd1 = createCategoryDimension(cat1);
+    cd1.getItems().add(coSource1A);
+
+    CategoryDimension cd2 = createCategoryDimension(cat2);
+    cd2.getItems().add(coSource2B);
+
+    CategoryDimension cd3 = createCategoryDimension(cat3);
+    cd3.getItems().add(coTarget3A);
+
+    CategoryDimension cd4 = createCategoryDimension(cat4);
+    cd4.getItems().add(co3B);
+
+    dimensionStore.save(cd1);
+    dimensionStore.save(cd2);
+    dimensionStore.save(cd3);
+    dimensionStore.save(cd4);
+
+    // when
+    MergeParams mergeParams = getMergeParams();
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<CategoryDimension> cogSources =
+        dimensionStore.getByCategoryOption(List.of(coSource1A, coSource2B));
+    List<CategoryDimension> cogTarget = dimensionStore.getByCategoryOption(List.of(coTarget3A));
+    List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, cogSources.size(), "Expect 0 entries with source category dimension refs");
+    assertEquals(3, cogTarget.size(), "Expect 3 entries with target category dimension refs");
+
+    assertEquals(9, allCategoryOptions.size(), "Expect 9 category options present");
+    assertTrue(allCategoryOptions.containsAll(List.of(coTarget3A, coSource1A, coSource2B)));
+  }
+
+  @Test
+  @DisplayName("CategoryDimension refs to source CategoryOptions are replaced, sources deleted")
+  void catDimensionSourcesDeletedTest() throws ConflictException {
+    // given
+    CategoryDimension cd1 = createCategoryDimension(cat1);
+    cd1.getItems().add(coSource1A);
+
+    CategoryDimension cd2 = createCategoryDimension(cat2);
+    cd2.getItems().add(coSource2B);
+
+    CategoryDimension cd3 = createCategoryDimension(cat3);
+    cd3.getItems().add(coTarget3A);
+
+    CategoryDimension cd4 = createCategoryDimension(cat4);
+    cd4.getItems().add(co3B);
+
+    dimensionStore.save(cd1);
+    dimensionStore.save(cd2);
+    dimensionStore.save(cd3);
+    dimensionStore.save(cd4);
+
+    // when
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<CategoryDimension> cdSources =
+        dimensionStore.getByCategoryOption(List.of(coSource1A, coSource2B));
+    List<CategoryDimension> cdTarget = dimensionStore.getByCategoryOption(List.of(coTarget3A));
+    List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, cdSources.size(), "Expect 0 entries with source category dimension refs");
+    assertEquals(3, cdTarget.size(), "Expect 3 entries with target category dimension refs");
 
     assertEquals(7, allCategoryOptions.size(), "Expect 7 category options present");
     assertTrue(allCategoryOptions.contains(coTarget3A));
