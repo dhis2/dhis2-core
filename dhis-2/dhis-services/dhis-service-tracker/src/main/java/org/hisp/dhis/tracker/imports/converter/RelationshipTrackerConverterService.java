@@ -128,6 +128,7 @@ public class RelationshipTrackerConverterService
       toRelationship.setCreated(now);
     }
     toRelationship.setLastUpdated(now);
+    toRelationship.setLastUpdatedBy(preheat.getUser());
 
     toRelationship.setRelationshipType(relationshipType);
     toRelationship.setCreatedAtClient(DateUtils.fromInstant(fromRelationship.getCreatedAtClient()));
