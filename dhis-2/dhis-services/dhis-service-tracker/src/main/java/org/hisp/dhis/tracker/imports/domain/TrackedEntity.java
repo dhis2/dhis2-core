@@ -46,16 +46,17 @@ import org.locationtech.jts.geom.Geometry;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+// TODO(DHIS2-18222) Remove unused fields
 public class TrackedEntity implements TrackerDto, Serializable {
   @JsonProperty private String trackedEntity;
 
   @JsonProperty private MetadataIdentifier trackedEntityType;
 
-  @JsonProperty private Instant createdAt;
+  @JsonProperty private Instant createdAt; // remove
 
   @JsonProperty private Instant createdAtClient;
 
-  @JsonProperty private Instant updatedAt;
+  @JsonProperty private Instant updatedAt; // remove
 
   @JsonProperty private Instant updatedAtClient;
 
@@ -63,7 +64,7 @@ public class TrackedEntity implements TrackerDto, Serializable {
 
   @JsonProperty private boolean inactive;
 
-  @JsonProperty private boolean deleted;
+  @JsonProperty private boolean deleted; // remove
 
   @JsonProperty private boolean potentialDuplicate;
 
@@ -71,15 +72,16 @@ public class TrackedEntity implements TrackerDto, Serializable {
 
   @JsonProperty private String storedBy;
 
-  @JsonProperty private User createdBy;
+  @JsonProperty private User createdBy; // remove
 
-  @JsonProperty private User updatedBy;
+  @JsonProperty private User updatedBy; // remove
 
-  @JsonProperty @Builder.Default private List<Relationship> relationships = new ArrayList<>();
+  @JsonProperty @Builder.Default
+  private List<Relationship> relationships = new ArrayList<>(); // remove
 
   @JsonProperty @Builder.Default private List<Attribute> attributes = new ArrayList<>();
 
-  @JsonProperty @Builder.Default private List<Enrollment> enrollments = new ArrayList<>();
+  @JsonProperty @Builder.Default private List<Enrollment> enrollments = new ArrayList<>(); // remove
 
   @Override
   public String getUid() {

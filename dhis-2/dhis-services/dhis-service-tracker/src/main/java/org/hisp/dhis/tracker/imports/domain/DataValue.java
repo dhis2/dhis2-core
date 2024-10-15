@@ -42,10 +42,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+// TODO(DHIS2-18222) Remove unused fields
 public class DataValue implements Serializable {
-  @JsonProperty private Instant createdAt;
+  @JsonProperty private Instant createdAt; // remove
 
-  @JsonProperty private Instant updatedAt;
+  @JsonProperty private Instant updatedAt; // remove
 
   @JsonProperty private String storedBy;
 
@@ -55,7 +56,7 @@ public class DataValue implements Serializable {
 
   @JsonProperty private String value;
 
-  @JsonProperty private User createdBy;
+  @JsonProperty private User createdBy; // remove
 
-  @JsonProperty private User updatedBy;
+  @JsonProperty private User updatedBy; // remove
 }
