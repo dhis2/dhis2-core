@@ -223,7 +223,7 @@ class SystemSettingsTests extends ApiTest {
 
     response.validate().statusCode(200);
 
-    assertEquals(StringUtils.EMPTY, response.getAsString());
+    assertEquals(ENGLISH_INTRO, response.getAsString());
   }
 
   @Test
