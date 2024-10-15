@@ -57,6 +57,7 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.FlushMode;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -119,7 +120,7 @@ public abstract class AbstractTrackerPersister<
         //
         // Handle ownership records, if required
         //
-        persistOwnership(bundle.getPreheat(), convertedDto);
+        persistOwnership(bundle, trackerDto, convertedDto);
 
         updateDataValues(
             entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
@@ -127,14 +128,17 @@ public abstract class AbstractTrackerPersister<
         //
         // Save or update the entity
         //
-        if (isNew(bundle.getPreheat(), trackerDto)) {
+        if (isNew(bundle, trackerDto)) {
           entityManager.persist(convertedDto);
           typeReport.getStats().incCreated();
           typeReport.addEntity(objectReport);
           updateAttributes(
               entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
         } else {
-          if (isUpdatable()) {
+          if (trackerDto.getTrackerType() == TrackerType.RELATIONSHIP) {
+            typeReport.getStats().incIgnored();
+            // Relationships are not updated. A warning was already added to the report
+          } else {
             updateAttributes(
                 entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
             entityManager.merge(convertedDto);
@@ -142,8 +146,6 @@ public abstract class AbstractTrackerPersister<
             typeReport.addEntity(objectReport);
             Optional.ofNullable(getUpdatedTrackedEntity(convertedDto))
                 .ifPresent(updatedTrackedEntities::add);
-          } else {
-            typeReport.getStats().incIgnored();
           }
         }
 
@@ -203,7 +205,7 @@ public abstract class AbstractTrackerPersister<
   protected abstract V convert(TrackerBundle bundle, T trackerDto);
 
   /** Persists ownership records for the given entity */
-  protected abstract void persistOwnership(TrackerPreheat preheat, V entity);
+  protected abstract void persistOwnership(TrackerBundle bundle, T trackerDto, V entity);
 
   /** Execute the persistence of Data values linked to the entity being processed */
   protected abstract void updateDataValues(
@@ -224,22 +226,6 @@ public abstract class AbstractTrackerPersister<
   /** Updates the {@link TrackerPreheat} object with the entity that has been persisted */
   protected abstract void updatePreheat(TrackerPreheat preheat, V convertedDto);
 
-  /**
-   * informs this persister wether specific entity type should be updated defaults to true, is known
-   * to be false for Relationships
-   */
-  protected boolean isUpdatable() {
-    return true;
-  }
-
-  /** Determines if the given trackerDto belongs to an existing entity */
-  protected boolean isNew(TrackerPreheat preheat, T trackerDto) {
-    return isNew(preheat, trackerDto.getUid());
-  }
-
-  /** Determines if the given uid belongs to an existing entity */
-  protected abstract boolean isNew(TrackerPreheat preheat, String uid);
-
   /** TODO add comment */
   protected abstract TrackerNotificationDataBundle handleNotifications(
       TrackerBundle bundle, V entity, List<NotificationTrigger> triggers);
@@ -256,6 +242,10 @@ public abstract class AbstractTrackerPersister<
 
   /** Get the Tracker Type for which the current Persister is responsible for. */
   protected abstract TrackerType getType();
+
+  protected boolean isNew(TrackerBundle bundle, TrackerDto trackerDto) {
+    return bundle.getStrategy(trackerDto) == TrackerImportStrategy.CREATE;
+  }
 
   @SuppressWarnings("unchecked")
   private List<T> getByType(TrackerType type, TrackerBundle bundle) {
