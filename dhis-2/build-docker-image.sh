@@ -2,6 +2,7 @@
 
 set -euo pipefail
 
+BASE_IMAGE=${BASE_IMAGE}
 IMAGE_REPOSITORY=${IMAGE_REPOSITORY:-'dhis2/core'}
 IMAGE_APP_ROOT=${IMAGE_APP_ROOT:-'/usr/local/tomcat/webapps/ROOT'}
 IMAGE_USER=${IMAGE_USER:-'65534'}
@@ -210,12 +211,6 @@ if [[ ${rebuild_image:-} -eq 1 ]]; then
 else
   use_new_war
 fi
-
-jdk_version="$(
-  echo "$stable_versions_json" |
-  jq -r --argjson major "$major" '.versions[] | select(.version == $major) .jdk'
-)"
-BASE_IMAGE="${BASE_IMAGE:-"tomcat:9.0-jre$jdk_version"}"
 
 build_main_image
 
