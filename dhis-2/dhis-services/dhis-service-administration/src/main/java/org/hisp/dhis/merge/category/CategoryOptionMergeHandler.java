@@ -29,7 +29,9 @@ package org.hisp.dhis.merge.category;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.analytics.CategoryDimensionStore;
 import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
@@ -53,6 +55,7 @@ public class CategoryOptionMergeHandler {
   private final CategoryOptionComboStore categoryOptionComboStore;
   private final CategoryOptionGroupStore categoryOptionGroupStore;
   private final OrganisationUnitStore organisationUnitStore;
+  private final CategoryDimensionStore categoryDimensionStore;
 
   /**
    * Remove sources from {@link Category} and add target to {@link Category}
@@ -115,6 +118,22 @@ public class CategoryOptionMergeHandler {
         cog -> {
           cog.removeCategoryOptions(sources);
           cog.addCategoryOption(target);
+        });
+  }
+
+  /**
+   * Remove sources from {@link CategoryDimension} and add target to {@link CategoryDimension}
+   *
+   * @param sources to be removed
+   * @param target to add
+   */
+  public void handleCategoryDimensions(List<CategoryOption> sources, CategoryOption target) {
+    List<CategoryDimension> sourceCds = categoryDimensionStore.getByCategoryOption(sources);
+
+    sourceCds.forEach(
+        cd -> {
+          cd.removeItems(sources);
+          cd.addItem(target);
         });
   }
 }
