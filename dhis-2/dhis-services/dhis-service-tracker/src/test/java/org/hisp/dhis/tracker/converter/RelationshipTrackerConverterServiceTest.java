@@ -45,6 +45,7 @@ import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -84,10 +85,13 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest {
   private TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship>
       relationshipConverterService;
 
+  private User user;
+
   @Mock public TrackerPreheat preheat;
 
   @BeforeEach
   protected void setupTest() {
+    user = makeUser("A");
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     Program program = createProgram('A');
     TrackedEntityType teiType = createTrackedEntityType('A');
@@ -120,6 +124,7 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest {
     when(preheat.getTrackedEntity(TEI)).thenReturn(tei);
     when(preheat.getEnrollment(ENROLLMENT)).thenReturn(pi);
     when(preheat.getEvent(EVENT)).thenReturn(psi);
+    when(preheat.getUser()).thenReturn(user);
 
     List<org.hisp.dhis.relationship.Relationship> from =
         relationshipConverterService.from(preheat, List.of(relationshipA(), relationshipB()));
@@ -140,6 +145,7 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest {
           }
           assertNotNull(relationship.getFrom());
           assertNotNull(relationship.getTo());
+          assertEquals(user.getUid(), relationship.getLastUpdatedBy().getUid());
         });
   }
 
