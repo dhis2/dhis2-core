@@ -89,7 +89,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableManager {
   private static final String PROGRAMS_BY_TET_KEY = "programsByTetUid";
 
-  private static final String ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES = "allTetAttributes";
+  private static final String ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES =
+      "allNonConfidentialTetAttributes";
 
   private final TrackedEntityTypeService trackedEntityTypeService;
 
