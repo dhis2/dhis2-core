@@ -121,14 +121,15 @@ public class RelationshipTrackerConverterService
     org.hisp.dhis.relationship.RelationshipItem toItem =
         new org.hisp.dhis.relationship.RelationshipItem();
 
+    Date now = new Date();
     if (toRelationship == null) {
-      Date now = new Date();
 
       toRelationship = new org.hisp.dhis.relationship.Relationship();
       toRelationship.setUid(fromRelationship.getRelationship());
       toRelationship.setCreated(now);
-      toRelationship.setLastUpdated(now);
     }
+    toRelationship.setLastUpdated(now);
+    toRelationship.setLastUpdatedBy(preheat.getUser());
 
     toRelationship.setRelationshipType(relationshipType);
 
