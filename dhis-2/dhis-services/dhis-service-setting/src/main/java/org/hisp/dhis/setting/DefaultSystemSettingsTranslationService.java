@@ -74,7 +74,7 @@ public class DefaultSystemSettingsTranslationService implements SystemSettingsTr
 
   @Override
   @Transactional
-  public void saveSystemSettingTranslation(
+  public void putSystemSettingTranslation(
       @Nonnull String key, @Nonnull String locale, String translation)
       throws ForbiddenException, BadRequestException {
     if (!SystemSettings.isTranslatable(key))

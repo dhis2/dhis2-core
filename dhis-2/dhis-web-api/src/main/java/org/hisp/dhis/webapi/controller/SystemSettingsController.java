@@ -37,7 +37,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
@@ -91,7 +90,7 @@ public class SystemSettingsController {
   @PostMapping(value = "/{key}", params = "value")
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
-  public WebMessage setSystemSettingPlain(
+  public WebMessage putSystemSettingPlain(
       @PathVariable("key") String key, @RequestParam(value = "value") String value)
       throws NotFoundException, BadRequestException {
     settingsService.putAll(Map.of(key, value));
@@ -101,25 +100,25 @@ public class SystemSettingsController {
   @PostMapping(value = "/{key}", consumes = TEXT_PLAIN_VALUE)
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
-  public WebMessage setSystemSettingPlainBody(
+  public WebMessage putSystemSettingPlainBody(
       @PathVariable("key") String key, @RequestBody String value)
       throws NotFoundException, BadRequestException {
-    return setSystemSettingPlain(key, value);
+    return putSystemSettingPlain(key, value);
   }
 
   @PostMapping(value = "/{key}", consumes = APPLICATION_JSON_VALUE)
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
-  public WebMessage setSystemSettingJson(
+  public WebMessage putSystemSettingJson(
       @PathVariable("key") String key, @Language("json") @RequestBody String value)
       throws ConflictException, NotFoundException, BadRequestException {
-    return setSystemSettingPlain(key, toJavaString(JsonMixed.of(value)));
+    return putSystemSettingPlain(key, toJavaString(JsonMixed.of(value)));
   }
 
   @PostMapping(consumes = ContextUtils.CONTENT_TYPE_JSON)
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
-  public WebMessage setSystemSettingsJson(@RequestBody Map<String, String> settings)
+  public WebMessage putSystemSettingsJson(@RequestBody Map<String, String> settings)
       throws NotFoundException, BadRequestException {
     settingsService.putAll(settings);
     return ok("System settings imported");
@@ -128,7 +127,7 @@ public class SystemSettingsController {
   @GetMapping(value = "/{key}", produces = TEXT_PLAIN_VALUE)
   public ResponseEntity<String> getSystemSettingPlain(@PathVariable("key") String key)
       throws ForbiddenException, ConflictException, NotFoundException {
-    checkExists(key);
+    checkKeyExists(key);
     if (SystemSettings.isConfidential(key) && !getCurrentUserDetails().isSuper())
       throw new ForbiddenException("Setting is marked as confidential");
 
@@ -151,7 +150,7 @@ public class SystemSettingsController {
   public ResponseEntity<JsonMap<JsonMixed>> getSystemSettingJson(
       @PathVariable("key") String key, @CurrentUser UserDetails currentUser)
       throws ForbiddenException, NotFoundException {
-    checkExists(key);
+    checkKeyExists(key);
     if (SystemSettings.isConfidential(key) && !currentUser.isSuper())
       throw new ForbiddenException("Setting is marked as confidential");
 
@@ -170,7 +169,7 @@ public class SystemSettingsController {
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseStatus(value = NO_CONTENT)
   public void removeSystemSetting(@PathVariable("key") String key) throws NotFoundException {
-    checkExists(key);
+    checkKeyExists(key);
     settingsService.deleteAll(Set.of(key));
   }
 
@@ -191,13 +190,15 @@ public class SystemSettingsController {
   public @ResponseBody ResponseEntity<String> getSystemSettingTranslation(
       @PathVariable("key") String key, @RequestParam("locale") String locale)
       throws ForbiddenException, ConflictException, NotFoundException {
-    checkExists(key);
+    checkKeyExists(key);
+    if (!SystemSettings.isTranslatable(key)) return getSystemSettingPlain(key);
     if (locale == null || locale.isEmpty()) locale = getUserUiLanguage();
-    Optional<String> translation =
-        settingsTranslationService.getSystemSettingTranslation(key, locale);
-    if (translation.isPresent())
-      return ResponseEntity.ok().headers(noCacheNoStoreMustRevalidate()).body(translation.get());
-    return getSystemSettingPlain(key);
+
+    String value = settingsTranslationService.getSystemSettingTranslation(key, locale).orElse("");
+    if (value.isEmpty())
+      value =
+          toJavaString(settingsService.getCurrentSettings().toJson(false, Set.of(key)).get(key));
+    return ResponseEntity.ok().headers(noCacheNoStoreMustRevalidate()).body(value);
   }
 
   @Nonnull
@@ -212,14 +213,14 @@ public class SystemSettingsController {
       params = {"locale", "value"})
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
-  public WebMessage setSystemSettingTranslation(
+  public WebMessage putSystemSettingTranslation(
       @PathVariable("key") String key,
       @RequestParam("locale") String locale,
       @RequestParam("value") String value)
       throws ForbiddenException, BadRequestException {
     if (value == null)
       throw new BadRequestException("Value must be specified as query param or as payload");
-    settingsTranslationService.saveSystemSettingTranslation(key, locale, value);
+    settingsTranslationService.putSystemSettingTranslation(key, locale, value);
     return ok(
         "Translation for system setting '%s' and locale: '%s' set to: '%s'"
             .formatted(key, locale, value));
@@ -228,12 +229,12 @@ public class SystemSettingsController {
   @PostMapping(value = "/{key}", params = "locale", consumes = TEXT_PLAIN_VALUE)
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
-  public WebMessage setSystemSettingTranslationBody(
+  public WebMessage putSystemSettingTranslationBody(
       @PathVariable("key") String key,
       @RequestParam("locale") String locale,
       @RequestBody String value)
       throws ForbiddenException, BadRequestException {
-    return setSystemSettingTranslation(key, locale, value);
+    return putSystemSettingTranslation(key, locale, value);
   }
 
   @DeleteMapping(value = "/{key}", params = "locale")
@@ -242,12 +243,12 @@ public class SystemSettingsController {
   public void removeSystemSettingTranslation(
       @PathVariable("key") String key, @RequestParam("locale") String locale)
       throws ForbiddenException, BadRequestException {
-    settingsTranslationService.saveSystemSettingTranslation(key, locale, StringUtils.EMPTY);
+    settingsTranslationService.putSystemSettingTranslation(key, locale, StringUtils.EMPTY);
   }
 
-  private static void checkExists(String key) throws NotFoundException {
+  private static void checkKeyExists(String key) throws NotFoundException {
     if (!SystemSettings.keysWithDefaults().contains(key))
-      throw new NotFoundException("Setting does not exist");
+      throw new NotFoundException("Setting does not exist: " + key);
   }
 
   private static String getUserUiLanguage() {

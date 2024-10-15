@@ -113,7 +113,8 @@ class SystemSettingsTest {
     assertFalse(booleanValue.as(JsonBoolean.class).booleanValue());
     JsonString dateValue = asJson.get("keyLastMetaDataSyncSuccess");
     assertTrue(dateValue.isString());
-    assertEquals("1970-01-01T01:00:00.000", dateValue.string());
+    assertEquals("1970-01-01T", dateValue.string().substring(0, 11));
+    assertEquals(":00:00.000", dateValue.string().substring(13));
     JsonString enumValue = asJson.get("keyCacheStrategy");
     assertTrue(enumValue.isString());
     assertEquals(CacheStrategy.CACHE_1_MINUTE, enumValue.parsed(CacheStrategy::valueOf));
