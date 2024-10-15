@@ -120,7 +120,7 @@ public abstract class AbstractTrackerPersister<
         //
         // Handle ownership records, if required
         //
-        persistOwnership(bundle.getPreheat(), convertedDto);
+        persistOwnership(bundle, trackerDto, convertedDto);
 
         updateDataValues(
             entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
@@ -128,7 +128,7 @@ public abstract class AbstractTrackerPersister<
         //
         // Save or update the entity
         //
-        if (bundle.getStrategy(trackerDto) == TrackerImportStrategy.CREATE) {
+        if (isNew(bundle, trackerDto)) {
           entityManager.persist(convertedDto);
           typeReport.getStats().incCreated();
           typeReport.addEntity(objectReport);
@@ -205,7 +205,7 @@ public abstract class AbstractTrackerPersister<
   protected abstract V convert(TrackerBundle bundle, T trackerDto);
 
   /** Persists ownership records for the given entity */
-  protected abstract void persistOwnership(TrackerPreheat preheat, V entity);
+  protected abstract void persistOwnership(TrackerBundle bundle, T trackerDto, V entity);
 
   /** Execute the persistence of Data values linked to the entity being processed */
   protected abstract void updateDataValues(
@@ -242,6 +242,10 @@ public abstract class AbstractTrackerPersister<
 
   /** Get the Tracker Type for which the current Persister is responsible for. */
   protected abstract TrackerType getType();
+
+  protected boolean isNew(TrackerBundle bundle, TrackerDto trackerDto) {
+    return bundle.getStrategy(trackerDto) == TrackerImportStrategy.CREATE;
+  }
 
   @SuppressWarnings("unchecked")
   private List<T> getByType(TrackerType type, TrackerBundle bundle) {

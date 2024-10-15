@@ -151,10 +151,14 @@ public class EnrollmentPersister
   }
 
   @Override
-  protected void persistOwnership(TrackerPreheat preheat, Enrollment entity) {
-    if (preheat.getEnrollment(entity.getUid()) == null
-        && (preheat.getProgramOwner().get(entity.getTrackedEntity().getUid()) == null
-            || preheat
+  protected void persistOwnership(
+      TrackerBundle bundle,
+      org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto,
+      Enrollment entity) {
+    if (isNew(bundle, trackerDto)
+        && (bundle.getPreheat().getProgramOwner().get(entity.getTrackedEntity().getUid()) == null
+            || bundle
+                    .getPreheat()
                     .getProgramOwner()
                     .get(entity.getTrackedEntity().getUid())
                     .get(entity.getProgram().getUid())

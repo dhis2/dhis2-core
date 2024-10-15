@@ -69,7 +69,7 @@ public class Enrollment {
 
   @JsonProperty private String program;
 
-  @JsonProperty private EnrollmentStatus status = EnrollmentStatus.ACTIVE;
+  @JsonProperty private EnrollmentStatus status;
 
   @JsonProperty private String orgUnit;
 

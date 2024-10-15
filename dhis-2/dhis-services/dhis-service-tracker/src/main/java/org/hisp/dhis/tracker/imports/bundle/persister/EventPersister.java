@@ -232,7 +232,8 @@ public class EventPersister
   }
 
   @Override
-  protected void persistOwnership(TrackerPreheat preheat, Event entity) {
+  protected void persistOwnership(
+      TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event trackerDto, Event entity) {
     // DO NOTHING. Event creation does not create ownership records.
   }
 

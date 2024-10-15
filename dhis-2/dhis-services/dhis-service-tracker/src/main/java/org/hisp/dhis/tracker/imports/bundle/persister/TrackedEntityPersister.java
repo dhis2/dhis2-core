@@ -100,7 +100,10 @@ public class TrackedEntityPersister
   }
 
   @Override
-  protected void persistOwnership(TrackerPreheat preheat, TrackedEntity entity) {
+  protected void persistOwnership(
+      TrackerBundle bundle,
+      org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
+      TrackedEntity entity) {
     // DO NOTHING, Tei alone does not have ownership records
 
   }

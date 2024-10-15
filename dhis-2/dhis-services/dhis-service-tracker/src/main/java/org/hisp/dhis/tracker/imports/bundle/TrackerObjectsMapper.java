@@ -44,7 +44,6 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -63,12 +62,13 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 
 /**
- * TrackerObjectsMapper maps tracker domain objects to Hibernate Objects so they can be persisted in
+ * TrackerObjectsMapper maps tracker domain objects to Hibernate objects so they can be persisted in
  * the DB. This class provides static methods to convert imported domain objects such as {@link
  * TrackedEntity}, {@link Enrollment}, {@link Event}, and {@link Relationship} into their
- * corresponding database entities. It gets existing records from the database throw the preheat and
- * maps the incoming data accordingly, ensuring that all necessary fields are populated correctly.
- * All the values that should be set by the system are set here (eg. createdAt, updatedBy...)
+ * corresponding database entities. It gets existing records from the database through the preheat
+ * and maps the incoming data accordingly, ensuring that all necessary fields are populated
+ * correctly. All the values that should be set by the system are set here (eg. createdAt,
+ * updatedBy...)
  */
 public class TrackerObjectsMapper {
   private TrackerObjectsMapper() {
@@ -80,9 +80,6 @@ public class TrackerObjectsMapper {
       @Nonnull org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity,
       @Nonnull UserDetails user) {
     TrackedEntity dbTrackedEntity = preheat.getTrackedEntity(trackedEntity.getTrackedEntity());
-    OrganisationUnit organisationUnit = preheat.getOrganisationUnit(trackedEntity.getOrgUnit());
-    TrackedEntityType trackedEntityType =
-        preheat.getTrackedEntityType(trackedEntity.getTrackedEntityType());
 
     Date now = new Date();
 
@@ -94,14 +91,19 @@ public class TrackerObjectsMapper {
       dbTrackedEntity.setStoredBy(trackedEntity.getStoredBy());
     }
 
-    dbTrackedEntity.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
     dbTrackedEntity.setLastUpdated(now);
-    dbTrackedEntity.setPotentialDuplicate(trackedEntity.isPotentialDuplicate());
+    dbTrackedEntity.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
     dbTrackedEntity.setCreatedAtClient(DateUtils.fromInstant(trackedEntity.getCreatedAtClient()));
     dbTrackedEntity.setLastUpdatedAtClient(
         DateUtils.fromInstant(trackedEntity.getUpdatedAtClient()));
+
+    OrganisationUnit organisationUnit = preheat.getOrganisationUnit(trackedEntity.getOrgUnit());
     dbTrackedEntity.setOrganisationUnit(organisationUnit);
+    TrackedEntityType trackedEntityType =
+        preheat.getTrackedEntityType(trackedEntity.getTrackedEntityType());
     dbTrackedEntity.setTrackedEntityType(trackedEntityType);
+
+    dbTrackedEntity.setPotentialDuplicate(trackedEntity.isPotentialDuplicate());
     dbTrackedEntity.setInactive(trackedEntity.isInactive());
     dbTrackedEntity.setGeometry(trackedEntity.getGeometry());
 
@@ -113,11 +115,6 @@ public class TrackerObjectsMapper {
       @Nonnull org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
       @Nonnull UserDetails user) {
     Enrollment dbEnrollment = preheat.getEnrollment(enrollment.getEnrollment());
-    OrganisationUnit organisationUnit = preheat.getOrganisationUnit(enrollment.getOrgUnit());
-
-    Program program = preheat.getProgram(enrollment.getProgram());
-
-    TrackedEntity trackedEntity = preheat.getTrackedEntity(enrollment.getTrackedEntity());
 
     Date now = new Date();
 
@@ -134,21 +131,23 @@ public class TrackerObjectsMapper {
     dbEnrollment.setCreatedAtClient(DateUtils.fromInstant(enrollment.getCreatedAtClient()));
     dbEnrollment.setLastUpdatedAtClient(DateUtils.fromInstant(enrollment.getUpdatedAtClient()));
 
+    OrganisationUnit organisationUnit = preheat.getOrganisationUnit(enrollment.getOrgUnit());
+    dbEnrollment.setOrganisationUnit(organisationUnit);
+    Program program = preheat.getProgram(enrollment.getProgram());
+    dbEnrollment.setProgram(program);
+    TrackedEntity trackedEntity = preheat.getTrackedEntity(enrollment.getTrackedEntity());
+    dbEnrollment.setTrackedEntity(trackedEntity);
+
     Date enrollmentDate = DateUtils.fromInstant(enrollment.getEnrolledAt());
     Date occurredDate = DateUtils.fromInstant(enrollment.getOccurredAt());
-
     dbEnrollment.setEnrollmentDate(enrollmentDate);
     dbEnrollment.setOccurredDate(occurredDate != null ? occurredDate : enrollmentDate);
-    dbEnrollment.setOrganisationUnit(organisationUnit);
-    dbEnrollment.setProgram(program);
-    dbEnrollment.setTrackedEntity(trackedEntity);
+
     dbEnrollment.setFollowup(enrollment.isFollowUp());
     dbEnrollment.setGeometry(enrollment.getGeometry());
 
-    EnrollmentStatus previousStatus = dbEnrollment.getStatus();
-    dbEnrollment.setStatus(enrollment.getStatus());
-
-    if (previousStatus != dbEnrollment.getStatus()) {
+    if (enrollment.getStatus() != dbEnrollment.getStatus()) {
+      dbEnrollment.setStatus(enrollment.getStatus());
       switch (dbEnrollment.getStatus()) {
         case ACTIVE -> {
           dbEnrollment.setCompletedDate(null);
@@ -181,9 +180,6 @@ public class TrackerObjectsMapper {
       @Nonnull org.hisp.dhis.tracker.imports.domain.Event event,
       @Nonnull UserDetails user) {
     Event dbEvent = preheat.getEvent(event.getEvent());
-    ProgramStage programStage = preheat.getProgramStage(event.getProgramStage());
-    Program program = preheat.getProgram(event.getProgram());
-    OrganisationUnit organisationUnit = preheat.getOrganisationUnit(event.getOrgUnit());
 
     Date now = new Date();
 
@@ -194,28 +190,30 @@ public class TrackerObjectsMapper {
       dbEvent.setStoredBy(event.getStoredBy());
       dbEvent.setCreatedByUserInfo(UserInfoSnapshot.from(user));
     }
-    dbEvent.setCreatedAtClient(DateUtils.fromInstant(event.getCreatedAtClient()));
-    dbEvent.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
     dbEvent.setLastUpdated(now);
+    dbEvent.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
+    dbEvent.setCreatedAtClient(DateUtils.fromInstant(event.getCreatedAtClient()));
     dbEvent.setLastUpdatedAtClient(DateUtils.fromInstant(event.getUpdatedAtClient()));
-    dbEvent.setEnrollment(getEnrollment(preheat, event.getEnrollment(), program));
-    dbEvent.setProgramStage(programStage);
+
+    OrganisationUnit organisationUnit = preheat.getOrganisationUnit(event.getOrgUnit());
     dbEvent.setOrganisationUnit(organisationUnit);
+    Program program = preheat.getProgram(event.getProgram());
+    dbEvent.setEnrollment(getEnrollment(preheat, event.getEnrollment(), program));
+    ProgramStage programStage = preheat.getProgramStage(event.getProgramStage());
+    dbEvent.setProgramStage(programStage);
+
     dbEvent.setOccurredDate(DateUtils.fromInstant(event.getOccurredAt()));
     dbEvent.setScheduledDate(DateUtils.fromInstant(event.getScheduledAt()));
-
-    if (event.getAttributeOptionCombo().isNotBlank()) {
-      dbEvent.setAttributeOptionCombo(
-          preheat.getCategoryOptionCombo(event.getAttributeOptionCombo()));
-    } else {
-      dbEvent.setAttributeOptionCombo(preheat.getDefault(CategoryOptionCombo.class));
+    if (program.isRegistration()
+        && dbEvent.getScheduledDate() == null
+        && dbEvent.getOccurredDate() != null) {
+      dbEvent.setScheduledDate(dbEvent.getOccurredDate());
     }
 
     dbEvent.setGeometry(event.getGeometry());
 
     EventStatus currentStatus = event.getStatus();
     EventStatus previousStatus = dbEvent.getStatus();
-
     if (currentStatus != previousStatus && currentStatus == EventStatus.COMPLETED) {
       dbEvent.setCompletedDate(now);
       dbEvent.setCompletedBy(user.getUsername());
@@ -225,8 +223,14 @@ public class TrackerObjectsMapper {
       dbEvent.setCompletedDate(null);
       dbEvent.setCompletedBy(null);
     }
-
     dbEvent.setStatus(currentStatus);
+
+    if (event.getAttributeOptionCombo().isNotBlank()) {
+      dbEvent.setAttributeOptionCombo(
+          preheat.getCategoryOptionCombo(event.getAttributeOptionCombo()));
+    } else {
+      dbEvent.setAttributeOptionCombo(preheat.getDefault(CategoryOptionCombo.class));
+    }
 
     if (Boolean.TRUE.equals(programStage.isEnableUserAssignment())
         && event.getAssignedUser() != null
@@ -234,12 +238,6 @@ public class TrackerObjectsMapper {
       Optional<User> assignedUser =
           preheat.getUserByUsername(event.getAssignedUser().getUsername());
       assignedUser.ifPresent(dbEvent::setAssignedUser);
-    }
-
-    if (program.isRegistration()
-        && dbEvent.getScheduledDate() == null
-        && dbEvent.getOccurredDate() != null) {
-      dbEvent.setScheduledDate(dbEvent.getOccurredDate());
     }
 
     // TODO(DHIS2-18223): Remove data value mapping and fix changelog logic
@@ -274,23 +272,21 @@ public class TrackerObjectsMapper {
       @Nonnull TrackerPreheat preheat,
       @Nonnull org.hisp.dhis.tracker.imports.domain.Relationship relationship,
       @Nonnull UserDetails user) {
-    RelationshipType relationshipType =
-        preheat.getRelationshipType(relationship.getRelationshipType());
-    RelationshipItem fromItem = new org.hisp.dhis.relationship.RelationshipItem();
-    RelationshipItem toItem = new org.hisp.dhis.relationship.RelationshipItem();
-
     Date now = new Date();
     Relationship dbRelationship = new org.hisp.dhis.relationship.Relationship();
     dbRelationship.setUid(relationship.getRelationship());
     dbRelationship.setCreated(now);
     dbRelationship.setLastUpdated(now);
     dbRelationship.setLastUpdatedBy(preheat.getUserByUid(user.getUid()).orElse(null));
-    dbRelationship.setRelationshipType(relationshipType);
     dbRelationship.setCreatedAtClient(DateUtils.fromInstant(relationship.getCreatedAtClient()));
 
-    // FROM
-    fromItem.setRelationship(dbRelationship);
+    RelationshipType relationshipType =
+        preheat.getRelationshipType(relationship.getRelationshipType());
+    dbRelationship.setRelationshipType(relationshipType);
 
+    // FROM
+    RelationshipItem fromItem = new org.hisp.dhis.relationship.RelationshipItem();
+    fromItem.setRelationship(dbRelationship);
     switch (relationshipType.getFromConstraint().getRelationshipEntity()) {
       case TRACKED_ENTITY_INSTANCE ->
           fromItem.setTrackedEntity(
@@ -300,10 +296,11 @@ public class TrackerObjectsMapper {
       case PROGRAM_STAGE_INSTANCE ->
           fromItem.setEvent(preheat.getEvent(relationship.getFrom().getEvent()));
     }
+    dbRelationship.setFrom(fromItem);
 
     // TO
+    RelationshipItem toItem = new org.hisp.dhis.relationship.RelationshipItem();
     toItem.setRelationship(dbRelationship);
-
     switch (relationshipType.getToConstraint().getRelationshipEntity()) {
       case TRACKED_ENTITY_INSTANCE ->
           toItem.setTrackedEntity(
@@ -313,9 +310,8 @@ public class TrackerObjectsMapper {
       case PROGRAM_STAGE_INSTANCE ->
           toItem.setEvent(preheat.getEvent(relationship.getTo().getEvent()));
     }
-
-    dbRelationship.setFrom(fromItem);
     dbRelationship.setTo(toItem);
+
     RelationshipKey relationshipKey =
         RelationshipKeySupport.getRelationshipKey(relationship, relationshipType);
     dbRelationship.setKey(relationshipKey.asString());
@@ -328,13 +324,16 @@ public class TrackerObjectsMapper {
       @Nonnull TrackerPreheat preheat,
       @Nonnull org.hisp.dhis.tracker.imports.domain.Note note,
       @Nonnull UserDetails user) {
-    Note dbNote = new Note();
-    dbNote.setAutoFields();
-    dbNote.setUid(note.getNote());
-    dbNote.setNoteText(note.getValue());
+    Date now = new Date();
 
+    Note dbNote = new Note();
+    dbNote.setUid(note.getNote());
+    dbNote.setCreated(now);
+    dbNote.setLastUpdated(now);
     dbNote.setLastUpdatedBy(preheat.getUserByUid(user.getUid()).orElse(null));
     dbNote.setCreator(note.getStoredBy());
+    dbNote.setNoteText(note.getValue());
+
     return dbNote;
   }
 
