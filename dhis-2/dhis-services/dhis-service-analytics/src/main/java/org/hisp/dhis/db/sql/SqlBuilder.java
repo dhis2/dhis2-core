@@ -353,4 +353,21 @@ public interface SqlBuilder {
    * @return a drop catalog if exists statement.
    */
   String dropCatalogIfExists();
+
+  /**
+   * For nested objects or arrays
+   */
+  String extractJsonB(String column, String key);
+
+  /**
+   * For nested objects or arrays
+   */
+  String extractJsonB(String column, String key, String regex);
+
+  /**
+   * For simple objects
+   */
+  String extractJsonB2(String column, String key);
+
+  String getJsonField(String tablePrefix, String originColumn, String field);
 }

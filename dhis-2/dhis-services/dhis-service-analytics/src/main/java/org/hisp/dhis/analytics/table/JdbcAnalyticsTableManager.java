@@ -273,9 +273,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
   @Override
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    boolean skipDataTypeValidation =
-        systemSettingManager.getBoolSetting(
-            SettingKey.SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT);
+    boolean skipDataTypeValidation = true;
+      // FIXME Luciano
+      //systemSettingManager.getBoolSetting(
+        //    SettingKey.SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT);
     boolean includeZeroValues =
         systemSettingManager.getBoolSetting(SettingKey.INCLUDE_ZERO_VALUES_IN_ANALYTICS);
 

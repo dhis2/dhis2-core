@@ -80,6 +80,7 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.sql.DorisSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
@@ -334,16 +335,20 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         getCoalesce(
             params.getCoordinateFields(), FallbackCoordinateFieldType.PSI_GEOMETRY.getValue());
 
-    cols.add(
-        "ST_AsGeoJSON(" + coordinatesFieldsSnippet + ", 6) as geometry",
-        "longitude",
-        "latitude",
-        "ouname",
-        "ounamehierarchy",
-        "oucode",
-        "pistatus",
-        "psistatus");
+    if (sqlBuilder.supportsGeospatialData()) {
 
+      cols.add(
+          "ST_AsGeoJSON(" + coordinatesFieldsSnippet + ", 6) as geometry",
+          "longitude",
+          "latitude",
+          "ouname",
+          "ounamehierarchy",
+          "oucode",
+          "pistatus",
+          "psistatus");
+    } else {
+        cols.add("ouname", "ounamehierarchy", "oucode", "pistatus", "psistatus");
+    }
     List<String> selectCols =
         ListUtils.distinctUnion(cols.build(), getSelectColumns(params, false));
 
@@ -410,7 +415,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     // ---------------------------------------------------------------------
 
     if (!params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
-      sql += hlp.whereAnd() + " " + timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
+      sql += hlp.whereAnd() + " " + timeFieldSqlRenderer.renderPeriodTimeFieldSql(params, sqlBuilder);
     }
 
     // ---------------------------------------------------------------------
@@ -445,7 +450,9 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       String sqlSnippet =
           getOrgUnitDescendantsClause(
               orgUnitField, params.getDimensionOrFilterItems(ORGUNIT_DIM_ID));
-
+      if (sqlBuilder instanceof DorisSqlBuilder) {
+        sqlSnippet = sqlSnippet.replace("\"", "`");
+      }
       if (isNotEmpty(sqlSnippet)) {
         sql += hlp.whereAnd() + " " + sqlSnippet;
       }

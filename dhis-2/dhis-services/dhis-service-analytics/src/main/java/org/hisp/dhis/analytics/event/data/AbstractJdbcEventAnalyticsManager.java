@@ -111,6 +111,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.sql.DorisSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
@@ -468,7 +469,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         && hasOrderByClauseForQueryItem(queryItem, params)) {
       return getColumnAndAliasWithNullIfFunction(queryItem);
     } else {
-      return getColumnAndAlias(queryItem, isGroupByClause, "");
+      return getColumnAndAlias(queryItem, isGroupByClause, queryItem.getItem().getUid());
     }
   }
 
@@ -578,7 +579,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // ---------------------------------------------------------------------
 
     final String finalSqlValue = sql;
-
+    System.out.println(finalSqlValue);
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), finalSqlValue));
@@ -906,7 +907,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     if (params.hasTimeField() && DimensionType.PERIOD == dimension.getDimensionType()) {
       return sqlBuilder.quote(DATE_PERIOD_STRUCT_ALIAS, col);
     } else if (DimensionType.ORGANISATION_UNIT == dimension.getDimensionType()) {
-      return params.getOrgUnitField().getOrgUnitStructCol(col, getAnalyticsType(), isGroupByClause);
+      var expression = params.getOrgUnitField().getOrgUnitStructCol(col, getAnalyticsType(), isGroupByClause);
+      // FIXME luciano this is horrible crap
+      if (sqlBuilder instanceof DorisSqlBuilder) {
+        expression = expression.replace("\"", "`");
+      }
+
+      return expression;
     } else if (DimensionType.ORGANISATION_UNIT_GROUP_SET == dimension.getDimensionType()) {
       return params
           .getOrgUnitField()

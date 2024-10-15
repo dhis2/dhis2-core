@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.util;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.db.sql.SqlBuilder;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DisplayNameUtils {
@@ -108,5 +109,54 @@ public final class DisplayNameUtils {
         .replaceAll("\\{column}", originColumn)
         .replaceAll("\\{prefix}", tablePrefix)
         .replaceAll("\\{alias}", columnAlias);
+  }
+
+  public static String getDisplayName(SqlBuilder sqlBuilder, String originColumn, String tablePrefix, String columnAlias) {
+    return ("case"
+            // If all are empty, return null
+            + " when coalesce(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "surname") + "), '') = ''"
+            + " and coalesce(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "firstName") + "), '') = ''"
+            + " and coalesce(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "username") + "), '') = ''"
+            + " then null"
+
+            // If username only, return username
+            + " when coalesce(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "surname") + "), '') = ''"
+            + " and coalesce(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "firstName") + "), '') = ''"
+            + " and coalesce(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "username") + "), '') <> ''"
+            + " then trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "username") + ")"
+
+            // If firstName only, return firstName
+            + " when coalesce(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "surname") + "), '') = ''"
+            + " and coalesce(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "firstName") + "), '') <> ''"
+            + " and coalesce(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "username") + "), '') = ''"
+            + " then trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "firstName") + ")"
+
+            // If surname only, return surname
+            + " when coalesce(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "surname") + "), '') <> ''"
+            + " and coalesce(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "firstName") + "), '') = ''"
+            + " and coalesce(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "username") + "), '') = ''"
+            + " then trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "surname") + ")"
+
+            // If surname and firstName only, return surname + firstName
+            + " when coalesce(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "surname") + "), '') <> ''"
+            + " and coalesce(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "firstName") + "), '') <> ''"
+            + " and coalesce(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "username") + "), '') = ''"
+            + " then concat(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "surname") + "), ', ', trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "firstName") + "))"
+
+            // If firstName and username only, return firstName + username
+            + " when coalesce(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "surname") + "), '') = ''"
+            + " and coalesce(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "firstName") + "), '') <> ''"
+            + " and coalesce(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "username") + "), '') <> ''"
+            + " then concat(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "firstName") + "), ' (', trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "username") + "), ')')"
+
+            // If surname and username only, return surname + username
+            + " when coalesce(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "surname") + "), '') <> ''"
+            + " and coalesce(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "firstName") + "), '') = ''"
+            + " and coalesce(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "username") + "), '') <> ''"
+            + " then concat(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "surname") + "), ' (', trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "username") + "), ')')"
+
+            // If has all columns populated, return surname + firstName + username
+            + " else concat(trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "surname") + "), ', ', trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "firstName") + "), ' (', trim(" + sqlBuilder.getJsonField(tablePrefix, originColumn, "username") + "), ')') end"
+            + " as " + columnAlias);
   }
 }

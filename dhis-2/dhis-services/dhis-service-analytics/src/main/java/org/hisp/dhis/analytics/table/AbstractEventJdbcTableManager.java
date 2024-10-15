@@ -48,6 +48,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -93,11 +94,19 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   }
 
   protected final String getNumericClause() {
-    return " and value ~* '" + NUMERIC_LENIENT_REGEXP + "'";
+    if (sqlBuilder instanceof PostgreSqlBuilder) {
+      return " and value ~* '" + NUMERIC_LENIENT_REGEXP + "'";
+    } else {
+      return " and value REGEXP '" + NUMERIC_LENIENT_REGEXP + "'";
+    }
   }
 
   protected final String getDateClause() {
-    return " and value ~* '" + DATE_REGEXP + "'";
+    if (sqlBuilder instanceof PostgreSqlBuilder) {
+      return " and value ~* '" + DATE_REGEXP + "'";
+    } else {
+      return " and value REGEXP '" + DATE_REGEXP + "'";
+    }
   }
 
   protected Skip skipIndex(ValueType valueType, boolean hasOptionSet) {
@@ -112,7 +121,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    */
   protected String getSelectClause(ValueType valueType, String columnName) {
     if (valueType.isDecimal()) {
-      return "cast(" + columnName + " as double precision)";
+        return "cast(" + columnName + " as " + sqlBuilder.dataTypeDouble() + ")";
     } else if (valueType.isInteger()) {
       return "cast(" + columnName + " as bigint)";
     } else if (valueType.isBoolean()) {
@@ -122,8 +131,12 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           + columnName
           + " = 'false' then 0 else null end";
     } else if (valueType.isDate()) {
-      return "cast(" + columnName + " as timestamp)";
-    } else if (valueType.isGeo() && isSpatialSupport()) {
+      if (sqlBuilder instanceof PostgreSqlBuilder) {
+        return "cast(" + columnName + " as date)";
+      } else {
+        return "STR_TO_DATE(" + columnName + ", '%Y-%m-%d %H:%i:%s')";
+      }
+    } else if (valueType.isGeo() && isSpatialSupport() && sqlBuilder.supportsGeospatialData()) {
       return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || ("
           + columnName
           + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
@@ -183,14 +196,15 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
               : attribute.isDateType() ? getDateClause() : "";
       String select = getSelectClause(attribute.getValueType(), "value");
       Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
-
+      // FIXME Luciano
       String sql =
-          replace(
+          replaceQualify(
               """
-              (select ${select} from trackedentityattributevalue \
+              (select ${select} from ${trackedentityattributevalue} \
               where trackedentityid=pi.trackedentityid \
               and trackedentityattributeid=${attributeId}\
               ${dataClause})${closingParentheses} as ${attributeUid}""",
+              List.of("trackedentityattributevalue"),
               Map.of(
                   "select",
                   select,

@@ -191,7 +191,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
       List<Object[]> content = populateTableContent.get();
       log.debug("Populate table content rows: {}", content.size());
 
-      if (content.size() > 0) {
+      if (!content.isEmpty()) {
         int columns = content.get(0).length;
         batchUpdate(columns, table.getName(), content);
       }

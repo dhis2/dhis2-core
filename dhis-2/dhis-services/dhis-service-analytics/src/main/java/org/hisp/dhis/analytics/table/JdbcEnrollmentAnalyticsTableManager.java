@@ -75,137 +75,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service("org.hisp.dhis.analytics.EnrollmentAnalyticsTableManager")
 public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableManager {
-  private static final List<AnalyticsTableColumn> FIXED_COLS =
-      List.of(
-          AnalyticsTableColumn.builder()
-              .name("pi")
-              .dataType(CHARACTER_11)
-              .nullable(NOT_NULL)
-              .selectExpression("pi.uid")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("enrollmentdate")
-              .dataType(TIMESTAMP)
-              .selectExpression("pi.enrollmentdate")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("incidentdate")
-              .dataType(TIMESTAMP)
-              .selectExpression("pi.occurreddate")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("completeddate")
-              .dataType(TIMESTAMP)
-              .selectExpression("case pi.status when 'COMPLETED' then pi.completeddate end")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("lastupdated")
-              .dataType(TIMESTAMP)
-              .selectExpression("pi.lastupdated")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("storedby")
-              .dataType(VARCHAR_255)
-              .selectExpression("pi.storedby")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("createdbyusername")
-              .dataType(VARCHAR_255)
-              .selectExpression("pi.createdbyuserinfo ->> 'username' as createdbyusername")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("createdbyname")
-              .dataType(VARCHAR_255)
-              .selectExpression("pi.createdbyuserinfo ->> 'firstName' as createdbyname")
-              .skipIndex(Skip.SKIP)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("createdbylastname")
-              .dataType(VARCHAR_255)
-              .selectExpression("pi.createdbyuserinfo ->> 'surname' as createdbylastname")
-              .skipIndex(Skip.SKIP)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("createdbydisplayname")
-              .dataType(VARCHAR_255)
-              .selectExpression(getDisplayName("createdbyuserinfo", "pi", "createdbydisplayname"))
-              .skipIndex(Skip.SKIP)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("lastupdatedbyusername")
-              .dataType(VARCHAR_255)
-              .selectExpression("pi.lastupdatedbyuserinfo ->> 'username' as lastupdatedbyusername")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("lastupdatedbyname")
-              .dataType(VARCHAR_255)
-              .selectExpression("pi.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname")
-              .skipIndex(Skip.SKIP)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("lastupdatedbylastname")
-              .dataType(VARCHAR_255)
-              .selectExpression("pi.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname")
-              .skipIndex(Skip.SKIP)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("lastupdatedbydisplayname")
-              .dataType(VARCHAR_255)
-              .selectExpression(
-                  getDisplayName("lastupdatedbyuserinfo", "pi", "lastupdatedbydisplayname"))
-              .skipIndex(Skip.SKIP)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("enrollmentstatus")
-              .dataType(VARCHAR_50)
-              .selectExpression("pi.status")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("longitude")
-              .dataType(DOUBLE)
-              .selectExpression(
-                  "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_X(pi.geometry) ELSE null END")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("latitude")
-              .dataType(DOUBLE)
-              .selectExpression(
-                  "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_Y(pi.geometry) ELSE null END")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("ou")
-              .dataType(CHARACTER_11)
-              .nullable(NOT_NULL)
-              .selectExpression("ou.uid")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("ouname")
-              .dataType(TEXT)
-              .nullable(NOT_NULL)
-              .selectExpression("ou.name")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("oucode")
-              .dataType(TEXT)
-              .selectExpression("ou.code")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("oulevel")
-              .dataType(INTEGER)
-              .selectExpression("ous.level")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("pigeometry")
-              .dataType(GEOMETRY)
-              .selectExpression("pi.geometry")
-              .indexType(IndexType.GIST)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("registrationou")
-              .dataType(CHARACTER_11)
-              .nullable(NOT_NULL)
-              .selectExpression("coalesce(registrationou.uid,ou.uid)")
-              .build());
+
+  private static List<AnalyticsTableColumn> FIXED_COLS;
 
   public JdbcEnrollmentAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -235,6 +106,165 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
         analyticsExportSettings,
         periodDataProvider,
         sqlBuilder);
+
+    setupColumns();
+  }
+
+  private void setupColumns() {
+    FIXED_COLS =
+            List.of(
+                    AnalyticsTableColumn.builder()
+                            .name("pi")
+                            .dataType(CHARACTER_11)
+                            .nullable(NOT_NULL)
+                            .selectExpression("pi.uid")
+                            .build(),
+                    AnalyticsTableColumn.builder()
+                            .name("enrollmentdate")
+                            .dataType(TIMESTAMP)
+                            .selectExpression("pi.enrollmentdate")
+                            .build(),
+                    AnalyticsTableColumn.builder()
+                            .name("incidentdate")
+                            .dataType(TIMESTAMP)
+                            .selectExpression("pi.occurreddate")
+                            .build(),
+                    AnalyticsTableColumn.builder()
+                            .name("completeddate")
+                            .dataType(TIMESTAMP)
+                            .selectExpression("case pi.status when 'COMPLETED' then pi.completeddate end")
+                            .build(),
+                    AnalyticsTableColumn.builder()
+                            .name("lastupdated")
+                            .dataType(TIMESTAMP)
+                            .selectExpression("pi.lastupdated")
+                            .build(),
+                    AnalyticsTableColumn.builder()
+                            .name("storedby")
+                            .dataType(VARCHAR_255)
+                            .selectExpression("pi.storedby")
+                            .build(),
+                    AnalyticsTableColumn.builder()
+                            .name("createdbyusername")
+                            .dataType(VARCHAR_255)
+                            .selectExpression(sqlBuilder.extractJsonB2("pi.createdbyuserinfo", "username") + " as createdbyusername")
+                            .build(),
+                    AnalyticsTableColumn.builder()
+                            .name("createdbyname")
+                            .dataType(VARCHAR_255)
+                            .selectExpression(sqlBuilder.extractJsonB2("pi.createdbyuserinfo", "firstName") + " as createdbyname")
+                            .skipIndex(Skip.SKIP)
+                            .build(),
+                    AnalyticsTableColumn.builder()
+                            .name("createdbylastname")
+                            .dataType(VARCHAR_255)
+                            .selectExpression(sqlBuilder.extractJsonB2("pi.createdbyuserinfo", "surname") + " as createdbylastname")
+                            .skipIndex(Skip.SKIP)
+                            .build(),
+                    AnalyticsTableColumn.builder()
+                            .name("createdbydisplayname")
+                            .dataType(VARCHAR_255)
+                            .selectExpression(getDisplayName(sqlBuilder, "createdbyuserinfo", "pi", "createdbydisplayname"))
+                            .skipIndex(Skip.SKIP)
+                            .build(),
+                    AnalyticsTableColumn.builder()
+                            .name("lastupdatedbyusername")
+                            .dataType(VARCHAR_255)
+                            .selectExpression(sqlBuilder.extractJsonB2("pi.lastupdatedbyuserinfo", "username") + " as lastupdatedbyusername")
+                            .build(),
+                    AnalyticsTableColumn.builder()
+                            .name("lastupdatedbyname")
+                            .dataType(VARCHAR_255)
+                            .selectExpression(sqlBuilder.extractJsonB2("pi.lastupdatedbyuserinfo", "firstName") + " as lastupdatedbyname")
+                            .skipIndex(Skip.SKIP)
+                            .build(),
+                    AnalyticsTableColumn.builder()
+                            .name("lastupdatedbylastname")
+                            .dataType(VARCHAR_255)
+                            .selectExpression(sqlBuilder.extractJsonB2("pi.lastupdatedbyuserinfo", "surname") + " as lastupdatedbylastname")
+                            .skipIndex(Skip.SKIP)
+                            .build(),
+                    AnalyticsTableColumn.builder()
+                            .name("lastupdatedbydisplayname")
+                            .dataType(VARCHAR_255)
+                            .selectExpression(
+                                    getDisplayName(sqlBuilder, "lastupdatedbyuserinfo", "pi", "lastupdatedbydisplayname"))
+                            .skipIndex(Skip.SKIP)
+                            .build(),
+                    AnalyticsTableColumn.builder()
+                            .name("enrollmentstatus")
+                            .dataType(VARCHAR_50)
+                            .selectExpression("pi.status")
+                            .build(),
+                    AnalyticsTableColumn.builder()
+                            .name("ou")
+                            .dataType(CHARACTER_11)
+                            .nullable(NOT_NULL)
+                            .selectExpression("ou.uid")
+                            .build(),
+                    AnalyticsTableColumn.builder()
+                            .name("ouname")
+                            .dataType(TEXT)
+                            .nullable(NOT_NULL)
+                            .selectExpression("ou.name")
+                            .build(),
+                    AnalyticsTableColumn.builder()
+                            .name("oucode")
+                            .dataType(TEXT)
+                            .selectExpression("ou.code")
+                            .build(),
+                    AnalyticsTableColumn.builder()
+                            .name("oulevel")
+                            .dataType(INTEGER)
+                            .selectExpression("ous.level")
+                            .build(),
+                    AnalyticsTableColumn.builder()
+                            .name("registrationou")
+                            .dataType(CHARACTER_11)
+                            .nullable(NOT_NULL)
+                            .selectExpression("coalesce(registrationou.uid,ou.uid)")
+                            .build());
+
+    if (sqlBuilder.supportsGeospatialData()) {
+      FIXED_COLS.addAll(List.of(
+              AnalyticsTableColumn.builder()
+                      .name("pigeometry")
+                      .dataType(GEOMETRY)
+                      .selectExpression("pi.geometry")
+                      .indexType(IndexType.GIST)
+                      .build(),
+              AnalyticsTableColumn.builder()
+                      .name("longitude")
+                      .dataType(DOUBLE)
+                      .selectExpression(
+                              "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_X(pi.geometry) ELSE null END")
+                      .build(),
+              AnalyticsTableColumn.builder()
+                      .name("latitude")
+                      .dataType(DOUBLE)
+                      .selectExpression(
+                              "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_Y(pi.geometry) ELSE null END")
+                      .build(),
+              AnalyticsTableColumn.builder()
+                      .name("longitude")
+                      .dataType(DOUBLE)
+                      .selectExpression(
+                              "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_X(pi.geometry) ELSE null END")
+                      .build(),
+              AnalyticsTableColumn.builder()
+                      .name("latitude")
+                      .dataType(DOUBLE)
+                      .selectExpression(
+                              "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_Y(pi.geometry) ELSE null END")
+                      .build(),
+              AnalyticsTableColumn.builder()
+                      .name("pigeometry")
+                      .dataType(GEOMETRY)
+                      .selectExpression("pi.geometry")
+                      .indexType(IndexType.GIST)
+                      .build()
+      ));
+    }
   }
 
   @Override
@@ -321,12 +351,25 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
               .dataType(CHARACTER_11)
               .selectExpression("tei.uid")
               .build());
-      columns.add(
-          AnalyticsTableColumn.builder()
-              .name("teigeometry")
-              .dataType(GEOMETRY)
-              .selectExpression("tei.geometry")
-              .build());
+      if (sqlBuilder.supportsGeospatialData()) {
+        columns.add(
+                AnalyticsTableColumn.builder()
+                        .name("teigeometry")
+                        .dataType(GEOMETRY)
+                        .selectExpression("tei.geometry")
+                        .build());
+      }
+    }
+
+    var c1 = columns.size();
+    // FIXME luciano: remove columns that are problematic in Doris
+    columns.removeIf(column ->
+            column.getSelectExpression().startsWith("(select ou.name from")
+                    || column.getSelectExpression().startsWith("(select ou.uid from")
+                    || column.getSelectExpression().contains("maplegend"));
+    var c2 = columns.size();
+    if (c2 < c1) {
+      System.out.println("ENROLLMENT -> FOUND!");
     }
 
     return filterDimensionColumns(columns);

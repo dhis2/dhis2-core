@@ -67,6 +67,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.db.sql.DorisSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -160,6 +161,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       EventQueryParams params, Grid grid, String sql, boolean unlimitedPaging) {
     log.debug("Analytics enrollment query SQL: '{}'", sql);
 
+    System.out.println("Analytics enrollment query SQL: '" + sql + "'");
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
     int rowsRed = 0;
@@ -368,12 +370,17 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
       for (DimensionalItemObject object : params.getDimensionOrFilterItems(ORGUNIT_DIM_ID)) {
         OrganisationUnit unit = (OrganisationUnit) object;
-        sql +=
+        var expression =
             params.getOrgUnitField().getOrgUnitLevelCol(unit.getLevel(), getAnalyticsType())
                 + " = '"
                 + unit.getUid()
                 + "' or ";
+        if (sqlBuilder instanceof DorisSqlBuilder) {
+          expression = expression.replace("\"", "`");
+        }
+        sql += expression;
       }
+
 
       sql = removeLastOr(sql) + ") ";
     }

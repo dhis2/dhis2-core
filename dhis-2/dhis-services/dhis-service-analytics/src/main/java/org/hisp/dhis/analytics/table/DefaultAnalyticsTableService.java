@@ -234,7 +234,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       AnalyticsTableUpdateParams params,
       List<AnalyticsTablePartition> partitions,
       JobProgress progress) {
-    int parallelism = Math.min(getParallelJobs(), partitions.size());
+    int parallelism = 1;  // FIXME luciano -> Math.min(getParallelJobs(), partitions.size());
     log.info("Populate table task number: " + parallelism);
 
     progress.runStageInParallel(

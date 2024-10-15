@@ -366,4 +366,26 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   public String dropCatalogIfExists() {
     return notSupported();
   }
+
+  @Override
+  public String extractJsonB(String column, String key) {
+
+    return column + " #>> '{" + key + ", value}'";
+  }
+
+  @Override
+  public String extractJsonB(String column, String key, String regex) {
+    // eventdatavalues #>> '{GieVkTxp4HH,value}' ~* '^(-?[0-9]+)(\.[0-9]+)?$') as GieVkTxp4HH,
+    return column + " #>> '{" + key + ", value}' ~* '" + regex + "'";
+  }
+
+  @Override
+  public String extractJsonB2(String column, String key) {
+
+    return column + "->>'" + key + "'";
+  }
+  @Override
+  public String getJsonField(String tablePrefix, String originColumn, String field) {
+    return tablePrefix + "." + originColumn + " ->> '" + field + "'";
+  }
 }

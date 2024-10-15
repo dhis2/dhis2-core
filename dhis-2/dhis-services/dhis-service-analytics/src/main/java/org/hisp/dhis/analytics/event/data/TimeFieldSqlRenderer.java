@@ -51,6 +51,8 @@ import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.db.sql.DorisSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.jdbc.PostgreSqlStatementBuilder;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.period.Period;
@@ -77,6 +79,29 @@ public abstract class TimeFieldSqlRenderer {
     } else // Periods condition only for pivot table (aggregated).
     {
       sql.append(getAggregatedConditionForPeriods(params));
+    }
+
+    if (isEmpty(sql)) {
+      return sql.toString();
+    }
+
+    return "(" + sql + ") ";
+  }
+  // FIXME luciano: horrible crap
+  public String renderPeriodTimeFieldSql(EventQueryParams params, SqlBuilder sqlBuilder) {
+    StringBuilder sql = new StringBuilder();
+
+    if (params.hasNonDefaultBoundaries()) {
+      sql.append(getConditionForNonDefaultBoundaries(params));
+    } else if (params.useStartEndDates() || params.hasTimeDateRanges()) {
+      sql.append(getDateRangeCondition(params));
+    } else // Periods condition only for pivot table (aggregated).
+    {
+      var expression = getAggregatedConditionForPeriods(params);
+      if (sqlBuilder instanceof DorisSqlBuilder) {
+        expression = expression.replace("\"", "`");
+      }
+      sql.append(expression);
     }
 
     if (isEmpty(sql)) {

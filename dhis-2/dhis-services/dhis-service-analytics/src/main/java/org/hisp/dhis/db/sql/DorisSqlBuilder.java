@@ -225,7 +225,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String createTable(Table table) {
-    Validate.isTrue(table.hasPrimaryKey() || table.hasColumns());
+     Validate.isTrue(table.hasPrimaryKey() || table.hasColumns());
 
     StringBuilder sql =
         new StringBuilder("create table ").append(quote(table.getName())).append(" ");
@@ -383,7 +383,8 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
         "password" = "${password}", \
         "jdbc_url" = "${connection_url}", \
         "driver_url" = "${driver_filename}", \
-        "driver_class" = "org.postgresql.Driver"
+        "driver_class" = "org.postgresql.Driver", \
+        "connection_pool_max_wait_time" = "30000" \
         );""",
         Map.of(
             "catalog", quote(catalog),
@@ -396,5 +397,26 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String dropCatalogIfExists() {
     return String.format("drop catalog if exists %s;", quote(catalog));
+  }
+
+  @Override
+  public String extractJsonB(String column, String key) {
+  // JSON_UNQUOTE(JSON_EXTRACT(eventdatavalues, '$.GieVkTxp4HH.value')) REGEXP '^(-?[0-9]+)(\\.[0-9]+)?$' AS GieVkTxp4HH from pg_dhis.public.event;
+    return " JSON_UNQUOTE(JSON_EXTRACT(" + column + ", '$." + key + ".value'))";
+  }
+
+  @Override
+  public String extractJsonB(String column, String key, String regex) {
+    return " JSON_UNQUOTE(JSON_EXTRACT(" + column + ", '$." + key + ".value')) REGEXP '" + regex + "'";
+  }
+
+  @Override
+  public String extractJsonB2(String column, String key) {
+    return "JSON_UNQUOTE(JSON_EXTRACT(" + column + ", '$." + key + "'))";
+  }
+
+  @Override
+  public String getJsonField(String tablePrefix, String originColumn, String field) {
+    return " JSON_UNQUOTE(JSON_EXTRACT(" + tablePrefix + "." + originColumn + ", '$." + field + "'))";
   }
 }
