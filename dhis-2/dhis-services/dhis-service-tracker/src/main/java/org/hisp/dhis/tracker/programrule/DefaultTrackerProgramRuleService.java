@@ -38,9 +38,12 @@ import java.util.stream.Stream;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.dxf2.events.event.EventQueryParams;
+import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -78,6 +81,10 @@ public class DefaultTrackerProgramRuleService implements TrackerProgramRuleServi
   @NonNull
   private final TrackerConverterService<Attribute, TrackedEntityAttributeValue>
       attributeValueTrackerConverterService;
+
+  private final EventService eventService;
+
+  private final ProgramStageInstanceService programStageInstanceService;
 
   /**
    * This method is calling rule engine for every enrollment and all the linked events, for all
@@ -196,22 +203,19 @@ public class DefaultTrackerProgramRuleService implements TrackerProgramRuleServi
   }
 
   private Set<ProgramStageInstance> getEventsFromEnrollment(
-      String enrollment, TrackerBundle bundle) {
-    List<String> bundleEventUids =
-        bundle.getEvents().stream().map(Event::getUid).collect(Collectors.toList());
+      String enrollmentUid, TrackerBundle bundle) {
+    EventQueryParams eventQueryParams = new EventQueryParams();
+    eventQueryParams.setProgramInstances(Set.of(enrollmentUid));
+    List<org.hisp.dhis.dxf2.events.event.Event> events =
+        eventService.getEvents(eventQueryParams).getEvents();
 
-    // Get all programStageInstances from preheat that are linked to
-    // enrollment
-    // and are not present in the payload
     Stream<ProgramStageInstance> programStageInstances =
-        bundle.getPreheat().getEvents().values().stream()
-            .filter(e -> e.getProgramInstance().getUid().equals(enrollment))
-            .filter(e -> !bundleEventUids.contains(e.getUid()));
+        events.stream().map(e -> programStageInstanceService.getProgramStageInstance(e.getUid()));
 
     // All events in the payload that are linked to enrollment
     Stream<ProgramStageInstance> bundleEvents =
         bundle.getEvents().stream()
-            .filter(e -> e.getEnrollment().equals(enrollment))
+            .filter(e -> e.getEnrollment().equals(enrollmentUid))
             .map(
                 event ->
                     eventTrackerConverterService.fromForRuleEngine(bundle.getPreheat(), event));

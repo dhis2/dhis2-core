@@ -123,6 +123,8 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
     user.getGroups().add(userGroup);
     manager.update(user);
 
+    injectSecurityContext(user);
+
     templateForEnrollment =
         createProgramNotification(
             "enrollment",
