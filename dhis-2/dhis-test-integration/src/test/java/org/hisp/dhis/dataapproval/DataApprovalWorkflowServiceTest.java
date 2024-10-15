@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,7 +65,9 @@ class DataApprovalWorkflowServiceTest extends PostgresIntegrationTestBase {
 
   private DataApprovalLevel level3;
 
-  PeriodType periodType;
+  private PeriodType periodType;
+
+  private CategoryCombo categoryCombo;
 
   @BeforeEach
   void setUp() {
@@ -78,9 +81,13 @@ class DataApprovalWorkflowServiceTest extends PostgresIntegrationTestBase {
     dataApprovalLevelService.addDataApprovalLevel(level2);
     dataApprovalLevelService.addDataApprovalLevel(level3);
     periodType = PeriodType.getPeriodTypeByName("Monthly");
-    workflowA = new DataApprovalWorkflow("A", periodType, newHashSet(level1, level2));
-    workflowB = new DataApprovalWorkflow("B", periodType, newHashSet(level2, level3));
-    workflowC = new DataApprovalWorkflow("C", periodType, newHashSet(level1, level3));
+    categoryCombo = categoryService.getDefaultCategoryCombo();
+    workflowA =
+        new DataApprovalWorkflow("A", periodType, categoryCombo, newHashSet(level1, level2));
+    workflowB =
+        new DataApprovalWorkflow("B", periodType, categoryCombo, newHashSet(level2, level3));
+    workflowC =
+        new DataApprovalWorkflow("C", periodType, categoryCombo, newHashSet(level1, level3));
   }
 
   // -------------------------------------------------------------------------
@@ -163,7 +170,7 @@ class DataApprovalWorkflowServiceTest extends PostgresIntegrationTestBase {
     createUserAndInjectSecurityContext(false, "F_DATA_APPROVAL_WORKFLOW");
     long idA =
         dataApprovalService.addWorkflow(
-            new DataApprovalWorkflow("H", periodType, newHashSet(level1, level2)));
+            new DataApprovalWorkflow("H", periodType, categoryCombo, newHashSet(level1, level2)));
     assertEquals("H", dataApprovalService.getWorkflow(idA).getName());
   }
 
@@ -174,7 +181,8 @@ class DataApprovalWorkflowServiceTest extends PostgresIntegrationTestBase {
         AccessDeniedException.class,
         () ->
             dataApprovalService.addWorkflow(
-                new DataApprovalWorkflow("F", periodType, newHashSet(level1, level2))));
+                new DataApprovalWorkflow(
+                    "F", periodType, categoryCombo, newHashSet(level1, level2))));
   }
 
   @Test
