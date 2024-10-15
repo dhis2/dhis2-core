@@ -251,7 +251,7 @@ final class LazySettings implements SystemSettings, UserSettings {
   }
 
   private static final DateTimeFormatter ISO_DATE_TIME =
-      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
+      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
 
   @Nonnull
   private JsonValue asJson(String key) {

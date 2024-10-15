@@ -38,6 +38,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
+import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.jsontree.JsonBoolean;
 import org.hisp.dhis.jsontree.JsonInteger;
 import org.hisp.dhis.jsontree.JsonMap;
@@ -110,6 +111,12 @@ class SystemSettingsTest {
     JsonPrimitive booleanValue = asJson.get("startModuleEnableLightweight");
     assertTrue(booleanValue.isBoolean());
     assertFalse(booleanValue.as(JsonBoolean.class).booleanValue());
+    JsonString dateValue = asJson.get("keyLastMetaDataSyncSuccess");
+    assertTrue(dateValue.isString());
+    assertEquals("1970-01-01T01:00:00.000", dateValue.string());
+    JsonString enumValue = asJson.get("keyCacheStrategy");
+    assertTrue(enumValue.isString());
+    assertEquals(CacheStrategy.CACHE_1_MINUTE, enumValue.parsed(CacheStrategy::valueOf));
     // except none of the confidential ones
     CONFIDENTIAL_KEYS.forEach(key -> assertFalse(asJson.exists(key)));
   }
