@@ -137,7 +137,7 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
       headers using ContextUtils.setNoStore(response).
     */
     context
-        .addFilter("HtmlFileNoCacheFilter", new DelegatingFilterProxy("htmlFileNoCacheFilter"))
+        .addFilter("AppHtmlNoCacheFilter", new DelegatingFilterProxy("appHtmlNoCacheFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
 
     context
