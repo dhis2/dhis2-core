@@ -29,6 +29,35 @@
         width: 20%;
       }
 
+      .nav-right {
+        margin-top: 10px;
+        display: flex;
+        align-items: start;
+        gap: 10px;
+        justify-content: start;
+      }
+
+      .nav-right img {
+        max-height: 64px;
+        border: 1px solid white;
+        width: 100px;
+      }
+
+      .right-content {
+        display: flex;
+        height: 10px;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .right-content h3{
+        margin: 0px;
+      }
+
+      .right-content p{
+        margin: 0px;
+      }
+
       .notification-container {
         background: #f5fbff;
         display: flex;
@@ -41,29 +70,30 @@
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       }
 
-      .notification-content{
+      .notification-content {
         font-size: 14px;
         display: flex;
         flex-direction: column;
-        gap:10px;
+        gap: 10px;
         line-height: 20px;
       }
-.fa-circle-info{
-  color: #093371;
-  font-size: 20px;
-}
+
+      .fa-circle-info {
+        color: #093371;
+        font-size: 20px;
+      }
+
       .login-container {
         background-color: white;
         padding: 2rem;
         border-radius: 5px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         width: 100%;
-        text-align: center;
       }
 
       .login-container h1 {
-        margin-bottom: 7px;
-        font-size: 1.2rem;
+        margin-bottom: 12px;
+        font-size: 1rem;
         color: #333;
       }
 
@@ -111,26 +141,37 @@
       .logo-container {
         color: white;
         width: 100%;
+      }
+
+      .nav {
+        margin: 0px 20px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 20px;
+      }
+
+      p {
+        color: #a0adba;
       }
 
       .footer {
-        text-align: center;
         position: fixed;
-        bottom: 10px;
-        left: 0;
-        right: 0;
-        color: white;
+        bottom: 0;
+        color: rgb(206, 203, 203);
         border-top: solid 1px #004a8b;
         width: 100%;
-        padding-top: 5px;
+        padding-top: 2px;
+      }
+
+      .footer div {
+        margin: 0px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
 
       .footer a {
-        color: #fff;
+        color: rgb(206, 203, 203);
       }
 
       /* Loading spinner */
@@ -164,8 +205,19 @@
   <body>
     <!-- Logo and Title Section -->
     <div class="logo-container">
-      <div></div>
-      <img src="/dhis-web-commons/security/logo_front.png" alt="DHIS2 Logo" />
+      <div class="nav">
+        <div class="nav-right">
+          <img
+            src="/dhis-web-commons/flags/sierra_leone.png"
+            alt="Sierra-Leone flag"
+          />
+          <div class="right-content">
+            <h3>DHIS 2 Demo - Sierra Leone</h3>
+            <p>Welcome to the DHIS 2 demo application</p>
+          </div>
+        </div>
+        <img src="/dhis-web-commons/security/logo_front.png" alt="DHIS2 Logo" />
+      </div>
     </div>
 
     <div class="wrapper">
@@ -208,8 +260,10 @@
 
     <!-- Footer Section -->
     <div class="footer">
-      <span>Powered by DHIS2. Learn more at </span>
-      <a href="https://www.dhis2.org">dhis2.org</a>
+      <div>
+        <p>Powered by DHIS2.</p>
+        <span>Learn more at <a href="https://www.dhis2.org">dhis2.org</a></span>
+      </div>
     </div>
 
     <script>
@@ -217,21 +271,21 @@
         .getElementById("loginForm")
         .addEventListener("submit", async function (event) {
           event.preventDefault();
-
+    
           const username = document.getElementById("username").value;
           const password = document.getElementById("password").value;
           const submitButton = document.querySelector('input[type="submit"]');
           const spinner = document.getElementById("spinner");
           const errorMessage = document.getElementById("errorMessage");
-
+    
           // Show loading state
           spinner.style.display = "block";
           errorMessage.innerText = "";
           submitButton.disabled = true;
-
+    
           try {
             const response = await fetch(
-              "http://localhost:8080/api/auth/login",
+              "/api/auth/login",
               {
                 method: "POST",
                 headers: {
@@ -240,20 +294,27 @@
                 body: JSON.stringify({ username, password, twoFA: true }),
               }
             );
-
+    
             if (!response.ok) {
               throw new Error("Login failed: " + response.status);
             }
-
+    
             const user = await response.json();
-            console.log("Logged in user:", user);
+    
+            if (user.loginStatus === "SUCCESS") {
+              const redirectUrl = user?.redirectUrl || "/";
+              window.location.href = redirectUrl;
+            } else {
+              throw new Error("Login failed. Status: " + user.loginStatus);
+            }
           } catch (error) {
-            errorMessage.innerText = error.message;
+            errorMessage.innerText = error?.message;
           } finally {
             spinner.style.display = "none";
             submitButton.disabled = false;
           }
         });
     </script>
+    
   </body>
 </html>
