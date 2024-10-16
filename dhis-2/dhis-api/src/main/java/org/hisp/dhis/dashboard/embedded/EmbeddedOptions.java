@@ -29,12 +29,20 @@ package org.hisp.dhis.dashboard.embedded;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Encapsulates customization options for embedded dashboards.
  *
  * @author Lars Helge Overland
  */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class EmbeddedOptions implements Serializable {
   /** Hide the chart controls. Applies to Superset. */
   @JsonProperty private boolean hideChartControls;
