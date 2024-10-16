@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.google.gson.JsonObject;
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
