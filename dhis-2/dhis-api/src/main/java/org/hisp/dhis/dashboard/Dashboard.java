@@ -36,7 +36,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -49,7 +48,6 @@ import org.hisp.dhis.dashboard.embedded.EmbeddedProvider;
 /**
  * @author Lars Helge Overland
  */
-@NoArgsConstructor
 @JacksonXmlRootElement(localName = "dashboard", namespace = DxfNamespaces.DXF_2_0)
 public class Dashboard extends BaseNameableObject implements MetadataObject {
   public static final int MAX_ITEMS = 40;
@@ -92,7 +90,12 @@ public class Dashboard extends BaseNameableObject implements MetadataObject {
   // Constructors
   // -------------------------------------------------------------------------
 
+  public Dashboard() {
+    this.embeddedProvider = EmbeddedProvider.NATIVE;
+  }
+
   public Dashboard(String name) {
+    this();
     this.name = name;
   }
 
