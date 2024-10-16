@@ -168,6 +168,10 @@ public class EventTrackerConverterService
     ProgramStageInstance psi = from(preheat, event, null);
     // merge data values from DB
     psi.getEventDataValues().addAll(getProgramStageInstanceDataValues(preheat, event));
+    ProgramStageInstance savedEvent = preheat.getEvent(event.getUid());
+    if (savedEvent != null) {
+      psi.setCreated(savedEvent.getCreated());
+    }
     return psi;
   }
 
