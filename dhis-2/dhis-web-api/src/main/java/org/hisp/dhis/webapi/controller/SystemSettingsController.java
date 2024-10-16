@@ -62,6 +62,7 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.intellij.lang.annotations.Language;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -186,7 +187,7 @@ public class SystemSettingsController {
 
    */
 
-  @GetMapping(value = "/{key}", params = "locale", produces = TEXT_PLAIN_VALUE)
+  @GetMapping(value = "/{key}", params = "locale")
   public @ResponseBody ResponseEntity<String> getSystemSettingTranslation(
       @PathVariable("key") String key, @RequestParam("locale") String locale)
       throws ForbiddenException, ConflictException, NotFoundException {
@@ -198,7 +199,10 @@ public class SystemSettingsController {
     if (value.isEmpty())
       value =
           toJavaString(settingsService.getCurrentSettings().toJson(false, Set.of(key)).get(key));
-    return ResponseEntity.ok().headers(noCacheNoStoreMustRevalidate()).body(value);
+    return ResponseEntity.ok()
+        .contentType(MediaType.TEXT_PLAIN)
+        .headers(noCacheNoStoreMustRevalidate())
+        .body(value);
   }
 
   @Nonnull
