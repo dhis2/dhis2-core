@@ -208,12 +208,14 @@
       <div class="nav">
         <div class="nav-right">
           <img
-            src="/dhis-web-commons/flags/sierra_leone.png"
-            alt="Sierra-Leone flag"
+            id="flag"
+            src=""
+            alt="Country flag"
+            style="display: none;"
           />
           <div class="right-content">
-            <h3>DHIS 2 Demo - Sierra Leone</h3>
-            <p>Welcome to the DHIS 2 demo application</p>
+            <h3 id="appTitle">DHIS2 Login</h3>
+            <p id="appWelcomeMessage">Welcome to the DHIS2 application</p>
           </div>
         </div>
         <img src="/dhis-web-commons/security/logo_front.png" alt="DHIS2 Logo" />
@@ -243,17 +245,10 @@
       </div>
 
       <!-- Notification  -->
-      <div class="notification-container">
+      <div class="notification-container" id="notificationContainer" style="display: none;">
         <i class="fa-solid fa-circle-info"></i>
         <div class="notification-content">
-          <span>
-            Log in with admin / district and feel free to do changes as system
-            is reset every night.
-          </span>
-          <i>
-            Note: In order to maintain access for everyone, changes to the admin
-            user password are blocked in the DHIS2 play environment.</i
-          >
+          <span id="notificationText"></span>
         </div>
       </div>
     </div>
@@ -267,53 +262,84 @@
     </div>
 
     <script>
+      async function fetchLoginConfig() {
+        try {
+          const response = await fetch('/api/loginConfig');
+          if (!response.ok) {
+            throw new Error('Failed to fetch login configuration');
+          }
+
+          const config = await response.json();
+          document.getElementById('appTitle').innerText = config.applicationTitle || 'DHIS2 Login';
+          document.getElementById('appWelcomeMessage').innerText = config.applicationDescription || 'Welcome to the DHIS2 application';
+       
+          if (config.countryFlag) {
+            const flag = document.getElementById('flag');
+            flag.src = `/dhis-web-commons/flags/${config.countryFlag}.png`;
+            flag.style.display = 'block';
+          }
+
+          if (config.applicationNotification) {
+            const notificationContainer = document.getElementById('notificationContainer');
+            const notificationText = document.getElementById('notificationText');
+            notificationText.innerHTML = config.applicationNotification;
+            notificationContainer.style.display = 'flex';
+          }
+
+          if (config.useCustomLogoFront) {
+            const appLogo = document.getElementById('appLogo');
+            appLogo.src = '/dhis-web-commons/security/custom_logo.png';
+          }
+        } catch (error) {
+          console.error('Error:', error);
+        }
+      }
+
       document
-        .getElementById("loginForm")
-        .addEventListener("submit", async function (event) {
+        .getElementById('loginForm')
+        .addEventListener('submit', async function (event) {
           event.preventDefault();
-    
-          const username = document.getElementById("username").value;
-          const password = document.getElementById("password").value;
+
+          const username = document.getElementById('username').value;
+          const password = document.getElementById('password').value;
           const submitButton = document.querySelector('input[type="submit"]');
-          const spinner = document.getElementById("spinner");
-          const errorMessage = document.getElementById("errorMessage");
-    
-          // Show loading state
-          spinner.style.display = "block";
-          errorMessage.innerText = "";
+          const spinner = document.getElementById('spinner');
+          const errorMessage = document.getElementById('errorMessage');
+
+          spinner.style.display = 'block';
+          errorMessage.innerText = '';
           submitButton.disabled = true;
-    
+
           try {
-            const response = await fetch(
-              "/api/auth/login",
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ username, password, twoFA: true }),
-              }
-            );
-    
+            const response = await fetch('/api/auth/login', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ username, password, twoFA: true }),
+            });
+
             if (!response.ok) {
-              throw new Error("Login failed: " + response.status);
+              throw new Error('Login failed: ' + response.status);
             }
-    
+
             const user = await response.json();
-    
-            if (user.loginStatus === "SUCCESS") {
-              const redirectUrl = user?.redirectUrl || "/";
+
+            if (user.loginStatus === 'SUCCESS') {
+              const redirectUrl = user.redirectUrl || '/';
               window.location.href = redirectUrl;
             } else {
-              throw new Error("Login failed. Status: " + user.loginStatus);
+              throw new Error('Login failed. Status: ' + user.loginStatus);
             }
           } catch (error) {
-            errorMessage.innerText = error?.message;
+            errorMessage.innerText = error.message;
           } finally {
-            spinner.style.display = "none";
+            spinner.style.display = 'none';
             submitButton.disabled = false;
           }
         });
+
+      fetchLoginConfig();
     </script>
     
   </body>
