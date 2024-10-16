@@ -97,7 +97,7 @@ class TrackedEntityFilterServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testFilterWithAndWithoutFollowUp() {
+  void testAddFilterWithAndWithoutFollowUp() {
     TrackedEntityFilter filterWithOutFollowUp = createTrackedEntityFilter('A', programA);
     TrackedEntityFilter filterWithFollowUp = createTrackedEntityFilter('B', programB);
     filterWithFollowUp.getEntityQueryCriteria().setFollowUp(true);
