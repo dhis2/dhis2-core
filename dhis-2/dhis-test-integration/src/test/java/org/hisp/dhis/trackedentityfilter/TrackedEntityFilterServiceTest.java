@@ -97,6 +97,24 @@ class TrackedEntityFilterServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void testFilterWithAndWithoutFollowUp() {
+    TrackedEntityFilter filterWithOutFollowUp = createTrackedEntityFilter('A', programA);
+    TrackedEntityFilter filterWithFollowUp = createTrackedEntityFilter('B', programB);
+    filterWithFollowUp.getEntityQueryCriteria().setFollowUp(true);
+    long idA = trackedEntityFilterService.add(filterWithOutFollowUp);
+    long idB = trackedEntityFilterService.add(filterWithFollowUp);
+
+    TrackedEntityFilter fetchedA = trackedEntityFilterService.get(idA);
+    TrackedEntityFilter fetchedB = trackedEntityFilterService.get(idB);
+
+    assertEquals(filterWithOutFollowUp, fetchedA);
+    assertNull(fetchedA.getEntityQueryCriteria().getFollowUp());
+
+    assertEquals(filterWithFollowUp, trackedEntityFilterService.get(idB));
+    assertTrue(fetchedB.getEntityQueryCriteria().getFollowUp());
+  }
+
+  @Test
   void testDefaultPrivateAccess() {
     long idA = trackedEntityFilterService.add(createTrackedEntityFilter('A', programA));
     TrackedEntityFilter trackedEntityFilterA = trackedEntityFilterService.get(idA);
