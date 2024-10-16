@@ -121,6 +121,7 @@ pipeline {
                                 timeout(time: 20, unit: 'MINUTES') {
                                     waitFor.analyticsCompleted("${INSTANCE_URL}${NOTIFIER_ENDPOINT}", '$DHIS2_CREDENTIALS')
                                 }
+                                sh "chmod +x $WORKSPACE/scripts/install_apps_from_app_hub.sh"
                                 sh "credentials=\$DHIS2_CREDENTIALS url=$INSTANCE_URL $WORKSPACE/scripts/install_apps_from_app_hub.sh"
                             }
                         }
