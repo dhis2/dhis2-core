@@ -42,7 +42,6 @@ import org.hisp.dhis.visualization.Visualization;
  * @author Lars Helge Overland
  */
 public interface DashboardService {
-  String ID = DashboardService.class.getName();
 
   // -------------------------------------------------------------------------
   // Dashboard
@@ -58,8 +57,6 @@ public interface DashboardService {
   DashboardSearchResult search(Set<DashboardItemType> maxTypes, Integer count, Integer maxCount);
 
   DashboardSearchResult search(Set<DashboardItemType> maxTypes);
-
-  DashboardItem addItemContent(String dashboardUid, DashboardItemType type, String contentUid);
 
   void mergeDashboard(Dashboard dashboard);
 
