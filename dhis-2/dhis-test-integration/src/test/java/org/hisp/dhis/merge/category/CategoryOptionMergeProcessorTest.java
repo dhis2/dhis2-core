@@ -278,6 +278,44 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     assertFalse(allCategoryOptions.containsAll(List.of(coSource1A, coSource2B)));
   }
 
+  @Test
+  @DisplayName(
+      "1 CategoryOptionCombo with refs to source & target CategoryOption results in CategoryOptionCombo with just target")
+  void catOptComboSourceAndTargetRefsTest() throws ConflictException {
+    // given
+    CategoryCombo cc1 = createCategoryCombo('1', cat1, cat2);
+    manager.save(cc1);
+
+    CategoryOptionCombo coc = createCategoryOptionCombo(cc1, coSource1A, coSource2B, coTarget3A);
+    manager.save(coc);
+
+    // confirm cat option combo state before merge
+    List<CategoryOptionCombo> sourceCocsBefore =
+        categoryService.getCategoryOptionCombosByCategoryOption(List.of(coSource1A, coSource2B));
+    List<CategoryOptionCombo> targetCocsBefore =
+        categoryService.getCategoryOptionCombosByCategoryOption(List.of(coTarget3A));
+
+    assertEquals(1, sourceCocsBefore.size(), "Expect 1 entry with source category option ref");
+    assertEquals(1, targetCocsBefore.size(), "Expect 2 entry with target category option ref");
+
+    // when
+    MergeParams mergeParams = getMergeParams();
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<CategoryOptionCombo> sourceCocs =
+        categoryService.getCategoryOptionCombosByCategoryOption(List.of(coSource1A, coSource2B));
+    List<CategoryOptionCombo> targetCocs =
+        categoryService.getCategoryOptionCombosByCategoryOption(List.of(coTarget3A));
+    List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceCocs.size(), "Expect 0 entries with source category option refs");
+    assertEquals(1, targetCocs.size(), "Expect 1 entry with target category option ref");
+    assertEquals(9, allCategoryOptions.size(), "Expect 9 category options present");
+    assertTrue(allCategoryOptions.containsAll(List.of(coTarget3A, coSource1A, coSource2B)));
+  }
+
   // -----------------------------
   // --------- Org Unit ----------
   // -----------------------------
