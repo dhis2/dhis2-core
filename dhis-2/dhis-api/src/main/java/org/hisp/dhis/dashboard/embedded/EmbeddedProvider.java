@@ -33,6 +33,6 @@ package org.hisp.dhis.dashboard.embedded;
  * @author Lars Helge Overland
  */
 public enum EmbeddedProvider {
-  NATIVE,
+  NONE,
   SUPERSET;
 }
