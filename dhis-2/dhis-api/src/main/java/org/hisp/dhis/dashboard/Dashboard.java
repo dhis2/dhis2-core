@@ -68,8 +68,8 @@ public class Dashboard extends BaseNameableObject implements MetadataObject {
   private List<String> allowedFilters = new ArrayList<>();
 
   /**
-   * Provider of embedded dashboards, is never <code>null</code>. The default {@link
-   * EmbeddedProvider#NONE} value refers to standard DHIS 2 dashboards. Other values indicate that
+   * Provider of embedded dashboards, is never <code>null</code>. The default value is {@link
+   * EmbeddedProvider#NONE} which refers to standard DHIS 2 dashboards. Other values indicate that
    * this dashboard is sourced from an external provider and embedded in DHIS 2.
    */
   private EmbeddedProvider embeddedProvider;
