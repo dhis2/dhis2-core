@@ -51,13 +51,13 @@ pipeline {
                                 export VERSION_NAME=\$(jq -r '.patchVersions[] | select(.displayName == \"$version\") .name' <<< \$SUPPORTED_VERSIONS_JSON)
                                 export DHIS2_VERSION=\$VERSION_NAME
                                 export DHIS2_DB_DUMP_URL="https://databases.dhis2.org/sierra-leone/\$DHIS2_VERSION/dhis2-db-sierra-leone.sql.gz"
-                                export DHIS2_IMAGE="dhis2/core:\$DHIS2_VERSION"
+                                export DHIS2_IMAGE="dhis2/core-dev:40.5.0-20241016T083756Z"
                                 export GIT_BRANCH=\$DHIS2_VERSION
                                 export GIT_COMMIT=\$(git rev-parse \$VERSION_NAME)
                                 echo "DHIS2 version is \$DHIS2_VERSION"
                                 echo "Git commit is \$GIT_COMMIT"
 
-                                ./dhis-2/build-docker-image.sh -t \"$version\" -r
+                                #./dhis-2/build-docker-image.sh -t \"$version\" -r
 
                                 docker compose up -d
                             """
