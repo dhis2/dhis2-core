@@ -116,6 +116,12 @@ pipeline {
                                 timeout(time: 20, unit: 'MINUTES') {
                                     waitFor.statusOk("$INSTANCE_URL/$INSTANCE_NAME")
                                 }
+                                echo 'Generating analytics ...'
+                                def NOTIFIER_ENDPOINT = dhis2.generateAnalytics("$INSTANCE_URL", '$DHIS2_CREDENTIALS')
+                                timeout(time: 20, unit: 'MINUTES') {
+                                    waitFor.analyticsCompleted("${INSTANCE_URL}${NOTIFIER_ENDPOINT}", '$DHIS2_CREDENTIALS')
+                                }
+                                sh "credentials=\$DHIS2_CREDENTIALS url=$INSTANCE_URL $WORKSPACE/scripts/install_apps_from_app_hub.sh"
                             }
                         }
                     }
