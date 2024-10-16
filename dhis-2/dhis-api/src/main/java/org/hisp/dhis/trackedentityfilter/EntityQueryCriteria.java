@@ -56,7 +56,7 @@ public class EntityQueryCriteria implements Serializable {
    * Property indicating whether to filter tracked entity instances whose enrollments are marked for
    * followup or not
    */
-  private Boolean followUp = false;
+  private Boolean followUp;
 
   /** Property indication the OU for the filter. */
   private String organisationUnit;
