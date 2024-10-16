@@ -174,7 +174,6 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
     assertEquals(3, dashboardService.getDashboard(dAId).getItems().size());
     assertEquals(2, dashboardService.getDashboard(dBId).getItems().size());
     assertNotNull(dashboardService.getDashboard(dCId).getEmbeddedId());
-    assertNotNull(dashboardService.getDashboard(dCId).getEmbeddedOptions());
     assertTrue(dashboardService.getDashboard(dCId).getEmbeddedOptions().isHideChartControls());
   }
 
