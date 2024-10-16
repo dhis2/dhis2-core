@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports;
 
+import javax.annotation.Nonnull;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -50,7 +51,9 @@ public interface TrackerImportService {
    * @param trackerObjects the objects to import
    * @return report giving status of import (and any errors)
    */
-  default ImportReport importTracker(TrackerImportParams params, TrackerObjects trackerObjects) {
+  @Nonnull
+  default ImportReport importTracker(
+      @Nonnull TrackerImportParams params, @Nonnull TrackerObjects trackerObjects) {
     return importTracker(params, trackerObjects, RecordingJobProgress.transitory());
   }
 
@@ -63,8 +66,11 @@ public interface TrackerImportService {
    * @param jobProgress to track import progress
    * @return Report giving status of import (and any errors)
    */
+  @Nonnull
   ImportReport importTracker(
-      TrackerImportParams params, TrackerObjects trackerObjects, JobProgress jobProgress);
+      @Nonnull TrackerImportParams params,
+      @Nonnull TrackerObjects trackerObjects,
+      @Nonnull JobProgress jobProgress);
 
   /**
    * Build the report based on the mode selected by the client.
@@ -72,5 +78,7 @@ public interface TrackerImportService {
    * @param importReport report with all the data collected during import
    * @return TrackerImportReport report with filtered data based on reportMode
    */
-  ImportReport buildImportReport(ImportReport importReport, TrackerBundleReportMode reportMode);
+  @Nonnull
+  ImportReport buildImportReport(
+      @Nonnull ImportReport importReport, @Nonnull TrackerBundleReportMode reportMode);
 }

@@ -70,13 +70,15 @@ class SupplementaryDataProviderTest extends TestBase {
 
   private OrganisationUnit orgUnitB;
 
+  private UserDetails currentUser;
+
   @BeforeEach
   void setUp() {
     User user = makeUser("A");
     user.setUsername("A");
     user.setUserRoles(getUserRoles());
 
-    injectSecurityContext(UserDetails.fromUser(user));
+    currentUser = UserDetails.fromUser(user);
 
     orgUnitA = createOrganisationUnit('A');
     orgUnitB = createOrganisationUnit('B');
@@ -93,7 +95,7 @@ class SupplementaryDataProviderTest extends TestBase {
   @Test
   void getSupplementaryData() {
     Map<String, List<String>> supplementaryData =
-        providerToTest.getSupplementaryData(getProgramRules());
+        providerToTest.getSupplementaryData(getProgramRules(), currentUser);
     assertFalse(supplementaryData.isEmpty());
     assertEquals(getUserRoleUids(), Set.copyOf(supplementaryData.get("USER")));
     assertFalse(supplementaryData.get(ORG_UNIT_GROUP_UID).isEmpty());

@@ -27,21 +27,17 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
-import java.util.List;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,14 +55,12 @@ class RelationshipOperationParamsMapper {
   private final TrackerAccessManager accessManager;
 
   @Transactional(readOnly = true)
-  public RelationshipQueryParams map(RelationshipOperationParams params)
+  public RelationshipQueryParams map(@Nonnull RelationshipOperationParams params)
       throws NotFoundException, ForbiddenException, BadRequestException {
-
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     IdentifiableObject entity =
         switch (params.getType()) {
-          case TRACKED_ENTITY -> validateTrackedEntity(currentUser, params.getIdentifier());
+          case TRACKED_ENTITY -> trackedEntityService.getTrackedEntity(params.getIdentifier());
           case ENROLLMENT -> enrollmentService.getEnrollment(params.getIdentifier());
           case EVENT -> eventService.getEvent(UID.of(params.getIdentifier()));
           case RELATIONSHIP -> throw new IllegalArgumentException("Unsupported type");
@@ -77,21 +71,5 @@ class RelationshipOperationParamsMapper {
         .order(params.getOrder())
         .includeDeleted(params.isIncludeDeleted())
         .build();
-  }
-
-  private TrackedEntity validateTrackedEntity(UserDetails user, String uid)
-      throws NotFoundException, ForbiddenException, BadRequestException {
-    TrackedEntity trackedEntity =
-        trackedEntityService.getTrackedEntity(uid, null, TrackedEntityParams.FALSE, false);
-    if (trackedEntity == null) {
-      throw new NotFoundException(TrackedEntity.class, uid);
-    }
-
-    List<String> errors = accessManager.canRead(user, trackedEntity);
-    if (!errors.isEmpty()) {
-      throw new ForbiddenException(TrackedEntity.class, uid);
-    }
-
-    return trackedEntity;
   }
 }

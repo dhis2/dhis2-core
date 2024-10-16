@@ -43,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.mockingDetails;
@@ -77,7 +78,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.quick.JdbcConfiguration;
@@ -105,7 +107,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
 
   @Mock private CategoryService categoryService;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsProvider settingsProvider;
 
   @Mock private DataApprovalLevelService dataApprovalLevelService;
 
@@ -149,12 +151,13 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
 
   @BeforeEach
   public void setUp() {
+    lenient().when(settingsProvider.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
     target =
         new JdbcOwnershipAnalyticsTableManager(
             idObjectManager,
             organisationUnitService,
             categoryService,
-            systemSettingManager,
+            settingsProvider,
             dataApprovalLevelService,
             resourceTableService,
             tableHookService,
@@ -198,7 +201,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
 
     params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(AnalyticsTablePartition.LATEST_PARTITION)
+            .lastYears(AnalyticsTablePartition.LATEST_PARTITION)
             .build();
 
     assertEquals(emptyList(), target.getAnalyticsTables(params));

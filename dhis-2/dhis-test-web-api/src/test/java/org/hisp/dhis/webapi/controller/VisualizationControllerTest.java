@@ -30,14 +30,16 @@ package org.hisp.dhis.webapi.controller;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
-import static org.hisp.dhis.test.web.HttpStatus.CONFLICT;
-import static org.hisp.dhis.test.web.HttpStatus.CREATED;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpStatus.CONFLICT;
+import static org.hisp.dhis.http.HttpStatus.CREATED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Path;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.jsontree.JsonList;
@@ -45,14 +47,14 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.test.web.HttpStatus;
-import org.hisp.dhis.test.web.WebClient;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class VisualizationControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
@@ -67,7 +69,7 @@ class VisualizationControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetVisualizationWithNestedFilters() {
     JsonImportSummary report =
-        POST("/metadata", WebClient.Body("metadata/metadata_with_visualization.json"))
+        POST("/metadata", Path.of("metadata/metadata_with_visualization.json"))
             .content(HttpStatus.OK)
             .get("response")
             .as(JsonImportSummary.class);
@@ -302,7 +304,7 @@ class VisualizationControllerTest extends H2ControllerIntegrationTestBase {
   void testRelativePeriods() {
     POST(
             "/metadata?importStrategy=CREATE_AND_UPDATE&async=false",
-            WebClient.Body("metadata/metadata_with_visualization.json"))
+            Path.of("metadata/metadata_with_visualization.json"))
         .content(HttpStatus.OK)
         .as(JsonImportSummary.class);
     JsonMixed visualization =

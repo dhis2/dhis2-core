@@ -45,10 +45,10 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.icon.AddIconRequest;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIcon;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
@@ -56,7 +56,9 @@ import org.hisp.dhis.webapi.controller.json.JsonPager;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class IconControllerTest extends PostgresControllerIntegrationTestBase {
   private static final ObjectMapper mapper = new ObjectMapper();
 

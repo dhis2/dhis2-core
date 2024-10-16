@@ -28,12 +28,18 @@
 package org.hisp.dhis.eventhook.handlers;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.util.Timeout;
 import org.hisp.dhis.eventhook.Event;
 import org.hisp.dhis.eventhook.EventHook;
 import org.hisp.dhis.eventhook.Handler;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
+import org.hisp.dhis.system.util.HttpUtils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -76,7 +82,7 @@ public class WebhookHandler implements Handler {
       log.info(
           "EventHook '{}' response status '{}' and body: {}",
           eventHook.getUid(),
-          response.getStatusCode().name(),
+          HttpUtils.resolve(response.getStatusCode()).name(),
           response.getBody());
     } catch (RestClientException ex) {
       log.error(ex.getMessage());
@@ -84,18 +90,29 @@ public class WebhookHandler implements Handler {
   }
 
   private void configure(RestTemplate template) {
-    HttpComponentsClientHttpRequestFactory requestFactory =
-        new HttpComponentsClientHttpRequestFactory();
 
-    requestFactory.setConnectionRequestTimeout(1_000);
-    requestFactory.setConnectTimeout(5_000);
-    requestFactory.setReadTimeout(10_000);
-    requestFactory.setBufferRequestBody(true);
+    // Connect timeout
+    ConnectionConfig connectionConfig =
+        ConnectionConfig.custom().setConnectTimeout(Timeout.ofMilliseconds(5_000)).build();
 
-    HttpClient httpClient = HttpClientBuilder.create().disableCookieManagement().build();
+    // Socket timeout
+    SocketConfig socketConfig =
+        SocketConfig.custom().setSoTimeout(Timeout.ofMilliseconds(10_000)).build();
 
-    requestFactory.setHttpClient(httpClient);
+    // Connection request timeout
+    RequestConfig requestConfig =
+        RequestConfig.custom().setConnectionRequestTimeout(Timeout.ofMilliseconds(1_000)).build();
 
-    template.setRequestFactory(requestFactory);
+    PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+    connectionManager.setDefaultSocketConfig(socketConfig);
+    connectionManager.setDefaultConnectionConfig(connectionConfig);
+
+    HttpClient httpClient =
+        HttpClientBuilder.create()
+            .setConnectionManager(connectionManager)
+            .setDefaultRequestConfig(requestConfig)
+            .build();
+
+    template.setRequestFactory(new HttpComponentsClientHttpRequestFactory(httpClient));
   }
 }

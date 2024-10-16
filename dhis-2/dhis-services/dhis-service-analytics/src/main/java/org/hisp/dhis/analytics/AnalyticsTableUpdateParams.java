@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.analytics;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.google.common.base.MoreObjects;
 import java.util.Date;
 import java.util.HashMap;
@@ -36,6 +34,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import lombok.Builder;
 import lombok.Getter;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.calendar.Calendar;
@@ -50,38 +49,40 @@ import org.hisp.dhis.util.DateUtils;
  * @author Lars Helge Overland
  */
 @Getter
+@Builder(toBuilder = true, builderMethodName = "newBuilder")
 public class AnalyticsTableUpdateParams {
   /**
    * Number of last years for which to update tables. A zero value indicates the "latest" data
    * stored since last full analytics table generation.
    */
-  private Integer lastYears;
+  private final Integer lastYears;
 
   /** Indicates whether to skip update of resource tables. */
-  private boolean skipResourceTables;
+  private final boolean skipResourceTables;
 
   /** Indicates whether to skip update of analytics tables, outliers stats columns. */
-  private boolean skipOutliers;
+  private final boolean skipOutliers;
 
   /** Analytics table types to skip. */
-  private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
+  @Builder.Default private final Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
 
   /** Analytics table programs to skip. */
-  private Set<String> skipPrograms = new HashSet<>();
+  @Builder.Default private final Set<String> skipPrograms = new HashSet<>();
 
   /** Job ID. */
-  private JobConfiguration jobId;
+  private final JobConfiguration jobId;
 
   /** Start time for update process. */
-  private Date startTime;
+  @Builder.Default private final Date startTime = new Date();
 
   /** Time of last successful analytics table update. */
-  private Date lastSuccessfulUpdate;
+  private final Date lastSuccessfulUpdate;
 
   /** Current date, only used for testing */
-  private Date today;
+  private final Date today;
 
-  private final Map<String, Object> extraParameters = new HashMap<>();
+  /** free key-value map for extra parameters. */
+  @Builder.Default private final Map<String, Object> extraParameters = new HashMap<>();
 
   public void addExtraParam(String prefix, String key, Object value) {
     extraParameters.put(prefix + key, value);
@@ -89,10 +90,6 @@ public class AnalyticsTableUpdateParams {
 
   public Object getExtraParam(String prefix, String key) {
     return extraParameters.get(prefix + key);
-  }
-
-  private AnalyticsTableUpdateParams() {
-    this.startTime = new Date();
   }
 
   // -------------------------------------------------------------------------
@@ -155,105 +152,7 @@ public class AnalyticsTableUpdateParams {
     return earliest;
   }
 
-  // -------------------------------------------------------------------------
-  // Builder of immutable instances
-  // -------------------------------------------------------------------------
-
-  /** Returns a new instance of this parameter object. */
-  public AnalyticsTableUpdateParams instance() {
-    AnalyticsTableUpdateParams params = new AnalyticsTableUpdateParams();
-
-    params.lastYears = this.lastYears;
-    params.skipResourceTables = this.skipResourceTables;
-    params.skipOutliers = this.skipOutliers;
-    params.skipTableTypes = new HashSet<>(this.skipTableTypes);
-    params.skipPrograms = new HashSet<>(this.skipPrograms);
-    params.jobId = this.jobId;
-    params.startTime = this.startTime;
-    params.lastSuccessfulUpdate = this.lastSuccessfulUpdate;
-
-    return this;
-  }
-
-  public static Builder newBuilder() {
-    return new AnalyticsTableUpdateParams.Builder();
-  }
-
-  public static Builder newBuilder(AnalyticsTableUpdateParams analyticsTableUpdateParams) {
-    return new AnalyticsTableUpdateParams.Builder(analyticsTableUpdateParams);
-  }
-
-  /** Builder for {@link AnalyticsTableUpdateParams} instances. */
-  public static class Builder {
-    private final AnalyticsTableUpdateParams params;
-
-    protected Builder() {
-      this.params = new AnalyticsTableUpdateParams();
-    }
-
-    protected Builder(AnalyticsTableUpdateParams analyticsTableUpdateParams) {
-      this.params = analyticsTableUpdateParams.instance();
-    }
-
-    public Builder withLastYears(Integer lastYears) {
-      this.params.lastYears = lastYears;
-      return this;
-    }
-
-    public Builder withLatestPartition() {
-      this.params.lastYears = AnalyticsTablePartition.LATEST_PARTITION;
-      return this;
-    }
-
-    public Builder withSkipResourceTables(boolean skipResourceTables) {
-      this.params.skipResourceTables = skipResourceTables;
-      return this;
-    }
-
-    public Builder withSkipOutliers(boolean skipOutliers) {
-      this.params.skipOutliers = skipOutliers;
-      return this;
-    }
-
-    public Builder withSkipTableTypes(Set<AnalyticsTableType> skipTableTypes) {
-      this.params.skipTableTypes = skipTableTypes;
-      return this;
-    }
-
-    public Builder withSkipPrograms(Set<String> skipPrograms) {
-      this.params.skipPrograms = skipPrograms;
-      return this;
-    }
-
-    public Builder withJobId(JobConfiguration jobId) {
-      this.params.jobId = jobId;
-      return this;
-    }
-
-    public Builder withLastSuccessfulUpdate(Date lastSuccessfulUpdate) {
-      this.params.lastSuccessfulUpdate = lastSuccessfulUpdate;
-      return this;
-    }
-
-    public Builder withStartTime(Date startTime) {
-      this.params.startTime = startTime;
-      return this;
-    }
-
-    /**
-     * This builder property is only used for testing purposes.
-     *
-     * @param date A mock Date
-     */
-    public Builder withToday(Date date) {
-
-      this.params.today = date;
-      return this;
-    }
-
-    public AnalyticsTableUpdateParams build() {
-      checkNotNull(this.params.startTime);
-      return this.params;
-    }
+  public AnalyticsTableUpdateParams withLatestPartition() {
+    return this.toBuilder().lastYears(AnalyticsTablePartition.LATEST_PARTITION).build();
   }
 }

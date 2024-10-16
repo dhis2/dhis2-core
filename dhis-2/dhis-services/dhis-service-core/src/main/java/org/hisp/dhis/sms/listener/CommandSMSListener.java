@@ -27,28 +27,23 @@
  */
 package org.hisp.dhis.sms.listener;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.system.util.SmsUtils;
+import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,53 +58,44 @@ public abstract class CommandSMSListener extends BaseSMSListener {
 
   protected static final int ERROR = 3;
 
-  protected final CategoryService dataElementCategoryService;
-
   protected final UserService userService;
 
   public CommandSMSListener(
-      CategoryService dataElementCategoryService,
-      UserService userService,
-      IncomingSmsService incomingSmsService,
-      MessageSender smsSender) {
+      UserService userService, IncomingSmsService incomingSmsService, MessageSender smsSender) {
     super(incomingSmsService, smsSender);
-    checkNotNull(dataElementCategoryService);
-    checkNotNull(userService);
-    this.dataElementCategoryService = dataElementCategoryService;
     this.userService = userService;
   }
 
   @Override
-  public boolean accept(IncomingSms sms) {
-    if (sms == null) {
-      return false;
-    }
-
-    SMSCommand smsCommand = getSMSCommand(sms);
-
-    return smsCommand != null;
+  public boolean accept(@Nonnull IncomingSms sms) {
+    return getSMSCommand(sms) != null;
   }
 
   @Override
-  public void receive(IncomingSms sms) {
+  public void receive(@Nonnull IncomingSms sms, @Nonnull UserDetails smsCreatedBy) {
+    // we cannot annotate getSMSCommand itself with Nonnull as it can return null but
+    // receive is only called when accept returned true, which is if there is a non-null command
     SMSCommand smsCommand = getSMSCommand(sms);
 
-    Map<String, String> parsedMessage = this.parseMessageInput(sms, smsCommand);
+    Map<String, String> codeValues = parseCodeValuePairs(sms, smsCommand);
 
     if (!hasCorrectFormat(sms, smsCommand)
-        || !validateInputValues(parsedMessage, smsCommand, sms)) {
+        || !validateInputValues(sms, smsCreatedBy, smsCommand, codeValues)) {
       return;
     }
 
-    postProcess(sms, smsCommand, parsedMessage);
+    postProcess(sms, smsCreatedBy, smsCommand, codeValues);
   }
 
   protected abstract void postProcess(
-      IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage);
+      @Nonnull IncomingSms sms,
+      @Nonnull UserDetails smsCreatedBy,
+      @Nonnull SMSCommand smsCommand,
+      @Nonnull Map<String, String> codeValues);
 
-  protected abstract SMSCommand getSMSCommand(IncomingSms sms);
+  protected abstract SMSCommand getSMSCommand(@Nonnull IncomingSms sms);
 
-  protected boolean hasCorrectFormat(IncomingSms sms, SMSCommand smsCommand) {
+  protected boolean hasCorrectFormat(@Nonnull IncomingSms sms, @Nonnull SMSCommand smsCommand) {
     String regexp = DEFAULT_PATTERN;
 
     if (smsCommand.getSeparator() != null && !smsCommand.getSeparator().trim().isEmpty()) {
@@ -133,24 +119,21 @@ public abstract class CommandSMSListener extends BaseSMSListener {
   }
 
   protected Set<OrganisationUnit> getOrganisationUnits(IncomingSms sms) {
-    User user = getUser(sms);
+    User user = userService.getUser(sms.getCreatedBy().getUid());
 
     if (user == null) {
       return new HashSet<>();
     }
 
-    return SmsUtils.getOrganisationUnitsByPhoneNumber(
-            sms.getOriginator(), Collections.singleton(user))
-        .get(user.getUid());
+    return user.getOrganisationUnits();
   }
 
-  protected User getUser(IncomingSms sms) {
-    return userService.getUser(sms.getCreatedBy().getUid());
-  }
-
-  protected boolean validateInputValues(
-      Map<String, String> commandValuePairs, SMSCommand smsCommand, IncomingSms sms) {
-    if (!hasMandatoryParameters(commandValuePairs.keySet(), smsCommand.getCodes())) {
+  private boolean validateInputValues(
+      @Nonnull IncomingSms sms,
+      @Nonnull UserDetails smsCreatedBy,
+      @Nonnull SMSCommand smsCommand,
+      @Nonnull Map<String, String> commandValuePairs) {
+    if (!hasMandatoryCodes(smsCommand.getCodes(), commandValuePairs.keySet())) {
       sendFeedback(
           StringUtils.defaultIfEmpty(smsCommand.getDefaultMessage(), SMSCommand.PARAMETER_MISSING),
           sms.getOriginator(),
@@ -159,21 +142,14 @@ public abstract class CommandSMSListener extends BaseSMSListener {
       return false;
     }
 
-    if (!hasOrganisationUnit(sms)) {
-      sendFeedback(
-          StringUtils.defaultIfEmpty(smsCommand.getNoUserMessage(), SMSCommand.NO_USER_MESSAGE),
-          sms.getOriginator(),
-          ERROR);
+    if (!hasOrganisationUnit(smsCreatedBy)) {
+      sendFeedback(smsCommand.getNoUserMessage(), sms.getOriginator(), ERROR);
 
       return false;
     }
 
-    if (hasMultipleOrganisationUnits(sms)) {
-      sendFeedback(
-          StringUtils.defaultIfEmpty(
-              smsCommand.getMoreThanOneOrgUnitMessage(), SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE),
-          sms.getOriginator(),
-          ERROR);
+    if (hasMultipleOrganisationUnits(smsCreatedBy)) {
+      sendFeedback(smsCommand.getMoreThanOneOrgUnitMessage(), sms.getOriginator(), ERROR);
 
       return false;
     }
@@ -181,8 +157,14 @@ public abstract class CommandSMSListener extends BaseSMSListener {
     return true;
   }
 
-  protected Map<String, String> parseMessageInput(IncomingSms sms, SMSCommand smsCommand) {
-    HashMap<String, String> output = new HashMap<>();
+  /**
+   * Parses the code value pairs of an SMS command. For example SMS {@code visit bcgd=1,opvd=2} with
+   * command name {@code visit} will lead to a map of SMS code names to values {@code
+   * {bcgd=1,opvd=2}}.
+   */
+  private @Nonnull Map<String, String> parseCodeValuePairs(
+      @Nonnull IncomingSms sms, @Nonnull SMSCommand smsCommand) {
+    HashMap<String, String> result = new HashMap<>();
 
     Pattern pattern = Pattern.compile(DEFAULT_PATTERN);
 
@@ -198,16 +180,16 @@ public abstract class CommandSMSListener extends BaseSMSListener {
       String value = matcher.group(2).trim();
 
       if (!StringUtils.isEmpty(key) && !StringUtils.isEmpty(value)) {
-        output.put(key, value);
+        result.put(key, value);
       }
     }
 
-    return output;
+    return result;
   }
 
-  private boolean hasMandatoryParameters(Set<String> keySet, Set<SMSCode> smsCodes) {
-    for (SMSCode smsCode : smsCodes) {
-      if (smsCode.isCompulsory() && !keySet.contains(smsCode.getCode())) {
+  private boolean hasMandatoryCodes(Set<SMSCode> configuredCodes, Set<String> actualCodes) {
+    for (SMSCode configuredCode : configuredCodes) {
+      if (configuredCode.isCompulsory() && !actualCodes.contains(configuredCode.getCode())) {
         return false;
       }
     }
@@ -215,20 +197,18 @@ public abstract class CommandSMSListener extends BaseSMSListener {
     return true;
   }
 
-  private boolean hasOrganisationUnit(IncomingSms sms) {
-    Collection<OrganisationUnit> orgUnits = getOrganisationUnits(sms);
-
-    return !(orgUnits == null || orgUnits.isEmpty());
+  static void validateUserOrgUnits(UserDetails userDetails) {
+    if (userDetails.getUserOrgUnitIds().isEmpty()) {
+      throw new SMSParserException(
+          "User is not associated with any orgunit. Please contact your supervisor.");
+    }
   }
 
-  private boolean hasMultipleOrganisationUnits(IncomingSms sms) {
-    List<User> users = userService.getUsersByPhoneNumber(sms.getOriginator());
+  private static boolean hasOrganisationUnit(UserDetails smsCreatedBy) {
+    return !smsCreatedBy.getUserOrgUnitIds().isEmpty();
+  }
 
-    Set<OrganisationUnit> organisationUnits =
-        users.stream()
-            .flatMap(user -> user.getOrganisationUnits().stream())
-            .collect(Collectors.toSet());
-
-    return organisationUnits.size() > 1;
+  private static boolean hasMultipleOrganisationUnits(UserDetails smsCreatedBy) {
+    return smsCreatedBy.getUserOrgUnitIds().size() > 1;
   }
 }

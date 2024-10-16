@@ -43,9 +43,8 @@ import static org.hisp.dhis.common.cache.CacheStrategy.NO_CACHE;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.common.cache.Cacheability.PRIVATE;
 import static org.hisp.dhis.common.cache.Cacheability.PUBLIC;
-import static org.hisp.dhis.setting.SettingKey.CACHEABILITY;
-import static org.hisp.dhis.setting.SettingKey.CACHE_STRATEGY;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.CacheControl.maxAge;
 import static org.springframework.http.CacheControl.noCache;
@@ -54,7 +53,8 @@ import java.util.Date;
 import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheability;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,7 +65,8 @@ import org.springframework.http.CacheControl;
 @ExtendWith(MockitoExtension.class)
 class WebCacheTest {
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsProvider settingsProvider;
+  @Mock private SystemSettings settings;
 
   @Mock private AnalyticsCacheSettings analyticsCacheSettings;
 
@@ -73,7 +74,8 @@ class WebCacheTest {
 
   @BeforeEach
   public void setUp() {
-    webCache = new WebCache(systemSettingManager, analyticsCacheSettings);
+    webCache = new WebCache(settingsProvider, analyticsCacheSettings);
+    lenient().when(settingsProvider.getCurrentSettings()).thenReturn(settings);
   }
 
   @Test
@@ -302,8 +304,7 @@ class WebCacheTest {
   }
 
   private void givenCacheStartegy(CacheStrategy theCacheStrategySet) {
-    when(systemSettingManager.getSystemSetting(CACHE_STRATEGY, CacheStrategy.class))
-        .thenReturn(theCacheStrategySet);
+    when(settings.getCacheStrategy()).thenReturn(theCacheStrategySet);
   }
 
   private void givenCacheabilityPublic() {
@@ -311,7 +312,6 @@ class WebCacheTest {
   }
 
   private void givenCacheability(Cacheability cacheability) {
-    when(systemSettingManager.getSystemSetting(CACHEABILITY, Cacheability.class))
-        .thenReturn(cacheability);
+    when(settings.getCacheability()).thenReturn(cacheability);
   }
 }

@@ -34,6 +34,9 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLI
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Root;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -46,9 +49,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Root;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -358,7 +358,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
   @Override
   protected void preProcessPredicates(
       CriteriaBuilder builder,
-      List<Function<Root<Event>, javax.persistence.criteria.Predicate>> predicates) {
+      List<Function<Root<Event>, jakarta.persistence.criteria.Predicate>> predicates) {
     predicates.add(root -> builder.equal(root.get("deleted"), false));
   }
 

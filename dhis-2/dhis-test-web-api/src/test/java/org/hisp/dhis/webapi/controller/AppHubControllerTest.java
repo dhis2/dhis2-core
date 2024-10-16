@@ -33,19 +33,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link AppHubController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class AppHubControllerTest extends H2ControllerIntegrationTestBase {
   @Autowired private DhisConfigurationProvider configuration;
 

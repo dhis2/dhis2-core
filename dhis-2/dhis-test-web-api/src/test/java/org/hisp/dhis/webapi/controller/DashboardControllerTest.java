@@ -27,32 +27,34 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.test.web.WebClient.Body;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Path;
 import java.util.Optional;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class DashboardControllerTest extends PostgresControllerIntegrationTestBase {
   @Autowired private AclService aclService;
 
   @Test
   void testUpdateWithNonAccessibleItems() {
-    POST("/metadata", Body("dashboard/create_dashboard_non_accessible_visualization.json"))
+    POST("/metadata", Path.of("dashboard/create_dashboard_non_accessible_visualization.json"))
         .content(HttpStatus.OK);
     User userA = userService.getUser("XThzKnyzeYW");
 
@@ -75,7 +77,7 @@ class DashboardControllerTest extends PostgresControllerIntegrationTestBase {
 
     // Add one more DashboardItem to the created Dashboard
     JsonMixed response =
-        PUT("/dashboards/f1OijtLnf8a", Body("dashboard/update_dashboard.json"))
+        PUT("/dashboards/f1OijtLnf8a", Path.of("dashboard/update_dashboard.json"))
             .content(HttpStatus.CONFLICT);
     assertEquals(
         "DashboardItem `KnmKNIFiAwC` object reference `VISUALIZATION` with id `gyYXi0rXAIc` not accessible",
@@ -86,7 +88,7 @@ class DashboardControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testUpdateWithAccessibleItems() {
-    POST("/metadata", Body("dashboard/create_dashboard.json")).content(HttpStatus.OK);
+    POST("/metadata", Path.of("dashboard/create_dashboard.json")).content(HttpStatus.OK);
     User userA = userService.getUser("XThzKnyzeYW");
 
     // Verify if all objects created correctly.
@@ -106,7 +108,8 @@ class DashboardControllerTest extends PostgresControllerIntegrationTestBase {
     switchContextToUser(userA);
 
     // Add one more DashboardItem to the created Dashboard
-    PUT("/dashboards/f1OijtLnf8a", Body("dashboard/update_dashboard.json")).content(HttpStatus.OK);
+    PUT("/dashboards/f1OijtLnf8a", Path.of("dashboard/update_dashboard.json"))
+        .content(HttpStatus.OK);
     dashboard = manager.get(Dashboard.class, "f1OijtLnf8a");
 
     // Dashboard should have 2 items after update.

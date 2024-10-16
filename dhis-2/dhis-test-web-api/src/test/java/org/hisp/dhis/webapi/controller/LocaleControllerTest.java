@@ -27,25 +27,34 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebLocale;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link LocaleController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class LocaleControllerTest extends H2ControllerIntegrationTestBase {
+
+  @AfterEach
+  void cleanUp() {
+    // make sure we reset the UI locale to default in case a test changes it
+    DELETE("/systemSettings/keyUiLocale");
+  }
 
   @Test
   void testAddLocale() {
@@ -136,8 +145,8 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetUiLocalesInServerLanguageWhenUserLanguageNotSet() {
-    DELETE("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID);
     POST("/systemSettings/keyUiLocale/?value=es");
+    DELETE("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID);
     JsonArray response = GET("/locales/ui").content();
     JsonWebLocale firstElement = response.getObject(0).as(JsonWebLocale.class);
     assertEquals("bn", firstElement.getLocale());

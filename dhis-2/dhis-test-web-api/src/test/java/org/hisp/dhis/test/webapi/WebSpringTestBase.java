@@ -37,12 +37,14 @@ import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @ExtendWith({RestDocumentationExtension.class})
+@Transactional
 public abstract class WebSpringTestBase extends H2ControllerIntegrationTestBase {
 
   @BeforeEach

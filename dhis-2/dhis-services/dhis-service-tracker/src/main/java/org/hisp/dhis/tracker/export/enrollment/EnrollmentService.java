@@ -34,18 +34,12 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.user.UserDetails;
 
 public interface EnrollmentService {
   Enrollment getEnrollment(String uid) throws ForbiddenException, NotFoundException;
-
-  Enrollment getEnrollment(String uid, UserDetails currentUser)
-      throws ForbiddenException, NotFoundException;
 
   Enrollment getEnrollment(String uid, EnrollmentParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
@@ -66,10 +60,6 @@ public interface EnrollmentService {
    * does not get the events relationships.
    */
   List<Enrollment> getEnrollments(@Nonnull List<String> uids) throws ForbiddenException;
-
-  List<Enrollment> getEnrollments(
-      String trackedEntityUid, Program program, EnrollmentStatus enrollmentStatus)
-      throws ForbiddenException, BadRequestException, NotFoundException;
 
   /**
    * Fields the {@link #getEnrollments(EnrollmentOperationParams)} can order enrollments by.

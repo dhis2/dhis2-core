@@ -81,7 +81,6 @@ import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -314,15 +313,11 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
             .build();
     manager.save(trackedEntityB);
     programMessageService.saveProgramMessage(message);
-    assertNotNull(
-        trackedEntityService.getTrackedEntity(
-            trackedEntityB.getUid(), null, TrackedEntityParams.FALSE, false));
+    assertNotNull(trackedEntityService.getTrackedEntity(trackedEntityB.getUid()));
     manager.delete(trackedEntityB);
     assertThrows(
         NotFoundException.class,
-        () ->
-            trackedEntityService.getTrackedEntity(
-                trackedEntityB.getUid(), null, TrackedEntityParams.FALSE, false));
+        () -> trackedEntityService.getTrackedEntity(trackedEntityB.getUid()));
     assertTrue(trackedEntityExistsIncludingDeleted(trackedEntityB.getUid()));
 
     maintenanceService.deleteSoftDeletedTrackedEntities();

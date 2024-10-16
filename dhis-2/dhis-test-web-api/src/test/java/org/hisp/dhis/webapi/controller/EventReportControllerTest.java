@@ -30,28 +30,30 @@ package org.hisp.dhis.webapi.controller;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.test.web.HttpStatus.BAD_REQUEST;
-import static org.hisp.dhis.test.web.HttpStatus.CREATED;
-import static org.hisp.dhis.test.web.HttpStatus.OK;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
+import static org.hisp.dhis.http.HttpStatus.CREATED;
+import static org.hisp.dhis.http.HttpStatus.OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Path;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.test.web.WebClient;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Controller tests for {@link org.hisp.dhis.webapi.controller.event.EventReportController}.
  *
  * @author maikel arabori
  */
+@Transactional
 class EventReportControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
@@ -258,7 +260,7 @@ class EventReportControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testMapViewRelativePeriods() {
-    assertStatus(OK, POST("/metadata/", WebClient.Body("metadata/map_new.json")));
+    assertStatus(OK, POST("/metadata/", Path.of("metadata/map_new.json")));
     final JsonObject response = GET("/mapViews/zyFOjTfzLws").content();
     assertTrue(response.getObject("relativePeriods").getBoolean("last12Months").booleanValue());
   }

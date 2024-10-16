@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -75,7 +76,7 @@ public class HibernateTrackedEntityAttributeValueChangeLogStore
 
     criteria.where(predicates.toArray(new Predicate[0])).orderBy(builder.desc(root.get("created")));
 
-    Query<TrackedEntityAttributeValueChangeLog> query = session.createQuery(criteria);
+    TypedQuery<TrackedEntityAttributeValueChangeLog> query = entityManager.createQuery(criteria);
 
     if (params.hasPager()) {
       query
@@ -89,7 +90,7 @@ public class HibernateTrackedEntityAttributeValueChangeLogStore
   @Override
   public int countTrackedEntityAttributeValueChangeLogs(
       TrackedEntityAttributeValueChangeLogQueryParams params) {
-    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
     CriteriaQuery<Long> query = builder.createQuery(Long.class);
 
@@ -100,7 +101,7 @@ public class HibernateTrackedEntityAttributeValueChangeLogStore
 
     query.select(builder.countDistinct(root.get("id"))).where(predicates.toArray(new Predicate[0]));
 
-    return (session.createQuery(query).uniqueResult()).intValue();
+    return (entityManager.createQuery(query).getSingleResult()).intValue();
   }
 
   @Override

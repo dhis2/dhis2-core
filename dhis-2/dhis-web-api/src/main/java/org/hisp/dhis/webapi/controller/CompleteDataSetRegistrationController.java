@@ -36,13 +36,13 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -264,8 +264,7 @@ public class CompleteDataSetRegistrationController {
 
     jobConfig.setJobParameters(importOptions);
     jobConfig.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
-    jobSchedulerService.executeNow(
-        jobConfigurationService.create(jobConfig, mimeType, request.getInputStream()));
+    jobSchedulerService.createThenExecute(jobConfig, mimeType, request.getInputStream());
 
     return jobConfigurationReport(jobConfig);
   }

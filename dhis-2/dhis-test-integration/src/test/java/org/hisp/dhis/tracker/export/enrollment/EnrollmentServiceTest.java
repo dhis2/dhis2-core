@@ -59,7 +59,6 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -676,8 +675,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
         assertThrows(
             BadRequestException.class, () -> enrollmentService.getEnrollments(operationParams));
     assertEquals(
-        "Current user is not authorized to query across all organisation units",
-        exception.getMessage());
+        "User is not authorized to query across all organisation units", exception.getMessage());
   }
 
   @Test
@@ -789,32 +787,6 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     assertContains(
         String.format("User has no data read access to program: %s", programA.getUid()),
         exception.getMessage());
-  }
-
-  @Test
-  void shouldGetAllCompletedEnrollments()
-      throws ForbiddenException, BadRequestException, NotFoundException {
-    Enrollment enrollmentC = createEnrollment(programA, trackedEntityA, orgUnitA);
-    enrollmentC.setStatus(EnrollmentStatus.COMPLETED);
-    manager.save(enrollmentC, false);
-    Enrollment enrollmentD = createEnrollment(programA, trackedEntityA, orgUnitA);
-    enrollmentD.setStatus(EnrollmentStatus.COMPLETED);
-    manager.save(enrollmentD, false);
-
-    List<Enrollment> enrollments =
-        enrollmentService.getEnrollments(
-            trackedEntityA.getUid(), programA, EnrollmentStatus.COMPLETED);
-    assertContainsOnly(List.of(enrollmentC, enrollmentD), enrollments);
-  }
-
-  @Test
-  void shouldGetAllActiveEnrollments()
-      throws ForbiddenException, BadRequestException, NotFoundException {
-    List<Enrollment> enrollments =
-        enrollmentService.getEnrollments(
-            trackedEntityA.getUid(), programA, EnrollmentStatus.ACTIVE);
-
-    assertContainsOnly(List.of(enrollmentA), enrollments);
   }
 
   @Test

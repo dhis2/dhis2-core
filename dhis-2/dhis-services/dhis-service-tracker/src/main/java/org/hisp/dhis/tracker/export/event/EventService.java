@@ -39,7 +39,6 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -66,12 +65,6 @@ public interface EventService {
   Event getEvent(UID uid) throws NotFoundException, ForbiddenException;
 
   /**
-   * Get event matching given {@code UID} under the privileges of given user. This method does not
-   * get the events relationships.
-   */
-  Event getEvent(UID uid, UserDetails user) throws NotFoundException, ForbiddenException;
-
-  /**
    * Get event matching given {@code UID} and params under the privileges of the currently
    * authenticated user.
    */
@@ -80,15 +73,14 @@ public interface EventService {
   /**
    * Get all events matching given params under the privileges of the currently authenticated user.
    */
-  List<Event> getEvents(EventOperationParams params)
-      throws BadRequestException, ForbiddenException, NotFoundException;
+  List<Event> getEvents(EventOperationParams params) throws BadRequestException, ForbiddenException;
 
   /**
    * Get a page of events matching given params under the privileges of the currently authenticated
    * user.
    */
   Page<Event> getEvents(EventOperationParams params, PageParams pageParams)
-      throws BadRequestException, ForbiddenException, NotFoundException;
+      throws BadRequestException, ForbiddenException;
 
   RelationshipItem getEventInRelationshipItem(String uid, EventParams eventParams)
       throws NotFoundException;

@@ -35,7 +35,6 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1043;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1046;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1047;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1050;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.time.Instant;
 import java.util.Date;
@@ -50,6 +49,7 @@ import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -60,7 +60,7 @@ class DateValidator implements Validator<Event> {
     TrackerPreheat preheat = bundle.getPreheat();
     Program program = preheat.getProgram(event.getProgram());
 
-    if (event.getOccurredAt() == null && occuredAtDateIsMandatory(event, program)) {
+    if (event.getOccurredAt() == null && occurredAtDateIsMandatory(event, program)) {
       reporter.addError(event, E1031, event);
       return;
     }
@@ -70,12 +70,13 @@ class DateValidator implements Validator<Event> {
       return;
     }
 
-    validateExpiryDays(reporter, event, program);
+    validateExpiryDays(reporter, event, program, bundle.getUser());
     validatePeriodType(reporter, event, program);
   }
 
-  private void validateExpiryDays(Reporter reporter, Event event, Program program) {
-    if (getCurrentUserDetails().isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
+  private void validateExpiryDays(
+      Reporter reporter, Event event, Program program, UserDetails user) {
+    if (user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       return;
     }
 
@@ -114,7 +115,7 @@ class DateValidator implements Validator<Event> {
     }
   }
 
-  private boolean occuredAtDateIsMandatory(Event event, Program program) {
+  private boolean occurredAtDateIsMandatory(Event event, Program program) {
     if (program.isWithoutRegistration()) {
       return true;
     }

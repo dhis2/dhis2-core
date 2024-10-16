@@ -38,6 +38,10 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.util.DateUtils.toLongDateWithMillis;
 import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -48,10 +52,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -63,8 +63,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -130,7 +129,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private final OrganisationUnitStore organisationUnitStore;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   public HibernateTrackedEntityStore(
       EntityManager entityManager,
@@ -138,14 +137,14 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       ApplicationEventPublisher publisher,
       AclService aclService,
       OrganisationUnitStore organisationUnitStore,
-      SystemSettingManager systemSettingManager) {
+      SystemSettingsProvider settingsProvider) {
     super(entityManager, jdbcTemplate, publisher, TrackedEntity.class, aclService, false);
 
     checkNotNull(organisationUnitStore);
-    checkNotNull(systemSettingManager);
+    checkNotNull(settingsProvider);
 
     this.organisationUnitStore = organisationUnitStore;
-    this.systemSettingManager = systemSettingManager;
+    this.settingsProvider = settingsProvider;
   }
 
   @Override
@@ -657,12 +656,11 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    */
   private void handleOrganisationUnits(TrackedEntityQueryParams params) {
     UserDetails user = getCurrentUserDetails();
-    if (user != null && params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
+    if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
       params.setOrgUnits(
           new HashSet<>(organisationUnitStore.getByUid(user.getUserEffectiveSearchOrgUnitIds())));
       params.setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    } else if (user != null
-        && params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CAPTURE)) {
+    } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CAPTURE)) {
       params.setOrgUnits(new HashSet<>(organisationUnitStore.getByUid(user.getUserOrgUnitIds())));
       params.setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
     }
@@ -1038,7 +1036,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       TrackedEntityQueryParams params, PageParams pageParams) {
     StringBuilder limitOffset = new StringBuilder();
     int limit = params.getMaxTeLimit();
-    int teQueryLimit = systemSettingManager.getIntSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT);
+    int teQueryLimit = settingsProvider.getCurrentSettings().getTrackedEntityMaxLimit();
 
     if (limit == 0 && pageParams == null) {
       if (teQueryLimit > 0) {

@@ -35,7 +35,6 @@ import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_ANALYTICS_EXPLAIN;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 import static org.hisp.dhis.system.grid.GridUtils.toCsv;
 import static org.hisp.dhis.system.grid.GridUtils.toHtml;
 import static org.hisp.dhis.system.grid.GridUtils.toHtmlCss;
@@ -51,9 +50,9 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
@@ -73,7 +72,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -105,7 +104,7 @@ public class EnrollmentQueryAnalyticsController {
 
   @Nonnull private DimensionMapperService dimensionMapperService;
 
-  @Nonnull private final SystemSettingManager systemSettingManager;
+  @Nonnull private final SystemSettingsProvider settingsProvider;
 
   @Nonnull private final PeriodDataProvider periodDataProvider;
 
@@ -259,7 +258,7 @@ public class EnrollmentQueryAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       boolean analyzeOnly) {
-    criteria.definePageSize(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT));
+    criteria.definePageSize(settingsProvider.getCurrentSettings().getAnalyticsMaxLimit());
 
     AnalyticsPeriodCriteriaUtils.defineDefaultPeriodForCriteria(
         criteria,

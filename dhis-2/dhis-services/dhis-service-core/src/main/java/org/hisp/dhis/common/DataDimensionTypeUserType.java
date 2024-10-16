@@ -27,12 +27,14 @@
  */
 package org.hisp.dhis.common;
 
+import java.io.Serializable;
 import org.hisp.dhis.hibernate.EnumUserType;
 
 /**
  * @author Lars Helge Overland
  */
-public class DataDimensionTypeUserType extends EnumUserType<DataDimensionType> {
+public class DataDimensionTypeUserType extends EnumUserType<DataDimensionType>
+    implements Serializable {
   public DataDimensionTypeUserType() {
     super(DataDimensionType.class);
   }

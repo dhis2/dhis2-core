@@ -27,19 +27,19 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import jakarta.persistence.EntityManager;
 import java.util.Collections;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
+import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -49,18 +49,11 @@ import org.springframework.stereotype.Component;
 public class TrackedEntityPersister
     extends AbstractTrackerPersister<
         org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity> {
-  @Nonnull
-  private final TrackerConverterService<
-          org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity>
-      teConverter;
 
   public TrackedEntityPersister(
       ReservedValueService reservedValueService,
-      TrackerConverterService<org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity>
-          teConverter,
       TrackedEntityChangeLogService trackedEntityChangeLogService) {
     super(reservedValueService, trackedEntityChangeLogService);
-    this.teConverter = teConverter;
   }
 
   @Override
@@ -68,8 +61,10 @@ public class TrackedEntityPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
-      TrackedEntity te) {
-    handleTrackedEntityAttributeValues(entityManager, preheat, trackerDto.getAttributes(), te);
+      TrackedEntity te,
+      UserDetails user) {
+    handleTrackedEntityAttributeValues(
+        entityManager, preheat, trackerDto.getAttributes(), te, user);
   }
 
   @Override
@@ -77,7 +72,8 @@ public class TrackedEntityPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
-      TrackedEntity te) {
+      TrackedEntity te,
+      UserDetails user) {
     // DO NOTHING - TE HAVE NO DATA VALUES
   }
 
@@ -89,17 +85,12 @@ public class TrackedEntityPersister
   @Override
   protected TrackedEntity convert(
       TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto) {
-    return teConverter.from(bundle.getPreheat(), trackerDto);
+    return TrackerObjectsMapper.map(bundle.getPreheat(), trackerDto, bundle.getUser());
   }
 
   @Override
   protected TrackerType getType() {
     return TrackerType.TRACKED_ENTITY;
-  }
-
-  @Override
-  protected boolean isNew(TrackerPreheat preheat, String uid) {
-    return preheat.getTrackedEntity(uid) == null;
   }
 
   @Override
@@ -109,7 +100,10 @@ public class TrackedEntityPersister
   }
 
   @Override
-  protected void persistOwnership(TrackerPreheat preheat, TrackedEntity entity) {
+  protected void persistOwnership(
+      TrackerBundle bundle,
+      org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
+      TrackedEntity entity) {
     // DO NOTHING, Tei alone does not have ownership records
 
   }

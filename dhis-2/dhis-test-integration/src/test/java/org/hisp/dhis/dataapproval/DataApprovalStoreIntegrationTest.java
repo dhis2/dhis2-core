@@ -31,9 +31,9 @@ import static com.google.common.collect.Sets.newHashSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -50,7 +50,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -101,7 +101,7 @@ class DataApprovalStoreIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private CacheProvider cacheProvider;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService settingsService;
 
   @Autowired private DbmsManager dbmsManager;
 
@@ -154,7 +154,7 @@ class DataApprovalStoreIntegrationTest extends PostgresIntegrationTestBase {
             periodService,
             periodStore,
             categoryService,
-            systemSettingManager,
+            settingsService,
             userService);
 
     // ---------------------------------------------------------------------

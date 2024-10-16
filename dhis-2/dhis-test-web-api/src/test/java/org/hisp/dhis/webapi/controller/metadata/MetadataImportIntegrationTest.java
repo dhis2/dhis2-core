@@ -27,32 +27,34 @@
  */
 package org.hisp.dhis.webapi.controller.metadata;
 
-import static org.hisp.dhis.test.web.WebClient.Body;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.nio.file.Path;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class MetadataImportIntegrationTest extends PostgresControllerIntegrationTestBase {
   @Test
   @DisplayName("Should return error when import program with inaccessible programStage")
   void testImportInaccessibleReference() {
     JsonImportSummary response =
-        POST("/metadata", Body("metadata/test_user.json"))
+        POST("/metadata", Path.of("metadata/test_user.json"))
             .content(HttpStatus.OK)
             .as(JsonImportSummary.class);
     User user = userService.getUser("HvbPAQEyXSD");
     assertNotNull(user);
     switchContextToUser(user);
     response =
-        POST("/metadata", Body("metadata/program_with_inaccessible_programStage.json"))
+        POST("/metadata", Path.of("metadata/program_with_inaccessible_programStage.json"))
             .content(HttpStatus.CONFLICT)
             .as(JsonImportSummary.class);
     JsonErrorReport errorReport =
@@ -67,14 +69,14 @@ class MetadataImportIntegrationTest extends PostgresControllerIntegrationTestBas
   @DisplayName(
       "Should return error when import program with inaccessible DataElement which is referenced by a ProgramStageDataElement")
   void testImportInaccessibleEmbeddedReference() {
-    POST("/metadata", Body("metadata/test_user.json"))
+    POST("/metadata", Path.of("metadata/test_user.json"))
         .content(HttpStatus.OK)
         .as(JsonImportSummary.class);
     User user = userService.getUser("HvbPAQEyXSD");
     assertNotNull(user);
     switchContextToUser(user);
     JsonImportSummary response =
-        POST("/metadata", Body("metadata/program_with_inaccessible_dataelement.json"))
+        POST("/metadata", Path.of("metadata/program_with_inaccessible_dataelement.json"))
             .content(HttpStatus.CONFLICT)
             .as(JsonImportSummary.class);
     JsonErrorReport errorReport =
@@ -89,18 +91,18 @@ class MetadataImportIntegrationTest extends PostgresControllerIntegrationTestBas
   @DisplayName("Should return error when update Program with non-writable ProgramStage")
   void testUpdateInaccessibleReference() {
     JsonImportSummary response =
-        POST("/metadata", Body("metadata/test_user.json"))
+        POST("/metadata", Path.of("metadata/test_user.json"))
             .content(HttpStatus.OK)
             .as(JsonImportSummary.class);
     User user = userService.getUser("HvbPAQEyXSD");
     assertNotNull(user);
     switchContextToUser(user);
-    POST("/metadata", Body("metadata/program_with_readable_programStage.json"))
+    POST("/metadata", Path.of("metadata/program_with_readable_programStage.json"))
         .content(HttpStatus.OK)
         .as(JsonImportSummary.class);
 
     response =
-        POST("/metadata", Body("metadata/update_program_with_non_writtable_programStage.json"))
+        POST("/metadata", Path.of("metadata/update_program_with_non_writtable_programStage.json"))
             .content(HttpStatus.CONFLICT)
             .as(JsonImportSummary.class);
 

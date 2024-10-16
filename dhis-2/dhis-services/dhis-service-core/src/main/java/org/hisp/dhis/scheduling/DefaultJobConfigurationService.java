@@ -63,6 +63,7 @@ import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
@@ -71,12 +72,12 @@ import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.scheduling.JobType.Defaults;
 import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeType;
 
@@ -90,7 +91,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
 
   private final JobConfigurationStore jobConfigurationStore;
   private final FileResourceService fileResourceService;
-  private final SystemSettingManager systemSettings;
+  private final SystemSettingsProvider settingsProvider;
   private final JobCreationHelper jobCreationHelper;
 
   @Override
@@ -140,6 +141,43 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   }
 
   @Override
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public String createInTransaction(
+      JobConfiguration jobConfiguration, MimeType contentType, InputStream content)
+      throws ConflictException, NotFoundException {
+    String jobId = jobCreationHelper.create(jobConfiguration, contentType, content);
+
+    if (!jobConfigurationStore.executeNow(jobId)) {
+      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+      if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
+      if (job.getJobStatus() == JobStatus.RUNNING)
+        throw new ConflictException("Job is already running.");
+      if (job.getSchedulingType() == SchedulingType.ONCE_ASAP && job.getLastFinished() != null)
+        throw new ConflictException("Job did already run once.");
+      throw new ConflictException("Failed to transition job into ONCE_ASAP state.");
+    }
+    return jobId;
+  }
+
+  @Override
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public String createInTransaction(JobConfiguration jobConfiguration)
+      throws ConflictException, NotFoundException {
+    String jobId = jobCreationHelper.create(jobConfiguration);
+
+    if (!jobConfigurationStore.executeNow(jobId)) {
+      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+      if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
+      if (job.getJobStatus() == JobStatus.RUNNING)
+        throw new ConflictException("Job is already running.");
+      if (job.getSchedulingType() == SchedulingType.ONCE_ASAP && job.getLastFinished() != null)
+        throw new ConflictException("Job did already run once.");
+      throw new ConflictException("Failed to transition job into ONCE_ASAP state.");
+    }
+    return jobId;
+  }
+
+  @Override
   @Transactional
   public int updateDisabledJobs() {
     return jobConfigurationStore.updateDisabledJobs();
@@ -149,7 +187,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   @Transactional
   public int deleteFinishedJobs(int ttlMinutes) {
     if (ttlMinutes <= 0) {
-      ttlMinutes = systemSettings.getIntSetting(SettingKey.JOBS_CLEANUP_AFTER_MINUTES);
+      ttlMinutes = settingsProvider.getCurrentSettings().getJobsCleanupAfterMinutes();
     }
     return jobConfigurationStore.deleteFinishedJobs(ttlMinutes);
   }
@@ -158,7 +196,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   @Transactional
   public int rescheduleStaleJobs(int timeoutMinutes) {
     if (timeoutMinutes <= 0) {
-      timeoutMinutes = systemSettings.getIntSetting(SettingKey.JOBS_RESCHEDULE_STALE_FOR_MINUTES);
+      timeoutMinutes = settingsProvider.getCurrentSettings().getJobsRescheduleAfterMinutes();
     }
     return jobConfigurationStore.rescheduleStaleJobs(timeoutMinutes);
   }
@@ -214,7 +252,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     Instant now = Instant.now();
     Instant endOfWindow = now.plusSeconds(dueInNextSeconds);
     Duration maxCronDelay =
-        Duration.ofHours(systemSettings.getIntSetting(SettingKey.JOBS_MAX_CRON_DELAY_HOURS));
+        Duration.ofHours(settingsProvider.getCurrentSettings().getJobsMaxCronDelayHours());
     return jobConfigurationStore
         .getDueJobConfigurations(includeWaiting)
         .filter(c -> c.isDueBetween(now, endOfWindow, maxCronDelay))
@@ -225,8 +263,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   @Transactional(readOnly = true)
   public List<JobConfiguration> getStaleConfigurations(int staleForSeconds) {
     if (staleForSeconds <= 0) {
-      staleForSeconds =
-          60 * systemSettings.getIntSetting(SettingKey.JOBS_RESCHEDULE_STALE_FOR_MINUTES);
+      staleForSeconds = 60 * settingsProvider.getCurrentSettings().getJobsRescheduleAfterMinutes();
     }
     return jobConfigurationStore.getStaleConfigurations(staleForSeconds);
   }

@@ -62,6 +62,7 @@ import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -135,10 +136,6 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
         new AggregateDataSetSMSListener(
             incomingSmsService,
             smsSender,
-            userService,
-            trackedEntityTypeService,
-            trackedEntityAttributeService,
-            programService,
             organisationUnitService,
             categoryService,
             dataElementService,
@@ -177,7 +174,7 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
 
   @Test
   void testAggregateDatasetListener() {
-    subject.receive(incomingSmsAggregate);
+    subject.receive(incomingSmsAggregate, userDetails("frank"));
 
     assertNotNull(updatedIncomingSms);
     assertTrue(updatedIncomingSms.isParsed());
@@ -188,8 +185,8 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
 
   @Test
   void testAggregateDatasetListenerRepeat() {
-    subject.receive(incomingSmsAggregate);
-    subject.receive(incomingSmsAggregate);
+    subject.receive(incomingSmsAggregate, userDetails("frank"));
+    subject.receive(incomingSmsAggregate, userDetails("frank"));
 
     assertNotNull(updatedIncomingSms);
     assertTrue(updatedIncomingSms.isParsed());
@@ -200,7 +197,7 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
 
   @Test
   void testAggregateDatasetListenerNoValues() {
-    subject.receive(incomingSmsAggregateNoValues);
+    subject.receive(incomingSmsAggregateNoValues, userDetails("frank"));
 
     assertNotNull(updatedIncomingSms);
     assertTrue(updatedIncomingSms.isParsed());
@@ -242,5 +239,11 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
     subm.setSubmissionId(1);
 
     return subm;
+  }
+
+  private static UserDetails userDetails(String username) {
+    User user = new User();
+    user.setUsername(username);
+    return UserDetails.fromUser(user);
   }
 }

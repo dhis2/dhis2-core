@@ -29,11 +29,11 @@ package org.hisp.dhis.sms.listener;
 
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -61,6 +61,7 @@ import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -77,30 +78,33 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
 
   private final CompleteDataSetRegistrationService registrationService;
 
+  private final CategoryService dataElementCategoryService;
+
   public J2MEDataValueSMSListener(
-      CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       DataValueService dataValueService,
       SMSCommandService smsCommandService,
-      CompleteDataSetRegistrationService registrationService) {
-    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
+      CompleteDataSetRegistrationService registrationService,
+      CategoryService dataElementCategoryService) {
+    super(userService, incomingSmsService, smsSender);
     this.dataValueService = dataValueService;
     this.smsCommandService = smsCommandService;
     this.registrationService = registrationService;
+    this.dataElementCategoryService = dataElementCategoryService;
   }
 
   @Transactional
   @Override
-  public boolean accept(IncomingSms sms) {
+  public boolean accept(@Nonnull IncomingSms sms) {
     return smsCommandService.getSMSCommand(SmsUtils.getCommandString(sms), ParserType.J2ME_PARSER)
         != null;
   }
 
   @Transactional
   @Override
-  public void receive(IncomingSms sms) {
+  public void receive(@Nonnull IncomingSms sms, @Nonnull UserDetails smsCreatedBy) {
     String message = sms.getText();
 
     SMSCommand smsCommand =
@@ -113,11 +117,7 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
     Collection<OrganisationUnit> orgUnits = getOrganisationUnits(sms);
 
     if (orgUnits == null || orgUnits.isEmpty()) {
-      if (StringUtils.isEmpty(smsCommand.getNoUserMessage())) {
-        throw new SMSParserException(SMSCommand.NO_USER_MESSAGE);
-      } else {
-        throw new SMSParserException(smsCommand.getNoUserMessage());
-      }
+      throw new SMSParserException(smsCommand.getNoUserMessage());
     }
 
     OrganisationUnit orgUnit = SmsUtils.selectOrganisationUnit(orgUnits, parsedMessage, smsCommand);
@@ -126,7 +126,7 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
 
     for (SMSCode code : smsCommand.getCodes()) {
       if (parsedMessage.containsKey(code.getCode())) {
-        storeDataValue(sms, orgUnit, parsedMessage, code, smsCommand, period);
+        storeDataValue(sms, smsCreatedBy, orgUnit, parsedMessage, code, period);
         valueStored = true;
       }
     }
@@ -146,13 +146,16 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
   }
 
   @Override
-  protected SMSCommand getSMSCommand(IncomingSms sms) {
+  protected SMSCommand getSMSCommand(@Nonnull IncomingSms sms) {
     return null;
   }
 
   @Override
   protected void postProcess(
-      IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage) {}
+      @Nonnull IncomingSms sms,
+      @Nonnull UserDetails smsCreatedBy,
+      @Nonnull SMSCommand smsCommand,
+      @Nonnull Map<String, String> codeValues) {}
 
   private Map<String, String> parse(String sms, SMSCommand smsCommand) {
     String[] keyValuePairs;
@@ -175,16 +178,15 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
 
   private void storeDataValue(
       IncomingSms sms,
+      UserDetails smsCreatedBy,
       OrganisationUnit orgUnit,
       Map<String, String> parsedMessage,
       SMSCode code,
-      SMSCommand command,
       Period period) {
+    validateUserOrgUnits(smsCreatedBy);
     String upperCaseCode = code.getCode().toUpperCase();
     String sender = sms.getOriginator();
-
-    String storedBy =
-        SmsUtils.getUser(sender, command, Collections.singletonList(getUser(sms))).getUsername();
+    String storedBy = smsCreatedBy.getUsername();
 
     if (StringUtils.isBlank(storedBy)) {
       storedBy = "[unknown] from [" + sender + "]";
@@ -289,11 +291,8 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
       reportBack += notInReport;
     }
 
-    if (command.getSuccessMessage() != null && !StringUtils.isEmpty(command.getSuccessMessage())) {
-      reportBack = command.getSuccessMessage();
-    }
-
-    smsSender.sendMessage(null, reportBack, sender);
+    reportBack = command.getSuccessMessage();
+    smsMessageSender.sendMessage(null, reportBack, sender);
   }
 
   public Period getPeriod(String periodName, PeriodType periodType)

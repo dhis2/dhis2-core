@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.notification;
 
-import static org.hisp.dhis.test.TestBase.injectSecurityContext;
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -67,7 +67,7 @@ class ProgramNotificationTemplateOperationParamsMapperTest {
     user = new User();
     user.setUsername("admin");
 
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     program = new Program();
     program.setName("TB-Program");

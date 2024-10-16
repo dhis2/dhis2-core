@@ -30,22 +30,22 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.security.Authorities.F_INSERT_CUSTOM_JS_CSS;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.Writer;
-import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.lang3.StringUtils;
+import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSetting;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -63,11 +63,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequestMapping("/api/files")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@RequiredArgsConstructor
 public class FileController {
 
-  @Autowired private SystemSettingManager systemSettingManager;
-
-  @Autowired private ContextUtils contextUtils;
+  private final SystemSettingsService settingsService;
+  private final ContextUtils contextUtils;
 
   // -------------------------------------------------------------------------
   // Custom script
@@ -75,11 +75,12 @@ public class FileController {
 
   @OpenApi.Response(Serializable.class)
   @GetMapping("/script")
-  public void getCustomScript(HttpServletResponse response, Writer writer) throws IOException {
+  public void getCustomScript(HttpServletResponse response, Writer writer, SystemSettings settings)
+      throws IOException {
     contextUtils.configureResponse(
         response, ContextUtils.CONTENT_TYPE_JAVASCRIPT, CacheStrategy.CACHE_TWO_WEEKS);
 
-    String content = systemSettingManager.getSystemSetting(SettingKey.CUSTOM_JS, StringUtils.EMPTY);
+    String content = settings.getCustomJs();
 
     if (content != null) {
       writer.write(content);
@@ -92,7 +93,7 @@ public class FileController {
   @ResponseStatus(HttpStatus.OK)
   public WebMessage postCustomScript(@RequestBody String content) {
     if (content != null) {
-      systemSettingManager.saveSystemSetting(SettingKey.CUSTOM_JS, content);
+      settingsService.put("keyCustomJs", content);
       return ok("Custom script created");
     }
     return null;
@@ -101,8 +102,8 @@ public class FileController {
   @DeleteMapping("/script")
   @RequiresAuthority(anyOf = F_INSERT_CUSTOM_JS_CSS)
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void removeCustomScript(HttpServletResponse response) {
-    systemSettingManager.deleteSystemSetting(SettingKey.CUSTOM_JS);
+  public void removeCustomScript() {
+    settingsService.deleteAll(Set.of("keyCustomJs"));
   }
 
   // -------------------------------------------------------------------------
@@ -114,12 +115,12 @@ public class FileController {
    */
   @OpenApi.Response(Serializable.class)
   @GetMapping(value = {"/style", "/style/external"})
-  public void getCustomStyle(HttpServletResponse response, Writer writer) throws IOException {
+  public void getCustomStyle(HttpServletResponse response, Writer writer, SystemSettings settings)
+      throws IOException {
     contextUtils.configureResponse(
         response, ContextUtils.CONTENT_TYPE_CSS, CacheStrategy.CACHE_TWO_WEEKS);
 
-    String content =
-        systemSettingManager.getSystemSetting(SettingKey.CUSTOM_CSS, StringUtils.EMPTY);
+    String content = settings.getCustomCss();
 
     if (content != null) {
       writer.write(content);
@@ -132,7 +133,7 @@ public class FileController {
   @ResponseStatus(HttpStatus.OK)
   public WebMessage postCustomStyle(@RequestBody String content) {
     if (content != null) {
-      systemSettingManager.saveSystemSetting(SettingKey.CUSTOM_CSS, content);
+      settingsService.put("keyCustomCss", content);
       return ok("Custom style created");
     }
     return null;
@@ -141,7 +142,7 @@ public class FileController {
   @DeleteMapping("/style")
   @RequiresAuthority(anyOf = F_INSERT_CUSTOM_JS_CSS)
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void removeCustomStyle(HttpServletResponse response) {
-    systemSettingManager.deleteSystemSetting(SettingKey.CUSTOM_CSS);
+  public void removeCustomStyle() {
+    settingsService.deleteAll(Set.of("keyCustomCss"));
   }
 }

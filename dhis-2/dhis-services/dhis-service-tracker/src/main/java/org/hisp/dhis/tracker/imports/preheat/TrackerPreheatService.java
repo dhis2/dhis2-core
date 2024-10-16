@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.preheat;
 
+import javax.annotation.Nonnull;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 
@@ -43,5 +44,7 @@ public interface TrackerPreheatService {
    * @param idSchemeParams id schema identifier
    * @return
    */
-  TrackerPreheat preheat(TrackerObjects trackerObjects, TrackerIdSchemeParams idSchemeParams);
+  @Nonnull
+  TrackerPreheat preheat(
+      @Nonnull TrackerObjects trackerObjects, @Nonnull TrackerIdSchemeParams idSchemeParams);
 }

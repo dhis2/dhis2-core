@@ -46,8 +46,8 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
@@ -105,7 +105,8 @@ class AssignDataValueExecutorTest extends TestBase {
 
   @Mock private TrackerPreheat preheat;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsProvider settingsProvider;
+  @Mock private SystemSettings settings;
 
   @BeforeEach
   void setUpTest() {
@@ -144,8 +145,8 @@ class AssignDataValueExecutorTest extends TestBase {
 
     bundle = TrackerBundle.builder().build();
     bundle.setPreheat(preheat);
-    when(systemSettingManager.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
-        .thenReturn(Boolean.FALSE);
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(settings.getRuleEngineAssignOverwrite()).thenReturn(false);
   }
 
   @Test
@@ -157,7 +158,7 @@ class AssignDataValueExecutorTest extends TestBase {
 
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
-            systemSettingManager,
+            settingsProvider,
             RULE_UID,
             INVALID_OPTION_VALUE,
             OPTION_SET_DATA_ELEMENT_UID,
@@ -181,7 +182,7 @@ class AssignDataValueExecutorTest extends TestBase {
 
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
-            systemSettingManager,
+            settingsProvider,
             RULE_UID,
             VALID_OPTION_VALUE,
             OPTION_SET_DATA_ELEMENT_UID,
@@ -208,7 +209,7 @@ class AssignDataValueExecutorTest extends TestBase {
 
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
-            systemSettingManager,
+            settingsProvider,
             RULE_UID,
             INVALID_OPTION_VALUE,
             OPTION_SET_DATA_ELEMENT_UID,
@@ -229,15 +230,14 @@ class AssignDataValueExecutorTest extends TestBase {
   @Test
   void shouldAssignNullDataValueWhenAssignedValueIsInvalidOptionAndOverwriteIsTrue() {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
-    when(systemSettingManager.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
-        .thenReturn(Boolean.TRUE);
+    when(settings.getRuleEngineAssignOverwrite()).thenReturn(true);
     Event eventWithOptionDataValue = getEventWithOptionSetDataValueWithValidValue();
     List<Event> events = List.of(eventWithOptionDataValue);
     bundle.setEvents(events);
 
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
-            systemSettingManager,
+            settingsProvider,
             RULE_UID,
             INVALID_OPTION_VALUE,
             OPTION_SET_DATA_ELEMENT_UID,
@@ -261,7 +261,7 @@ class AssignDataValueExecutorTest extends TestBase {
 
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
-            systemSettingManager,
+            settingsProvider,
             RULE_UID,
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_UID,
@@ -283,7 +283,7 @@ class AssignDataValueExecutorTest extends TestBase {
 
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
-            systemSettingManager,
+            settingsProvider,
             RULE_UID,
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_UID,
@@ -307,7 +307,7 @@ class AssignDataValueExecutorTest extends TestBase {
 
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
-            systemSettingManager,
+            settingsProvider,
             RULE_UID,
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_UID,
@@ -328,7 +328,7 @@ class AssignDataValueExecutorTest extends TestBase {
 
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
-            systemSettingManager,
+            settingsProvider,
             RULE_UID,
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_UID,
@@ -348,12 +348,11 @@ class AssignDataValueExecutorTest extends TestBase {
     Event eventWithDataValueSet = getEventWithDataValueSet();
     List<Event> events = List.of(eventWithDataValueSet);
     bundle.setEvents(events);
-    when(systemSettingManager.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
-        .thenReturn(Boolean.TRUE);
+    when(settings.getRuleEngineAssignOverwrite()).thenReturn(true);
 
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
-            systemSettingManager,
+            settingsProvider,
             RULE_UID,
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_UID,

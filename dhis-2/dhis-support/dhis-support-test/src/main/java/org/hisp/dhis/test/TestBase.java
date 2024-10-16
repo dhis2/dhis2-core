@@ -40,6 +40,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
+import jakarta.persistence.EntityManager;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -63,7 +64,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
-import javax.persistence.EntityManager;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
@@ -180,6 +180,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.setting.SessionUserSettings;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
 import org.hisp.dhis.test.utils.Dxf2NamespaceResolver;
@@ -198,6 +199,7 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.validation.ValidationRule;
@@ -274,6 +276,8 @@ public abstract class TestBase {
   // -------------------------------------------------------------------------
 
   protected UserService userService;
+
+  @Autowired private UserSettingsService userSettingsService;
 
   protected RenderService renderService;
 
@@ -2661,13 +2665,21 @@ public abstract class TestBase {
     injectSecurityContext(userDetails);
   }
 
-  public static void injectSecurityContext(UserDetails currentUserDetails) {
+  public static void injectSecurityContextNoSettings(UserDetails currentUserDetails) {
     Authentication authentication =
         new UsernamePasswordAuthenticationToken(
             currentUserDetails, "", currentUserDetails.getAuthorities());
     SecurityContext context = SecurityContextHolder.createEmptyContext();
     context.setAuthentication(authentication);
     SecurityContextHolder.setContext(context);
+  }
+
+  public void injectSecurityContext(UserDetails currentUserDetails) {
+    injectSecurityContextNoSettings(currentUserDetails);
+    if (userSettingsService != null) {
+      String username = currentUserDetails.getUsername();
+      SessionUserSettings.put(username, userSettingsService.getUserSettings(username, true));
+    }
   }
 
   public static void clearSecurityContext() {

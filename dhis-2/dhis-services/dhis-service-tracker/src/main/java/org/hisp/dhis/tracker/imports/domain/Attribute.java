@@ -43,20 +43,21 @@ import org.hisp.dhis.common.ValueType;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+// TODO(DHIS2-18222) Remove unused fields
 public class Attribute implements Serializable {
   @JsonProperty private MetadataIdentifier attribute;
 
-  @JsonProperty private String code;
+  @JsonProperty private String code; // remove
 
-  @JsonProperty private String displayName;
+  @JsonProperty private String displayName; // remove
 
-  @JsonProperty private Instant createdAt;
+  @JsonProperty private Instant createdAt; // remove
 
-  @JsonProperty private Instant updatedAt;
+  @JsonProperty private Instant updatedAt; // remove
 
   @JsonProperty private String storedBy;
 
-  @JsonProperty private ValueType valueType;
+  @JsonProperty private ValueType valueType; // remove
 
   @JsonProperty private String value;
 }
