@@ -30,7 +30,11 @@ package org.hisp.dhis.dashboard.embedded;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
-/** Encapsulates customization options for embedded dashboards. */
+/**
+ * Encapsulates customization options for embedded dashboards.
+ *
+ * @author Lars Helge Overland
+ */
 public class EmbeddedOptions implements Serializable {
   /** Hide the chart controls. Applies to Superset. */
   @JsonProperty private boolean hideChartControls;

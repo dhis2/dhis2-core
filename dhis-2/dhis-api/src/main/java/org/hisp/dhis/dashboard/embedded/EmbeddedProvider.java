@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.dashboard.embedded;
 
-/** Enumeration of providers for embedded dashboards. */
+/**
+ * Enumeration of providers for embedded dashboards.
+ *
+ * @author Lars Helge Overland
+ */
 public enum EmbeddedProvider {
   NATIVE,
   SUPERSET;
