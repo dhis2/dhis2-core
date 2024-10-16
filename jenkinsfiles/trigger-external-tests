@@ -29,7 +29,7 @@ pipeline {
         IM_ENVIRONMENT = 'im.dhis2.org'
         IM_HOST = "https://api.$IM_ENVIRONMENT"
         INSTANCE_GROUP_NAME = 'qa'
-        DATABASE_GROUP_NAME = 'qa'
+        DATABASE_GROUP_NAME = 'test-dbs'
         INSTANCE_NAME = "core-${env.GIT_BRANCH.replaceAll("\\P{Alnum}", "").toLowerCase()}-$BUILD_NUMBER"
         INSTANCE_DOMAIN = "https://${INSTANCE_GROUP_NAME}.$IM_ENVIRONMENT"
         INSTANCE_URL = "$INSTANCE_DOMAIN/$INSTANCE_NAME"
@@ -129,30 +129,6 @@ pipeline {
                 }
             }
         }
-
-/*         stage('Install Apps from App Hub') {
-            steps {
-                script {
-                    echo 'Installing necessary apps from App Hub...'
-                    sh """
-                        chmod +x $WORKSPACE/scripts/install_apps_from_app_hub.sh
-                        BASE_URL=$INSTANCE_URL USERNAME=$USERNAME PASSWORD=$PASSWORD $WORKSPACE/scripts/install_apps_from_app_hub.sh
-                    """
-                }
-            }
-        }
-
-        stage('Generate Analytics Tables') {
-            steps {
-                script {
-                    echo 'Generating analytics tables...'
-                    sh """
-                        chmod +x $WORKSPACE/scripts/generate_analytics_tables.sh
-                        BASE_URL=$INSTANCE_URL USERNAME=$USERNAME PASSWORD=$PASSWORD $WORKSPACE/scripts/generate_analytics_tables.sh
-                    """
-                }
-            }
-        } */
 
         stage('Trigger Cypress Tests') {
             steps {
