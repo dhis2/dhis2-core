@@ -152,7 +152,7 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
     for (Map.Entry<String, String> e : settings.entrySet()) {
       if (!empty.isValid(e.getKey(), e.getValue()))
         throw new BadRequestException(
-            "Setting %s cannot have value %s".formatted(e.getKey(), e.getValue()));
+            "Not a valid value for setting %s: %s".formatted(e.getKey(), e.getValue()));
     }
   }
 
