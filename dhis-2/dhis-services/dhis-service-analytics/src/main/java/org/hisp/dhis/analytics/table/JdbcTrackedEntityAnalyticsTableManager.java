@@ -390,16 +390,16 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
   private Stream<TrackedEntityAttribute> getAllTrackedEntityAttributes(
       TrackedEntityType trackedEntityType, Map<String, List<Program>> programsByTetUid) {
 
-    // given TET has program(s) defined
+    // Given TET has program(s) defined.
     if (programsByTetUid.containsKey(trackedEntityType.getUid())) {
 
-      // programs defined for TET -> get attr from program and TET
+      // Programs defined for TET -> get attr from program and TET.
       return getAllTrackedEntityAttributesByPrograms(
           trackedEntityType, programsByTetUid.get(trackedEntityType.getUid()));
     }
 
-    // no programs defined for TET -> get only attributes from TET
-    return getAllTrackedEntityAttributesByTeT(trackedEntityType);
+    // No programs defined for TET -> get only attributes from TET.
+    return getAllTrackedEntityAttributesByEntityType(trackedEntityType);
   }
 
   /**
@@ -448,11 +448,11 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
             /* all attributes of programs */
             trackedEntityAttributeService.getProgramTrackedEntityAttributes(programs).stream(),
             /* all attributes of the trackedEntityType */
-            getAllTrackedEntityAttributesByTeT(trackedEntityType))
+            getAllTrackedEntityAttributesByEntityType(trackedEntityType))
         .distinct();
   }
 
-  private Stream<TrackedEntityAttribute> getAllTrackedEntityAttributesByTeT(
+  private Stream<TrackedEntityAttribute> getAllTrackedEntityAttributesByEntityType(
       TrackedEntityType trackedEntityType) {
     return emptyIfNull(trackedEntityType.getTrackedEntityAttributes()).stream();
   }
