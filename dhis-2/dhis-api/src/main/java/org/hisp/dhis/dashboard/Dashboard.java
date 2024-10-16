@@ -70,7 +70,7 @@ public class Dashboard extends BaseNameableObject implements MetadataObject {
   /**
    * Provider of embedded dashboards. The {@link EmbeddedProvider#NONE} value refers to standard
    * DHIS 2 dashboards. Other values indicate that this dashboard is sourced from an external
-   * provider and embedded into DHIS 2. Not null.
+   * provider and embedded into DHIS 2. Property value is never null.
    */
   private EmbeddedProvider embeddedProvider;
 
