@@ -296,7 +296,7 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
         categoryService.getCategoryOptionCombosByCategoryOption(List.of(coTarget3A));
 
     assertEquals(1, sourceCocsBefore.size(), "Expect 1 entry with source category option ref");
-    assertEquals(1, targetCocsBefore.size(), "Expect 2 entry with target category option ref");
+    assertEquals(1, targetCocsBefore.size(), "Expect 1 entry with target category option ref");
 
     // when
     MergeParams mergeParams = getMergeParams();
@@ -308,10 +308,16 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     List<CategoryOptionCombo> targetCocs =
         categoryService.getCategoryOptionCombosByCategoryOption(List.of(coTarget3A));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
+    List<CategoryOption> catOptions =
+        targetCocs.stream()
+            .flatMap(optionCombo -> optionCombo.getCategoryOptions().stream())
+            .toList();
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceCocs.size(), "Expect 0 entries with source category option refs");
     assertEquals(1, targetCocs.size(), "Expect 1 entry with target category option ref");
+    assertEquals(1, catOptions.size());
+    assertTrue(catOptions.contains(coTarget3A));
     assertEquals(9, allCategoryOptions.size(), "Expect 9 category options present");
     assertTrue(allCategoryOptions.containsAll(List.of(coTarget3A, coSource1A, coSource2B)));
   }
@@ -403,6 +409,49 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     assertFalse(allCategoryOptions.containsAll(List.of(coSource1A, coSource2B)));
   }
 
+  @Test
+  @DisplayName(
+      "1 OrgUnit with refs to source & target CategoryOption results in OrgUnit with just target")
+  void orgUnitSourceAndTargetRefsTest() throws ConflictException {
+    // given
+    OrganisationUnit ou = createOrganisationUnit('o');
+    ou.addCategoryOption(coSource1A);
+    ou.addCategoryOption(coSource2B);
+    ou.addCategoryOption(coTarget3A);
+
+    manager.save(ou);
+
+    // confirm org unit state before merge
+    List<OrganisationUnit> sourceOusBefore =
+        organisationUnitService.getByCategoryOption(List.of(coSource1A, coSource2B));
+    List<OrganisationUnit> targetOusBefore =
+        organisationUnitService.getByCategoryOption(List.of(coTarget3A));
+
+    assertEquals(1, sourceOusBefore.size(), "Expect 1 entry with source category option refs");
+    assertEquals(1, targetOusBefore.size(), "Expect 1 entry with target category option ref");
+
+    // when
+    MergeParams mergeParams = getMergeParams();
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<OrganisationUnit> sourceOus =
+        organisationUnitService.getByCategoryOption(List.of(coSource1A, coSource2B));
+    List<OrganisationUnit> targetOus =
+        organisationUnitService.getByCategoryOption(List.of(coTarget3A));
+    List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
+    List<CategoryOption> catOptions =
+        targetOus.stream().flatMap(orgUnit -> orgUnit.getCategoryOptions().stream()).toList();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceOus.size(), "Expect 0 entries with source category option refs");
+    assertEquals(1, targetOus.size(), "Expect 1 entry with target category option ref");
+    assertEquals(1, catOptions.size());
+    assertTrue(catOptions.contains(coTarget3A));
+    assertEquals(9, allCategoryOptions.size(), "Expect 9 category options present");
+    assertTrue(allCategoryOptions.containsAll(List.of(coTarget3A, coSource1A, coSource2B)));
+  }
+
   // -----------------------------
   // --- Category Option Group ---
   // -----------------------------
@@ -489,6 +538,48 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     assertEquals(7, allCategoryOptions.size(), "Expect 7 category options present");
     assertTrue(allCategoryOptions.contains(coTarget3A));
     assertFalse(allCategoryOptions.containsAll(List.of(coSource1A, coSource2B)));
+  }
+
+  @Test
+  @DisplayName(
+      "1 CategoryOptionGroup with refs to source & target CategoryOption results in CategoryOptionGroup with just target")
+  void catOptGroupSourceAndTargetRefsTest() throws ConflictException {
+    // given
+    CategoryOptionGroup cog = createCategoryOptionGroup('g');
+    cog.addCategoryOption(coSource1A);
+    cog.addCategoryOption(coSource2B);
+    cog.addCategoryOption(coTarget3A);
+    manager.save(cog);
+
+    // confirm cat option combo state before merge
+    List<CategoryOptionGroup> sourceCogsBefore =
+        categoryService.getCategoryOptionGroupByCategoryOption(List.of(coSource1A, coSource2B));
+    List<CategoryOptionGroup> targetCogsBefore =
+        categoryService.getCategoryOptionGroupByCategoryOption(List.of(coTarget3A));
+
+    assertEquals(1, sourceCogsBefore.size(), "Expect 1 entry with source category option ref");
+    assertEquals(1, targetCogsBefore.size(), "Expect 1 entry with target category option ref");
+
+    // when
+    MergeParams mergeParams = getMergeParams();
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<CategoryOptionGroup> sourceCogs =
+        categoryService.getCategoryOptionGroupByCategoryOption(List.of(coSource1A, coSource2B));
+    List<CategoryOptionGroup> targetCogs =
+        categoryService.getCategoryOptionGroupByCategoryOption(List.of(coTarget3A));
+    List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
+    List<CategoryOption> catOptions =
+        targetCogs.stream().flatMap(catOptGroup -> catOptGroup.getMembers().stream()).toList();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceCogs.size(), "Expect 0 entries with source category option refs");
+    assertEquals(1, targetCogs.size(), "Expect 1 entry with target category option ref");
+    assertEquals(1, catOptions.size());
+    assertTrue(catOptions.contains(coTarget3A));
+    assertEquals(9, allCategoryOptions.size(), "Expect 9 category options present");
+    assertTrue(allCategoryOptions.containsAll(List.of(coTarget3A, coSource1A, coSource2B)));
   }
 
   // -----------------------------
