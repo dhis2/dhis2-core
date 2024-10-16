@@ -39,6 +39,18 @@
     
     <property name="allowedFilters" column="allowedfilters" type="jbList" />
 
+    <property name="embeddedProvider" length="50" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.dashboard.embedded.EmbeddedProvider</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="embeddedId" column="embeddedid" />
+    
+    <property name="embeddedOptions" type="jbEmbeddedOptions" />
+    
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>
     

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dashboard;
+package org.hisp.dhis.dashboard.embedded;
 
-/**
- * Encapsulates type of dashboard item.
- *
- * @author Lars Helge Overland
- */
-public enum DashboardItemType {
-  VISUALIZATION,
-  EVENT_VISUALIZATION,
-  EVENT_CHART,
-  MAP,
-  EVENT_REPORT,
-  USERS,
-  REPORTS,
-  RESOURCES,
-  TEXT,
-  MESSAGES,
-  APP
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
+
+/** Encapsulates customization options for embedded dashboards. */
+public class EmbeddedOptions implements Serializable {
+  /** Hide the chart controls. Applies to Superset. */
+  @JsonProperty private boolean hideChartControls;
+
+  /** Expand the filters panel. Applies to Superset. */
+  @JsonProperty private boolean expandFilters;
+
+  /** Show the filters panel. Applies to Superset. */
+  @JsonProperty private boolean showFilters;
 }
