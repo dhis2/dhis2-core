@@ -35,8 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.io.IOException;
 import java.util.stream.Stream;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -67,8 +65,7 @@ class EventImportTest extends TrackerTest {
   }
 
   @Test
-  void shouldPopulateCompletedDataWhenCreatingAnEventWithStatusCompleted()
-      throws IOException, ForbiddenException, NotFoundException {
+  void shouldPopulateCompletedDataWhenCreatingAnEventWithStatusCompleted() throws IOException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = fromJson("tracker/te_enrollment_event.json");
     trackerObjects.getEvents().get(0).setStatus(EventStatus.COMPLETED);
@@ -86,7 +83,7 @@ class EventImportTest extends TrackerTest {
   @ParameterizedTest
   @MethodSource("notCompletedStatus")
   void shouldNotPopulateCompletedDataWhenCreatingAnEventWithNotCompletedStatus(EventStatus status)
-      throws IOException, ForbiddenException, NotFoundException {
+      throws IOException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = fromJson("tracker/te_enrollment_event.json");
     trackerObjects.getEvents().get(0).setStatus(status);
@@ -102,8 +99,7 @@ class EventImportTest extends TrackerTest {
   }
 
   @Test
-  void shouldDeleteCompletedDataWhenUpdatingAnEventWithStatusActive()
-      throws IOException, ForbiddenException, NotFoundException {
+  void shouldDeleteCompletedDataWhenUpdatingAnEventWithStatusActive() throws IOException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = fromJson("tracker/te_enrollment_event.json");
     trackerObjects.getEvents().get(0).setStatus(EventStatus.COMPLETED);
@@ -127,7 +123,7 @@ class EventImportTest extends TrackerTest {
   @ParameterizedTest
   @MethodSource("notCompletedStatus")
   void shouldPopulateCompletedDataWhenUpdatingAnEventWithStatusCompleted(EventStatus status)
-      throws IOException, ForbiddenException, NotFoundException {
+      throws IOException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = fromJson("tracker/te_enrollment_event.json");
     trackerObjects.getEvents().get(0).setStatus(status);
