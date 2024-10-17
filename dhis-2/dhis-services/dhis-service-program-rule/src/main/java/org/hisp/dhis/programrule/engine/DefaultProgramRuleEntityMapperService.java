@@ -440,6 +440,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         psi.getProgramStage().getUid(),
         RuleEvent.Status.valueOf(psi.getStatus().toString()),
         ObjectUtils.defaultIfNull(psi.getExecutionDate(), psi.getDueDate()),
+        psi.getCreated(),
         psi.getDueDate(),
         orgUnit,
         orgUnitCode,
