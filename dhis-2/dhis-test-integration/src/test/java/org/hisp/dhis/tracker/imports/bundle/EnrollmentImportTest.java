@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.imports.bundle;
 import static org.hisp.dhis.program.EnrollmentStatus.*;
 import static org.hisp.dhis.program.EnrollmentStatus.ACTIVE;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -48,7 +49,6 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -69,60 +69,9 @@ class EnrollmentImportTest extends TrackerTest {
     injectSecurityContextUser(importUser);
   }
 
-  @Test
-  void shouldPopulateCompletedDataWhenCreatingAnEnrollmentWithStatusCompleted()
-      throws IOException, ForbiddenException, NotFoundException {
-    TrackerImportParams params = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects = fromJson("tracker/te_enrollment_event.json");
-    trackerObjects.getEnrollments().get(0).setStatus(COMPLETED);
-
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
-
-    assertNoErrors(importReport);
-
-    Enrollment enrollment = enrollmentService.getEnrollment("TvctPPhpD8u");
-
-    assertEquals(importUser.getUsername(), enrollment.getCompletedBy());
-    assertNotNull(enrollment.getCompletedDate());
-  }
-
-  @Test
-  void shouldPopulateCompletedDateWhenCreatingAnEnrollmentWithStatusCancelled()
-      throws IOException, ForbiddenException, NotFoundException {
-    TrackerImportParams params = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects = fromJson("tracker/te_enrollment_event.json");
-    trackerObjects.getEnrollments().get(0).setStatus(CANCELLED);
-
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
-
-    assertNoErrors(importReport);
-
-    Enrollment enrollment = enrollmentService.getEnrollment("TvctPPhpD8u");
-
-    assertNull(enrollment.getCompletedBy());
-    assertNotNull(enrollment.getCompletedDate());
-  }
-
-  @Test
-  void shouldNotPopulateCompletedDataWhenCreatingAnEnrollmentWithStatusActive()
-      throws IOException, ForbiddenException, NotFoundException {
-    TrackerImportParams params = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects = fromJson("tracker/te_enrollment_event.json");
-    trackerObjects.getEnrollments().get(0).setStatus(ACTIVE);
-
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
-
-    assertNoErrors(importReport);
-
-    Enrollment enrollment = enrollmentService.getEnrollment("TvctPPhpD8u");
-
-    assertNull(enrollment.getCompletedBy());
-    assertNull(enrollment.getCompletedDate());
-  }
-
   @ParameterizedTest
   @MethodSource("statuses")
-  void shouldNotPopulateCompletedDataWhenUpdatingAnEnrollmentToActiveStatus(EnrollmentStatus status)
+  void shouldCorrectlyPopulateCompletedDataWhenCreatingAnEnrollment(EnrollmentStatus status)
       throws IOException, ForbiddenException, NotFoundException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = fromJson("tracker/te_enrollment_event.json");
@@ -132,64 +81,67 @@ class EnrollmentImportTest extends TrackerTest {
 
     assertNoErrors(importReport);
 
-    trackerObjects.getEnrollments().get(0).setStatus(ACTIVE);
-    importReport = trackerImportService.importTracker(params, trackerObjects);
+    Enrollment enrollment =
+        enrollmentService.getEnrollment(trackerObjects.getEnrollments().get(0).getUid());
 
-    assertNoErrors(importReport);
-
-    Enrollment enrollment = enrollmentService.getEnrollment("TvctPPhpD8u");
-
-    assertNull(enrollment.getCompletedBy());
-    assertNull(enrollment.getCompletedDate());
+    assertEnrollmentCompletedData(enrollment);
   }
 
   @ParameterizedTest
-  @MethodSource("statuses")
-  void shouldPopulateCompletedDateWhenUpdatingAnEnrollmentToCancelledStatus(EnrollmentStatus status)
+  @MethodSource("transitionStatuses")
+  void shouldCorrectlyPopulateCompletedDataWhenUpdatingAnEnrollment(
+      EnrollmentStatus savedStatus, EnrollmentStatus updatedStatus)
       throws IOException, ForbiddenException, NotFoundException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = fromJson("tracker/te_enrollment_event.json");
-    trackerObjects.getEnrollments().get(0).setStatus(status);
+    trackerObjects.getEnrollments().get(0).setStatus(savedStatus);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertNoErrors(importReport);
 
-    trackerObjects.getEnrollments().get(0).setStatus(CANCELLED);
+    trackerObjects.getEnrollments().get(0).setStatus(updatedStatus);
     importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertNoErrors(importReport);
 
-    Enrollment enrollment = enrollmentService.getEnrollment("TvctPPhpD8u");
+    Enrollment enrollment =
+        enrollmentService.getEnrollment(trackerObjects.getEnrollments().get(0).getUid());
 
-    assertNull(enrollment.getCompletedBy());
-    assertNotNull(enrollment.getCompletedDate());
-  }
-
-  @ParameterizedTest
-  @MethodSource("statuses")
-  void shouldPopulateCompletedDataWhenUpdatingAnEnrollmentToCompletedStatus(EnrollmentStatus status)
-      throws IOException, ForbiddenException, NotFoundException {
-    TrackerImportParams params = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects = fromJson("tracker/te_enrollment_event.json");
-    trackerObjects.getEnrollments().get(0).setStatus(status);
-
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
-
-    assertNoErrors(importReport);
-
-    trackerObjects.getEnrollments().get(0).setStatus(COMPLETED);
-    importReport = trackerImportService.importTracker(params, trackerObjects);
-
-    assertNoErrors(importReport);
-
-    Enrollment enrollment = enrollmentService.getEnrollment("TvctPPhpD8u");
-
-    assertEquals(importUser.getUsername(), enrollment.getCompletedBy());
-    assertNotNull(enrollment.getCompletedDate());
+    assertEnrollmentCompletedData(enrollment);
   }
 
   public Stream<Arguments> statuses() {
     return Stream.of(Arguments.of(ACTIVE), Arguments.of(CANCELLED), Arguments.of(COMPLETED));
+  }
+
+  public Stream<Arguments> transitionStatuses() {
+    return Stream.of(
+        Arguments.of(ACTIVE, COMPLETED),
+        Arguments.of(ACTIVE, CANCELLED),
+        Arguments.of(ACTIVE, COMPLETED),
+        Arguments.of(CANCELLED, COMPLETED),
+        Arguments.of(CANCELLED, CANCELLED),
+        Arguments.of(CANCELLED, COMPLETED),
+        Arguments.of(COMPLETED, COMPLETED),
+        Arguments.of(COMPLETED, CANCELLED),
+        Arguments.of(COMPLETED, COMPLETED));
+  }
+
+  private void assertEnrollmentCompletedData(Enrollment enrollment) {
+    switch (enrollment.getStatus()) {
+      case ACTIVE ->
+          assertAll(
+              () -> assertNull(enrollment.getCompletedBy()),
+              () -> assertNull(enrollment.getCompletedDate()));
+      case COMPLETED ->
+          assertAll(
+              () -> assertEquals(importUser.getUsername(), enrollment.getCompletedBy()),
+              () -> assertNotNull(enrollment.getCompletedDate()));
+      case CANCELLED ->
+          assertAll(
+              () -> assertNull(enrollment.getCompletedBy()),
+              () -> assertNotNull(enrollment.getCompletedDate()));
+    }
   }
 }

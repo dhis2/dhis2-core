@@ -79,7 +79,7 @@ class EventImportTest extends TrackerTest {
 
     assertNoErrors(importReport);
 
-    Event event = eventService.getEvent(UID.of("D9PbzJY8bJO"));
+    Event event = eventService.getEvent(UID.of(trackerObjects.getEvents().get(0).getUid()));
 
     assertEquals(importUser.getUsername(), event.getCompletedBy());
     assertNotNull(event.getCompletedDate());
@@ -97,7 +97,7 @@ class EventImportTest extends TrackerTest {
 
     assertNoErrors(importReport);
 
-    Event event = eventService.getEvent(UID.of("D9PbzJY8bJO"));
+    Event event = eventService.getEvent(UID.of(trackerObjects.getEvents().get(0).getUid()));
 
     assertNull(event.getCompletedBy());
     assertNull(event.getCompletedDate());
@@ -120,7 +120,7 @@ class EventImportTest extends TrackerTest {
 
     assertNoErrors(importReport);
 
-    Event event = eventService.getEvent(UID.of("D9PbzJY8bJO"));
+    Event event = eventService.getEvent(UID.of(trackerObjects.getEvents().get(0).getUid()));
 
     assertNull(event.getCompletedBy());
     assertNull(event.getCompletedDate());
@@ -144,7 +144,7 @@ class EventImportTest extends TrackerTest {
 
     assertNoErrors(importReport);
 
-    Event event = eventService.getEvent(UID.of("D9PbzJY8bJO"));
+    Event event = eventService.getEvent(UID.of(trackerObjects.getEvents().get(0).getUid()));
 
     assertEquals(importUser.getUsername(), event.getCompletedBy());
     assertNotNull(event.getCompletedDate());
