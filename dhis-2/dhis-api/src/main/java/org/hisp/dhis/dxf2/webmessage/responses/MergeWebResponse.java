@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webmessage;
+package org.hisp.dhis.dxf2.webmessage.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import javax.annotation.Nonnull;
+import lombok.Getter;
+import org.hisp.dhis.feedback.MergeReport;
+import org.hisp.dhis.merge.MergeType;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author david mackessy
  */
-public class AbstractWebMessageResponse implements WebMessageResponse {
-  /**
-   * Optional type property. Since we are using the somewhat generic name 'response' for the data
-   * part of the message, this can be used to signal what kind of response this is.
-   *
-   * <p>Some examples might be 'ImportCount', 'ImportSummary', etc.
-   */
-  private String responseType;
+@Getter
+public class MergeWebResponse implements WebMessageResponse {
+  @JsonProperty private MergeReport mergeReport;
 
-  public AbstractWebMessageResponse() {
-    this.responseType = getClass().getSimpleName().replaceFirst("WebMessageResponse", "");
+  public MergeWebResponse(@Nonnull MergeReport mergeReport) {
+    this.mergeReport = mergeReport;
+    MergeType mergeType = mergeReport.getMergeType();
+    this.mergeReport.setMessage(
+        mergeReport.hasErrorMessages()
+            ? "%s merge has errors".formatted(mergeType)
+            : "%s merge complete".formatted(mergeType));
   }
 
-  public AbstractWebMessageResponse(String responseType) {
-    this.responseType = responseType;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  public String getResponseType() {
-    return responseType;
-  }
-
-  public void setResponseType(String responseType) {
-    this.responseType = responseType;
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return MergeWebResponse.class;
   }
 }

@@ -37,12 +37,14 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.webmessage.AbstractWebMessageResponse;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 @JacksonXmlRootElement(localName = "importSummary", namespace = DxfNamespaces.DXF_2_0)
-public class ImportSummary extends AbstractWebMessageResponse implements ImportConflicts {
+public class ImportSummary implements WebMessageResponse, ImportConflicts {
+
   private ImportStatus status = ImportStatus.SUCCESS;
 
   private ImportOptions importOptions;
@@ -89,6 +91,12 @@ public class ImportSummary extends AbstractWebMessageResponse implements ImportC
     this.status = status;
     this.description = description;
     this.importCount = importCount;
+  }
+
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return ImportSummary.class;
   }
 
   // -------------------------------------------------------------------------

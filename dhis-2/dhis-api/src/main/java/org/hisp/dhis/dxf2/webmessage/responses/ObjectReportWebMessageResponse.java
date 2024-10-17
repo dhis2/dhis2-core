@@ -28,25 +28,39 @@
 package org.hisp.dhis.dxf2.webmessage.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.webmessage.AbstractWebMessageResponse;
+import java.util.List;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 /**
- * @author Halvdan Hoem Grelland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class FileResourceWebMessageResponse extends AbstractWebMessageResponse {
-  private FileResource fileResource;
+@RequiredArgsConstructor
+public class ObjectReportWebMessageResponse implements WebMessageResponse {
 
-  public FileResourceWebMessageResponse(FileResource fileResource) {
-    this.setResponseType(FileResource.class.getSimpleName());
-    this.fileResource = fileResource;
+  @Nonnull private final ObjectReport objectReport;
+
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return ObjectReportWebMessageResponse.class;
   }
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public FileResource getFileResource() {
-    return fileResource;
+  public Class<?> getKlass() {
+    return objectReport.getKlass();
+  }
+
+  @JsonProperty
+  public String getUid() {
+    return objectReport.getUid();
+  }
+
+  @JsonProperty
+  public List<ErrorReport> getErrorReports() {
+    return objectReport.getErrorReports();
   }
 }

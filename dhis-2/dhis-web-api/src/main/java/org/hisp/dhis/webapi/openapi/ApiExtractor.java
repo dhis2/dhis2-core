@@ -73,7 +73,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.jsontree.Json;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
@@ -81,7 +80,6 @@ import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.system.util.HttpUtils;
 import org.hisp.dhis.webapi.openapi.Api.Parameter.In;
-import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -873,9 +871,6 @@ final class ApiExtractor {
     }
     if (type == OpenApi.EntityType[].class && endpoint.getEntityType() != null) {
       return Array.newInstance(endpoint.getEntityType(), 0).getClass();
-    }
-    if (type == WebMessageResponse.class) {
-      return WebMessage.class;
     }
     return type;
   }

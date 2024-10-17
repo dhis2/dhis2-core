@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 
@@ -221,6 +222,12 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse {
         mapOfRefsByDisplayNameOrUid(
             detailsByName.get(
                 DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_STAGE_ID.getName()));
+  }
+
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return FlattenedDataIntegrityReport.class;
   }
 
   private List<String> listOfDisplayNameOrUid(DataIntegrityDetails details) {

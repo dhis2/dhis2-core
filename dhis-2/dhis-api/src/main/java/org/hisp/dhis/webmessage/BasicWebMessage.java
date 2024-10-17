@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,46 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.feedback;
+package org.hisp.dhis.webmessage;
 
-import static org.hisp.dhis.common.OpenApi.Response.Status.NOT_FOUND;
-
-import java.text.MessageFormat;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.webmessage.BasicWebMessage;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.Status;
 
 @Getter
-@Accessors(chain = true)
-@OpenApi.Response(status = NOT_FOUND, value = BasicWebMessage.class)
-public final class NotFoundException extends Exception implements Error {
-  public static <E extends RuntimeException, V> V on(Class<E> type, Supplier<V> operation)
-      throws NotFoundException {
-    return Error.rethrow(type, NotFoundException::new, operation);
-  }
+public class BasicWebMessage {
 
-  public static <E extends RuntimeException, V> V on(
-      Class<E> type, Function<E, NotFoundException> map, Supplier<V> operation)
-      throws NotFoundException {
-    return Error.rethrowMapped(type, map, operation);
-  }
+  /**
+   * Message status, currently two statuses are available: OK, ERROR. Default value is OK.
+   *
+   * @see Status
+   */
+  @JsonProperty protected Status status = Status.OK;
 
-  private final ErrorCode code;
+  /**
+   * Internal code for this message. Should be used to help with third party clients which should
+   * not have to resort to string parsing of message to know what is happening.
+   */
+  @JsonProperty protected Integer code;
 
-  public NotFoundException(Class<?> type, String uid) {
-    this(type.getSimpleName() + " with id " + uid + " could not be found.");
-  }
+  /**
+   * The {@link ErrorCode} which describes a potential error. Only relevant for {@link
+   * Status#ERROR}.
+   */
+  @JsonProperty protected ErrorCode errorCode;
 
-  public NotFoundException(String message) {
-    super(message);
-    this.code = ErrorCode.E1005;
-  }
-
-  public NotFoundException(ErrorCode code, Object... args) {
-    super(MessageFormat.format(code.getMessage(), args));
-    this.code = code;
-  }
+  /**
+   * Non-technical message, should be simple and could possibly be used to display message to an
+   * end-user.
+   */
+  @JsonProperty protected String message;
 }

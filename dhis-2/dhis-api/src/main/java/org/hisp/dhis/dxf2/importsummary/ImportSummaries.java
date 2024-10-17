@@ -36,30 +36,32 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.webmessage.AbstractWebMessageResponse;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @JacksonXmlRootElement(localName = "importSummaries", namespace = DxfNamespaces.DXF_2_0)
-public class ImportSummaries extends AbstractWebMessageResponse {
+public class ImportSummaries implements WebMessageResponse {
+
   private ImportStatus status = ImportStatus.SUCCESS;
-
   private int imported;
-
   private int updated;
-
   private int deleted;
-
   private int ignored;
-
   private ImportOptions importOptions;
-
   private List<ImportSummary> importSummaries = new ArrayList<>();
 
   public ImportSummaries() {}
+
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return ImportSummaries.class;
+  }
 
   public void addImportSummaries(ImportSummaries importSummaries) {
     importSummaries.getImportSummaries().forEach(this::addImportSummary);

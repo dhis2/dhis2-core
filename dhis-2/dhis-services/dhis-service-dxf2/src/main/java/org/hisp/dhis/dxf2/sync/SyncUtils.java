@@ -41,7 +41,7 @@ import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.system.util.HttpUtils;
-import org.hisp.dhis.webmessage.AbstractWebMessageResponse;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -83,7 +83,7 @@ public class SyncUtils {
       SystemInstance instance,
       SyncEndpoint endpoint) {
     final int maxSyncAttempts = settings.getSyncMaxAttempts();
-    Optional<AbstractWebMessageResponse> responseSummaries =
+    Optional<WebMessageResponse> responseSummaries =
         runSyncRequest(
             restTemplate, requestCallback, endpoint.getKlass(), instance.getUrl(), maxSyncAttempts);
 
@@ -101,18 +101,17 @@ public class SyncUtils {
     return false;
   }
 
-  public static Optional<AbstractWebMessageResponse> runSyncRequest(
+  public static Optional<WebMessageResponse> runSyncRequest(
       RestTemplate restTemplate,
       RequestCallback requestCallback,
-      Class<? extends AbstractWebMessageResponse> klass,
+      Class<? extends WebMessageResponse> klass,
       String syncUrl,
       int maxSyncAttempts) {
     boolean networkErrorOccurred = true;
     int syncAttemptsDone = 0;
 
-    ResponseExtractor<? extends AbstractWebMessageResponse> responseExtractor =
-        getResponseExtractor(klass);
-    AbstractWebMessageResponse responseSummary = null;
+    ResponseExtractor<? extends WebMessageResponse> responseExtractor = getResponseExtractor(klass);
+    WebMessageResponse responseSummary = null;
 
     while (networkErrorOccurred) {
       networkErrorOccurred = false;
@@ -147,8 +146,8 @@ public class SyncUtils {
     return Optional.ofNullable(responseSummary);
   }
 
-  private static ResponseExtractor<? extends AbstractWebMessageResponse> getResponseExtractor(
-      Class<? extends AbstractWebMessageResponse> klass) {
+  private static ResponseExtractor<? extends WebMessageResponse> getResponseExtractor(
+      Class<? extends WebMessageResponse> klass) {
     if (ImportSummaries.class.isAssignableFrom(klass)) {
       return new ImportSummariesResponseExtractor();
     } else if (ImportSummary.class.isAssignableFrom(klass)) {

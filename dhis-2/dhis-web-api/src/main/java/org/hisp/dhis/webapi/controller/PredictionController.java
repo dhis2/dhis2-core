@@ -105,8 +105,6 @@ public class PredictionController {
         predictionService.predictTask(
             startDate, endDate, predictors, predictorGroups, JobProgress.noop());
 
-    return new WebMessage(Status.OK, HttpStatus.OK)
-        .setResponse(predictionSummary)
-        .withPlainResponseBefore(DhisApiVersion.V38);
+    return new WebMessage(Status.OK, HttpStatus.OK).setResponse(predictionSummary);
   }
 }

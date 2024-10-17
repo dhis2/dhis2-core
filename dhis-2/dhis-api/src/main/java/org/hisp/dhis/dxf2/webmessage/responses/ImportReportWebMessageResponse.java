@@ -28,55 +28,41 @@
 package org.hisp.dhis.dxf2.webmessage.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.webmessage.AbstractWebMessageResponse;
+import java.util.List;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.feedback.Stats;
+import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JsonPropertyOrder({"type", "created", "updated", "deleted"})
-public class ImportCountWebMessageResponse extends AbstractWebMessageResponse {
-  private int created;
+@RequiredArgsConstructor
+public class ImportReportWebMessageResponse implements WebMessageResponse {
 
-  private int updated;
+  @Nonnull private final ImportReport importReport;
 
-  private int deleted;
-
-  public ImportCountWebMessageResponse(int created, int updated, int deleted) {
-    this.created = created;
-    this.updated = updated;
-    this.deleted = deleted;
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return ImportReportWebMessageResponse.class;
   }
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getCreated() {
-    return created;
-  }
-
-  public void setCreated(int created) {
-    this.created = created;
+  public Status getStatus() {
+    return importReport.getStatus();
   }
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getUpdated() {
-    return updated;
-  }
-
-  public void setUpdated(int updated) {
-    this.updated = updated;
+  public Stats getStats() {
+    return importReport.getStats();
   }
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getDeleted() {
-    return deleted;
-  }
-
-  public void setDeleted(int deleted) {
-    this.deleted = deleted;
+  public List<TypeReport> getTypeReports() {
+    return importReport.getTypeReports();
   }
 }

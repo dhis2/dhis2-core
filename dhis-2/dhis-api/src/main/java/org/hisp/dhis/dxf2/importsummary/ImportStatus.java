@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.imports;
+package org.hisp.dhis.dxf2.importsummary;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Data;
-import org.hisp.dhis.webmessage.WebMessageResponse;
+public enum ImportStatus {
+  SUCCESS(1),
+  WARNING(2),
+  ERROR(3);
 
-@Data
-@Builder
-public class TrackerJobWebMessageResponse implements WebMessageResponse {
-  @JsonProperty private final String id;
+  private final int order;
 
-  @JsonProperty private final String location;
+  ImportStatus(int order) {
+    this.order = order;
+  }
+
+  public int getOrder() {
+    return order;
+  }
 }

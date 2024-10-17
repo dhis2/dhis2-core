@@ -25,27 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.system;
+package org.hisp.dhis.dxf2.webmessage.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.vdurmont.semver4j.Semver;
-import java.util.Map;
-import org.hisp.dhis.webmessage.AbstractWebMessageResponse;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import javax.annotation.Nonnull;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 /**
- * @author Morten Svanaes
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class SoftwareUpdateResponse extends AbstractWebMessageResponse {
-  private final Map<Semver, Map<String, String>> versionMetadata;
+@Getter
+@RequiredArgsConstructor
+@JsonPropertyOrder({"type", "created", "updated", "deleted"})
+public class ImportCountWebMessageResponse implements WebMessageResponse {
 
-  public SoftwareUpdateResponse(Map<Semver, Map<String, String>> versionMetadata) {
-    this.versionMetadata = versionMetadata;
-  }
+  @JsonProperty private final int created;
+  @JsonProperty private final int updated;
+  @JsonProperty private final int deleted;
 
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  public Map<Semver, Map<String, String>> getVersionMetadata() {
-    return versionMetadata;
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return ImportCountWebMessageResponse.class;
   }
 }

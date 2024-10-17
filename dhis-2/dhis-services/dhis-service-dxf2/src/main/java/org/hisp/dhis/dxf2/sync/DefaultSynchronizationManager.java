@@ -53,7 +53,7 @@ import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.webmessage.AbstractWebMessageResponse;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
@@ -157,7 +157,7 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
 
     final int maxSyncAttempts = settingsService.getCurrentSettings().getSyncMaxAttempts();
 
-    Optional<AbstractWebMessageResponse> responseSummary =
+    Optional<WebMessageResponse> responseSummary =
         SyncUtils.runSyncRequest(
             restTemplate,
             requestCallback,

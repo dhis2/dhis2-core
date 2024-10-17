@@ -28,35 +28,24 @@
 package org.hisp.dhis.dxf2.webmessage.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import java.util.ArrayList;
-import java.util.List;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.webmessage.AbstractWebMessageResponse;
+import javax.annotation.Nonnull;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Halvdan Hoem Grelland
  */
-public class ErrorReportsWebMessageResponse extends AbstractWebMessageResponse {
-  private List<ErrorReport> errorReports = new ArrayList<>();
+@Getter
+@RequiredArgsConstructor
+public class FileResourceWebMessageResponse implements WebMessageResponse {
 
-  public ErrorReportsWebMessageResponse(List<ErrorReport> errorReports) {
-    this.errorReports = errorReports;
-  }
+  @JsonProperty private final FileResource fileResource;
 
-  @JsonProperty
-  @JacksonXmlElementWrapper(
-      localName = "errorReports",
-      namespace = DxfNamespaces.DXF_2_0,
-      useWrapping = false)
-  @JacksonXmlProperty(localName = "errorReport", namespace = DxfNamespaces.DXF_2_0)
-  public List<ErrorReport> getErrorReports() {
-    return errorReports;
-  }
-
-  public void setErrorReports(List<ErrorReport> errorReports) {
-    this.errorReports = errorReports;
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return FileResourceWebMessageResponse.class;
   }
 }
