@@ -80,7 +80,7 @@ class TrackedEntityInstanceSupportServiceTest {
   private TrackedEntityAttribute tea;
 
   @BeforeEach
-  public void setUpTest() throws Exception {
+  public void setUpTest() {
     TrackedEntityType trackedEntityType = new TrackedEntityType("TET", "desc");
     trackedEntityType.setAutoFields();
     trackedEntity = new TrackedEntityInstance();
