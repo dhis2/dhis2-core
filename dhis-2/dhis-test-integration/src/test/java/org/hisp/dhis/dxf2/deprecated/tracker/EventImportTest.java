@@ -34,10 +34,10 @@ import static org.hisp.dhis.tracker.Assertions.assertTrackedEntityDataValueChang
 import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 import static org.hisp.dhis.util.DateUtils.toIso8601NoTz;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -350,13 +350,13 @@ class EventImportTest extends TransactionalIntegrationTest {
     String newValueB = "15";
     String newValueA = "20";
     InputStream is =
-            createEventJsonInputStream(
-                    programB.getUid(),
-                    programStageB.getUid(),
-                    organisationUnitB.getUid(),
-                    trackedEntityInstanceMaleA.getTrackedEntityInstance(),
-                    dataElementB,
-                    previousValueB);
+        createEventJsonInputStream(
+            programB.getUid(),
+            programStageB.getUid(),
+            organisationUnitB.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance(),
+            dataElementB,
+            previousValueB);
     String uid = eventService.addEventsJson(is, null).getImportSummaries().get(0).getReference();
 
     org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createEvent(uid);
@@ -383,18 +383,18 @@ class EventImportTest extends TransactionalIntegrationTest {
     eventService.updateEventDataValues(event);
 
     List<TrackedEntityDataValueChangeLog> createdAudits =
-            entityDataValueAuditService.getTrackedEntityDataValueChangeLogs(
-                    new TrackedEntityDataValueChangeLogQueryParams()
-                            .setDataElements(List.of(dataElementA))
-                            .setEvents(List.of(ev))
-                            .setAuditTypes(List.of(ChangeLogType.CREATE)));
+        entityDataValueAuditService.getTrackedEntityDataValueChangeLogs(
+            new TrackedEntityDataValueChangeLogQueryParams()
+                .setDataElements(List.of(dataElementA))
+                .setEvents(List.of(ev))
+                .setAuditTypes(List.of(ChangeLogType.CREATE)));
 
     List<TrackedEntityDataValueChangeLog> updatedAudits =
-            entityDataValueAuditService.getTrackedEntityDataValueChangeLogs(
-                    new TrackedEntityDataValueChangeLogQueryParams()
-                            .setDataElements(List.of(dataElementB))
-                            .setEvents(List.of(ev))
-                            .setAuditTypes(List.of(ChangeLogType.UPDATE)));
+        entityDataValueAuditService.getTrackedEntityDataValueChangeLogs(
+            new TrackedEntityDataValueChangeLogQueryParams()
+                .setDataElements(List.of(dataElementB))
+                .setEvents(List.of(ev))
+                .setAuditTypes(List.of(ChangeLogType.UPDATE)));
 
     assertFalse(createdAudits.isEmpty());
     assertFalse(updatedAudits.isEmpty());
@@ -402,22 +402,22 @@ class EventImportTest extends TransactionalIntegrationTest {
     assertEquals(1, updatedAudits.size());
 
     assertTrackedEntityDataValueChangeLog(
-            createdAudits.get(0), dataElementA, ChangeLogType.CREATE, newValueA);
+        createdAudits.get(0), dataElementA, ChangeLogType.CREATE, newValueA);
     assertTrackedEntityDataValueChangeLog(
-            updatedAudits.get(0), dataElementB, ChangeLogType.UPDATE, previousValueB);
+        updatedAudits.get(0), dataElementB, ChangeLogType.UPDATE, previousValueB);
   }
 
   @Test
   void shouldAuditChangelogWhenDeletingEventDataValue() throws IOException {
     String previousValueB = "10";
     InputStream is =
-            createEventJsonInputStream(
-                    programB.getUid(),
-                    programStageB.getUid(),
-                    organisationUnitB.getUid(),
-                    trackedEntityInstanceMaleA.getTrackedEntityInstance(),
-                    dataElementB,
-                    "10");
+        createEventJsonInputStream(
+            programB.getUid(),
+            programStageB.getUid(),
+            organisationUnitB.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance(),
+            dataElementB,
+            "10");
     String uid = eventService.addEventsJson(is, null).getImportSummaries().get(0).getReference();
 
     org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createEvent(uid);
@@ -439,17 +439,17 @@ class EventImportTest extends TransactionalIntegrationTest {
     eventService.updateEventDataValues(event);
 
     List<TrackedEntityDataValueChangeLog> deleteAudits =
-            entityDataValueAuditService.getTrackedEntityDataValueChangeLogs(
-                    new TrackedEntityDataValueChangeLogQueryParams()
-                            .setDataElements(List.of(dataElementB))
-                            .setEvents(List.of(ev))
-                            .setAuditTypes(List.of(ChangeLogType.DELETE)));
+        entityDataValueAuditService.getTrackedEntityDataValueChangeLogs(
+            new TrackedEntityDataValueChangeLogQueryParams()
+                .setDataElements(List.of(dataElementB))
+                .setEvents(List.of(ev))
+                .setAuditTypes(List.of(ChangeLogType.DELETE)));
 
     assertFalse(deleteAudits.isEmpty());
     assertEquals(1, deleteAudits.size());
 
     assertTrackedEntityDataValueChangeLog(
-            deleteAudits.get(0), dataElementB, ChangeLogType.DELETE, previousValueB);
+        deleteAudits.get(0), dataElementB, ChangeLogType.DELETE, previousValueB);
   }
 
   @Test

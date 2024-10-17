@@ -118,14 +118,17 @@ public class TrackedEntityDataValueChangeLogTest extends TrackerTest {
                 .setAuditTypes(List.of(ChangeLogType.DELETE)));
 
     assertAll(
-            () -> assertNotNull(createdAudit),
-            () -> assertNotNull(updatedAudit),
-            () -> assertNotNull(deletedAudit),
-            () -> assertFalse(createdAudit.isEmpty()),
-            () -> assertFalse(updatedAudit.isEmpty()),
-            () -> assertFalse(deletedAudit.isEmpty()));
-    assertTrackedEntityDataValueChangeLog(createdAudit.get(0),dataElement,ChangeLogType.CREATE, ORIGINAL_VALUE);
-    assertTrackedEntityDataValueChangeLog(updatedAudit.get(0), dataElement,ChangeLogType.UPDATE, ORIGINAL_VALUE);
-    assertTrackedEntityDataValueChangeLog(deletedAudit.get(0),  dataElement,ChangeLogType.DELETE,UPDATED_VALUE);
+        () -> assertNotNull(createdAudit),
+        () -> assertNotNull(updatedAudit),
+        () -> assertNotNull(deletedAudit),
+        () -> assertFalse(createdAudit.isEmpty()),
+        () -> assertFalse(updatedAudit.isEmpty()),
+        () -> assertFalse(deletedAudit.isEmpty()));
+    assertTrackedEntityDataValueChangeLog(
+        createdAudit.get(0), dataElement, ChangeLogType.CREATE, ORIGINAL_VALUE);
+    assertTrackedEntityDataValueChangeLog(
+        updatedAudit.get(0), dataElement, ChangeLogType.UPDATE, ORIGINAL_VALUE);
+    assertTrackedEntityDataValueChangeLog(
+        deletedAudit.get(0), dataElement, ChangeLogType.DELETE, UPDATED_VALUE);
   }
 }
