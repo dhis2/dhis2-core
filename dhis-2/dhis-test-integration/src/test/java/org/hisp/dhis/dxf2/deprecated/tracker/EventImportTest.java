@@ -359,9 +359,9 @@ class EventImportTest extends TransactionalIntegrationTest {
             previousValueB);
     String uid = eventService.addEventsJson(is, null).getImportSummaries().get(0).getReference();
 
-    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createEvent(uid);
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event dxfEvent = createEvent(uid);
 
-    Event ev = programStageInstanceService.getEvent(event.getUid());
+    Event ev = programStageInstanceService.getEvent(dxfEvent.getUid());
 
     assertNotNull(ev);
     assertEquals(1, ev.getEventDataValues().size());
@@ -378,9 +378,9 @@ class EventImportTest extends TransactionalIntegrationTest {
     dataValueB.setDataElement(dataElementB.getUid());
     dataValueB.setStoredBy(superUser.getName());
 
-    event.setDataValues(Set.of(dataValueA, dataValueB));
+    dxfEvent.setDataValues(Set.of(dataValueA, dataValueB));
 
-    eventService.updateEventDataValues(event);
+    eventService.updateEventDataValues(dxfEvent);
 
     List<TrackedEntityDataValueChangeLog> createdAudits =
         entityDataValueAuditService.getTrackedEntityDataValueChangeLogs(
@@ -420,9 +420,9 @@ class EventImportTest extends TransactionalIntegrationTest {
             "10");
     String uid = eventService.addEventsJson(is, null).getImportSummaries().get(0).getReference();
 
-    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createEvent(uid);
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event dxfEvent = createEvent(uid);
 
-    Event ev = programStageInstanceService.getEvent(event.getUid());
+    Event ev = programStageInstanceService.getEvent(dxfEvent.getUid());
 
     assertNotNull(ev);
     assertEquals(1, ev.getEventDataValues().size());
@@ -434,9 +434,9 @@ class EventImportTest extends TransactionalIntegrationTest {
     dataValueB.setDataElement(dataElementB.getUid());
     dataValueB.setStoredBy(superUser.getName());
 
-    event.setDataValues(Set.of(dataValueB));
+    dxfEvent.setDataValues(Set.of(dataValueB));
 
-    eventService.updateEventDataValues(event);
+    eventService.updateEventDataValues(dxfEvent);
 
     List<TrackedEntityDataValueChangeLog> deleteAudits =
         entityDataValueAuditService.getTrackedEntityDataValueChangeLogs(
