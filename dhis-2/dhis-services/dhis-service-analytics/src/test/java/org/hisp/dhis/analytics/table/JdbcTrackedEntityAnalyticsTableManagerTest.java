@@ -50,7 +50,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -72,7 +71,6 @@ class JdbcTrackedEntityAnalyticsTableManagerTest {
   @Mock private PeriodDataProvider periodDataProvider;
   @Mock private SqlBuilder sqlBuilder;
   @Mock private PartitionManager partitionManager;
-  @Mock private SystemSettingsProvider systemSettingsProvider;
   @Mock private IdentifiableObjectManager identifiableObjectManager;
   @Mock private TrackedEntityTypeService trackedEntityTypeService;
   @Mock private TrackedEntityAttributeService trackedEntityAttributeService;
@@ -83,7 +81,7 @@ class JdbcTrackedEntityAnalyticsTableManagerTest {
   @Mock private AnalyticsTableHookService analyticsTableHookService;
   @Mock private DatabaseInfoProvider databaseInfoProvider;
 
-  @InjectMocks private JdbcTrackedEntityAnalyticsTableManager tableManager;
+  @InjectMocks private JdbcTeiAnalyticsTableManager tableManager;
 
   @Test
   void verifyNonConfidentialTeasAreSkipped() {
