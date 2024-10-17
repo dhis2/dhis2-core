@@ -28,8 +28,8 @@
 package org.hisp.dhis.webapi.service;
 
 import static java.util.Collections.emptyList;
-import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
