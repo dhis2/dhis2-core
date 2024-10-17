@@ -42,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Set;
+import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -56,11 +56,13 @@ import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceSchemaDescriptor;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
+import org.hisp.dhis.webapi.service.TrackedEntityInstanceSupportService;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.impl.TrackedEntityInstanceAsyncStrategyImpl;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.impl.TrackedEntityInstanceStrategyImpl;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.impl.TrackedEntityInstanceSyncStrategyImpl;
@@ -95,11 +97,11 @@ class TrackedEntityInstanceControllerTest {
 
   @Mock private org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService;
 
-  @Mock private TrackerAccessManager trackerAccessManager;
-
   @Mock private FileResourceService fileResourceService;
 
   @Mock private TrackedEntityInstance trackedEntityInstance;
+
+  @Mock private TrackedEntityInstanceSupportService trackedEntityInstanceSupportService;
 
   private static final String ENDPOINT = TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT;
 
@@ -114,15 +116,13 @@ class TrackedEntityInstanceControllerTest {
             null,
             currentUserService,
             fileResourceService,
-            trackerAccessManager,
-            null,
+            trackedEntityInstanceSupportService,
             null,
             new TrackedEntityInstanceStrategyImpl(
                 trackedEntityInstanceSyncStrategy, trackedEntityInstanceAsyncStrategy),
             config);
 
     mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
-    when(currentUserService.getCurrentUser()).thenReturn(user);
   }
 
   @Test
@@ -132,6 +132,10 @@ class TrackedEntityInstanceControllerTest {
     TrackedEntityAttribute attribute = new TrackedEntityAttribute();
     attribute.setUid(attributeUid);
     attribute.setValueType(ValueType.IMAGE);
+    TrackedEntityTypeAttribute teta = new TrackedEntityTypeAttribute();
+    teta.setUid(attributeUid);
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    trackedEntityType.setTrackedEntityTypeAttributes(List.of(teta));
     TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
     attributeValue.setAttribute(attribute);
     attributeValue.setValue("fileName");
@@ -143,13 +147,13 @@ class TrackedEntityInstanceControllerTest {
 
     File file = new ClassPathResource("images/dhis2.png").getFile();
 
-    when(instanceService.getTrackedEntityInstance(teUid)).thenReturn(trackedEntityInstance);
-    when(trackedEntityInstance.getTrackedEntityAttributeValues())
-        .thenReturn(Set.of(attributeValue));
     when(fileResourceService.getFileResource("fileName")).thenReturn(fileResource);
     when(fileResourceService.getFileResourceContent(fileResource))
         .thenReturn(new FileInputStream(file));
     when(config.getProperty(ConfigurationKey.CSP_HEADER_VALUE)).thenReturn("script-src 'none';");
+    when(trackedEntityInstanceSupportService.getTrackedEntityAttributeValue(
+            teUid, attributeUid, null))
+        .thenReturn(attributeValue);
 
     mockMvc
         .perform(
@@ -166,7 +170,7 @@ class TrackedEntityInstanceControllerTest {
 
   @Test
   void shouldCallSyncStrategy() throws Exception {
-
+    when(currentUserService.getCurrentUser()).thenReturn(user);
     when(trackedEntityInstanceSyncStrategy.mergeOrDeleteTrackedEntityInstances(any()))
         .thenReturn(new ImportSummaries());
 
@@ -181,6 +185,7 @@ class TrackedEntityInstanceControllerTest {
 
   @Test
   void shouldCallAsyncStrategy() throws Exception {
+    when(currentUserService.getCurrentUser()).thenReturn(user);
     mockMvc
         .perform(
             post(ENDPOINT)
