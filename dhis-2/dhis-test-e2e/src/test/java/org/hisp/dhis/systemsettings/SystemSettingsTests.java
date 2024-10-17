@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.google.gson.JsonObject;
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
@@ -223,7 +222,7 @@ class SystemSettingsTests extends ApiTest {
 
     response.validate().statusCode(200);
 
-    assertEquals(StringUtils.EMPTY, response.getAsString());
+    assertEquals(ENGLISH_INTRO, response.getAsString());
   }
 
   @Test
