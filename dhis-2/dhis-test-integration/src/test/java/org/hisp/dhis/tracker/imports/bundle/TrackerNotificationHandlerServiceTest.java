@@ -347,7 +347,6 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
             .enrollment(uid)
             .enrolledAt(Instant.now())
             .occurredAt(Instant.now())
-            .completedAt(Instant.now())
             .build();
 
     ImportReport importReport =

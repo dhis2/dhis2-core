@@ -160,8 +160,6 @@ class SmsImportMapper {
         .attributes(
             mapTrackedEntityTypeAttributes(
                 submission.getValues(), existingAttributeValues, programAttributes))
-        .enrollments(
-            List.of(Enrollment.builder().enrollment(submission.getEnrollment().getUid()).build()))
         .build();
   }
 

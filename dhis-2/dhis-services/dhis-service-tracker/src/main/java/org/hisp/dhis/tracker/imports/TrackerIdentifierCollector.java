@@ -102,8 +102,6 @@ public class TrackerIdentifierCollector {
           addIdentifier(identifiers, TrackedEntityType.class, trackedEntity.getTrackedEntityType());
           addIdentifier(identifiers, OrganisationUnit.class, trackedEntity.getOrgUnit());
 
-          collectEnrollments(identifiers, trackedEntity.getEnrollments());
-
           trackedEntity
               .getAttributes()
               .forEach(
@@ -123,7 +121,6 @@ public class TrackerIdentifierCollector {
           addIdentifier(identifiers, OrganisationUnit.class, enrollment.getOrgUnit());
 
           collectNotes(identifiers, enrollment.getNotes());
-          collectEvents(identifiers, enrollment.getEvents());
           enrollment
               .getAttributes()
               .forEach(

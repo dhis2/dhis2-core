@@ -600,7 +600,6 @@ class AttributeValidatorTest {
 
     Attribute attribute = new Attribute();
     attribute.setAttribute(MetadataIdentifier.ofUid("tea"));
-    attribute.setValueType(ValueType.FILE_RESOURCE);
     attribute.setValue(fileResourceUid);
 
     TrackedEntity trackedEntity =
