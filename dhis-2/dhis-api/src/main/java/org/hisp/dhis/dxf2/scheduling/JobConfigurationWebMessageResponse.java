@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.scheduling;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.Date;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobStatus;
@@ -40,19 +41,14 @@ import org.hisp.dhis.webmessage.WebMessageResponse;
  * @author Henning Håkonsen
  */
 public class JobConfigurationWebMessageResponse implements WebMessageResponse {
-  private String name;
 
-  private String id;
-
-  private Date created;
-
-  private JobType jobType;
-
-  private JobStatus jobStatus;
-
-  private JobParameters jobParameters;
-
-  private String relativeNotifierEndpoint;
+  private final String name;
+  private final String id;
+  private final Date created;
+  private final JobType jobType;
+  private final JobStatus jobStatus;
+  private final JobParameters jobParameters;
+  private final String relativeNotifierEndpoint;
 
   public JobConfigurationWebMessageResponse(JobConfiguration jobConfiguration) {
     this.name = jobConfiguration.getDisplayName();
@@ -62,6 +58,12 @@ public class JobConfigurationWebMessageResponse implements WebMessageResponse {
     this.jobStatus = jobConfiguration.getJobStatus();
     this.jobParameters = jobConfiguration.getJobParameters();
     this.relativeNotifierEndpoint = "/api/system/tasks/" + this.jobType + "/" + this.id;
+  }
+
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return JobConfigurationWebMessageResponse.class;
   }
 
   @JacksonXmlProperty

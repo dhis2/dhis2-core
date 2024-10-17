@@ -25,45 +25,65 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.webmessage.responses;
+package org.hisp.dhis.predictor;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import java.util.List;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.ObjectReport;
-import org.springframework.util.Assert;
+import javax.annotation.Nonnull;
+import lombok.Getter;
+import lombok.ToString;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Jim Grace
  */
-public class ObjectReportWebMessageResponse extends AbstractWebMessageResponse {
-  private final ObjectReport objectReport;
+@ToString
+@Getter
+public class PredictionSummary implements WebMessageResponse {
 
-  public ObjectReportWebMessageResponse(ObjectReport objectReport) {
-    Assert.notNull(objectReport, "ObjectReport is required to be non-null.");
-    this.objectReport = objectReport;
+  @JsonProperty private PredictionStatus status = PredictionStatus.SUCCESS;
+
+  @JsonProperty private String description;
+
+  @JsonProperty private int predictors = 0;
+  @JsonProperty private int inserted = 0;
+  @JsonProperty private int updated = 0;
+  @JsonProperty private int deleted = 0;
+  @JsonProperty private int unchanged = 0;
+
+  public PredictionSummary() {}
+
+  public PredictionSummary(PredictionStatus status, String description) {
+    this.status = status;
+    this.description = description;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  public Class<?> getKlass() {
-    return objectReport.getKlass();
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return PredictionSummary.class;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  public String getUid() {
-    return objectReport.getUid();
+  public void incrementInserted() {
+    inserted += 1;
   }
 
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "errorReports", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "errorReport", namespace = DxfNamespaces.DXF_2_0)
-  public List<ErrorReport> getErrorReports() {
-    return objectReport.getErrorReports();
+  public void incrementPredictors() {
+    predictors += 1;
+  }
+
+  public void incrementUpdated() {
+    updated += 1;
+  }
+
+  public void incrementDeleted() {
+    deleted += 1;
+  }
+
+  public void incrementUnchanged() {
+    unchanged += 1;
+  }
+
+  public int getPredictions() {
+    return inserted + updated + unchanged;
   }
 }

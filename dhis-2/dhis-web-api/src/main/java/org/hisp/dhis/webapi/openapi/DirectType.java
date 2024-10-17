@@ -72,7 +72,6 @@ import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
-import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.intellij.lang.annotations.Language;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.core.io.InputStreamResource;
@@ -254,7 +253,6 @@ class DirectType {
     oneOf(JsonDate.class, schema -> schema.type("string").format("date-time"));
 
     oneOf(Geometry.class, schema -> schema.type("object"));
-    oneOf(WebMessageResponse.class, schema -> schema.type("object"));
     oneOf(JobParameters.class, schema -> schema.type("object"));
   }
 

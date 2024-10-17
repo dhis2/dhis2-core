@@ -25,17 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.imports;
+package org.hisp.dhis.dxf2.webmessage.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Data;
+import javax.annotation.Nonnull;
+import lombok.Getter;
+import org.hisp.dhis.feedback.MergeReport;
+import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 
-@Data
-@Builder
-public class TrackerJobWebMessageResponse implements WebMessageResponse {
-  @JsonProperty private final String id;
+/**
+ * @author david mackessy
+ */
+@Getter
+public class MergeWebResponse implements WebMessageResponse {
+  @JsonProperty private MergeReport mergeReport;
 
-  @JsonProperty private final String location;
+  public MergeWebResponse(@Nonnull MergeReport mergeReport) {
+    this.mergeReport = mergeReport;
+    MergeType mergeType = mergeReport.getMergeType();
+    this.mergeReport.setMessage(
+        mergeReport.hasErrorMessages()
+            ? "%s merge has errors".formatted(mergeType)
+            : "%s merge complete".formatted(mergeType));
+  }
+
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return MergeWebResponse.class;
+  }
 }

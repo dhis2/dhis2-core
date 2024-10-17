@@ -28,55 +28,48 @@
 package org.hisp.dhis.dxf2.webmessage.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.util.List;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
+import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.Stats;
+import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JsonPropertyOrder({"type", "created", "updated", "deleted"})
-public class ImportCountWebMessageResponse extends AbstractWebMessageResponse {
-  private int created;
+@RequiredArgsConstructor
+public class TypeReportWebMessageResponse implements WebMessageResponse {
 
-  private int updated;
+  @Nonnull private final TypeReport typeReport;
 
-  private int deleted;
-
-  public ImportCountWebMessageResponse(int created, int updated, int deleted) {
-    this.created = created;
-    this.updated = updated;
-    this.deleted = deleted;
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return TypeReportWebMessageResponse.class;
   }
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getCreated() {
-    return created;
-  }
-
-  public void setCreated(int created) {
-    this.created = created;
+  public Status getStatus() {
+    return !typeReport.hasErrorReports() ? Status.OK : Status.ERROR;
   }
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getUpdated() {
-    return updated;
-  }
-
-  public void setUpdated(int updated) {
-    this.updated = updated;
+  public Stats getStats() {
+    return typeReport.getStats();
   }
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getDeleted() {
-    return deleted;
-  }
-
-  public void setDeleted(int deleted) {
-    this.deleted = deleted;
+  @JacksonXmlElementWrapper(localName = "objectReports", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "objectReport", namespace = DxfNamespaces.DXF_2_0)
+  public List<ObjectReport> getObjectReports() {
+    return typeReport.getObjectReports();
   }
 }

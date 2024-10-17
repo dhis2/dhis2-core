@@ -35,11 +35,11 @@ import java.util.function.Supplier;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.webmessage.WebMessageResponse;
+import org.hisp.dhis.webmessage.BasicWebMessage;
 
 @Getter
 @Accessors(chain = true)
-@OpenApi.Response(status = FORBIDDEN, value = WebMessageResponse.class)
+@OpenApi.Response(status = FORBIDDEN, value = BasicWebMessage.class)
 public final class ForbiddenException extends Exception implements Error {
   public static <E extends RuntimeException, V> V on(Class<E> type, Supplier<V> operation)
       throws ForbiddenException {

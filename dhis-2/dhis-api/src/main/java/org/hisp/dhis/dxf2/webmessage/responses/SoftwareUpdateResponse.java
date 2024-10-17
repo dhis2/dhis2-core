@@ -25,39 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.webmessage;
+package org.hisp.dhis.dxf2.webmessage.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.util.Map;
+import javax.annotation.Nonnull;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Svanaes
  */
-public class AbstractWebMessageResponse implements WebMessageResponse {
-  /**
-   * Optional type property. Since we are using the somewhat generic name 'response' for the data
-   * part of the message, this can be used to signal what kind of response this is.
-   *
-   * <p>Some examples might be 'ImportCount', 'ImportSummary', etc.
-   */
-  private String responseType;
+@Getter
+@RequiredArgsConstructor
+public class SoftwareUpdateResponse implements WebMessageResponse {
 
-  public AbstractWebMessageResponse() {
-    this.responseType = getClass().getSimpleName().replaceFirst("WebMessageResponse", "");
-  }
+  @JsonProperty private final Map<?, Map<String, String>> versionMetadata;
 
-  public AbstractWebMessageResponse(String responseType) {
-    this.responseType = responseType;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  public String getResponseType() {
-    return responseType;
-  }
-
-  public void setResponseType(String responseType) {
-    this.responseType = responseType;
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return SoftwareUpdateResponse.class;
   }
 }

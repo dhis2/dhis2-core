@@ -25,69 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata.sync;
+package org.hisp.dhis.dxf2.webmessage.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.common.ImportSummary;
-import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.metadata.version.MetadataVersion;
+import java.util.List;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 
 /**
- * Defines the structure of metadata sync summary
- *
- * @author vanyas
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement(localName = "metadataSyncSummary", namespace = DxfNamespaces.DXF_2_0)
-public class MetadataSyncSummary implements WebMessageResponse {
-  private ImportReport importReport;
+@RequiredArgsConstructor
+public class ObjectReportWebMessageResponse implements WebMessageResponse {
 
-  private ImportSummary importSummary;
+  @Nonnull private final ObjectReport objectReport;
 
-  private MetadataVersion metadataVersion;
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public MetadataVersion getMetadataVersion() {
-    return metadataVersion;
-  }
-
-  public void setMetadataVersion(MetadataVersion metadataVersion) {
-    this.metadataVersion = metadataVersion;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ImportSummary getImportSummary() {
-    return importSummary;
-  }
-
-  public void setImportSummary(ImportSummary importSummary) {
-    this.importSummary = importSummary;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ImportReport getImportReport() {
-    return importReport;
-  }
-
-  public void setImportReport(ImportReport importReport) {
-    this.importReport = importReport;
-  }
-
+  @Nonnull
   @Override
-  public String toString() {
-    return "MetadataSyncSummary{"
-        + "importReport="
-        + importReport
-        + ", importSummary="
-        + importSummary
-        + ", metadataVersion="
-        + metadataVersion
-        + '}';
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return ObjectReportWebMessageResponse.class;
+  }
+
+  @JsonProperty
+  public Class<?> getKlass() {
+    return objectReport.getKlass();
+  }
+
+  @JsonProperty
+  public String getUid() {
+    return objectReport.getUid();
+  }
+
+  @JsonProperty
+  public List<ErrorReport> getErrorReports() {
+    return objectReport.getErrorReports();
   }
 }
