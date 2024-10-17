@@ -34,10 +34,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.List;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 import org.hisp.dhis.feedback.Stats;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.webmessage.AbstractWebMessageResponse;
 import org.springframework.util.Assert;
 
 /**

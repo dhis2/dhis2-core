@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
+import org.hisp.dhis.webmessage.AbstractWebMessageResponse;
 
 @JacksonXmlRootElement(localName = "importSummary", namespace = DxfNamespaces.DXF_2_0)
 public class ImportSummary extends AbstractWebMessageResponse implements ImportConflicts {

@@ -31,7 +31,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.vdurmont.semver4j.Semver;
 import java.util.Map;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
+import org.hisp.dhis.webmessage.AbstractWebMessageResponse;
 
 /**
  * @author Morten Svanaes

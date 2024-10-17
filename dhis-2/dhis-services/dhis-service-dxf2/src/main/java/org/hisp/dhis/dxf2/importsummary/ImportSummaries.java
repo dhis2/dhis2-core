@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Optional;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
+import org.hisp.dhis.webmessage.AbstractWebMessageResponse;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
