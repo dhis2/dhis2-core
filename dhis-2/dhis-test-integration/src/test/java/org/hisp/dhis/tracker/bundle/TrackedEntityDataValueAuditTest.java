@@ -28,8 +28,8 @@
 package org.hisp.dhis.tracker.bundle;
 
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.tracker.Assertions.assertTrackedEntityDataValueAudit;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -112,44 +112,14 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest {
                 .setAuditTypes(List.of(AuditType.DELETE)));
 
     assertAll(
-        () -> assertNotNull(createdAudit),
-        () -> assertNotNull(updatedAudit),
-        () -> assertNotNull(deletedAudit));
-    assertAuditCollection(createdAudit, AuditType.CREATE, ORIGINAL_VALUE);
-    assertAuditCollection(updatedAudit, AuditType.UPDATE, ORIGINAL_VALUE);
-    assertAuditCollection(deletedAudit, AuditType.DELETE, UPDATED_VALUE);
-  }
-
-  private void assertAuditCollection(
-      List<TrackedEntityDataValueAudit> audits, AuditType auditType, String expectedValue) {
-    assertAll(
-        () -> assertFalse(audits.isEmpty()),
-        () ->
-            assertEquals(
-                auditType,
-                audits.get(0).getAuditType(),
-                () ->
-                    "Expected audit type is "
-                        + auditType
-                        + " but found "
-                        + audits.get(0).getAuditType()),
-        () ->
-            assertEquals(
-                audits.get(0).getDataElement().getUid(),
-                dataElement.getUid(),
-                () ->
-                    "Expected dataElement is "
-                        + dataElement.getUid()
-                        + " but found "
-                        + audits.get(0).getDataElement().getUid()),
-        () ->
-            assertEquals(
-                expectedValue,
-                audits.get(0).getValue(),
-                () ->
-                    "Expected value is "
-                        + expectedValue
-                        + " but found "
-                        + audits.get(0).getValue()));
+            () -> assertNotNull(createdAudit),
+            () -> assertNotNull(updatedAudit),
+            () -> assertNotNull(deletedAudit),
+            () -> assertFalse(createdAudit.isEmpty()),
+            () -> assertFalse(updatedAudit.isEmpty()),
+            () -> assertFalse(deletedAudit.isEmpty()));
+    assertTrackedEntityDataValueAudit(createdAudit.get(0),dataElement,AuditType.CREATE, ORIGINAL_VALUE);
+    assertTrackedEntityDataValueAudit(updatedAudit.get(0), dataElement,AuditType.UPDATE, ORIGINAL_VALUE);
+    assertTrackedEntityDataValueAudit(deletedAudit.get(0),  dataElement,AuditType.DELETE,UPDATED_VALUE);
   }
 }
