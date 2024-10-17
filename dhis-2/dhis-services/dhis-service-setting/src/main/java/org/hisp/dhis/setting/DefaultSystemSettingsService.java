@@ -31,6 +31,7 @@ import static org.hisp.dhis.setting.SystemSettings.isConfidential;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.CheckForNull;
@@ -39,6 +40,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.NonTransactional;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -107,13 +110,22 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
   @Override
   @Transactional
   public void put(@Nonnull String key, @CheckForNull Serializable value) {
-    putAll(Map.of(key, Settings.valueOf(value)));
+    try {
+      putAll(Map.of(key, Settings.valueOf(value)));
+    } catch (NotFoundException | BadRequestException ex) {
+      // Note: This is a compromise as otherwise the exception would propagate
+      // to lots of places that have not yet been adjusted to using the feedback exceptions
+      log.error("Unable to put setting", ex);
+    }
   }
 
   @Override
   @Transactional
-  public void putAll(@Nonnull Map<String, String> settings) {
+  public void putAll(@Nonnull Map<String, String> settings)
+      throws NotFoundException, BadRequestException {
     if (settings.isEmpty()) return;
+    validateAll(settings);
+
     Set<String> deletes = new HashSet<>();
     for (Map.Entry<String, String> e : settings.entrySet()) {
       String key = e.getKey();
@@ -127,6 +139,21 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
     }
     deleteAll(deletes);
     allSettings = null; // invalidate
+  }
+
+  private void validateAll(@Nonnull Map<String, String> settings)
+      throws NotFoundException, BadRequestException {
+    Set<String> allowed = SystemSettings.keysWithDefaults();
+    List<String> illegal =
+        settings.keySet().stream().filter(key -> !allowed.contains(key)).toList();
+    if (!illegal.isEmpty())
+      throw new NotFoundException("Setting does not exist: " + String.join(",", illegal));
+    SystemSettings empty = SystemSettings.of(Map.of());
+    for (Map.Entry<String, String> e : settings.entrySet()) {
+      if (!empty.isValid(e.getKey(), e.getValue()))
+        throw new BadRequestException(
+            "Not a valid value for setting %s: %s".formatted(e.getKey(), e.getValue()));
+    }
   }
 
   @Override
