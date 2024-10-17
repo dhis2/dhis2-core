@@ -183,18 +183,11 @@ class OrgUnitValueTypeSupplierTest extends TestBase {
   }
 
   private Attribute numericAttribute() {
-    return Attribute.builder()
-        .attribute(MetadataIdentifier.ofUid("numeric"))
-        .valueType(ValueType.NUMBER)
-        .build();
+    return Attribute.builder().attribute(MetadataIdentifier.ofUid("numeric")).build();
   }
 
   private Attribute orgUnitAttribute(String uid, String value) {
-    return Attribute.builder()
-        .attribute(MetadataIdentifier.ofUid(uid))
-        .valueType(ValueType.ORGANISATION_UNIT)
-        .value(value)
-        .build();
+    return Attribute.builder().attribute(MetadataIdentifier.ofUid(uid)).value(value).build();
   }
 
   private TrackedEntity trackedEntity(Attribute... attributes) {
