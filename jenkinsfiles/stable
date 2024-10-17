@@ -96,9 +96,10 @@ pipeline {
                     stage('Run tests') {
                         steps {
                             script {
+                                projectName = "${DOCKER_IMAGE_TAG_BASE.replaceAll('\\.', '-')}"
                                 dir("dhis-2/dhis-test-e2e") {
                                     sh "docker pull ${DOCKER_IMAGE_NAME_FULL}"
-                                    sh "DHIS2_IMAGE=${DOCKER_IMAGE_NAME_FULL} docker-compose --project-name ${DOCKER_IMAGE_TAG_BASE} --file docker-compose.yml --file docker-compose.e2e.yml up --remove-orphans --exit-code-from test"
+                                    sh "DHIS2_IMAGE=${DOCKER_IMAGE_NAME_FULL} docker compose --project-name ${projectName} --file docker-compose.yml --file docker-compose.e2e.yml up --remove-orphans --exit-code-from test"
                                 }
                             }
                         }
@@ -115,8 +116,8 @@ pipeline {
                             failure {
                                 script {
                                     dir("dhis-2/dhis-test-e2e") {
-                                        sh "docker-compose --project-name ${DOCKER_IMAGE_TAG_BASE} logs web > ${DOCKER_IMAGE_TAG_BASE}_logs.txt"
-                                        archiveArtifacts artifacts: "${DOCKER_IMAGE_TAG_BASE}_logs.txt"
+                                        sh "docker compose --project-name ${projectName} logs web > ${projectName}-logs.txt"
+                                        archiveArtifacts artifacts: "${projectName}-logs.txt"
                                     }
                                 }
                             }
