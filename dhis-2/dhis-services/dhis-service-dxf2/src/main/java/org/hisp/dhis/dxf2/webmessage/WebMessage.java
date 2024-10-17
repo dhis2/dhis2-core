@@ -29,15 +29,31 @@ package org.hisp.dhis.dxf2.webmessage;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import lombok.Getter;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dataintegrity.FlattenedDataIntegrityReport;
+import org.hisp.dhis.dxf2.common.ImportTypeSummary;
+import org.hisp.dhis.dxf2.geojson.GeoJsonImportReport;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
+import org.hisp.dhis.dxf2.scheduling.JobConfigurationWebMessageResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.ApiTokenCreationResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.ImportCountWebMessageResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.ImportReportWebMessageResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.MergeWebResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.SoftwareUpdateResponse;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.predictor.PredictionSummary;
+import org.hisp.dhis.webapi.controller.tracker.imports.TrackerJobWebMessageResponse;
 import org.hisp.dhis.webmessage.BasicWebMessage;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.springframework.http.HttpStatus;
@@ -70,7 +86,26 @@ public class WebMessage extends BasicWebMessage {
    * When a simple text feedback is not enough, you can use this interface to implement your own
    * response payload object.
    */
-  @OpenApi.Property({ObjectNode.class})
+  @OpenApi.Property({
+    ApiTokenCreationResponse.class,
+    ErrorReportsWebMessageResponse.class,
+    FileResourceWebMessageResponse.class,
+    FlattenedDataIntegrityReport.class,
+    GeoJsonImportReport.class,
+    ImportCountWebMessageResponse.class,
+    ImportReportWebMessageResponse.class,
+    ImportSummaries.class,
+    ImportSummary.class,
+    ImportTypeSummary.class,
+    JobConfigurationWebMessageResponse.class,
+    MergeWebResponse.class,
+    MetadataSyncSummary.class,
+    ObjectReportWebMessageResponse.class,
+    PredictionSummary.class,
+    SoftwareUpdateResponse.class,
+    TrackerJobWebMessageResponse.class,
+    TrackerJobWebMessageResponse.class
+  })
   private WebMessageResponse response;
 
   @Getter private String location;
