@@ -120,6 +120,10 @@ public interface TrackedEntityAttributeService {
 
   Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(User user);
 
+  Set<TrackedEntityAttribute> getProgramAttributes(Program program);
+
+  Set<TrackedEntityAttribute> getTrackedEntityTypeAttributes(TrackedEntityType trackedEntityType);
+
   Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(
       User user, List<Program> programs, List<TrackedEntityType> trackedEntityTypes);
 
