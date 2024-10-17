@@ -70,6 +70,8 @@ class EventManagerTest {
 
   @Mock List<Checker> checkersRunOnDelete;
 
+  @Mock WorkContext workContext;
+
   @Captor ArgumentCaptor<EventProcessorPhase> eventProcessorPhaseArgumentCaptor;
 
   @InjectMocks EventManager subject;
@@ -79,12 +81,15 @@ class EventManagerTest {
       throws JsonProcessingException {
 
     Event event = new Event();
-    WorkContext workContext = WorkContext.builder().build();
+    event.setUid("id");
+
     doNothing()
         .when(eventPersistenceService)
         .updateTrackedEntityInstances(any(WorkContext.class), anyList());
 
     doNothing().when(eventProcessorExecutor).execute(any(WorkContext.class), anyList());
+    when(workContext.getPersistedProgramStageInstanceMap())
+        .thenReturn(Map.of("id", new org.hisp.dhis.program.Event()));
 
     when(executorsByPhase.get(any(EventProcessorPhase.class))).thenReturn(eventProcessorExecutor);
 
