@@ -45,6 +45,7 @@ import org.hisp.dhis.dxf2.events.importer.EventManager;
 import org.hisp.dhis.dxf2.events.importer.EventProcessorExecutor;
 import org.hisp.dhis.dxf2.events.importer.EventProcessorPhase;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.Test;
@@ -69,6 +70,8 @@ class EventManagerTest {
 
   @Mock TrackedEntityDataValueAuditService entityDataValueAuditService;
 
+  @Mock WorkContext workContext;
+
   @Mock List<Checker> checkersRunOnDelete;
 
   @Mock CurrentUserService currentUserService;
@@ -82,7 +85,7 @@ class EventManagerTest {
       throws JsonProcessingException {
 
     Event event = new Event();
-    WorkContext workContext = WorkContext.builder().build();
+    event.setUid("id");
     doNothing()
         .when(eventPersistenceService)
         .updateTrackedEntityInstances(any(WorkContext.class), anyList());
@@ -90,7 +93,8 @@ class EventManagerTest {
     doNothing().when(eventProcessorExecutor).execute(any(WorkContext.class), anyList());
 
     when(executorsByPhase.get(any(EventProcessorPhase.class))).thenReturn(eventProcessorExecutor);
-
+    when(workContext.getPersistedProgramStageInstanceMap())
+        .thenReturn(Map.of("id", new ProgramStageInstance()));
     subject.updateEventDataValues(event, Set.of(), workContext);
 
     verify(eventPersistenceService, times(1))
