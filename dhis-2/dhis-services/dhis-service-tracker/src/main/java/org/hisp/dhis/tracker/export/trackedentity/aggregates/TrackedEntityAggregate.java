@@ -131,9 +131,7 @@ public class TrackedEntityAggregate implements Aggregate {
               && !CollectionUtils.isEmpty(user.get().getGroups())) {
             userGroupUIDCache.put(
                 user.get().getUid(),
-                user.get().getGroups().stream()
-                    .map(BaseIdentifiableObject::getUid)
-                    .collect(Collectors.toList()));
+                user.get().getGroups().stream().map(BaseIdentifiableObject::getUid).toList());
           }
         });
 
@@ -268,7 +266,7 @@ public class TrackedEntityAggregate implements Aggregate {
                         te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
                         return te;
                       })
-                  .collect(Collectors.toList());
+                  .toList();
             },
             getPool())
         .join();

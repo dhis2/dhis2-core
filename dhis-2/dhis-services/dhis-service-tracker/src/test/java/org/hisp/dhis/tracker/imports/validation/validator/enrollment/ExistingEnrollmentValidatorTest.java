@@ -71,11 +71,11 @@ class ExistingEnrollmentValidatorTest {
 
   private Reporter reporter;
 
-  private static final String programUid = "program";
+  private static final String PROGRAM_UID = "program";
 
-  private static final String trackedEntitUid = "trackedEntity";
+  private static final String TRACKED_ENTIT_UID = "trackedEntity";
 
-  private static final String enrollmentUid = "enrollment";
+  private static final String ENROLLMENT_UID = "enrollment";
 
   @BeforeEach
   public void setUp() {
@@ -83,21 +83,21 @@ class ExistingEnrollmentValidatorTest {
 
     when(bundle.getPreheat()).thenReturn(preheat);
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
-    when(enrollment.getProgram()).thenReturn(MetadataIdentifier.ofUid(programUid));
-    when(enrollment.getTrackedEntity()).thenReturn(trackedEntitUid);
+    when(enrollment.getProgram()).thenReturn(MetadataIdentifier.ofUid(PROGRAM_UID));
+    when(enrollment.getTrackedEntity()).thenReturn(TRACKED_ENTIT_UID);
     when(enrollment.getStatus()).thenReturn(EnrollmentStatus.ACTIVE);
-    when(enrollment.getEnrollment()).thenReturn(enrollmentUid);
-    when(enrollment.getUid()).thenReturn(enrollmentUid);
+    when(enrollment.getEnrollment()).thenReturn(ENROLLMENT_UID);
+    when(enrollment.getUid()).thenReturn(ENROLLMENT_UID);
     when(enrollment.getTrackerType()).thenCallRealMethod();
 
-    when(preheat.getTrackedEntity(trackedEntitUid)).thenReturn(trackedEntity);
-    when(trackedEntity.getUid()).thenReturn(trackedEntitUid);
+    when(preheat.getTrackedEntity(TRACKED_ENTIT_UID)).thenReturn(trackedEntity);
+    when(trackedEntity.getUid()).thenReturn(TRACKED_ENTIT_UID);
 
     Program program = new Program();
     program.setOnlyEnrollOnce(false);
-    program.setUid(programUid);
+    program.setUid(PROGRAM_UID);
 
-    when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(program);
 
     TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new Reporter(idSchemes);
@@ -108,7 +108,7 @@ class ExistingEnrollmentValidatorTest {
     when(enrollment.getStatus()).thenReturn(EnrollmentStatus.CANCELLED);
     validator.validate(reporter, bundle, enrollment);
 
-    verify(preheat, times(0)).getProgram(programUid);
+    verify(preheat, times(0)).getProgram(PROGRAM_UID);
   }
 
   @Test
@@ -124,7 +124,7 @@ class ExistingEnrollmentValidatorTest {
   void shouldExitProgramOnlyEnrollOnce() {
     Program program = new Program();
     program.setOnlyEnrollOnce(false);
-    when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(program);
     when(enrollment.getStatus()).thenReturn(EnrollmentStatus.COMPLETED);
 
     validator.validate(reporter, bundle, enrollment);
@@ -137,7 +137,7 @@ class ExistingEnrollmentValidatorTest {
     Program program = new Program();
     program.setOnlyEnrollOnce(true);
 
-    when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(program);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -156,10 +156,10 @@ class ExistingEnrollmentValidatorTest {
   @Test
   void shouldFailNotActiveEnrollmentAlreadyInPayloadAndEnrollOnce() {
     Program program = new Program();
-    program.setUid(programUid);
+    program.setUid(PROGRAM_UID);
     program.setOnlyEnrollOnce(true);
 
-    when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(program);
     setEnrollmentInPayload(EnrollmentStatus.COMPLETED);
 
     validator.validate(reporter, bundle, enrollment);
@@ -188,10 +188,10 @@ class ExistingEnrollmentValidatorTest {
   @Test
   void shouldFailNotActiveEnrollmentAlreadyInDbAndEnrollOnce() {
     Program program = new Program();
-    program.setUid(programUid);
+    program.setUid(PROGRAM_UID);
     program.setOnlyEnrollOnce(true);
 
-    when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(program);
     setTeInDb(EnrollmentStatus.COMPLETED);
 
     validator.validate(reporter, bundle, enrollment);
@@ -211,10 +211,10 @@ class ExistingEnrollmentValidatorTest {
   @Test
   void shouldFailAnotherEnrollmentAndEnrollOnce() {
     Program program = new Program();
-    program.setUid(programUid);
+    program.setUid(PROGRAM_UID);
     program.setOnlyEnrollOnce(true);
 
-    when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(program);
     setEnrollmentInPayload(EnrollmentStatus.COMPLETED);
     setTeInDb();
 
@@ -226,10 +226,10 @@ class ExistingEnrollmentValidatorTest {
   @Test
   void shouldPassWhenAnotherEnrollmentAndNotEnrollOnce() {
     Program program = new Program();
-    program.setUid(programUid);
+    program.setUid(PROGRAM_UID);
     program.setOnlyEnrollOnce(false);
 
-    when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(program);
     setEnrollmentInPayload(EnrollmentStatus.COMPLETED);
     setTeInDb();
 
@@ -250,13 +250,13 @@ class ExistingEnrollmentValidatorTest {
                 Enrollment enrollment = new Enrollment();
 
                 Program program = new Program();
-                program.setUid(programUid);
+                program.setUid(PROGRAM_UID);
 
                 enrollment.setUid("another_enrollment");
                 enrollment.setStatus(status);
                 enrollment.setProgram(program);
 
-                put(trackedEntitUid, Collections.singletonList(enrollment));
+                put(TRACKED_ENTIT_UID, Collections.singletonList(enrollment));
               }
             });
   }
@@ -265,8 +265,8 @@ class ExistingEnrollmentValidatorTest {
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollmentInBundle =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .enrollment("another_enrollment")
-            .program(MetadataIdentifier.ofUid(programUid))
-            .trackedEntity(trackedEntitUid)
+            .program(MetadataIdentifier.ofUid(PROGRAM_UID))
+            .trackedEntity(TRACKED_ENTIT_UID)
             .status(status)
             .build();
 

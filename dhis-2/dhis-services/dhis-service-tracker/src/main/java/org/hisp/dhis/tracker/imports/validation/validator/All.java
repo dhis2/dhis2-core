@@ -112,8 +112,8 @@ public class All<T> implements Validator<T> {
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, T input) {
     for (Validator<T> validator : validators) {
-      if ((input instanceof TrackerDto
-              && !validator.needsToRun(bundle.getStrategy((TrackerDto) input)))
+      if ((input instanceof TrackerDto trackerDto
+              && !validator.needsToRun(bundle.getStrategy(trackerDto)))
           || (!(input instanceof TrackerDto)
               && !validator.needsToRun(bundle.getImportStrategy()))) {
         continue;

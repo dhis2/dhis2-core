@@ -117,7 +117,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
                   bundle.getPreheat().getOrganisationUnit(entity.getOrgUnit()));
               return newEntity;
             })
-        .get();
+        .orElse(null);
   }
 
   private OrganisationUnit getOwnerOrganisationUnit(

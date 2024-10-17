@@ -36,7 +36,6 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.note.Note;
@@ -76,8 +75,7 @@ public class EnrollmentAggregate implements Aggregate {
       return enrollments;
     }
 
-    List<Long> enrollmentIds =
-        enrollments.values().stream().map(Enrollment::getId).collect(Collectors.toList());
+    List<Long> enrollmentIds = enrollments.values().stream().map(Enrollment::getId).toList();
 
     final CompletableFuture<Multimap<String, Event>> eventAsync =
         conditionalAsyncFetch(

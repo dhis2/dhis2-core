@@ -436,7 +436,7 @@ public abstract class AbstractTrackerPersister<
   }
 
   private void handleReservedValue(TrackedEntityAttributeValue attributeValue) {
-    if (attributeValue.getAttribute().isGenerated()
+    if (Boolean.TRUE.equals(attributeValue.getAttribute().isGenerated())
         && attributeValue.getAttribute().getTextPattern() != null) {
       reservedValueService.useReservedValue(
           attributeValue.getAttribute().getTextPattern(), attributeValue.getValue());

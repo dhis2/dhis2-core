@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.hisp.dhis.tracker.imports.validation.Validation;
@@ -81,7 +80,7 @@ public class ValidationReport {
                     .uid(e.getUid())
                     .args(e.getArgs())
                     .build())
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private static List<Warning> convertToWarning(List<Validation> warnings) {
@@ -94,7 +93,7 @@ public class ValidationReport {
                     .trackerType(e.getType())
                     .uid(e.getUid())
                     .build())
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private ValidationReport() {

@@ -60,10 +60,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     TrackedEntityProgramOwner teProgramOwner =
         new TrackedEntityProgramOwner(trackedEntity, program, ou);
     teProgramOwner.updateDates();
-    String currentUsername = CurrentUserUtil.getCurrentUsername();
-    if (currentUsername != null) {
-      teProgramOwner.setCreatedBy(currentUsername);
-    }
+    teProgramOwner.setCreatedBy(CurrentUserUtil.getCurrentUsername());
     return teProgramOwner;
   }
 
@@ -105,10 +102,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
       TrackedEntityProgramOwner teProgramOwner, OrganisationUnit ou) {
     teProgramOwner.setOrganisationUnit(ou);
     teProgramOwner.updateDates();
-    String currentUsername = CurrentUserUtil.getCurrentUsername();
-    if (currentUsername != null) {
-      teProgramOwner.setCreatedBy(currentUsername);
-    }
+    teProgramOwner.setCreatedBy(CurrentUserUtil.getCurrentUsername());
   }
 
   @Override

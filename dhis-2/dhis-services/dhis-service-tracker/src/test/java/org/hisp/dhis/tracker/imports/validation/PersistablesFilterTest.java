@@ -563,10 +563,7 @@ class PersistablesFilterTest {
       }
 
       private <T extends TrackerDto> List<T> toEntitiesInPayload(List<Entity<T>> entities) {
-        return entities.stream()
-            .filter(e -> e.isInPayload)
-            .map(e -> e.entity)
-            .collect(Collectors.toList());
+        return entities.stream().filter(e -> e.isInPayload).map(e -> e.entity).toList();
       }
 
       private <T extends TrackerDto> Set<String> invalid(List<Entity<T>> entities) {
@@ -652,7 +649,7 @@ class PersistablesFilterTest {
 
   private static <T extends TrackerDto> List<String> persistableUids(
       PersistablesFilter.Result persistable, Class<T> type) {
-    return persistable.get(type).stream().map(TrackerDto::getUid).collect(Collectors.toList());
+    return persistable.get(type).stream().map(TrackerDto::getUid).toList();
   }
 
   private static void assertHasError(

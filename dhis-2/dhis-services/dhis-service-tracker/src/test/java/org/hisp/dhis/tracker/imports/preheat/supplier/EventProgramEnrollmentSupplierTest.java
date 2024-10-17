@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import jakarta.persistence.EntityManager;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.TestBase;
@@ -75,7 +74,7 @@ class EventProgramEnrollmentSupplierTest extends TestBase {
 
   @BeforeEach
   public void setUp() {
-    enrollments = rnd.objects(Enrollment.class, 2).collect(Collectors.toList());
+    enrollments = rnd.objects(Enrollment.class, 2).toList();
     // set the OrgUnit parent to null to avoid recursive errors when mapping
     enrollments.forEach(p -> p.getOrganisationUnit().setParent(null));
     enrollments.forEach(p -> p.getTrackedEntity().getOrganisationUnit().setParent(null));
@@ -98,7 +97,7 @@ class EventProgramEnrollmentSupplierTest extends TestBase {
   @Test
   @Disabled
   void verifySupplierWhenNoProgramsArePresent() {
-    enrollments = rnd.objects(Enrollment.class, 1).collect(Collectors.toList());
+    enrollments = rnd.objects(Enrollment.class, 1).toList();
     // set the OrgUnit parent to null to avoid recursive errors when mapping
     enrollments.forEach(p -> p.getOrganisationUnit().setParent(null));
     Enrollment enrollment = enrollments.get(0);
