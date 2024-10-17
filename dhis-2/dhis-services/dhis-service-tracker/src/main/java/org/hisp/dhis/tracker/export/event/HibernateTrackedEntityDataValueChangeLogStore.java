@@ -124,7 +124,7 @@ class HibernateTrackedEntityDataValueChangeLogStore {
   public void deleteTrackedEntityDataValueChangeLog(Event event) {
     String hql = "delete from TrackedEntityDataValueChangeLog d where d.event = :event";
 
-    entityManager.createQuery(hql).setParameter("event", event).executeUpdate();
+    entityManager.createQuery(hql).setParameter(PROP_PSI, event).executeUpdate();
   }
 
   private List<Predicate> getTrackedEntityDataValueAuditCriteria(
@@ -149,7 +149,7 @@ class HibernateTrackedEntityDataValueChangeLogStore {
 
         predicates.add(builder.or(orgUnitPredicates.toArray(Predicate[]::new)));
       } else if (SELECTED == params.getOuMode() || !params.hasOuMode()) {
-        predicates.add(event.get("organisationUnit").in(params.getOrgUnits()));
+        predicates.add(event.get(PROP_ORGANISATION_UNIT).in(params.getOrgUnits()));
       }
     }
 
