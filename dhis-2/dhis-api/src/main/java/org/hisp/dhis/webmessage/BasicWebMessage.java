@@ -28,7 +28,9 @@
 package org.hisp.dhis.webmessage;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import lombok.Getter;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
 
@@ -40,23 +42,31 @@ public class BasicWebMessage {
    *
    * @see Status
    */
-  @JsonProperty protected Status status = Status.OK;
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  protected Status status = Status.OK;
 
   /**
    * Internal code for this message. Should be used to help with third party clients which should
    * not have to resort to string parsing of message to know what is happening.
    */
-  @JsonProperty protected Integer code;
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  protected Integer code;
 
   /**
    * The {@link ErrorCode} which describes a potential error. Only relevant for {@link
    * Status#ERROR}.
    */
-  @JsonProperty protected ErrorCode errorCode;
+  @JacksonXmlProperty(isAttribute = true)
+  @JsonProperty
+  protected ErrorCode errorCode;
 
   /**
    * Non-technical message, should be simple and could possibly be used to display message to an
    * end-user.
    */
-  @JsonProperty protected String message;
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonProperty
+  protected String message;
 }

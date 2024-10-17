@@ -28,11 +28,14 @@
 package org.hisp.dhis.dxf2.webmessage.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 
@@ -44,11 +47,21 @@ import org.hisp.dhis.webmessage.WebMessageResponse;
 @RequiredArgsConstructor
 public class ErrorReportsWebMessageResponse implements WebMessageResponse {
 
-  @JsonProperty private final List<ErrorReport> errorReports;
+  private final List<ErrorReport> errorReports;
 
   @Nonnull
   @Override
   public Class<? extends WebMessageResponse> getResponseClassType() {
     return ErrorReportsWebMessageResponse.class;
+  }
+
+  @JsonProperty
+  @JacksonXmlElementWrapper(
+      localName = "errorReports",
+      namespace = DxfNamespaces.DXF_2_0,
+      useWrapping = false)
+  @JacksonXmlProperty(localName = "errorReport", namespace = DxfNamespaces.DXF_2_0)
+  public List<ErrorReport> getErrorReports() {
+    return errorReports;
   }
 }

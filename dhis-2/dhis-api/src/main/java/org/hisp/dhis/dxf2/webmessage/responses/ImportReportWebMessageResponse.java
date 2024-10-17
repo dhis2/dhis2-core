@@ -28,9 +28,13 @@
 package org.hisp.dhis.dxf2.webmessage.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.feedback.Stats;
 import org.hisp.dhis.feedback.Status;
@@ -41,6 +45,7 @@ import org.hisp.dhis.webmessage.WebMessageResponse;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @RequiredArgsConstructor
+@JacksonXmlRootElement(localName = "importReport", namespace = DxfNamespaces.DXF_2_0)
 public class ImportReportWebMessageResponse implements WebMessageResponse {
 
   @Nonnull private final ImportReport importReport;
@@ -52,16 +57,20 @@ public class ImportReportWebMessageResponse implements WebMessageResponse {
   }
 
   @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Status getStatus() {
     return importReport.getStatus();
   }
 
   @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Stats getStats() {
     return importReport.getStats();
   }
 
   @JsonProperty
+  @JacksonXmlElementWrapper(localName = "typeReports", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "typeReport", namespace = DxfNamespaces.DXF_2_0)
   public List<TypeReport> getTypeReports() {
     return importReport.getTypeReports();
   }

@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.OpenApi;
@@ -148,6 +149,7 @@ public class WebMessage extends BasicWebMessage {
   }
 
   @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
   public String getHttpStatus() {
     return httpStatus.getReasonPhrase();
   }
@@ -158,7 +160,9 @@ public class WebMessage extends BasicWebMessage {
   }
 
   @JsonProperty
-  public int getHttpStatusCode() {
+  @JacksonXmlProperty(isAttribute = true)
+  @Nonnull
+  public Integer getHttpStatusCode() {
     return httpStatus.value();
   }
 
@@ -192,6 +196,10 @@ public class WebMessage extends BasicWebMessage {
   public WebMessage setResponse(WebMessageResponse response) {
     this.response = response;
     return this;
+  }
+
+  public String getLocation() {
+    return location;
   }
 
   public WebMessage setLocation(String location) {
