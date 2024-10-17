@@ -278,9 +278,10 @@ class EventImportTest extends TransactionalIntegrationTest {
             "10");
     String uid = eventService.addEventsJson(is, null).getImportSummaries().get(0).getReference();
 
-    Event event = createEvent(uid);
+    Event newEvent = createEvent(uid);
 
-    ProgramStageInstance ev = programStageInstanceService.getProgramStageInstance(event.getUid());
+    ProgramStageInstance ev =
+        programStageInstanceService.getProgramStageInstance(newEvent.getUid());
 
     assertNotNull(ev);
     assertEquals(1, ev.getEventDataValues().size());
@@ -297,15 +298,15 @@ class EventImportTest extends TransactionalIntegrationTest {
     dataValueB.setDataElement(dataElementB.getUid());
     dataValueB.setStoredBy(superUser.getName());
 
-    event.setDataValues(Set.of(dataValueA, dataValueB));
+    newEvent.setDataValues(Set.of(dataValueA, dataValueB));
 
     Date now = new Date();
 
-    eventService.updateEventDataValues(event);
+    eventService.updateEventDataValues(newEvent);
 
     manager.clear();
 
-    ev = programStageInstanceService.getProgramStageInstance(event.getUid());
+    ev = programStageInstanceService.getProgramStageInstance(newEvent.getUid());
 
     assertNotNull(ev);
     assertNotNull(ev.getEventDataValues());
@@ -360,9 +361,10 @@ class EventImportTest extends TransactionalIntegrationTest {
             previousValueB);
     String uid = eventService.addEventsJson(is, null).getImportSummaries().get(0).getReference();
 
-    Event event = createEvent(uid);
+    Event newEvent = createEvent(uid);
 
-    ProgramStageInstance ev = programStageInstanceService.getProgramStageInstance(event.getUid());
+    ProgramStageInstance ev =
+        programStageInstanceService.getProgramStageInstance(newEvent.getUid());
 
     assertNotNull(ev);
     assertEquals(1, ev.getEventDataValues().size());
@@ -379,9 +381,9 @@ class EventImportTest extends TransactionalIntegrationTest {
     dataValueB.setDataElement(dataElementB.getUid());
     dataValueB.setStoredBy(superUser.getName());
 
-    event.setDataValues(Set.of(dataValueA, dataValueB));
+    newEvent.setDataValues(Set.of(dataValueA, dataValueB));
 
-    eventService.updateEventDataValues(event);
+    eventService.updateEventDataValues(newEvent);
 
     List<TrackedEntityDataValueAudit> createdAudits =
         entityDataValueAuditService.getTrackedEntityDataValueAudits(
