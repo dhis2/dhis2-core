@@ -112,14 +112,17 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest {
                 .setAuditTypes(List.of(AuditType.DELETE)));
 
     assertAll(
-            () -> assertNotNull(createdAudit),
-            () -> assertNotNull(updatedAudit),
-            () -> assertNotNull(deletedAudit),
-            () -> assertFalse(createdAudit.isEmpty()),
-            () -> assertFalse(updatedAudit.isEmpty()),
-            () -> assertFalse(deletedAudit.isEmpty()));
-    assertTrackedEntityDataValueAudit(createdAudit.get(0),dataElement,AuditType.CREATE, ORIGINAL_VALUE);
-    assertTrackedEntityDataValueAudit(updatedAudit.get(0), dataElement,AuditType.UPDATE, ORIGINAL_VALUE);
-    assertTrackedEntityDataValueAudit(deletedAudit.get(0),  dataElement,AuditType.DELETE,UPDATED_VALUE);
+        () -> assertNotNull(createdAudit),
+        () -> assertNotNull(updatedAudit),
+        () -> assertNotNull(deletedAudit),
+        () -> assertFalse(createdAudit.isEmpty()),
+        () -> assertFalse(updatedAudit.isEmpty()),
+        () -> assertFalse(deletedAudit.isEmpty()));
+    assertTrackedEntityDataValueAudit(
+        createdAudit.get(0), dataElement, AuditType.CREATE, ORIGINAL_VALUE);
+    assertTrackedEntityDataValueAudit(
+        updatedAudit.get(0), dataElement, AuditType.UPDATE, ORIGINAL_VALUE);
+    assertTrackedEntityDataValueAudit(
+        deletedAudit.get(0), dataElement, AuditType.DELETE, UPDATED_VALUE);
   }
 }

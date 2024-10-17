@@ -39,7 +39,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Objects;
 import java.util.function.Supplier;
-
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
@@ -314,42 +313,44 @@ public class Assertions {
   }
 
   /**
-   * assertTrackedEntityDataValueAudit asserts a TrackedEntityDataValueAudit obtained from the db and compares it with the expected value, auditType and dataElement.
+   * assertTrackedEntityDataValueAudit asserts a TrackedEntityDataValueAudit obtained from the db
+   * and compares it with the expected value, auditType and dataElement.
+   *
    * @param audit The TrackedEntityDataValueAudit entity obtained from persistence
    * @param expectedDataElement The audit object is expected to be for this dataElement
    * @param expectedAuditType The audit object is expected to have this auditType
    * @param expectedValue The audit object is expected to have this value
    */
-  public static void assertTrackedEntityDataValueAudit(TrackedEntityDataValueAudit audit, DataElement expectedDataElement, AuditType expectedAuditType, String expectedValue) {
+  public static void assertTrackedEntityDataValueAudit(
+      TrackedEntityDataValueAudit audit,
+      DataElement expectedDataElement,
+      AuditType expectedAuditType,
+      String expectedValue) {
     assertAll(
-            () -> assertNotNull(audit),
-            () ->
-                    assertEquals(
-                            expectedAuditType,
-                            audit.getAuditType(),
-                            () ->
-                                    "Expected audit type is "
-                                            + expectedAuditType
-                                            + " but found "
-                                            + audit.getAuditType()),
-            () ->
-                    assertEquals(
-                            audit.getDataElement().getUid(),
-                            expectedDataElement.getUid(),
-                            () ->
-                                    "Expected dataElement is "
-                                            + expectedDataElement.getUid()
-                                            + " but found "
-                                            + audit.getDataElement().getUid()),
-            () ->
-                    assertEquals(
-                            expectedValue,
-                            audit.getValue(),
-                            () ->
-                                    "Expected value is "
-                                            + expectedValue
-                                            + " but found "
-                                            + audit.getValue()));
+        () -> assertNotNull(audit),
+        () ->
+            assertEquals(
+                expectedAuditType,
+                audit.getAuditType(),
+                () ->
+                    "Expected audit type is "
+                        + expectedAuditType
+                        + " but found "
+                        + audit.getAuditType()),
+        () ->
+            assertEquals(
+                audit.getDataElement().getUid(),
+                expectedDataElement.getUid(),
+                () ->
+                    "Expected dataElement is "
+                        + expectedDataElement.getUid()
+                        + " but found "
+                        + audit.getDataElement().getUid()),
+        () ->
+            assertEquals(
+                expectedValue,
+                audit.getValue(),
+                () -> "Expected value is " + expectedValue + " but found " + audit.getValue()));
   }
 
   private static Supplier<String> errorMessage(String errorTitle, ValidationReport report) {
