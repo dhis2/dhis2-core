@@ -297,6 +297,21 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
     return getAllUserReadableTrackedEntityAttributes(user, programs, trackedEntityTypes);
   }
 
+  @Transactional(readOnly = true)
+  @Override
+  public Set<TrackedEntityAttribute> getProgramAttributes(Program program) {
+    return getAllUserReadableTrackedEntityAttributes(
+        currentUserService.getCurrentUser(), List.of(program), List.of());
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public Set<TrackedEntityAttribute> getTrackedEntityTypeAttributes(
+      TrackedEntityType trackedEntityType) {
+    return getAllUserReadableTrackedEntityAttributes(
+        currentUserService.getCurrentUser(), List.of(), List.of(trackedEntityType));
+  }
+
   @Override
   @Transactional(readOnly = true)
   public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(
