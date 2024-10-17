@@ -28,8 +28,8 @@
 package org.hisp.dhis.tracker.imports.bundle;
 
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.tracker.Assertions.assertTrackedEntityDataValueChangeLog;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -118,46 +118,14 @@ public class TrackedEntityDataValueChangeLogTest extends TrackerTest {
                 .setAuditTypes(List.of(ChangeLogType.DELETE)));
 
     assertAll(
-        () -> assertNotNull(createdAudit),
-        () -> assertNotNull(updatedAudit),
-        () -> assertNotNull(deletedAudit));
-    assertAuditCollection(createdAudit, ChangeLogType.CREATE, ORIGINAL_VALUE);
-    assertAuditCollection(updatedAudit, ChangeLogType.UPDATE, ORIGINAL_VALUE);
-    assertAuditCollection(deletedAudit, ChangeLogType.DELETE, UPDATED_VALUE);
-  }
-
-  private void assertAuditCollection(
-      List<TrackedEntityDataValueChangeLog> audits,
-      ChangeLogType changeLogType,
-      String expectedValue) {
-    assertAll(
-        () -> assertFalse(audits.isEmpty()),
-        () ->
-            assertEquals(
-                changeLogType,
-                audits.get(0).getAuditType(),
-                () ->
-                    "Expected audit type is "
-                        + changeLogType
-                        + " but found "
-                        + audits.get(0).getAuditType()),
-        () ->
-            assertEquals(
-                audits.get(0).getDataElement().getUid(),
-                dataElement.getUid(),
-                () ->
-                    "Expected dataElement is "
-                        + dataElement.getUid()
-                        + " but found "
-                        + audits.get(0).getDataElement().getUid()),
-        () ->
-            assertEquals(
-                expectedValue,
-                audits.get(0).getValue(),
-                () ->
-                    "Expected value is "
-                        + expectedValue
-                        + " but found "
-                        + audits.get(0).getValue()));
+            () -> assertNotNull(createdAudit),
+            () -> assertNotNull(updatedAudit),
+            () -> assertNotNull(deletedAudit),
+            () -> assertFalse(createdAudit.isEmpty()),
+            () -> assertFalse(updatedAudit.isEmpty()),
+            () -> assertFalse(deletedAudit.isEmpty()));
+    assertTrackedEntityDataValueChangeLog(createdAudit.get(0),dataElement,ChangeLogType.CREATE, ORIGINAL_VALUE);
+    assertTrackedEntityDataValueChangeLog(updatedAudit.get(0), dataElement,ChangeLogType.UPDATE, ORIGINAL_VALUE);
+    assertTrackedEntityDataValueChangeLog(deletedAudit.get(0),  dataElement,ChangeLogType.DELETE,UPDATED_VALUE);
   }
 }
