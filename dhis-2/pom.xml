@@ -86,7 +86,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>2.1.8.0</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>2.1.8.2</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.4</dhis-hisp-quick.version>
@@ -1785,8 +1785,19 @@
         <enabled>false</enabled>
         <updatePolicy>daily</updatePolicy>
       </snapshots>
-      <id>central</id>
+      <id>central-mirror</id>
       <url>https://maven-central.storage-download.googleapis.com/maven2/</url>
+    </repository>
+    <repository>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+        <updatePolicy>daily</updatePolicy>
+      </snapshots>
+      <id>central</id>
+      <url>https://repo1.maven.org/maven2</url>
     </repository>
     <repository>
       <releases>
