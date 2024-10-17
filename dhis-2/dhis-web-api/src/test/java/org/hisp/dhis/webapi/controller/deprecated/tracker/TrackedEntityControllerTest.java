@@ -42,6 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
@@ -57,9 +58,10 @@ import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.deprecated.tracker.imports.impl.TrackedEntityInstanceAsyncStrategyImpl;
 import org.hisp.dhis.webapi.controller.deprecated.tracker.imports.impl.TrackedEntityInstanceStrategyImpl;
@@ -91,8 +93,6 @@ class TrackedEntityControllerTest {
 
   @Mock private DhisConfigurationProvider config;
 
-  @Mock private User user;
-
   @Mock private TrackedEntityService instanceService;
 
   @Mock private TrackerAccessManager trackerAccessManager;
@@ -100,6 +100,8 @@ class TrackedEntityControllerTest {
   @Mock private FileResourceService fileResourceService;
 
   @Mock private TrackedEntity trackedEntity;
+
+  @Mock private TrackedEntityInstanceSupportService trackedEntityInstanceSupportService;
 
   private static final String ENDPOINT = TrackedEntityInstanceController.RESOURCE_PATH;
 
@@ -114,7 +116,7 @@ class TrackedEntityControllerTest {
             null,
             fileResourceService,
             trackerAccessManager,
-            null,
+            trackedEntityInstanceSupportService,
             null,
             new TrackedEntityInstanceStrategyImpl(
                 trackedEntityInstanceSyncStrategy, trackedEntityInstanceAsyncStrategy),
@@ -131,6 +133,10 @@ class TrackedEntityControllerTest {
     TrackedEntityAttribute attribute = new TrackedEntityAttribute();
     attribute.setUid(attributeUid);
     attribute.setValueType(ValueType.IMAGE);
+    TrackedEntityTypeAttribute teta = new TrackedEntityTypeAttribute();
+    teta.setUid(attributeUid);
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    trackedEntityType.setTrackedEntityTypeAttributes(List.of(teta));
     TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
     attributeValue.setAttribute(attribute);
     attributeValue.setValue("fileName");
@@ -142,12 +148,13 @@ class TrackedEntityControllerTest {
 
     File file = new ClassPathResource("images/dhis2.png").getFile();
 
-    when(instanceService.getTrackedEntity(teUid)).thenReturn(trackedEntity);
-    when(trackedEntity.getTrackedEntityAttributeValues()).thenReturn(Set.of(attributeValue));
     when(fileResourceService.getFileResource("fileName")).thenReturn(fileResource);
     when(fileResourceService.getFileResourceContent(fileResource))
         .thenReturn(new FileInputStream(file));
     when(config.getProperty(ConfigurationKey.CSP_HEADER_VALUE)).thenReturn("script-src 'none';");
+    when(trackedEntityInstanceSupportService.getTrackedEntityAttributeValue(
+            teUid, attributeUid, null))
+        .thenReturn(attributeValue);
 
     mockMvc
         .perform(

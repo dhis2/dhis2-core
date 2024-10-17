@@ -49,7 +49,6 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -76,6 +75,7 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fileresource.FileResource;
@@ -212,32 +212,23 @@ public class TrackedEntityInstanceController {
   public void getAttributeImage(
       @PathVariable("teiId") String teiId,
       @PathVariable("attributeId") String attributeId,
+      @RequestParam(required = false) String programId,
       @RequestParam(required = false) Integer width,
       @RequestParam(required = false) Integer height,
       @RequestParam(required = false) ImageFileDimension dimension,
       HttpServletResponse response)
       throws WebMessageException, ConflictException {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    TrackedEntity trackedEntity = instanceService.getTrackedEntity(teiId);
-
-    List<String> trackerAccessErrors = trackerAccessManager.canRead(currentUser, trackedEntity);
-
-    List<TrackedEntityAttributeValue> attributes =
-        trackedEntity.getTrackedEntityAttributeValues().stream()
-            .filter(val -> val.getAttribute().getUid().equals(attributeId))
-            .collect(Collectors.toList());
-
-    if (!trackerAccessErrors.isEmpty()) {
-      throw new WebMessageException(
-          unauthorized("You're not authorized to access the TrackedEntity with id: " + teiId));
+    TrackedEntityAttributeValue value;
+    try {
+      value =
+          trackedEntityInstanceSupportService.getTrackedEntityAttributeValue(
+              teiId, attributeId, programId);
+    } catch (NotFoundException e) {
+      throw new WebMessageException(notFound(e.getMessage()));
+    } catch (IllegalAccessException e) {
+      throw new WebMessageException(unauthorized(e.getMessage()));
     }
-
-    if (attributes.isEmpty()) {
-      throw new WebMessageException(notFound("Attribute not found for ID " + attributeId));
-    }
-
-    TrackedEntityAttributeValue value = attributes.get(0);
 
     if (value == null) {
       throw new WebMessageException(notFound("Value not found for ID " + attributeId));
