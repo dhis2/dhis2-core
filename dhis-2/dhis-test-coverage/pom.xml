@@ -196,7 +196,7 @@
             <goals>
               <goal>report-aggregate</goal>
             </goals>
-            <phase>verify</phase>
+            <phase>test</phase>
           </execution>
         </executions>
       </plugin>
