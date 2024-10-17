@@ -76,7 +76,7 @@ pipeline {
                             dir('scripts/databases') {
                                 env.DATABASE_ID = sh(
                                     returnStdout: true,
-                                    script: "./list.sh | jq -r '.[] | select(.name == \"$DATABASE_GROUP_NAME\") .databases[] | select(.name == \"${DB_VERSION_TAG}.sql.gz\") .id'"
+                                    script: "./list.sh | jq -r '.[] | select(.name == \"$DATABASE_GROUP_NAME\") .databases[] | select(.name == \"sierra-leone/${DB_VERSION_TAG}.sql.gz\") .id'"
                                 ).trim()
 
                                 if (!env.DATABASE_ID) {
@@ -85,7 +85,7 @@ pipeline {
                                     try {
                                         env.DATABASE_ID = sh(
                                             returnStdout: true,
-                                            script: "./upload.sh $DATABASE_GROUP_NAME \"${DB_VERSION_TAG}.sql.gz\" ${DB_VERSION_TAG}.sql.gz | jq -r '.id'"
+                                            script: "./upload.sh $DATABASE_GROUP_NAME \"sierra-leone/${DB_VERSION_TAG}.sql.gz\" ${DB_VERSION_TAG}.sql.gz | jq -r '.id'"
                                         ).trim()
                                     } catch (err) {
                                         echo "Couldn't download or upload database for ${DB_VERSION_TAG}: ${err}"
@@ -93,7 +93,7 @@ pipeline {
                                         DHIS2_SHORT_VERSION = DB_VERSION_TAG.split('\\.').take(2).join('.')
                                         env.DATABASE_ID = sh(
                                             returnStdout: true,
-                                            script: "./list.sh | jq -r '.[] | select(.name == \"$DATABASE_GROUP_NAME\") .databases[] | select(.name == \"${DHIS2_SHORT_VERSION}.sql.gz\") .id'"
+                                            script: "./list.sh | jq -r '.[] | select(.name == \"$DATABASE_GROUP_NAME\") .databases[] | select(.name == \"sierra-leone/${DHIS2_SHORT_VERSION}.sql.gz\") .id'"
                                         ).trim()
                                     }
                                 }
@@ -133,6 +133,7 @@ pipeline {
         stage('Trigger Cypress Tests') {
             steps {
                 script {
+                    // def repos = ['dhis2/line-listing-app', 'dhis2/data-visualizer-app', 'dhis2/aggregate-data-entry-app', 'dhis2/dashboard-app', 'dhis2/capture-app', 'dhis2/maps-app', 'dhis2/user-app']
                     def repos = ['dhis2/line-listing-app', 'dhis2/aggregate-data-entry-app']
                     def payload = [
                         dhis2_version: env.DOCKER_IMAGE_TAG,
