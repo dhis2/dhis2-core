@@ -119,7 +119,7 @@
     <spring-ldap.version>2.4.1</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
     <lettuce.version>6.4.0.RELEASE</lettuce.version>
-    <jakarta-annotation-api.version>2.1.1</jakarta-annotation-api.version>
+    <jakarta-annotation-api.version>3.0.0</jakarta-annotation-api.version>
 
     <!--DBMS -->
     <flyway-database-postgresql.version>10.18.2</flyway-database-postgresql.version>
