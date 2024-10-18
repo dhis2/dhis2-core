@@ -55,7 +55,7 @@ class MetadataSystemSettingServiceTest extends PostgresIntegrationTestBase {
   @Autowired DefaultMetadataSystemSettingService metadataSystemSettingService;
 
   @BeforeEach
-  public void setup() {
+  public void setup() throws Exception {
     settingsService.putAll(
         Map.ofEntries(
             entry("keyRemoteInstanceUrl", "http://localhost:9080"),
