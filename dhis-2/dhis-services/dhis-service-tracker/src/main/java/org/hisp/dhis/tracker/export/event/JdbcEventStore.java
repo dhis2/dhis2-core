@@ -997,7 +997,7 @@ class JdbcEventStore implements EventStore {
 
     fromBuilder.append(addLastUpdatedFilters(params, mapSqlParameterSource, hlp));
 
-    // Comparing milliseconds instead of always creating new Date( 0 );
+    // Comparing milliseconds instead of always creating new Date(0)
     if (params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0) {
       mapSqlParameterSource.addValue(
           "skipChangedBefore", params.getSkipChangedBefore(), Types.TIMESTAMP);
@@ -1061,7 +1061,7 @@ class JdbcEventStore implements EventStore {
     if (params.getEvents() != null
         && !params.getEvents().isEmpty()
         && !params.hasDataElementFilter()) {
-      mapSqlParameterSource.addValue("ev_uid", params.getEvents());
+      mapSqlParameterSource.addValue(COLUMN_EVENT_UID, params.getEvents());
       fromBuilder.append(hlp.whereAnd()).append(" (ev.uid in (").append(":ev_uid").append(")) ");
     }
 
