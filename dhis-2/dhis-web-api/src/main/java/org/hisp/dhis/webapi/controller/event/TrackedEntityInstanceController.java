@@ -47,7 +47,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -86,13 +85,12 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceSchemaDescriptor;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
+import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.TrackedEntityInstanceSupportService;
@@ -140,8 +138,6 @@ public class TrackedEntityInstanceController {
   private final CurrentUserService currentUserService;
 
   private final FileResourceService fileResourceService;
-
-  private final TrackerAccessManager trackerAccessManager;
 
   private final TrackedEntityInstanceSupportService trackedEntityInstanceSupportService;
 
@@ -199,34 +195,22 @@ public class TrackedEntityInstanceController {
   public void getAttributeImage(
       @PathVariable("teiId") String teiId,
       @PathVariable("attributeId") String attributeId,
+      @RequestParam(required = false) String programId,
       @RequestParam(required = false) Integer width,
       @RequestParam(required = false) Integer height,
       @RequestParam(required = false) ImageFileDimension dimension,
       HttpServletResponse response)
       throws WebMessageException {
-    User user = currentUserService.getCurrentUser();
-
-    org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance =
-        instanceService.getTrackedEntityInstance(teiId);
-
-    List<String> trackerAccessErrors = trackerAccessManager.canRead(user, trackedEntityInstance);
-
-    List<TrackedEntityAttributeValue> attribute =
-        trackedEntityInstance.getTrackedEntityAttributeValues().stream()
-            .filter(val -> val.getAttribute().getUid().equals(attributeId))
-            .collect(Collectors.toList());
-
-    if (!trackerAccessErrors.isEmpty()) {
-      throw new WebMessageException(
-          unauthorized(
-              "You're not authorized to access the TrackedEntityInstance with id: " + teiId));
+    TrackedEntityAttributeValue value;
+    try {
+      value =
+          trackedEntityInstanceSupportService.getTrackedEntityAttributeValue(
+              teiId, attributeId, programId);
+    } catch (NotFoundException e) {
+      throw new WebMessageException(notFound(e.getMessage()));
+    } catch (IllegalAccessException e) {
+      throw new WebMessageException(unauthorized(e.getMessage()));
     }
-
-    if (attribute.size() == 0) {
-      throw new WebMessageException(notFound("Attribute not found for ID " + attributeId));
-    }
-
-    TrackedEntityAttributeValue value = attribute.get(0);
 
     if (value == null) {
       throw new WebMessageException(notFound("Value not found for ID " + attributeId));
