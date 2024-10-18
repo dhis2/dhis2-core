@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.setting;
 
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -36,8 +34,6 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,63 +59,67 @@ class SystemSettingsServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testSaveSystemSettings() {
-    settingsService.putAll(Map.of("k0", "v0", "k1", "v1"));
+  void testSaveSystemSettings() throws Exception {
+    settingsService.putAll(Map.of("keyUiLocale", "de", "keyDbLocale", "fr"));
 
     SystemSettings settings = settingsService.getCurrentSettings();
-    assertEquals(Set.of("k0", "k1"), settings.keys());
-    assertEquals(Map.of("k0", "v0", "k1", "v1"), settings.toMap());
+    assertEquals(Set.of("keyUiLocale", "keyDbLocale"), settings.keys());
+    assertEquals(Map.of("keyUiLocale", "de", "keyDbLocale", "fr"), settings.toMap());
   }
 
   @Test
   void testSaveSystemSetting_Date() {
-    settingsService.put("keyDate", new Date(123456L));
+    settingsService.put("lastSuccessfulDataStatistics", new Date(123456L));
 
     SystemSettings settings = settingsService.getCurrentSettings();
-    assertEquals(new Date(123456L), settings.asDate("keyDate", new Date(0L)));
+    assertEquals(new Date(123456L), settings.asDate("lastSuccessfulDataStatistics", new Date(0L)));
   }
 
   @Test
   void testSaveSystemSetting_Boolean() {
-    settingsService.put("keyBoolean", true);
+    settingsService.put("keyEmailTls", true);
 
     SystemSettings settings = settingsService.getCurrentSettings();
-    assertTrue(settings.asBoolean("keyBoolean", false));
+    assertTrue(settings.asBoolean("keyEmailTls", false));
   }
 
   @Test
   void testSaveSystemSetting_Int() {
-    settingsService.put("keyInt", 42);
+    settingsService.put("maxPasswordLength", 42);
 
     SystemSettings settings = settingsService.getCurrentSettings();
-    assertEquals(42, settings.asInt("keyInt", -1));
+    assertEquals(42, settings.asInt("maxPasswordLength", -1));
   }
 
   @Test
   void testSaveSystemSetting_Locale() {
-    settingsService.put("keyLocale", Locale.forLanguageTag("en-GB"));
+    settingsService.put("keyUiLocale", Locale.forLanguageTag("en-GB"));
 
     SystemSettings settings = settingsService.getCurrentSettings();
-    assertEquals(Locale.forLanguageTag("en-GB"), settings.asLocale("keyLocale", Locale.FRENCH));
+    assertEquals(Locale.forLanguageTag("en-GB"), settings.asLocale("keyUiLocale", Locale.FRENCH));
   }
 
   @Test
-  void testDeleteSystemSettings() {
+  void testSaveSystemSetting_Double() {
+    settingsService.put("factorDeviation", 42.5d);
+
+    SystemSettings settings = settingsService.getCurrentSettings();
+    assertEquals(42.5d, settings.asDouble("factorDeviation", -1));
+  }
+
+  @Test
+  void testDeleteSystemSettings() throws Exception {
     Map<String, String> allSettings =
-        IntStream.range(0, 20)
-            .mapToObj(String::valueOf)
-            .collect(toMap(i -> "key" + i, i -> "value" + i));
+        Map.ofEntries(
+            Map.entry("keyCustomJs", "JS"),
+            Map.entry("keyCustomCss", "CSS"),
+            Map.entry("keyStyle", "style"));
     settingsService.putAll(allSettings);
 
-    Set<String> deletedKeys =
-        Stream.of(1, 4, 5, 7, 9, 12, 16, 32, 64).map(i -> "key" + i).collect(toSet());
+    Set<String> deletedKeys = Set.of("keyCustomJs", "keyStyle");
     settingsService.deleteAll(deletedKeys);
 
     SystemSettings settings = settingsService.getCurrentSettings();
-    Set<String> expectedKeys =
-        Stream.of(0, 2, 3, 6, 8, 10, 11, 13, 14, 15, 17, 18, 19)
-            .map(i -> "key" + i)
-            .collect(toSet());
-    assertEquals(expectedKeys, settings.keys());
+    assertEquals(Set.of("keyCustomCss"), settings.keys());
   }
 }

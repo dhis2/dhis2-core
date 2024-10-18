@@ -54,7 +54,6 @@ import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeAcceptedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeApprovedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeUnacceptedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeUnapprovedException;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.setting.SystemSettingsProvider;
@@ -608,8 +607,8 @@ public class DefaultDataApprovalService implements DataApprovalService {
   }
 
   /**
-   * Makes sure that for any approval we enter into the database, the attributeOptionCombo appears
-   * in the set of optionCombos for at least one of the data sets in the workflow.
+   * Makes sure that for any approval we enter into the database, the attributeOptionCombo belongs
+   * to the workflow's categoryCombo.
    *
    * @param dataApprovalList list of data approvals to test.
    */
@@ -627,10 +626,8 @@ public class DefaultDataApprovalService implements DataApprovalService {
    */
   private void validAttributeOptionCombo(
       CategoryOptionCombo attributeOptionCombo, DataApprovalWorkflow workflow) {
-    for (DataSet ds : workflow.getDataSets()) {
-      if (ds.getCategoryCombo().getOptionCombos().contains(attributeOptionCombo)) {
-        return;
-      }
+    if (workflow.getCategoryCombo().getOptionCombos().contains(attributeOptionCombo)) {
+      return;
     }
 
     log.info(
