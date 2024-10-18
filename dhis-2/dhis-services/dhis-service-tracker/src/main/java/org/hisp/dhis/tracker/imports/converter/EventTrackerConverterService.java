@@ -259,7 +259,6 @@ public class EventTrackerConverterService
     for (DataValue dataValue : event.getDataValues()) {
       EventDataValue eventDataValue = new EventDataValue();
       eventDataValue.setValue(dataValue.getValue());
-      eventDataValue.setCreated(DateUtils.fromInstant(dataValue.getCreatedAt()));
       eventDataValue.setLastUpdated(now);
       eventDataValue.setProvidedElsewhere(dataValue.isProvidedElsewhere());
       // ensure dataElement is referred to by UID as multiple
