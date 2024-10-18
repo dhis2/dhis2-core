@@ -43,21 +43,12 @@ import org.hisp.dhis.tracker.TrackerType;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-// TODO(DHIS2-18222) Remove unused fields
 public class Relationship implements TrackerDto, Serializable {
   @JsonProperty private String relationship;
 
-  @JsonProperty private String relationshipName; // remove
-
   @JsonProperty private MetadataIdentifier relationshipType;
 
-  @JsonProperty private Instant createdAt; // remove
-
   @JsonProperty private Instant createdAtClient;
-
-  @JsonProperty private Instant updatedAt; // remove
-
-  @JsonProperty private boolean bidirectional;
 
   @JsonProperty private RelationshipItem from;
 

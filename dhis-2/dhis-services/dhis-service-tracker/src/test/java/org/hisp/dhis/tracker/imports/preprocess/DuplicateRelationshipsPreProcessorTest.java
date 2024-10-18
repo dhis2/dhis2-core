@@ -214,7 +214,6 @@ class DuplicateRelationshipsPreProcessorTest {
         Relationship.builder()
             .relationship(CodeGenerator.generateUid())
             .relationshipType(MetadataIdentifier.ofUid(relType))
-            .bidirectional(false)
             .from(trackedEntityRelationshipItem(fromTeUid))
             .to(trackedEntityRelationshipItem(toTeUid))
             .build();
@@ -222,7 +221,6 @@ class DuplicateRelationshipsPreProcessorTest {
         Relationship.builder()
             .relationship(CodeGenerator.generateUid())
             .relationshipType(MetadataIdentifier.ofUid(relType))
-            .bidirectional(false)
             .from(trackedEntityRelationshipItem(toTeUid))
             .to(trackedEntityRelationshipItem(fromTeUid))
             .build();
@@ -290,7 +288,6 @@ class DuplicateRelationshipsPreProcessorTest {
         Relationship.builder()
             .relationship(CodeGenerator.generateUid())
             .relationshipType(MetadataIdentifier.ofUid(relType))
-            .bidirectional(true)
             .from(trackedEntityRelationshipItem(fromTeUid))
             .to(trackedEntityRelationshipItem(toTeUid))
             .build();
@@ -298,7 +295,6 @@ class DuplicateRelationshipsPreProcessorTest {
         Relationship.builder()
             .relationship(CodeGenerator.generateUid())
             .relationshipType(MetadataIdentifier.ofUid(relType))
-            .bidirectional(true)
             .from(trackedEntityRelationshipItem(fromTeUid))
             .to(trackedEntityRelationshipItem(toTeUid))
             .build();
