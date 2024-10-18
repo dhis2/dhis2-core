@@ -30,6 +30,7 @@ package org.hisp.dhis.hibernate.jsonb.type;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -69,7 +70,7 @@ public class JsonAttributeValueBinaryType extends JsonBinaryType {
       return writer.writeValueAsString(attrValueMap);
 
     } catch (IOException ex) {
-      throw new RuntimeException("Failed to serialize JSON", ex);
+      throw new UncheckedIOException("Failed to serialize JSON", ex);
     }
   }
 
@@ -86,7 +87,7 @@ public class JsonAttributeValueBinaryType extends JsonBinaryType {
 
       return convertAttributeValueMapIntoSet(data);
     } catch (IOException ex) {
-      throw new RuntimeException("Failed to deserialize JSON", ex);
+      throw new UncheckedIOException("Failed to deserialize JSON", ex);
     }
   }
 
