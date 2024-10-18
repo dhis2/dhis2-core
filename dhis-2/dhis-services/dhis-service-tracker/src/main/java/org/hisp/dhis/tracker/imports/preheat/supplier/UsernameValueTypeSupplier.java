@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -64,7 +63,7 @@ public class UsernameValueTypeSupplier extends AbstractPreheatSupplier {
         attributes.stream()
             .filter(at -> at.getValueType() == ValueType.USERNAME)
             .map(idSchemes::toMetadataIdentifier)
-            .collect(Collectors.toList());
+            .toList();
 
     List<String> usernames = new ArrayList<>();
 

@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -61,13 +60,13 @@ public class FileResourceSupplier extends AbstractPreheatSupplier {
         preheat.getAll(TrackedEntityAttribute.class).stream()
             .filter(at -> at.getValueType().isFile())
             .map(idSchemes::toMetadataIdentifier)
-            .collect(Collectors.toList());
+            .toList();
 
     List<MetadataIdentifier> fileResourceDataElements =
         preheat.getAll(DataElement.class).stream()
             .filter(at -> at.getValueType().isFile())
             .map(idSchemes::toMetadataIdentifier)
-            .collect(Collectors.toList());
+            .toList();
 
     List<String> fileResourceIds = new ArrayList<>();
     trackerObjects
