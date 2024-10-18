@@ -4,14 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link
+      type="text/css"
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      href="./dhis-web-commons/fonts/roboto.css"
     />
+
     <title>DHIS2 Demo Login</title>
     <style>
       body {
         background-color: #2a5298;
-        font-family: Arial, sans-serif;
+        font-family: "Roboto", sans-serif;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -43,6 +45,11 @@
         width: 100px;
       }
 
+      .logo {
+        margin-top: 20px;
+        margin-right: 10px;
+      }
+
       .right-content {
         display: flex;
         height: 10px;
@@ -50,11 +57,11 @@
         gap: 10px;
       }
 
-      .right-content h3{
+      .right-content h3 {
         margin: 0px;
       }
 
-      .right-content p{
+      .right-content p {
         margin: 0px;
       }
 
@@ -207,18 +214,17 @@
     <div class="logo-container">
       <div class="nav">
         <div class="nav-right">
-          <img
-            id="flag"
-            src=""
-            alt="Country flag"
-            style="display: none;"
-          />
+          <img id="flag" src="" alt="Country flag" style="display: none" />
           <div class="right-content">
-            <h3 id="appTitle">DHIS2 Login</h3>
+            <span id="appTitle" class="app-title">DHIS2 Login</span>
             <p id="appWelcomeMessage">Welcome to the DHIS2 application</p>
           </div>
         </div>
-        <img src="/dhis-web-commons/security/logo_front.png" alt="DHIS2 Logo" />
+        <img
+          class="logo"
+          src="/dhis-web-commons/security/logo_front.png"
+          alt="DHIS2 Logo"
+        />
       </div>
     </div>
 
@@ -237,6 +243,13 @@
             <input type="password" id="password" required />
           </div>
 
+          <div>
+            <label for="twoFA"
+              >Two-factor authentication code (if applicable)</label
+            >
+            <input type="text" id="twoFA" />
+          </div>
+
           <input type="submit" value="Log in" />
         </form>
 
@@ -245,7 +258,11 @@
       </div>
 
       <!-- Notification  -->
-      <div class="notification-container" id="notificationContainer" style="display: none;">
+      <div
+        class="notification-container"
+        id="notificationContainer"
+        style="display: none"
+      >
         <i class="fa-solid fa-circle-info"></i>
         <div class="notification-content">
           <span id="notificationText"></span>
@@ -264,83 +281,104 @@
     <script>
       async function fetchLoginConfig() {
         try {
-          const response = await fetch('/api/loginConfig');
+          const response = await fetch("/api/loginConfig");
+
           if (!response.ok) {
-            throw new Error('Failed to fetch login configuration');
+            let errorMessage = "Login failed: " + response.status;
+            try {
+              const errorData = await response.json();
+              errorMessage = errorData.message || errorMessage;
+            } catch (jsonError) {
+              console.warn(
+                "Failed to parse error response as JSON:",
+                jsonError
+              );
+            }
+            throw new Error(errorMessage);
           }
 
           const config = await response.json();
-          document.getElementById('appTitle').innerText = config.applicationTitle || 'DHIS2 Login';
-          document.getElementById('appWelcomeMessage').innerText = config.applicationDescription || 'Welcome to the DHIS2 application';
-       
+          document.getElementById("appTitle").innerText =
+            config.applicationTitle || "DHIS2 Login";
+          document.getElementById("appWelcomeMessage").innerText =
+            config.applicationDescription || "Welcome to the DHIS2 application";
+
           if (config.countryFlag) {
-            const flag = document.getElementById('flag');
+            const flag = document.getElementById("flag");
             flag.src = `/dhis-web-commons/flags/${config.countryFlag}.png`;
-            flag.style.display = 'block';
+            flag.style.display = "block";
           }
 
           if (config.applicationNotification) {
-            const notificationContainer = document.getElementById('notificationContainer');
-            const notificationText = document.getElementById('notificationText');
-            notificationText.innerHTML = config.applicationNotification;
-            notificationContainer.style.display = 'flex';
-          }
-
-          if (config.useCustomLogoFront) {
-            const appLogo = document.getElementById('appLogo');
-            appLogo.src = '/dhis-web-commons/security/custom_logo.png';
+            const notificationContainer = document.getElementById(
+              "notificationContainer"
+            );
+            const notificationText =
+              document.getElementById("notificationText");
+            notificationText.textContent = config.applicationNotification;
+            notificationContainer.style.display = "flex";
           }
         } catch (error) {
-          console.error('Error:', error);
+          console.error("Error:", error);
         }
       }
 
       document
-        .getElementById('loginForm')
-        .addEventListener('submit', async function (event) {
+        .getElementById("loginForm")
+        .addEventListener("submit", async function (event) {
           event.preventDefault();
 
-          const username = document.getElementById('username').value;
-          const password = document.getElementById('password').value;
+          const username = document.getElementById("username").value;
+          const password = document.getElementById("password").value;
           const submitButton = document.querySelector('input[type="submit"]');
-          const spinner = document.getElementById('spinner');
-          const errorMessage = document.getElementById('errorMessage');
+          const spinner = document.getElementById("spinner");
+          const errorMessage = document.getElementById("errorMessage");
+          const twoFA = document.getElementById("twoFA").value;
 
-          spinner.style.display = 'block';
-          errorMessage.innerText = '';
+          spinner.style.display = "block";
+          errorMessage.innerText = "";
           submitButton.disabled = true;
 
           try {
-            const response = await fetch('/api/auth/login', {
-              method: 'POST',
+            const response = await fetch("/api/auth/login", {
+              method: "POST",
               headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
               },
-              body: JSON.stringify({ username, password, twoFA: true }),
+              body: JSON.stringify({ username, password, twoFA }),
             });
 
             if (!response.ok) {
-              throw new Error('Login failed: ' + response.status);
+              let errorMessage = "Login failed: " + response.status;
+              try {
+                const errorData = await response.json();
+                errorMessage = errorData.message || errorMessage;
+              } catch (jsonError) {
+                console.warn(
+                  "Failed to parse error response as JSON:",
+                  jsonError
+                );
+              }
+              throw new Error(errorMessage);
             }
 
             const user = await response.json();
 
-            if (user.loginStatus === 'SUCCESS') {
-              const redirectUrl = user.redirectUrl || '/';
+            if (user.loginStatus === "SUCCESS") {
+              const redirectUrl = user.redirectUrl || "/";
               window.location.href = redirectUrl;
             } else {
-              throw new Error('Login failed. Status: ' + user.loginStatus);
+              throw new Error("Login failed. Status: " + user.loginStatus);
             }
           } catch (error) {
             errorMessage.innerText = error.message;
           } finally {
-            spinner.style.display = 'none';
+            spinner.style.display = "none";
             submitButton.disabled = false;
           }
         });
 
       fetchLoginConfig();
     </script>
-    
   </body>
 </html>
