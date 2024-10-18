@@ -40,8 +40,11 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Objects;
 import java.util.function.Supplier;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SlimPager;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
@@ -318,6 +321,47 @@ public class Assertions {
     }
 
     return true;
+  }
+
+  /**
+   * assertTrackedEntityDataValueChangeLog asserts a TrackedEntityDataValueChangeLog obtained from
+   * the db and compares it with the expected value, auditType and dataElement.
+   *
+   * @param changeLog The TrackedEntityDataValueChangeLog entity obtained from store
+   * @param expectedDataElement The ChangeLog object is expected to be for this dataElement
+   * @param expectedChangeLogType The ChangeLog object is expected to have this auditType
+   * @param expectedValue The ChangeLog object is expected to have this value
+   */
+  public static void assertTrackedEntityDataValueChangeLog(
+      TrackedEntityDataValueChangeLog changeLog,
+      DataElement expectedDataElement,
+      ChangeLogType expectedChangeLogType,
+      String expectedValue) {
+    assertAll(
+        () -> assertNotNull(changeLog),
+        () ->
+            assertEquals(
+                expectedChangeLogType,
+                changeLog.getAuditType(),
+                () ->
+                    "Expected change log type type is "
+                        + expectedChangeLogType
+                        + " but found "
+                        + changeLog.getAuditType()),
+        () ->
+            assertEquals(
+                changeLog.getDataElement().getUid(),
+                expectedDataElement.getUid(),
+                () ->
+                    "Expected dataElement is "
+                        + expectedDataElement.getUid()
+                        + " but found "
+                        + changeLog.getDataElement().getUid()),
+        () ->
+            assertEquals(
+                expectedValue,
+                changeLog.getValue(),
+                () -> "Expected value is " + expectedValue + " but found " + changeLog.getValue()));
   }
 
   private static Supplier<String> errorMessage(String errorTitle, ValidationReport report) {
