@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
-import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -44,10 +43,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 // TODO(DHIS2-18222) Remove unused fields
 public class DataValue implements Serializable {
-  @JsonProperty private Instant createdAt; // remove
-
-  @JsonProperty private Instant updatedAt; // remove
-
   @JsonProperty private String storedBy;
 
   @JsonProperty private boolean providedElsewhere;
