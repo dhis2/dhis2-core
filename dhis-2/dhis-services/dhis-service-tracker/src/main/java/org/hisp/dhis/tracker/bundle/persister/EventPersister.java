@@ -300,7 +300,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
     if (isNewDataValue(eventDataValue, dv)) {
       eventDataValue = new EventDataValue();
-      eventDataValue.setCreated(getFromOrNewDate(dv, DataValue::getCreatedAt));
+      eventDataValue.setCreated(new Date());
       eventDataValue.setLastUpdated(getFromOrNewDate(dv, DataValue::getUpdatedAt));
       persistedValue = dv.getValue();
       auditType = AuditType.CREATE;
