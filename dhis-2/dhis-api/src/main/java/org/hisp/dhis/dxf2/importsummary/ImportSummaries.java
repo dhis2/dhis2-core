@@ -169,13 +169,11 @@ public class ImportSummaries implements WebMessageResponse {
     return ignored;
   }
 
-  @JsonProperty
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public int getTotal() {
     return imported + updated + deleted + ignored;
   }
-
-  public void setTotal(int total) {}
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
