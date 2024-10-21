@@ -12,13 +12,13 @@
     <title>DHIS2 Demo Login</title>
     <style>
       body {
+        padding: 0;
         background-color: #2a5298;
         font-family: "Roboto", sans-serif;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
         height: 100vh;
         margin: 0;
+        overflow-x: hidden;
+        box-sizing: border-box;
       }
 
       .wrapper {
@@ -29,6 +29,7 @@
         flex-direction: column;
         gap: 10px;
         width: 20%;
+        padding-bottom: 60px;
       }
 
       .nav-right {
@@ -46,7 +47,7 @@
       }
 
       .logo {
-        margin-top: 20px;
+        margin-top: 25px;
         margin-right: 10px;
       }
 
@@ -148,6 +149,16 @@
       .logo-container {
         color: white;
         width: 100%;
+        margin-bottom: 100px;
+      }
+
+      .container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        overflow-x: hidden;
       }
 
       .nav {
@@ -162,23 +173,31 @@
       }
 
       .footer {
-        position: fixed;
-        bottom: 0;
         color: rgb(206, 203, 203);
         border-top: solid 1px #004a8b;
         width: 100%;
+        height: 50px !important;
         padding-top: 2px;
       }
 
       .footer div {
         margin: 0px 20px;
         display: flex;
+        height: 50px !important;
         justify-content: space-between;
         align-items: center;
       }
 
       .footer a {
         color: rgb(206, 203, 203);
+      }
+
+      .checkbox-input {
+        width: 12px;
+        height: 12px;
+      }
+      .checkbox-label {
+        width: 100%;
       }
 
       /* Loading spinner */
@@ -207,74 +226,109 @@
         margin-top: 10px;
         font-size: 0.9rem;
       }
+
+      @media (max-width: 600px) {
+        .nav-right img{
+          max-height: 34px;
+          width: 50px;
+        }
+        .right-content{
+          display: none;
+        }
+        .logo{
+          max-height: 30px;
+          width: 60px;
+        }
+      }
     </style>
   </head>
   <body>
-    <!-- Logo and Title Section -->
-    <div class="logo-container">
-      <div class="nav">
-        <div class="nav-right">
-          <img id="flag" src="" alt="Country flag" style="display: none" />
-          <div class="right-content">
-            <span id="appTitle" class="app-title">DHIS2 Login</span>
-            <p id="appWelcomeMessage">Welcome to the DHIS2 application</p>
+    <div class="container">
+      <!-- Logo and Title Section -->
+      <div class="logo-container">
+        <div class="nav">
+          <div class="nav-right">
+            <img id="flag" src="" alt="Country flag" style="display: none" />
+            <div class="right-content">
+              <span id="appTitle" class="app-title">DHIS2 Login</span>
+              <p id="appWelcomeMessage">Welcome to the DHIS2 application</p>
+            </div>
           </div>
+          <img
+            class="logo"
+            src="/dhis-web-commons/security/logo_front.png"
+            alt="DHIS2 Logo"
+          />
         </div>
-        <img
-          class="logo"
-          src="/dhis-web-commons/security/logo_front.png"
-          alt="DHIS2 Logo"
-        />
       </div>
-    </div>
 
-    <div class="wrapper">
-      <!-- Login Form Section -->
-      <div class="login-container">
-        <h1>Log in</h1>
-        <form id="loginForm">
-          <div>
-            <label for="username">Username</label>
-            <input type="text" id="username" required />
-          </div>
+      <!-- Body/form Section -->
+      <div class="wrapper">
+        <!-- Login Form Section -->
+        <div class="login-container">
+          <h1>Log in</h1>
+          <form id="loginForm">
+            <div>
+              <label for="username">Username</label>
+              <input type="text" id="username" required />
+            </div>
 
-          <div>
-            <label for="password">Password</label>
-            <input type="password" id="password" required />
-          </div>
+            <div>
+              <label for="password">Password</label>
+              <input type="password" id="password" required />
+            </div>
 
-          <div>
-            <label for="twoFA"
-              >Two-factor authentication code (if applicable)</label
+            <div>
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  id="twoFAToggle"
+                  class="checkbox-input"
+                />
+                <span>Enable Two-factor authentication</span>
+              </label>
+            </div>
+
+            <div id="twoFAContainer" style="display: none">
+              <input
+                type="text"
+                id="twoFA"
+                placeholder="Two-factor authentication code"
+              />
+            </div>
+
+            <input type="submit" value="Log in" />
+          </form>
+
+          <div id="spinner" class="spinner" style="display: none"></div>
+          <div id="errorMessage" class="error-message"></div>
+        </div>
+
+        <!-- Notification  -->
+        <div
+          class="notification-container"
+          id="notificationContainer"
+          style="display: none"
+        >
+          <i class="fa-solid fa-circle-info"></i>
+          <div class="notification-content">
+            <span id="notificationText"
+              >Stuck in tutorial limbo? Break free and master coding by solving
+              real-world challenges. Build a portfolio that sets you apart and
+              lands your dream job!.</span
             >
-            <input type="text" id="twoFA" />
           </div>
-
-          <input type="submit" value="Log in" />
-        </form>
-
-        <div id="spinner" class="spinner" style="display: none"></div>
-        <div id="errorMessage" class="error-message"></div>
-      </div>
-
-      <!-- Notification  -->
-      <div
-        class="notification-container"
-        id="notificationContainer"
-        style="display: none"
-      >
-        <i class="fa-solid fa-circle-info"></i>
-        <div class="notification-content">
-          <span id="notificationText"></span>
         </div>
       </div>
-    </div>
 
-    <!-- Footer Section -->
-    <div class="footer">
-      <div>
-        <p>Powered by DHIS2.</p>
-        <span>Learn more at <a href="https://www.dhis2.org">dhis2.org</a></span>
+      <!-- Footer Section -->
+      <div class="footer">
+        <div>
+          <p>Powered by DHIS2.</p>
+          <span
+            >Learn more at <a href="https://www.dhis2.org">dhis2.org</a></span
+          >
+        </div>
       </div>
     </div>
 
@@ -315,13 +369,31 @@
             );
             const notificationText =
               document.getElementById("notificationText");
-            notificationText.textContent = config.applicationNotification;
+            notificationText.innerHTML = config?.applicationNotification;
             notificationContainer.style.display = "flex";
           }
         } catch (error) {
           console.error("Error:", error);
         }
       }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const twoFAToggle = document.getElementById("twoFAToggle");
+        const twoFAContainer = document.getElementById("twoFAContainer");
+
+        // Function to toggle visibility based on checkbox state
+        const toggleTwoFAInput = () => {
+          if (twoFAToggle.checked) {
+            twoFAContainer.style.display = "block";
+          } else {
+            twoFAContainer.style.display = "none";
+            document.getElementById("twoFA").value = "";
+          }
+        };
+
+        toggleTwoFAInput();
+        twoFAToggle.addEventListener("change", toggleTwoFAInput);
+      });
 
       document
         .getElementById("loginForm")
@@ -333,11 +405,18 @@
           const submitButton = document.querySelector('input[type="submit"]');
           const spinner = document.getElementById("spinner");
           const errorMessage = document.getElementById("errorMessage");
-          const twoFA = document.getElementById("twoFA").value;
+          const twoFA = document.getElementById("twoFA").value.trim(); // Trim whitespace
 
           spinner.style.display = "block";
           errorMessage.innerText = "";
           submitButton.disabled = true;
+
+          let requestBody;
+          if (twoFAToggle.checked && twoFA) {
+            requestBody = { username, password, twoFactorCode: twoFA };
+          } else {
+            requestBody = { username, password };
+          }
 
           try {
             const response = await fetch("/api/auth/login", {
@@ -345,7 +424,7 @@
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify({ username, password, twoFA }),
+              body: JSON.stringify(requestBody),
             });
 
             if (!response.ok) {
