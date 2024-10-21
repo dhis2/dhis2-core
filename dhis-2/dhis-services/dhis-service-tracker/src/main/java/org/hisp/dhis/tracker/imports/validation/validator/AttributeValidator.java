@@ -28,7 +28,9 @@
 package org.hisp.dhis.tracker.imports.validation.validator;
 
 import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1009;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1077;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1084;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1085;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1112;
 
@@ -37,9 +39,11 @@ import java.util.Objects;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -67,7 +71,7 @@ public abstract class AttributeValidator {
 
   protected void validateAttrValueType(
       Reporter reporter,
-      TrackerPreheat preheat,
+      TrackerBundle bundle,
       TrackerDto dto,
       Attribute attr,
       TrackedEntityAttribute teAttr) {
@@ -77,12 +81,12 @@ public abstract class AttributeValidator {
 
     if (valueType.equals(ValueType.ORGANISATION_UNIT)) {
       error =
-          preheat.getOrganisationUnit(attr.getValue()) == null
+          bundle.getPreheat().getOrganisationUnit(attr.getValue()) == null
               ? " Value " + attr.getValue() + " is not a valid org unit value"
               : null;
     } else if (valueType.equals(ValueType.USERNAME)) {
       error =
-          preheat.getUserByUsername(attr.getValue()).isPresent()
+          bundle.getPreheat().getUserByUsername(attr.getValue()).isPresent()
               ? null
               : " Value " + attr.getValue() + " is not a valid username value";
     } else {
@@ -99,6 +103,35 @@ public abstract class AttributeValidator {
 
     if (error != null) {
       reporter.addError(dto, ValidationCode.E1007, valueType, error);
+    } else if (valueType.isFile()) {
+      validateFileNotAlreadyAssigned(reporter, bundle, dto, attr.getValue());
+    }
+  }
+
+  protected void validateFileNotAlreadyAssigned(
+      Reporter reporter,
+      TrackerBundle bundle,
+      org.hisp.dhis.tracker.imports.domain.TrackerDto trackerDto,
+      String value) {
+
+    FileResource fileResource = bundle.getPreheat().get(FileResource.class, value);
+
+    reporter.addErrorIfNull(fileResource, trackerDto, E1084, value);
+
+    if (bundle.getStrategy(trackerDto).isCreate()) {
+      reporter.addErrorIf(
+          () -> fileResource != null && fileResource.isAssigned(), trackerDto, E1009, value);
+    }
+
+    if (bundle.getStrategy(trackerDto).isUpdate()) {
+      reporter.addErrorIf(
+          () ->
+              fileResource != null
+                  && fileResource.getFileResourceOwner() != null
+                  && !fileResource.getFileResourceOwner().equals(trackerDto.getUid()),
+          trackerDto,
+          E1009,
+          value);
     }
   }
 

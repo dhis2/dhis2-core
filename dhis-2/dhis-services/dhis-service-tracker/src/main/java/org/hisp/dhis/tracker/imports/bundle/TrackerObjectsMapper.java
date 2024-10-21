@@ -28,10 +28,6 @@
 package org.hisp.dhis.tracker.imports.bundle;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.program.EnrollmentStatus.COMPLETED;
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 
 import java.util.Date;
 import java.util.Optional;

@@ -96,11 +96,6 @@ class SmsImportMapperTest extends TestBase {
                         .orgUnit(MetadataIdentifier.ofUid(input.getOrgUnit().getUid()))
                         .trackedEntityType(
                             MetadataIdentifier.ofUid(input.getTrackedEntityType().getUid()))
-                        .enrollments(
-                            List.of(
-                                Enrollment.builder()
-                                    .enrollment(input.getEnrollment().getUid())
-                                    .build()))
                         .build()))
             .build();
     assertEquals(expected, actual);
@@ -143,11 +138,6 @@ class SmsImportMapperTest extends TestBase {
                                 Attribute.builder()
                                     .attribute(MetadataIdentifier.ofUid("fN8skWVI8JS"))
                                     .value("soap")
-                                    .build()))
-                        .enrollments(
-                            List.of(
-                                Enrollment.builder()
-                                    .enrollment(input.getEnrollment().getUid())
                                     .build()))
                         .build()))
             .build();

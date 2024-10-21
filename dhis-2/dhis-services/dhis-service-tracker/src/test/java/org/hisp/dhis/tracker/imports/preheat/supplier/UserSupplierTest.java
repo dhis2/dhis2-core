@@ -129,11 +129,6 @@ class UserSupplierTest extends TestBase {
 
   private User user() {
     String uid = CodeGenerator.generateUid();
-    return User.builder()
-        .uid(uid)
-        .username("username" + uid)
-        .firstName("firstName")
-        .surname("surname")
-        .build();
+    return User.builder().uid(uid).username("username" + uid).build();
   }
 }
