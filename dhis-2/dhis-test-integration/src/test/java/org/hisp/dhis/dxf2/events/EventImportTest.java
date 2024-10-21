@@ -30,9 +30,11 @@ package org.hisp.dhis.dxf2.events;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hisp.dhis.tracker.Assertions.assertTrackedEntityDataValueAudit;
 import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 import static org.hisp.dhis.util.DateUtils.getIso8601NoTz;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -58,6 +60,7 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -92,8 +95,11 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
@@ -115,6 +121,8 @@ class EventImportTest extends TransactionalIntegrationTest {
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
 
   @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
+
+  @Autowired private TrackedEntityDataValueAuditService entityDataValueAuditService;
 
   @Autowired private ProgramStageDataElementService programStageDataElementService;
 
@@ -271,9 +279,10 @@ class EventImportTest extends TransactionalIntegrationTest {
             "10");
     String uid = eventService.addEventsJson(is, null).getImportSummaries().get(0).getReference();
 
-    Event event = createEvent(uid);
+    Event newEvent = createEvent(uid);
 
-    ProgramStageInstance ev = programStageInstanceService.getProgramStageInstance(event.getUid());
+    ProgramStageInstance ev =
+        programStageInstanceService.getProgramStageInstance(newEvent.getUid());
 
     assertNotNull(ev);
     assertEquals(1, ev.getEventDataValues().size());
@@ -290,15 +299,15 @@ class EventImportTest extends TransactionalIntegrationTest {
     dataValueB.setDataElement(dataElementB.getUid());
     dataValueB.setStoredBy(superUser.getName());
 
-    event.setDataValues(Set.of(dataValueA, dataValueB));
+    newEvent.setDataValues(Set.of(dataValueA, dataValueB));
 
     Date now = new Date();
 
-    eventService.updateEventDataValues(event);
+    eventService.updateEventDataValues(newEvent);
 
     manager.clear();
 
-    ev = programStageInstanceService.getProgramStageInstance(event.getUid());
+    ev = programStageInstanceService.getProgramStageInstance(newEvent.getUid());
 
     assertNotNull(ev);
     assertNotNull(ev.getEventDataValues());
@@ -336,6 +345,116 @@ class EventImportTest extends TransactionalIntegrationTest {
         trackedEntityInstanceService.getTrackedEntityInstance(
             trackedEntityInstanceMaleA.getTrackedEntityInstance());
     assertTrue(trackedEntityInstance.getLastUpdated().compareTo(getIso8601NoTz(now)) > 0);
+  }
+
+  @Test
+  void shouldAuditChangelogWhenUpdatingEventDataValues() throws IOException {
+    String previousValueB = "10";
+    String newValueB = "15";
+    String newValueA = "20";
+    InputStream is =
+        createEventJsonInputStream(
+            programB.getUid(),
+            programStageB.getUid(),
+            organisationUnitB.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance(),
+            dataElementB,
+            previousValueB);
+    String uid = eventService.addEventsJson(is, null).getImportSummaries().get(0).getReference();
+
+    Event newEvent = createEvent(uid);
+
+    ProgramStageInstance ev =
+        programStageInstanceService.getProgramStageInstance(newEvent.getUid());
+
+    assertNotNull(ev);
+    assertEquals(1, ev.getEventDataValues().size());
+
+    // add a new data value and update an existing one
+
+    DataValue dataValueA = new DataValue();
+    dataValueA.setValue(newValueA);
+    dataValueA.setDataElement(dataElementA.getUid());
+    dataValueA.setStoredBy(superUser.getName());
+
+    DataValue dataValueB = new DataValue();
+    dataValueB.setValue(newValueB);
+    dataValueB.setDataElement(dataElementB.getUid());
+    dataValueB.setStoredBy(superUser.getName());
+
+    newEvent.setDataValues(Set.of(dataValueA, dataValueB));
+
+    eventService.updateEventDataValues(newEvent);
+
+    List<TrackedEntityDataValueAudit> createdAudits =
+        entityDataValueAuditService.getTrackedEntityDataValueAudits(
+            new TrackedEntityDataValueAuditQueryParams()
+                .setDataElements(List.of(dataElementA))
+                .setProgramStageInstances(List.of(ev))
+                .setAuditTypes(List.of(AuditType.CREATE)));
+
+    List<TrackedEntityDataValueAudit> updatedAudits =
+        entityDataValueAuditService.getTrackedEntityDataValueAudits(
+            new TrackedEntityDataValueAuditQueryParams()
+                .setDataElements(List.of(dataElementB))
+                .setProgramStageInstances(List.of(ev))
+                .setAuditTypes(List.of(AuditType.UPDATE)));
+
+    assertFalse(createdAudits.isEmpty());
+    assertFalse(updatedAudits.isEmpty());
+    assertEquals(1, createdAudits.size());
+    assertEquals(1, updatedAudits.size());
+
+    assertTrackedEntityDataValueAudit(
+        createdAudits.get(0), dataElementA, AuditType.CREATE, newValueA);
+    assertTrackedEntityDataValueAudit(
+        updatedAudits.get(0), dataElementB, AuditType.UPDATE, previousValueB);
+  }
+
+  @Test
+  void shouldAuditChangelogWhenDeletingEventDataValue() throws IOException {
+    String previousValueB = "10";
+    InputStream is =
+        createEventJsonInputStream(
+            programB.getUid(),
+            programStageB.getUid(),
+            organisationUnitB.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance(),
+            dataElementB,
+            "10");
+    String uid = eventService.addEventsJson(is, null).getImportSummaries().get(0).getReference();
+
+    Event createdEvent = createEvent(uid);
+
+    ProgramStageInstance ev =
+        programStageInstanceService.getProgramStageInstance(createdEvent.getUid());
+
+    assertNotNull(ev);
+    assertEquals(1, ev.getEventDataValues().size());
+
+    // delete data Element in Event Data Values by setting its value to null
+
+    DataValue dataValueB = new DataValue();
+    dataValueB.setValue(null);
+    dataValueB.setDataElement(dataElementB.getUid());
+    dataValueB.setStoredBy(superUser.getName());
+
+    createdEvent.setDataValues(Set.of(dataValueB));
+
+    eventService.updateEventDataValues(createdEvent);
+
+    List<TrackedEntityDataValueAudit> deleteAudits =
+        entityDataValueAuditService.getTrackedEntityDataValueAudits(
+            new TrackedEntityDataValueAuditQueryParams()
+                .setDataElements(List.of(dataElementB))
+                .setProgramStageInstances(List.of(ev))
+                .setAuditTypes(List.of(AuditType.DELETE)));
+
+    assertFalse(deleteAudits.isEmpty());
+    assertEquals(1, deleteAudits.size());
+
+    assertTrackedEntityDataValueAudit(
+        deleteAudits.get(0), dataElementB, AuditType.DELETE, previousValueB);
   }
 
   @Test
