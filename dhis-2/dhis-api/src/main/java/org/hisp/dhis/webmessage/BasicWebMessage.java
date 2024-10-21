@@ -34,6 +34,14 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
 
+/**
+ * The core information of a standard web response message.
+ *
+ * <p>The main reason for this class is that it does not depend on web layer classes. Fields that
+ * require these are first added by {@code WebMessage}.
+ *
+ * @author Jan Bernitt
+ */
 @Getter
 public class BasicWebMessage {
 
