@@ -755,8 +755,13 @@ final class ApiExtractor {
     }
     Type type = getSubstitutedType(endpoint, property, source);
     OpenApi.Property annotated = source.getAnnotation(OpenApi.Property.class);
-    if (type instanceof Class && isGeneratorType((Class<?>) type) && annotated != null) {
-      return toProperty.apply(extractGeneratorSchema(endpoint, type, annotated.value()));
+    if (annotated != null) {
+      if (type instanceof Class && isGeneratorType((Class<?>) type)) {
+        return toProperty.apply(extractGeneratorSchema(endpoint, type, annotated.value()));
+      }
+      if (annotated.value().length > 1) { // oneOf type
+        return toProperty.apply(extractSchema(endpoint, type, annotated.value()));
+      }
     }
     if (config.ignoreTypeAs) {
       return toProperty.apply(extractTypeSchema(endpoint, type));

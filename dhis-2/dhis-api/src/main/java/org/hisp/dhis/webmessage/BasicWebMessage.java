@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import lombok.Getter;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
 
@@ -43,6 +44,7 @@ import org.hisp.dhis.feedback.Status;
  * @author Jan Bernitt
  */
 @Getter
+@OpenApi.Kind("WebMessageResponse")
 public class BasicWebMessage {
 
   /**

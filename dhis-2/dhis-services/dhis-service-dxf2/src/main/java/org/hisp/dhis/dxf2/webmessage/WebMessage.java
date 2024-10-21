@@ -198,10 +198,6 @@ public class WebMessage extends BasicWebMessage {
     return this;
   }
 
-  public String getLocation() {
-    return location;
-  }
-
   public WebMessage setLocation(String location) {
     this.location = location;
     return this;

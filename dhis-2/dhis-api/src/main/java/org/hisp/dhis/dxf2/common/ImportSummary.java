@@ -34,12 +34,14 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @JacksonXmlRootElement(localName = "importSummary", namespace = DxfNamespaces.DXF_2_0)
+@OpenApi.Shared(name = "ImportTypesSummary")
 public class ImportSummary {
   private ImportCount importCount = new ImportCount();
 
