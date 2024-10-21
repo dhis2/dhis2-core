@@ -31,10 +31,12 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1020;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1021;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1023;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1025;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1052;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Objects;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
@@ -55,13 +57,23 @@ class DateValidator implements Validator<Enrollment> {
 
     if (Boolean.TRUE.equals(program.getDisplayIncidentDate())
         && Objects.isNull(enrollment.getOccurredAt())) {
-      reporter.addError(enrollment, E1023, enrollment.getOccurredAt());
+      reporter.addError(enrollment, E1023);
+    }
+
+    validateCompletedDateIsSetOnlyForSupportedStatus(reporter, enrollment);
+  }
+
+  private void validateCompletedDateIsSetOnlyForSupportedStatus(
+      Reporter reporter, Enrollment enrollment) {
+    if (enrollment.getCompletedAt() != null
+        && EnrollmentStatus.COMPLETED != enrollment.getStatus()) {
+      reporter.addError(enrollment, E1052, enrollment, enrollment.getStatus());
     }
   }
 
   private void validateMandatoryDates(Reporter reporter, Enrollment enrollment) {
     if (Objects.isNull(enrollment.getEnrolledAt())) {
-      reporter.addError(enrollment, E1025, enrollment.getEnrolledAt());
+      reporter.addError(enrollment, E1025);
     }
   }
 

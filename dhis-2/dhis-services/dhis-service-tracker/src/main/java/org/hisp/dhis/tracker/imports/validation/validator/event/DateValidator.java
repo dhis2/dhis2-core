@@ -30,11 +30,11 @@ package org.hisp.dhis.tracker.imports.validation.validator.event;
 import static java.time.Duration.ofDays;
 import static java.time.Instant.now;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1031;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1042;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1043;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1046;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1047;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1050;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1051;
 
 import java.time.Instant;
 import java.util.Date;
@@ -70,25 +70,28 @@ class DateValidator implements Validator<Event> {
       return;
     }
 
+    validateCompletedDateIsSetOnlyForSupportedStatus(reporter, event);
     validateExpiryDays(reporter, event, program, bundle.getUser());
     validatePeriodType(reporter, event, program);
   }
 
+  private void validateCompletedDateIsSetOnlyForSupportedStatus(Reporter reporter, Event event) {
+    if (event.getCompletedAt() != null && EventStatus.COMPLETED != event.getStatus()) {
+      reporter.addError(event, E1051, event, event.getStatus());
+    }
+  }
+
   private void validateExpiryDays(
       Reporter reporter, Event event, Program program, UserDetails user) {
-    if (user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
+    if (user.isAuthorized(Authorities.F_EDIT_EXPIRED.name()) || event.getCompletedAt() == null) {
       return;
     }
 
-    if ((program.getCompleteEventsExpiryDays() > 0 && EventStatus.COMPLETED == event.getStatus())) {
-      if (event.getCompletedAt() == null) {
-        reporter.addError(event, E1042, event);
-      } else {
-        if (now()
+    if (program.getCompleteEventsExpiryDays() > 0
+        && EventStatus.COMPLETED == event.getStatus()
+        && now()
             .isAfter(event.getCompletedAt().plus(ofDays(program.getCompleteEventsExpiryDays())))) {
-          reporter.addError(event, E1043, event);
-        }
-      }
+      reporter.addError(event, E1043, event);
     }
   }
 
