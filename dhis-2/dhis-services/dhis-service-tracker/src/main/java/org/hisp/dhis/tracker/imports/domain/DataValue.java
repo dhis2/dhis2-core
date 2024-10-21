@@ -41,7 +41,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-// TODO(DHIS2-18222) Remove unused fields
+// TODO(DHIS2-18223) Remove unused fields when fixing data values logic
 public class DataValue implements Serializable {
   @JsonProperty private String storedBy;
 
@@ -50,8 +50,4 @@ public class DataValue implements Serializable {
   @JsonProperty private MetadataIdentifier dataElement;
 
   @JsonProperty private String value;
-
-  @JsonProperty private User createdBy; // remove
-
-  @JsonProperty private User updatedBy; // remove
 }
