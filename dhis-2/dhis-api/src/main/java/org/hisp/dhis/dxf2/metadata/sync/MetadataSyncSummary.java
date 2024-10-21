@@ -25,20 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.importsummary;
+package org.hisp.dhis.dxf2.metadata.sync;
 
-public enum ImportStatus {
-  SUCCESS(1),
-  WARNING(2),
-  ERROR(3);
+import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.annotation.Nonnull;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.hisp.dhis.dxf2.common.ImportSummary;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.metadata.version.MetadataVersion;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
-  private int order;
+/**
+ * Defines the structure of metadata sync summary
+ *
+ * @author vanyas
+ */
+@Getter
+@Setter
+@ToString
+public class MetadataSyncSummary implements WebMessageResponse {
 
-  ImportStatus(int order) {
-    this.order = order;
-  }
+  @JsonProperty private ImportReport importReport;
+  @JsonProperty private ImportSummary importSummary;
+  @JsonProperty private MetadataVersion metadataVersion;
 
-  public int getOrder() {
-    return order;
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return MetadataSyncSummary.class;
   }
 }

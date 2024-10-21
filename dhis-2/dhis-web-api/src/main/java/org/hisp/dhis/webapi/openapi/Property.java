@@ -70,6 +70,7 @@ import org.hisp.dhis.jsontree.JsonValue;
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 class Property {
+
   private static final Map<Class<?>, List<Property>> PROPERTIES = new ConcurrentHashMap<>();
 
   @Nonnull String name;
@@ -225,7 +226,8 @@ class Property {
     if (type instanceof Class<?>
         && ((Class<?>) type).isAnnotationPresent(OpenApi.Property.class)
         && ((Class<?>) type).getAnnotation(OpenApi.Property.class).value().length > 0) {
-      // TODO this does not allow oneOf types for Property annotations ;(
+      // Note: this does not support oneOf directly but the annotation is checked again
+      // then properties are converted to an Api.Schema
       return ((Class<?>) type).getAnnotation(OpenApi.Property.class).value()[0];
     }
     return type;

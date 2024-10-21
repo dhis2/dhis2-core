@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.security;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;
-import org.hisp.dhis.feedback.ObjectReport;
+import javax.annotation.Nonnull;
+import lombok.Builder;
+import lombok.Data;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class ApiTokenCreationResponse extends ObjectReportWebMessageResponse {
-  private final String key;
+@Data
+@Builder
+public class TrackerJobWebMessageResponse implements WebMessageResponse {
 
-  public ApiTokenCreationResponse(ObjectReport objectReport, char[] token) {
-    super(objectReport);
-    this.key = new String(token);
-  }
+  @JsonProperty private final String id;
+  @JsonProperty private final String location;
 
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  public String getKey() {
-    return key;
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return TrackerJobWebMessageResponse.class;
   }
 }

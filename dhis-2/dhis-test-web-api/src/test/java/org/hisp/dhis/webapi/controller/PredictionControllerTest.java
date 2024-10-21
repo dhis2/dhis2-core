@@ -29,10 +29,8 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
@@ -54,14 +52,6 @@ class PredictionControllerTest extends PostgresControllerIntegrationTestBase {
         "OK",
         null,
         POST("/38/predictions?startDate=2020-01-01&endDate=2021-01-01").content(HttpStatus.OK));
-  }
-
-  @Test
-  void testRunPredictors_Pre38() {
-    JsonObject summary =
-        POST("/37/predictions?startDate=2020-01-01&endDate=2021-01-01").content(HttpStatus.OK);
-    assertEquals("SUCCESS", summary.getString("status").string());
-    assertEquals(0, summary.getNumber("predictors").intValue());
   }
 
   @Test

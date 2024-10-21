@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,25 +28,31 @@
 package org.hisp.dhis.dxf2.webmessage.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
-import org.hisp.dhis.fileresource.FileResource;
+import javax.annotation.Nonnull;
+import lombok.Getter;
+import org.hisp.dhis.feedback.MergeReport;
+import org.hisp.dhis.merge.MergeType;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 /**
- * @author Halvdan Hoem Grelland
+ * @author david mackessy
  */
-public class FileResourceWebMessageResponse extends AbstractWebMessageResponse {
-  private FileResource fileResource;
+@Getter
+public class MergeWebResponse implements WebMessageResponse {
+  @JsonProperty private MergeReport mergeReport;
 
-  public FileResourceWebMessageResponse(FileResource fileResource) {
-    this.setResponseType(FileResource.class.getSimpleName());
-    this.fileResource = fileResource;
+  public MergeWebResponse(@Nonnull MergeReport mergeReport) {
+    this.mergeReport = mergeReport;
+    MergeType mergeType = mergeReport.getMergeType();
+    this.mergeReport.setMessage(
+        mergeReport.hasErrorMessages()
+            ? "%s merge has errors".formatted(mergeType)
+            : "%s merge complete".formatted(mergeType));
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public FileResource getFileResource() {
-    return fileResource;
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return MergeWebResponse.class;
   }
 }
