@@ -345,9 +345,6 @@ public @interface OpenApi {
   @Repeatable(ParamsRepeat.class)
   @interface Params {
     /**
-     * As web classes cannot be used outside the web API module a {@code WebMessage} response value
-     * can also be indicated by {@link org.hisp.dhis.webmessage.WebMessageResponse}.
-     *
      * @return a complex parameter object type. All properties of that type become individual
      *     parameters.
      */

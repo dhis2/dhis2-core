@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.common.DhisApiVersion.V38;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
@@ -241,7 +240,7 @@ public class DataValueSetController {
         dataValueSetService.importDataValueSetXml(request.getInputStream(), importOptions);
     summary.setImportOptions(importOptions);
 
-    return importSummary(summary).withPlainResponseBefore(V38);
+    return importSummary(summary);
   }
 
   @PostMapping(consumes = CONTENT_TYPE_XML_ADX)
@@ -256,7 +255,7 @@ public class DataValueSetController {
         adxDataService.saveDataValueSet(request.getInputStream(), importOptions, null);
     summary.setImportOptions(importOptions);
 
-    return importSummary(summary).withPlainResponseBefore(V38);
+    return importSummary(summary);
   }
 
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
@@ -271,7 +270,7 @@ public class DataValueSetController {
         dataValueSetService.importDataValueSetJson(request.getInputStream(), importOptions);
     summary.setImportOptions(importOptions);
 
-    return importSummary(summary).withPlainResponseBefore(V38);
+    return importSummary(summary);
   }
 
   @PostMapping(consumes = "application/csv")
@@ -286,7 +285,7 @@ public class DataValueSetController {
         dataValueSetService.importDataValueSetCsv(request.getInputStream(), importOptions);
     summary.setImportOptions(importOptions);
 
-    return importSummary(summary).withPlainResponseBefore(V38);
+    return importSummary(summary);
   }
 
   @PostMapping(consumes = CONTENT_TYPE_PDF)
@@ -301,7 +300,7 @@ public class DataValueSetController {
         dataValueSetService.importDataValueSetPdf(request.getInputStream(), importOptions);
     summary.setImportOptions(importOptions);
 
-    return importSummary(summary).withPlainResponseBefore(V38);
+    return importSummary(summary);
   }
 
   // -------------------------------------------------------------------------

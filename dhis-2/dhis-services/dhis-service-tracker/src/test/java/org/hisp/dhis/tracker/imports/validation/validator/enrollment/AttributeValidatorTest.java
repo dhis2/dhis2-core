@@ -149,7 +149,6 @@ class AttributeValidatorTest {
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
-            .valueType(ValueType.TEXT)
             .value("value")
             .build();
 
@@ -180,7 +179,6 @@ class AttributeValidatorTest {
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
-            .valueType(ValueType.TEXT)
             .value("value")
             .build();
 
@@ -206,14 +204,12 @@ class AttributeValidatorTest {
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
-            .valueType(ValueType.TEXT)
             .value("value")
             .build();
 
     Attribute attribute1 =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1))
-            .valueType(ValueType.TEXT)
             .value("value")
             .build();
 
@@ -245,7 +241,6 @@ class AttributeValidatorTest {
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
-            .valueType(ValueType.TEXT)
             .value("value")
             .build();
 
@@ -275,7 +270,6 @@ class AttributeValidatorTest {
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
-            .valueType(ValueType.TEXT)
             .value("value")
             .build();
 
@@ -304,14 +298,10 @@ class AttributeValidatorTest {
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
-            .valueType(ValueType.TEXT)
             .value("value")
             .build();
     Attribute attribute1 =
-        Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1))
-            .valueType(ValueType.TEXT)
-            .build();
+        Attribute.builder().attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1)).build();
 
     when(program.getProgramAttributes())
         .thenReturn(
@@ -339,14 +329,10 @@ class AttributeValidatorTest {
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
-            .valueType(ValueType.TEXT)
             .value("value")
             .build();
     Attribute attribute1 =
-        Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1))
-            .valueType(ValueType.TEXT)
-            .build();
+        Attribute.builder().attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1)).build();
 
     when(program.getProgramAttributes())
         .thenReturn(
@@ -374,14 +360,10 @@ class AttributeValidatorTest {
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
-            .valueType(ValueType.TEXT)
             .value("value")
             .build();
     Attribute attribute1 =
-        Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1))
-            .valueType(ValueType.TEXT)
-            .build();
+        Attribute.builder().attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1)).build();
 
     when(program.getProgramAttributes())
         .thenReturn(
@@ -408,13 +390,11 @@ class AttributeValidatorTest {
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
-            .valueType(ValueType.TEXT)
             .value("value")
             .build();
     Attribute attribute1 =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_P))
-            .valueType(ValueType.PERCENTAGE)
             .value("1000")
             .build();
 
@@ -444,14 +424,10 @@ class AttributeValidatorTest {
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
-            .valueType(ValueType.TEXT)
             .value("value")
             .build();
     Attribute attribute1 =
-        Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1))
-            .valueType(ValueType.TEXT)
-            .build();
+        Attribute.builder().attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1)).build();
 
     when(program.getProgramAttributes())
         .thenReturn(
@@ -481,14 +457,10 @@ class AttributeValidatorTest {
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE))
-            .valueType(ValueType.TEXT)
             .value("value")
             .build();
     Attribute attribute1 =
-        Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1))
-            .valueType(ValueType.TEXT)
-            .build();
+        Attribute.builder().attribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE_1)).build();
 
     when(program.getProgramAttributes())
         .thenReturn(
@@ -515,7 +487,6 @@ class AttributeValidatorTest {
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid("invalidAttribute"))
-            .valueType(ValueType.TEXT)
             .value("value")
             .build();
 

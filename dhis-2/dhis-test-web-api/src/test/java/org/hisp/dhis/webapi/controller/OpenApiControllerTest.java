@@ -89,7 +89,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
                 "/api/users/invites",
                 "/api/users/sharing"));
     assertLessOrEqual(26, doc.getObject("paths").size());
-    assertLessOrEqual(60, doc.getObject("components.schemas").size());
+    assertLessOrEqual(100, doc.getObject("components.schemas").size());
   }
 
   @Test
@@ -104,7 +104,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
                 "/api/users/invites",
                 "/api/users/sharing"));
     assertLessOrEqual(151, doc.getObject("paths").size());
-    assertLessOrEqual(80, doc.getObject("components.schemas").size());
+    assertLessOrEqual(120, doc.getObject("components.schemas").size());
   }
 
   @Test

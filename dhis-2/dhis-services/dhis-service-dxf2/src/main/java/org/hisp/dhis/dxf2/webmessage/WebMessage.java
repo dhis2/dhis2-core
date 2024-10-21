@@ -27,19 +27,35 @@
  */
 package org.hisp.dhis.dxf2.webmessage;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.common.DhisApiVersion;
+import lombok.Getter;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dataintegrity.FlattenedDataIntegrityReport;
+import org.hisp.dhis.dxf2.common.ImportTypeSummary;
+import org.hisp.dhis.dxf2.geojson.GeoJsonImportReport;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
+import org.hisp.dhis.dxf2.scheduling.JobConfigurationWebMessageResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.ApiTokenCreationResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.ImportCountWebMessageResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.ImportReportWebMessageResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.MergeWebResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.SoftwareUpdateResponse;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.predictor.PredictionSummary;
+import org.hisp.dhis.webapi.controller.tracker.imports.TrackerJobWebMessageResponse;
+import org.hisp.dhis.webmessage.BasicWebMessage;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.springframework.http.HttpStatus;
 
@@ -56,34 +72,10 @@ import org.springframework.http.HttpStatus;
   "devMessage",
   "response"
 })
-public class WebMessage implements WebMessageResponse {
-  /**
-   * Message status, currently two statuses are available: OK, ERROR. Default value is OK.
-   *
-   * @see Status
-   */
-  private Status status = Status.OK;
-
-  /**
-   * Internal code for this message. Should be used to help with third party clients which should
-   * not have to resort to string parsing of message to know what is happening.
-   */
-  private Integer code;
+public class WebMessage extends BasicWebMessage {
 
   /** HTTP status. */
   private HttpStatus httpStatus = HttpStatus.OK;
-
-  /**
-   * The {@link ErrorCode} which describes a potential error. Only relevant for {@link
-   * Status#ERROR}.
-   */
-  private ErrorCode errorCode;
-
-  /**
-   * Non-technical message, should be simple and could possibly be used to display message to an
-   * end-user.
-   */
-  private String message;
 
   /**
    * Technical message that should explain as much details as possible, mainly to be used for
@@ -93,16 +85,31 @@ public class WebMessage implements WebMessageResponse {
 
   /**
    * When a simple text feedback is not enough, you can use this interface to implement your own
-   * message responses.
-   *
-   * @see WebMessageResponse
+   * response payload object.
    */
-  @OpenApi.Property({ObjectNode.class})
+  @OpenApi.Property({
+    ApiTokenCreationResponse.class,
+    ErrorReportsWebMessageResponse.class,
+    FileResourceWebMessageResponse.class,
+    FlattenedDataIntegrityReport.class,
+    GeoJsonImportReport.class,
+    ImportCountWebMessageResponse.class,
+    ImportReportWebMessageResponse.class,
+    ImportSummaries.class,
+    ImportSummary.class,
+    ImportTypeSummary.class,
+    JobConfigurationWebMessageResponse.class,
+    MergeWebResponse.class,
+    MetadataSyncSummary.class,
+    ObjectReportWebMessageResponse.class,
+    PredictionSummary.class,
+    SoftwareUpdateResponse.class,
+    TrackerJobWebMessageResponse.class,
+    TrackerJobWebMessageResponse.class
+  })
   private WebMessageResponse response;
 
-  private DhisApiVersion plainResponseBefore;
-
-  private String location;
+  @Getter private String location;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -136,25 +143,8 @@ public class WebMessage implements WebMessageResponse {
   // Get and set methods
   // -------------------------------------------------------------------------
 
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  public Status getStatus() {
-    return status;
-  }
-
   public WebMessage setStatus(Status status) {
     this.status = status;
-    return this;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  public Integer getCode() {
-    return code;
-  }
-
-  public WebMessage setCode(Integer code) {
-    this.code = code;
     return this;
   }
 
@@ -176,21 +166,9 @@ public class WebMessage implements WebMessageResponse {
     return httpStatus.value();
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  public ErrorCode getErrorCode() {
-    return errorCode;
-  }
-
   public WebMessage setErrorCode(ErrorCode errorCode) {
     this.errorCode = errorCode;
     return this;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getMessage() {
-    return message;
   }
 
   public WebMessage setMessage(String message) {
@@ -220,23 +198,9 @@ public class WebMessage implements WebMessageResponse {
     return this;
   }
 
-  public String getLocation() {
-    return location;
-  }
-
   public WebMessage setLocation(String location) {
     this.location = location;
     return this;
-  }
-
-  public WebMessage withPlainResponseBefore(DhisApiVersion version) {
-    this.plainResponseBefore = version;
-    return this;
-  }
-
-  @JsonIgnore
-  public DhisApiVersion getPlainResponseBefore() {
-    return plainResponseBefore;
   }
 
   @Override

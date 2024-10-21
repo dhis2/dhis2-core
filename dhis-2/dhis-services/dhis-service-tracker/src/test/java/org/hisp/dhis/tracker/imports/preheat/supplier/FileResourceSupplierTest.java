@@ -187,18 +187,11 @@ class FileResourceSupplierTest extends TestBase {
   }
 
   private Attribute numericAttribute() {
-    return Attribute.builder()
-        .attribute(MetadataIdentifier.ofUid("numeric"))
-        .valueType(ValueType.NUMBER)
-        .build();
+    return Attribute.builder().attribute(MetadataIdentifier.ofUid("numeric")).build();
   }
 
   private Attribute fileAttribute(String uid, String value) {
-    return Attribute.builder()
-        .attribute(MetadataIdentifier.ofUid(uid))
-        .valueType(ValueType.FILE_RESOURCE)
-        .value(value)
-        .build();
+    return Attribute.builder().attribute(MetadataIdentifier.ofUid(uid)).value(value).build();
   }
 
   private TrackedEntity trackedEntity(Attribute... attributes) {
