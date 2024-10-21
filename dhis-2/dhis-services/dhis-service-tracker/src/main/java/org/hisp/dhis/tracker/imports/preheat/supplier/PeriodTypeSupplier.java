@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.imports.preheat.supplier;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -57,8 +56,7 @@ public class PeriodTypeSupplier extends AbstractPreheatSupplier {
     } else {
       final List<Period> periods = periodStore.getAll();
       addToCache(cache, periods);
-      _addToPreheat(
-          preheat, periods.stream().map(p -> (IdentifiableObject) p).collect(Collectors.toList()));
+      addToPreheat(preheat, periods.stream().map(p -> (IdentifiableObject) p).toList());
     }
     // Period store can't be cached because it's not extending
     // `IdentifiableObject`
@@ -67,7 +65,7 @@ public class PeriodTypeSupplier extends AbstractPreheatSupplier {
         .forEach(periodType -> preheat.getPeriodTypeMap().put(periodType.getName(), periodType));
   }
 
-  private void _addToPreheat(TrackerPreheat preheat, List<IdentifiableObject> periods) {
+  private void addToPreheat(TrackerPreheat preheat, List<IdentifiableObject> periods) {
     periods.forEach(p -> preheat.getPeriodMap().put(p.getName(), (Period) p));
   }
 }
