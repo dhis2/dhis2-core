@@ -76,6 +76,7 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -417,7 +418,11 @@ public class UserController extends AbstractCrudController<User> {
   @ResponseBody
   public WebMessage replicateUser(
       @PathVariable String uid, HttpServletRequest request, HttpServletResponse response)
-      throws IOException, ForbiddenException, ConflictException, NotFoundException {
+      throws IOException,
+          ForbiddenException,
+          ConflictException,
+          NotFoundException,
+          BadRequestException {
     User existingUser = userService.getUser(uid);
     if (existingUser == null) {
       return conflict("User not found: " + uid);

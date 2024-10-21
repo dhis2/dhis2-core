@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -101,12 +100,10 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
     List<String> trackedEntityList =
         trackerObjects.getEnrollments().stream()
             .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getTrackedEntity)
-            .collect(Collectors.toList());
+            .toList();
 
     List<String> programList =
-        preheat.getAll(Program.class).stream()
-            .map(IdentifiableObject::getUid)
-            .collect(Collectors.toList());
+        preheat.getAll(Program.class).stream().map(IdentifiableObject::getUid).toList();
 
     List<List<String>> trackedEntities =
         Lists.partition(new ArrayList<>(trackedEntityList), Constant.SPLIT_LIST_PARTITION_SIZE);

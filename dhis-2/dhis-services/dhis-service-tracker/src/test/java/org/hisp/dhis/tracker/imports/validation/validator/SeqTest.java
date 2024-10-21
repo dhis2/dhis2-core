@@ -40,7 +40,6 @@ import static org.hisp.dhis.tracker.imports.validation.validator.Seq.seq;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
@@ -268,6 +267,6 @@ class SeqTest {
   }
 
   private List<String> actualErrorMessages() {
-    return reporter.getErrors().stream().map(Error::getMessage).collect(Collectors.toList());
+    return reporter.getErrors().stream().map(Error::getMessage).toList();
   }
 }

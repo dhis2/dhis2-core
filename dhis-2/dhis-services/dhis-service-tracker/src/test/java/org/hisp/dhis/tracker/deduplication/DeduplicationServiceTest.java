@@ -89,17 +89,17 @@ class DeduplicationServiceTest {
 
   private DeduplicationMergeParams deduplicationMergeParams;
 
-  private static final String sexUid = CodeGenerator.generateUid();
+  private static final String SEX_UID = CodeGenerator.generateUid();
 
-  private static final String sexName = "sex";
+  private static final String SEX_NAME = "sex";
 
-  private static final String firstNameUid = CodeGenerator.generateUid();
+  private static final String FIRST_NAME_UID = CodeGenerator.generateUid();
 
-  private static final String firstName = "firstName";
+  private static final String FIRST_NAME = "firstName";
 
-  private static final String teavSex = "Male";
+  private static final String TEAV_SEX = "Male";
 
-  private static final String teavSexFirstName = "John";
+  private static final String TEAV_SEX_FIRST_NAME = "John";
 
   @BeforeEach
   void setUp() throws ForbiddenException, NotFoundException {
@@ -142,17 +142,17 @@ class DeduplicationServiceTest {
 
   private void setAttributeValues() {
     TrackedEntityAttributeValue sexAttributeValueA =
-        getTrackedEntityAttributeValue(sexUid, sexName, trackedEntityA);
-    sexAttributeValueA.setValue(teavSex);
+        getTrackedEntityAttributeValue(SEX_UID, SEX_NAME, trackedEntityA);
+    sexAttributeValueA.setValue(TEAV_SEX);
     TrackedEntityAttributeValue nameAttributeValueA =
-        getTrackedEntityAttributeValue(firstNameUid, firstName, trackedEntityA);
-    nameAttributeValueA.setValue(teavSexFirstName);
+        getTrackedEntityAttributeValue(FIRST_NAME_UID, FIRST_NAME, trackedEntityA);
+    nameAttributeValueA.setValue(TEAV_SEX_FIRST_NAME);
     TrackedEntityAttributeValue sexAttributeValueB =
-        getTrackedEntityAttributeValue(sexUid, sexName, trackedEntityB);
-    sexAttributeValueB.setValue(teavSex);
+        getTrackedEntityAttributeValue(SEX_UID, SEX_NAME, trackedEntityB);
+    sexAttributeValueB.setValue(TEAV_SEX);
     TrackedEntityAttributeValue nameAttributeValueB =
-        getTrackedEntityAttributeValue(firstNameUid, firstName, trackedEntityB);
-    nameAttributeValueB.setValue(teavSexFirstName);
+        getTrackedEntityAttributeValue(FIRST_NAME_UID, FIRST_NAME, trackedEntityB);
+    nameAttributeValueB.setValue(TEAV_SEX_FIRST_NAME);
     when(trackedEntityA.getTrackedEntityAttributeValues())
         .thenReturn(new HashSet<>(Arrays.asList(sexAttributeValueA, nameAttributeValueA)));
     when(trackedEntityB.getTrackedEntityAttributeValues())
@@ -256,10 +256,10 @@ class DeduplicationServiceTest {
   void shouldNotBeAutoMergeableDifferentAttributeValues()
       throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException {
     TrackedEntityAttributeValue sexAttributeValueB =
-        getTrackedEntityAttributeValue(sexUid, sexName, trackedEntityB);
-    sexAttributeValueB.setValue(teavSex);
+        getTrackedEntityAttributeValue(SEX_UID, SEX_NAME, trackedEntityB);
+    sexAttributeValueB.setValue(TEAV_SEX);
     TrackedEntityAttributeValue nameAttributeValueB =
-        getTrackedEntityAttributeValue(firstNameUid, firstName, trackedEntityB);
+        getTrackedEntityAttributeValue(FIRST_NAME_UID, FIRST_NAME, trackedEntityB);
     nameAttributeValueB.setValue("Jimmy");
     when(trackedEntityB.getTrackedEntityAttributeValues())
         .thenReturn(new HashSet<>(Arrays.asList(sexAttributeValueB, nameAttributeValueB)));

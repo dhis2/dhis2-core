@@ -52,9 +52,9 @@ class DuplicateRelationshipsPreProcessorTest {
 
   private TrackerPreheat preheat;
 
-  private final String REL_TYPE_BIDIRECTIONAL_UID = CodeGenerator.generateUid();
+  private static final String REL_TYPE_BIDIRECTIONAL_UID = CodeGenerator.generateUid();
 
-  private final String REL_TYPE_NONBIDIRECTIONAL_UID = CodeGenerator.generateUid();
+  private static final String REL_TYPE_NONBIDIRECTIONAL_UID = CodeGenerator.generateUid();
 
   @BeforeEach
   void setUp() {

@@ -126,10 +126,8 @@ class DeduplicationHelperTest extends TestBase {
             .build();
     user = makeUser("A", Lists.newArrayList("F_TRACKED_ENTITY_MERGE"));
 
-    UserDetails currentUserDetails = UserDetails.fromUser(user);
+    currentUserDetails = UserDetails.fromUser(user);
     injectSecurityContext(currentUserDetails);
-
-    this.currentUserDetails = currentUserDetails;
 
     relationshipType.setBidirectional(false);
     relationshipTypeBidirectional.setBidirectional(true);
