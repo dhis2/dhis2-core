@@ -174,87 +174,89 @@ public class EventPersister
           EventDataValue eventDataValue = dataValueDBMap.get(dataElement.getUid());
 
           if (isNewDataValue(eventDataValue, dv)) {
-            eventDataValue = new EventDataValue();
-            eventDataValue.setCreated(new Date());
-            eventDataValue.setCreatedByUserInfo(UserInfoSnapshot.from(user));
-            eventDataValue.setDataElement(dataElement.getUid());
-            eventDataValue.setStoredBy(user.getUsername());
-
-            eventDataValue.setLastUpdated(new Date());
-            eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
-
-            eventDataValue.setValue(dv.getValue());
-            eventDataValue.setProvidedElsewhere(dv.isProvidedElsewhere());
-
-            if (dataElement.isFileType()) {
-              assignFileResource(entityManager, preheat, event.getUid(), eventDataValue.getValue());
-            }
-
-            event.getEventDataValues().add(eventDataValue);
-            logTrackedEntityDataValueHistory(
-                user.getUsername(),
-                dataElement,
-                event,
-                new Date(),
-                eventDataValue,
-                ChangeLogType.CREATE);
+            logTrackedEntityDataValueHistory(user.getUsername(), dataElement, event, dv.getValue(), dv.isProvidedElsewhere(), ChangeLogType.CREATE);
+            saveDataValue(dv, event, dataElement, user, entityManager, preheat);
           } else if (isUpdate(eventDataValue, dv)) {
-            eventDataValue.setLastUpdated(new Date());
-            eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
-
-            if (dataElement.isFileType()) {
-              unassignFileResource(
-                  entityManager, preheat, event.getUid(), eventDataValue.getValue());
-              assignFileResource(entityManager, preheat, event.getUid(), dv.getValue());
-            }
-
             logTrackedEntityDataValueHistory(
-                user.getUsername(),
-                dataElement,
-                event,
-                new Date(),
-                eventDataValue,
-                ChangeLogType.UPDATE);
-            eventDataValue.setProvidedElsewhere(dv.isProvidedElsewhere());
-            eventDataValue.setValue(dv.getValue());
+                    user.getUsername(),
+                    dataElement,
+                    event,
+                    eventDataValue.getValue(),
+                    eventDataValue.getProvidedElsewhere(),
+                    ChangeLogType.UPDATE);
+            updateDataValue(eventDataValue, dv, event, dataElement, user, entityManager, preheat);
           } else if (isDeletion(eventDataValue, dv)) {
-            if (dataElement.isFileType()) {
-              unassignFileResource(
-                  entityManager, preheat, event.getUid(), eventDataValue.getValue());
-            }
-            eventDataValue.setLastUpdated(new Date());
-            eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
-
             logTrackedEntityDataValueHistory(
-                user.getUsername(),
-                dataElement,
-                event,
-                new Date(),
-                eventDataValue,
-                ChangeLogType.DELETE);
-            eventDataValue.setValue(dv.getValue());
-            eventDataValue.setProvidedElsewhere(dv.isProvidedElsewhere());
-            event.getEventDataValues().remove(eventDataValue);
+                    user.getUsername(),
+                    dataElement,
+                    event,
+                    eventDataValue.getValue(),
+                    eventDataValue.getProvidedElsewhere(),
+                    ChangeLogType.DELETE);
+            deleteDataValue(eventDataValue, event, dataElement, entityManager, preheat);
           }
         });
+  }
+
+  private void saveDataValue(DataValue dv, Event event, DataElement dataElement, UserDetails user, EntityManager entityManager, TrackerPreheat preheat) {
+    EventDataValue eventDataValue = new EventDataValue();
+    eventDataValue.setDataElement(dataElement.getUid());
+    eventDataValue.setCreated(new Date());
+    eventDataValue.setCreatedByUserInfo(UserInfoSnapshot.from(user));
+    eventDataValue.setStoredBy(user.getUsername());
+
+    eventDataValue.setLastUpdated(new Date());
+    eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
+
+    eventDataValue.setValue(dv.getValue());
+    eventDataValue.setProvidedElsewhere(dv.isProvidedElsewhere());
+
+    if (dataElement.isFileType()) {
+      assignFileResource(entityManager, preheat, event.getUid(), eventDataValue.getValue());
+    }
+
+    event.getEventDataValues().add(eventDataValue);
+  }
+
+  private void updateDataValue(EventDataValue eventDataValue, DataValue dv, Event event, DataElement dataElement, UserDetails user, EntityManager entityManager, TrackerPreheat preheat) {
+    eventDataValue.setLastUpdated(new Date());
+    eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
+
+    if (dataElement.isFileType()) {
+      unassignFileResource(
+              entityManager, preheat, event.getUid(), eventDataValue.getValue());
+      assignFileResource(entityManager, preheat, event.getUid(), dv.getValue());
+    }
+
+    eventDataValue.setProvidedElsewhere(dv.isProvidedElsewhere());
+    eventDataValue.setValue(dv.getValue());
+  }
+
+  private void deleteDataValue(EventDataValue eventDataValue, Event event, DataElement dataElement, EntityManager entityManager, TrackerPreheat preheat) {
+    if (dataElement.isFileType()) {
+      unassignFileResource(
+              entityManager, preheat, event.getUid(), eventDataValue.getValue());
+    }
+
+    event.getEventDataValues().remove(eventDataValue);
   }
 
   private void logTrackedEntityDataValueHistory(
       String userName,
       DataElement de,
       Event event,
-      Date created,
-      EventDataValue eventDataValue,
+      String value,
+      boolean providedElsewhere,
       ChangeLogType changeLogType) {
 
     TrackedEntityDataValueChangeLog valueAudit = new TrackedEntityDataValueChangeLog();
     valueAudit.setEvent(event);
-    valueAudit.setValue(eventDataValue.getValue());
+    valueAudit.setValue(value);
     valueAudit.setAuditType(changeLogType);
     valueAudit.setDataElement(de);
     valueAudit.setModifiedBy(userName);
-    valueAudit.setProvidedElsewhere(eventDataValue.getProvidedElsewhere());
-    valueAudit.setCreated(created);
+    valueAudit.setProvidedElsewhere(providedElsewhere);
+    valueAudit.setCreated(new Date());
 
     eventChangeLogService.addTrackedEntityDataValueChangeLog(valueAudit);
   }

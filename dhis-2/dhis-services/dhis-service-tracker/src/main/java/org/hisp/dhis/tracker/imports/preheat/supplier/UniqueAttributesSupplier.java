@@ -95,7 +95,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
         Stream.concat(
                 uniqueAttributeValuesFromPayload.stream(), uniqueAttributeValuesFromDB.stream())
             .distinct()
-            .collect(toList());
+            .toList();
 
     preheat.setUniqueAttributeValues(uniqueAttributeValues);
   }
@@ -212,7 +212,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
     return teByAttributeValue.entrySet().stream()
         .filter(e -> e.getValue().size() > 1)
         .flatMap(av -> buildUniqueAttributeValues(av.getKey(), av.getValue()).stream())
-        .collect(toList());
+        .toList();
   }
 
   private Collection<UniqueAttributeValue> buildUniqueAttributeValues(
@@ -222,7 +222,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
             te ->
                 new UniqueAttributeValue(
                     te.getUid(), attribute.getAttribute(), attribute.getValue(), te.getOrgUnit()))
-        .collect(toList());
+        .toList();
   }
 
   private List<UniqueAttributeValue> getAlreadyPresentInDbUniqueValues(
@@ -251,7 +251,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
                     idSchemes.toMetadataIdentifier(av.getAttribute()),
                     av.getValue(),
                     idSchemes.toMetadataIdentifier(av.getTrackedEntity().getOrganisationUnit())))
-        .collect(toList());
+        .toList();
   }
 
   private TrackedEntityAttribute extractAttribute(

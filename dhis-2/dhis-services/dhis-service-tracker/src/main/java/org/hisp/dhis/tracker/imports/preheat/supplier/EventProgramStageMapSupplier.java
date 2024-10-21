@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -87,14 +86,14 @@ public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
             .filter(ps -> !ps.getRepeatable())
             .map(ProgramStage::getUid)
             .distinct()
-            .collect(Collectors.toList());
+            .toList();
 
     List<String> enrollmentUids =
         trackerObjects.getEvents().stream()
             .map(Event::getEnrollment)
             .filter(Objects::nonNull)
             .distinct()
-            .collect(Collectors.toList());
+            .toList();
 
     if (!notRepeatableProgramStageUids.isEmpty() && !enrollmentUids.isEmpty()) {
       MapSqlParameterSource parameters = new MapSqlParameterSource();
