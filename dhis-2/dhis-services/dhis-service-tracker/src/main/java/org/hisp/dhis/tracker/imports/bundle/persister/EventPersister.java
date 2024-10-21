@@ -174,31 +174,43 @@ public class EventPersister
           EventDataValue eventDataValue = dataValueDBMap.get(dataElement.getUid());
 
           if (isNewDataValue(eventDataValue, dv)) {
-            logTrackedEntityDataValueHistory(user.getUsername(), dataElement, event, dv.getValue(), dv.isProvidedElsewhere(), ChangeLogType.CREATE);
+            logTrackedEntityDataValueHistory(
+                user.getUsername(),
+                dataElement,
+                event,
+                dv.getValue(),
+                dv.isProvidedElsewhere(),
+                ChangeLogType.CREATE);
             saveDataValue(dv, event, dataElement, user, entityManager, preheat);
           } else if (isUpdate(eventDataValue, dv)) {
             logTrackedEntityDataValueHistory(
-                    user.getUsername(),
-                    dataElement,
-                    event,
-                    eventDataValue.getValue(),
-                    eventDataValue.getProvidedElsewhere(),
-                    ChangeLogType.UPDATE);
+                user.getUsername(),
+                dataElement,
+                event,
+                eventDataValue.getValue(),
+                eventDataValue.getProvidedElsewhere(),
+                ChangeLogType.UPDATE);
             updateDataValue(eventDataValue, dv, event, dataElement, user, entityManager, preheat);
           } else if (isDeletion(eventDataValue, dv)) {
             logTrackedEntityDataValueHistory(
-                    user.getUsername(),
-                    dataElement,
-                    event,
-                    eventDataValue.getValue(),
-                    eventDataValue.getProvidedElsewhere(),
-                    ChangeLogType.DELETE);
+                user.getUsername(),
+                dataElement,
+                event,
+                eventDataValue.getValue(),
+                eventDataValue.getProvidedElsewhere(),
+                ChangeLogType.DELETE);
             deleteDataValue(eventDataValue, event, dataElement, entityManager, preheat);
           }
         });
   }
 
-  private void saveDataValue(DataValue dv, Event event, DataElement dataElement, UserDetails user, EntityManager entityManager, TrackerPreheat preheat) {
+  private void saveDataValue(
+      DataValue dv,
+      Event event,
+      DataElement dataElement,
+      UserDetails user,
+      EntityManager entityManager,
+      TrackerPreheat preheat) {
     EventDataValue eventDataValue = new EventDataValue();
     eventDataValue.setDataElement(dataElement.getUid());
     eventDataValue.setCreated(new Date());
@@ -218,13 +230,19 @@ public class EventPersister
     event.getEventDataValues().add(eventDataValue);
   }
 
-  private void updateDataValue(EventDataValue eventDataValue, DataValue dv, Event event, DataElement dataElement, UserDetails user, EntityManager entityManager, TrackerPreheat preheat) {
+  private void updateDataValue(
+      EventDataValue eventDataValue,
+      DataValue dv,
+      Event event,
+      DataElement dataElement,
+      UserDetails user,
+      EntityManager entityManager,
+      TrackerPreheat preheat) {
     eventDataValue.setLastUpdated(new Date());
     eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
 
     if (dataElement.isFileType()) {
-      unassignFileResource(
-              entityManager, preheat, event.getUid(), eventDataValue.getValue());
+      unassignFileResource(entityManager, preheat, event.getUid(), eventDataValue.getValue());
       assignFileResource(entityManager, preheat, event.getUid(), dv.getValue());
     }
 
@@ -232,10 +250,14 @@ public class EventPersister
     eventDataValue.setValue(dv.getValue());
   }
 
-  private void deleteDataValue(EventDataValue eventDataValue, Event event, DataElement dataElement, EntityManager entityManager, TrackerPreheat preheat) {
+  private void deleteDataValue(
+      EventDataValue eventDataValue,
+      Event event,
+      DataElement dataElement,
+      EntityManager entityManager,
+      TrackerPreheat preheat) {
     if (dataElement.isFileType()) {
-      unassignFileResource(
-              entityManager, preheat, event.getUid(), eventDataValue.getValue());
+      unassignFileResource(entityManager, preheat, event.getUid(), eventDataValue.getValue());
     }
 
     event.getEventDataValues().remove(eventDataValue);
