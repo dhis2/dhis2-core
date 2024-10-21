@@ -44,6 +44,15 @@ import org.intellij.lang.annotations.Language;
  * @author Jan Bernitt
  */
 public @interface OpenApi {
+
+  /** Is a property output, input, input+output (explicitly) or input+output (assumed) */
+  enum Access {
+    READ,
+    WRITE,
+    READ_WRITE,
+    DEFAULT
+  }
+
   /**
    * Annotation to use as part of the OpenAPI generation to work around lack of generic types when
    * using annotations.
@@ -271,6 +280,13 @@ public @interface OpenApi {
     Class<?>[] value() default {};
 
     boolean required() default false;
+
+    /**
+     * When set to value other than the default this takes precedence over other annotations.
+     *
+     * @return the access direction for this property
+     */
+    Access access() default Access.DEFAULT;
 
     /**
      * If given, this values takes precedence over the actual initial value of a field that might be

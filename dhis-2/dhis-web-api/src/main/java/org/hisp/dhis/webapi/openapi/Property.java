@@ -56,6 +56,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Access;
 import org.hisp.dhis.jsontree.Json;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
@@ -76,6 +77,7 @@ class Property {
   @Nonnull String name;
   @Nonnull Type type;
   @Nonnull AnnotatedElement source;
+  @Nonnull Access access;
   @CheckForNull Boolean required;
   @CheckForNull JsonValue defaultValue;
 
@@ -84,6 +86,7 @@ class Property {
         getPropertyName(f),
         getType(f, f.getGenericType()),
         f,
+        getAccess(f),
         isRequired(f, f.getType()),
         defaultValue(f));
   }
@@ -93,6 +96,7 @@ class Property {
         getPropertyName(m),
         getType(m, isSetter(m) ? m.getGenericParameterTypes()[0] : m.getGenericReturnType()),
         m,
+        getAccess(m),
         isRequired(m, m.getReturnType()),
         defaultValue(f));
   }
@@ -102,6 +106,7 @@ class Property {
         p.jsonName(),
         getType(p.source(), type),
         p.source(),
+        Access.DEFAULT,
         isRequired(p.source(), p.javaType().getType()),
         defaultValueFromAnnotation(p.source()));
   }
@@ -261,6 +266,20 @@ class Property {
     if (type instanceof Class<?> cls)
       return cls.isPrimitive() && cls != boolean.class || cls.isEnum() ? true : null;
     return null;
+  }
+
+  @Nonnull
+  private static Access getAccess(AnnotatedElement source) {
+    OpenApi.Property primary = source.getAnnotation(OpenApi.Property.class);
+    if (primary != null && primary.access() != Access.DEFAULT) return primary.access();
+    JsonProperty secondary = source.getAnnotation(JsonProperty.class);
+    if (secondary == null) return Access.DEFAULT;
+    return switch (secondary.access()) {
+      case READ_ONLY -> Access.READ;
+      case WRITE_ONLY -> Access.WRITE;
+      case READ_WRITE -> Access.READ_WRITE;
+      case AUTO -> Access.DEFAULT;
+    };
   }
 
   @SuppressWarnings("java:S3011")
