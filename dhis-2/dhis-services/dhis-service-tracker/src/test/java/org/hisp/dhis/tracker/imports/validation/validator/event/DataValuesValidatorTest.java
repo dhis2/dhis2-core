@@ -58,7 +58,6 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
-import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -142,54 +141,6 @@ class DataValuesValidatorTest {
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(dataValue()))
-            .build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
-  void successValidationWhenCreatedAtIsNull() {
-    DataElement dataElement = dataElement();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
-        .thenReturn(dataElement);
-
-    ProgramStage programStage = programStage(dataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
-        .thenReturn(programStage);
-
-    DataValue validDataValue = dataValue();
-    validDataValue.setCreatedAt(null);
-    Event event =
-        Event.builder()
-            .programStage(idSchemes.toMetadataIdentifier(programStage))
-            .status(EventStatus.ACTIVE)
-            .dataValues(Set.of(validDataValue))
-            .build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
-  void failValidationWhenUpdatedAtIsNull() {
-    DataElement dataElement = dataElement();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
-        .thenReturn(dataElement);
-
-    ProgramStage programStage = programStage(dataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
-        .thenReturn(programStage);
-
-    DataValue validDataValue = dataValue();
-    validDataValue.setUpdatedAt(null);
-    Event event =
-        Event.builder()
-            .programStage(idSchemes.toMetadataIdentifier(programStage))
-            .status(EventStatus.ACTIVE)
-            .dataValues(Set.of(validDataValue))
             .build();
 
     validator.validate(reporter, bundle, event);
@@ -1140,8 +1091,6 @@ class DataValuesValidatorTest {
 
   private DataValue dataValue() {
     DataValue dataValue = new DataValue();
-    dataValue.setCreatedAt(DateUtils.instantFromDateAsString("2020-10-10"));
-    dataValue.setUpdatedAt(DateUtils.instantFromDateAsString("2020-10-10"));
     dataValue.setValue("text");
     dataValue.setDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID));
     return dataValue;

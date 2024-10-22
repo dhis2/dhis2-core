@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,58 +25,58 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.webmessage.responses;
+package org.hisp.dhis.webmessage;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import lombok.Getter;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.Status;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * The core information of a standard web response message.
+ *
+ * <p>The main reason for this class is that it does not depend on web layer classes. Fields that
+ * require these are first added by {@code WebMessage}.
+ *
+ * @author Jan Bernitt
  */
-@JsonPropertyOrder({"type", "created", "updated", "deleted"})
-public class ImportCountWebMessageResponse extends AbstractWebMessageResponse {
-  private int created;
+@Getter
+@OpenApi.Kind("WebMessageResponse")
+public class BasicWebMessage {
 
-  private int updated;
-
-  private int deleted;
-
-  public ImportCountWebMessageResponse(int created, int updated, int deleted) {
-    this.created = created;
-    this.updated = updated;
-    this.deleted = deleted;
-  }
-
+  /**
+   * Message status, currently two statuses are available: OK, ERROR. Default value is OK.
+   *
+   * @see Status
+   */
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getCreated() {
-    return created;
-  }
+  @JacksonXmlProperty(isAttribute = true)
+  protected Status status = Status.OK;
 
-  public void setCreated(int created) {
-    this.created = created;
-  }
-
+  /**
+   * Internal code for this message. Should be used to help with third party clients which should
+   * not have to resort to string parsing of message to know what is happening.
+   */
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getUpdated() {
-    return updated;
-  }
+  @JacksonXmlProperty(isAttribute = true)
+  protected Integer code;
 
-  public void setUpdated(int updated) {
-    this.updated = updated;
-  }
-
+  /**
+   * The {@link ErrorCode} which describes a potential error. Only relevant for {@link
+   * Status#ERROR}.
+   */
+  @JacksonXmlProperty(isAttribute = true)
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getDeleted() {
-    return deleted;
-  }
+  protected ErrorCode errorCode;
 
-  public void setDeleted(int deleted) {
-    this.deleted = deleted;
-  }
+  /**
+   * Non-technical message, should be simple and could possibly be used to display message to an
+   * end-user.
+   */
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonProperty
+  protected String message;
 }

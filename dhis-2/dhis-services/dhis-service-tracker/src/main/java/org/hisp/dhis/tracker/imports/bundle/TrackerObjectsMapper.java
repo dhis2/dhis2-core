@@ -34,9 +34,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -50,7 +48,6 @@ import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.util.RelationshipKeySupport;
 import org.hisp.dhis.user.User;
@@ -239,22 +236,6 @@ public class TrackerObjectsMapper {
       Optional<User> assignedUser =
           preheat.getUserByUsername(event.getAssignedUser().getUsername());
       assignedUser.ifPresent(dbEvent::setAssignedUser);
-    }
-
-    // TODO(DHIS2-18223): Remove data value mapping and fix changelog logic
-    for (DataValue dataValue : event.getDataValues()) {
-      DataElement dataElement = preheat.getDataElement(dataValue.getDataElement());
-
-      EventDataValue eventDataValue = new EventDataValue();
-      eventDataValue.setDataElement(dataElement.getUid());
-      eventDataValue.setCreated(DateUtils.fromInstant(dataValue.getCreatedAt()));
-      eventDataValue.setCreatedByUserInfo(UserInfoSnapshot.from(user));
-      eventDataValue.setValue(dataValue.getValue());
-      eventDataValue.setLastUpdated(now);
-      eventDataValue.setProvidedElsewhere(dataValue.isProvidedElsewhere());
-      eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
-
-      dbEvent.getEventDataValues().add(eventDataValue);
     }
 
     if (isNotEmpty(event.getNotes())) {

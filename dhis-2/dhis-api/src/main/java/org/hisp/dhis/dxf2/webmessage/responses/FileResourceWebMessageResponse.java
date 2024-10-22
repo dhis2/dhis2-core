@@ -25,29 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.domain;
+package org.hisp.dhis.dxf2.webmessage.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import javax.annotation.Nonnull;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Halvdan Hoem Grelland
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-// TODO(DHIS2-18223) Remove unused fields when fixing data values logic
-public class DataValue implements Serializable {
-  @JsonProperty private String storedBy;
+@Getter
+@RequiredArgsConstructor
+public class FileResourceWebMessageResponse implements WebMessageResponse {
 
-  @JsonProperty private boolean providedElsewhere;
+  @JsonProperty private final FileResource fileResource;
 
-  @JsonProperty private MetadataIdentifier dataElement;
-
-  @JsonProperty private String value;
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return FileResourceWebMessageResponse.class;
+  }
 }
