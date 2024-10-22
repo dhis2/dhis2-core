@@ -8,8 +8,8 @@ on:
       - master
   pull_request:
 concurrency:
-    group: ${{ github.workflow}}-${{ github.ref }}
-    cancel-in-progress: true
+  group: ${{ github.workflow}}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   unit-test:
     runs-on: ubuntu-latest
@@ -69,7 +69,7 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Run integration tests
-        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress -Pintegration --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty --activate-profiles integration-test
+        run: mvn clean test --threads 2C --batch-mode --no-transfer-progress -Pintegration --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty --activate-profiles integration-test
         timeout-minutes: 30
       - uses: actions/upload-artifact@v4
         name: Upload test logs on failure
@@ -120,7 +120,7 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Run integration h2 tests
-        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress -PintegrationH2 --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty --activate-profiles integration-h2-test
+        run: mvn clean test --threads 2C --batch-mode --no-transfer-progress -PintegrationH2 --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty --activate-profiles integration-h2-test
         timeout-minutes: 30
       - uses: actions/upload-artifact@v4
         name: Upload test logs on failure
