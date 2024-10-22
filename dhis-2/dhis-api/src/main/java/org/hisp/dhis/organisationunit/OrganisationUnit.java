@@ -160,6 +160,8 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   public OrganisationUnit() {
     // Must be set to get UID and have getPath work properly
     setAutoFields();
+
+    // This must not be done
   }
 
   public OrganisationUnit(String name) {
