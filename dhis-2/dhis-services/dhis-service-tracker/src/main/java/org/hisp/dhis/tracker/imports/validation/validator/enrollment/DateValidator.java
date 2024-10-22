@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
-import static org.hisp.dhis.program.EnrollmentStatus.*;
+import static org.hisp.dhis.program.EnrollmentStatus.CANCELLED;
+import static org.hisp.dhis.program.EnrollmentStatus.COMPLETED;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1020;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1021;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1023;
