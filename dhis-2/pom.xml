@@ -7,17 +7,18 @@
   <packaging>pom</packaging>
   <name>DHIS2</name>
 
-  <description>DHIS2 is a free and open-source software platform for collecting, managing, analyzing, and sharing data.
-    It supports online and offline data capture via web and mobile devices, and includes built-in features for data validation and visualization.
-    The generic DHIS2 data model supports both routine aggregate/statistical data collection and individual/event data, a
-    nd can be applied to use cases in any sector, allowing decentralized access to data throughout an organizational hierarchy.
-    DHIS2 is fully customizable through the user interface without the need for coding skills,
-    and can be extended with custom applications, scripts, and integrations.
-    Each DHIS2 instance and the data stored within it are locally owned and managed.
+  <description>DHIS2 is a free and open-source software platform for collecting, managing,
+    analyzing, and sharing data. It supports online and offline data capture via web and mobile
+    devices, and includes built-in features for data validation and visualization. The generic DHIS2
+    data model supports both routine aggregate/statistical data collection and individual/event
+    data, and can be applied to use cases in any sector, allowing decentralized access to data
+    throughout an organizational hierarchy. DHIS2 is fully customizable through the user interface
+    without the need for coding skills, and can be extended with custom applications, scripts, and
+    integrations. Each DHIS2 instance and the data stored within it are locally owned and managed.
 
-    DHIS2 is designed and developed by the HISP Centre at University of Oslo,
-    with the goal of strengthening governance systems in low- and middle-income countries.
-    It is shared as a Digital Public Good.</description>
+    DHIS2 is designed and developed by the HISP Centre at University of Oslo, with the goal of
+    strengthening governance systems in low- and middle-income countries. It is shared as a Digital
+    Public Good.</description>
   <url>https://dhis2.org</url>
 
   <organization>
@@ -73,10 +74,6 @@
     <sonar.organization>dhis2</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <surefireArgLine>-Xmx2024m</surefireArgLine>
-
-    <!-- Needed so we can disable running tests when the default profile
-      is used (activated by default). It does not honor -DskipTests otherwise https://maven.apache.org/surefire/maven-surefire-plugin/examples/skipping-tests.html -->
-    <skipTests>false</skipTests>
 
     <!-- *Dependencies* -->
 
@@ -224,6 +221,7 @@
     <!-- Maven plugin versions -->
     <maven-surefire-plugin.version>3.5.1</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+    <maven-exec-plugin.version>3.4.1</maven-exec-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.5.1</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.10.1</maven-javadoc-plugin.version>
@@ -1917,6 +1915,16 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-report-plugin</artifactId>
+          <version>${maven-surefire-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>${maven-exec-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>${maven-failsafe-plugin.version}</version>
           <configuration>
@@ -2119,6 +2127,18 @@ jasperreports.version=${jasperreports.version}
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
           <version>${jacoco-maven-plugin.version}</version>
+          <!-- disable the jacoco coverage agent if we skip running tests -->
+          <configuration>
+            <skip>${skipTests}</skip>
+          </configuration>
+          <executions>
+            <execution>
+              <id>prepare-agent</id>
+              <goals>
+                <goal>prepare-agent</goal>
+              </goals>
+            </execution>
+          </executions>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -2249,14 +2269,6 @@ jasperreports.version=${jasperreports.version}
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>prepare-agent</id>
-            <goals>
-              <goal>prepare-agent</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
     <!-- <build><sourceDirectory> cannot be set in a profile, so it needs
@@ -2286,13 +2298,9 @@ jasperreports.version=${jasperreports.version}
   </reporting>
 
   <profiles>
-
-    <!-- Default profile, runs all unit tests, not integration tests -->
+    <!-- runs all unit tests -->
     <profile>
-      <id>default</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
+      <id>unit-test</id>
       <build>
         <plugins>
           <plugin>
@@ -2317,10 +2325,9 @@ jasperreports.version=${jasperreports.version}
       </build>
     </profile>
 
-    <!-- Integration test profile, runs all integrations tests, not unit
-      tests -->
+    <!-- runs all integration tests using Postgres DB -->
     <profile>
-      <id>integration</id>
+      <id>integration-test</id>
       <build>
         <plugins>
           <plugin>
@@ -2343,10 +2350,9 @@ jasperreports.version=${jasperreports.version}
       </build>
     </profile>
 
-    <!-- IntegrationH2 test profile, runs all integrations tests with H2,
-      not unit tests -->
+    <!-- runs all integrations tests using H2 in-memory DB -->
     <profile>
-      <id>integrationH2</id>
+      <id>integration-h2-test</id>
       <build>
         <plugins>
           <plugin>
@@ -2368,43 +2374,6 @@ jasperreports.version=${jasperreports.version}
         </plugins>
       </build>
     </profile>
-
-    <profile>
-      <id>dev</id>
-      <properties>
-        <skipTests>true</skipTests>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <skipTests>true</skipTests>
-              <trimStackTrace>false</trimStackTrace>
-              <argLine>@{argLine} ${surefireArgLine}</argLine>
-              <excludedGroups>integration,integrationH2</excludedGroups>
-            </configuration>
-          </plugin>
-          <plugin>
-            <groupId>org.zeroturnaround</groupId>
-            <artifactId>jrebel-maven-plugin</artifactId>
-            <version>${jrebel-x-maven-plugin.version}</version>
-            <executions>
-              <execution>
-                <id>generate-rebel-xml</id>
-                <goals>
-                  <goal>generate</goal>
-                </goals>
-                <phase>process-resources</phase>
-                <configuration/>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
     <profile>
       <id>javadoc</id>
       <properties>
@@ -2439,7 +2408,5 @@ jasperreports.version=${jasperreports.version}
         </plugins>
       </build>
     </profile>
-
   </profiles>
-
 </project>
