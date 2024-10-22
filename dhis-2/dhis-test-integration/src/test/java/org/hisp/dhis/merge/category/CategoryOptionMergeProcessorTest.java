@@ -46,7 +46,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.MergeReport;
-import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -669,7 +668,6 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = new MergeParams();
     mergeParams.setSources(UID.of(List.of(coSource1A.getUid(), coSource2B.getUid())));
     mergeParams.setTarget(UID.of(coTarget3A.getUid()));
-    mergeParams.setDataMergeStrategy(DataMergeStrategy.LAST_UPDATED);
     return mergeParams;
   }
 

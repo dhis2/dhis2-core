@@ -40,8 +40,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeRequest;
@@ -69,10 +67,6 @@ public class CategoryOptionMergeService implements MergeService {
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
     log.info("Validating CategoryOption merge request");
-    if (params.getDataMergeStrategy() == null) {
-      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1556));
-      return null;
-    }
 
     // sources
     Set<UID> sources = new HashSet<>();

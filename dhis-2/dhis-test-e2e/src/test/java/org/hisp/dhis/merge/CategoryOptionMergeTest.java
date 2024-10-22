@@ -29,14 +29,17 @@ package org.hisp.dhis.merge;
 
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItems;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.restassured.response.ValidatableResponse;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.hisp.dhis.test.e2e.actions.UserActions;
+import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,27 +49,36 @@ import org.junit.jupiter.api.Test;
 class CategoryOptionMergeTest extends ApiTest {
 
   private RestApiActions categoryOptionApiActions;
+  private MetadataActions metadataActions;
   private UserActions userActions;
   private LoginActions loginActions;
-  private String sourceUid1;
-  private String sourceUid2;
-  private String targetUid;
+  private final String sourceUid1 = "CatOptUid90";
+  private final String sourceUid2 = "CatOptUid91";
+  private final String targetUid = "CatOptUid92";
 
   @BeforeAll
   public void before() {
     userActions = new UserActions();
     loginActions = new LoginActions();
     categoryOptionApiActions = new RestApiActions("categoryOptions");
+    metadataActions = new MetadataActions();
     loginActions.loginAsSuperUser();
 
     // add user with required merge auth
     userActions.addUserFull(
-        "user", "auth", "userWithMergeAuth", "Test1234!", "F_CATEGORY_OPTION_MERGE");
+        "user",
+        "auth",
+        "userWithMergeAuth",
+        "Test1234!",
+        "F_CATEGORY_OPTION_MERGE",
+        "F_CATEGORY_OPTION_DELETE",
+        "F_CATEGORY_OPTION_PUBLIC_ADD");
   }
 
   @BeforeEach
   public void setup() {
     loginActions.loginAsSuperUser();
+    setupMetadata();
   }
 
   @Test
@@ -74,18 +86,14 @@ class CategoryOptionMergeTest extends ApiTest {
       "Valid CategoryOption merge completes successfully with all source CategoryOption refs replaced with target CategoryOption")
   void validDataElementMergeTest() {
     // given
-    sourceUid1 = setupCategoryOption("A");
-    sourceUid2 = setupCategoryOption("B");
-    targetUid = setupCategoryOption("C");
-
     // login as user with merge auth
     loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
 
+    // confirm state before merge
+
     // when a category option request is submitted, deleting sources
     ApiResponse response =
-        categoryOptionApiActions
-            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, true, "LAST_UPDATED"))
-            .validateStatus(200);
+        categoryOptionApiActions.post("merge", getMergeBody()).validateStatus(200);
 
     // then a successful response is received and sources are deleted
     response
@@ -98,10 +106,39 @@ class CategoryOptionMergeTest extends ApiTest {
         .body("response.mergeReport.sourcesDeleted", hasItems(sourceUid1, sourceUid2));
 
     // and all the following source category option references have been handled appropriately
+
     // and sources are deleted & target exists
     categoryOptionApiActions.get(sourceUid1).validateStatus(404);
     categoryOptionApiActions.get(sourceUid2).validateStatus(404);
-    categoryOptionApiActions.get(targetUid).validateStatus(200);
+    ValidatableResponse validate =
+        categoryOptionApiActions.get(targetUid).validateStatus(200).validate();
+
+    validate
+        .body(
+            "organisationUnits",
+            hasItems(
+                hasEntry("id", "OrgUnitUid0"),
+                hasEntry("id", "OrgUnitUid1"),
+                hasEntry("id", "OrgUnitUid2")))
+        .body(
+            "categories",
+            hasItems(
+                hasEntry("id", "CategoUid90"),
+                hasEntry("id", "CategoUid91"),
+                hasEntry("id", "CategoUid92")))
+        .body(
+            "categoryOptionCombos",
+            hasItems(hasEntry("id", "CatOptCom90"), hasEntry("id", "CatOptCom91")))
+        .body(
+            "categoryOptionGroups",
+            hasItems(
+                hasEntry("id", "CatOptGrp01"),
+                hasEntry("id", "CatOptGrp00"),
+                hasEntry("id", "CatOptGrp02")));
+  }
+
+  private void setupMetadata() {
+    metadataActions.post(metadata()).validateStatus(200);
   }
 
   @Test
@@ -112,9 +149,7 @@ class CategoryOptionMergeTest extends ApiTest {
 
     // when
     ApiResponse response =
-        categoryOptionApiActions
-            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, true, "LAST_UPDATED"))
-            .validateStatus(403);
+        categoryOptionApiActions.post("merge", getMergeBody()).validateStatus(403);
 
     // then
     response
@@ -127,33 +162,207 @@ class CategoryOptionMergeTest extends ApiTest {
             equalTo("Access is denied, requires one Authority from [F_CATEGORY_OPTION_MERGE]"));
   }
 
-  private String setupCategoryOption(String uniqueChar) {
-    return categoryOptionApiActions
-        .post(createCategoryOption("source 1" + uniqueChar))
-        .validateStatus(201)
-        .extractUid();
-  }
-
-  private String createCategoryOption(String name) {
-    return """
-      {
-         "name": "%s",
-         "shortName": "%s"
-       }
-    """
-        .formatted(name, name);
-  }
-
-  private JsonObject getMergeBody(
-      String source1, String source2, String target, boolean deleteSources, String mergeStrategy) {
+  private JsonObject getMergeBody() {
     JsonObject json = new JsonObject();
     JsonArray sources = new JsonArray();
-    sources.add(source1);
-    sources.add(source2);
+    sources.add(sourceUid1);
+    sources.add(sourceUid2);
     json.add("sources", sources);
-    json.addProperty("target", target);
-    json.addProperty("deleteSources", deleteSources);
-    json.addProperty("dataMergeStrategy", mergeStrategy);
+    json.addProperty("target", targetUid);
+    json.addProperty("deleteSources", true);
     return json;
+  }
+
+  private String metadata() {
+    return """
+          {
+              "categoryOptions": [
+                  {
+                      "id": "CatOptUid90",
+                      "name": "cat opt 0",
+                      "shortName": "cat opt 0",
+                      "organisationUnits": [
+                          {
+                              "id": "OrgUnitUid0"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CatOptUid91",
+                      "name": "cat opt 1",
+                      "shortName": "cat opt 1",
+                      "organisationUnits": [
+                          {
+                              "id": "OrgUnitUid1"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CatOptUid92",
+                      "name": "cat opt 2",
+                      "shortName": "cat opt 2",
+                      "organisationUnits": [
+                          {
+                              "id": "OrgUnitUid2"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CatOptUid93",
+                      "name": "cat opt 3",
+                      "shortName": "cat opt 3",
+                      "organisationUnits": [
+                          {
+                              "id": "OrgUnitUid3"
+                          }
+                      ]
+                  }
+              ],
+              "categories": [
+                  {
+                      "id": "CategoUid90",
+                      "name": "cat 0",
+                      "shortName": "cat 0",
+                      "dataDimensionType": "DISAGGREGATION",
+                      "categoryOptions": [
+                          {
+                              "id": "CatOptUid90"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CategoUid91",
+                      "name": "cat 1",
+                      "shortName": "cat 1",
+                      "dataDimensionType": "DISAGGREGATION",
+                      "categoryOptions": [
+                          {
+                              "id": "CatOptUid91"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CategoUid92",
+                      "name": "cat 2",
+                      "shortName": "cat 2",
+                      "dataDimensionType": "DISAGGREGATION",
+                      "categoryOptions": [
+                          {
+                              "id": "CatOptUid92"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CategoUid93",
+                      "name": "cat 3",
+                      "shortName": "cat 3",
+                      "dataDimensionType": "DISAGGREGATION",
+                      "categoryOptions": [
+                          {
+                              "id": "CatOptUid93"
+                          }
+                      ]
+                  }
+              ],
+              "categoryOptionCombos": [
+                  {
+                      "id": "CatOptCom90",
+                      "name": "cat option combo 1",
+                      "categoryOptions": [
+                          {
+                              "id": "CatOptUid90"
+                          },
+                          {
+                              "id": "CatOptUid93"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CatOptCom91",
+                      "name": "cat option combo 2",
+                      "categoryOptions": [
+                          {
+                              "id": "CatOptUid91"
+                          },
+                          {
+                              "id": "CatOptUid92"
+                          }
+                      ]
+                  }
+              ],
+              "organisationUnits": [
+                  {
+                      "id": "OrgUnitUid0",
+                      "name": "org 0",
+                      "shortName": "org 0",
+                      "openingDate": "2023-06-15"
+                  },
+                  {
+                      "id": "OrgUnitUid1",
+                      "name": "org 1",
+                      "shortName": "org 1",
+                      "openingDate": "2024-06-15"
+                  },
+                  {
+                      "id": "OrgUnitUid2",
+                      "name": "org 2",
+                      "shortName": "org 2",
+                      "openingDate": "2023-09-15"
+                  },
+                  {
+                      "id": "OrgUnitUid3",
+                      "name": "org 3",
+                      "shortName": "org 3",
+                      "openingDate": "2023-06-25"
+                  }
+              ],
+              "categoryOptionGroups": [
+                  {
+                      "id": "CatOptGrp00",
+                      "name": "cog 0",
+                      "shortName": "cog 0",
+                      "dataDimensionType": "DISAGGREGATION",
+                      "categoryOptions":[
+                          {
+                              "id": "CatOptUid90"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CatOptGrp01",
+                      "name": "cog 1",
+                      "shortName": "cog 1",
+                      "dataDimensionType": "DISAGGREGATION",
+                      "categoryOptions":[
+                          {
+                              "id": "CatOptUid91"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CatOptGrp02",
+                      "name": "cog 2",
+                      "shortName": "cog 2",
+                      "dataDimensionType": "DISAGGREGATION",
+                      "categoryOptions":[
+                          {
+                              "id": "CatOptUid92"
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CatOptGrp03",
+                      "name": "cog 3",
+                      "shortName": "cog 3",
+                      "dataDimensionType": "DISAGGREGATION",
+                      "categoryOptions":[
+                          {
+                              "id": "CatOptUid93"
+                          }
+                      ]
+                  }
+              ]
+          }
+          """;
   }
 }
