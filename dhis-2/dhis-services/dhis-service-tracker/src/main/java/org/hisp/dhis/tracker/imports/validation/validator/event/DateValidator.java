@@ -83,7 +83,7 @@ class DateValidator implements Validator<Event> {
 
   private void validateExpiryDays(
       Reporter reporter, Event event, Program program, UserDetails user) {
-    if (user.isAuthorized(Authorities.F_EDIT_EXPIRED.name()) || event.getCompletedAt() == null) {
+    if (event.getCompletedAt() == null || user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       return;
     }
 

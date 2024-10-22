@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
+import static org.hisp.dhis.program.EnrollmentStatus.*;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1020;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1021;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1023;
@@ -36,7 +37,6 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1052;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Objects;
-import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
@@ -65,7 +65,9 @@ class DateValidator implements Validator<Enrollment> {
 
   private void validateCompletedDateIsSetOnlyForSupportedStatus(
       Reporter reporter, Enrollment enrollment) {
-    if (enrollment.getCompletedAt() != null && EnrollmentStatus.ACTIVE == enrollment.getStatus()) {
+    if (enrollment.getCompletedAt() != null
+        && enrollment.getStatus() != COMPLETED
+        && enrollment.getStatus() != CANCELLED) {
       reporter.addError(enrollment, E1052, enrollment, enrollment.getStatus());
     }
   }
