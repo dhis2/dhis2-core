@@ -35,6 +35,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1023;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1025;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1052;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasNoError;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.Mockito.when;
 
@@ -52,6 +53,8 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -186,5 +189,24 @@ class DateValidatorTest {
     validator.validate(reporter, bundle, enrollment);
 
     assertHasError(reporter, enrollment, E1052);
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = EnrollmentStatus.class,
+      names = {"COMPLETED", "CANCELLED"})
+  void shouldValidateWhenCompletedAtIsPresentAndStatusAcceptCompletedAt(EnrollmentStatus status) {
+    Enrollment enrollment = new Enrollment();
+    enrollment.setEnrollment(CodeGenerator.generateUid());
+    enrollment.setProgram(MetadataIdentifier.ofUid(CodeGenerator.generateUid()));
+    enrollment.setOccurredAt(now());
+    enrollment.setCompletedAt(now());
+    enrollment.setStatus(status);
+
+    when(preheat.getProgram(enrollment.getProgram())).thenReturn(new Program());
+
+    validator.validate(reporter, bundle, enrollment);
+
+    assertHasNoError(reporter, enrollment, E1052);
   }
 }

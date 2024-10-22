@@ -148,7 +148,7 @@ public class TrackerObjectsMapper {
           enrollment.getCompletedAt() == null
               ? now
               : DateUtils.fromInstant(enrollment.getCompletedAt());
-      switch (dbEnrollment.getStatus()) {
+      switch (enrollment.getStatus()) {
         case ACTIVE -> {
           dbEnrollment.setCompletedDate(null);
           dbEnrollment.setCompletedBy(null);

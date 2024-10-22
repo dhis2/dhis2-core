@@ -65,8 +65,7 @@ class DateValidator implements Validator<Enrollment> {
 
   private void validateCompletedDateIsSetOnlyForSupportedStatus(
       Reporter reporter, Enrollment enrollment) {
-    if (enrollment.getCompletedAt() != null
-        && EnrollmentStatus.COMPLETED != enrollment.getStatus()) {
+    if (enrollment.getCompletedAt() != null && EnrollmentStatus.ACTIVE == enrollment.getStatus()) {
       reporter.addError(enrollment, E1052, enrollment, enrollment.getStatus());
     }
   }
