@@ -502,6 +502,10 @@ public interface OpenApiObject extends JsonObject {
       return getString("type").string();
     }
 
+    default boolean isReadOnly() {
+      return getBoolean("readOnly").booleanValue(false);
+    }
+
     default boolean isAnyType() {
       return "any".equalsIgnoreCase($type());
     }
