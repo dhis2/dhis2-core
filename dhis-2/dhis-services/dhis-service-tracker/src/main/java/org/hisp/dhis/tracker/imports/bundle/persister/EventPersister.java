@@ -167,39 +167,38 @@ public class EventPersister
             .orElse(new HashMap<>());
 
     payloadDataValues.forEach(
-        dv -> {
-          DataElement dataElement = preheat.getDataElement(dv.getDataElement());
+        dataValue -> {
+          DataElement dataElement = preheat.getDataElement(dataValue.getDataElement());
+          EventDataValue dbDataValue = dataValueDBMap.get(dataElement.getUid());
 
-          // EventDataValue.dataElement contains a UID
-          EventDataValue eventDataValue = dataValueDBMap.get(dataElement.getUid());
-
-          if (isNewDataValue(eventDataValue, dv)) {
-            logTrackedEntityDataValueHistory(
+          if (isNewDataValue(dbDataValue, dataValue)) {
+            logDataValueChange(
                 user.getUsername(),
                 dataElement,
                 event,
-                dv.getValue(),
-                dv.isProvidedElsewhere(),
+                dataValue.getValue(),
+                dataValue.isProvidedElsewhere(),
                 ChangeLogType.CREATE);
-            saveDataValue(dv, event, dataElement, user, entityManager, preheat);
-          } else if (isUpdate(eventDataValue, dv)) {
-            logTrackedEntityDataValueHistory(
+            saveDataValue(dataValue, event, dataElement, user, entityManager, preheat);
+          } else if (isUpdate(dbDataValue, dataValue)) {
+            logDataValueChange(
                 user.getUsername(),
                 dataElement,
                 event,
-                eventDataValue.getValue(),
-                eventDataValue.getProvidedElsewhere(),
+                dbDataValue.getValue(),
+                dbDataValue.getProvidedElsewhere(),
                 ChangeLogType.UPDATE);
-            updateDataValue(eventDataValue, dv, event, dataElement, user, entityManager, preheat);
-          } else if (isDeletion(eventDataValue, dv)) {
-            logTrackedEntityDataValueHistory(
+            updateDataValue(
+                dbDataValue, dataValue, event, dataElement, user, entityManager, preheat);
+          } else if (isDeletion(dbDataValue, dataValue)) {
+            logDataValueChange(
                 user.getUsername(),
                 dataElement,
                 event,
-                eventDataValue.getValue(),
-                eventDataValue.getProvidedElsewhere(),
+                dbDataValue.getValue(),
+                dbDataValue.getProvidedElsewhere(),
                 ChangeLogType.DELETE);
-            deleteDataValue(eventDataValue, event, dataElement, entityManager, preheat);
+            deleteDataValue(dbDataValue, event, dataElement, entityManager, preheat);
           }
         });
   }
@@ -263,7 +262,7 @@ public class EventPersister
     event.getEventDataValues().remove(eventDataValue);
   }
 
-  private void logTrackedEntityDataValueHistory(
+  private void logDataValueChange(
       String userName,
       DataElement de,
       Event event,
@@ -271,16 +270,16 @@ public class EventPersister
       boolean providedElsewhere,
       ChangeLogType changeLogType) {
 
-    TrackedEntityDataValueChangeLog valueAudit = new TrackedEntityDataValueChangeLog();
-    valueAudit.setEvent(event);
-    valueAudit.setValue(value);
-    valueAudit.setAuditType(changeLogType);
-    valueAudit.setDataElement(de);
-    valueAudit.setModifiedBy(userName);
-    valueAudit.setProvidedElsewhere(providedElsewhere);
-    valueAudit.setCreated(new Date());
+    TrackedEntityDataValueChangeLog changeLog = new TrackedEntityDataValueChangeLog();
+    changeLog.setEvent(event);
+    changeLog.setValue(value);
+    changeLog.setAuditType(changeLogType);
+    changeLog.setDataElement(de);
+    changeLog.setModifiedBy(userName);
+    changeLog.setProvidedElsewhere(providedElsewhere);
+    changeLog.setCreated(new Date());
 
-    eventChangeLogService.addTrackedEntityDataValueChangeLog(valueAudit);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(changeLog);
   }
 
   @Override
