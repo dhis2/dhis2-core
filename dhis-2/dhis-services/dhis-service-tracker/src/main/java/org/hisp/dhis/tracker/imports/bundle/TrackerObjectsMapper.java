@@ -141,17 +141,21 @@ public class TrackerObjectsMapper {
 
     if (enrollment.getStatus() != dbEnrollment.getStatus()) {
       dbEnrollment.setStatus(enrollment.getStatus());
-      switch (dbEnrollment.getStatus()) {
+      Date completedDate =
+          enrollment.getCompletedAt() == null
+              ? now
+              : DateUtils.fromInstant(enrollment.getCompletedAt());
+      switch (enrollment.getStatus()) {
         case ACTIVE -> {
           dbEnrollment.setCompletedDate(null);
           dbEnrollment.setCompletedBy(null);
         }
         case COMPLETED -> {
-          dbEnrollment.setCompletedDate(now);
+          dbEnrollment.setCompletedDate(completedDate);
           dbEnrollment.setCompletedBy(user.getUsername());
         }
         case CANCELLED -> {
-          dbEnrollment.setCompletedDate(now);
+          dbEnrollment.setCompletedDate(completedDate);
           dbEnrollment.setCompletedBy(null);
         }
       }
@@ -208,7 +212,8 @@ public class TrackerObjectsMapper {
     EventStatus currentStatus = event.getStatus();
     EventStatus previousStatus = dbEvent.getStatus();
     if (currentStatus != previousStatus && currentStatus == EventStatus.COMPLETED) {
-      dbEvent.setCompletedDate(now);
+      dbEvent.setCompletedDate(
+          event.getCompletedAt() == null ? now : DateUtils.fromInstant(event.getCompletedAt()));
       dbEvent.setCompletedBy(user.getUsername());
     }
 
