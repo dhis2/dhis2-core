@@ -46,6 +46,9 @@ import org.hisp.dhis.dashboard.design.Layout;
 import org.hisp.dhis.dashboard.embedded.EmbeddedDashboard;
 
 /**
+ * Encapsulates information about an embedded dashboard. An embedded dashboard is typically loaded
+ * from an external provider.
+ *
  * @author Lars Helge Overland
  */
 @NoArgsConstructor
@@ -68,7 +71,7 @@ public class Dashboard extends BaseNameableObject implements MetadataObject {
   /** Allowed filter dimensions (if any) which may be used for the dashboard. */
   private List<String> allowedFilters = new ArrayList<>();
 
-  /** Optional, only set if this dashboard is embedded and sourced from an external provider. */
+  /** Optional, only set if this dashboard is embedded and loaded from an external provider. */
   private EmbeddedDashboard embedded;
 
   // -------------------------------------------------------------------------
