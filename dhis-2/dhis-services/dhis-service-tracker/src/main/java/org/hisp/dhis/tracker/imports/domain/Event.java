@@ -78,8 +78,6 @@ public class Event implements TrackerDto, Serializable {
   @JsonProperty @Builder.Default
   private Set<MetadataIdentifier> attributeCategoryOptions = new HashSet<>();
 
-  @JsonProperty private String completedBy;
-
   @JsonProperty private Instant completedAt;
 
   @JsonProperty private Geometry geometry;

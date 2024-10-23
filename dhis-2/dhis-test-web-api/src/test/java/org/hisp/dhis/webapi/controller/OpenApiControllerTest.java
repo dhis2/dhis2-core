@@ -32,6 +32,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertGreaterOrEqual;
 import static org.hisp.dhis.test.utils.Assertions.assertLessOrEqual;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
@@ -43,6 +44,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
@@ -147,6 +149,28 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
             .findFirst()
             .orElse(JsonMixed.of("{}"));
     assertEquals(50, pageSize.getNumber("schema.default").integer());
+  }
+
+  @Test
+  void testGetOpenApiDocument_ReadOnly() {
+    JsonObject doc = GET("/openapi/openapi.json?domain=JobConfiguration").content();
+    JsonObject jobConfiguration = doc.getObject("components.schemas.JobConfiguration");
+    JsonObject jobConfigurationParams = doc.getObject("components.schemas.JobConfigurationParams");
+    assertTrue(jobConfiguration.isObject());
+    assertTrue(jobConfigurationParams.isObject());
+    assertTrue(
+        jobConfiguration.getObject("properties").size()
+            > jobConfigurationParams.getObject("properties").size());
+    assertTrue(
+        jobConfiguration
+            .node()
+            .find(JsonNodeType.BOOLEAN, n -> n.getPath().toString().endsWith("readOnly"))
+            .isPresent());
+    assertFalse(
+        jobConfigurationParams
+            .node()
+            .find(JsonNodeType.BOOLEAN, n -> n.getPath().toString().endsWith("readOnly"))
+            .isPresent());
   }
 
   @Test
