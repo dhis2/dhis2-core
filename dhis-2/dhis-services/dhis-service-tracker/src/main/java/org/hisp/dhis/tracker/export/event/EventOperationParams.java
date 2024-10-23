@@ -129,10 +129,10 @@ public class EventOperationParams {
   @Builder.Default private Set<UID> events = new HashSet<>();
 
   /** Data element filters per data element UID. */
-  @Builder.Default private Map<String, List<QueryFilter>> dataElementFilters = new HashMap<>();
+  @Builder.Default private Map<UID, List<QueryFilter>> dataElementFilters = new HashMap<>();
 
   /** Tracked entity attribute filters per attribute UID. */
-  @Builder.Default private Map<String, List<QueryFilter>> attributeFilters = new HashMap<>();
+  @Builder.Default private Map<UID, List<QueryFilter>> attributeFilters = new HashMap<>();
 
   private boolean includeDeleted;
 

@@ -197,10 +197,10 @@ class EventOperationParamsMapper {
   }
 
   private void mapDataElementFilters(
-      EventQueryParams params, Map<String, List<QueryFilter>> dataElementFilters)
+      EventQueryParams params, Map<UID, List<QueryFilter>> dataElementFilters)
       throws BadRequestException {
-    for (Entry<String, List<QueryFilter>> dataElementFilter : dataElementFilters.entrySet()) {
-      DataElement de = dataElementService.getDataElement(dataElementFilter.getKey());
+    for (Entry<UID, List<QueryFilter>> dataElementFilter : dataElementFilters.entrySet()) {
+      DataElement de = dataElementService.getDataElement(dataElementFilter.getKey().getValue());
       if (de == null) {
         throw new BadRequestException(
             String.format(
@@ -215,11 +215,12 @@ class EventOperationParamsMapper {
   }
 
   private void mapAttributeFilters(
-      EventQueryParams params, Map<String, List<QueryFilter>> attributeFilters)
+      EventQueryParams params, Map<UID, List<QueryFilter>> attributeFilters)
       throws BadRequestException {
-    for (Map.Entry<String, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
+    for (Map.Entry<UID, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
       TrackedEntityAttribute tea =
-          trackedEntityAttributeService.getTrackedEntityAttribute(attributeFilter.getKey());
+          trackedEntityAttributeService.getTrackedEntityAttribute(
+              attributeFilter.getKey().getValue());
       if (tea == null) {
         throw new BadRequestException(
             String.format(
