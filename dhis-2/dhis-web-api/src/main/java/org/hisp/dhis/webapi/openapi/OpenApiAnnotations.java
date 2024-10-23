@@ -34,6 +34,9 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -44,6 +47,7 @@ import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * Utility with helpers to evaluate properties based on {@link org.hisp.dhis.common.OpenApi}
@@ -53,6 +57,9 @@ import org.hisp.dhis.common.OpenApi;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 class OpenApiAnnotations {
+
+  private static final Map<Class<?>, Map<String, String>> CONTROLLER_CLASSIFIERS_CACHE =
+      new ConcurrentHashMap<>();
 
   @CheckForNull
   static Class<?> getEntityType(@Nonnull Class<?> controller) {
@@ -116,6 +123,30 @@ class OpenApiAnnotations {
     return domain == null ? Object.class : domain;
   }
 
+  @Nonnull
+  static Map<String, String> getClassifiers(@Nonnull Class<?> controller) {
+    return CONTROLLER_CLASSIFIERS_CACHE.computeIfAbsent(
+        controller, OpenApiAnnotations::getClassifiersInternal);
+  }
+
+  @Nonnull
+  private static Map<String, String> getClassifiersInternal(@Nonnull Class<?> controller) {
+    Map<String, String> classifiers = new TreeMap<>();
+    classifiers.put("controller", controller.getSimpleName());
+    classifiers.put("entity", getDomain(controller).getSimpleName());
+    RequestMapping mapping = controller.getAnnotation(RequestMapping.class);
+    if (mapping != null && mapping.value().length == 1 && mapping.value()[0].startsWith("/api/"))
+      classifiers.put("path", mapping.value()[0]);
+    OpenApi.Document doc = controller.getAnnotation(OpenApi.Document.class);
+    if (doc == null) return classifiers;
+    String[] source = doc.classifiers();
+    if (source.length == 0) return classifiers;
+    Stream.of(source)
+        .forEach(
+            e -> classifiers.put(e.substring(0, e.indexOf(':')), e.substring(e.indexOf(':') + 1)));
+    return classifiers;
+  }
+
   @CheckForNull
   static OpenApi.Kind getKind(@Nonnull Class<?> schemaRawType) {
     Class<?> source = firstImplementedTypeWithAnnotation(schemaRawType, OpenApi.Kind.class);
@@ -123,12 +154,6 @@ class OpenApiAnnotations {
     if (schemaRawType.getEnclosingClass() != null)
       return getKind(schemaRawType.getEnclosingClass());
     return null;
-  }
-
-  @CheckForNull
-  static OpenApi.Team getTeam(@Nonnull Class<?> controllerOrSchema) {
-    Class<?> source = firstImplementedTypeWithAnnotation(controllerOrSchema, OpenApi.Team.class);
-    return source == null ? null : source.getAnnotation(OpenApi.Team.class);
   }
 
   private static Class<?> firstImplementedTypeWithAnnotation(
