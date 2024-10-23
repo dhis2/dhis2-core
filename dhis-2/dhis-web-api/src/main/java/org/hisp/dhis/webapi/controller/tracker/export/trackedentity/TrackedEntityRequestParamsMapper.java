@@ -162,9 +162,7 @@ class TrackedEntityRequestParamsMapper {
                     trackedEntityRequestParams.getEventOccurredBefore(), EndDateTime::toDate))
             .assignedUserQueryParam(
                 new AssignedUserQueryParam(
-                    trackedEntityRequestParams.getAssignedUserMode(),
-                    UID.toValueSet(assignedUsers),
-                    user.getUid()))
+                    trackedEntityRequestParams.getAssignedUserMode(), assignedUsers, UID.of(user)))
             .trackedEntityUids(UID.toValueSet(trackedEntities))
             .filters(filters)
             .includeDeleted(trackedEntityRequestParams.isIncludeDeleted())
