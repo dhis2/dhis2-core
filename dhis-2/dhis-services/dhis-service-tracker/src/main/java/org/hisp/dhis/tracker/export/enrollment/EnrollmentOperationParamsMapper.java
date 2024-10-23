@@ -31,11 +31,13 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
+import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 
 import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -63,14 +65,18 @@ class EnrollmentOperationParamsMapper {
   public EnrollmentQueryParams map(
       @Nonnull EnrollmentOperationParams operationParams, @Nonnull UserDetails user)
       throws BadRequestException, ForbiddenException {
-    Program program = paramsValidator.validateTrackerProgram(operationParams.getProgramUid(), user);
+    Program program =
+        paramsValidator.validateTrackerProgram(
+            applyIfNotNull(operationParams.getProgram(), UID::getValue), user);
     TrackedEntityType trackedEntityType =
-        paramsValidator.validateTrackedEntityType(operationParams.getTrackedEntityTypeUid(), user);
+        paramsValidator.validateTrackedEntityType(
+            applyIfNotNull(operationParams.getTrackedEntityType(), UID::getValue), user);
     TrackedEntity trackedEntity =
-        paramsValidator.validateTrackedEntity(operationParams.getTrackedEntityUid(), user);
+        paramsValidator.validateTrackedEntity(
+            applyIfNotNull(operationParams.getTrackedEntity(), UID::getValue), user);
 
     Set<OrganisationUnit> orgUnits =
-        paramsValidator.validateOrgUnits(operationParams.getOrgUnitUids(), user);
+        paramsValidator.validateOrgUnits(UID.toValueSet(operationParams.getOrgUnits()), user);
     validateOrgUnitMode(operationParams.getOrgUnitMode(), program, user);
 
     EnrollmentQueryParams params = new EnrollmentQueryParams();
@@ -87,7 +93,7 @@ class EnrollmentOperationParamsMapper {
     params.setOrganisationUnitMode(operationParams.getOrgUnitMode());
     params.setIncludeDeleted(operationParams.isIncludeDeleted());
     params.setOrder(operationParams.getOrder());
-    params.setEnrollmentUids(operationParams.getEnrollmentUids());
+    params.setEnrollments(operationParams.getEnrollments());
 
     mergeOrgUnitModes(operationParams, params, user);
 
