@@ -29,11 +29,11 @@ package org.hisp.dhis.tracker.imports.validation.validator.event;
 
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1031;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1042;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1043;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1046;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1047;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1050;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1051;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.mockito.Mockito.when;
 
@@ -174,7 +174,7 @@ class DateValidatorTest extends TestBase {
   }
 
   @Test
-  void testEventIsNotValidWhenCompletedAtIsNotPresentAndEventIsCompleted() {
+  void shouldFailWhenCompletedAtIsPresentAndStatusIsNotCompleted() {
     // given
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
         .thenReturn(getProgramWithRegistration());
@@ -182,13 +182,12 @@ class DateValidatorTest extends TestBase {
     event.setEvent(CodeGenerator.generateUid());
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
     event.setOccurredAt(now());
-    event.setStatus(EventStatus.COMPLETED);
+    event.setCompletedAt(now());
+    event.setStatus(EventStatus.ACTIVE);
 
-    // when
     validator.validate(reporter, bundle, event);
 
-    // then
-    assertHasError(reporter, event, E1042);
+    assertHasError(reporter, event, E1051);
   }
 
   @Test

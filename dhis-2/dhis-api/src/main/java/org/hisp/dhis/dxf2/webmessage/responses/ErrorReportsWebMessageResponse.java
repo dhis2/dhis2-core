@@ -30,44 +30,38 @@ package org.hisp.dhis.dxf2.webmessage.responses;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.List;
+import javax.annotation.Nonnull;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
-import org.hisp.dhis.feedback.Stats;
-import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.feedback.TypeReport;
-import org.springframework.util.Assert;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement(localName = "importReport", namespace = DxfNamespaces.DXF_2_0)
-public class ImportReportWebMessageResponse extends AbstractWebMessageResponse {
-  private final ImportReport importReport;
+@Setter
+@Getter
+@RequiredArgsConstructor
+public class ErrorReportsWebMessageResponse implements WebMessageResponse {
 
-  public ImportReportWebMessageResponse(ImportReport importReport) {
-    Assert.notNull(importReport, "ImportReport is require to be non-null.");
-    this.importReport = importReport;
+  private final List<ErrorReport> errorReports;
+
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return ErrorReportsWebMessageResponse.class;
   }
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Status getStatus() {
-    return importReport.getStatus();
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Stats getStats() {
-    return importReport.getStats();
-  }
-
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "typeReports", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "typeReport", namespace = DxfNamespaces.DXF_2_0)
-  public List<TypeReport> getTypeReports() {
-    return importReport.getTypeReports();
+  @JacksonXmlElementWrapper(
+      localName = "errorReports",
+      namespace = DxfNamespaces.DXF_2_0,
+      useWrapping = false)
+  @JacksonXmlProperty(localName = "errorReport", namespace = DxfNamespaces.DXF_2_0)
+  public List<ErrorReport> getErrorReports() {
+    return errorReports;
   }
 }

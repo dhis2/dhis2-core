@@ -31,6 +31,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -38,6 +39,8 @@ import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.setting.SessionUserSettings;
 import org.hisp.dhis.setting.Settings;
@@ -110,10 +113,11 @@ public class DefaultUserSettingsService implements UserSettingsService, UserSess
 
   @Override
   @Transactional
-  public void put(@Nonnull String key, Serializable value) {
+  public void put(@Nonnull String key, Serializable value)
+      throws NotFoundException, BadRequestException {
     try {
       put(key, value, CurrentUserUtil.getCurrentUsername());
-    } catch (NotFoundException ex) {
+    } catch (ConflictException ex) {
       // we know the user exists so this should never happen
       throw new NoSuchElementException(ex);
     }
@@ -122,17 +126,20 @@ public class DefaultUserSettingsService implements UserSettingsService, UserSess
   @Override
   @Transactional
   public void put(@Nonnull String key, @CheckForNull Serializable value, @Nonnull String username)
-      throws NotFoundException {
+      throws NotFoundException, BadRequestException, ConflictException {
     putAll(Map.of(key, Settings.valueOf(value)), username);
   }
 
   @Override
   @Transactional
   public void putAll(@Nonnull Map<String, String> settings, @Nonnull String username)
-      throws NotFoundException {
+      throws NotFoundException, BadRequestException, ConflictException {
+    if (settings.isEmpty()) return;
+    validateAll(settings);
+
     User user = userStore.getUserByUsername(username);
     if (user == null)
-      throw new NotFoundException(
+      throw new ConflictException(
           "%s with username %s could not be found."
               .formatted(User.class.getSimpleName(), username));
     Set<String> deletes = new HashSet<>();
@@ -147,6 +154,21 @@ public class DefaultUserSettingsService implements UserSettingsService, UserSess
     }
     if (!deletes.isEmpty()) userSettingStore.delete(username, deletes);
     updateSession(username);
+  }
+
+  private void validateAll(@Nonnull Map<String, String> settings)
+      throws NotFoundException, BadRequestException {
+    Set<String> allowed = UserSettings.keysWithDefaults();
+    List<String> illegal =
+        settings.keySet().stream().filter(key -> !allowed.contains(key)).toList();
+    if (!illegal.isEmpty())
+      throw new NotFoundException("Setting does not exist: " + String.join(",", illegal));
+    UserSettings empty = UserSettings.of(Map.of());
+    for (Map.Entry<String, String> e : settings.entrySet()) {
+      if (!empty.isValid(e.getKey(), e.getValue()))
+        throw new BadRequestException(
+            "Not a valid value for setting %s: %s".formatted(e.getKey(), e.getValue()));
+    }
   }
 
   @Override

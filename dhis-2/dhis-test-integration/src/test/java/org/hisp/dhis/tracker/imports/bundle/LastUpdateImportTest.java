@@ -478,12 +478,13 @@ class LastUpdateImportTest extends TrackerTest {
   }
 
   void enrollTrackerEntity() {
-    trackedEntity.setEnrollments(List.of(enrollment));
-
     assertNoErrors(
         trackerImportService.importTracker(
             new TrackerImportParams(),
-            TrackerObjects.builder().trackedEntities(List.of(trackedEntity)).build()));
+            TrackerObjects.builder()
+                .trackedEntities(List.of(trackedEntity))
+                .enrollments(List.of(enrollment))
+                .build()));
   }
 
   /**

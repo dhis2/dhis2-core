@@ -39,7 +39,6 @@ import static org.hisp.dhis.tracker.imports.validation.validator.Field.field;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -177,6 +176,6 @@ class FieldTest {
   }
 
   private List<String> actualErrorMessages() {
-    return reporter.getErrors().stream().map(Error::getMessage).collect(Collectors.toList());
+    return reporter.getErrors().stream().map(Error::getMessage).toList();
   }
 }

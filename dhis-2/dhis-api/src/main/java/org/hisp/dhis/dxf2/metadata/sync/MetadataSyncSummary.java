@@ -25,32 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preprocess;
+package org.hisp.dhis.dxf2.metadata.sync;
 
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.annotation.Nonnull;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.hisp.dhis.dxf2.common.ImportSummary;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.metadata.version.MetadataVersion;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 /**
- * This preprocessor is responsible for populating the bidirectional field with the value from the
- * RelationshipType
+ * Defines the structure of metadata sync summary
  *
- * @author Enrico Colasante
+ * @author vanyas
  */
-@Component
-public class BidirectionalRelationshipsPreProcessor implements BundlePreProcessor {
+@Getter
+@Setter
+@ToString
+public class MetadataSyncSummary implements WebMessageResponse {
 
+  @JsonProperty private ImportReport importReport;
+  @JsonProperty private ImportSummary importSummary;
+  @JsonProperty private MetadataVersion metadataVersion;
+
+  @Nonnull
   @Override
-  public void process(TrackerBundle bundle) {
-    bundle
-        .getRelationships()
-        .forEach(
-            rel -> {
-              RelationshipType relType =
-                  bundle.getPreheat().getRelationshipType(rel.getRelationshipType());
-              if (relType != null) {
-                rel.setBidirectional(relType.isBidirectional());
-              }
-            });
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return MetadataSyncSummary.class;
   }
 }

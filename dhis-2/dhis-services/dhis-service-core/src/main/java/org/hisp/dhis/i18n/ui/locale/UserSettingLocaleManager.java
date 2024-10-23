@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.i18n.ui.locale;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import javax.annotation.CheckForNull;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManagerException;
@@ -45,27 +46,11 @@ import org.springframework.stereotype.Component;
  * @author Torgeir Lorange Ostby
  */
 @Component("org.hisp.dhis.i18n.locale.LocaleManager")
+@RequiredArgsConstructor
 public class UserSettingLocaleManager implements LocaleManager {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
 
   private final UserSettingsService userSettingsService;
-
   private final ResourceBundleManager resourceBundleManager;
-
-  public UserSettingLocaleManager(
-      UserSettingsService userSettingsService, ResourceBundleManager resourceBundleManager) {
-    checkNotNull(userSettingsService);
-    checkNotNull(resourceBundleManager);
-
-    this.userSettingsService = userSettingsService;
-    this.resourceBundleManager = resourceBundleManager;
-  }
-
-  // -------------------------------------------------------------------------
-  // LocaleManager implementation
-  // -------------------------------------------------------------------------
 
   @Override
   public Locale getCurrentLocale() {
@@ -84,7 +69,12 @@ public class UserSettingLocaleManager implements LocaleManager {
 
   @Override
   public void setCurrentLocale(Locale locale) {
-    userSettingsService.put("keyUiLocale", locale);
+    try {
+      userSettingsService.put("keyUiLocale", locale);
+    } catch (NotFoundException | BadRequestException ex) {
+      // this should never happen as this key-value combination is valid
+      throw new IllegalArgumentException(ex);
+    }
   }
 
   @Override

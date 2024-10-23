@@ -25,45 +25,69 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.webmessage.responses;
+package org.hisp.dhis.dxf2.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.ObjectReport;
-import org.springframework.util.Assert;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dxf2.importsummary.ImportCount;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ObjectReportWebMessageResponse extends AbstractWebMessageResponse {
-  private final ObjectReport objectReport;
+@JacksonXmlRootElement(localName = "importSummary", namespace = DxfNamespaces.DXF_2_0)
+@OpenApi.Shared(name = "ImportTypesSummary")
+public class ImportSummary {
+  private ImportCount importCount = new ImportCount();
 
-  public ObjectReportWebMessageResponse(ObjectReport objectReport) {
-    Assert.notNull(objectReport, "ObjectReport is required to be non-null.");
-    this.objectReport = objectReport;
+  private List<ImportTypeSummary> importTypeSummaries = new ArrayList<>();
+
+  public ImportSummary() {}
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ImportCount getImportCount() {
+    return importCount;
+  }
+
+  public void setImportCount(ImportCount importCount) {
+    this.importCount = importCount;
   }
 
   @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  public Class<?> getKlass() {
-    return objectReport.getKlass();
+  @JacksonXmlElementWrapper(localName = "typeSummaries", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "typeSummary", namespace = DxfNamespaces.DXF_2_0)
+  public List<ImportTypeSummary> getImportTypeSummaries() {
+    return importTypeSummaries;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  public String getUid() {
-    return objectReport.getUid();
+  public void setImportTypeSummaries(List<ImportTypeSummary> importTypeSummaries) {
+    this.importTypeSummaries = importTypeSummaries;
   }
 
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "errorReports", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "errorReport", namespace = DxfNamespaces.DXF_2_0)
-  public List<ErrorReport> getErrorReports() {
-    return objectReport.getErrorReports();
+  // -------------------------------------------------------------------------
+  // Helpers
+  // -------------------------------------------------------------------------
+
+  public void incrementImportCount(ImportCount importCount) {
+    this.importCount.incrementImported(importCount.getImported());
+    this.importCount.incrementUpdated(importCount.getUpdated());
+    this.importCount.incrementIgnored(importCount.getIgnored());
+    this.importCount.incrementDeleted(importCount.getDeleted());
+  }
+
+  @Override
+  public String toString() {
+    return "ImportSummary{"
+        + "importCount="
+        + importCount
+        + ", importTypeSummaries="
+        + importTypeSummaries
+        + '}';
   }
 }

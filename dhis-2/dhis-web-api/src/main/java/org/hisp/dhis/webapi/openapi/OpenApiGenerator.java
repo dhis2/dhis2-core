@@ -472,6 +472,7 @@ public class OpenApiGenerator extends JsonGenerator {
                 property.getName(),
                 () -> {
                   generateSchemaOrRef(property.getType(), direction);
+                  addTrueMember("readOnly", property.getAccess() == OpenApi.Access.READ);
                   addStringMember("description", property.getDescription().orElse(NO_DESCRIPTION));
                   addStringMember("x-since", getSinceVersion(property.getSince()));
                 }));

@@ -32,6 +32,8 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.NotFoundException;
 
 /**
  * @author Jan Bernitt (refactored version)
@@ -48,6 +50,9 @@ public interface SystemSettingsService extends SystemSettingsProvider {
    * Saves a single setting with {@link Settings#valueOf(Serializable)} applied to the provided
    * value.
    *
+   * <p>This method is for internal use only. Therefore, if the key does not exist no exception is
+   * thrown but an error is logged.
+   *
    * @param key of the setting to insert or update
    * @param value of the setting, null or empty to delete
    */
@@ -57,8 +62,10 @@ public interface SystemSettingsService extends SystemSettingsProvider {
    * Saves the given system setting key and value.
    *
    * @param settings the new values, null or empty values delete the setting
+   * @throws NotFoundException if any of the provided keys is not a key contained in {@link
+   *     SystemSettings#keysWithDefaults()}
    */
-  void putAll(@Nonnull Map<String, String> settings);
+  void putAll(@Nonnull Map<String, String> settings) throws NotFoundException, BadRequestException;
 
   /**
    * Deletes the system setting with the given name.

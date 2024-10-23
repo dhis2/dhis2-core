@@ -36,6 +36,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -46,6 +47,7 @@ import org.hisp.dhis.dashboard.design.Layout;
 /**
  * @author Lars Helge Overland
  */
+@NoArgsConstructor
 @JacksonXmlRootElement(localName = "dashboard", namespace = DxfNamespaces.DXF_2_0)
 public class Dashboard extends BaseNameableObject implements MetadataObject {
   public static final int MAX_ITEMS = 40;
@@ -69,8 +71,6 @@ public class Dashboard extends BaseNameableObject implements MetadataObject {
   // Constructors
   // -------------------------------------------------------------------------
 
-  public Dashboard() {}
-
   public Dashboard(String name) {
     this.name = name;
   }
@@ -78,67 +78,6 @@ public class Dashboard extends BaseNameableObject implements MetadataObject {
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
-
-  /**
-   * Moves an item in the list. Returns true if the operation lead to a modification of the list
-   * order. Returns false if there are no items, the given position is out of bounds, the item is
-   * not present, if position is equal to current item index or if attempting to move an item one
-   * position to the right (pointless operation).
-   *
-   * @param uid the uid of the item to move.
-   * @param position the new index position of the item.
-   * @return true if the operation lead to a modification of order, false otherwise.
-   */
-  public boolean moveItem(String uid, int position) {
-    if (items == null || position < 0 || position > items.size()) {
-      return false; // No items or position out of bounds
-    }
-
-    int index = items.indexOf(new DashboardItem(uid));
-
-    if (index == -1 || index == position || (index + 1) == position) {
-      return false; // Not found, already at position or pointless move
-    }
-
-    DashboardItem item = items.get(index);
-
-    index = position < index ? (index + 1) : index; // New index after move
-
-    items.add(position, item); // Add item at position
-    items.remove(index); // Remove item at previous index
-
-    return true;
-  }
-
-  /**
-   * Returns the item with the given uid, or null if no item with the given uid is present for this
-   * dashboard.
-   *
-   * @param uid the item identifier.
-   * @return an item.
-   */
-  public DashboardItem getItemByUid(String uid) {
-    int index = items.indexOf(new DashboardItem(uid));
-
-    return index != -1 ? items.get(index) : null;
-  }
-
-  /**
-   * Returns an item from this dashboard of the given type which number of content is less than max.
-   * Returns null if no item matches the criteria.
-   *
-   * @param type the type of content to return.
-   * @return an item.
-   */
-  public DashboardItem getAvailableItemByType(DashboardItemType type) {
-    for (DashboardItem item : items) {
-      if (type.equals(item.getType()) && item.getContentCount() < DashboardItem.MAX_CONTENT) {
-        return item;
-      }
-    }
-
-    return null;
-  }
 
   /** Indicates whether this dashboard has at least one item. */
   public boolean hasItems() {

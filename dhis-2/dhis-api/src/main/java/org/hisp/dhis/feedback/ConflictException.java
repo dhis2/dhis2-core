@@ -36,11 +36,11 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.webmessage.WebMessageResponse;
+import org.hisp.dhis.webmessage.BasicWebMessage;
 
 @Getter
 @Accessors(chain = true)
-@OpenApi.Response(status = CONFLICT, value = WebMessageResponse.class)
+@OpenApi.Response(status = CONFLICT, value = BasicWebMessage.class)
 @SuppressWarnings({"java:S1165", "java:S1948"})
 public final class ConflictException extends Exception implements Error {
   public static <E extends RuntimeException, V> V on(Class<E> type, Supplier<V> operation)

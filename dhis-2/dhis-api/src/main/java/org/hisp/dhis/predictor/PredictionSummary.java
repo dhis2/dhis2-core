@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +25,65 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.imports;
+package org.hisp.dhis.predictor;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Data;
+import javax.annotation.Nonnull;
+import lombok.Getter;
+import lombok.ToString;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 
-@Data
-@Builder
-public class TrackerJobWebMessageResponse implements WebMessageResponse {
-  @JsonProperty private final String id;
+/**
+ * @author Jim Grace
+ */
+@ToString
+@Getter
+public class PredictionSummary implements WebMessageResponse {
 
-  @JsonProperty private final String location;
+  @JsonProperty private PredictionStatus status = PredictionStatus.SUCCESS;
+
+  @JsonProperty private String description;
+
+  @JsonProperty private int predictors = 0;
+  @JsonProperty private int inserted = 0;
+  @JsonProperty private int updated = 0;
+  @JsonProperty private int deleted = 0;
+  @JsonProperty private int unchanged = 0;
+
+  public PredictionSummary() {}
+
+  public PredictionSummary(PredictionStatus status, String description) {
+    this.status = status;
+    this.description = description;
+  }
+
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return PredictionSummary.class;
+  }
+
+  public void incrementInserted() {
+    inserted += 1;
+  }
+
+  public void incrementPredictors() {
+    predictors += 1;
+  }
+
+  public void incrementUpdated() {
+    updated += 1;
+  }
+
+  public void incrementDeleted() {
+    deleted += 1;
+  }
+
+  public void incrementUnchanged() {
+    unchanged += 1;
+  }
+
+  public int getPredictions() {
+    return inserted + updated + unchanged;
+  }
 }

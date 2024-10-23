@@ -72,7 +72,7 @@ jobs:
         if: failure()
         run: |
           cd dhis-2/dhis-test-e2e
-          docker-compose logs web > ~/logs.txt
+          docker compose logs web > ~/logs.txt
 
       - uses: actions/upload-artifact@v4
         if: failure()

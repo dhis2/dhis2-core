@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.util.Map.entry;
 import static org.hisp.dhis.common.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
@@ -48,7 +47,6 @@ import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.cache.OutliersCache;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.setting.Settings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.stereotype.Service;
@@ -118,19 +116,11 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
   private void updateLastSuccessfulSystemSettings(AnalyticsTableUpdateParams params, Clock clock) {
     if (params.isLatestUpdate()) {
-      settingsService.putAll(
-          Map.ofEntries(
-              entry(
-                  "keyLastSuccessfulLatestAnalyticsPartitionUpdate",
-                  Settings.valueOf(params.getStartTime())),
-              entry("keyLastSuccessfulLatestAnalyticsPartitionRuntime", clock.time())));
+      settingsService.put("keyLastSuccessfulLatestAnalyticsPartitionUpdate", params.getStartTime());
+      settingsService.put("keyLastSuccessfulLatestAnalyticsPartitionRuntime", clock.time());
     } else {
-      settingsService.putAll(
-          Map.ofEntries(
-              entry(
-                  "keyLastSuccessfulAnalyticsTablesUpdate",
-                  Settings.valueOf(params.getStartTime())),
-              entry("keyLastSuccessfulAnalyticsTablesRuntime", clock.time())));
+      settingsService.put("keyLastSuccessfulAnalyticsTablesUpdate", params.getStartTime());
+      settingsService.put("keyLastSuccessfulAnalyticsTablesRuntime", clock.time());
     }
   }
 

@@ -211,16 +211,6 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testAddItemContent() {
-    dashboardService.saveDashboard(dbA);
-    dashboardService.saveDashboard(dbB);
-    DashboardItem itemA =
-        dashboardService.addItemContent(dbA.getUid(), VISUALIZATION, vzA.getUid());
-    assertNotNull(itemA);
-    assertNotNull(itemA.getUid());
-  }
-
-  @Test
   void testSearchDashboard() {
     dashboardService.saveDashboard(dbA);
     dashboardService.saveDashboard(dbB);

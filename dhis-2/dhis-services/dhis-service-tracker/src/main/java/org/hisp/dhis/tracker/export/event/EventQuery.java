@@ -78,11 +78,11 @@ public class EventQuery {
     @Getter private final QueryElement queryElement;
 
     public String getColumnName() {
-      if (queryElement instanceof TableColumn) {
-        return ((TableColumn) queryElement).getColumn();
+      if (queryElement instanceof TableColumn tableColumn) {
+        return tableColumn.getColumn();
       }
-      if (queryElement instanceof Function) {
-        return ((Function) queryElement).getColumn();
+      if (queryElement instanceof Function function) {
+        return function.getColumn();
       }
       throw new IllegalArgumentException(
           "getColumnName can only be invoked on TableColumn or Function");

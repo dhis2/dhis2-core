@@ -25,20 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.importsummary;
+package org.hisp.dhis.dxf2.webmessage.responses;
 
-public enum ImportStatus {
-  SUCCESS(1),
-  WARNING(2),
-  ERROR(3);
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
-  private int order;
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+@RequiredArgsConstructor
+public class ObjectReportWebMessageResponse implements WebMessageResponse {
 
-  ImportStatus(int order) {
-    this.order = order;
+  @Nonnull private final ObjectReport objectReport;
+
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return ObjectReportWebMessageResponse.class;
   }
 
-  public int getOrder() {
-    return order;
+  @JsonProperty
+  public Class<?> getKlass() {
+    return objectReport.getKlass();
+  }
+
+  @JsonProperty
+  public String getUid() {
+    return objectReport.getUid();
+  }
+
+  @JsonProperty
+  public List<ErrorReport> getErrorReports() {
+    return objectReport.getErrorReports();
   }
 }

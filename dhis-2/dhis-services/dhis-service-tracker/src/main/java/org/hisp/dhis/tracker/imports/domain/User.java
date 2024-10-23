@@ -48,10 +48,6 @@ public class User implements Serializable {
 
   @JsonProperty private String username;
 
-  @JsonProperty private String firstName;
-
-  @JsonProperty private String surname;
-
   public boolean isEmpty() {
     return isBlank(uid) && isBlank(username);
   }

@@ -125,8 +125,12 @@ class DataApprovalAuditStoreTest extends PostgresIntegrationTestBase {
     dataApprovalLevelService.addDataApprovalLevel(level1);
     dataApprovalLevelService.addDataApprovalLevel(level2);
     PeriodType periodType = PeriodType.getPeriodTypeByName("Monthly");
-    workflowA = new DataApprovalWorkflow("workflowA", periodType, newHashSet(level1));
-    workflowB = new DataApprovalWorkflow("workflowB", periodType, newHashSet(level1, level2));
+    CategoryCombo defaultCategoryCombo = categoryService.getDefaultCategoryCombo();
+    workflowA =
+        new DataApprovalWorkflow("workflowA", periodType, defaultCategoryCombo, newHashSet(level1));
+    workflowB =
+        new DataApprovalWorkflow(
+            "workflowB", periodType, defaultCategoryCombo, newHashSet(level1, level2));
     dataApprovalService.addWorkflow(workflowA);
     dataApprovalService.addWorkflow(workflowB);
     periodA = createPeriod(new MonthlyPeriodType(), getDate(2017, 1, 1), getDate(2017, 1, 31));

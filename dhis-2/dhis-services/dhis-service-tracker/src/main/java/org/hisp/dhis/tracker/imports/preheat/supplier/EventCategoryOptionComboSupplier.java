@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
@@ -78,7 +77,7 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier {
                 p ->
                     Pair.of(
                         p.getLeft().getCategoryCombo(), toCategoryOptions(preheat, p.getRight())))
-            .collect(Collectors.toList());
+            .toList();
 
     for (Pair<CategoryCombo, Set<CategoryOption>> p : events) {
       if (preheat.containsCategoryOptionCombo(p.getLeft(), p.getRight())) {

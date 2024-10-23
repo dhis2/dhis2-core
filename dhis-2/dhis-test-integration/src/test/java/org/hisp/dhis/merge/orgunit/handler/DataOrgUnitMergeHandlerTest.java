@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
 import java.util.stream.Stream;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -120,7 +121,8 @@ class DataOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
     userService.addUser(usA);
     dlA = new DataApprovalLevel("DataApprovalLevelA", 1);
     idObjectManager.save(dlA);
-    dwA = new DataApprovalWorkflow("DataApprovalWorkflowA", monthly, Sets.newHashSet(dlA));
+    CategoryCombo ccA = categoryService.getDefaultCategoryCombo();
+    dwA = new DataApprovalWorkflow("DataApprovalWorkflowA", monthly, ccA, Sets.newHashSet(dlA));
     idObjectManager.save(dwA);
   }
 

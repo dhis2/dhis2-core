@@ -143,7 +143,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
 
   @Test
   @DisplayName("Search by token should use default properties instead of translations column")
-  void testSearchTokenWithNullLocale() {
+  void testSearchTokenWithNullLocale() throws Exception {
     setUpTranslation();
     doInTransaction(() -> settingsService.put("keyDbLocale", Locale.ENGLISH));
     settingsService.clearCurrentSettings();

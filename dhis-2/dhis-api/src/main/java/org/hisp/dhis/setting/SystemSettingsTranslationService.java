@@ -48,7 +48,7 @@ public interface SystemSettingsTranslationService {
    * @param locale locale of the translation (should be a language tag)
    * @param translation translation text, null or empty to delete
    */
-  void saveSystemSettingTranslation(
+  void putSystemSettingTranslation(
       @Nonnull String key, @Nonnull String locale, @CheckForNull String translation)
       throws ForbiddenException, BadRequestException;
 

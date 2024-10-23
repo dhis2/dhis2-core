@@ -41,6 +41,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -102,6 +103,7 @@ public class UserSettingsController {
           String userId,
       HttpServletResponse response)
       throws ForbiddenException, ConflictException, NotFoundException {
+    checkKeyExists(key);
 
     response.setHeader(
         ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue());
@@ -112,14 +114,15 @@ public class UserSettingsController {
   }
 
   @PostMapping(value = "/{key}")
-  public WebMessage setUserSettingByKey(
+  public WebMessage putUserSettingByKey(
       @PathVariable(value = "key") String key,
       @RequestParam(value = "user", required = false) String username,
       @OpenApi.Param({UID.class, User.class}) @RequestParam(value = "userId", required = false)
           String userId,
       @RequestParam(required = false) String value,
       @RequestBody(required = false) String valuePayload)
-      throws ForbiddenException, ConflictException, NotFoundException {
+      throws ForbiddenException, ConflictException, NotFoundException, BadRequestException {
+    checkKeyExists(key);
 
     String newValue = firstNonNull(value, valuePayload);
 
@@ -137,7 +140,8 @@ public class UserSettingsController {
       @RequestParam(value = "user", required = false) String username,
       @OpenApi.Param({UID.class, User.class}) @RequestParam(value = "userId", required = false)
           String userId)
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, ConflictException, BadRequestException {
+    checkKeyExists(key);
     if (username == null) username = getUsername(userId);
     userSettingsService.put(key, null, username);
   }
@@ -171,5 +175,10 @@ public class UserSettingsController {
       throws ForbiddenException, NotFoundException {
     if (username == null) username = getUsername(userId);
     return userSettingsService.getUserSettings(username, useFallback);
+  }
+
+  private static void checkKeyExists(String key) throws NotFoundException {
+    if (!UserSettings.keysWithDefaults().contains(key))
+      throw new NotFoundException("Setting does not exist: " + key);
   }
 }

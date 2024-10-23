@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.imports.preheat.supplier;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import org.hisp.dhis.tracker.imports.preheat.mappers.PreheatMapper;
 import org.mapstruct.factory.Mappers;
 
@@ -37,13 +36,17 @@ import org.mapstruct.factory.Mappers;
  */
 public class DetachUtils {
 
+  private DetachUtils() {
+    throw new UnsupportedOperationException("Utility class");
+  }
+
   public static <T> List<T> detach(PreheatMapper<T> mapper, List<T> objects) {
-    return objects.stream().map(mapper::map).collect(Collectors.toList());
+    return objects.stream().map(mapper::map).toList();
   }
 
   @SuppressWarnings("unchecked")
   public static <T> List<T> detach(Class<? extends PreheatMapper> mapperKlass, List<T> objects) {
     final PreheatMapper<T> mapper = Mappers.getMapper(mapperKlass);
-    return objects.stream().map(mapper::map).collect(Collectors.toList());
+    return objects.stream().map(mapper::map).toList();
   }
 }

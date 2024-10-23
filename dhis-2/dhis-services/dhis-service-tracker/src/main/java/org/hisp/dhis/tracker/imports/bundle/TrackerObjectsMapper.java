@@ -28,19 +28,13 @@
 package org.hisp.dhis.tracker.imports.bundle;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.program.EnrollmentStatus.COMPLETED;
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 
 import java.util.Date;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -54,7 +48,6 @@ import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.util.RelationshipKeySupport;
 import org.hisp.dhis.user.User;
@@ -148,17 +141,21 @@ public class TrackerObjectsMapper {
 
     if (enrollment.getStatus() != dbEnrollment.getStatus()) {
       dbEnrollment.setStatus(enrollment.getStatus());
-      switch (dbEnrollment.getStatus()) {
+      Date completedDate =
+          enrollment.getCompletedAt() == null
+              ? now
+              : DateUtils.fromInstant(enrollment.getCompletedAt());
+      switch (enrollment.getStatus()) {
         case ACTIVE -> {
           dbEnrollment.setCompletedDate(null);
           dbEnrollment.setCompletedBy(null);
         }
         case COMPLETED -> {
-          dbEnrollment.setCompletedDate(now);
+          dbEnrollment.setCompletedDate(completedDate);
           dbEnrollment.setCompletedBy(user.getUsername());
         }
         case CANCELLED -> {
-          dbEnrollment.setCompletedDate(now);
+          dbEnrollment.setCompletedDate(completedDate);
           dbEnrollment.setCompletedBy(null);
         }
       }
@@ -215,7 +212,8 @@ public class TrackerObjectsMapper {
     EventStatus currentStatus = event.getStatus();
     EventStatus previousStatus = dbEvent.getStatus();
     if (currentStatus != previousStatus && currentStatus == EventStatus.COMPLETED) {
-      dbEvent.setCompletedDate(now);
+      dbEvent.setCompletedDate(
+          event.getCompletedAt() == null ? now : DateUtils.fromInstant(event.getCompletedAt()));
       dbEvent.setCompletedBy(user.getUsername());
     }
 
@@ -238,22 +236,6 @@ public class TrackerObjectsMapper {
       Optional<User> assignedUser =
           preheat.getUserByUsername(event.getAssignedUser().getUsername());
       assignedUser.ifPresent(dbEvent::setAssignedUser);
-    }
-
-    // TODO(DHIS2-18223): Remove data value mapping and fix changelog logic
-    for (DataValue dataValue : event.getDataValues()) {
-      DataElement dataElement = preheat.getDataElement(dataValue.getDataElement());
-
-      EventDataValue eventDataValue = new EventDataValue();
-      eventDataValue.setDataElement(dataElement.getUid());
-      eventDataValue.setCreated(DateUtils.fromInstant(dataValue.getCreatedAt()));
-      eventDataValue.setCreatedByUserInfo(UserInfoSnapshot.from(user));
-      eventDataValue.setValue(dataValue.getValue());
-      eventDataValue.setLastUpdated(now);
-      eventDataValue.setProvidedElsewhere(dataValue.isProvidedElsewhere());
-      eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
-
-      dbEvent.getEventDataValues().add(eventDataValue);
     }
 
     if (isNotEmpty(event.getNotes())) {

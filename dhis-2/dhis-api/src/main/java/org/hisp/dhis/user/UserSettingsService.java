@@ -31,6 +31,8 @@ import java.io.Serializable;
 import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.setting.UserSettings;
 
@@ -62,8 +64,11 @@ public interface UserSettingsService {
    *
    * @param key the user setting key.
    * @param value the setting value, null or empty to delete
+   * @throws NotFoundException when a setting with the key does not exist for users
+   * @throws BadRequestException when the value isn't valid for the key
    */
-  void put(@Nonnull String key, @CheckForNull Serializable value);
+  void put(@Nonnull String key, @CheckForNull Serializable value)
+      throws NotFoundException, BadRequestException;
 
   /**
    * Saves the name/value pair as a user setting connected to user.
@@ -71,18 +76,24 @@ public interface UserSettingsService {
    * @param key the user setting key.
    * @param value the setting value, null or empty to delete
    * @param username owner/target of the settings update
+   * @throws NotFoundException when a setting with the key does not exist for users
+   * @throws BadRequestException when the value isn't valid for the key
+   * @throws ConflictException when no user with the given username exists
    */
   void put(@Nonnull String key, @CheckForNull Serializable value, @Nonnull String username)
-      throws NotFoundException;
+      throws NotFoundException, BadRequestException, ConflictException;
 
   /**
    * Updates all settings in the provided collection.
    *
    * @param settings settings to store, null or empty values are deleted
    * @param username owner/target of the settings update
+   * @throws NotFoundException when a setting with the key does not exist for users
+   * @throws BadRequestException when the value isn't valid for the key
+   * @throws ConflictException when no user with the given username exists
    */
   void putAll(@Nonnull Map<String, String> settings, @Nonnull String username)
-      throws NotFoundException;
+      throws NotFoundException, BadRequestException, ConflictException;
 
   /**
    * Deletes all settings of a user. If no such user exists this has no effect.

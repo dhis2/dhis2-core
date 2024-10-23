@@ -265,9 +265,11 @@ class DataApprovalAuditServiceTest extends PostgresIntegrationTestBase {
     dataApprovalLevelService.addDataApprovalLevel(level1);
     dataApprovalLevelService.addDataApprovalLevel(level2);
     dataApprovalLevelService.addDataApprovalLevel(level3);
-    workflowA = new DataApprovalWorkflow("workflowA", periodType, newHashSet(level1));
+    workflowA =
+        new DataApprovalWorkflow("workflowA", periodType, categoryComboA, newHashSet(level1));
     workflowB =
-        new DataApprovalWorkflow("workflowB", periodType, newHashSet(level1, level2, level3));
+        new DataApprovalWorkflow(
+            "workflowB", periodType, categoryComboA, newHashSet(level1, level2, level3));
     dataApprovalService.addWorkflow(workflowA);
     dataApprovalService.addWorkflow(workflowB);
     DataApproval approvalAA1 =

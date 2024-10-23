@@ -174,7 +174,7 @@ class JobConfigurationRunErrorsControllerTest extends PostgresControllerIntegrat
     // language=JSON
     String expected =
         """
-      {"trackedEntities":[{"trackedEntity":"sHH8mh1Fn0z","trackedEntityType":{"idScheme":"UID","identifier":"nEenWmSyUEp"},"orgUnit":{"idScheme":"UID","identifier":"DiszpKrYNg7"},"inactive":false,"deleted":false,"potentialDuplicate":false,"relationships":[],"attributes":[],"enrollments":[]}],"enrollments":[],"events":[],"relationships":[]}""";
+      {"trackedEntities":[{"trackedEntity":"sHH8mh1Fn0z","trackedEntityType":{"idScheme":"UID","identifier":"nEenWmSyUEp"},"orgUnit":{"idScheme":"UID","identifier":"DiszpKrYNg7"},"inactive":false,"potentialDuplicate":false,"attributes":[]}],"enrollments":[],"events":[],"relationships":[]}""";
     assertEquals(expected, trackerImportError.getObject("input").node().getDeclaration());
   }
 

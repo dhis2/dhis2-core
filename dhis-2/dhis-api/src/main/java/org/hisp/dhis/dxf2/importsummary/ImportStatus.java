@@ -25,27 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.system;
+package org.hisp.dhis.dxf2.importsummary;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.vdurmont.semver4j.Semver;
-import java.util.Map;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
+public enum ImportStatus {
+  SUCCESS(1),
+  WARNING(2),
+  ERROR(3);
 
-/**
- * @author Morten Svanaes
- */
-public class SoftwareUpdateResponse extends AbstractWebMessageResponse {
-  private final Map<Semver, Map<String, String>> versionMetadata;
+  private final int order;
 
-  public SoftwareUpdateResponse(Map<Semver, Map<String, String>> versionMetadata) {
-    this.versionMetadata = versionMetadata;
+  ImportStatus(int order) {
+    this.order = order;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  public Map<Semver, Map<String, String>> getVersionMetadata() {
-    return versionMetadata;
+  public int getOrder() {
+    return order;
   }
 }

@@ -49,6 +49,7 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.LoginPageLayout;
+import org.hisp.dhis.translation.Translatable;
 
 /**
  * A complete set of system settings.
@@ -106,6 +107,14 @@ public non-sealed interface SystemSettings extends Settings {
     return LazySettings.isConfidential(key);
   }
 
+  /**
+   * @param key a setting name
+   * @return true, if it can have a translation, false otherwise
+   */
+  static boolean isTranslatable(@Nonnull String key) {
+    return LazySettings.isTranslatable(key);
+  }
+
   /*
   settings used in core
    */
@@ -134,22 +143,27 @@ public non-sealed interface SystemSettings extends Settings {
     return asString("keyTrackerDashboardLayout", "");
   }
 
+  @Translatable
   default String getApplicationTitle() {
     return asString("applicationTitle", "DHIS 2");
   }
 
+  @Translatable
   default String getApplicationIntro() {
     return asString("keyApplicationIntro", "");
   }
 
+  @Translatable
   default String getApplicationNotification() {
     return asString("keyApplicationNotification", "");
   }
 
+  @Translatable
   default String getApplicationFooter() {
     return asString("keyApplicationFooter", "");
   }
 
+  @Translatable
   default String getApplicationRightFooter() {
     return asString("keyApplicationRightFooter", "");
   }
@@ -674,6 +688,7 @@ public non-sealed interface SystemSettings extends Settings {
     return asInt("KeyTrackedEntityMaxLimit", 50000);
   }
 
+  @Translatable
   default String getLoginPopup() {
     return asString("loginPopup", "");
   }

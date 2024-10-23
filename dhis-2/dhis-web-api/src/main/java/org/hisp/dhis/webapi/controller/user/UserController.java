@@ -56,7 +56,6 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MergeMode;
@@ -76,6 +75,7 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -417,7 +417,11 @@ public class UserController extends AbstractCrudController<User> {
   @ResponseBody
   public WebMessage replicateUser(
       @PathVariable String uid, HttpServletRequest request, HttpServletResponse response)
-      throws IOException, ForbiddenException, ConflictException, NotFoundException {
+      throws IOException,
+          ForbiddenException,
+          ConflictException,
+          NotFoundException,
+          BadRequestException {
     User existingUser = userService.getUser(uid);
     if (existingUser == null) {
       return conflict("User not found: " + uid);
@@ -555,7 +559,7 @@ public class UserController extends AbstractCrudController<User> {
       HttpServletRequest request)
       throws IOException, ConflictException, ForbiddenException, NotFoundException {
     User inputUser = renderService.fromJson(request.getInputStream(), getEntityClass());
-    return importReport(updateUser(pvUid, inputUser)).withPlainResponseBefore(DhisApiVersion.V38);
+    return importReport(updateUser(pvUid, inputUser));
   }
 
   protected ImportReport updateUser(String userUid, User inputUser)

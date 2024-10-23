@@ -199,68 +199,6 @@ public class DefaultDashboardService implements DashboardService {
 
   @Override
   @Transactional(readOnly = true)
-  public DashboardItem addItemContent(
-      String dashboardUid, DashboardItemType type, String contentUid) {
-    Dashboard dashboard = getDashboard(dashboardUid);
-
-    if (dashboard == null) {
-      return null;
-    }
-
-    DashboardItem item = new DashboardItem();
-
-    if (DashboardItemType.VISUALIZATION.equals(type)) {
-      item.setVisualization(objectManager.get(Visualization.class, contentUid));
-      dashboard.getItems().add(0, item);
-    }
-    if (DashboardItemType.EVENT_VISUALIZATION.equals(type)) {
-      item.setEventVisualization(objectManager.get(EventVisualization.class, contentUid));
-      dashboard.getItems().add(0, item);
-    } else if (DashboardItemType.EVENT_CHART.equals(type)) {
-      item.setEventChart(objectManager.get(EventChart.class, contentUid));
-      dashboard.getItems().add(0, item);
-    } else if (DashboardItemType.MAP.equals(type)) {
-      item.setMap(objectManager.get(Map.class, contentUid));
-      dashboard.getItems().add(0, item);
-    } else if (DashboardItemType.EVENT_REPORT.equals(type)) {
-      item.setEventReport(objectManager.get(EventReport.class, contentUid));
-      dashboard.getItems().add(0, item);
-    } else if (DashboardItemType.MESSAGES.equals(type)) {
-      item.setMessages(true);
-      dashboard.getItems().add(0, item);
-    } else if (DashboardItemType.APP.equals(type)) {
-      item.setAppKey(contentUid);
-      dashboard.getItems().add(0, item);
-    } else // Link item
-    {
-      DashboardItem availableItem = dashboard.getAvailableItemByType(type);
-
-      item = availableItem == null ? new DashboardItem() : availableItem;
-
-      if (DashboardItemType.USERS.equals(type)) {
-        item.getUsers().add(objectManager.get(User.class, contentUid));
-      } else if (DashboardItemType.REPORTS.equals(type)) {
-        item.getReports().add(objectManager.get(Report.class, contentUid));
-      } else if (DashboardItemType.RESOURCES.equals(type)) {
-        item.getResources().add(objectManager.get(Document.class, contentUid));
-      }
-
-      if (availableItem == null) {
-        dashboard.getItems().add(0, item);
-      }
-    }
-
-    if (dashboard.getItemCount() > Dashboard.MAX_ITEMS) {
-      return null;
-    }
-
-    updateDashboard(dashboard);
-
-    return item;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public void mergeDashboard(Dashboard dashboard) {
     if (dashboard.getItems() != null) {
       for (DashboardItem item : dashboard.getItems()) {

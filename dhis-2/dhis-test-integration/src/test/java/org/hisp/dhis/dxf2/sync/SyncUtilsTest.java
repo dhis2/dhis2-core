@@ -56,7 +56,7 @@ class SyncUtilsTest extends PostgresIntegrationTestBase {
   @Autowired SystemSettingsService settingsService;
 
   @Test
-  void getRemoteInstanceTest() {
+  void getRemoteInstanceTest() throws Exception {
     settingsService.putAll(
         Map.ofEntries(
             entry("keyRemoteInstanceUsername", USERNAME),

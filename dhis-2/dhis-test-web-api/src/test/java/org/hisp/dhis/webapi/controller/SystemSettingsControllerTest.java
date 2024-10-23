@@ -73,13 +73,13 @@ class SystemSettingsControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testSetSystemSettingOrTranslation_Translation() {
-    assertStatus(HttpStatus.OK, POST("/systemSettings/keyUiLocale?value=de"));
+    assertStatus(HttpStatus.OK, POST("/systemSettings/applicationTitle?value=Hello"));
     assertWebMessage(
         "OK",
         200,
         "OK",
-        "Translation for system setting 'keyUiLocale' and locale: 'de' set to: 'Sprache'",
-        POST("/systemSettings/keyUiLocale?locale=de&value=Sprache").content(HttpStatus.OK));
+        "Translation for system setting 'applicationTitle' and locale: 'de' set to: 'Ahoi'",
+        POST("/systemSettings/applicationTitle?locale=de&value=Ahoi").content(HttpStatus.OK));
   }
 
   @Test

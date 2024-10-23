@@ -51,8 +51,8 @@ public class Field {
 
   public static <T, S> Validator<T> field(Function<T, S> map, Validator<S> validator) {
     return (reporter, bundle, input) -> {
-      if ((input instanceof TrackerDto
-              && !validator.needsToRun(bundle.getStrategy((TrackerDto) input)))
+      if ((input instanceof TrackerDto trackerDto
+              && !validator.needsToRun(bundle.getStrategy(trackerDto)))
           || (!(input instanceof TrackerDto)
               && !validator.needsToRun(bundle.getImportStrategy()))) {
         return;

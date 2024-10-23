@@ -1247,6 +1247,7 @@ public class OpenApiRenderer {
         renderLabelledValue("enum", schema.$enum(), "", params.inlineEnumsLimit);
       return;
     }
+    if (schema.isReadOnly()) renderLabelledValue("readOnly", true);
     renderLabelledValue("format", schema.format());
     renderLabelledValue("minLength", schema.minLength());
     renderLabelledValue("maxLength", schema.maxLength());

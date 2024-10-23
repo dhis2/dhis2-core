@@ -35,6 +35,10 @@ import org.hisp.dhis.user.UserDetails;
  * @author Luciano Fiandesio
  */
 public class ParamsConverter {
+  private ParamsConverter() {
+    throw new UnsupportedOperationException("Utility class");
+  }
+
   public static TrackerBundle convert(
       TrackerImportParams params, TrackerObjects trackerObjects, UserDetails user) {
     return TrackerBundle.builder()

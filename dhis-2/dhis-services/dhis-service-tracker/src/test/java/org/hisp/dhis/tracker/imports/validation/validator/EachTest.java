@@ -41,7 +41,6 @@ import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -139,8 +138,7 @@ class EachTest {
   }
 
   private static Enrollment enrollment(String uid, String... notes) {
-    List<Note> n =
-        Arrays.stream(notes).map(s -> Note.builder().note(s).build()).collect(Collectors.toList());
+    List<Note> n = Arrays.stream(notes).map(s -> Note.builder().note(s).build()).toList();
 
     return Enrollment.builder().enrollment(uid).notes(n).build();
   }
@@ -156,6 +154,6 @@ class EachTest {
   }
 
   private List<String> actualErrorMessages() {
-    return reporter.getErrors().stream().map(Error::getMessage).collect(Collectors.toList());
+    return reporter.getErrors().stream().map(Error::getMessage).toList();
   }
 }

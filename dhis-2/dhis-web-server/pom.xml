@@ -207,7 +207,7 @@
             <goals>
               <goal>exec</goal>
             </goals>
-            <phase>generate-resources</phase>
+            <phase>prepare-package</phase>
           </execution>
         </executions>
       </plugin>

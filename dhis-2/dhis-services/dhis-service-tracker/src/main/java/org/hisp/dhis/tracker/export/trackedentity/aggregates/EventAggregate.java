@@ -37,7 +37,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -74,7 +73,7 @@ public class EventAggregate implements Aggregate {
       return events;
     }
 
-    List<Long> eventIds = events.values().stream().map(Event::getId).collect(Collectors.toList());
+    List<Long> eventIds = events.values().stream().map(Event::getId).toList();
 
     /*
      * Async fetch Relationships for the given Event ids (only if

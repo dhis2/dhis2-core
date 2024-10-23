@@ -114,4 +114,6 @@ public sealed interface Settings permits UserSettings, SystemSettings {
   double asDouble(@Nonnull String key, double defaultValue);
 
   boolean asBoolean(@Nonnull String key, boolean defaultValue);
+
+  boolean isValid(String key, String value);
 }

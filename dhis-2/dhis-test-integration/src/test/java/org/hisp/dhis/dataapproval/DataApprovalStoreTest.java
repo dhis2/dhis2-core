@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Date;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -104,14 +105,21 @@ class DataApprovalStoreTest extends PostgresIntegrationTestBase {
     // ---------------------------------------------------------------------
     // Add supporting data
     // ---------------------------------------------------------------------
+    CategoryCombo categoryCombo = categoryService.getDefaultCategoryCombo();
+    categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
     level1 = new DataApprovalLevel("01", 1, null);
     level2 = new DataApprovalLevel("02", 2, null);
     dataApprovalLevelService.addDataApprovalLevel(level1);
     dataApprovalLevelService.addDataApprovalLevel(level2);
     PeriodType periodType = PeriodType.getPeriodTypeByName("Monthly");
-    workflowA1 = new DataApprovalWorkflow("workflowA1", periodType, newHashSet(level1));
-    workflowA12 = new DataApprovalWorkflow("workflowA12", periodType, newHashSet(level1, level2));
-    workflowB12 = new DataApprovalWorkflow("workflowB12", periodType, newHashSet(level1, level2));
+    workflowA1 =
+        new DataApprovalWorkflow("workflowA1", periodType, categoryCombo, newHashSet(level1));
+    workflowA12 =
+        new DataApprovalWorkflow(
+            "workflowA12", periodType, categoryCombo, newHashSet(level1, level2));
+    workflowB12 =
+        new DataApprovalWorkflow(
+            "workflowB12", periodType, categoryCombo, newHashSet(level1, level2));
     dataApprovalService.addWorkflow(workflowA1);
     dataApprovalService.addWorkflow(workflowA12);
     dataApprovalService.addWorkflow(workflowB12);
@@ -131,7 +139,6 @@ class DataApprovalStoreTest extends PostgresIntegrationTestBase {
     userB = makeUser("B");
     userService.addUser(userA);
     userService.addUser(userB);
-    categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
   }
 
   // -------------------------------------------------------------------------

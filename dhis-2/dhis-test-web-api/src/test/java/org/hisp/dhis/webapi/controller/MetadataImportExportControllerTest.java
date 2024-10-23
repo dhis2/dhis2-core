@@ -102,17 +102,6 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
   }
 
   @Test
-  void testPostJsonMetadata_Pre38() {
-    JsonObject report =
-        POST(
-                "/37/metadata",
-                "{'organisationUnits':[{'name':'My Unit', 'shortName':'OU1', 'openingDate':"
-                    + " '2020-01-01'}]}")
-            .content(HttpStatus.OK);
-    assertEquals("OK", report.getString("status").string());
-  }
-
-  @Test
   void testPostCsvMetadata() {
     assertWebMessage(
         "OK",
@@ -124,14 +113,6 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
   }
 
   @Test
-  void testPostCsvMetadata_Pre38() {
-    JsonObject report =
-        POST("/37/metadata?classKey=ORGANISATION_UNIT", Body(","), ContentType("application/csv"))
-            .content(HttpStatus.OK);
-    assertEquals("OK", report.getString("status").string());
-  }
-
-  @Test
   void testPostGmlMetadata() {
     assertWebMessage(
         "OK",
@@ -140,15 +121,6 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
         null,
         POST("/38/metadata/gml", Body("<metadata></metadata>"), ContentType("application/xml"))
             .content(HttpStatus.OK));
-  }
-
-  @Test
-  void testPostGmlMetadata_Pre38() {
-    JsonObject report =
-        POST("/37/metadata/gml", Body("<metadata></metadata>"), ContentType("application/xml"))
-            .content(HttpStatus.OK);
-    assertEquals("OK", report.getString("status").string());
-    assertEquals("ImportReport", report.getString("responseType").string());
   }
 
   @Test

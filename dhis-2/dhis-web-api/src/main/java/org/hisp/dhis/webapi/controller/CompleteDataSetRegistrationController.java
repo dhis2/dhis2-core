@@ -155,7 +155,7 @@ public class CompleteDataSetRegistrationController {
         registrationExchangeService.saveCompleteDataSetRegistrationsXml(
             request.getInputStream(), importOptions);
     summary.setImportOptions(importOptions);
-    return importSummary(summary).withPlainResponseBefore(DhisApiVersion.V38);
+    return importSummary(summary);
   }
 
   @PostMapping(consumes = CONTENT_TYPE_JSON, produces = CONTENT_TYPE_JSON)
@@ -170,7 +170,7 @@ public class CompleteDataSetRegistrationController {
         registrationExchangeService.saveCompleteDataSetRegistrationsJson(
             request.getInputStream(), importOptions);
     summary.setImportOptions(importOptions);
-    return importSummary(summary).withPlainResponseBefore(DhisApiVersion.V38);
+    return importSummary(summary);
   }
 
   // -------------------------------------------------------------------------

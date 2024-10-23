@@ -25,18 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.supplier.strategy;
+package org.hisp.dhis.dxf2.webmessage.responses;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import lombok.experimental.UtilityClass;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import javax.annotation.Nonnull;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 /**
- * @author Luciano Fiandesio
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@UtilityClass
-public class RootEntitiesUtils {
-  public List<String> filterOutNonRootEntities(List<String> ids, List<String> rootEntities) {
-    return ids.stream().filter(rootEntities::contains).collect(Collectors.toList());
+@Getter
+@RequiredArgsConstructor
+@JsonPropertyOrder({"type", "created", "updated", "deleted"})
+public class ImportCountWebMessageResponse implements WebMessageResponse {
+
+  @JsonProperty private final int created;
+  @JsonProperty private final int updated;
+  @JsonProperty private final int deleted;
+
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return ImportCountWebMessageResponse.class;
   }
 }
