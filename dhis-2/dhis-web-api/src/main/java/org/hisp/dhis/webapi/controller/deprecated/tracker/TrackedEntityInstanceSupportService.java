@@ -31,6 +31,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import com.google.common.base.Joiner;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -43,16 +44,20 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This service should not be used in the new tracker.
@@ -74,6 +79,8 @@ public class TrackedEntityInstanceSupportService {
   private final TrackedEntityService instanceService;
 
   private final TrackedEntityTypeService trackedEntityTypeService;
+
+  private final TrackedEntityAttributeService attributeService;
 
   @SneakyThrows
   public TrackedEntityInstance getTrackedEntityInstance(String id, String pr, List<String> fields) {
@@ -192,5 +199,49 @@ public class TrackedEntityInstanceSupportService {
     }
 
     return params;
+  }
+
+  @Transactional(readOnly = true)
+  public TrackedEntityAttributeValue getTrackedEntityAttributeValue(
+      String teiUid, String attributeUid, String programUid)
+      throws NotFoundException, IllegalAccessException {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
+    TrackedEntity trackedEntity = instanceService.getTrackedEntity(teiUid);
+    if (trackedEntity == null) {
+      throw new NotFoundException("Tracked entity not found for ID " + teiUid);
+    }
+
+    Set<TrackedEntityAttribute> trackedEntityAttributes;
+    if (programUid != null) {
+      Program program = programService.getProgram(programUid);
+      if (program == null) {
+        throw new NotFoundException("Program not found for ID " + programUid);
+      }
+
+      if (!trackerAccessManager.canRead(currentUser, trackedEntity, program, false).isEmpty()) {
+        throw new IllegalAccessException(
+            "You're not authorized to access the TrackedEntity with id: " + teiUid);
+      }
+
+      trackedEntityAttributes = attributeService.getProgramAttributes(program);
+    } else {
+      if (!trackerAccessManager.canRead(currentUser, trackedEntity).isEmpty()) {
+        throw new IllegalAccessException(
+            "You're not authorized to access the TrackedEntity with id: " + teiUid);
+      }
+
+      trackedEntityAttributes =
+          attributeService.getTrackedEntityTypeAttributes(trackedEntity.getTrackedEntityType());
+    }
+
+    if (trackedEntityAttributes.stream().noneMatch(tea -> tea.getUid().equals(attributeUid))) {
+      throw new NotFoundException("Attribute not found for ID " + attributeUid);
+    }
+
+    return trackedEntity.getTrackedEntityAttributeValues().stream()
+        .filter(val -> val.getAttribute().getUid().equals(attributeUid))
+        .findFirst()
+        .orElseThrow(() -> new NotFoundException("Value not found for ID " + attributeUid));
   }
 }

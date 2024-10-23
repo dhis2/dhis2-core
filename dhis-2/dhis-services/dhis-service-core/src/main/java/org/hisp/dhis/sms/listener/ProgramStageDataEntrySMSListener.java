@@ -152,7 +152,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
 
     List<TrackedEntity> trackedEntities = new ArrayList<>();
 
-    attributes.parallelStream()
+    attributes.stream()
         .map(attr -> getParams(attr, sms, command.getProgram(), ous))
         .forEach(
             param ->

@@ -28,7 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
-import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeToDefaultIconSize;
+import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeAvatarToDefaultSize;
+import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeIconToDefaultSize;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.validateCustomIconFile;
 
 import com.google.common.base.MoreObjects;
@@ -169,9 +170,14 @@ public class FileResourceController extends AbstractFullReadOnlyController<FileR
       @RequestParam(required = false) String uid)
       throws IOException, ConflictException {
     FileResource fileResource;
+
     if (domain.equals(FileResourceDomain.ICON)) {
       validateCustomIconFile(file);
-      fileResource = fileResourceUtils.saveFileResource(uid, resizeToDefaultIconSize(file), domain);
+      fileResource = fileResourceUtils.saveFileResource(uid, resizeIconToDefaultSize(file), domain);
+    } else if (domain.equals(FileResourceDomain.USER_AVATAR)) {
+      fileResourceUtils.validateUserAvatar(file);
+      fileResource =
+          fileResourceUtils.saveFileResource(uid, resizeAvatarToDefaultSize(file), domain);
     } else {
       fileResource = fileResourceUtils.saveFileResource(uid, file, domain);
     }

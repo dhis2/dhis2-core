@@ -112,6 +112,8 @@ public class EventManager {
       eventPersistenceService.updateEventDataValues(de, event, context);
     }
 
+    auditTrackedEntityDataValueHistory(event, context, new Date());
+
     eventPersistenceService.updateTrackedEntityInstances(context, List.of(event));
 
     executorsByPhase.get(EventProcessorPhase.UPDATE_POST).execute(context, List.of(event));

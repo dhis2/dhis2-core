@@ -29,24 +29,32 @@ package org.hisp.dhis.webapi.controller.deprecated.tracker;
 
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.dxf2.deprecated.tracker.TrackedEntityInstanceParams.FALSE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,48 +76,156 @@ class TrackedEntityInstanceSupportServiceTest {
 
   @Mock private TrackedEntityService instanceService;
 
+  @Mock private TrackedEntityAttributeService attributeService;
+
   @Mock private TrackedEntityTypeService trackedEntityTypeService;
-
-  @Mock private TrackedEntityService teiService;
-
-  @Mock private TrackedEntityAttributeService trackedEntityAttributeService;
 
   @InjectMocks private TrackedEntityInstanceSupportService trackedEntityInstanceSupportService;
 
-  private TrackedEntity entity;
-
   private Program program;
 
-  private UserDetails user;
+  private User user;
 
   private TrackedEntityType trackedEntityType;
+
+  private TrackedEntityAttributeValue trackedEntityAttributeValue;
+
+  private TrackedEntity trackedEntity;
+
+  private TrackedEntityAttribute tea;
 
   @BeforeEach
   public void setUpTest() throws Exception {
     trackedEntityType = new TrackedEntityType("TET", "desc");
     trackedEntityType.setAutoFields();
-    entity = new TrackedEntity();
-    entity.setAutoFields();
-    entity.setTrackedEntityType(trackedEntityType);
     program = new Program("A");
     program.setUid("A");
     program.setTrackedEntityType(trackedEntityType);
-    user = UserDetails.fromUser(new User());
+
+    trackedEntity = new TrackedEntity();
+    trackedEntity.setUid("TeUid12345");
+    trackedEntity.setTrackedEntityType(trackedEntityType);
+    tea = new TrackedEntityAttribute();
+    tea.setUid("TeaUid12345");
+    tea.setUnique(true);
+    tea.setValueType(ValueType.TEXT);
+    tea.setOrgunitScope(false);
+
+    trackedEntityAttributeValue =
+        new TrackedEntityAttributeValue(tea, trackedEntity, "attribute value");
+    trackedEntity.setTrackedEntityAttributeValues(Set.of(trackedEntityAttributeValue));
+
+    TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
+    trackedEntityTypeAttribute.setTrackedEntityAttribute(tea);
+    trackedEntityType.setTrackedEntityTypeAttributes(List.of(trackedEntityTypeAttribute));
+    trackedEntity.setTrackedEntityType(trackedEntityType);
+
+    user = new User();
   }
 
   @Test
   void shouldValidateAllProgramsOwnershipWhenProgramNotProvided() {
     TrackedEntityInstance tei = new TrackedEntityInstance();
     tei.setTrackedEntityType(trackedEntityType.getUid());
-    tei.setTrackedEntityInstance(entity.getUid());
-    when(trackedEntityInstanceService.getTrackedEntityInstance(entity.getUid(), FALSE))
+    tei.setTrackedEntityInstance(trackedEntity.getUid());
+    when(trackedEntityInstanceService.getTrackedEntityInstance(trackedEntity.getUid(), FALSE))
         .thenReturn(tei);
     when(programService.getAllPrograms()).thenReturn(List.of(program));
     when(trackerAccessManager.canRead(any(), any(), any(Program.class), any(Boolean.class)))
         .thenReturn(emptyList());
 
     trackedEntityInstanceSupportService.getTrackedEntityInstance(
-        entity.getUid(), null, emptyList());
-    verify(trackedEntityInstanceService, times(1)).getTrackedEntityInstance(entity.getUid(), FALSE);
+        trackedEntity.getUid(), null, emptyList());
+    verify(trackedEntityInstanceService, times(1))
+        .getTrackedEntityInstance(trackedEntity.getUid(), FALSE);
+  }
+
+  @Test
+  void shouldWorkWhenGettingAttributeValueIfIsProgramAttribute()
+      throws NotFoundException, IllegalAccessException {
+    when(instanceService.getTrackedEntity(trackedEntity.getUid())).thenReturn(trackedEntity);
+    when(programService.getProgram(program.getUid())).thenReturn(program);
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+    when(trackerAccessManager.canRead(user, trackedEntity, program, false)).thenReturn(emptyList());
+    when(attributeService.getProgramAttributes(program)).thenReturn(Set.of(tea));
+
+    assertEquals(
+        trackedEntityInstanceSupportService.getTrackedEntityAttributeValue(
+            trackedEntity.getUid(), tea.getUid(), program.getUid()),
+        trackedEntityAttributeValue);
+  }
+
+  @Test
+  void shouldFailWhenGettingAttributeValueIfProgramDoesNotExist() {
+    when(instanceService.getTrackedEntity(trackedEntity.getUid())).thenReturn(trackedEntity);
+
+    Exception exception =
+        assertThrows(
+            NotFoundException.class,
+            () ->
+                trackedEntityInstanceSupportService.getTrackedEntityAttributeValue(
+                    trackedEntity.getUid(), tea.getUid(), program.getUid()));
+    assertEquals("Program not found for ID " + program.getUid(), exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenGettingAttributeValueIfTeProgramNotAccessible() {
+    when(instanceService.getTrackedEntity(trackedEntity.getUid())).thenReturn(trackedEntity);
+    when(programService.getProgram(program.getUid())).thenReturn(program);
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+    when(trackerAccessManager.canRead(user, trackedEntity, program, false))
+        .thenReturn(List.of("error"));
+
+    Exception exception =
+        assertThrows(
+            IllegalAccessException.class,
+            () ->
+                trackedEntityInstanceSupportService.getTrackedEntityAttributeValue(
+                    trackedEntity.getUid(), tea.getUid(), program.getUid()));
+    assertEquals(
+        "You're not authorized to access the TrackedEntity with id: " + trackedEntity.getUid(),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldWorkWhenGettingAttributeValueIfIsTrackedEntityTypeAttribute()
+      throws NotFoundException, IllegalAccessException {
+    when(instanceService.getTrackedEntity(trackedEntity.getUid())).thenReturn(trackedEntity);
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+    when(trackerAccessManager.canRead(user, trackedEntity)).thenReturn(emptyList());
+    when(attributeService.getTrackedEntityTypeAttributes(trackedEntity.getTrackedEntityType()))
+        .thenReturn(Set.of(tea));
+
+    assertEquals(
+        trackedEntityInstanceSupportService.getTrackedEntityAttributeValue(
+            trackedEntity.getUid(), tea.getUid(), null),
+        trackedEntityAttributeValue);
+  }
+
+  @Test
+  void shouldFailWhenGettingAttributeValueIfTrackedEntityDoesNotExist() {
+    Exception exception =
+        assertThrows(
+            NotFoundException.class,
+            () ->
+                trackedEntityInstanceSupportService.getTrackedEntityAttributeValue(
+                    trackedEntity.getUid(), tea.getUid(), null));
+    assertEquals(
+        "Tracked entity not found for ID " + trackedEntity.getUid(), exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenGettingAttributeIfAttributeNotFound() {
+    when(instanceService.getTrackedEntity(trackedEntity.getUid())).thenReturn(trackedEntity);
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+    when(trackerAccessManager.canRead(user, trackedEntity)).thenReturn(emptyList());
+
+    Exception exception =
+        assertThrows(
+            NotFoundException.class,
+            () ->
+                trackedEntityInstanceSupportService.getTrackedEntityAttributeValue(
+                    trackedEntity.getUid(), tea.getUid(), null));
+    assertEquals("Attribute not found for ID " + tea.getUid(), exception.getMessage());
   }
 }

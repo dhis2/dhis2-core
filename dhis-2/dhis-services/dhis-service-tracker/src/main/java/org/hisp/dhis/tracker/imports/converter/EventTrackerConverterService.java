@@ -161,6 +161,10 @@ public class EventTrackerConverterService
     Event result = from(preheat, event, null);
     // merge data values from DB
     result.getEventDataValues().addAll(getDataValues(preheat, event));
+    Event preheatEvent = preheat.getEvent(event.getUid());
+    if (preheatEvent != null) {
+      result.setCreated(preheatEvent.getCreated());
+    }
     return result;
   }
 
@@ -202,8 +206,8 @@ public class EventTrackerConverterService
       result.setCreated(now);
       result.setStoredBy(event.getStoredBy());
       result.setCreatedByUserInfo(preheat.getUserInfo());
-      result.setCreatedAtClient(DateUtils.fromInstant(event.getCreatedAtClient()));
     }
+    result.setCreatedAtClient(DateUtils.fromInstant(event.getCreatedAtClient()));
     result.setLastUpdatedByUserInfo(preheat.getUserInfo());
     result.setLastUpdated(now);
     result.setDeleted(false);
@@ -255,7 +259,6 @@ public class EventTrackerConverterService
     for (DataValue dataValue : event.getDataValues()) {
       EventDataValue eventDataValue = new EventDataValue();
       eventDataValue.setValue(dataValue.getValue());
-      eventDataValue.setCreated(DateUtils.fromInstant(dataValue.getCreatedAt()));
       eventDataValue.setLastUpdated(now);
       eventDataValue.setProvidedElsewhere(dataValue.isProvidedElsewhere());
       // ensure dataElement is referred to by UID as multiple
