@@ -1,10 +1,2 @@
 
--- Add various embedded dashboard property columns to dashboard table
-
-alter table "dashboard" add column if not exists "embeddedprovider" varchar(50);
-update "dashboard" set "embeddedprovider" = 'NONE' where "embeddedprovider" is null;
-alter table "dashboard" alter column "embeddedprovider" set not null;
-
-alter table "dashboard" add column if not exists "embeddedid" varchar(255);
-
-alter table "dashboard" add column if not exists "embeddedoptions" jsonb;
+alter table "dashboard" add column if not exists "embedded" jsonb null;
