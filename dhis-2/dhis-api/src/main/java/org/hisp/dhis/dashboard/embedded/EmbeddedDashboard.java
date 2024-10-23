@@ -27,11 +27,21 @@
  */
 package org.hisp.dhis.dashboard.embedded;
 
-/**
- * Enumeration of providers for embedded dashboards.
- *
- * @author Lars Helge Overland
- */
-public enum EmbeddedProvider {
-  SUPERSET;
+import java.io.Serializable;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+public class EmbeddedDashboard implements Serializable {
+  /** Provider of embedded dashboards. */
+  private EmbeddedProvider provider;
+
+  /** Identifier for embedded dashboard. */
+  private String id;
+
+  /** Customization options for embedded dashboard. */
+  private EmbeddedOptions options;
 }

@@ -39,6 +39,8 @@
     
     <property name="allowedFilters" column="allowedfilters" type="jbList" />
 
+    <property name="embedded" column="embedded" type="jbEmbeddedDashboard" />
+
     <property name="embeddedProvider" column="embeddedprovider" length="50" not-null="true">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.dashboard.embedded.EmbeddedProvider</param>

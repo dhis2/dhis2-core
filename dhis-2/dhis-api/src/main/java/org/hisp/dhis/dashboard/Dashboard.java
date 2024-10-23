@@ -42,8 +42,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dashboard.design.ItemConfig;
 import org.hisp.dhis.dashboard.design.Layout;
-import org.hisp.dhis.dashboard.embedded.EmbeddedOptions;
-import org.hisp.dhis.dashboard.embedded.EmbeddedProvider;
+import org.hisp.dhis.dashboard.embedded.EmbeddedDashboard;
 
 /**
  * @author Lars Helge Overland
@@ -67,35 +66,16 @@ public class Dashboard extends BaseNameableObject implements MetadataObject {
   /** Allowed filter dimensions (if any) which may be used for the dashboard. */
   private List<String> allowedFilters = new ArrayList<>();
 
-  /**
-   * Provider of embedded dashboards, is never <code>null</code>. The default value is {@link
-   * EmbeddedProvider#NONE} which refers to standard DHIS 2 dashboards. Other values indicate that
-   * this dashboard is sourced from an external provider and embedded in DHIS 2.
-   */
-  private EmbeddedProvider embeddedProvider;
-
-  /**
-   * Identifier for external embedded dashboard, is <code>null</code> for DHIS 2 standard
-   * dashboards.
-   */
-  private String embeddedId;
-
-  /**
-   * Customization options for external embedded options, is <code>null</code> for DHIS 2 standard
-   * dashboards.
-   */
-  private EmbeddedOptions embeddedOptions;
+  /** Optional, only set if this dashboard is embedded and sourced from an external provider. */
+  private EmbeddedDashboard embedded;
 
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
 
-  public Dashboard() {
-    this.embeddedProvider = EmbeddedProvider.NONE;
-  }
+  public Dashboard() {}
 
   public Dashboard(String name) {
-    this();
     this.name = name;
   }
 
@@ -173,31 +153,11 @@ public class Dashboard extends BaseNameableObject implements MetadataObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
-  public EmbeddedProvider getEmbeddedProvider() {
-    return embeddedProvider;
+  public EmbeddedDashboard getEmbedded() {
+    return embedded;
   }
 
-  public void setEmbeddedProvider(EmbeddedProvider embeddedProvider) {
-    this.embeddedProvider = embeddedProvider;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public String getEmbeddedId() {
-    return embeddedId;
-  }
-
-  public void setEmbeddedId(String embeddedId) {
-    this.embeddedId = embeddedId;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public EmbeddedOptions getEmbeddedOptions() {
-    return embeddedOptions;
-  }
-
-  public void setEmbeddedOptions(EmbeddedOptions embeddedOptions) {
-    this.embeddedOptions = embeddedOptions;
+  public void setEmbedded(EmbeddedDashboard embedded) {
+    this.embedded = embedded;
   }
 }
