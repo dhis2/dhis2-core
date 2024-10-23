@@ -456,7 +456,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
-            .programUid(UID.of(programA))
+            .program(UID.of(programA))
             .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
             .build();
 
@@ -477,7 +477,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
-            .programUid(UID.of(programA))
+            .program(UID.of(programA))
             .orgUnitMode(ACCESSIBLE)
             .build();
 
@@ -516,8 +516,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
-            .programUid(UID.of(programA))
-            .enrollmentUids(Set.of(UID.of(enrollmentA)))
+            .program(UID.of(programA))
+            .enrollments(Set.of(UID.of(enrollmentA)))
             .orgUnitMode(ACCESSIBLE)
             .build();
 
@@ -535,9 +535,9 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(UID.of(trackedEntityA.getOrganisationUnit())))
+            .orgUnits(Set.of(UID.of(trackedEntityA.getOrganisationUnit())))
             .orgUnitMode(SELECTED)
-            .trackedEntityUid(UID.of(trackedEntityA))
+            .trackedEntity(UID.of(trackedEntityA))
             .build();
 
     List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
@@ -553,7 +553,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(UID.of(orgUnitA)))
+            .orgUnits(Set.of(UID.of(orgUnitA)))
             .orgUnitMode(SELECTED)
             .lastUpdated(oneHourBeforeLastUpdated)
             .build();
@@ -570,7 +570,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(UID.of(orgUnitA)))
+            .orgUnits(Set.of(UID.of(orgUnitA)))
             .orgUnitMode(SELECTED)
             .lastUpdated(oneHourAfterLastUpdated)
             .build();
@@ -588,9 +588,9 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(UID.of(orgUnitA)))
+            .orgUnits(Set.of(UID.of(orgUnitA)))
             .orgUnitMode(SELECTED)
-            .programUid(UID.of(programA))
+            .program(UID.of(programA))
             .programStartDate(oneHourBeforeEnrollmentDate)
             .build();
 
@@ -607,9 +607,9 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(UID.of(orgUnitA)))
+            .orgUnits(Set.of(UID.of(orgUnitA)))
             .orgUnitMode(SELECTED)
-            .programUid(UID.of(programA))
+            .program(UID.of(programA))
             .programStartDate(oneHourAfterEnrollmentDate)
             .build();
 
@@ -626,9 +626,9 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(UID.of(orgUnitA)))
+            .orgUnits(Set.of(UID.of(orgUnitA)))
             .orgUnitMode(SELECTED)
-            .programUid(UID.of(programA))
+            .program(UID.of(programA))
             .programEndDate(oneHourAfterEnrollmentDate)
             .build();
 
@@ -645,9 +645,9 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(UID.of(orgUnitA)))
+            .orgUnits(Set.of(UID.of(orgUnitA)))
             .orgUnitMode(SELECTED)
-            .programUid(UID.of(programA))
+            .program(UID.of(programA))
             .programEndDate(oneHourBeforeEnrollmentDate)
             .build();
 
@@ -689,7 +689,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitMode(DESCENDANTS)
-            .orgUnitUids(Set.of(UID.of(orgUnitA)))
+            .orgUnits(Set.of(UID.of(orgUnitA)))
             .build();
 
     ForbiddenException exception =
@@ -719,7 +719,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(UID.of(orgUnitA)))
+            .orgUnits(Set.of(UID.of(orgUnitA)))
             .orgUnitMode(DESCENDANTS)
             .build();
 
@@ -735,7 +735,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(UID.of(orgUnitA)))
+            .orgUnits(Set.of(UID.of(orgUnitA)))
             .orgUnitMode(CHILDREN)
             .build();
 
@@ -749,7 +749,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(UID.of(orgUnitChildA)))
+            .orgUnits(Set.of(UID.of(orgUnitChildA)))
             .orgUnitMode(CHILDREN)
             .build();
 
@@ -765,7 +765,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(UID.of(orgUnitA, orgUnitChildA))
+            .orgUnits(UID.of(orgUnitA, orgUnitChildA))
             .orgUnitMode(CHILDREN)
             .build();
 

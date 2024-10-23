@@ -147,7 +147,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       hql +=
           hlp.whereAnd()
               + "en.uid in ("
-              + getQuotedCommaDelimitedString(UID.toValueList(params.getEnrollmentUids()))
+              + getQuotedCommaDelimitedString(UID.toValueList(params.getEnrollments()))
               + ")";
     }
 

@@ -110,9 +110,8 @@ class DeduplicationHelperTest extends TestBase {
   @BeforeEach
   public void setUp() throws ForbiddenException, NotFoundException {
     List<String> relationshipUids =
-        Lists.newArrayList(CodeGenerator.generateUid(), CodeGenerator.generateUid());
-    List<String> attributeUids =
-        Lists.newArrayList(CodeGenerator.generateUid(), CodeGenerator.generateUid());
+        List.of(CodeGenerator.generateUid(), CodeGenerator.generateUid());
+    List<String> attributeUids = List.of(CodeGenerator.generateUid(), CodeGenerator.generateUid());
     Set<UID> enrollmentUids =
         Set.of(UID.of(CodeGenerator.generateUid()), UID.of(CodeGenerator.generateUid()));
 
@@ -303,7 +302,7 @@ class DeduplicationHelperTest extends TestBase {
   }
 
   @Test
-  void shoudGenerateMergeObjectForAttribute()
+  void shouldGenerateMergeObjectForAttribute()
       throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException {
     TrackedEntity original = getTrackedEntityA();
 
@@ -324,11 +323,11 @@ class DeduplicationHelperTest extends TestBase {
 
     duplicate.getTrackedEntityAttributeValues().add(attributeValueDuplicate);
 
-    MergeObject mergeObject = deduplicationHelper.generateMergeObject(original, duplicate);
+    MergeObject actualMergeObject = deduplicationHelper.generateMergeObject(original, duplicate);
 
-    assertFalse(mergeObject.getTrackedEntityAttributes().isEmpty());
+    assertFalse(actualMergeObject.getTrackedEntityAttributes().isEmpty());
 
-    mergeObject
+    actualMergeObject
         .getTrackedEntityAttributes()
         .forEach(a -> assertEquals(duplicateAttribute.getUid(), a));
   }
@@ -355,13 +354,15 @@ class DeduplicationHelperTest extends TestBase {
 
     duplicate.getRelationshipItems().add(anotherRelationshipItem);
 
-    MergeObject mergeObject = deduplicationHelper.generateMergeObject(original, duplicate);
+    MergeObject actualMergeObject = deduplicationHelper.generateMergeObject(original, duplicate);
 
-    assertTrue(mergeObject.getTrackedEntityAttributes().isEmpty());
+    assertTrue(actualMergeObject.getTrackedEntityAttributes().isEmpty());
 
-    assertFalse(mergeObject.getRelationships().isEmpty());
+    assertFalse(actualMergeObject.getRelationships().isEmpty());
 
-    mergeObject.getRelationships().forEach(r -> assertEquals(anotherRelationship.getUid(), r));
+    actualMergeObject
+        .getRelationships()
+        .forEach(r -> assertEquals(anotherRelationship.getUid(), r));
 
     Relationship baseRelationship = getRelationship();
 
@@ -373,9 +374,9 @@ class DeduplicationHelperTest extends TestBase {
 
     duplicate.getRelationshipItems().add(relationshipItem);
 
-    mergeObject = deduplicationHelper.generateMergeObject(original, duplicate);
+    actualMergeObject = deduplicationHelper.generateMergeObject(original, duplicate);
 
-    assertEquals(1, mergeObject.getRelationships().size());
+    assertEquals(1, actualMergeObject.getRelationships().size());
   }
 
   @Test
@@ -419,7 +420,7 @@ class DeduplicationHelperTest extends TestBase {
   void shouldFailGetDuplicateRelationshipErrorWithDuplicateRelationshipsWithTrackedEntities() {
     TrackedEntity teA = getTrackedEntityA();
     TrackedEntity teB = getTrackedEntityB();
-    TrackedEntity teC = getTrackedEntityC();
+    TrackedEntity teC = getTrackedEntityB();
 
     // A->C, B->C
     RelationshipItem fromA = new RelationshipItem();
@@ -468,7 +469,7 @@ class DeduplicationHelperTest extends TestBase {
       shouldFailGetDuplicateRelationshipErrorWithDuplicateRelationshipsWithTrackedEntitiesBidirectional() {
     TrackedEntity teA = getTrackedEntityA();
     TrackedEntity teB = getTrackedEntityB();
-    TrackedEntity teC = getTrackedEntityC();
+    TrackedEntity teC = getTrackedEntityB();
 
     // A->C, B->C
     RelationshipItem fromA = new RelationshipItem();
@@ -512,54 +513,6 @@ class DeduplicationHelperTest extends TestBase {
                 .collect(Collectors.toSet())));
   }
 
-  @Test
-  void shouldNotFailGetDuplicateRelationshipError() {
-    TrackedEntity teA = getTrackedEntityA();
-    TrackedEntity teB = getTrackedEntityB();
-    TrackedEntity teC = getTrackedEntityC();
-
-    // A->C, C->B
-    RelationshipItem fromA = new RelationshipItem();
-    RelationshipItem toA = new RelationshipItem();
-    RelationshipItem fromB = new RelationshipItem();
-    RelationshipItem toB = new RelationshipItem();
-
-    fromA.setTrackedEntity(teA);
-    toA.setTrackedEntity(teC);
-    fromB.setTrackedEntity(teB);
-    toB.setTrackedEntity(teC);
-
-    Relationship relA = new Relationship();
-    Relationship relB = new Relationship();
-
-    relA.setAutoFields();
-    relB.setAutoFields();
-
-    relA.setRelationshipType(relationshipType);
-    relB.setRelationshipType(relationshipType);
-
-    relA.setFrom(fromA);
-    relA.setTo(toA);
-    relB.setFrom(fromB);
-    relB.setTo(toB);
-
-    fromA.setRelationship(relA);
-    toA.setRelationship(relA);
-
-    fromB.setRelationship(relB);
-    toB.setRelationship(relB);
-
-    teA.getRelationshipItems().add(fromA);
-    teB.getRelationshipItems().add(fromB);
-
-    assertNotNull(
-        deduplicationHelper.getDuplicateRelationshipError(
-            teA,
-            teB.getRelationshipItems().stream()
-                .map(RelationshipItem::getRelationship)
-                .collect(Collectors.toSet())));
-  }
-
   private List<Relationship> getRelationships() {
     Relationship relationshipA = new Relationship();
     relationshipA.setRelationshipType(relationshipType);
@@ -579,13 +532,6 @@ class DeduplicationHelperTest extends TestBase {
   }
 
   private TrackedEntity getTrackedEntityB() {
-    TrackedEntity te = createTrackedEntity(organisationUnitB);
-    te.setTrackedEntityType(trackedEntityTypeB);
-
-    return te;
-  }
-
-  private TrackedEntity getTrackedEntityC() {
     TrackedEntity te = createTrackedEntity(organisationUnitB);
     te.setTrackedEntityType(trackedEntityTypeB);
 

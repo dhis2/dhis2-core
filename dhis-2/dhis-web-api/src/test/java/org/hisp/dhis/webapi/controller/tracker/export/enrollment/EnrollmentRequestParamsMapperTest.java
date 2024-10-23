@@ -104,7 +104,7 @@ class EnrollmentRequestParamsMapperTest {
 
     EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
-    assertContainsOnly(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), params.getOrgUnitUids());
+    assertContainsOnly(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), params.getOrgUnits());
   }
 
   @Test
@@ -115,7 +115,7 @@ class EnrollmentRequestParamsMapperTest {
 
     EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
-    assertContainsOnly(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), params.getOrgUnitUids());
+    assertContainsOnly(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), params.getOrgUnits());
   }
 
   @Test
@@ -169,7 +169,7 @@ class EnrollmentRequestParamsMapperTest {
 
     EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
-    assertEquals(PROGRAM_UID, params.getProgramUid());
+    assertEquals(PROGRAM_UID, params.getProgram());
   }
 
   @Test
@@ -179,7 +179,7 @@ class EnrollmentRequestParamsMapperTest {
 
     EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
-    assertEquals(TRACKED_ENTITY_TYPE_UID, params.getTrackedEntityTypeUid());
+    assertEquals(TRACKED_ENTITY_TYPE_UID, params.getTrackedEntityType());
   }
 
   @Test
@@ -189,7 +189,7 @@ class EnrollmentRequestParamsMapperTest {
 
     EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
-    assertEquals(TRACKED_ENTITY_UID, params.getTrackedEntityUid());
+    assertEquals(TRACKED_ENTITY_UID, params.getTrackedEntity());
   }
 
   @Test

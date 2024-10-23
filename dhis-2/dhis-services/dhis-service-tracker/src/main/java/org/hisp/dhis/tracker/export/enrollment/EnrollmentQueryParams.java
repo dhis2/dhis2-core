@@ -53,7 +53,7 @@ import org.hisp.dhis.tracker.export.Order;
 class EnrollmentQueryParams {
 
   /** Set of enrollment uids to explicitly select. */
-  private Set<UID> enrollmentUids = new HashSet<>();
+  private Set<UID> enrollments = new HashSet<>();
 
   /** Last updated for enrollment. */
   private Date lastUpdated;
@@ -168,7 +168,7 @@ class EnrollmentQueryParams {
   }
 
   public boolean hasEnrollmentUids() {
-    return isNotEmpty(this.enrollmentUids);
+    return isNotEmpty(this.enrollments);
   }
 
   /** Indicates whether this params is of the given organisation unit mode. */

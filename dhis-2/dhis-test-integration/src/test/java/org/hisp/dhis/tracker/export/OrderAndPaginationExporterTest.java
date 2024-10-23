@@ -571,7 +571,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(UID.of(orgUnit)))
+            .orgUnits(Set.of(UID.of(orgUnit)))
             .orgUnitMode(SELECTED)
             .orderBy("enrollmentDate", SortDirection.ASC)
             .build();
@@ -603,7 +603,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(UID.of(orgUnit)))
+            .orgUnits(Set.of(UID.of(orgUnit)))
             .orgUnitMode(SELECTED)
             .orderBy("enrollmentDate", SortDirection.ASC)
             .build();
@@ -643,7 +643,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(UID.of(orgUnit)))
+            .orgUnits(Set.of(UID.of(orgUnit)))
             .orgUnitMode(SELECTED)
             .build();
 
@@ -657,7 +657,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(UID.of(orgUnit)))
+            .orgUnits(Set.of(UID.of(orgUnit)))
             .orgUnitMode(SELECTED)
             .orderBy("enrollmentDate", SortDirection.ASC)
             .build();
@@ -672,7 +672,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(UID.of(orgUnit)))
+            .orgUnits(Set.of(UID.of(orgUnit)))
             .orgUnitMode(SELECTED)
             .orderBy("enrollmentDate", SortDirection.DESC)
             .build();

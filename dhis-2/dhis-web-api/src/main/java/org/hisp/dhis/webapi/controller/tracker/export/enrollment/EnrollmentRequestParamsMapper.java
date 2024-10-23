@@ -98,7 +98,7 @@ class EnrollmentRequestParamsMapper {
 
     EnrollmentOperationParamsBuilder builder =
         EnrollmentOperationParams.builder()
-            .programUid(enrollmentRequestParams.getProgram())
+            .program(enrollmentRequestParams.getProgram())
             .enrollmentStatus(enrollmentStatus)
             .followUp(enrollmentRequestParams.getFollowUp())
             .lastUpdated(
@@ -108,12 +108,12 @@ class EnrollmentRequestParamsMapper {
                 applyIfNotNull(enrollmentRequestParams.getEnrolledAfter(), StartDateTime::toDate))
             .programEndDate(
                 applyIfNotNull(enrollmentRequestParams.getEnrolledBefore(), EndDateTime::toDate))
-            .trackedEntityTypeUid(enrollmentRequestParams.getTrackedEntityType())
-            .trackedEntityUid(enrollmentRequestParams.getTrackedEntity())
-            .orgUnitUids(orgUnits)
+            .trackedEntityType(enrollmentRequestParams.getTrackedEntityType())
+            .trackedEntity(enrollmentRequestParams.getTrackedEntity())
+            .orgUnits(orgUnits)
             .orgUnitMode(orgUnitMode)
             .includeDeleted(enrollmentRequestParams.isIncludeDeleted())
-            .enrollmentUids(enrollmentUids)
+            .enrollments(enrollmentUids)
             .enrollmentParams(fieldsParamMapper.map(enrollmentRequestParams.getFields()));
 
     mapOrderParam(builder, enrollmentRequestParams.getOrder());

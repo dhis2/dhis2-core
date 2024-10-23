@@ -228,7 +228,7 @@ class EnrollmentOperationParamsMapperTest {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(UID.of(orgUnit1)))
+            .orgUnits(Set.of(UID.of(orgUnit1)))
             .orgUnitMode(CHILDREN)
             .build();
 

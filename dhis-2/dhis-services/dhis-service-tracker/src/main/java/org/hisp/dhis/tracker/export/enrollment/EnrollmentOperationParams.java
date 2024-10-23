@@ -51,7 +51,7 @@ public class EnrollmentOperationParams {
   @Builder.Default private final EnrollmentParams enrollmentParams = EnrollmentParams.FALSE;
 
   /** Set of te uids to explicitly select. */
-  @Builder.Default private final Set<UID> enrollmentUids = new HashSet<>();
+  @Builder.Default private final Set<UID> enrollments = new HashSet<>();
 
   /** Last updated for enrollment. */
   private final Date lastUpdated;
@@ -63,13 +63,13 @@ public class EnrollmentOperationParams {
    * Organisation units for which instances in the response were registered at. Is related to the
    * specified OrganisationUnitMode.
    */
-  @Builder.Default private final Set<UID> orgUnitUids = new HashSet<>();
+  @Builder.Default private final Set<UID> orgUnits = new HashSet<>();
 
   /** Selection mode for the specified organisation units. */
   private final OrganisationUnitSelectionMode orgUnitMode;
 
   /** Enrollments must be enrolled into this program. */
-  private final UID programUid;
+  private final UID program;
 
   /** Status of a tracked entities enrollment into a given program. */
   private final EnrollmentStatus enrollmentStatus;
@@ -84,10 +84,10 @@ public class EnrollmentOperationParams {
   private final Date programEndDate;
 
   /** Tracked entity type of the tracked entity in the response. */
-  private final UID trackedEntityTypeUid;
+  private final UID trackedEntityType;
 
   /** Tracked entity. */
-  private final UID trackedEntityUid;
+  private final UID trackedEntity;
 
   /** Indicates whether to include soft-deleted enrollments */
   private final boolean includeDeleted;

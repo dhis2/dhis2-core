@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.export.relationship;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -63,7 +62,7 @@ class RelationshipOperationParamsMapper {
           case TRACKED_ENTITY ->
               trackedEntityService.getTrackedEntity(params.getIdentifier().getValue());
           case ENROLLMENT -> enrollmentService.getEnrollment(params.getIdentifier());
-          case EVENT -> eventService.getEvent(UID.of(params.getIdentifier().getValue()));
+          case EVENT -> eventService.getEvent(params.getIdentifier());
           case RELATIONSHIP -> throw new IllegalArgumentException("Unsupported type");
         };
 
