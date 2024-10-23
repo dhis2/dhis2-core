@@ -33,7 +33,7 @@ import org.hisp.dhis.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class DataIntegrityCategoryDimensionNoFavoritesControllerTest
+class DataIntegrityCategoryDimensionNoFavoritesControllerTest
     extends AbstractDataIntegrityIntegrationTest {
   private final String check = "categories_dimensions_no_analysis";
 
