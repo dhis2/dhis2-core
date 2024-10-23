@@ -34,6 +34,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.Order;
 
@@ -43,7 +44,7 @@ import org.hisp.dhis.tracker.export.Order;
 public class RelationshipOperationParams {
   private TrackerType type;
 
-  private String identifier;
+  private UID identifier;
 
   private List<Order> order;
 

@@ -37,13 +37,13 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -53,7 +53,7 @@ import org.hisp.dhis.user.User;
 class EnrollmentQueryParams {
 
   /** Set of enrollment uids to explicitly select. */
-  private Set<String> enrollmentUids = new HashSet<>();
+  private Set<UID> enrollmentUids = new HashSet<>();
 
   /** Last updated for enrollment. */
   private Date lastUpdated;
@@ -94,13 +94,6 @@ class EnrollmentQueryParams {
   private boolean includeDeleted;
 
   private List<Order> order;
-
-  // -------------------------------------------------------------------------
-  // Transient properties
-  // -------------------------------------------------------------------------
-
-  /** Current user for query. */
-  private transient User user;
 
   // -------------------------------------------------------------------------
   // Constructors

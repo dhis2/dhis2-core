@@ -35,6 +35,7 @@ import java.util.function.Supplier;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.webmessage.BasicWebMessage;
 
 @Getter
@@ -55,6 +56,10 @@ public final class NotFoundException extends Exception implements Error {
   private final ErrorCode code;
 
   public NotFoundException(Class<?> type, String uid) {
+    this(type.getSimpleName() + " with id " + uid + " could not be found.");
+  }
+
+  public NotFoundException(Class<?> type, UID uid) {
     this(type.getSimpleName() + " with id " + uid + " could not be found.");
   }
 

@@ -51,6 +51,7 @@ import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -146,7 +147,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       hql +=
           hlp.whereAnd()
               + "en.uid in ("
-              + getQuotedCommaDelimitedString(params.getEnrollmentUids())
+              + getQuotedCommaDelimitedString(UID.toValueList(params.getEnrollmentUids()))
               + ")";
     }
 

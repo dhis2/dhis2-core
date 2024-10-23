@@ -38,6 +38,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.export.Order;
 
@@ -50,7 +51,7 @@ public class EnrollmentOperationParams {
   @Builder.Default private final EnrollmentParams enrollmentParams = EnrollmentParams.FALSE;
 
   /** Set of te uids to explicitly select. */
-  @Builder.Default private final Set<String> enrollmentUids = new HashSet<>();
+  @Builder.Default private final Set<UID> enrollmentUids = new HashSet<>();
 
   /** Last updated for enrollment. */
   private final Date lastUpdated;
@@ -62,13 +63,13 @@ public class EnrollmentOperationParams {
    * Organisation units for which instances in the response were registered at. Is related to the
    * specified OrganisationUnitMode.
    */
-  @Builder.Default private final Set<String> orgUnitUids = new HashSet<>();
+  @Builder.Default private final Set<UID> orgUnitUids = new HashSet<>();
 
   /** Selection mode for the specified organisation units. */
   private final OrganisationUnitSelectionMode orgUnitMode;
 
   /** Enrollments must be enrolled into this program. */
-  private final String programUid;
+  private final UID programUid;
 
   /** Status of a tracked entities enrollment into a given program. */
   private final EnrollmentStatus enrollmentStatus;
@@ -83,10 +84,10 @@ public class EnrollmentOperationParams {
   private final Date programEndDate;
 
   /** Tracked entity type of the tracked entity in the response. */
-  private final String trackedEntityTypeUid;
+  private final UID trackedEntityTypeUid;
 
   /** Tracked entity. */
-  private final String trackedEntityUid;
+  private final UID trackedEntityUid;
 
   /** Indicates whether to include soft-deleted enrollments */
   private final boolean includeDeleted;

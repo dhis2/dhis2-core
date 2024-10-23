@@ -60,9 +60,10 @@ class RelationshipOperationParamsMapper {
 
     IdentifiableObject entity =
         switch (params.getType()) {
-          case TRACKED_ENTITY -> trackedEntityService.getTrackedEntity(params.getIdentifier());
+          case TRACKED_ENTITY ->
+              trackedEntityService.getTrackedEntity(params.getIdentifier().getValue());
           case ENROLLMENT -> enrollmentService.getEnrollment(params.getIdentifier());
-          case EVENT -> eventService.getEvent(UID.of(params.getIdentifier()));
+          case EVENT -> eventService.getEvent(UID.of(params.getIdentifier().getValue()));
           case RELATIONSHIP -> throw new IllegalArgumentException("Unsupported type");
         };
 

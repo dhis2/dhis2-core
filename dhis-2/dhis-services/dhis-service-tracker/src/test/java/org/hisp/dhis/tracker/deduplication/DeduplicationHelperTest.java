@@ -37,7 +37,10 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -106,9 +109,12 @@ class DeduplicationHelperTest extends TestBase {
 
   @BeforeEach
   public void setUp() throws ForbiddenException, NotFoundException {
-    List<String> relationshipUids = Lists.newArrayList("REL_A", "REL_B");
-    List<String> attributeUids = Lists.newArrayList("ATTR_A", "ATTR_B");
-    List<String> enrollmentUids = Lists.newArrayList("PI_A", "PI_B");
+    List<String> relationshipUids =
+        Lists.newArrayList(CodeGenerator.generateUid(), CodeGenerator.generateUid());
+    List<String> attributeUids =
+        Lists.newArrayList(CodeGenerator.generateUid(), CodeGenerator.generateUid());
+    Set<UID> enrollmentUids =
+        Set.of(UID.of(CodeGenerator.generateUid()), UID.of(CodeGenerator.generateUid()));
 
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');
@@ -122,7 +128,7 @@ class DeduplicationHelperTest extends TestBase {
         MergeObject.builder()
             .relationships(relationshipUids)
             .trackedEntityAttributes(attributeUids)
-            .enrollments(enrollmentUids)
+            .enrollments(UID.toValueList(enrollmentUids))
             .build();
     user = makeUser("A", Lists.newArrayList("F_TRACKED_ENTITY_MERGE"));
 

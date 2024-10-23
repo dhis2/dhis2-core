@@ -714,8 +714,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     List<Enrollment> enrollments =
         enrollmentService.getEnrollments(
             EnrollmentOperationParams.builder()
-                .trackedEntityUid(trackedEntity.getUid())
-                .programUid(trackerProgram.getUid())
+                .trackedEntityUid(UID.of(trackedEntity))
+                .programUid(UID.of(trackerProgram))
                 .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
                 .build());
     assertHasSize(1, enrollments);
