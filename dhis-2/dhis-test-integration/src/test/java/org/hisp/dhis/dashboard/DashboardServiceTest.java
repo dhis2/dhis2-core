@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dashboard.embedded.EmbeddedDashboard;
 import org.hisp.dhis.dashboard.embedded.EmbeddedOptions;
 import org.hisp.dhis.dashboard.embedded.EmbeddedProvider;
 import org.hisp.dhis.document.Document;
@@ -81,6 +82,8 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager objectManager;
 
+  private static final String UUID_A = "41c52308-1db4-4971-ade4-50c4d12c201d";
+
   private Dashboard dbA;
 
   private Dashboard dbB;
@@ -96,6 +99,8 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
   private DashboardItem diD;
 
   private DashboardItem diE;
+
+  private DashboardItem diF;
 
   private Visualization vzA;
 
@@ -141,6 +146,9 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
     diE = new DashboardItem();
     diE.setAutoFields();
     diE.setEventVisualization(evzB);
+    diF = new DashboardItem();
+    diF.setAutoFields();
+    diF.setVisualization(vzA);
 
     dbA = new Dashboard("A");
     dbA.setAutoFields();
@@ -157,9 +165,10 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
 
     dbC = new Dashboard("C");
     dbC.setAutoFields();
-    dbC.setEmbeddedProvider(EmbeddedProvider.SUPERSET);
-    dbC.setEmbeddedId("41c52308-1db4-4971-ade4-50c4d12c201d");
-    dbC.setEmbeddedOptions(new EmbeddedOptions(true, true, true));
+    dbC.getItems().add(diF);
+    dbC.setEmbedded(
+        new EmbeddedDashboard(
+            EmbeddedProvider.SUPERSET, UUID_A, new EmbeddedOptions(true, true, true)));
   }
 
   @Test
@@ -173,8 +182,16 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
     assertEquals(2, dbB.getAllowedFilters().size());
     assertEquals(3, dashboardService.getDashboard(dAId).getItems().size());
     assertEquals(2, dashboardService.getDashboard(dBId).getItems().size());
-    assertNotNull(dashboardService.getDashboard(dCId).getEmbeddedId());
-    assertTrue(dashboardService.getDashboard(dCId).getEmbeddedOptions().isHideChartControls());
+    assertEquals(1, dashboardService.getDashboard(dCId).getItems().size());
+
+    Dashboard rdC = dashboardService.getDashboard(dCId);
+    assertNotNull(rdC.getEmbedded());
+    assertEquals(EmbeddedProvider.SUPERSET, rdC.getEmbedded().getProvider());
+    assertEquals(UUID_A, rdC.getEmbedded().getId());
+    assertNotNull(rdC.getEmbedded().getOptions());
+    assertTrue(rdC.getEmbedded().getOptions().isHideChartControls());
+    assertTrue(rdC.getEmbedded().getOptions().isHideChartControls());
+    assertTrue(rdC.getEmbedded().getOptions().isShowFilters());
   }
 
   @Test

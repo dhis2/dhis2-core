@@ -28,6 +28,7 @@
 package org.hisp.dhis.dashboard.embedded;
 
 import java.io.Serializable;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -35,6 +36,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class EmbeddedDashboard implements Serializable {
   /** Provider of embedded dashboards. */
   private EmbeddedProvider provider;
