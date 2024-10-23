@@ -190,7 +190,7 @@ public class OpenApiController {
 
     StringWriter json = new StringWriter();
     OpenApiScopeParams scope = new OpenApiScopeParams();
-    scope.setScope(Set.of("path./" + path));
+    scope.setScope(Set.of("path./api/" + path));
     writeDocument(
         request, generation, scope, () -> new PrintWriter(json), OpenApiGenerator::generateJson);
 
@@ -213,7 +213,7 @@ public class OpenApiController {
     if (notModified(request, response, generation)) return;
 
     OpenApiScopeParams scope = new OpenApiScopeParams();
-    scope.setScope(Set.of("path./" + path));
+    scope.setScope(Set.of("path./api/" + path));
     writeDocument(
         request, generation, scope, getYamlWriter(response), OpenApiGenerator::generateYaml);
   }
@@ -247,7 +247,7 @@ public class OpenApiController {
     if (notModified(request, response, generation)) return;
 
     OpenApiScopeParams scope = new OpenApiScopeParams();
-    scope.setScope(Set.of("path./" + path));
+    scope.setScope(Set.of("path./api/" + path));
     writeDocument(
         request, generation, scope, getJsonWriter(response), OpenApiGenerator::generateJson);
   }
