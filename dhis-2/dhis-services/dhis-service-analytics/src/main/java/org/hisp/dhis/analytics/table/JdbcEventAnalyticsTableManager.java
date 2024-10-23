@@ -72,6 +72,7 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Distribution;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -203,6 +204,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Calendar calendar = PeriodType.getCalendar();
     List<AnalyticsTable> tables = new ArrayList<>();
     Logged logged = analyticsTableSettings.getTableLogged();
+    Distribution distribution = getDistribution(params);
 
     List<Program> programs =
         params.isSkipPrograms()
@@ -221,7 +223,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       Collections.sort(yearsForPartitionTables);
 
       AnalyticsTable table =
-          new AnalyticsTable(getAnalyticsTableType(), getColumns(program), logged, program);
+          new AnalyticsTable(
+              getAnalyticsTableType(), getColumns(program), logged, program, distribution);
 
       for (Integer year : yearsForPartitionTables) {
         List<String> checks = getPartitionChecks(year, PartitionUtils.getEndDate(calendar, year));
@@ -232,7 +235,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             PartitionUtils.getEndDate(calendar, year));
       }
 
-      if (table.hasTablePartitions()) {
+      if (table.hasTablePartitions() || table.isDistributed()) {
         tables.add(table);
       }
     }
@@ -264,6 +267,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     List<AnalyticsTable> tables = new ArrayList<>();
 
     Logged logged = analyticsTableSettings.getTableLogged();
+    Distribution distribution = getDistribution(params);
 
     List<Program> programs =
         params.isSkipPrograms()
@@ -277,7 +281,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
       if (hasUpdatedData) {
         AnalyticsTable table =
-            new AnalyticsTable(getAnalyticsTableType(), getColumns(program), logged, program);
+            new AnalyticsTable(
+                getAnalyticsTableType(), getColumns(program), logged, program, distribution);
         table.addTablePartition(
             List.of(), AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate);
         tables.add(table);
@@ -367,6 +372,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
     Program program = partition.getMasterTable().getProgram();
     String partitionClause = getPartitionClause(partition);
+
+    if (partition.getMasterTable().isDistributed()) {
+      partitionClause = "";
+    }
 
     String fromClause =
         replace(

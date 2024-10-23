@@ -173,7 +173,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
         condition = "enrollment = ax.enrollment";
       } else {
         if (AnalyticsType.EVENT == programIndicator.getAnalyticsType()) {
-          condition = "event = ax.event";
+          condition = "enrollment = ax.enrollment AND event = ax.event";
         }
       }
     }
