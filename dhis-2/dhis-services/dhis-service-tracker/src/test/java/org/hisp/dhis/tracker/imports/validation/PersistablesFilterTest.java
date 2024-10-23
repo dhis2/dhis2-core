@@ -483,7 +483,6 @@ class PersistablesFilterTest {
         // set child/parent links
         Enrollment enrollment =
             Enrollment.builder().enrollment(uid).trackedEntity(parent.entity.getUid()).build();
-        parent.entity.getEnrollments().add(enrollment);
         return new Entity<>(enrollment);
       }
 
@@ -510,7 +509,6 @@ class PersistablesFilterTest {
         // enrollment.
         // They do have a "fake" enrollment (a default program) but it's not set on the event DTO.
         Event event = Event.builder().event(uid).enrollment(parent.entity.getUid()).build();
-        parent.entity.getEvents().add(event);
         return new Entity<>(event);
       }
 

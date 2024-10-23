@@ -25,32 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preprocess;
+package org.hisp.dhis.dxf2.webmessage.responses;
 
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import javax.annotation.Nonnull;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 /**
- * This preprocessor is responsible for populating the bidirectional field with the value from the
- * RelationshipType
- *
- * @author Enrico Colasante
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component
-public class BidirectionalRelationshipsPreProcessor implements BundlePreProcessor {
+@Getter
+@RequiredArgsConstructor
+@JsonPropertyOrder({"type", "created", "updated", "deleted"})
+public class ImportCountWebMessageResponse implements WebMessageResponse {
 
+  @JsonProperty private final int created;
+  @JsonProperty private final int updated;
+  @JsonProperty private final int deleted;
+
+  @Nonnull
   @Override
-  public void process(TrackerBundle bundle) {
-    bundle
-        .getRelationships()
-        .forEach(
-            rel -> {
-              RelationshipType relType =
-                  bundle.getPreheat().getRelationshipType(rel.getRelationshipType());
-              if (relType != null) {
-                rel.setBidirectional(relType.isBidirectional());
-              }
-            });
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return ImportCountWebMessageResponse.class;
   }
 }

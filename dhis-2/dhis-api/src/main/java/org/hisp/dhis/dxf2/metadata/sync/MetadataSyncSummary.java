@@ -25,38 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.webmessage.responses;
+package org.hisp.dhis.dxf2.metadata.sync;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import java.util.ArrayList;
-import java.util.List;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
-import org.hisp.dhis.feedback.ErrorReport;
+import javax.annotation.Nonnull;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.hisp.dhis.dxf2.common.ImportSummary;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.metadata.version.MetadataVersion;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Defines the structure of metadata sync summary
+ *
+ * @author vanyas
  */
-public class ErrorReportsWebMessageResponse extends AbstractWebMessageResponse {
-  private List<ErrorReport> errorReports = new ArrayList<>();
+@Getter
+@Setter
+@ToString
+public class MetadataSyncSummary implements WebMessageResponse {
 
-  public ErrorReportsWebMessageResponse(List<ErrorReport> errorReports) {
-    this.errorReports = errorReports;
-  }
+  @JsonProperty private ImportReport importReport;
+  @JsonProperty private ImportSummary importSummary;
+  @JsonProperty private MetadataVersion metadataVersion;
 
-  @JsonProperty
-  @JacksonXmlElementWrapper(
-      localName = "errorReports",
-      namespace = DxfNamespaces.DXF_2_0,
-      useWrapping = false)
-  @JacksonXmlProperty(localName = "errorReport", namespace = DxfNamespaces.DXF_2_0)
-  public List<ErrorReport> getErrorReports() {
-    return errorReports;
-  }
-
-  public void setErrorReports(List<ErrorReport> errorReports) {
-    this.errorReports = errorReports;
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return MetadataSyncSummary.class;
   }
 }

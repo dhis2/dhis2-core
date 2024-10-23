@@ -25,20 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.importsummary;
+package org.hisp.dhis.dxf2.webmessage.responses;
 
-public enum ImportStatus {
-  SUCCESS(1),
-  WARNING(2),
-  ERROR(3);
+import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.annotation.Nonnull;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
-  private int order;
+/**
+ * @author Halvdan Hoem Grelland
+ */
+@Getter
+@RequiredArgsConstructor
+public class FileResourceWebMessageResponse implements WebMessageResponse {
 
-  ImportStatus(int order) {
-    this.order = order;
-  }
+  @JsonProperty private final FileResource fileResource;
 
-  public int getOrder() {
-    return order;
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return FileResourceWebMessageResponse.class;
   }
 }

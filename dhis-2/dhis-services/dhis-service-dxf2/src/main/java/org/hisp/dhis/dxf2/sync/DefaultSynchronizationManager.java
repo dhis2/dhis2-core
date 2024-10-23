@@ -46,7 +46,6 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.setting.SystemSettings;
@@ -54,6 +53,7 @@ import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
@@ -157,7 +157,7 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
 
     final int maxSyncAttempts = settingsService.getCurrentSettings().getSyncMaxAttempts();
 
-    Optional<AbstractWebMessageResponse> responseSummary =
+    Optional<WebMessageResponse> responseSummary =
         SyncUtils.runSyncRequest(
             restTemplate,
             requestCallback,

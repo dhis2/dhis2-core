@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
@@ -70,6 +71,12 @@ public final class GeoJsonImportReport implements ImportConflicts, WebMessageRes
     conflicts.forEach(this::addConflict);
     // OBS! setting the total count has to be after adding the conflicts
     this.totalConflictOccurrenceCount = totalConflictOccurrenceCount;
+  }
+
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return GeoJsonImportReport.class;
   }
 
   @JsonProperty
