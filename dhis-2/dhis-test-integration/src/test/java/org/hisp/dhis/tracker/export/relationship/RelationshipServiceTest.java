@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -244,7 +245,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     relationship(teA, inaccessibleTe, teToInaccessibleTeType);
 
     RelationshipOperationParams operationParams =
-        RelationshipOperationParams.builder().type(TRACKED_ENTITY).identifier(teA.getUid()).build();
+        RelationshipOperationParams.builder().type(TRACKED_ENTITY).identifier(UID.of(teA)).build();
 
     List<Relationship> relationships = relationshipService.getRelationships(operationParams);
 
@@ -262,7 +263,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder()
             .type(ENROLLMENT)
-            .identifier(enrollmentA.getUid())
+            .identifier(UID.of(enrollmentA))
             .build();
 
     List<Relationship> relationships = relationshipService.getRelationships(operationParams);
@@ -279,7 +280,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     relationship(eventA, inaccessibleEvent);
 
     RelationshipOperationParams operationParams =
-        RelationshipOperationParams.builder().type(EVENT).identifier(eventA.getUid()).build();
+        RelationshipOperationParams.builder().type(EVENT).identifier(UID.of(eventA)).build();
 
     List<Relationship> relationships = relationshipService.getRelationships(operationParams);
 
@@ -324,7 +325,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder()
             .type(TRACKED_ENTITY)
-            .identifier(trackedEntityFrom.getUid())
+            .identifier(UID.of(trackedEntityFrom))
             .build();
 
     assertThrows(
@@ -361,7 +362,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder()
             .type(TRACKED_ENTITY)
-            .identifier(trackedEntityFrom.getUid())
+            .identifier(UID.of(trackedEntityFrom))
             .build();
 
     List<Relationship> relationships = relationshipService.getRelationships(operationParams);
@@ -402,7 +403,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder()
             .type(TRACKED_ENTITY)
-            .identifier(trackedEntityFrom.getUid())
+            .identifier(UID.of(trackedEntityFrom))
             .build();
 
     assertThrows(
@@ -441,7 +442,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder()
             .type(TRACKED_ENTITY)
-            .identifier(trackedEntityFrom.getUid())
+            .identifier(UID.of(trackedEntityFrom))
             .build();
 
     assertThrows(

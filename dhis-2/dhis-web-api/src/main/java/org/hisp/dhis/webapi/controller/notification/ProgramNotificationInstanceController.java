@@ -114,7 +114,7 @@ public class ProgramNotificationInstanceController {
     Enrollment storedEnrollment = null;
     if (enrollmentUid != null) {
       storedEnrollment =
-          enrollmentService.getEnrollment(enrollmentUid.getValue(), EnrollmentParams.FALSE, false);
+          enrollmentService.getEnrollment(enrollmentUid, EnrollmentParams.FALSE, false);
     }
     ProgramNotificationInstanceParam params =
         ProgramNotificationInstanceParam.builder()
