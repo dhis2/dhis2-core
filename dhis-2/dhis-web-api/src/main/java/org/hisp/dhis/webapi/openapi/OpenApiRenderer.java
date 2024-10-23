@@ -478,7 +478,6 @@ public class OpenApiRenderer {
     const id = 'hk_'+location.hash.substring(1);
     if (document.getElementById(id) != null) return;
     const a = document.createElement('a');
-    a.appendChild(document.createTextNode(" + "))
     const hotkeys = document.getElementById("hotkeys");
     hotkeys.appendChild(a);
     const fn = document.createElement('kbd');
@@ -487,7 +486,7 @@ public class OpenApiRenderer {
       hotkeys.firstChild.nextSibling.remove();
       n = 1;
     }
-    fn.appendChild(document.createTextNode(""+ n));
+    fn.appendChild(document.createTextNode("Ctrl+"+ n));
     fn.id = 'hk'+n;
     a.appendChild(fn);
     a.appendChild(document.createTextNode(" "+location.hash+" "));
@@ -681,13 +680,7 @@ public class OpenApiRenderer {
   }
 
   private void renderHotkeysMenu() {
-    renderMenuGroup(
-        "hotkeys",
-        () -> {
-          appendTag("kbd", "Ctrl");
-          appendRaw(" Hotkeys");
-        },
-        () -> {});
+    renderMenuGroup("hotkeys", () -> appendRaw(" Hotkeys"), () -> {});
   }
 
   private void renderDisplayMenu() {
