@@ -204,7 +204,7 @@
     <commons-codec.version>1.17.1</commons-codec.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
-    <httpcomponents-core.version>5.2.5</httpcomponents-core.version>
+    <httpcomponents-core.version>5.3.1</httpcomponents-core.version>
     <httpcomponents-client5.version>5.3.1</httpcomponents-client5.version>
     <kafka.version>3.8.0</kafka.version>
 
