@@ -138,6 +138,7 @@ class TrackedEntityOperationParamsMapperTest {
     orgUnit2 = new OrganisationUnit("orgUnit2");
     orgUnit2.setUid(ORG_UNIT_2_UID);
     User testUser = new User();
+    testUser.setUid(CodeGenerator.generateUid());
     testUser.setOrganisationUnits(Set.of(orgUnit1, orgUnit2));
     user = UserDetails.fromUser(testUser);
 
@@ -188,7 +189,8 @@ class TrackedEntityOperationParamsMapperTest {
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .assignedUserQueryParam(
-                new AssignedUserQueryParam(AssignedUserSelectionMode.CURRENT, null, user.getUid()))
+                new AssignedUserQueryParam(
+                    AssignedUserSelectionMode.CURRENT, null, UID.of(user.getUid())))
             .orgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)
             .enrollmentStatus(EnrollmentStatus.ACTIVE)
             .followUp(true)
@@ -416,14 +418,14 @@ class TrackedEntityOperationParamsMapperTest {
             .assignedUserQueryParam(
                 new AssignedUserQueryParam(
                     AssignedUserSelectionMode.PROVIDED,
-                    Set.of("IsdLBTOBzMi", "l5ab8q5skbB"),
-                    user.getUid()))
+                    UID.of("IsdLBTOBzMi", "l5ab8q5skbB"),
+                    UID.of(user.getUid())))
             .build();
 
     TrackedEntityQueryParams params = mapper.map(operationParams, user);
 
     assertContainsOnly(
-        Set.of("IsdLBTOBzMi", "l5ab8q5skbB"),
+        UID.of("IsdLBTOBzMi", "l5ab8q5skbB"),
         params.getAssignedUserQueryParam().getAssignedUsers());
     assertEquals(AssignedUserSelectionMode.PROVIDED, params.getAssignedUserQueryParam().getMode());
   }

@@ -112,8 +112,7 @@ class DeduplicationHelperTest extends TestBase {
     List<String> relationshipUids =
         List.of(CodeGenerator.generateUid(), CodeGenerator.generateUid());
     List<String> attributeUids = List.of(CodeGenerator.generateUid(), CodeGenerator.generateUid());
-    Set<UID> enrollmentUids =
-        Set.of(UID.of(CodeGenerator.generateUid()), UID.of(CodeGenerator.generateUid()));
+    Set<UID> enrollmentUids = UID.of(CodeGenerator.generateUid(), CodeGenerator.generateUid());
 
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');
