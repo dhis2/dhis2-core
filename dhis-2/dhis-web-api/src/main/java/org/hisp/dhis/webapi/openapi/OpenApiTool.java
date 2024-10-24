@@ -35,6 +35,7 @@ import java.io.PrintWriter;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -90,8 +91,7 @@ public class OpenApiTool implements ToolProvider {
       err.println("Controller classes need to be compiled first");
       return -1;
     }
-    Set<String> paths = new HashSet<>();
-    Set<String> domains = new HashSet<>();
+    Map<String, Set<String>> filters = new HashMap<>();
     boolean group = false;
     for (int i = 0; i < args.length - 1; i++) {
       String arg = args[i];
@@ -104,14 +104,15 @@ public class OpenApiTool implements ToolProvider {
             err.println("Unknown option: " + arg);
         }
       } else if (arg.startsWith("/")) {
-        paths.add(arg);
+        filters.computeIfAbsent("path", k -> new HashSet<>()).add(arg);
       } else {
-        domains.add(arg);
+        filters.computeIfAbsent("entity", k -> new HashSet<>()).add(arg);
       }
     }
     out.println("Generated Documents");
     String filename = args[args.length - 1];
-    ApiExtractor.Scope scope = new ApiExtractor.Scope(controllers, paths, domains);
+
+    ApiExtractor.Scope scope = new ApiExtractor.Scope(controllers, filters);
     if (!group) {
       return generateDocument(filename, out, err, scope);
     }
@@ -167,10 +168,7 @@ public class OpenApiTool implements ToolProvider {
           String filename = dir + "/openapi-" + name + fileExtension;
           errorCode.addAndGet(
               generateDocument(
-                  filename,
-                  out,
-                  err,
-                  new ApiExtractor.Scope(classes, scope.paths(), scope.domains())));
+                  filename, out, err, new ApiExtractor.Scope(classes, scope.filters())));
         });
     return errorCode;
   }

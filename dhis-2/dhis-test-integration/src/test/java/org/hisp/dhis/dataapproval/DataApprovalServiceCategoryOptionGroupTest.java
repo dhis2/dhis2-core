@@ -593,11 +593,13 @@ class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTest
         new DataApprovalWorkflow(
             "workflow1",
             periodType,
+            mechanismCategoryCombo,
             Sets.newHashSet(globalLevel1, countryLevel3, agencyLevel4, partnerLevel5));
     workflow2 =
         new DataApprovalWorkflow(
             "workflow2",
             periodType,
+            mechanismCategoryCombo,
             Sets.newHashSet(globalLevel1, globalAgencyLevel2, agencyLevel4, partnerLevel5));
     dataApprovalService.addWorkflow(workflow1);
     dataApprovalService.addWorkflow(workflow2);

@@ -69,6 +69,7 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -997,7 +998,7 @@ class JdbcEventStore implements EventStore {
 
     fromBuilder.append(addLastUpdatedFilters(params, mapSqlParameterSource, hlp));
 
-    // Comparing milliseconds instead of always creating new Date( 0 );
+    // Comparing milliseconds instead of always creating new Date(0)
     if (params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0) {
       mapSqlParameterSource.addValue(
           "skipChangedBefore", params.getSkipChangedBefore(), Types.TIMESTAMP);
@@ -1061,13 +1062,13 @@ class JdbcEventStore implements EventStore {
     if (params.getEvents() != null
         && !params.getEvents().isEmpty()
         && !params.hasDataElementFilter()) {
-      mapSqlParameterSource.addValue("ev_uid", params.getEvents());
+      mapSqlParameterSource.addValue(COLUMN_EVENT_UID, UID.toValueSet(params.getEvents()));
       fromBuilder.append(hlp.whereAnd()).append(" (ev.uid in (").append(":ev_uid").append(")) ");
     }
 
     if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
       mapSqlParameterSource.addValue(
-          "au_uid", params.getAssignedUserQueryParam().getAssignedUsers());
+          "au_uid", UID.toValueSet(params.getAssignedUserQueryParam().getAssignedUsers()));
 
       fromBuilder.append(hlp.whereAnd()).append(" (au.uid in (").append(":au_uid").append(")) ");
     }
@@ -1087,7 +1088,9 @@ class JdbcEventStore implements EventStore {
     if (params.hasSecurityFilter()) {
       mapSqlParameterSource.addValue(
           "program_uid",
-          params.getAccessiblePrograms().isEmpty() ? null : params.getAccessiblePrograms());
+          params.getAccessiblePrograms().isEmpty()
+              ? null
+              : UID.toValueSet(params.getAccessiblePrograms()));
 
       fromBuilder
           .append(hlp.whereAnd())
@@ -1099,7 +1102,7 @@ class JdbcEventStore implements EventStore {
           "programstage_uid",
           params.getAccessibleProgramStages().isEmpty()
               ? null
-              : params.getAccessibleProgramStages());
+              : UID.toValueSet(params.getAccessibleProgramStages()));
 
       fromBuilder
           .append(hlp.whereAnd())
@@ -1113,7 +1116,7 @@ class JdbcEventStore implements EventStore {
     }
 
     if (!CollectionUtils.isEmpty(params.getEnrollments())) {
-      mapSqlParameterSource.addValue("enrollment_uid", params.getEnrollments());
+      mapSqlParameterSource.addValue("enrollment_uid", UID.toValueSet(params.getEnrollments()));
 
       fromBuilder.append(hlp.whereAnd()).append(" (en.uid in (:enrollment_uid)) ");
     }
@@ -1587,11 +1590,13 @@ class JdbcEventStore implements EventStore {
       params.setAccessiblePrograms(
           manager.getDataReadAll(Program.class).stream()
               .map(Program::getUid)
+              .map(UID::of)
               .collect(Collectors.toSet()));
 
       params.setAccessibleProgramStages(
           manager.getDataReadAll(ProgramStage.class).stream()
               .map(ProgramStage::getUid)
+              .map(UID::of)
               .collect(Collectors.toSet()));
     }
   }

@@ -30,12 +30,14 @@ package org.hisp.dhis.webapi.openapi;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
+import org.hisp.dhis.jsontree.JsonMultiMap;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
@@ -118,6 +120,23 @@ public interface OpenApiObject extends JsonObject {
     @Required
     default String version() {
       return getString("version").string();
+    }
+
+    /**
+     *
+     *
+     * <pre>
+     *   {
+     *   "path": ["/foo", "/bar", ...],
+     *   "entity": ["DataElement", ...],
+     *   ...
+     *   }
+     * </pre>
+     *
+     * @return all possible values for each classification
+     */
+    default JsonMultiMap<JsonString> x_navigation() {
+      return getMultiMap("x-navigation", JsonString.class);
     }
   }
 
@@ -225,8 +244,12 @@ public interface OpenApiObject extends JsonObject {
           : path.substring(1);
     }
 
-    default String x_package() {
-      return getString("x-package").string();
+    default Map<String, String> x_classifiers() {
+      return getMap("x-classifiers", JsonString.class).toMap(JsonString::string);
+    }
+
+    default String x_entity() {
+      return x_classifiers().get("entity");
     }
 
     default String x_group() {
@@ -472,6 +495,7 @@ public interface OpenApiObject extends JsonObject {
     }
 
     default boolean isShared() {
+      if (!exists()) return false;
       String path = node().getPath().toString();
       return path.substring(0, path.lastIndexOf('.')).equals(".components.schemas");
     }
@@ -500,6 +524,10 @@ public interface OpenApiObject extends JsonObject {
     @Validation(oneOfValues = {"string", "array", "integer", "number", "boolean", "object"})
     default String $type() {
       return getString("type").string();
+    }
+
+    default boolean isReadOnly() {
+      return getBoolean("readOnly").booleanValue(false);
     }
 
     default boolean isAnyType() {

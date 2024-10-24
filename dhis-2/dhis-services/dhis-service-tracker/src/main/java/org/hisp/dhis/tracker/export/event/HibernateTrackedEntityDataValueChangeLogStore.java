@@ -49,7 +49,7 @@ import org.springframework.stereotype.Component;
 // proxy that can't be used to inject the class.
 @Component("org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLogStore")
 class HibernateTrackedEntityDataValueChangeLogStore {
-  private static final String PROP_PSI = "event";
+  private static final String PROP_EVENT = "event";
 
   private static final String PROP_ORGANISATION_UNIT = "organisationUnit";
 
@@ -78,7 +78,7 @@ class HibernateTrackedEntityDataValueChangeLogStore {
         builder.createQuery(TrackedEntityDataValueChangeLog.class);
     Root<TrackedEntityDataValueChangeLog> tedvcl =
         criteria.from(TrackedEntityDataValueChangeLog.class);
-    Join<TrackedEntityDataValueChangeLog, Event> event = tedvcl.join(PROP_PSI);
+    Join<TrackedEntityDataValueChangeLog, Event> event = tedvcl.join(PROP_EVENT);
     Join<Event, OrganisationUnit> ou = event.join(PROP_ORGANISATION_UNIT);
     criteria.select(tedvcl);
 
@@ -104,7 +104,7 @@ class HibernateTrackedEntityDataValueChangeLogStore {
     CriteriaQuery<Long> criteria = builder.createQuery(Long.class);
     Root<TrackedEntityDataValueChangeLog> tedvcl =
         criteria.from(TrackedEntityDataValueChangeLog.class);
-    Join<TrackedEntityDataValueChangeLog, Event> event = tedvcl.join(PROP_PSI);
+    Join<TrackedEntityDataValueChangeLog, Event> event = tedvcl.join(PROP_EVENT);
     Join<Event, OrganisationUnit> ou = event.join(PROP_ORGANISATION_UNIT);
     criteria.select(builder.countDistinct(tedvcl.get("id")));
 
@@ -124,7 +124,7 @@ class HibernateTrackedEntityDataValueChangeLogStore {
   public void deleteTrackedEntityDataValueChangeLog(Event event) {
     String hql = "delete from TrackedEntityDataValueChangeLog d where d.event = :event";
 
-    entityManager.createQuery(hql).setParameter("event", event).executeUpdate();
+    entityManager.createQuery(hql).setParameter(PROP_EVENT, event).executeUpdate();
   }
 
   private List<Predicate> getTrackedEntityDataValueAuditCriteria(
@@ -149,12 +149,12 @@ class HibernateTrackedEntityDataValueChangeLogStore {
 
         predicates.add(builder.or(orgUnitPredicates.toArray(Predicate[]::new)));
       } else if (SELECTED == params.getOuMode() || !params.hasOuMode()) {
-        predicates.add(event.get("organisationUnit").in(params.getOrgUnits()));
+        predicates.add(event.get(PROP_ORGANISATION_UNIT).in(params.getOrgUnits()));
       }
     }
 
     if (!params.getEvents().isEmpty()) {
-      predicates.add(tedvcl.get(PROP_PSI).in(params.getEvents()));
+      predicates.add(tedvcl.get(PROP_EVENT).in(params.getEvents()));
     }
 
     if (!params.getProgramStages().isEmpty()) {

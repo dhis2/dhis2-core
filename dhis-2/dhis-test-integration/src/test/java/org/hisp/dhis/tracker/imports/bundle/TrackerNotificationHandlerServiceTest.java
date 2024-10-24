@@ -210,7 +210,6 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
             .programStage(MetadataIdentifier.ofUid(programStageA.getUid()))
             .status(EventStatus.ACTIVE)
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
-            .completedAt(Instant.now())
             .occurredAt(Instant.now())
             .build();
 
@@ -347,7 +346,6 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
             .enrollment(uid)
             .enrolledAt(Instant.now())
             .occurredAt(Instant.now())
-            .completedAt(Instant.now())
             .build();
 
     ImportReport importReport =

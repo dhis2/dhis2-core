@@ -49,6 +49,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -62,6 +63,7 @@ import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Access;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.period.Period;
 import org.springframework.http.HttpStatus;
@@ -91,6 +93,8 @@ public class Api {
   public interface SchemaGenerator {
     Schema generate(Endpoint endpoint, Type source, Class<?>... args);
   }
+
+  Set<Class<?>> context;
 
   /** Can be set to enable debug mode */
   Maybe<Boolean> debug = new Maybe<>(false);
@@ -188,7 +192,7 @@ public class Api {
     @ToString.Exclude @EqualsAndHashCode.Include Class<?> entityType;
 
     String name;
-    Class<?> domain;
+    Map<String, String> classifiers = new TreeMap<>();
     List<String> paths = new ArrayList<>();
     List<Endpoint> endpoints = new ArrayList<>();
   }
@@ -360,6 +364,8 @@ public class Api {
 
     Boolean required;
 
+    @Nonnull Access access;
+
     /**
      * OBS! This cannot be included in {@link #toString()} because it might be a circular with the
      * {@link Schema} containing the {@link Property}.
@@ -385,11 +391,27 @@ public class Api {
 
     public Property(
         @CheckForNull AnnotatedElement source, String name, Boolean required, Schema type) {
-      this(source, name, required, type, new Maybe<>());
+      this(source, name, required, Access.DEFAULT, type, new Maybe<>());
     }
 
     Property withType(Schema type) {
-      return type == this.type ? this : new Property(source, name, required, type, description);
+      return type == this.type
+          ? this
+          : new Property(source, name, required, access, type, description);
+    }
+
+    Property withAccess(Access access) {
+      return access == this.access
+          ? this
+          : new Property(source, name, required, access, type, description);
+    }
+
+    boolean isInput() {
+      return access != Access.READ;
+    }
+
+    boolean isOutput() {
+      return access != Access.WRITE;
     }
   }
 

@@ -47,7 +47,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -139,6 +138,7 @@ class TrackedEntityOperationParamsMapperTest {
     orgUnit2 = new OrganisationUnit("orgUnit2");
     orgUnit2.setUid(ORG_UNIT_2_UID);
     User testUser = new User();
+    testUser.setUid(CodeGenerator.generateUid());
     testUser.setOrganisationUnits(Set.of(orgUnit1, orgUnit2));
     user = UserDetails.fromUser(testUser);
 
@@ -189,7 +189,8 @@ class TrackedEntityOperationParamsMapperTest {
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .assignedUserQueryParam(
-                new AssignedUserQueryParam(AssignedUserSelectionMode.CURRENT, null, user.getUid()))
+                new AssignedUserQueryParam(
+                    AssignedUserSelectionMode.CURRENT, null, UID.of(user.getUid())))
             .orgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)
             .enrollmentStatus(EnrollmentStatus.ACTIVE)
             .followUp(true)
@@ -285,7 +286,7 @@ class TrackedEntityOperationParamsMapperTest {
     // equals() is not helpful
     assertContainsOnly(
         List.of(TEA_1_UID, TEA_2_UID),
-        items.keySet().stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toList()));
+        items.keySet().stream().map(BaseIdentifiableObject::getUid).toList());
 
     // QueryItem equals() does not take the QueryFilter into account so
     // assertContainsOnly alone does not ensure operators and filter value
@@ -312,7 +313,7 @@ class TrackedEntityOperationParamsMapperTest {
                               i.getValue().get(0),
                               () -> String.format("QueryFilter mismatch for TEA with UID %s", uid));
                         })
-            .collect(Collectors.toList()));
+            .toList());
   }
 
   @Test
@@ -339,8 +340,7 @@ class TrackedEntityOperationParamsMapperTest {
     // mapping to UIDs as the error message by just relying on QueryItem
     // equals() is not helpful
     assertContainsOnly(
-        List.of(TEA_1_UID),
-        items.keySet().stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toList()));
+        List.of(TEA_1_UID), items.keySet().stream().map(BaseIdentifiableObject::getUid).toList());
 
     // QueryItem equals() does not take the QueryFilter into account so
     // assertContainsOnly alone does not ensure operators and filter value
@@ -418,14 +418,14 @@ class TrackedEntityOperationParamsMapperTest {
             .assignedUserQueryParam(
                 new AssignedUserQueryParam(
                     AssignedUserSelectionMode.PROVIDED,
-                    Set.of("IsdLBTOBzMi", "l5ab8q5skbB"),
-                    user.getUid()))
+                    UID.of("IsdLBTOBzMi", "l5ab8q5skbB"),
+                    UID.of(user.getUid())))
             .build();
 
     TrackedEntityQueryParams params = mapper.map(operationParams, user);
 
     assertContainsOnly(
-        Set.of("IsdLBTOBzMi", "l5ab8q5skbB"),
+        UID.of("IsdLBTOBzMi", "l5ab8q5skbB"),
         params.getAssignedUserQueryParam().getAssignedUsers());
     assertEquals(AssignedUserSelectionMode.PROVIDED, params.getAssignedUserQueryParam().getMode());
   }
@@ -521,14 +521,14 @@ class TrackedEntityOperationParamsMapperTest {
             .programUid(PROGRAM_UID)
             .build();
 
-    Exception IllegalQueryException =
+    Exception illegalQueryException =
         assertThrows(
             IllegalQueryException.class,
             () -> mapper.map(operationParams, currentUserWithOrgUnits));
 
     assertEquals(
         "At least 1 attributes should be mentioned in the search criteria.",
-        IllegalQueryException.getMessage());
+        illegalQueryException.getMessage());
   }
 
   @Test
@@ -557,11 +557,11 @@ class TrackedEntityOperationParamsMapperTest {
             .programUid(PROGRAM_UID)
             .build();
 
-    Exception IllegalQueryException =
+    Exception illegalQueryException =
         assertThrows(
             IllegalQueryException.class,
             () -> mapper.map(operationParams, currentUserWithOrgUnits));
-    assertEquals("maxteicountreached", IllegalQueryException.getMessage());
+    assertEquals("maxteicountreached", illegalQueryException.getMessage());
   }
 
   @Test
@@ -580,10 +580,10 @@ class TrackedEntityOperationParamsMapperTest {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 
-    Exception BadRequestException =
+    Exception badRequestException =
         assertThrows(
             BadRequestException.class, () -> mapper.map(operationParams, currentUserWithOrgUnits));
 
-    assertEquals("User has no access to any Tracked Entity Type", BadRequestException.getMessage());
+    assertEquals("User has no access to any Tracked Entity Type", badRequestException.getMessage());
   }
 }

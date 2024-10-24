@@ -131,14 +131,12 @@ class EventOperationParamsMapperTest {
 
   @BeforeEach
   public void setUp() {
-    String orgUnitId = "orgUnitId";
-    OrganisationUnit orgUnit = createOrgUnit("orgUnit", orgUnitId);
+    OrganisationUnit orgUnit = createOrgUnit("orgUnit");
     orgUnit.setChildren(
-        Set.of(
-            createOrgUnit("captureScopeChild", "captureScopeChildUid"),
-            createOrgUnit("searchScopeChild", "searchScopeChildUid")));
+        Set.of(createOrgUnit("captureScopeChild"), createOrgUnit("searchScopeChild")));
 
     User testUser = new User();
+    testUser.setUid(CodeGenerator.generateUid());
     testUser.setUsername("test");
     testUser.setOrganisationUnits(Set.of(orgUnit));
     user = UserDetails.fromUser(testUser);
@@ -157,7 +155,7 @@ class EventOperationParamsMapperTest {
     ProgramStage programStage = new ProgramStage();
     programStage.setUid("PlZSBEN7iZd");
     EventOperationParams eventOperationParams =
-        eventBuilder.programStageUid(programStage.getUid()).build();
+        eventBuilder.programStage(UID.of(programStage)).build();
 
     when(aclService.canDataRead(user, programStage)).thenReturn(false);
     when(programStageService.getProgramStage("PlZSBEN7iZd")).thenReturn(programStage);
@@ -171,7 +169,7 @@ class EventOperationParamsMapperTest {
   @Test
   void shouldFailWithBadRequestExceptionWhenMappingWithUnknownProgramStage() {
     EventOperationParams eventOperationParams =
-        EventOperationParams.builder().programStageUid("NeU85luyD4w").build();
+        EventOperationParams.builder().programStage(UID.of("NeU85luyD4w")).build();
 
     Exception exception =
         assertThrows(BadRequestException.class, () -> mapper.map(eventOperationParams, user));
@@ -184,8 +182,8 @@ class EventOperationParamsMapperTest {
       shouldFailWithForbiddenExceptionWhenUserHasNoAccessToCategoryComboGivenAttributeCategoryOptions() {
     EventOperationParams eventOperationParams =
         eventBuilder
-            .attributeCategoryCombo("NeU85luyD4w")
-            .attributeCategoryOptions(Set.of("tqrzUqNMHib", "bT6OSf4qnnk"))
+            .attributeCategoryCombo(UID.of("NeU85luyD4w"))
+            .attributeCategoryOptions(UID.of("tqrzUqNMHib", "bT6OSf4qnnk"))
             .build();
     CategoryOptionCombo combo = new CategoryOptionCombo();
     combo.setUid("uid");
@@ -208,8 +206,8 @@ class EventOperationParamsMapperTest {
       throws BadRequestException, ForbiddenException {
     EventOperationParams operationParams =
         eventBuilder
-            .attributeCategoryCombo("NeU85luyD4w")
-            .attributeCategoryOptions(Set.of("tqrzUqNMHib", "bT6OSf4qnnk"))
+            .attributeCategoryCombo(UID.of("NeU85luyD4w"))
+            .attributeCategoryOptions(UID.of("tqrzUqNMHib", "bT6OSf4qnnk"))
             .build();
     CategoryOptionCombo combo = new CategoryOptionCombo();
     combo.setUid("uid");
@@ -228,14 +226,14 @@ class EventOperationParamsMapperTest {
   void testMappingAssignedUser() throws BadRequestException, ForbiddenException {
     EventOperationParams operationParams =
         eventBuilder
-            .assignedUsers(Set.of("IsdLBTOBzMi", "l5ab8q5skbB"))
+            .assignedUsers(UID.of("IsdLBTOBzMi", "l5ab8q5skbB"))
             .assignedUserMode(AssignedUserSelectionMode.PROVIDED)
             .build();
 
     EventQueryParams queryParams = mapper.map(operationParams, user);
 
     assertContainsOnly(
-        Set.of("IsdLBTOBzMi", "l5ab8q5skbB"),
+        UID.of("IsdLBTOBzMi", "l5ab8q5skbB"),
         queryParams.getAssignedUserQueryParam().getAssignedUsers());
     assertEquals(
         AssignedUserSelectionMode.PROVIDED, queryParams.getAssignedUserQueryParam().getMode());
@@ -420,16 +418,18 @@ class EventOperationParamsMapperTest {
       OrganisationUnitSelectionMode orgUnitMode, AccessLevel accessLevel)
       throws ForbiddenException, BadRequestException {
     Program program = new Program();
+    program.setUid(CodeGenerator.generateUid());
     program.setAccessLevel(accessLevel);
 
-    OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit", "uid4");
-    OrganisationUnit searchScopeChildOrgUnit = createOrgUnit("searchScopeChildOrgUnit", "uid5");
+    OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit");
+    OrganisationUnit searchScopeChildOrgUnit = createOrgUnit("searchScopeChildOrgUnit");
     searchScopeOrgUnit.setChildren(Set.of(searchScopeChildOrgUnit));
     searchScopeChildOrgUnit.setParent(searchScopeOrgUnit);
 
     User user = new User();
+    user.setUid(CodeGenerator.generateUid());
     user.setUsername("testB");
-    user.setOrganisationUnits(Set.of(createOrgUnit("captureScopeOrgUnit", "uid")));
+    user.setOrganisationUnits(Set.of(createOrgUnit("captureScopeOrgUnit")));
     user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
 
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
@@ -437,8 +437,8 @@ class EventOperationParamsMapperTest {
 
     EventOperationParams operationParams =
         eventBuilder
-            .programUid(program.getUid())
-            .orgUnitUid(searchScopeChildOrgUnit.getUid())
+            .program(UID.of(program))
+            .orgUnit(UID.of(searchScopeChildOrgUnit))
             .orgUnitMode(orgUnitMode)
             .build();
 
@@ -450,16 +450,18 @@ class EventOperationParamsMapperTest {
   void shouldMapOrgUnitWhenModeAllProgramProvidedAndRequestedOrgUnitInSearchScope()
       throws ForbiddenException, BadRequestException {
     Program program = new Program();
+    program.setUid(CodeGenerator.generateUid());
     program.setAccessLevel(OPEN);
 
-    OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit", "uid4");
-    OrganisationUnit searchScopeChildOrgUnit = createOrgUnit("searchScopeChildOrgUnit", "uid5");
+    OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit");
+    OrganisationUnit searchScopeChildOrgUnit = createOrgUnit("searchScopeChildOrgUnit");
     searchScopeOrgUnit.setChildren(Set.of(searchScopeChildOrgUnit));
     searchScopeChildOrgUnit.setParent(searchScopeOrgUnit);
 
     User user = new User();
+    user.setUid(CodeGenerator.generateUid());
     user.setUsername("testB");
-    user.setOrganisationUnits(Set.of(createOrgUnit("captureScopeOrgUnit", "uid")));
+    user.setOrganisationUnits(Set.of(createOrgUnit("captureScopeOrgUnit")));
     user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
     UserRole userRole = new UserRole();
     userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
@@ -470,8 +472,8 @@ class EventOperationParamsMapperTest {
 
     EventOperationParams operationParams =
         eventBuilder
-            .programUid(program.getUid())
-            .orgUnitUid(searchScopeChildOrgUnit.getUid())
+            .program(UID.of(program))
+            .orgUnit(UID.of(searchScopeChildOrgUnit))
             .orgUnitMode(ALL)
             .build();
 
@@ -483,14 +485,10 @@ class EventOperationParamsMapperTest {
   @EnumSource(value = OrganisationUnitSelectionMode.class)
   void shouldFailWhenRequestedOrgUnitOutsideOfSearchScope(
       OrganisationUnitSelectionMode orgUnitMode) {
-    String orgUnitId = "orgUnitId";
-    OrganisationUnit orgUnit = createOrgUnit(orgUnitId, orgUnitId);
-    when(organisationUnitService.getOrganisationUnit(orgUnitId)).thenReturn(orgUnit);
+    OrganisationUnit orgUnit = createOrgUnit("name");
+    when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
     EventOperationParams operationParams =
-        EventOperationParams.builder()
-            .orgUnitUid(orgUnit.getUid())
-            .orgUnitMode(orgUnitMode)
-            .build();
+        EventOperationParams.builder().orgUnit(UID.of(orgUnit)).orgUnitMode(orgUnitMode).build();
 
     ForbiddenException exception =
         assertThrows(
@@ -506,6 +504,7 @@ class EventOperationParamsMapperTest {
   void shouldMapOrgUnitAndModeWhenModeAllAndUserIsAuthorized(String userName)
       throws ForbiddenException, BadRequestException {
     User mappedUser = userMap.get(userName);
+    mappedUser.setUid(CodeGenerator.generateUid());
     mappedUser.setUsername(userName);
 
     EventOperationParams operationParams = eventBuilder.orgUnitMode(ALL).build();
@@ -519,6 +518,7 @@ class EventOperationParamsMapperTest {
   void shouldIncludeRelationshipsWhenFieldPathIncludeRelationships()
       throws BadRequestException, ForbiddenException {
     User mappedUser = userMap.get("admin");
+    mappedUser.setUid(CodeGenerator.generateUid());
     mappedUser.setUsername("admin");
 
     EventOperationParams operationParams =
@@ -531,6 +531,7 @@ class EventOperationParamsMapperTest {
   void shouldNotIncludeRelationshipsWhenFieldPathDoNotIncludeRelationships()
       throws BadRequestException, ForbiddenException {
     User mappedUser = userMap.get("admin");
+    mappedUser.setUid(CodeGenerator.generateUid());
     mappedUser.setUsername("admin");
 
     EventOperationParams operationParams =
@@ -548,9 +549,9 @@ class EventOperationParamsMapperTest {
     return user;
   }
 
-  private OrganisationUnit createOrgUnit(String name, String uid) {
+  private OrganisationUnit createOrgUnit(String name) {
     OrganisationUnit orgUnit = new OrganisationUnit(name);
-    orgUnit.setUid(uid);
+    orgUnit.setUid(CodeGenerator.generateUid());
     return orgUnit;
   }
 }

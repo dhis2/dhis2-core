@@ -37,6 +37,8 @@ import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -77,7 +79,12 @@ public class DefaultStyleManager implements StyleManager {
 
   @Override
   public void setUserStyle(String style) {
-    userSettingsService.put("keyStyle", style);
+    try {
+      userSettingsService.put("keyStyle", style);
+    } catch (NotFoundException | BadRequestException ex) {
+      // this should never happen as this key-value combination is valid
+      throw new IllegalArgumentException(ex);
+    }
   }
 
   @Override

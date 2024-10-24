@@ -72,6 +72,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -1091,7 +1092,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
     TrackedEntityOperationParamsBuilder builder =
         TrackedEntityOperationParams.builder()
-            .assignedUserQueryParam(new AssignedUserQueryParam(null, null, user.getUid()))
+            .assignedUserQueryParam(new AssignedUserQueryParam(null, null, UID.of(user)))
             .organisationUnits(Set.of(orgUnitA.getUid()))
             .programUid(programA.getUid())
             .eventStartDate(Date.from(Instant.now().minus(10, ChronoUnit.DAYS)))

@@ -104,7 +104,7 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.41.1</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>9.41.2</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
@@ -119,7 +119,6 @@
     <spring-ldap.version>2.4.1</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
     <lettuce.version>6.4.0.RELEASE</lettuce.version>
-    <jakarta-annotation-api.version>2.1.1</jakarta-annotation-api.version>
 
     <!--DBMS -->
     <flyway-database-postgresql.version>10.18.2</flyway-database-postgresql.version>
@@ -167,7 +166,7 @@
 
     <!-- GIS -->
     <batik-transcoder.version>1.17</batik-transcoder.version>
-    <fop.version>2.9</fop.version>
+    <fop.version>2.10</fop.version>
     <mapstruct.version>1.6.2</mapstruct.version>
     <geotools.version>29.6</geotools.version>
     <jts.version>1.20.0</jts.version>
@@ -516,11 +515,6 @@
         <groupId>org.springframework.ldap</groupId>
         <artifactId>spring-ldap-core</artifactId>
         <version>${spring-ldap.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>jakarta.annotation</groupId>
-        <artifactId>jakarta.annotation-api</artifactId>
-        <version>${jakarta-annotation-api.version}</version>
       </dependency>
 
       <!-- Spring Security -->
@@ -2161,6 +2155,14 @@ jasperreports.version=${jasperreports.version}
                 <goal>prepare-agent</goal>
               </goals>
             </execution>
+            <!-- bind it to test instead of default verify so we get coverage reports when only running mvn test -->
+            <execution>
+              <id>report</id>
+              <goals>
+                <goal>report</goal>
+              </goals>
+              <phase>test</phase>
+            </execution>
           </executions>
         </plugin>
       </plugins>
@@ -2360,10 +2362,8 @@ jasperreports.version=${jasperreports.version}
             <goals>
               <goal>analyze-only</goal>
             </goals>
-            <phase>process-test-classes</phase>
             <configuration>
               <failOnWarning>true</failOnWarning>
-              <skip>${skipTests}</skip>
             </configuration>
           </execution>
         </executions>

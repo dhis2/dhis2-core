@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
+import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 
 import java.util.List;
 import java.util.Map;
@@ -83,19 +84,25 @@ class EventOperationParamsMapper {
   public EventQueryParams map(
       @Nonnull EventOperationParams operationParams, @Nonnull UserDetails user)
       throws BadRequestException, ForbiddenException {
-    Program program = paramsValidator.validateProgramAccess(operationParams.getProgramUid(), user);
-    ProgramStage programStage = validateProgramStage(operationParams.getProgramStageUid(), user);
+    Program program =
+        paramsValidator.validateProgramAccess(
+            applyIfNotNull(operationParams.getProgram(), UID::getValue), user);
+    ProgramStage programStage =
+        validateProgramStage(
+            applyIfNotNull(operationParams.getProgramStage(), UID::getValue), user);
     TrackedEntity trackedEntity =
-        paramsValidator.validateTrackedEntity(operationParams.getTrackedEntityUid(), user);
-    OrganisationUnit orgUnit = validateRequestedOrgUnit(operationParams.getOrgUnitUid(), user);
+        paramsValidator.validateTrackedEntity(
+            applyIfNotNull(operationParams.getTrackedEntity(), UID::getValue), user);
+    OrganisationUnit orgUnit =
+        validateRequestedOrgUnit(applyIfNotNull(operationParams.getOrgUnit(), UID::getValue), user);
     validateOrgUnitMode(operationParams.getOrgUnitMode(), program, user);
 
     CategoryOptionCombo attributeOptionCombo =
         categoryOptionComboService.getAttributeOptionCombo(
             operationParams.getAttributeCategoryCombo() != null
-                ? operationParams.getAttributeCategoryCombo()
+                ? operationParams.getAttributeCategoryCombo().getValue()
                 : null,
-            operationParams.getAttributeCategoryOptions(),
+            UID.toValueSet(operationParams.getAttributeCategoryOptions()),
             true);
 
     validateAttributeOptionCombo(attributeOptionCombo, user);
@@ -118,7 +125,7 @@ class EventOperationParamsMapper {
             new AssignedUserQueryParam(
                 operationParams.getAssignedUserMode(),
                 operationParams.getAssignedUsers(),
-                user.getUid()))
+                UID.of(user)))
         .setOccurredStartDate(operationParams.getOccurredAfter())
         .setOccurredEndDate(operationParams.getOccurredBefore())
         .setScheduledStartDate(operationParams.getScheduledAfter())

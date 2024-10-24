@@ -50,11 +50,7 @@ import org.locationtech.jts.geom.Geometry;
 public class Enrollment implements TrackerDto, Serializable {
   @JsonProperty private String enrollment;
 
-  @JsonProperty private Instant createdAt;
-
   @JsonProperty private Instant createdAtClient;
-
-  @JsonProperty private Instant updatedAt;
 
   @JsonProperty private Instant updatedAtClient;
 
@@ -62,7 +58,7 @@ public class Enrollment implements TrackerDto, Serializable {
 
   @JsonProperty private MetadataIdentifier program;
 
-  @JsonProperty private EnrollmentStatus status;
+  @JsonProperty private EnrollmentStatus status = EnrollmentStatus.ACTIVE;
 
   @JsonProperty private MetadataIdentifier orgUnit;
 
@@ -72,23 +68,11 @@ public class Enrollment implements TrackerDto, Serializable {
 
   @JsonProperty private boolean followUp;
 
-  @JsonProperty private String completedBy;
+  @JsonProperty private String storedBy;
 
   @JsonProperty private Instant completedAt;
 
-  @JsonProperty private boolean deleted;
-
-  @JsonProperty private String storedBy;
-
-  @JsonProperty private User createdBy;
-
-  @JsonProperty private User updatedBy;
-
   @JsonProperty private Geometry geometry;
-
-  @JsonProperty @Builder.Default private List<Event> events = new ArrayList<>();
-
-  @JsonProperty @Builder.Default private List<Relationship> relationships = new ArrayList<>();
 
   @JsonProperty @Builder.Default private List<Attribute> attributes = new ArrayList<>();
 

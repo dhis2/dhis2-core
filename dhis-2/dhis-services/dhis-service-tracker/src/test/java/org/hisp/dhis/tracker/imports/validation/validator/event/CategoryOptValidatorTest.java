@@ -95,11 +95,11 @@ class CategoryOptValidatorTest extends TestBase {
 
   private Reporter reporter;
 
-  private final Date ONE_YEAR_BEFORE_EVENT = getDate(2020, 1, 1);
+  private static final Date ONE_YEAR_BEFORE_EVENT = getDate(2020, 1, 1);
 
-  private final Instant EVENT_INSTANT = getDate(2021, 1, 1).toInstant();
+  private static final Instant EVENT_INSTANT = getDate(2021, 1, 1).toInstant();
 
-  private final Date ONE_YEAR_AFTER_EVENT = getDate(2022, 1, 1);
+  private static final Date ONE_YEAR_AFTER_EVENT = getDate(2022, 1, 1);
 
   @BeforeEach
   public void setUp() {
