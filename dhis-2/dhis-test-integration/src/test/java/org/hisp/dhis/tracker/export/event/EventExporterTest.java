@@ -349,13 +349,13 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testExportEventsWhenFilteringByDataElementsLike()
       throws ForbiddenException, BadRequestException {
-    DataElement dataElement = dataElement("DATAEL00001");
+    DataElement dataElement = dataElement(UID.of("DATAEL00001"));
     EventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
             .programStage(UID.of(programStage))
             .dataElementFilters(
-                Map.of("DATAEL00001", List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
+                Map.of(UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -368,7 +368,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testExportEventsWhenFilteringByDataElementsWithStatusFilter()
       throws ForbiddenException, BadRequestException {
-    DataElement dataElement = dataElement("DATAEL00001");
+    DataElement dataElement = dataElement(UID.of("DATAEL00001"));
 
     EventOperationParams params =
         operationParamsBuilder
@@ -376,7 +376,7 @@ class EventExporterTest extends TrackerTest {
             .programStage(UID.of(programStage))
             .enrollmentStatus(EnrollmentStatus.ACTIVE)
             .dataElementFilters(
-                Map.of(dataElement.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
+                Map.of(UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -387,7 +387,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testExportEventsWhenFilteringByDataElementsWithProgramTypeFilter()
       throws ForbiddenException, BadRequestException {
-    DataElement dataElement = dataElement("DATAEL00001");
+    DataElement dataElement = dataElement(UID.of("DATAEL00001"));
 
     EventOperationParams params =
         operationParamsBuilder
@@ -395,7 +395,7 @@ class EventExporterTest extends TrackerTest {
             .programStage(UID.of(programStage))
             .programType(ProgramType.WITH_REGISTRATION)
             .dataElementFilters(
-                Map.of(dataElement.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
+                Map.of(UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -406,7 +406,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testExportEventsWhenFilteringByDataElementsEqual()
       throws ForbiddenException, BadRequestException {
-    DataElement dataElement = dataElement("DATAEL00001");
+    DataElement dataElement = dataElement(UID.of("DATAEL00001"));
 
     EventOperationParams params =
         operationParamsBuilder
@@ -414,7 +414,7 @@ class EventExporterTest extends TrackerTest {
             .programStage(UID.of(programStage))
             .dataElementFilters(
                 Map.of(
-                    dataElement.getUid(),
+                    UID.of(dataElement),
                     List.of(new QueryFilter(QueryOperator.LIKE, "%value00001%"))))
             .build();
 
@@ -426,7 +426,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testExportEventsWhenFilteringByDataElementsIn()
       throws ForbiddenException, BadRequestException {
-    DataElement datael00001 = dataElement("DATAEL00001");
+    DataElement dataElement = dataElement(UID.of("DATAEL00001"));
 
     EventOperationParams params =
         operationParamsBuilder
@@ -434,7 +434,7 @@ class EventExporterTest extends TrackerTest {
             .programStage(UID.of(programStage))
             .dataElementFilters(
                 Map.of(
-                    datael00001.getUid(),
+                    UID.of(dataElement),
                     List.of(new QueryFilter(QueryOperator.IN, "value00001;value00002"))))
             .build();
 
@@ -446,7 +446,7 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testExportEventsWhenFilteringByDataElementsWithCategoryOptionSuperUser()
       throws ForbiddenException, BadRequestException {
-    DataElement dataElement = dataElement("DATAEL00001");
+    DataElement dataElement = dataElement(UID.of("DATAEL00001"));
 
     EventOperationParams params =
         operationParamsBuilder
@@ -457,7 +457,7 @@ class EventExporterTest extends TrackerTest {
             .attributeCategoryOptions(Set.of(UID.of("xYerKDKCefk")))
             .dataElementFilters(
                 Map.of(
-                    dataElement.getUid(), List.of(new QueryFilter(QueryOperator.EQ, "value00001"))))
+                    UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EQ, "value00001"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -630,7 +630,7 @@ class EventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(
         createAndAddUser(false, "user", Set.of(orgUnit), Set.of(orgUnit), "F_EXPORT_DATA"));
-    DataElement dataElement = dataElement("DATAEL00002");
+    DataElement dataElement = dataElement(UID.of("DATAEL00002"));
 
     EventOperationParams params =
         operationParamsBuilder
@@ -641,7 +641,7 @@ class EventExporterTest extends TrackerTest {
             .attributeCategoryOptions(Set.of(UID.of("xYerKDKCefk")))
             .dataElementFilters(
                 Map.of(
-                    dataElement.getUid(), List.of(new QueryFilter(QueryOperator.EQ, "value00002"))))
+                    UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EQ, "value00002"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -652,13 +652,13 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testExportEventsWhenFilteringByDataElementsWithOptionSetEqual()
       throws ForbiddenException, BadRequestException {
-    DataElement dataElement = dataElement("DATAEL00005");
+    DataElement dataElement = dataElement(UID.of("DATAEL00005"));
     EventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
             .programStage(UID.of(programStage))
             .dataElementFilters(
-                Map.of(dataElement.getUid(), List.of(new QueryFilter(QueryOperator.EQ, "option1"))))
+                Map.of(UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EQ, "option1"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -669,14 +669,14 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testExportEventsWhenFilteringByDataElementsWithOptionSetIn()
       throws ForbiddenException, BadRequestException {
-    DataElement dataElement = dataElement("DATAEL00005");
+    DataElement dataElement = dataElement(UID.of("DATAEL00005"));
     EventOperationParams params =
         operationParamsBuilder
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(UID.of(programStage))
             .dataElementFilters(
                 Map.of(
-                    dataElement.getUid(),
+                    UID.of(dataElement),
                     List.of(new QueryFilter(QueryOperator.IN, "option1;option2"))))
             .build();
 
@@ -688,13 +688,13 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testExportEventsWhenFilteringByDataElementsWithOptionSetLike()
       throws ForbiddenException, BadRequestException {
-    DataElement dataElement = dataElement("DATAEL00005");
+    DataElement dataElement = dataElement(UID.of("DATAEL00005"));
     EventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
             .programStage(UID.of(programStage))
             .dataElementFilters(
-                Map.of(dataElement.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "%opt%"))))
+                Map.of(UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%opt%"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -705,14 +705,14 @@ class EventExporterTest extends TrackerTest {
   @Test
   void testExportEventsWhenFilteringByNumericDataElements()
       throws ForbiddenException, BadRequestException {
-    DataElement dataElement = dataElement("DATAEL00006");
+    DataElement dataElement = dataElement(UID.of("DATAEL00006"));
     EventOperationParams params =
         operationParamsBuilder
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(UID.of(programStage))
             .dataElementFilters(
                 Map.of(
-                    dataElement.getUid(),
+                    UID.of(dataElement),
                     List.of(
                         new QueryFilter(QueryOperator.LT, "77"),
                         new QueryFilter(QueryOperator.GT, "8"))))
@@ -906,7 +906,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder
             .orgUnit(UID.of(orgUnit))
-            .attributeFilters(Map.of("notUpdated0", List.of()))
+            .attributeFilters(Map.of(UID.of("notUpdated0"), List.of()))
             .build();
 
     List<String> trackedEntities =
@@ -924,7 +924,7 @@ class EventExporterTest extends TrackerTest {
             .orgUnit(UID.of(orgUnit))
             .attributeFilters(
                 Map.of(
-                    "numericAttr",
+                    UID.of("numericAttr"),
                     List.of(
                         new QueryFilter(QueryOperator.LT, "77"),
                         new QueryFilter(QueryOperator.GT, "8"))))
@@ -944,7 +944,9 @@ class EventExporterTest extends TrackerTest {
         operationParamsBuilder
             .orgUnit(UID.of(orgUnit))
             .attributeFilters(
-                Map.of("toUpdate000", List.of(new QueryFilter(QueryOperator.EQ, "summer day"))))
+                Map.of(
+                    UID.of("toUpdate000"),
+                    List.of(new QueryFilter(QueryOperator.EQ, "summer day"))))
             .build();
 
     List<String> trackedEntities =
@@ -963,9 +965,9 @@ class EventExporterTest extends TrackerTest {
             .orgUnit(UID.of(orgUnit))
             .attributeFilters(
                 Map.of(
-                    "toUpdate000",
+                    UID.of("toUpdate000"),
                     List.of(new QueryFilter(QueryOperator.EQ, "rainy day")),
-                    "notUpdated0",
+                    UID.of("notUpdated0"),
                     List.of(new QueryFilter(QueryOperator.EQ, "winter day"))))
             .build();
 
@@ -985,7 +987,7 @@ class EventExporterTest extends TrackerTest {
             .orgUnit(UID.of(orgUnit))
             .attributeFilters(
                 Map.of(
-                    "toUpdate000",
+                    UID.of("toUpdate000"),
                     List.of(
                         new QueryFilter(QueryOperator.LIKE, "day"),
                         new QueryFilter(QueryOperator.LIKE, "in"))))
@@ -1064,8 +1066,8 @@ class EventExporterTest extends TrackerTest {
     assertEquals(expectedLastUpdatedBy, actual.getLastUpdatedBy());
   }
 
-  private DataElement dataElement(String uid) {
-    return dataElementService.getDataElement(uid);
+  private DataElement dataElement(UID uid) {
+    return dataElementService.getDataElement(uid.getValue());
   }
 
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {

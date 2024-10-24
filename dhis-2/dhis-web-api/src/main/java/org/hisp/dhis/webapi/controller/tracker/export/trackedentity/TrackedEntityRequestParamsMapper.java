@@ -37,6 +37,7 @@ import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValida
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserQueryParam;
@@ -123,7 +124,7 @@ class TrackedEntityRequestParamsMapper {
     validateOrderParams(trackedEntityRequestParams.getOrder(), ORDERABLE_FIELD_NAMES, "attribute");
     validateRequestParams(trackedEntityRequestParams, trackedEntities);
 
-    Map<String, List<QueryFilter>> filters = parseFilters(trackedEntityRequestParams.getFilter());
+    Map<UID, List<QueryFilter>> filters = parseFilters(trackedEntityRequestParams.getFilter());
 
     TrackedEntityOperationParamsBuilder builder =
         TrackedEntityOperationParams.builder()
@@ -164,7 +165,8 @@ class TrackedEntityRequestParamsMapper {
                 new AssignedUserQueryParam(
                     trackedEntityRequestParams.getAssignedUserMode(), assignedUsers, UID.of(user)))
             .trackedEntityUids(UID.toValueSet(trackedEntities))
-            .filters(filters)
+            .filters(
+                filters.keySet().stream().collect(Collectors.toMap(UID::getValue, filters::get)))
             .includeDeleted(trackedEntityRequestParams.isIncludeDeleted())
             .potentialDuplicate(trackedEntityRequestParams.getPotentialDuplicate())
             .trackedEntityParams(fieldsParamMapper.map(fields));

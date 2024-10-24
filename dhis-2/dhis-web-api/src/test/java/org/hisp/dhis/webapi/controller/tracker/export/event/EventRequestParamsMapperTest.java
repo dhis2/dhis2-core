@@ -95,15 +95,15 @@ import org.mockito.quality.Strictness;
 @ExtendWith(MockitoExtension.class)
 class EventRequestParamsMapperTest {
 
-  private static final String DE_1_UID = "OBzmpRP6YUh";
+  private static final UID DE_1_UID = UID.of("OBzmpRP6YUh");
 
-  private static final String DE_2_UID = "KSd4PejqBf9";
+  private static final UID DE_2_UID = UID.of("KSd4PejqBf9");
 
-  private static final String TEA_1_UID = "TvjwTPToKHO";
+  private static final UID TEA_1_UID = UID.of("TvjwTPToKHO");
 
-  private static final String TEA_2_UID = "cy2oRh2sNr6";
+  private static final UID TEA_2_UID = UID.of("cy2oRh2sNr6");
 
-  private static final String PROGRAM_UID = "PlZSBEN7iZd";
+  private static final UID PROGRAM_UID = UID.of("PlZSBEN7iZd");
 
   @Mock private UserService userService;
 
@@ -136,8 +136,8 @@ class EventRequestParamsMapperTest {
     when(userService.getUserByUsername(null)).thenReturn(user);
 
     program = new Program();
-    program.setUid(PROGRAM_UID);
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    program.setUid(PROGRAM_UID.getValue());
+    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
     when(aclService.canDataRead(user, program)).thenReturn(true);
 
     ProgramStage programStage = new ProgramStage();
@@ -153,18 +153,18 @@ class EventRequestParamsMapperTest {
     when(trackedEntityService.getTrackedEntity("qnR1RK4cTIZ", null, FALSE))
         .thenReturn(trackedEntity);
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
-    tea1.setUid(TEA_1_UID);
+    tea1.setUid(TEA_1_UID.getValue());
     TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
-    tea2.setUid(TEA_2_UID);
+    tea2.setUid(TEA_2_UID.getValue());
     when(attributeService.getAllTrackedEntityAttributes()).thenReturn(List.of(tea1, tea2));
-    when(attributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
+    when(attributeService.getTrackedEntityAttribute(TEA_1_UID.getValue())).thenReturn(tea1);
 
     DataElement de1 = new DataElement();
-    de1.setUid(DE_1_UID);
-    when(dataElementService.getDataElement(DE_1_UID)).thenReturn(de1);
+    de1.setUid(DE_1_UID.getValue());
+    when(dataElementService.getDataElement(DE_1_UID.getValue())).thenReturn(de1);
     DataElement de2 = new DataElement();
-    de2.setUid(DE_2_UID);
-    when(dataElementService.getDataElement(DE_2_UID)).thenReturn(de2);
+    de2.setUid(DE_2_UID.getValue());
+    when(dataElementService.getDataElement(DE_2_UID.getValue())).thenReturn(de2);
   }
 
   @Test
@@ -182,7 +182,7 @@ class EventRequestParamsMapperTest {
   @Test
   void testMappingProgram() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
-    eventRequestParams.setProgram(UID.of(PROGRAM_UID));
+    eventRequestParams.setProgram(PROGRAM_UID);
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
@@ -433,9 +433,9 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    Map<String, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
+    Map<UID, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
     assertNotNull(dataElementFilters);
-    Map<String, List<QueryFilter>> expected =
+    Map<UID, List<QueryFilter>> expected =
         Map.of(
             DE_1_UID,
             List.of(new QueryFilter(QueryOperator.EQ, "2")),
@@ -451,9 +451,9 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    Map<String, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
+    Map<UID, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
     assertNotNull(dataElementFilters);
-    Map<String, List<QueryFilter>> expected =
+    Map<UID, List<QueryFilter>> expected =
         Map.of(
             DE_1_UID,
             List.of(
@@ -467,7 +467,7 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    Map<String, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
+    Map<UID, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
 
     assertNotNull(dataElementFilters);
     assertTrue(dataElementFilters.isEmpty());
@@ -480,9 +480,9 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    Map<String, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
+    Map<UID, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
     assertNotNull(attributeFilters);
-    Map<String, List<QueryFilter>> expected =
+    Map<UID, List<QueryFilter>> expected =
         Map.of(
             TEA_1_UID,
             List.of(new QueryFilter(QueryOperator.EQ, "2")),
@@ -498,9 +498,9 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    Map<String, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
+    Map<UID, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
     assertNotNull(attributeFilters);
-    Map<String, List<QueryFilter>> expected =
+    Map<UID, List<QueryFilter>> expected =
         Map.of(
             TEA_1_UID,
             List.of(
@@ -511,13 +511,13 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldMapAttributeFiltersWhenOnlyGivenUID() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
-    eventRequestParams.setFilterAttributes(TEA_1_UID);
+    eventRequestParams.setFilterAttributes(TEA_1_UID.getValue());
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    Map<String, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
+    Map<UID, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
     assertNotNull(attributeFilters);
-    Map<String, List<QueryFilter>> expected = Map.of(TEA_1_UID, List.of());
+    Map<UID, List<QueryFilter>> expected = Map.of(TEA_1_UID, List.of());
     assertEquals(expected, attributeFilters);
   }
 
@@ -527,7 +527,7 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    Map<String, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
+    Map<UID, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
 
     assertNotNull(attributeFilters);
     assertTrue(attributeFilters.isEmpty());
