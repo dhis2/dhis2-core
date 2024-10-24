@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.analytics;
 
 import java.util.Collection;
 import java.util.List;
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.GenericDimensionalObjectStore;
+import org.hisp.dhis.category.CategoryDimension;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.common.GenericStore;
 
 /**
- * @author Lars Helge Overland
+ * @author david mackessy
  */
-public interface CategoryStore extends GenericDimensionalObjectStore<Category> {
-  List<Category> getCategoriesByDimensionType(DataDimensionType dataDimensionType);
+public interface CategoryDimensionStore extends GenericStore<CategoryDimension> {
 
-  List<Category> getCategories(DataDimensionType dataDimensionType, boolean dataDimension);
-
-  List<Category> getCategoriesNoAcl(DataDimensionType dataDimensionType, boolean dataDimension);
-
-  List<Category> getCategoriesByCategoryOption(Collection<CategoryOption> categoryOptions);
+  /**
+   * Gets all {@link CategoryDimension}s that reference any of the supplied {@link CategoryOption}s
+   *
+   * @param categoryOptions to search for
+   * @return matching {@link CategoryDimension}s
+   */
+  List<CategoryDimension> getByCategoryOption(Collection<CategoryOption> categoryOptions);
 }

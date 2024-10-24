@@ -110,6 +110,12 @@ public enum ErrorCode {
       "All source DataElementDomains must match target DataElementDomain: `{0}`. Other DataElementDomains found: `{1}`"),
   E1556("dataMergeStrategy field must be specified. With value `DISCARD` or `LAST_UPDATED`"),
 
+  /* CategoryOption merge */
+  E1650("At least one source category option must be specified"),
+  E1651("Target category option must be specified"),
+  E1652("Target category option cannot be a source category option"),
+  E1653("{0} category option does not exist: `{1}`"),
+
   /* Data */
   E2000("Query parameters cannot be null"),
   E2001("At least one data element, data set or data element group must be specified"),

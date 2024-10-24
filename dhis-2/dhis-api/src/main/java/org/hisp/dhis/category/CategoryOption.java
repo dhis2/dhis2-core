@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -116,9 +117,17 @@ public class CategoryOption extends BaseDimensionalItemObject
     dataElementCategoryOptionCombo.getCategoryOptions().add(this);
   }
 
+  public void addCategoryOptionCombos(Collection<CategoryOptionCombo> categoryOptionCombos) {
+    categoryOptionCombos.forEach(this::addCategoryOptionCombo);
+  }
+
   public void removeCategoryOptionCombo(CategoryOptionCombo dataElementCategoryOptionCombo) {
     categoryOptionCombos.remove(dataElementCategoryOptionCombo);
     dataElementCategoryOptionCombo.getCategoryOptions().remove(this);
+  }
+
+  public void removeCategoryOptionCombos(Collection<CategoryOptionCombo> categoryOptionCombos) {
+    categoryOptionCombos.forEach(this::removeCategoryOptionCombo);
   }
 
   public void addOrganisationUnit(OrganisationUnit organisationUnit) {

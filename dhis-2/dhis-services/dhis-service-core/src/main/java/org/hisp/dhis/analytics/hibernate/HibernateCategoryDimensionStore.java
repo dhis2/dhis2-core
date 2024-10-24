@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.analytics.hibernate;
 
+import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.GenericDimensionalObjectStore;
+import org.hisp.dhis.analytics.CategoryDimensionStore;
+import org.hisp.dhis.category.CategoryDimension;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
- * @author Lars Helge Overland
+ * @author david mackessy
  */
-public interface CategoryStore extends GenericDimensionalObjectStore<Category> {
-  List<Category> getCategoriesByDimensionType(DataDimensionType dataDimensionType);
+@Repository
+public class HibernateCategoryDimensionStore extends HibernateGenericStore<CategoryDimension>
+    implements CategoryDimensionStore {
 
-  List<Category> getCategories(DataDimensionType dataDimensionType, boolean dataDimension);
+  public HibernateCategoryDimensionStore(
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, CategoryDimension.class, false);
+  }
 
-  List<Category> getCategoriesNoAcl(DataDimensionType dataDimensionType, boolean dataDimension);
-
-  List<Category> getCategoriesByCategoryOption(Collection<CategoryOption> categoryOptions);
+  @Override
+  public List<CategoryDimension> getByCategoryOption(Collection<CategoryOption> categoryOptions) {
+    return getQuery(
+            """
+            select distinct cd from CategoryDimension cd
+            join cd.items co
+            where co in :categoryOptions
+            """,
+            CategoryDimension.class)
+        .setParameter("categoryOptions", categoryOptions)
+        .getResultList();
+  }
 }

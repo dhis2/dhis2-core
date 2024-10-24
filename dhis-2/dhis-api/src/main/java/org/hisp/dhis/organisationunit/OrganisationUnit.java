@@ -292,6 +292,10 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     categoryOption.getOrganisationUnits().remove(this);
   }
 
+  public void removeCategoryOptions(Collection<CategoryOption> categoryOptions) {
+    categoryOptions.forEach(this::removeCategoryOption);
+  }
+
   public void removeAllUsers() {
     for (User user : users) {
       user.getOrganisationUnits().remove(this);

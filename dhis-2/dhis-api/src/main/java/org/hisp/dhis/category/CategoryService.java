@@ -145,6 +145,14 @@ public interface CategoryService {
    */
   List<Category> getAttributeDataDimensionCategoriesNoAcl();
 
+  /**
+   * Retrieves all Categories with a ref to any of the CategoryOptions passed in.
+   *
+   * @param categoryOptions refs to search for
+   * @return categories with refs to categoryOptions
+   */
+  List<Category> getCategoriesByCategoryOption(Collection<CategoryOption> categoryOptions);
+
   // -------------------------------------------------------------------------
   // CategoryOption
   // -------------------------------------------------------------------------
@@ -461,6 +469,15 @@ public interface CategoryService {
   /** Updates the name property of all category option combinations. */
   void updateCategoryOptionComboNames();
 
+  /**
+   * Retrieves all CategoryOptionCombos with a ref to any of the CategoryOptions passed in.
+   *
+   * @param categoryOptions refs to search for
+   * @return categoryOptionCombos with refs to categoryOptions
+   */
+  List<CategoryOptionCombo> getCategoryOptionCombosByCategoryOption(
+      Collection<CategoryOption> categoryOptions);
+
   // -------------------------------------------------------------------------
   // DataElementOperand
   // -------------------------------------------------------------------------
@@ -509,6 +526,9 @@ public interface CategoryService {
 
   List<CategoryOptionGroup> getCategoryOptionGroups(CategoryOptionGroupSet groupSet);
 
+  List<CategoryOptionGroup> getCategoryOptionGroupByCategoryOption(
+      Collection<CategoryOption> categoryOptions);
+
   /**
    * Returns a set of CategoryOptionGroups that may be seen by the current user, if the current user
    * has any CategoryOptionGroupSet constraint(s).
@@ -541,4 +561,6 @@ public interface CategoryService {
   CategoryOption getDefaultCategoryOption();
 
   Category getDefaultCategory();
+
+  List<CategoryOption> getCategoryOptionsByUid(List<String> catOptionUids);
 }
