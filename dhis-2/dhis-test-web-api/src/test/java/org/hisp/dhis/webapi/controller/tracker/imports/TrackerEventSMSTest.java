@@ -649,7 +649,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     List<Event> events =
         eventService.getEvents(
             EventOperationParams.builder()
-                .programUid(eventProgram.getUid())
+                .program(UID.of(eventProgram))
                 .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
                 .eventParams(EventParams.FALSE)
                 .build());
@@ -714,8 +714,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     List<Enrollment> enrollments =
         enrollmentService.getEnrollments(
             EnrollmentOperationParams.builder()
-                .trackedEntityUid(trackedEntity.getUid())
-                .programUid(trackerProgram.getUid())
+                .trackedEntity(UID.of(trackedEntity))
+                .program(UID.of(trackerProgram))
                 .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
                 .build());
     assertHasSize(1, enrollments);
@@ -730,8 +730,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     List<Event> events =
         eventService.getEvents(
             EventOperationParams.builder()
-                .trackedEntityUid(trackedEntity.getUid())
-                .programUid(trackerProgram.getUid())
+                .trackedEntity(UID.of(trackedEntity))
+                .program(UID.of(trackerProgram))
                 .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
                 .eventParams(EventParams.FALSE)
                 .build());
@@ -798,8 +798,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     List<Event> events =
         eventService.getEvents(
             EventOperationParams.builder()
-                .trackedEntityUid(trackedEntity.getUid())
-                .programUid(trackerProgram.getUid())
+                .trackedEntity(UID.of(trackedEntity))
+                .program(UID.of(trackerProgram))
                 .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
                 .eventParams(EventParams.FALSE)
                 .build());

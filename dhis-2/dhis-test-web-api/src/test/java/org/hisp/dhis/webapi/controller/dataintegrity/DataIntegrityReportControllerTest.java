@@ -63,15 +63,17 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     // if the report does not have any strings in the JSON tree there are no
     // errors since all collection/maps have string values
     JsonDataIntegrityReport report = getDataIntegrityReport();
-    assertEquals(0, report.node().count(JsonNodeType.STRING));
+    assertEquals(1, report.node().count(JsonNodeType.STRING));
+    assertEquals("FlattenedDataIntegrityReport", report.getString("responseType").string());
   }
 
   @Test
   void testDataElementChecksOnly() {
     JsonDataIntegrityReport report = getDataIntegrityReport("/dataIntegrity?checks=data-element*");
-    assertEquals(5, report.size());
+    assertEquals(6, report.size());
     assertTrue(
         report.has(
+            "responseType",
             "dataElementsWithoutDataSet",
             "dataElementsWithoutGroups",
             "dataElementsAssignedToDataSetsWithDifferentPeriodTypes",
@@ -83,9 +85,10 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
   void testExclusiveGroupsChecksOnly() {
     JsonDataIntegrityReport report =
         getDataIntegrityReport("/dataIntegrity?checks=*exclusive-group*");
-    assertEquals(3, report.size());
+    assertEquals(4, report.size());
     assertTrue(
         report.has(
+            "responseType",
             "dataElementsViolatingExclusiveGroupSets",
             "indicatorsViolatingExclusiveGroupSets",
             "organisationUnitsViolatingExclusiveGroupSets"));
@@ -95,7 +98,7 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
   void testPeriodsDuplicatesOnly() {
     JsonDataIntegrityReport report =
         getDataIntegrityReport("/dataIntegrity?checks=periods_same_start_date_period_type");
-    assertEquals(1, report.size());
+    assertEquals(2, report.size());
     assertTrue(report.getArray("duplicatePeriods").exists());
   }
 

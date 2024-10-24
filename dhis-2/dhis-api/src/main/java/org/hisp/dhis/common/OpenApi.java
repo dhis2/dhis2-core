@@ -44,6 +44,15 @@ import org.intellij.lang.annotations.Language;
  * @author Jan Bernitt
  */
 public @interface OpenApi {
+
+  /** Is a property output, input, input+output (explicitly) or input+output (assumed) */
+  enum Access {
+    READ,
+    WRITE,
+    READ_WRITE,
+    DEFAULT
+  }
+
   /**
    * Annotation to use as part of the OpenAPI generation to work around lack of generic types when
    * using annotations.
@@ -154,19 +163,6 @@ public @interface OpenApi {
     String value();
   }
 
-  @Inherited
-  @Retention(RetentionPolicy.RUNTIME)
-  @Target(ElementType.TYPE)
-  @interface Team {
-
-    /**
-     * Names are case-insensitive, e.g. "Tracker" is the same as "tracker"
-     *
-     * @return name of the team that supports the annotated element
-     */
-    String value();
-  }
-
   /**
    * Can be used to annotate endpoint methods to constraint which concrete {@link EntityType}s will
    * support the annotated endpoint method.
@@ -189,6 +185,10 @@ public @interface OpenApi {
     Class<?>[] excludes() default {};
   }
 
+  /**
+   * Used to classify the contents of a controller so that the entire API can be split by the
+   * different classifiers.
+   */
   @Target({ElementType.METHOD, ElementType.TYPE})
   @Retention(RetentionPolicy.RUNTIME)
   @interface Document {
@@ -209,9 +209,13 @@ public @interface OpenApi {
      * named of the domain class. That is the {@link Class#getSimpleName()} unless the class is
      * annotated and named via {@link Shared}.
      *
+     * <p>Unless overridden by {@link #classifiers()} this is also the classifier value for {@code
+     * entity}.
+     *
      * @return the class that represents the domain for the annotated controller {@link Class} or
      *     endpoint {@link java.lang.reflect.Method}.
      */
+    // TODO rename to entity() (extra PR)
     Class<?> domain() default EntityType.class;
 
     /**
@@ -221,6 +225,17 @@ public @interface OpenApi {
      * @return type of group used
      */
     String group() default "";
+
+    /**
+     *
+     *
+     * <pre>
+     *   {"team:tracker", "purpose:metadata", "path:/openapi"}
+     * </pre>
+     *
+     * @return the scope classifiers that describe the annotated controller
+     */
+    String[] classifiers() default {};
   }
 
   @Target({ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER})
@@ -271,6 +286,13 @@ public @interface OpenApi {
     Class<?>[] value() default {};
 
     boolean required() default false;
+
+    /**
+     * When set to value other than the default this takes precedence over other annotations.
+     *
+     * @return the access direction for this property
+     */
+    Access access() default Access.DEFAULT;
 
     /**
      * If given, this values takes precedence over the actual initial value of a field that might be
@@ -345,9 +367,6 @@ public @interface OpenApi {
   @Repeatable(ParamsRepeat.class)
   @interface Params {
     /**
-     * As web classes cannot be used outside the web API module a {@code WebMessage} response value
-     * can also be indicated by {@link org.hisp.dhis.webmessage.WebMessageResponse}.
-     *
      * @return a complex parameter object type. All properties of that type become individual
      *     parameters.
      */

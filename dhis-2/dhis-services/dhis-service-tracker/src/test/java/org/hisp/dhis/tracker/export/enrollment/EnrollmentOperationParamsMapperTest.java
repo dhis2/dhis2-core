@@ -41,6 +41,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -227,7 +228,7 @@ class EnrollmentOperationParamsMapperTest {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnitUids(Set.of(orgUnit1.getUid()))
+            .orgUnits(Set.of(UID.of(orgUnit1)))
             .orgUnitMode(CHILDREN)
             .build();
 

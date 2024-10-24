@@ -47,15 +47,10 @@ import org.locationtech.jts.geom.Geometry;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-// TODO(DHIS2-18222) Remove unused fields
 public class Enrollment implements TrackerDto, Serializable {
   @JsonProperty private String enrollment;
 
-  @JsonProperty private Instant createdAt; // remove
-
   @JsonProperty private Instant createdAtClient;
-
-  @JsonProperty private Instant updatedAt; // remove
 
   @JsonProperty private Instant updatedAtClient;
 
@@ -73,24 +68,11 @@ public class Enrollment implements TrackerDto, Serializable {
 
   @JsonProperty private boolean followUp;
 
-  @JsonProperty private String completedBy; // remove
-
-  @JsonProperty private Instant completedAt; // remove
-
-  @JsonProperty private boolean deleted; // remove
-
   @JsonProperty private String storedBy;
 
-  @JsonProperty private User createdBy; // remove
-
-  @JsonProperty private User updatedBy; // remove
+  @JsonProperty private Instant completedAt;
 
   @JsonProperty private Geometry geometry;
-
-  @JsonProperty @Builder.Default private List<Event> events = new ArrayList<>(); // remove
-
-  @JsonProperty @Builder.Default
-  private List<Relationship> relationships = new ArrayList<>(); // remove
 
   @JsonProperty @Builder.Default private List<Attribute> attributes = new ArrayList<>();
 
