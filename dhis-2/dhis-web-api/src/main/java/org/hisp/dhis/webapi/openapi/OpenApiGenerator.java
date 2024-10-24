@@ -171,6 +171,12 @@ public class OpenApiGenerator extends JsonGenerator {
                       addStringMember("url", info.contactUrl);
                       addStringMember("email", info.contactEmail);
                     });
+                addObjectMember(
+                    "x-navigation",
+                    () ->
+                        ApiClassification.of(api.getContext())
+                            .getClassifiers()
+                            .forEach(this::addArrayMember));
               });
           addArrayMember(
               "tags",
@@ -231,7 +237,9 @@ public class OpenApiGenerator extends JsonGenerator {
           addStringMember("x-since", getSinceVersion(endpoint.getSince()));
           addStringMultilineMember("description", endpoint.getDescription().orElse(NO_DESCRIPTION));
           addStringMember("operationId", getUniqueOperationId(endpoint));
-          addStringMember("x-package", endpoint.getIn().getDomain().getSimpleName());
+          addObjectMember(
+              "x-classifiers",
+              () -> endpoint.getIn().getClassifiers().forEach(this::addStringMember));
           addStringMember("x-group", endpoint.getGroup());
           addInlineArrayMember("x-auth", endpoint.getAuthorities());
           addInlineArrayMember("tags", List.of()); // TODO add tag support again

@@ -37,11 +37,11 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.webmessage.BasicWebMessage;
+import org.hisp.dhis.webmessage.WebResponse;
 
 @Getter
 @Accessors(chain = true)
-@OpenApi.Response(status = BAD_REQUEST, value = BasicWebMessage.class)
+@OpenApi.Response(status = BAD_REQUEST, value = WebResponse.class)
 @SuppressWarnings({"java:S1165", "java:S1948"})
 public final class BadRequestException extends Exception implements Error {
   public static <E extends RuntimeException, V> V on(Class<E> type, Supplier<V> operation)
