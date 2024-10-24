@@ -217,9 +217,8 @@ public class DefaultQueryPlanner implements QueryPlanner {
           setQueryPathLocale(restriction);
         }
 
-        if (restriction.getQueryPath().isPersisted()
-            && !restriction.getQueryPath().haveAlias()
-            && !Attribute.ObjectType.isValidType(restriction.getQueryPath().getPath())) {
+        if (restriction.getQueryPath().isPersisted() && restriction.getQueryPath().haveAlias()
+            || isAttributeFilter(query, restriction)) {
           pQuery
               .getAliases()
               .addAll(Arrays.asList(((Restriction) criterion).getQueryPath().getAlias()));
@@ -267,8 +266,8 @@ public class DefaultQueryPlanner implements QueryPlanner {
         }
 
         if (restriction.getQueryPath().isPersisted()
-            && !restriction.getQueryPath().haveAlias(1)
-            && !Attribute.ObjectType.isValidType(restriction.getQueryPath().getPath())) {
+            && restriction.getQueryPath().haveAlias(1)
+            && isAttributeFilter(query, restriction)) {
           criteriaJunction
               .getAliases()
               .addAll(Arrays.asList(((Restriction) criterion).getQueryPath().getAlias()));
@@ -299,5 +298,15 @@ public class DefaultQueryPlanner implements QueryPlanner {
    */
   private void setQueryPathLocale(Restriction restriction) {
     restriction.getQueryPath().setLocale(UserSettings.getCurrentSettings().getUserDbLocale());
+  }
+
+  /**
+   * Handle attribute filter such as /attributes?fields=id,name&filter=userAttribute:eq:true
+   *
+   * @return true if attribute filter
+   */
+  private boolean isAttributeFilter(Query query, Restriction restriction) {
+    return query.getSchema().getKlass().isAssignableFrom(Attribute.class)
+        && !Attribute.ObjectType.isValidType(restriction.getQueryPath().getPath());
   }
 }

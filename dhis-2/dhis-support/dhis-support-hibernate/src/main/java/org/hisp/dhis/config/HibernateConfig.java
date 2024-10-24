@@ -179,6 +179,14 @@ public class HibernateConfig {
           MissingCacheStrategy.CREATE.getExternalRepresentation());
     }
 
+    properties.put(
+        AvailableSettings.SHOW_SQL, dhisConfig.getProperty(ConfigurationKey.HIBERNATE_SHOW_SQL));
+    properties.put(
+        AvailableSettings.FORMAT_SQL, dhisConfig.getProperty(ConfigurationKey.HIBERNATE_SHOW_SQL));
+    properties.put(
+        AvailableSettings.HIGHLIGHT_SQL,
+        dhisConfig.getProperty(ConfigurationKey.HIBERNATE_SHOW_SQL));
+
     // TODO: this is anti-pattern and should be turn off
     properties.put("hibernate.allow_update_outside_transaction", "true");
 

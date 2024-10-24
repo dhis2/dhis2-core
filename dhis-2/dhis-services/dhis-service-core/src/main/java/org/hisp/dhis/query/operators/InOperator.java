@@ -78,6 +78,11 @@ public class InOperator<T extends Comparable<? super T>> extends Operator<T> {
                   queryPath.getProperty().getItemKlass(),
                   getCollectionArgs().get(0)));
     }
+    if (queryPath.haveAlias()) {
+      return root.join(queryPath.getAlias()[0])
+          .get(queryPath.getProperty().getFieldName())
+          .in(getCollectionArgs().get(0));
+    }
 
     return root.get(queryPath.getPath()).in(getCollectionArgs().get(0));
   }
