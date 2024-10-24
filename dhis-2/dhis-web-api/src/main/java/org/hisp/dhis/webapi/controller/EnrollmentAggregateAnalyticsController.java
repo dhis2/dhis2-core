@@ -81,7 +81,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-@OpenApi.Document(domain = DataValue.class)
+@OpenApi.Document(entity = DataValue.class)
 @Controller
 @ApiVersion({DEFAULT, ALL})
 @RequestMapping("/api/analytics/enrollments/aggregate")

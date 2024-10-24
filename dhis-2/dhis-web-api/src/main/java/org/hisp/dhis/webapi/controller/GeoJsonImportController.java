@@ -70,7 +70,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Jan Bernitt
  */
-@OpenApi.Document(domain = OrganisationUnit.class)
+@OpenApi.Document(entity = OrganisationUnit.class)
 @RequestMapping("/api/organisationUnits")
 @RestController
 @RequiredArgsConstructor

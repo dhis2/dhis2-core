@@ -100,7 +100,7 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = DataValue.class)
+@OpenApi.Document(entity = DataValue.class)
 @RestController
 @RequestMapping("/api/dataValues")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

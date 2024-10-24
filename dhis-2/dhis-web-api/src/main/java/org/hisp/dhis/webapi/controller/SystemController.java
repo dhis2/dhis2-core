@@ -88,7 +88,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(domain = Server.class)
+@OpenApi.Document(entity = Server.class)
 @Controller
 @RequestMapping("/api/system")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

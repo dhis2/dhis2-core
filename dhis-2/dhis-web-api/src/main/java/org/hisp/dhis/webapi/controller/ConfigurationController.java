@@ -74,7 +74,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = Configuration.class)
+@OpenApi.Document(entity = Configuration.class)
 @Controller
 @RequestMapping("/api/configuration")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

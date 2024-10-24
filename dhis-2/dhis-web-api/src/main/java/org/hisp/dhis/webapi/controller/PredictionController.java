@@ -62,7 +62,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Jim Grace
  */
-@OpenApi.Document(domain = Predictor.class)
+@OpenApi.Document(entity = Predictor.class)
 @Controller
 @RequestMapping("/api/predictions")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

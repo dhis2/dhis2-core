@@ -103,7 +103,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  *
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = DataValue.class)
+@OpenApi.Document(entity = DataValue.class)
 @Controller
 @RequestMapping("/api/dataApprovals")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

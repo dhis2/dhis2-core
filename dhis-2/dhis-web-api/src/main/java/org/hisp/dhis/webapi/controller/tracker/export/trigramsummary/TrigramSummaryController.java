@@ -59,7 +59,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  *
  * @author Ameen Mohamed
  */
-@OpenApi.Document(domain = TrackedEntityAttribute.class)
+@OpenApi.Document(entity = TrackedEntityAttribute.class)
 @Controller
 @RequestMapping("/api/trigramSummary")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

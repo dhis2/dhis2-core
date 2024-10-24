@@ -47,7 +47,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(domain = I18n.class)
+@OpenApi.Document(entity = I18n.class)
 @Controller
 @RequestMapping("/api/i18n")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

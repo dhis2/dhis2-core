@@ -48,7 +48,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Ameen Mohamed
  */
-@OpenApi.Document(domain = Server.class)
+@OpenApi.Document(entity = Server.class)
 @RestController
 @RequestMapping("/api/cluster")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

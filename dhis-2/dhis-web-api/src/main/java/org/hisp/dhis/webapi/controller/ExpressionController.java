@@ -51,7 +51,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = Expression.class)
+@OpenApi.Document(entity = Expression.class)
 @Controller
 @RequestMapping("/api/expressions")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

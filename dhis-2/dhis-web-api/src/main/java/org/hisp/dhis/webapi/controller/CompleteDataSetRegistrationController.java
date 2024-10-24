@@ -91,7 +91,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Halvdan Hoem Grelland <halvdan@dhis2.org>
  */
-@OpenApi.Document(domain = DataValue.class)
+@OpenApi.Document(entity = DataValue.class)
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequestMapping("/api/completeDataSetRegistrations")

@@ -84,7 +84,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Kristian Wærstad
  */
-@OpenApi.Document(domain = Icon.class)
+@OpenApi.Document(entity = Icon.class)
 @RestController
 @RequestMapping("/api/icons")
 @Slf4j

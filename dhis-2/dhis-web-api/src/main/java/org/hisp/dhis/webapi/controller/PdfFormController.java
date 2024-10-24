@@ -71,7 +71,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author James Chang <jamesbchang@gmail.com>
  */
-@OpenApi.Document(domain = DataEntryForm.class)
+@OpenApi.Document(entity = DataEntryForm.class)
 @Controller
 @RequestMapping("/api/pdfForm")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

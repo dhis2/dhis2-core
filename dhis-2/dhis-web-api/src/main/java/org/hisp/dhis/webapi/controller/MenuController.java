@@ -45,7 +45,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@OpenApi.Document(domain = User.class)
+@OpenApi.Document(entity = User.class)
 @Controller
 @RequestMapping("/api/menu")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

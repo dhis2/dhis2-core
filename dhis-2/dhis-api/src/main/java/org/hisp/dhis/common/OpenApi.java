@@ -198,16 +198,18 @@ public @interface OpenApi {
     String GROUP_CONFIG = "configuration";
 
     /**
-     * Alternative to {@link #domain()} for a "manual" override. Takes precedence when non-empty.
+     * Alternative to {@link #entity()} for a "manual" override. Takes precedence when non-empty.
      *
      * @return name of the target document (no file extension)
      */
     String name() default "";
 
     /**
-     * Each domain becomes a separate OpenAPI document. The name used for the document is the shared
-     * named of the domain class. That is the {@link Class#getSimpleName()} unless the class is
-     * annotated and named via {@link Shared}.
+     * The entity is the type of object the annotated controller is about.
+     *
+     * <p>When generating individual files each entity becomes a separate OpenAPI document. The name
+     * used for the document is the shared named of the domain class. That is the {@link
+     * Class#getSimpleName()} unless the class is annotated and named via {@link Shared}.
      *
      * <p>Unless overridden by {@link #classifiers()} this is also the classifier value for {@code
      * entity}.
@@ -215,8 +217,7 @@ public @interface OpenApi {
      * @return the class that represents the domain for the annotated controller {@link Class} or
      *     endpoint {@link java.lang.reflect.Method}.
      */
-    // TODO rename to entity() (extra PR)
-    Class<?> domain() default EntityType.class;
+    Class<?> entity() default EntityType.class;
 
     /**
      * Groups become "sections" within a OpenAPI document. This is done by adding a tag to the

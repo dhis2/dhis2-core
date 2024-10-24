@@ -47,7 +47,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = Report.class)
+@OpenApi.Document(entity = Report.class)
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ReportTemplateController {

@@ -60,7 +60,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Jan Bernitt
  */
-@OpenApi.Document(domain = Server.class)
+@OpenApi.Document(entity = Server.class)
 @RestController
 @RequestMapping("/api/authorities")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

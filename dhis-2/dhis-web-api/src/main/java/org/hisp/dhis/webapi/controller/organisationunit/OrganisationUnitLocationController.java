@@ -49,7 +49,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author James Chang <jamesbchang@gmail.com>
  */
-@OpenApi.Document(domain = OrganisationUnit.class)
+@OpenApi.Document(entity = OrganisationUnit.class)
 @Controller
 @RequestMapping("/api/organisationUnitLocations")
 public class OrganisationUnitLocationController {

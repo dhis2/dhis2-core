@@ -60,7 +60,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Maturity.Beta
-@OpenApi.Document(domain = OpenApi.class)
+@OpenApi.Document(entity = OpenApi.class)
 @RestController
 @RequestMapping("/api")
 @AllArgsConstructor

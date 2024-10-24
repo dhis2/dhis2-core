@@ -70,7 +70,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@OpenApi.Document(domain = DataElement.class)
+@OpenApi.Document(entity = DataElement.class)
 @Controller
 @RequestMapping("/api/minMaxDataElements")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

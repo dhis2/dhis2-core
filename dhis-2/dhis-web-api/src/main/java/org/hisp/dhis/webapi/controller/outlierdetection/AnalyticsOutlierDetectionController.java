@@ -60,7 +60,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Dusan Bernat
  */
-@OpenApi.Document(domain = DataValue.class)
+@OpenApi.Document(entity = DataValue.class)
 @RestController
 @AllArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

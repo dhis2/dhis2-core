@@ -72,7 +72,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
-@OpenApi.Document(domain = DataIntegrityCheck.class)
+@OpenApi.Document(entity = DataIntegrityCheck.class)
 @Controller
 @RequestMapping("/api/dataIntegrity")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

@@ -87,7 +87,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Document(domain = User.class)
+@OpenApi.Document(entity = User.class)
 @RestController
 @RequestMapping("/api/auth")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

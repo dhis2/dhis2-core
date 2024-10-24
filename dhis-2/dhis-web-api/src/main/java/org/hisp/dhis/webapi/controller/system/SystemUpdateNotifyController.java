@@ -48,7 +48,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Document(domain = Server.class)
+@OpenApi.Document(entity = Server.class)
 @Controller
 @RequestMapping("/api/systemUpdates")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

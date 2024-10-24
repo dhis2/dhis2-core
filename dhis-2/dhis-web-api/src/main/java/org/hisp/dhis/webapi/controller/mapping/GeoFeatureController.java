@@ -56,7 +56,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = GeoFeature.class)
+@OpenApi.Document(entity = GeoFeature.class)
 @Controller
 @RequestMapping("/api/geoFeatures")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

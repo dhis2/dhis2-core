@@ -69,7 +69,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = User.class, group = OpenApi.Document.GROUP_CONFIG)
+@OpenApi.Document(entity = User.class, group = OpenApi.Document.GROUP_CONFIG)
 @RestController
 @RequestMapping("/api/userSettings")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

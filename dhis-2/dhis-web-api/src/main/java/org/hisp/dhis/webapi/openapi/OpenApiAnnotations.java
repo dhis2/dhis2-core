@@ -115,7 +115,7 @@ class OpenApiAnnotations {
     OpenApi.Document doc = controller.getAnnotation(OpenApi.Document.class);
     Class<?> domain = OpenApi.EntityType.class;
     if (doc != null) {
-      domain = doc.domain();
+      domain = doc.entity();
     }
     if (domain == OpenApi.EntityType.class) {
       domain = getEntityType(controller);

@@ -52,7 +52,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Document(domain = Server.class)
+@OpenApi.Document(entity = Server.class)
 @RestController
 @RequestMapping("/api/loginConfig")
 @RequiredArgsConstructor

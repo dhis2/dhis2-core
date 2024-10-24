@@ -83,7 +83,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(domain = TrackedEntity.class)
+@OpenApi.Document(entity = TrackedEntity.class)
 @RestController
 @RequestMapping("/api/tracker")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

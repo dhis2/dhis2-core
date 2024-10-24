@@ -47,7 +47,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  *
  * @author Joao Antunes
  */
-@OpenApi.Document(domain = DataSummary.class)
+@OpenApi.Document(entity = DataSummary.class)
 @Controller
 @RequestMapping("/api/dataSummary")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

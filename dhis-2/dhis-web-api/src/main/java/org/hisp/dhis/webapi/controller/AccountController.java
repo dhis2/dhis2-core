@@ -98,7 +98,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = User.class)
+@OpenApi.Document(entity = User.class)
 @Controller
 @RequestMapping("/api/account")
 @Slf4j

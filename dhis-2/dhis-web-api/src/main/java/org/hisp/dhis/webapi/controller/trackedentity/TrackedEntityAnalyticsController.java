@@ -84,7 +84,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Controller class responsible exclusively for querying operations on top of tracker entity
  * instances objects. Methods in this controller should not change any state.
  */
-@OpenApi.Document(domain = DataValue.class)
+@OpenApi.Document(entity = DataValue.class)
 @ApiVersion({DEFAULT, ALL})
 @RestController
 @RequiredArgsConstructor

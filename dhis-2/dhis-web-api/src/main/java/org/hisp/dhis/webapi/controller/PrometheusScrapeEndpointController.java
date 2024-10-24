@@ -42,7 +42,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 /**
  * @author Luciano Fiandesio
  */
-@OpenApi.Document(domain = Server.class)
+@OpenApi.Document(entity = Server.class)
 @Profile("!test")
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
