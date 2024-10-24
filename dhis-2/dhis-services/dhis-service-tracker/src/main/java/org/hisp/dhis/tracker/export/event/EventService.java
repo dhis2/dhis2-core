@@ -82,7 +82,7 @@ public interface EventService {
   Page<Event> getEvents(EventOperationParams params, PageParams pageParams)
       throws BadRequestException, ForbiddenException;
 
-  RelationshipItem getEventInRelationshipItem(String uid, EventParams eventParams)
+  RelationshipItem getEventInRelationshipItem(UID uid, EventParams eventParams)
       throws NotFoundException;
 
   /**

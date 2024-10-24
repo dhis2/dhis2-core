@@ -244,10 +244,10 @@ class DefaultEventService implements EventService {
 
   @Override
   public RelationshipItem getEventInRelationshipItem(
-      @Nonnull String uid, @Nonnull EventParams eventParams) throws NotFoundException {
+      @Nonnull UID uid, @Nonnull EventParams eventParams) throws NotFoundException {
     RelationshipItem relationshipItem = new RelationshipItem();
 
-    Event event = manager.get(Event.class, uid);
+    Event event = manager.get(Event.class, uid.getValue());
     if (event == null) {
       throw new NotFoundException(Event.class, uid);
     }

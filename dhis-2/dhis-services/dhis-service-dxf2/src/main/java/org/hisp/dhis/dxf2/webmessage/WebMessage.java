@@ -55,8 +55,8 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.predictor.PredictionSummary;
 import org.hisp.dhis.webapi.controller.tracker.imports.TrackerJobWebMessageResponse;
-import org.hisp.dhis.webmessage.BasicWebMessage;
 import org.hisp.dhis.webmessage.WebMessageResponse;
+import org.hisp.dhis.webmessage.WebResponse;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -72,7 +72,7 @@ import org.springframework.http.HttpStatus;
   "devMessage",
   "response"
 })
-public class WebMessage extends BasicWebMessage {
+public class WebMessage extends WebResponse {
 
   /** HTTP status. */
   private HttpStatus httpStatus = HttpStatus.OK;

@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.Enrollment;
@@ -211,7 +212,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
                   EventOperationParams.builder()
                       .eventParams(EventParams.TRUE)
                       .orgUnitMode(ACCESSIBLE)
-                      .enrollments(Set.of(enrollmentUid))
+                      .enrollments(Set.of(UID.of(enrollmentUid)))
                       .build())
               .stream()
               .filter(e -> bundle.findEventByUid(e.getUid()).isEmpty());

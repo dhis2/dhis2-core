@@ -81,7 +81,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetOpenApiDocument_PathFilter() {
-    JsonObject doc = GET("/openapi/openapi.json?path=/api/users").content();
+    JsonObject doc = GET("/openapi/openapi.json?scope=path./api/users").content();
     assertTrue(doc.isObject());
     assertTrue(
         doc.getObject("paths")
@@ -96,7 +96,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetOpenApiDocument_DomainFilter() {
-    JsonObject doc = GET("/openapi/openapi.json?domain=User").content();
+    JsonObject doc = GET("/openapi/openapi.json?scope=entity.User").content();
     assertTrue(doc.isObject());
     assertTrue(
         doc.getObject("paths")
@@ -112,7 +112,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetOpenApiDocumentHtml_DomainFilter() {
     String html =
-        GET("/openapi/openapi.html?domain=DataElement", Accept(TEXT_HTML_VALUE))
+        GET("/openapi/openapi.html?scope=entity.DataElement", Accept(TEXT_HTML_VALUE))
             .content(TEXT_HTML_VALUE);
     assertContains("#DataElement", html);
   }
@@ -120,7 +120,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetOpenApiDocument_DefaultValue() {
     // defaults in parameter objects (from Property analysis)
-    JsonObject users = GET("/openapi/openapi.json?path=/api/users").content();
+    JsonObject users = GET("/openapi/openapi.json?scope=path./api/users").content();
     JsonObject sharedParams = users.getObject("components.parameters");
     assertEquals(50, sharedParams.getNumber("{GistParams.pageSize}.schema.default").integer());
     assertEquals(
@@ -128,7 +128,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue(sharedParams.getBoolean("{GistParams.translate}.schema.default").booleanValue());
 
     // defaults in individual parameters (from endpoint method parameter analysis)
-    JsonObject fileResources = GET("/openapi/openapi.json?path=/api/fileResources").content();
+    JsonObject fileResources = GET("/openapi/openapi.json?scope=path./api/fileResources").content();
     JsonObject domain =
         fileResources
             .get("paths./api/fileResources/.post.parameters")
@@ -139,7 +139,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
             .orElse(JsonMixed.of("{}"));
     assertEquals("DATA_VALUE", domain.getString("schema.default").string());
 
-    JsonObject audits = GET("/openapi/openapi.json?path=/api/audits").content();
+    JsonObject audits = GET("/openapi/openapi.json?scope=path./api/audits").content();
     JsonObject pageSize =
         audits
             .getArray("paths./api/audits/trackedEntityAttributeValue.get.parameters")
@@ -153,7 +153,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetOpenApiDocument_ReadOnly() {
-    JsonObject doc = GET("/openapi/openapi.json?domain=JobConfiguration").content();
+    JsonObject doc = GET("/openapi/openapi.json?scope=entity.JobConfiguration").content();
     JsonObject jobConfiguration = doc.getObject("components.schemas.JobConfiguration");
     JsonObject jobConfigurationParams = doc.getObject("components.schemas.JobConfigurationParams");
     assertTrue(jobConfiguration.isObject());

@@ -125,15 +125,15 @@ class EventRequestParamsMapper {
 
     EventOperationParamsBuilder builder =
         EventOperationParams.builder()
-            .programUid(applyIfNotNull(eventRequestParams.getProgram(), UID::getValue))
-            .programStageUid(applyIfNotNull(eventRequestParams.getProgramStage(), UID::getValue))
-            .orgUnitUid(applyIfNotNull(eventRequestParams.getOrgUnit(), UID::getValue))
-            .trackedEntityUid(applyIfNotNull(eventRequestParams.getTrackedEntity(), UID::getValue))
+            .program(eventRequestParams.getProgram())
+            .programStage(eventRequestParams.getProgramStage())
+            .orgUnit(eventRequestParams.getOrgUnit())
+            .trackedEntity(eventRequestParams.getTrackedEntity())
             .enrollmentStatus(enrollmentStatus)
             .followUp(eventRequestParams.getFollowUp())
             .orgUnitMode(orgUnitMode)
             .assignedUserMode(eventRequestParams.getAssignedUserMode())
-            .assignedUsers(UID.toValueSet(assignedUsers))
+            .assignedUsers(assignedUsers)
             .occurredAfter(
                 applyIfNotNull(eventRequestParams.getOccurredAfter(), StartDateTime::toDate))
             .occurredBefore(
@@ -160,15 +160,15 @@ class EventRequestParamsMapper {
                 applyIfNotNull(
                     eventRequestParams.getEnrollmentOccurredAfter(), StartDateTime::toDate))
             .eventStatus(eventRequestParams.getStatus())
-            .attributeCategoryCombo(applyIfNotNull(attributeCategoryCombo, UID::getValue))
-            .attributeCategoryOptions(UID.toValueSet(attributeCategoryOptions))
+            .attributeCategoryCombo(attributeCategoryCombo)
+            .attributeCategoryOptions(attributeCategoryOptions)
             .idSchemes(eventRequestParams.getIdSchemes())
             .includeAttributes(false)
             .includeAllDataElements(false)
             .dataElementFilters(dataElementFilters)
             .attributeFilters(attributeFilters)
-            .events(UID.toValueSet(eventUids))
-            .enrollments(UID.toValueSet(eventRequestParams.getEnrollments()))
+            .events(eventUids)
+            .enrollments(eventRequestParams.getEnrollments())
             .includeDeleted(eventRequestParams.isIncludeDeleted())
             .eventParams(eventsMapper.map(eventRequestParams.getFields()));
 

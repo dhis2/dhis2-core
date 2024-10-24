@@ -186,7 +186,7 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    assertEquals(program.getUid(), params.getProgramUid());
+    assertEquals(UID.of(program), params.getProgram());
   }
 
   @Test
@@ -232,7 +232,7 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    assertEquals(orgUnit.getUid(), params.getOrgUnitUid());
+    assertEquals(UID.of(orgUnit), params.getOrgUnit());
   }
 
   @Test
@@ -242,7 +242,7 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    assertEquals("qnR1RK4cTIZ", params.getTrackedEntityUid());
+    assertEquals(UID.of("qnR1RK4cTIZ"), params.getTrackedEntity());
   }
 
   @Test
@@ -358,7 +358,7 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    assertEquals(Set.of("NQnuK2kLm6e"), params.getEnrollments());
+    assertEquals(Set.of(UID.of("NQnuK2kLm6e")), params.getEnrollments());
   }
 
   @Test
@@ -368,17 +368,17 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    assertEquals(Set.of("XKrcfuM4Hcw", "M4pNmLabtXl"), params.getEvents());
+    assertEquals(UID.of("XKrcfuM4Hcw", "M4pNmLabtXl"), params.getEvents());
   }
 
   @Test
   void testMappingEvents() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
-    eventRequestParams.setEvents(Set.of(UID.of("XKrcfuM4Hcw"), UID.of("M4pNmLabtXl")));
+    eventRequestParams.setEvents(UID.of("XKrcfuM4Hcw", "M4pNmLabtXl"));
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    assertEquals(Set.of("XKrcfuM4Hcw", "M4pNmLabtXl"), params.getEvents());
+    assertEquals(UID.of("XKrcfuM4Hcw", "M4pNmLabtXl"), params.getEvents());
   }
 
   @Test
@@ -398,19 +398,19 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    assertContainsOnly(Set.of("IsdLBTOBzMi", "l5ab8q5skbB"), params.getAssignedUsers());
+    assertContainsOnly(UID.of("IsdLBTOBzMi", "l5ab8q5skbB"), params.getAssignedUsers());
     assertEquals(AssignedUserSelectionMode.PROVIDED, params.getAssignedUserMode());
   }
 
   @Test
   void testMappingAssignedUsers() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
-    eventRequestParams.setAssignedUsers(Set.of(UID.of("IsdLBTOBzMi"), UID.of("l5ab8q5skbB")));
+    eventRequestParams.setAssignedUsers(UID.of("IsdLBTOBzMi", "l5ab8q5skbB"));
     eventRequestParams.setAssignedUserMode(AssignedUserSelectionMode.PROVIDED);
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    assertContainsOnly(Set.of("IsdLBTOBzMi", "l5ab8q5skbB"), params.getAssignedUsers());
+    assertContainsOnly(UID.of("IsdLBTOBzMi", "l5ab8q5skbB"), params.getAssignedUsers());
     assertEquals(AssignedUserSelectionMode.PROVIDED, params.getAssignedUserMode());
   }
 
