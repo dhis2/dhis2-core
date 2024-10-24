@@ -43,8 +43,12 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dashboard.design.ItemConfig;
 import org.hisp.dhis.dashboard.design.Layout;
+import org.hisp.dhis.dashboard.embedded.EmbeddedDashboard;
 
 /**
+ * Encapsulates information about an embedded dashboard. An embedded dashboard is typically loaded
+ * from an external provider.
+ *
  * @author Lars Helge Overland
  */
 @NoArgsConstructor
@@ -66,6 +70,9 @@ public class Dashboard extends BaseNameableObject implements MetadataObject {
 
   /** Allowed filter dimensions (if any) which may be used for the dashboard. */
   private List<String> allowedFilters = new ArrayList<>();
+
+  /** Optional, only set if this dashboard is embedded and loaded from an external provider. */
+  private EmbeddedDashboard embedded;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -145,5 +152,15 @@ public class Dashboard extends BaseNameableObject implements MetadataObject {
 
   public void setAllowedFilters(List<String> allowedFilters) {
     this.allowedFilters = allowedFilters;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public EmbeddedDashboard getEmbedded() {
+    return embedded;
+  }
+
+  public void setEmbedded(EmbeddedDashboard embedded) {
+    this.embedded = embedded;
   }
 }

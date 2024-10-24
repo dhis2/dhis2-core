@@ -39,6 +39,8 @@
     
     <property name="allowedFilters" column="allowedfilters" type="jbList" />
 
+    <property name="embedded" column="embedded" type="jbEmbeddedDashboard" />
+
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>
     
