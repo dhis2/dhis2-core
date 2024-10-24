@@ -150,8 +150,8 @@ public class HibernateCategoryOptionComboStore
       Collection<CategoryOption> categoryOptions) {
     return getQuery(
             """
-            select distinct coc from CategoryOptionCombo coc
-            join coc.categoryOptions co
+            select distinct coc from CategoryOption co
+            join co.categoryOptionCombos coc
             where co in :categoryOptions
             """,
             CategoryOptionCombo.class)
