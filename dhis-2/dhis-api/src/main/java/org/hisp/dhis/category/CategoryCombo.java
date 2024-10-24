@@ -99,7 +99,7 @@ public class CategoryCombo extends BaseIdentifiableObject implements SystemDefau
    * Indicates whether this category combo has at least one category, has at least one category
    * option combo and that all categories have at least one category option.
    */
-  public boolean isValid() { // todo include constraint in test
+  public boolean isValid() {
     if (categories == null || categories.isEmpty()) {
       return false;
     }

@@ -115,7 +115,6 @@ public enum ErrorCode {
   E1651("Target category option must be specified"),
   E1652("Target category option cannot be a source category option"),
   E1653("{0} category option does not exist: `{1}`"),
-  E1656("dataMergeStrategy field must be specified. With value `DISCARD` or `LAST_UPDATED`"),
 
   /* Data */
   E2000("Query parameters cannot be null"),

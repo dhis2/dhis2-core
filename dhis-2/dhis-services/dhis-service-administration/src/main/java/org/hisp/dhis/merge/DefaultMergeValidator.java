@@ -159,6 +159,7 @@ public class DefaultMergeValidator implements MergeValidator {
       case INDICATOR_TYPE -> ErrorCode.E1530;
       case INDICATOR -> ErrorCode.E1540;
       case DATA_ELEMENT -> ErrorCode.E1550;
+      case CATEGORY_OPTION -> ErrorCode.E1650;
       default -> throw new IllegalStateException(MERGE_ERROR + clazz);
     };
   }
@@ -168,6 +169,7 @@ public class DefaultMergeValidator implements MergeValidator {
       case INDICATOR_TYPE -> ErrorCode.E1531;
       case INDICATOR -> ErrorCode.E1541;
       case DATA_ELEMENT -> ErrorCode.E1551;
+      case CATEGORY_OPTION -> ErrorCode.E1651;
       default -> throw new IllegalStateException(MERGE_ERROR + clazz);
     };
   }
@@ -177,6 +179,7 @@ public class DefaultMergeValidator implements MergeValidator {
       case INDICATOR_TYPE -> ErrorCode.E1532;
       case INDICATOR -> ErrorCode.E1542;
       case DATA_ELEMENT -> ErrorCode.E1552;
+      case CATEGORY_OPTION -> ErrorCode.E1652;
       default -> throw new IllegalStateException(MERGE_ERROR + clazz);
     };
   }
