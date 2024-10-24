@@ -621,6 +621,15 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
     assertEquals(3, objects.size());
   }
 
+  /**
+   * Hibernate should create a join to dataelement table and all the equal operators should use that
+   * join. Expected query generated: {@code select dataelement.* from dataelementgroup dataelemen0_
+   * inner join dataelementgroupmembers members1_ on
+   * dataelemen0_.dataelementgroupid=members1_.dataelementgroupid inner join dataelement
+   * dataelemen2_ on members1_.dataelementid=dataelemen2_.dataelementid where dataelemen2_.uid=? and
+   * dataelemen2_.uid=? and dataelemen2_.uid=? and dataelemen2_.uid=? and dataelemen2_.uid=? and
+   * dataelemen2_.uid=? limit ?}
+   */
   @Test
   void testCriteriaAndRootJunctionDEG() {
     Query query =
