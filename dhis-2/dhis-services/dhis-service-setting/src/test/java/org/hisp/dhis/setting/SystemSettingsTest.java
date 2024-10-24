@@ -222,4 +222,13 @@ class SystemSettingsTest {
     assertFalse(settings.isValid("keyLastMonitoringRun", "hello"));
     assertFalse(settings.isValid("keyLastMonitoringRun", "true"));
   }
+
+  @Test
+  void testEmailIsConfigured() {
+    SystemSettings settings = SystemSettings.of(Map.of());
+    assertFalse(settings.isEmailConfigured());
+    settings =
+        SystemSettings.of(Map.of("keyEmailHostName", "localhost", "keyEmailUsername", "user"));
+    assertTrue(settings.isEmailConfigured());
+  }
 }
