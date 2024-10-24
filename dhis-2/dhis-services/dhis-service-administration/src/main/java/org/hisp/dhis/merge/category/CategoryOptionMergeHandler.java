@@ -67,8 +67,8 @@ public class CategoryOptionMergeHandler {
     List<Category> sourceCategories = categoryStore.getCategoriesByCategoryOption(sources);
     sourceCategories.forEach(
         c -> {
-          c.removeCategoryOptions(sources);
           c.addCategoryOption(target);
+          c.removeCategoryOptions(sources);
         });
   }
 
@@ -82,11 +82,8 @@ public class CategoryOptionMergeHandler {
     List<CategoryOptionCombo> sourceCocs =
         categoryOptionComboStore.getCategoryOptionCombosByCategoryOption(sources);
 
-    sourceCocs.forEach(
-        coc -> {
-          coc.removeCategoryOptions(sources);
-          coc.addCategoryOption(target);
-        });
+    sources.forEach(s -> s.removeCategoryOptionCombos(sourceCocs));
+    target.addCategoryOptionCombos(sourceCocs);
   }
 
   /**
@@ -100,8 +97,8 @@ public class CategoryOptionMergeHandler {
 
     sourceOus.forEach(
         ou -> {
-          ou.removeCategoryOptions(sources);
           ou.addCategoryOption(target);
+          ou.removeCategoryOptions(sources);
         });
   }
 
@@ -116,8 +113,8 @@ public class CategoryOptionMergeHandler {
 
     sourceCogs.forEach(
         cog -> {
-          cog.removeCategoryOptions(sources);
           cog.addCategoryOption(target);
+          cog.removeCategoryOptions(sources);
         });
   }
 
@@ -132,8 +129,8 @@ public class CategoryOptionMergeHandler {
 
     sourceCds.forEach(
         cd -> {
-          cd.removeItems(sources);
           cd.addItem(target);
+          cd.removeItems(sources);
         });
   }
 }
