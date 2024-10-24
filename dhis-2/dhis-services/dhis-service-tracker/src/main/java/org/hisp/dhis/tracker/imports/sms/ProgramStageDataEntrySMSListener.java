@@ -40,6 +40,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -145,8 +146,8 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
       Page<Enrollment> enrollmentPage =
           enrollmentService.getEnrollments(
               EnrollmentOperationParams.builder()
-                  .trackedEntityUid(trackedEntity.getUid())
-                  .programUid(smsCommand.getProgram().getUid())
+                  .trackedEntity(UID.of(trackedEntity))
+                  .program(UID.of(smsCommand.getProgram()))
                   .enrollmentStatus(EnrollmentStatus.ACTIVE)
                   .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
                   .build(),

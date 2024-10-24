@@ -142,8 +142,7 @@ class EnrollmentsExportController {
       throws NotFoundException, ForbiddenException {
     EnrollmentParams enrollmentParams = fieldsMapper.map(fields);
     Enrollment enrollment =
-        ENROLLMENT_MAPPER.from(
-            enrollmentService.getEnrollment(uid.getValue(), enrollmentParams, false));
+        ENROLLMENT_MAPPER.from(enrollmentService.getEnrollment(uid, enrollmentParams, false));
     return ResponseEntity.ok(fieldFilterService.toObjectNode(enrollment, fields));
   }
 }

@@ -94,6 +94,8 @@ public class Api {
     Schema generate(Endpoint endpoint, Type source, Class<?>... args);
   }
 
+  Set<Class<?>> context;
+
   /** Can be set to enable debug mode */
   Maybe<Boolean> debug = new Maybe<>(false);
 
@@ -190,7 +192,7 @@ public class Api {
     @ToString.Exclude @EqualsAndHashCode.Include Class<?> entityType;
 
     String name;
-    Class<?> domain;
+    Map<String, String> classifiers = new TreeMap<>();
     List<String> paths = new ArrayList<>();
     List<Endpoint> endpoints = new ArrayList<>();
   }

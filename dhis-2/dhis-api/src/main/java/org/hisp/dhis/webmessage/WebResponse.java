@@ -45,7 +45,7 @@ import org.hisp.dhis.feedback.Status;
  */
 @Getter
 @OpenApi.Kind("WebMessageResponse")
-public class BasicWebMessage {
+public class WebResponse {
 
   /**
    * Message status, currently two statuses are available: OK, ERROR. Default value is OK.

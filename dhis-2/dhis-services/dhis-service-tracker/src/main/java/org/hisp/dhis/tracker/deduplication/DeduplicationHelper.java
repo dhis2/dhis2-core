@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -281,7 +282,8 @@ public class DeduplicationHelper {
       return "Missing data write access to one or more Relationship Types.";
     }
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(mergeObject.getEnrollments());
+    List<Enrollment> enrollments =
+        enrollmentService.getEnrollments(UID.of(mergeObject.getEnrollments()));
 
     if (enrollments.stream()
         .anyMatch(e -> !aclService.canDataWrite(currentUserDetails, e.getProgram()))) {

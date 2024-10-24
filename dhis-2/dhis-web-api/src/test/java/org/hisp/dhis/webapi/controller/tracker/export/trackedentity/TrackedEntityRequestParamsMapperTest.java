@@ -271,22 +271,21 @@ class TrackedEntityRequestParamsMapperTest {
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
     assertContainsOnly(
-        Set.of("IsdLBTOBzMi", "l5ab8q5skbB"),
+        UID.of("IsdLBTOBzMi", "l5ab8q5skbB"),
         params.getAssignedUserQueryParam().getAssignedUsers());
     assertEquals(AssignedUserSelectionMode.PROVIDED, params.getAssignedUserQueryParam().getMode());
   }
 
   @Test
   void testMappingAssignedUsers() throws BadRequestException {
-    trackedEntityRequestParams.setAssignedUsers(
-        Set.of(UID.of("IsdLBTOBzMi"), UID.of("l5ab8q5skbB")));
+    trackedEntityRequestParams.setAssignedUsers(UID.of("IsdLBTOBzMi", "l5ab8q5skbB"));
     trackedEntityRequestParams.setAssignedUserMode(AssignedUserSelectionMode.PROVIDED);
     trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
     assertContainsOnly(
-        Set.of("IsdLBTOBzMi", "l5ab8q5skbB"),
+        UID.of("IsdLBTOBzMi", "l5ab8q5skbB"),
         params.getAssignedUserQueryParam().getAssignedUsers());
     assertEquals(AssignedUserSelectionMode.PROVIDED, params.getAssignedUserQueryParam().getMode());
   }

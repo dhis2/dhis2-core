@@ -55,9 +55,9 @@ import org.hisp.dhis.tracker.export.Order;
 @Builder(toBuilder = true)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class EventOperationParams {
-  private String programUid;
+  private UID program;
 
-  private String programStageUid;
+  private UID programStage;
 
   private EnrollmentStatus enrollmentStatus;
 
@@ -65,15 +65,15 @@ public class EventOperationParams {
 
   private Boolean followUp;
 
-  private String orgUnitUid;
+  private UID orgUnit;
 
   private OrganisationUnitSelectionMode orgUnitMode;
 
   private AssignedUserSelectionMode assignedUserMode;
 
-  private Set<String> assignedUsers;
+  private Set<UID> assignedUsers;
 
-  private String trackedEntityUid;
+  private UID trackedEntity;
 
   private Date occurredAfter;
 
@@ -100,9 +100,9 @@ public class EventOperationParams {
 
   private Date enrollmentOccurredAfter;
 
-  private String attributeCategoryCombo;
+  private UID attributeCategoryCombo;
 
-  @Builder.Default private Set<String> attributeCategoryOptions = Collections.emptySet();
+  @Builder.Default private Set<UID> attributeCategoryOptions = Collections.emptySet();
 
   private CategoryOptionCombo categoryOptionCombo;
 
@@ -126,7 +126,7 @@ public class EventOperationParams {
 
   private boolean includeAllDataElements;
 
-  @Builder.Default private Set<String> events = new HashSet<>();
+  @Builder.Default private Set<UID> events = new HashSet<>();
 
   /** Data element filters per data element UID. */
   @Builder.Default private Map<String, List<QueryFilter>> dataElementFilters = new HashMap<>();
@@ -136,16 +136,12 @@ public class EventOperationParams {
 
   private boolean includeDeleted;
 
-  private Set<String> accessiblePrograms;
-
-  private Set<String> accessibleProgramStages;
-
   private boolean synchronizationQuery;
 
   /** Indicates a point in the time used to decide the data that should not be synchronized */
   private Date skipChangedBefore;
 
-  private Set<String> enrollments;
+  private Set<UID> enrollments;
 
   private EventParams eventParams;
 

@@ -38,6 +38,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.lang.ref.SoftReference;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
@@ -87,15 +90,13 @@ public class OpenApiController {
   @Data
   @OpenApi.Shared
   public static class OpenApiScopeParams {
-    @OpenApi.Description("When specified only operations matching the path are included.")
-    Set<String> path = Set.of();
-
-    @OpenApi.Description("When specified only operations matching the domain are included.")
-    Set<String> domain = Set.of();
+    @OpenApi.Description(
+        "When given only operations in controllers matching the scope are considered")
+    Set<String> scope = Set.of();
 
     @OpenApi.Ignore
     boolean isCachable() {
-      return path.isEmpty() && domain.isEmpty();
+      return scope.isEmpty();
     }
   }
 
@@ -189,7 +190,7 @@ public class OpenApiController {
 
     StringWriter json = new StringWriter();
     OpenApiScopeParams scope = new OpenApiScopeParams();
-    scope.setPath(Set.of("/" + path));
+    scope.setScope(Set.of("path./api/" + path));
     writeDocument(
         request, generation, scope, () -> new PrintWriter(json), OpenApiGenerator::generateJson);
 
@@ -212,7 +213,7 @@ public class OpenApiController {
     if (notModified(request, response, generation)) return;
 
     OpenApiScopeParams scope = new OpenApiScopeParams();
-    scope.setPath(Set.of("/" + path));
+    scope.setScope(Set.of("path./api/" + path));
     writeDocument(
         request, generation, scope, getYamlWriter(response), OpenApiGenerator::generateYaml);
   }
@@ -246,7 +247,7 @@ public class OpenApiController {
     if (notModified(request, response, generation)) return;
 
     OpenApiScopeParams scope = new OpenApiScopeParams();
-    scope.setPath(Set.of("/" + path));
+    scope.setScope(Set.of("path./api/" + path));
     writeDocument(
         request, generation, scope, getJsonWriter(response), OpenApiGenerator::generateJson);
   }
@@ -313,10 +314,16 @@ public class OpenApiController {
 
   @Nonnull
   private Api getApiUncached(OpenApiGenerationParams generation, OpenApiScopeParams scope) {
+    Map<String, Set<String>> filters = new HashMap<>();
+    for (String s : scope.scope) {
+      String key = s.substring(0, s.indexOf('.'));
+      String value = s.substring(s.indexOf('.') + 1);
+      filters.computeIfAbsent(key, k -> new HashSet<>()).add(value);
+    }
     Api api =
         ApiExtractor.extractApi(
             new ApiExtractor.Configuration(
-                new ApiExtractor.Scope(getAllControllerClasses(), scope.path, scope.domain),
+                new ApiExtractor.Scope(getAllControllerClasses(), filters),
                 generation.expandedRefs));
     ApiIntegrator.integrateApi(
         api,
