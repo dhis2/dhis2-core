@@ -42,6 +42,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.http.HttpStatus;
@@ -197,7 +198,7 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
         () -> assertEquals(originator, sms.getOriginator()),
         () -> assertEquals(user, sms.getCreatedBy()),
         () -> {
-          Relationship relationship = relationshipService.getRelationship(relationshipUid);
+          Relationship relationship = relationshipService.getRelationship(UID.of(relationshipUid));
           assertAll(
               () -> assertEquals(relationshipUid, relationship.getUid()),
               () -> assertEquals(event1, relationship.getFrom().getEvent()),

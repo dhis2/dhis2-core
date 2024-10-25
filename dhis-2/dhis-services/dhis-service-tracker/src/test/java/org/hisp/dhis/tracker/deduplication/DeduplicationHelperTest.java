@@ -109,8 +109,7 @@ class DeduplicationHelperTest extends TestBase {
 
   @BeforeEach
   public void setUp() throws ForbiddenException, NotFoundException {
-    List<String> relationshipUids =
-        List.of(CodeGenerator.generateUid(), CodeGenerator.generateUid());
+    Set<UID> relationshipUids = UID.of(CodeGenerator.generateUid(), CodeGenerator.generateUid());
     List<String> attributeUids = List.of(CodeGenerator.generateUid(), CodeGenerator.generateUid());
     Set<UID> enrollmentUids = UID.of(CodeGenerator.generateUid(), CodeGenerator.generateUid());
 
@@ -124,7 +123,7 @@ class DeduplicationHelperTest extends TestBase {
     enrollment = createEnrollment(createProgram('A'), getTrackedEntityA(), organisationUnitA);
     mergeObject =
         MergeObject.builder()
-            .relationships(relationshipUids)
+            .relationships(UID.toValueList(relationshipUids))
             .trackedEntityAttributes(attributeUids)
             .enrollments(UID.toValueList(enrollmentUids))
             .build();
