@@ -67,15 +67,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class TrackedEntityRequestParamsMapperTest {
-  public static final String TEA_1_UID = "TvjwTPToKHO";
+  public static final UID TEA_1_UID = UID.of("TvjwTPToKHO");
 
-  public static final String TEA_2_UID = "cy2oRh2sNr6";
+  public static final UID TEA_2_UID = UID.of("cy2oRh2sNr6");
 
-  private static final String PROGRAM_UID = "XhBYIraw7sv";
+  private static final UID PROGRAM_UID = UID.of("XhBYIraw7sv");
 
-  private static final String PROGRAM_STAGE_UID = "RpCr2u2pFqw";
+  private static final UID PROGRAM_STAGE_UID = UID.of("RpCr2u2pFqw");
 
-  private static final String TRACKED_ENTITY_TYPE_UID = "Dp8baZYrLtr";
+  private static final UID TRACKED_ENTITY_TYPE_UID = UID.of("Dp8baZYrLtr");
 
   @Mock private TrackedEntityFieldsParamMapper fieldsParamMapper;
 
@@ -95,8 +95,8 @@ class TrackedEntityRequestParamsMapperTest {
   void shouldMapCorrectlyWhenProgramAndSpecificUpdateDatesSupplied() throws BadRequestException {
     trackedEntityRequestParams.setOuMode(CAPTURE);
     trackedEntityRequestParams.setEnrollmentStatus(EnrollmentStatus.ACTIVE);
-    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
-    trackedEntityRequestParams.setProgramStage(UID.of(PROGRAM_STAGE_UID));
+    trackedEntityRequestParams.setProgram(PROGRAM_UID);
+    trackedEntityRequestParams.setProgramStage(PROGRAM_STAGE_UID);
     trackedEntityRequestParams.setFollowUp(true);
     trackedEntityRequestParams.setUpdatedAfter(StartDateTime.of("2019-01-01"));
     trackedEntityRequestParams.setUpdatedBefore(EndDateTime.of("2020-01-01"));
@@ -109,8 +109,8 @@ class TrackedEntityRequestParamsMapperTest {
 
     final TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
-    assertThat(params.getProgramUid(), is(PROGRAM_UID));
-    assertThat(params.getProgramStageUid(), is(PROGRAM_STAGE_UID));
+    assertThat(params.getProgram(), is(PROGRAM_UID));
+    assertThat(params.getProgramStage(), is(PROGRAM_STAGE_UID));
     assertThat(params.getFollowUp(), is(true));
     assertThat(
         params.getLastUpdatedStartDate(),
@@ -139,7 +139,7 @@ class TrackedEntityRequestParamsMapperTest {
       throws BadRequestException {
     trackedEntityRequestParams.setOuMode(CAPTURE);
     trackedEntityRequestParams.setUpdatedWithin("20h");
-    trackedEntityRequestParams.setTrackedEntityType(UID.of(TRACKED_ENTITY_TYPE_UID));
+    trackedEntityRequestParams.setTrackedEntityType(TRACKED_ENTITY_TYPE_UID);
     trackedEntityRequestParams.setEventStatus(EventStatus.COMPLETED);
     trackedEntityRequestParams.setEventOccurredAfter(StartDateTime.of("2019-07-07"));
     trackedEntityRequestParams.setEventOccurredBefore(EndDateTime.of("2020-07-07"));
@@ -147,7 +147,7 @@ class TrackedEntityRequestParamsMapperTest {
 
     final TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
-    assertThat(params.getTrackedEntityTypeUid(), is(TRACKED_ENTITY_TYPE_UID));
+    assertThat(params.getTrackedEntityType(), is(TRACKED_ENTITY_TYPE_UID));
     assertThat(params.getLastUpdatedStartDate(), is(trackedEntityRequestParams.getUpdatedAfter()));
     assertThat(params.getLastUpdatedEndDate(), is(trackedEntityRequestParams.getUpdatedBefore()));
     assertThat(
@@ -171,7 +171,7 @@ class TrackedEntityRequestParamsMapperTest {
   void shouldMapOrgUnitModeGivenOrgUnitModeParam() throws BadRequestException {
     trackedEntityRequestParams = new TrackedEntityRequestParams();
     trackedEntityRequestParams.setOrgUnitMode(CAPTURE);
-    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
+    trackedEntityRequestParams.setProgram(PROGRAM_UID);
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, null, user);
 
@@ -182,7 +182,7 @@ class TrackedEntityRequestParamsMapperTest {
   void shouldMapOrgUnitModeGivenOuModeParam() throws BadRequestException {
     trackedEntityRequestParams = new TrackedEntityRequestParams();
     trackedEntityRequestParams.setOuMode(CAPTURE);
-    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
+    trackedEntityRequestParams.setProgram(PROGRAM_UID);
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, null, user);
 
@@ -192,7 +192,7 @@ class TrackedEntityRequestParamsMapperTest {
   @Test
   void shouldMapOrgUnitModeToDefaultGivenNoOrgUnitModeParamIsSet() throws BadRequestException {
     trackedEntityRequestParams = new TrackedEntityRequestParams();
-    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
+    trackedEntityRequestParams.setProgram(PROGRAM_UID);
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, null, user);
 
@@ -228,7 +228,7 @@ class TrackedEntityRequestParamsMapperTest {
   void testMappingProgramEnrollmentStartDate() throws BadRequestException {
     StartDateTime startDate = StartDateTime.of("2022-12-13");
     trackedEntityRequestParams.setEnrollmentEnrolledAfter(startDate);
-    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
+    trackedEntityRequestParams.setProgram(PROGRAM_UID);
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
@@ -237,36 +237,36 @@ class TrackedEntityRequestParamsMapperTest {
 
   @Test
   void testMappingProgram() throws BadRequestException {
-    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
+    trackedEntityRequestParams.setProgram(PROGRAM_UID);
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
-    assertEquals(PROGRAM_UID, params.getProgramUid());
+    assertEquals(PROGRAM_UID, params.getProgram());
   }
 
   @Test
   void testMappingProgramStage() throws BadRequestException {
-    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
-    trackedEntityRequestParams.setProgramStage(UID.of(PROGRAM_STAGE_UID));
+    trackedEntityRequestParams.setProgram(PROGRAM_UID);
+    trackedEntityRequestParams.setProgramStage(PROGRAM_STAGE_UID);
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
-    assertEquals(PROGRAM_STAGE_UID, params.getProgramStageUid());
+    assertEquals(PROGRAM_STAGE_UID, params.getProgramStage());
   }
 
   @Test
   void testMappingTrackedEntityType() throws BadRequestException {
-    trackedEntityRequestParams.setTrackedEntityType(UID.of(TRACKED_ENTITY_TYPE_UID));
+    trackedEntityRequestParams.setTrackedEntityType(TRACKED_ENTITY_TYPE_UID);
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
-    assertEquals(TRACKED_ENTITY_TYPE_UID, params.getTrackedEntityTypeUid());
+    assertEquals(TRACKED_ENTITY_TYPE_UID, params.getTrackedEntityType());
   }
 
   @Test
   void testMappingAssignedUser() throws BadRequestException {
     trackedEntityRequestParams.setAssignedUser("IsdLBTOBzMi;l5ab8q5skbB");
     trackedEntityRequestParams.setAssignedUserMode(AssignedUserSelectionMode.PROVIDED);
-    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
+    trackedEntityRequestParams.setProgram(PROGRAM_UID);
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
@@ -280,7 +280,7 @@ class TrackedEntityRequestParamsMapperTest {
   void testMappingAssignedUsers() throws BadRequestException {
     trackedEntityRequestParams.setAssignedUsers(UID.of("IsdLBTOBzMi", "l5ab8q5skbB"));
     trackedEntityRequestParams.setAssignedUserMode(AssignedUserSelectionMode.PROVIDED);
-    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
+    trackedEntityRequestParams.setProgram(PROGRAM_UID);
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
@@ -292,7 +292,7 @@ class TrackedEntityRequestParamsMapperTest {
 
   @Test
   void shouldFailIfProgramStatusIsSetWithoutProgram() {
-    trackedEntityRequestParams.setTrackedEntityType(UID.of(TRACKED_ENTITY_TYPE_UID));
+    trackedEntityRequestParams.setTrackedEntityType(TRACKED_ENTITY_TYPE_UID);
     trackedEntityRequestParams.setProgramStatus(EnrollmentStatus.ACTIVE);
 
     BadRequestException exception =
@@ -304,7 +304,7 @@ class TrackedEntityRequestParamsMapperTest {
 
   @Test
   void shouldFailIfEnrollmentStatusIsSetWithoutProgram() {
-    trackedEntityRequestParams.setTrackedEntityType(UID.of(TRACKED_ENTITY_TYPE_UID));
+    trackedEntityRequestParams.setTrackedEntityType(TRACKED_ENTITY_TYPE_UID);
     trackedEntityRequestParams.setEnrollmentStatus(EnrollmentStatus.ACTIVE);
 
     BadRequestException exception =
@@ -378,7 +378,7 @@ class TrackedEntityRequestParamsMapperTest {
   void shouldMapOrderParameterInGivenOrderWhenFieldsAreOrderable() throws BadRequestException {
     trackedEntityRequestParams.setOrder(
         OrderCriteria.fromOrderString("createdAt:asc,zGlzbfreTOH,enrolledAt:desc"));
-    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
+    trackedEntityRequestParams.setProgram(PROGRAM_UID);
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
@@ -392,7 +392,7 @@ class TrackedEntityRequestParamsMapperTest {
 
   @Test
   void testMappingOrderParamsNoOrder() throws BadRequestException {
-    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
+    trackedEntityRequestParams.setProgram(PROGRAM_UID);
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, user);
 
@@ -415,10 +415,9 @@ class TrackedEntityRequestParamsMapperTest {
   void shouldMapFilterParameter() throws BadRequestException {
     trackedEntityRequestParams.setOrgUnitMode(ACCESSIBLE);
     trackedEntityRequestParams.setFilter(TEA_1_UID + ":like:value1," + TEA_2_UID + ":like:value2");
-    trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
+    trackedEntityRequestParams.setProgram(PROGRAM_UID);
 
-    Map<String, List<QueryFilter>> filters =
-        mapper.map(trackedEntityRequestParams, user).getFilters();
+    Map<UID, List<QueryFilter>> filters = mapper.map(trackedEntityRequestParams, user).getFilters();
 
     assertEquals(
         Map.of(

@@ -95,7 +95,7 @@ public class TrackerOwnershipController {
             "trackedEntityInstance", trackedEntityInstance, "trackedEntity", trackedEntity);
 
     trackerOwnershipAccessManager.transferOwnership(
-        trackedEntityService.getTrackedEntity(trackedEntityUid.getValue()),
+        trackedEntityService.getTrackedEntity(trackedEntityUid),
         programService.getProgram(program),
         organisationUnitService.getOrganisationUnit(ou));
     return ok("Ownership transferred");
@@ -115,7 +115,7 @@ public class TrackerOwnershipController {
 
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     trackerOwnershipAccessManager.grantTemporaryOwnership(
-        trackedEntityService.getTrackedEntity(trackedEntityUid.getValue()),
+        trackedEntityService.getTrackedEntity(trackedEntityUid),
         programService.getProgram(program),
         currentUser,
         reason);

@@ -153,7 +153,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
                   .build(),
               new PageParams(1, 2, false));
       enrollments = emptyIfNull(enrollmentPage.getItems());
-    } catch (BadRequestException | ForbiddenException | NotFoundException e) {
+    } catch (BadRequestException | ForbiddenException e) {
       // TODO(tracker) Find a better error message for these exceptions
       throw new SMSProcessingException(SmsResponse.UNKNOWN_ERROR);
     }
@@ -236,8 +236,8 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
     queryFilter.setFilter(sms.getOriginator());
 
     return TrackedEntityOperationParams.builder()
-        .filters(Map.of(attribute.getUid(), List.of(queryFilter)))
-        .trackedEntityTypeUid(program.getTrackedEntityType().getUid())
+        .filter(attribute, List.of(queryFilter))
+        .trackedEntityType(program.getTrackedEntityType())
         .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
         .build();
   }

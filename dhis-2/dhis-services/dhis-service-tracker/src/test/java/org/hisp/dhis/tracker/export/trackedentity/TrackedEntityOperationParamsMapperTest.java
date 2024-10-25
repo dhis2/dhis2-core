@@ -88,19 +88,19 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT) // common setup
 @ExtendWith(MockitoExtension.class)
 class TrackedEntityOperationParamsMapperTest {
-  public static final String TEA_1_UID = "TvjwTPToKHO";
+  public static final UID TEA_1_UID = UID.of("TvjwTPToKHO");
 
-  public static final String TEA_2_UID = "cy2oRh2sNr6";
+  public static final UID TEA_2_UID = UID.of("cy2oRh2sNr6");
 
-  private static final String ORG_UNIT_1_UID = "lW0T2U7gZUi";
+  private static final UID ORG_UNIT_1_UID = UID.of("lW0T2U7gZUi");
 
-  private static final String ORG_UNIT_2_UID = "TK4KA0IIWqa";
+  private static final UID ORG_UNIT_2_UID = UID.of("TK4KA0IIWqa");
 
-  private static final String PROGRAM_UID = "XhBYIraw7sv";
+  private static final UID PROGRAM_UID = UID.of("XhBYIraw7sv");
 
-  private static final String PROGRAM_STAGE_UID = "RpCr2u2pFqw";
+  private static final UID PROGRAM_STAGE_UID = UID.of("RpCr2u2pFqw");
 
-  private static final String TRACKED_ENTITY_TYPE_UID = "Dp8baZYrLtr";
+  private static final UID TRACKED_ENTITY_TYPE_UID = UID.of("Dp8baZYrLtr");
 
   @Mock private OrganisationUnitService organisationUnitService;
 
@@ -134,9 +134,9 @@ class TrackedEntityOperationParamsMapperTest {
   public void setUp() {
 
     orgUnit1 = new OrganisationUnit("orgUnit1");
-    orgUnit1.setUid(ORG_UNIT_1_UID);
+    orgUnit1.setUid(ORG_UNIT_1_UID.getValue());
     orgUnit2 = new OrganisationUnit("orgUnit2");
-    orgUnit2.setUid(ORG_UNIT_2_UID);
+    orgUnit2.setUid(ORG_UNIT_2_UID.getValue());
     User testUser = new User();
     testUser.setUid(CodeGenerator.generateUid());
     testUser.setOrganisationUnits(Set.of(orgUnit1, orgUnit2));
@@ -152,29 +152,29 @@ class TrackedEntityOperationParamsMapperTest {
         .thenReturn(true);
 
     trackedEntityType = new TrackedEntityType();
-    trackedEntityType.setUid(TRACKED_ENTITY_TYPE_UID);
-    when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID))
+    trackedEntityType.setUid(TRACKED_ENTITY_TYPE_UID.getValue());
+    when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID.getValue()))
         .thenReturn(trackedEntityType);
 
     program = new Program();
-    program.setUid(PROGRAM_UID);
+    program.setUid(PROGRAM_UID.getValue());
     program.setTrackedEntityType(trackedEntityType);
     programStage = new ProgramStage();
-    programStage.setUid(PROGRAM_STAGE_UID);
+    programStage.setUid(PROGRAM_STAGE_UID.getValue());
     programStage.setProgram(program);
     program.setProgramStages(Set.of(programStage));
 
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
-    tea1.setUid(TEA_1_UID);
+    tea1.setUid(TEA_1_UID.getValue());
 
     TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
-    tea2.setUid(TEA_2_UID);
+    tea2.setUid(TEA_2_UID.getValue());
 
-    when(attributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
-    when(attributeService.getTrackedEntityAttribute(TEA_2_UID)).thenReturn(tea2);
+    when(attributeService.getTrackedEntityAttribute(TEA_1_UID.getValue())).thenReturn(tea1);
+    when(attributeService.getTrackedEntityAttribute(TEA_2_UID.getValue())).thenReturn(tea2);
   }
 
   @Test
@@ -199,7 +199,7 @@ class TrackedEntityOperationParamsMapperTest {
             .lastUpdatedDuration("20")
             .programEnrollmentStartDate(getDate(2019, 5, 5))
             .programEnrollmentEndDate(getDate(2020, 5, 5))
-            .trackedEntityTypeUid(TRACKED_ENTITY_TYPE_UID)
+            .trackedEntityType(TRACKED_ENTITY_TYPE_UID)
             .eventStatus(EventStatus.COMPLETED)
             .eventStartDate(getDate(2019, 7, 7))
             .eventEndDate(getDate(2020, 7, 7))
@@ -236,7 +236,7 @@ class TrackedEntityOperationParamsMapperTest {
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .programEnrollmentStartDate(date)
-            .programUid(program.getUid())
+            .program(program)
             .build();
 
     TrackedEntityQueryParams params = mapper.map(operationParams, user);
@@ -253,7 +253,7 @@ class TrackedEntityOperationParamsMapperTest {
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .programEnrollmentEndDate(date)
-            .programUid(program.getUid())
+            .program(program)
             .build();
 
     TrackedEntityQueryParams params = mapper.map(operationParams, user);
@@ -269,7 +269,7 @@ class TrackedEntityOperationParamsMapperTest {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
-            .programUid(program.getUid())
+            .program(program)
             .filters(
                 Map.of(
                     TEA_1_UID,
@@ -285,7 +285,7 @@ class TrackedEntityOperationParamsMapperTest {
     // mapping to UIDs as the error message by just relying on QueryItem
     // equals() is not helpful
     assertContainsOnly(
-        List.of(TEA_1_UID, TEA_2_UID),
+        UID.toValueList(List.of(TEA_1_UID, TEA_2_UID)),
         items.keySet().stream().map(BaseIdentifiableObject::getUid).toList());
 
     // QueryItem equals() does not take the QueryFilter into account so
@@ -294,7 +294,7 @@ class TrackedEntityOperationParamsMapperTest {
     // the following block is needed because of that
     // assertion is order independent as the order of QueryItems is not
     // guaranteed
-    Map<String, QueryFilter> expectedFilters =
+    Map<UID, QueryFilter> expectedFilters =
         Map.of(
             TEA_1_UID,
             new QueryFilter(QueryOperator.EQ, "2"),
@@ -307,7 +307,7 @@ class TrackedEntityOperationParamsMapperTest {
                     (Executable)
                         () -> {
                           String uid = i.getKey().getUid();
-                          QueryFilter expected = expectedFilters.get(uid);
+                          QueryFilter expected = expectedFilters.get(UID.of(uid));
                           assertEquals(
                               expected,
                               i.getValue().get(0),
@@ -324,7 +324,7 @@ class TrackedEntityOperationParamsMapperTest {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
-            .programUid(program.getUid())
+            .program(program)
             .filters(
                 Map.of(
                     TEA_1_UID,
@@ -340,7 +340,8 @@ class TrackedEntityOperationParamsMapperTest {
     // mapping to UIDs as the error message by just relying on QueryItem
     // equals() is not helpful
     assertContainsOnly(
-        List.of(TEA_1_UID), items.keySet().stream().map(BaseIdentifiableObject::getUid).toList());
+        List.of(TEA_1_UID.getValue()),
+        items.keySet().stream().map(BaseIdentifiableObject::getUid).toList());
 
     // QueryItem equals() does not take the QueryFilter into account so
     // assertContainsOnly alone does not ensure operators and filter value
@@ -356,10 +357,7 @@ class TrackedEntityOperationParamsMapperTest {
     when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
 
     TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .orgUnitMode(ACCESSIBLE)
-            .programUid(PROGRAM_UID)
-            .build();
+        TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).program(PROGRAM_UID).build();
 
     TrackedEntityQueryParams params = mapper.map(operationParams, user);
 
@@ -374,8 +372,8 @@ class TrackedEntityOperationParamsMapperTest {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
-            .programUid(PROGRAM_UID)
-            .programStageUid(PROGRAM_STAGE_UID)
+            .program(PROGRAM_UID)
+            .programStage(PROGRAM_STAGE_UID)
             .build();
 
     TrackedEntityQueryParams params = mapper.map(operationParams, user);
@@ -386,7 +384,7 @@ class TrackedEntityOperationParamsMapperTest {
   @Test
   void testMappingProgramStageGivenWithoutProgram() {
     TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder().programStageUid(PROGRAM_STAGE_UID).build();
+        TrackedEntityOperationParams.builder().programStage(PROGRAM_STAGE_UID).build();
 
     BadRequestException e =
         assertThrows(BadRequestException.class, () -> mapper.map(operationParams, user));
@@ -398,7 +396,7 @@ class TrackedEntityOperationParamsMapperTest {
   @Test
   void testMappingProgramStageNotFound() {
     TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder().programStageUid("NeU85luyD4w").build();
+        TrackedEntityOperationParams.builder().programStage(UID.of("NeU85luyD4w")).build();
 
     BadRequestException e =
         assertThrows(BadRequestException.class, () -> mapper.map(operationParams, user));
@@ -414,7 +412,7 @@ class TrackedEntityOperationParamsMapperTest {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
-            .programUid(program.getUid())
+            .program(program)
             .assignedUserQueryParam(
                 new AssignedUserQueryParam(
                     AssignedUserSelectionMode.PROVIDED,
@@ -436,15 +434,15 @@ class TrackedEntityOperationParamsMapperTest {
     when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
 
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
-    tea1.setUid(TEA_1_UID);
-    when(attributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
+    tea1.setUid(TEA_1_UID.getValue());
+    when(attributeService.getTrackedEntityAttribute(TEA_1_UID.getValue())).thenReturn(tea1);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
-            .programUid(program.getUid())
+            .program(program)
             .orderBy("created", SortDirection.ASC)
-            .orderBy(UID.of(TEA_1_UID), SortDirection.ASC)
+            .orderBy(TEA_1_UID, SortDirection.ASC)
             .orderBy("createdAtClient", SortDirection.DESC)
             .build();
 
@@ -461,16 +459,16 @@ class TrackedEntityOperationParamsMapperTest {
   @Test
   void shouldFailToMapOrderIfUIDIsNotAnAttribute() throws ForbiddenException, BadRequestException {
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
-    tea1.setUid(TEA_1_UID);
-    when(attributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(null);
+    tea1.setUid(TEA_1_UID.getValue());
+    when(attributeService.getTrackedEntityAttribute(TEA_1_UID.getValue())).thenReturn(null);
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
-            .programUid(program.getUid())
-            .orderBy(UID.of(TEA_1_UID), SortDirection.ASC)
+            .program(program)
+            .orderBy(TEA_1_UID, SortDirection.ASC)
             .build();
 
     Exception exception =
@@ -492,7 +490,7 @@ class TrackedEntityOperationParamsMapperTest {
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .orderBy(UID.of("lastUpdated"), SortDirection.ASC)
-            .programUid(program.getUid())
+            .program(program)
             .build();
 
     Exception exception =
@@ -516,10 +514,7 @@ class TrackedEntityOperationParamsMapperTest {
         .thenReturn(List.of(orgUnit1, orgUnit2));
 
     TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .orgUnitMode(ACCESSIBLE)
-            .programUid(PROGRAM_UID)
-            .build();
+        TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).program(PROGRAM_UID).build();
 
     Exception illegalQueryException =
         assertThrows(
@@ -542,7 +537,7 @@ class TrackedEntityOperationParamsMapperTest {
     when(aclService.canDataRead(any(UserDetails.class), any(Program.class))).thenReturn(true);
     program.setMinAttributesRequiredToSearch(0);
     program.setMaxTeiCountToReturn(1);
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
     when(paramsValidator.validateTrackerProgram(program.getUid(), currentUserWithOrgUnits))
         .thenReturn(program);
 
@@ -552,10 +547,7 @@ class TrackedEntityOperationParamsMapperTest {
         .thenReturn(List.of(orgUnit1, orgUnit2));
 
     TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .orgUnitMode(ACCESSIBLE)
-            .programUid(PROGRAM_UID)
-            .build();
+        TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).program(PROGRAM_UID).build();
 
     Exception illegalQueryException =
         assertThrows(
@@ -573,7 +565,7 @@ class TrackedEntityOperationParamsMapperTest {
     when(aclService.canDataRead(currentUserWithOrgUnits, program)).thenReturn(true);
     program.setMinAttributesRequiredToSearch(0);
     program.setMaxTeiCountToReturn(1);
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
 
     when(trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(any())).thenReturn(100);
 
