@@ -321,6 +321,36 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
     assertTrue(programStageQueryCriteria.getFollowUp());
   }
 
+  @Test
+  void shouldNotSaveFollowUpAsFalseWhenNotConfigured() {
+    String workingListId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programStageWorkingLists",
+                String.format(
+                    "{"
+                        + "'program': {'id': '%s'},"
+                        + "'programStage': {'id': '%s'},"
+                        + "'name':'workingListWithoutFollowUp',"
+                        + "'programStageQueryCriteria': {"
+                        + "'displayColumnOrder': ['w75KJ2mc4zz'],"
+                        + "'order': 'createdAt:desc'"
+                        + "}"
+                        + "}",
+                    programId, programStageId)));
+
+    JsonWorkingList workingList =
+        GET("/programStageWorkingLists/{id}", workingListId).content().as(JsonWorkingList.class);
+
+    assertFalse(workingList.isEmpty());
+
+    // Assert that the followUp is null (not saved as false)
+    JsonProgramStageQueryCriteria criteria = workingList.getProgramStageQueryCriteria();
+    assertFalse(criteria.isEmpty());
+    assertEquals(null, criteria.getFollowUp(), "FollowUp should be null when not configured");
+  }
+
   private String createWorkingList(String workingListName) {
     return assertStatus(
         HttpStatus.CREATED,
