@@ -71,6 +71,8 @@ public class Log4JLogConfigInitializer implements LogConfigInitializer {
 
   private static final String LOG_DIR = "logs";
 
+  private static final String DATA_VALUE_INPUT = "dhis-datavalue-input.log";
+
   private static final String ANALYTICS_TABLE_LOGGER_FILENAME = "dhis-analytics-table.log";
 
   private static final String DATA_EXCHANGE_LOGGER_FILENAME = "dhis-data-exchange.log";
@@ -126,6 +128,9 @@ public class Log4JLogConfigInitializer implements LogConfigInitializer {
             config.getProperty(ConfigurationKey.LOGGING_FILE_MAX_ARCHIVES)));
 
     locationManager.buildDirectory(LOG_DIR);
+
+    addConfigurableLogger(
+        DATA_VALUE_INPUT, Lists.newArrayList("org.hisp.dhis.webapi.controller.datavalue.input"));
 
     addConfigurableLogger(
         ANALYTICS_TABLE_LOGGER_FILENAME,
