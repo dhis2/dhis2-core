@@ -39,7 +39,10 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -100,6 +103,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @OpenApi.Tags("data")
 @RestController
+@Slf4j
 @RequestMapping(value = DataValueController.RESOURCE_PATH)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
@@ -126,6 +130,10 @@ public class DataValueController {
 
   private final DhisConfigurationProvider dhisConfig;
 
+  // Custom logger for logging input payloads
+  private static final Logger inputLogger =
+      LogManager.getLogger("org.hisp.dhis.webapi.controller.datavalue.input");
+
   // ---------------------------------------------------------------------
   // POST
   // ---------------------------------------------------------------------
@@ -148,22 +156,64 @@ public class DataValueController {
       @RequestParam(required = false) boolean force,
       @CurrentUser User currentUser)
       throws WebMessageException {
-    DataValueCategoryDto attribute = dataValidator.getDataValueCategoryDto(cc, cp);
 
-    DataValueDto dataValue =
-        new DataValueDto()
-            .setDataElement(de)
-            .setCategoryOptionCombo(co)
-            .setAttribute(attribute)
-            .setPeriod(pe)
-            .setOrgUnit(ou)
-            .setDataSet(ds)
-            .setValue(value)
-            .setComment(comment)
-            .setFollowUp(followUp)
-            .setForce(force);
+    // Log the input payload using the custom logger
+    inputLogger.info(
+        "Received payload: username={}, de={}, co={}, cc={}, cp={}, pe={}, ou={}, ds={}, value={}, comment={}, followUp={}, force={}",
+        currentUser.getUsername(),
+        de,
+        co,
+        cc,
+        cp,
+        pe,
+        ou,
+        ds,
+        value,
+        comment,
+        followUp,
+        force);
 
-    saveDataValueInternal(dataValue, currentUser);
+    try {
+      DataValueCategoryDto attribute = dataValidator.getDataValueCategoryDto(cc, cp);
+
+      DataValueDto dataValue =
+          new DataValueDto()
+              .setDataElement(de)
+              .setCategoryOptionCombo(co)
+              .setAttribute(attribute)
+              .setPeriod(pe)
+              .setOrgUnit(ou)
+              .setDataSet(ds)
+              .setValue(value)
+              .setComment(comment)
+              .setFollowUp(followUp)
+              .setForce(force);
+
+      saveDataValueInternal(dataValue, currentUser);
+    } catch (Exception e) {
+      log.error(
+          "Failed to save data value, LOGGING DATAVALUE EXCEPTION AND INPUT VALUES, Exception:"
+              + e.getMessage(),
+          e);
+
+      // Log the input payload using the custom logger
+      log.error(
+          "Payload accompanying previous thrown exception: username={}, de={}, co={}, cc={}, cp={}, pe={}, ou={}, ds={}, value={}, comment={}, followUp={}, force={}",
+          currentUser.getUsername(),
+          de,
+          co,
+          cc,
+          cp,
+          pe,
+          ou,
+          ds,
+          value,
+          comment,
+          followUp,
+          force);
+
+      throw e;
+    }
   }
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
