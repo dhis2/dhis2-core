@@ -31,6 +31,7 @@ import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonArray;
@@ -348,7 +349,7 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
     // Assert that the followUp is null (not saved as false)
     JsonProgramStageQueryCriteria criteria = workingList.getProgramStageQueryCriteria();
     assertFalse(criteria.isEmpty());
-    assertEquals(null, criteria.getFollowUp(), "FollowUp should be null when not configured");
+    assertNull(criteria.getFollowUp(), "FollowUp should be null when not configured");
   }
 
   private String createWorkingList(String workingListName) {

@@ -49,7 +49,7 @@ public interface JsonProgramStageQueryCriteria extends JsonObject {
     return get("eventOccurredAt").as(JsonDatePeriod.class);
   }
 
-  default boolean getFollowUp() {
+  default Boolean getFollowUp() {
     return getBoolean("followUp").booleanValue();
   }
 }
