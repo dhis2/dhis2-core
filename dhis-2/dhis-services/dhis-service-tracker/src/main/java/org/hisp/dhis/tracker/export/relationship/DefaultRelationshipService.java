@@ -77,12 +77,12 @@ public class DefaultRelationshipService implements RelationshipService {
   }
 
   @Override
-  public Relationship getRelationship(@Nonnull UID relationshipUid)
+  public Relationship getRelationship(@Nonnull UID uid)
       throws ForbiddenException, NotFoundException {
-    Relationship relationship = relationshipStore.getByUid(relationshipUid.getValue());
+    Relationship relationship = relationshipStore.getByUid(uid.getValue());
 
     if (relationship == null) {
-      throw new NotFoundException(Relationship.class, relationshipUid);
+      throw new NotFoundException(Relationship.class, uid);
     }
 
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
