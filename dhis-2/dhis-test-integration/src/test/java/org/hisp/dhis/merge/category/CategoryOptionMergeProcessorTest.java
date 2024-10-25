@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.analytics.CategoryDimensionStore;
 import org.hisp.dhis.category.Category;
@@ -669,29 +668,5 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setSources(UID.of(List.of(coSource1A.getUid(), coSource2B.getUid())));
     mergeParams.setTarget(UID.of(coTarget3A.getUid()));
     return mergeParams;
-  }
-
-  private void assertMergeSuccessfulSourcesNotDeleted(
-      MergeReport report,
-      Collection<?> sources,
-      Collection<?> target,
-      Collection<CategoryOption> categoryOptions) {
-    assertFalse(report.hasErrorMessages());
-    assertEquals(0, sources.size(), "Expect 0 entries with source category option refs");
-    assertEquals(3, target.size(), "Expect 3 entries with target category option refs");
-    assertEquals(5, categoryOptions.size(), "Expect 5 category options present");
-    assertTrue(categoryOptions.containsAll(List.of(coTarget3A, coSource1A, coSource2B)));
-  }
-
-  private void assertMergeSuccessfulSourcesDeleted(
-      MergeReport report,
-      Collection<?> sources,
-      Collection<?> target,
-      Collection<CategoryOption> categoryOptions) {
-    assertFalse(report.hasErrorMessages());
-    assertEquals(0, sources.size(), "Expect 0 entries with source category option refs");
-    assertEquals(3, target.size(), "Expect 3 entries with target category option refs");
-    assertEquals(3, categoryOptions.size(), "Expect 3 category options present");
-    assertTrue(categoryOptions.contains(coTarget3A));
   }
 }
