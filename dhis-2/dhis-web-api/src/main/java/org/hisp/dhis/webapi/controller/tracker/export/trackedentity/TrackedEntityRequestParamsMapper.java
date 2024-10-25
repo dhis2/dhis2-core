@@ -37,7 +37,6 @@ import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValida
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserQueryParam;
@@ -128,9 +127,8 @@ class TrackedEntityRequestParamsMapper {
 
     TrackedEntityOperationParamsBuilder builder =
         TrackedEntityOperationParams.builder()
-            .programUid(applyIfNotNull(trackedEntityRequestParams.getProgram(), UID::getValue))
-            .programStageUid(
-                applyIfNotNull(trackedEntityRequestParams.getProgramStage(), UID::getValue))
+            .program(trackedEntityRequestParams.getProgram())
+            .programStage(trackedEntityRequestParams.getProgramStage())
             .enrollmentStatus(enrollmentStatus)
             .followUp(trackedEntityRequestParams.getFollowUp())
             .lastUpdatedStartDate(
@@ -150,9 +148,8 @@ class TrackedEntityRequestParamsMapper {
             .programIncidentEndDate(
                 applyIfNotNull(
                     trackedEntityRequestParams.getEnrollmentOccurredBefore(), EndDateTime::toDate))
-            .trackedEntityTypeUid(
-                applyIfNotNull(trackedEntityRequestParams.getTrackedEntityType(), UID::getValue))
-            .organisationUnits(UID.toValueSet(orgUnitUids))
+            .trackedEntityType(trackedEntityRequestParams.getTrackedEntityType())
+            .organisationUnits(orgUnitUids)
             .orgUnitMode(orgUnitMode)
             .eventStatus(trackedEntityRequestParams.getEventStatus())
             .eventStartDate(
@@ -164,9 +161,8 @@ class TrackedEntityRequestParamsMapper {
             .assignedUserQueryParam(
                 new AssignedUserQueryParam(
                     trackedEntityRequestParams.getAssignedUserMode(), assignedUsers, UID.of(user)))
-            .trackedEntityUids(UID.toValueSet(trackedEntities))
-            .filters(
-                filters.keySet().stream().collect(Collectors.toMap(UID::getValue, filters::get)))
+            .trackedEntities(trackedEntities)
+            .filters(filters)
             .includeDeleted(trackedEntityRequestParams.isIncludeDeleted())
             .potentialDuplicate(trackedEntityRequestParams.getPotentialDuplicate())
             .trackedEntityParams(fieldsParamMapper.map(fields));

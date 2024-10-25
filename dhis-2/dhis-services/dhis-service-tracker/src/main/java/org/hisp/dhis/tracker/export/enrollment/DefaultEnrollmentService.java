@@ -230,7 +230,7 @@ class DefaultEnrollmentService implements EnrollmentService {
 
   @Override
   public List<Enrollment> getEnrollments(@Nonnull EnrollmentOperationParams params)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
 
     return getEnrollments(
@@ -243,7 +243,7 @@ class DefaultEnrollmentService implements EnrollmentService {
   @Override
   public Page<Enrollment> getEnrollments(
       @Nonnull EnrollmentOperationParams params, PageParams pageParams)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
 
     Page<Enrollment> enrollmentsPage = enrollmentStore.getEnrollments(queryParams, pageParams);
