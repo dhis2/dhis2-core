@@ -143,7 +143,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
             ? CurrentUserUtil.getCurrentUsername()
             : "system-process";
 
-    if (!username.equals("system-process") && shareable && !query.isSkipSharing()) {
+    if (!"system-process".equals(username) && shareable && !query.isSkipSharing()) {
 
       UserDetails userDetails =
           query.getCurrentUserDetails() != null

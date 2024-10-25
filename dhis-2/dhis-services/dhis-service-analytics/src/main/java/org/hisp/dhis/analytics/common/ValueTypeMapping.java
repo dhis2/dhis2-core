@@ -63,7 +63,7 @@ public enum ValueTypeMapping {
       ValueTypeMapping::booleanConverter, ValueTypeMapping::booleanJsonExtractor, Boolean.class);
 
   private static final UnaryOperator<String> BOOLEAN_JSON_EXTRACTOR =
-      value -> value.equalsIgnoreCase("true") ? "1" : "0";
+      value -> "true".equalsIgnoreCase(value) ? "1" : "0";
 
   private final Function<String, Object> converter;
   @Getter private final UnaryOperator<String> selectTransformer;

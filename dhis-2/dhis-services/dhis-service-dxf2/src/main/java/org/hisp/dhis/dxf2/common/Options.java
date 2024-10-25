@@ -51,7 +51,7 @@ public class Options {
   public Options(Map<String, String> options) {
     this.options = options;
     this.assumeTrue =
-        options.get("assumeTrue") == null || options.get("assumeTrue").equalsIgnoreCase("true");
+        options.get("assumeTrue") == null || "true".equalsIgnoreCase(options.get("assumeTrue"));
   }
 
   public Options() {}

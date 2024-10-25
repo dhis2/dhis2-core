@@ -445,14 +445,14 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     assertEquals(
         1,
         audits.stream()
-            .filter(a -> a.getKlass().equals("org.hisp.dhis.program.Enrollment"))
+            .filter(a -> "org.hisp.dhis.program.Enrollment".equals(a.getKlass()))
             .count());
     assertEquals(
-        1, audits.stream().filter(a -> a.getKlass().equals("org.hisp.dhis.program.Event")).count());
+        1, audits.stream().filter(a -> "org.hisp.dhis.program.Event".equals(a.getKlass())).count());
     assertEquals(
         1,
         audits.stream()
-            .filter(a -> a.getKlass().equals("org.hisp.dhis.trackedentity.TrackedEntity"))
+            .filter(a -> "org.hisp.dhis.trackedentity.TrackedEntity".equals(a.getKlass()))
             .count());
     audits.forEach(a -> assertSame(a.getAuditType(), AuditType.DELETE));
   }

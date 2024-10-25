@@ -85,7 +85,7 @@ public enum QueryOperator {
     }
 
     // To still support NE operator until it gets removed
-    if (string.trim().equals("NE")) {
+    if ("NE".equals(string.trim())) {
       return NEQ;
     }
 

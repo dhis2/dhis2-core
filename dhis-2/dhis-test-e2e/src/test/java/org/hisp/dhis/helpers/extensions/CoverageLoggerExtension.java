@@ -60,7 +60,7 @@ public class CoverageLoggerExtension
         EndpointTracker.getCoverageList().stream()
             .filter(
                 p ->
-                    !p.getMethod().equalsIgnoreCase("DELETE")
+                    !"DELETE".equalsIgnoreCase(p.getMethod())
                         && !p.getUrl().contains("/tracker//jobs"))
             .map(this::toCsvRow)
             .forEach(pw::println);

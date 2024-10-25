@@ -165,7 +165,7 @@ public class ApiResponse {
 
   public List<ImportSummary> getSuccessfulImportSummaries() {
     return getImportSummaries().stream()
-        .filter(is -> is.getStatus().equalsIgnoreCase("SUCCESS"))
+        .filter(is -> "SUCCESS".equalsIgnoreCase(is.getStatus()))
         .collect(Collectors.toList());
   }
 

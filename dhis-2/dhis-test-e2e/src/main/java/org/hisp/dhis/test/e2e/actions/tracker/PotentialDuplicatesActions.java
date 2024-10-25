@@ -50,11 +50,11 @@ public class PotentialDuplicatesActions extends RestApiActions {
 
     String uid = this.post(object).validateStatus(200).extractUid();
 
-    if (status.equals("MERGED")) {
+    if ("MERGED".equals(status)) {
       this.autoMergePotentialDuplicate(uid).validateStatus(200);
     }
 
-    if (status.equals("INVALID")) {
+    if ("INVALID".equals(status)) {
       this.update(uid + "?status=INVALID", new JsonObjectBuilder().build()).validateStatus(200);
     }
 

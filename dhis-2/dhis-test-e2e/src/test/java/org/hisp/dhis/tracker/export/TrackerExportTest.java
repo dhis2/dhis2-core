@@ -365,7 +365,7 @@ public class TrackerExportTest extends TrackerApiTest {
               if (field.contains("[")) {
                 for (String s :
                     field.substring(field.indexOf("[") + 1, field.indexOf("]")).split(",")) {
-                  if (s.equalsIgnoreCase("*")) {
+                  if ("*".equalsIgnoreCase(s)) {
                     split.add(field.substring(0, field.indexOf("[")));
                     return;
                   }

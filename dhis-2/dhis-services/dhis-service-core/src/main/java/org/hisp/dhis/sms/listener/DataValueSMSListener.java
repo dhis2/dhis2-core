@@ -333,9 +333,9 @@ public class DataValueSMSListener extends CommandSMSListener {
           targetValue = Integer.parseInt(targetDataValue.getValue());
         }
 
-        if (operation.equals("+")) {
+        if ("+".equals(operation)) {
           targetValue = targetValue + Integer.parseInt(value);
-        } else if (operation.equals("-")) {
+        } else if ("-".equals(operation)) {
           targetValue = targetValue - Integer.parseInt(value);
         }
 

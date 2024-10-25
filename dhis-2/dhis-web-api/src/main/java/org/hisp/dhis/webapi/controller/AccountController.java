@@ -587,7 +587,7 @@ public class AccountController {
 
     result.put("response", result.isEmpty() ? "success" : "error");
 
-    if (result.get("response").equals("success")) {
+    if ("success".equals(result.get("response"))) {
       result.put("message", "");
     }
 

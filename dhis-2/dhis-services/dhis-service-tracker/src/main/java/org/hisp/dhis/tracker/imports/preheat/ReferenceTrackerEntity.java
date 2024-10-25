@@ -45,6 +45,6 @@ public class ReferenceTrackerEntity {
   private final String parentUid;
 
   public boolean isRoot() {
-    return this.parentUid.equals("ROOT");
+    return "ROOT".equals(this.parentUid);
   }
 }

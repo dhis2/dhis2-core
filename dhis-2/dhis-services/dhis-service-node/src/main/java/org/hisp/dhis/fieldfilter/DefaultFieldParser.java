@@ -54,28 +54,28 @@ public class DefaultFieldParser implements FieldParser {
 
       // if we reach a field transformer, parse it out here (necessary to
       // allow for () to be used to handle transformer parameters)
-      if ((c.equals(":") && fieldSplit[i + 1].equals(":")) || c.equals("~") || c.equals("|")) {
+      if ((":".equals(c) && ":".equals(fieldSplit[i + 1])) || "~".equals(c) || "|".equals(c)) {
         boolean insideParameters = false;
 
         for (; i < fieldSplit.length; i++) {
           c = fieldSplit[i];
 
-          if (StringUtils.isAlphanumeric(c) || c.equals(":") || c.equals("~") || c.equals("|")) {
+          if (StringUtils.isAlphanumeric(c) || ":".equals(c) || "~".equals(c) || "|".equals(c)) {
             builder.append(c);
-          } else if (c.equals("(")) // start parameter
+          } else if ("(".equals(c)) // start parameter
           {
             insideParameters = true;
             builder.append(c);
-          } else if (insideParameters && c.equals(";")) // allow
+          } else if (insideParameters && ";".equals(c)) // allow
           // parameter
           // separator
           {
             builder.append(c);
-          } else if ((insideParameters && c.equals(")"))) // end
+          } else if ((insideParameters && ")".equals(c))) // end
           {
             builder.append(c);
             break;
-          } else if (c.equals(",") || (c.equals("[") && !insideParameters)) // rewind
+          } else if (",".equals(c) || ("[".equals(c) && !insideParameters)) // rewind
           // and
           // break
           {
@@ -83,13 +83,13 @@ public class DefaultFieldParser implements FieldParser {
             break;
           }
         }
-      } else if (c.equals(",")) {
+      } else if (",".equals(c)) {
         putInMap(fieldMap, joinedWithPrefix(builder, prefixList));
         builder = new StringBuilder();
-      } else if (c.equals("[") || c.equals("(")) {
+      } else if ("[".equals(c) || "(".equals(c)) {
         prefixList.add(builder.toString());
         builder = new StringBuilder();
-      } else if (c.equals("]") || c.equals(")")) {
+      } else if ("]".equals(c) || ")".equals(c)) {
         if (!builder.toString().isEmpty()) {
           putInMap(fieldMap, joinedWithPrefix(builder, prefixList));
         }
@@ -97,14 +97,14 @@ public class DefaultFieldParser implements FieldParser {
         prefixList.remove(prefixList.size() - 1);
         builder = new StringBuilder();
       } else if (StringUtils.isAlphanumeric(c)
-          || c.equals("*")
-          || c.equals(":")
-          || c.equals(";")
-          || c.equals("~")
-          || c.equals("!")
-          || c.equals("|")
-          || c.equals("{")
-          || c.equals("}")) {
+          || "*".equals(c)
+          || ":".equals(c)
+          || ";".equals(c)
+          || "~".equals(c)
+          || "!".equals(c)
+          || "|".equals(c)
+          || "{".equals(c)
+          || "}".equals(c)) {
         builder.append(c);
       }
     }

@@ -41,6 +41,6 @@ public enum Defaults {
   EXCLUDE;
 
   public boolean isExclude() {
-    return this.name().equals("EXCLUDE");
+    return "EXCLUDE".equals(this.name());
   }
 }

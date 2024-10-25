@@ -61,7 +61,7 @@ public class ProgramActions extends RestApiActions {
   public ApiResponse createProgram(String programType) {
     JsonObject object = buildProgram(programType);
 
-    if (programType.equalsIgnoreCase("WITH_REGISTRATION")) {
+    if ("WITH_REGISTRATION".equalsIgnoreCase(programType)) {
       JsonObjectBuilder.jsonObject(object)
           .addObject("trackedEntityType", new JsonObjectBuilder().addProperty("id", "Q9GufDoplCL"));
     }

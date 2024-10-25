@@ -595,7 +595,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
   private boolean fieldsContains(String match, List<String> fields) {
     for (String field : fields) {
       // for now assume href/access if * or preset is requested
-      if (field.contains(match) || field.equals("*") || field.startsWith(":")) {
+      if (field.contains(match) || "*".equals(field) || field.startsWith(":")) {
         return true;
       }
     }

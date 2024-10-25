@@ -576,7 +576,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
     // UserB is the owner so DEA is in the result list
     Optional<? extends IdentifiableObject> notPublicDe =
-        objects.stream().filter(d -> d.getUid().equalsIgnoreCase("deabcdefghA")).findFirst();
+        objects.stream().filter(d -> "deabcdefghA".equalsIgnoreCase(d.getUid())).findFirst();
     assertTrue(notPublicDe.isPresent());
     query = Query.from(schemaService.getDynamicSchema(DataElement.class));
     query.setCurrentUserDetails(UserDetails.fromUser(userA));
@@ -585,7 +585,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
     // UserA isn't the owner and DEA is not public so it doesn't present in
     // result list
     notPublicDe =
-        objects.stream().filter(d -> d.getUid().equalsIgnoreCase("deabcdefghA")).findFirst();
+        objects.stream().filter(d -> "deabcdefghA".equalsIgnoreCase(d.getUid())).findFirst();
     assertTrue(!notPublicDe.isPresent());
   }
 

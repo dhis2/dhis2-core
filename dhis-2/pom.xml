@@ -2372,6 +2372,23 @@ jasperreports.version=${jasperreports.version}
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
       </plugin>
+      <plugin>
+        <groupId>org.openrewrite.maven</groupId>
+        <artifactId>rewrite-maven-plugin</artifactId>
+        <version>5.43.0</version>
+        <configuration>
+          <activeRecipes>
+            <recipe>org.openrewrite.staticanalysis.EqualsAvoidsNull</recipe>
+          </activeRecipes>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.openrewrite.recipe</groupId>
+            <artifactId>rewrite-static-analysis</artifactId>
+            <version>1.19.0</version>
+          </dependency>
+        </dependencies>
+      </plugin>
     </plugins>
     <!-- <build><sourceDirectory> cannot be set in a profile, so it needs
       a custom property for overwriting it, see

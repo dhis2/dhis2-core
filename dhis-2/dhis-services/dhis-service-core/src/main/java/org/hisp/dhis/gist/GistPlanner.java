@@ -403,11 +403,11 @@ class GistPlanner {
   }
 
   private boolean isDisplayShortName(String path) {
-    return path.equals("displayShortName") || path.endsWith(".displayShortName");
+    return "displayShortName".equals(path) || path.endsWith(".displayShortName");
   }
 
   private boolean isDisplayNameField(String path) {
-    return path.equals("displayName") || path.endsWith(".displayName");
+    return "displayName".equals(path) || path.endsWith(".displayName");
   }
 
   private static <T> List<T> map1to1(List<T> from, Predicate<T> when, UnaryOperator<T> then) {

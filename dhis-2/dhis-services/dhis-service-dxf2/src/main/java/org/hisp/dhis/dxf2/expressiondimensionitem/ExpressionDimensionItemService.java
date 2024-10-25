@@ -106,7 +106,7 @@ public class ExpressionDimensionItemService {
    * @return true when the expression is valid
    */
   public boolean isValidExpressionItems(String expression) {
-    if (trimToNull(expression) == null || trimToEmpty(expression).equalsIgnoreCase("null")) {
+    if (trimToNull(expression) == null || "null".equalsIgnoreCase(trimToEmpty(expression))) {
       return false;
     }
 

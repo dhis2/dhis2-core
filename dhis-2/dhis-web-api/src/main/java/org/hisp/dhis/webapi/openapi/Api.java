@@ -559,8 +559,8 @@ public class Api {
     public boolean isMap() {
       return type == Type.OBJECT
           && properties.size() == 2
-          && properties.get(0).name.equals("_keys")
-          && properties.get(1).name.equals("_values");
+          && "_keys".equals(properties.get(0).name)
+          && "_values".equals(properties.get(1).name);
     }
 
     Set<String> getRequiredProperties() {

@@ -80,7 +80,7 @@ public class CsvFileReader implements org.hisp.dhis.helpers.file.FileReader {
 
       lastColumnReplacedValue = replacedValue;
 
-      if (replacedValue.equalsIgnoreCase("uniqueid")) {
+      if ("uniqueid".equalsIgnoreCase(replacedValue)) {
         lastColumnReplacedValue = new IdGenerator().generateUniqueId();
       }
 

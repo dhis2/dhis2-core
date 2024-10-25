@@ -64,7 +64,7 @@ class DashboardControllerTest extends PostgresControllerIntegrationTestBase {
     assertEquals(1, dashboard.getItems().size());
     Visualization visualization =
         dashboard.getItems().stream()
-            .filter(item -> item.getUid().equals("KnmKNIFiAwC"))
+            .filter(item -> "KnmKNIFiAwC".equals(item.getUid()))
             .findFirst()
             .get()
             .getVisualization();
@@ -97,7 +97,7 @@ class DashboardControllerTest extends PostgresControllerIntegrationTestBase {
     assertEquals(1, dashboard.getItems().size());
     Visualization visualization =
         dashboard.getItems().stream()
-            .filter(item -> item.getUid().equals("KnmKNIFiAwC"))
+            .filter(item -> "KnmKNIFiAwC".equals(item.getUid()))
             .findFirst()
             .get()
             .getVisualization();
@@ -118,7 +118,7 @@ class DashboardControllerTest extends PostgresControllerIntegrationTestBase {
     // Visualization is still attached to the dashboard item.
     Optional<DashboardItem> dashboardItem =
         dashboard.getItems().stream()
-            .filter(item -> item.getUid().equals("KnmKNIFiAwC"))
+            .filter(item -> "KnmKNIFiAwC".equals(item.getUid()))
             .findFirst();
     assertTrue(dashboardItem.isPresent());
     assertEquals("gyYXi0rXAIc", dashboardItem.get().getVisualization().getUid());

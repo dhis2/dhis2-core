@@ -68,7 +68,7 @@ class DataSetMetadataControllerTest extends PostgresControllerIntegrationTestBas
     assertEquals(expectedCatComboSize, categoryCombos.size(), catComboSizeCondition);
     long count =
         categoryCombos.asList(JsonObject.class).stream()
-            .filter(cc -> cc.getString("name").string().equals("default"))
+            .filter(cc -> "default".equals(cc.getString("name").string()))
             .count();
     assertEquals(expectedDefaultCatComboCount, count, defaultCatComboCondition);
   }

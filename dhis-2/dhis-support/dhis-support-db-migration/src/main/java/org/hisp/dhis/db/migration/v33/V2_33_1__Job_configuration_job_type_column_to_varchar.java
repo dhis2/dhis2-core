@@ -59,7 +59,7 @@ public class V2_33_1__Job_configuration_job_type_column_to_varchar extends BaseJ
             + "WHERE table_name = 'jobconfiguration' AND column_name = 'jobtype';";
     try (Statement stmt = context.getConnection().createStatement();
         ResultSet rs = stmt.executeQuery(sql); ) {
-      if (rs.next() && rs.getString("data_type").equals("bytea")) {
+      if (rs.next() && "bytea".equals(rs.getString("data_type"))) {
         continueWithMigration = true;
       }
     }

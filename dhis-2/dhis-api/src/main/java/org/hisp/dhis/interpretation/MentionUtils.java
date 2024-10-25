@@ -68,7 +68,7 @@ public final class MentionUtils {
     ListIterator<String> filterIterator = filters.listIterator();
     while (filterIterator.hasNext()) {
       String[] filterSplit = filterIterator.next().split(":");
-      if (filterSplit[1].equals("in") && filterSplit[0].equals("mentions")) {
+      if ("in".equals(filterSplit[1]) && "mentions".equals(filterSplit[0])) {
         mentions.add(filterSplit[2]);
         filterIterator.remove();
       }

@@ -583,7 +583,7 @@ public class FieldFilterService {
         object,
         fieldPaths,
         isSkipSharing,
-        s -> s.equals("access") || s.endsWith(".access"),
+        s -> "access".equals(s) || s.endsWith(".access"),
         o -> {
           if (o instanceof IdentifiableObject identifiableObject) {
             identifiableObject.setAccess(aclService.getAccess(identifiableObject, userDetails));

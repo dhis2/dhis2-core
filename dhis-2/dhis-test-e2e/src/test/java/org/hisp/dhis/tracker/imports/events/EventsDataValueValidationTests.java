@@ -241,7 +241,7 @@ public class EventsDataValueValidationTests extends TrackerApiTest {
   private JsonObject createEventBodyWithStatus(String status) {
     EventDataBuilder builder = new EventDataBuilder().setStatus(status);
 
-    if (status.equalsIgnoreCase("SCHEDULE")) {
+    if ("SCHEDULE".equalsIgnoreCase(status)) {
       builder.setScheduledDate(Instant.now().plus(1, ChronoUnit.DAYS).toString());
     }
 

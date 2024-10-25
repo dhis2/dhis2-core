@@ -50,7 +50,7 @@ public class StubDriver implements Driver {
 
   @Override
   public boolean acceptsURL(String url) throws SQLException {
-    return url.equals("jdbc:fake:db");
+    return "jdbc:fake:db".equals(url);
   }
 
   @Override

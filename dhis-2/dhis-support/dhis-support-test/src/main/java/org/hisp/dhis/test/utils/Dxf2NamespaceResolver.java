@@ -40,7 +40,7 @@ public class Dxf2NamespaceResolver implements NamespaceContext {
     if (prefix == null) {
       throw new IllegalArgumentException("No prefix provided!");
     } else {
-      if (prefix.equals("d")) {
+      if ("d".equals(prefix)) {
         return "http://dhis2.org/schema/dxf/2.0";
       } else {
         return XMLConstants.NULL_NS_URI;

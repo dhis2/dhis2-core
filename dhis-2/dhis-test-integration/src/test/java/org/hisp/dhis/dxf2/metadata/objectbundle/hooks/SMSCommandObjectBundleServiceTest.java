@@ -94,8 +94,8 @@ class SMSCommandObjectBundleServiceTest extends PostgresIntegrationTestBase {
     SMSCommand smsCommand = manager.get(SMSCommand.class, "em8Bg4LCr1a");
     Set<SMSCode> smsCodes = smsCommand.getCodes();
 
-    SMSCode smsCode1 = smsCodes.stream().filter(c -> c.getCode().equals("a")).findFirst().get();
-    SMSCode smsCode2 = smsCodes.stream().filter(c -> c.getCode().equals("b")).findFirst().get();
+    SMSCode smsCode1 = smsCodes.stream().filter(c -> "a".equals(c.getCode())).findFirst().get();
+    SMSCode smsCode2 = smsCodes.stream().filter(c -> "b".equals(c.getCode())).findFirst().get();
 
     assertSame(smsCode1.getOptionId(), categoryService.getDefaultCategoryOptionCombo());
     assertSame(

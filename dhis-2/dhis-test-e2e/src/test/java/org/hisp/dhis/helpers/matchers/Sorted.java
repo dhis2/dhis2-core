@@ -55,7 +55,7 @@ public class Sorted extends TypeSafeDiagnosingMatcher<Iterable> {
   }
 
   private static boolean isInDescendingOrder(String orderType) {
-    return orderType.equalsIgnoreCase("desc") || orderType.equalsIgnoreCase("descending");
+    return "desc".equalsIgnoreCase(orderType) || "descending".equalsIgnoreCase(orderType);
   }
 
   @Override

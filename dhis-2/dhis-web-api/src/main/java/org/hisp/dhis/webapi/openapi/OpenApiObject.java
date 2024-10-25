@@ -409,7 +409,7 @@ public interface OpenApiObject extends JsonObject {
 
     default boolean isShared() {
       String path = node().getPath().toString();
-      return path.substring(0, path.lastIndexOf('.')).equals(".components.parameters");
+      return ".components.parameters".equals(path.substring(0, path.lastIndexOf('.')));
     }
 
     default String getSharedName() {
@@ -497,7 +497,7 @@ public interface OpenApiObject extends JsonObject {
     default boolean isShared() {
       if (!exists()) return false;
       String path = node().getPath().toString();
-      return path.substring(0, path.lastIndexOf('.')).equals(".components.schemas");
+      return ".components.schemas".equals(path.substring(0, path.lastIndexOf('.')));
     }
 
     default String getSharedName() {

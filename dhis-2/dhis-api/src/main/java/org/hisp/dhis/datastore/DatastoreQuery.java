@@ -117,11 +117,11 @@ public final class DatastoreQuery {
     String getPath();
 
     default boolean isKeyPath() {
-      return getPath().equals("_");
+      return "_".equals(getPath());
     }
 
     default boolean isValuePath() {
-      return getPath().equals(".");
+      return ".".equals(getPath());
     }
   }
 

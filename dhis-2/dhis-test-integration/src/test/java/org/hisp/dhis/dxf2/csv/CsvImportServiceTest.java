@@ -255,15 +255,15 @@ class CsvImportServiceTest extends PostgresIntegrationTestBase {
     List<CategoryOptionGroup> allGroups = manager.getAll(CategoryOptionGroup.class);
     assertEquals(3, allGroups.size());
     CategoryOptionGroup groupA =
-        allGroups.stream().filter(g -> g.getName().equals("GroupA")).findFirst().orElse(null);
+        allGroups.stream().filter(g -> "GroupA".equals(g.getName())).findFirst().orElse(null);
     assertNotNull(groupA);
     assertEquals(DataDimensionType.DISAGGREGATION, groupA.getDataDimensionType());
     CategoryOptionGroup groupB =
-        allGroups.stream().filter(g -> g.getName().equals("GroupB")).findFirst().orElse(null);
+        allGroups.stream().filter(g -> "GroupB".equals(g.getName())).findFirst().orElse(null);
     assertNotNull(groupB);
     assertEquals(DataDimensionType.DISAGGREGATION, groupB.getDataDimensionType());
     CategoryOptionGroup groupC =
-        allGroups.stream().filter(g -> g.getName().equals("GroupC")).findFirst().orElse(null);
+        allGroups.stream().filter(g -> "GroupC".equals(g.getName())).findFirst().orElse(null);
     assertNotNull(groupC);
     assertEquals(DataDimensionType.ATTRIBUTE, groupC.getDataDimensionType());
   }

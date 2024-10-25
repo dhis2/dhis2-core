@@ -42,7 +42,7 @@ public class OIDCLoginEnabledCondition extends PropertiesAwareConfigurationCondi
       return false;
     }
     String isEnabled = getConfiguration().getProperty(ConfigurationKey.OIDC_OAUTH2_LOGIN_ENABLED);
-    return isEnabled.equalsIgnoreCase("on");
+    return "on".equalsIgnoreCase(isEnabled);
   }
 
   @Override

@@ -178,12 +178,12 @@ public class DataSourceConfig {
       String packageName = className.substring(0, pos);
 
       if (className.contains("org.hisp.dhis.cacheinvalidation.KnownTransactionsService")
-          || methodName.equals("getSingleResult")
-          || methodName.equals("doFilterInternal")) {
+          || "getSingleResult".equals(methodName)
+          || "doFilterInternal".equals(methodName)) {
         break;
       }
 
-      if (packageName.startsWith("org.hisp.dhis") && !methodName.equals("executeAfterMethod")) {
+      if (packageName.startsWith("org.hisp.dhis") && !"executeAfterMethod".equals(methodName)) {
         StackTraceElement nextElement = stackTrace[i - 1];
         String methodName1 = nextElement.getMethodName();
         String className1 = nextElement.getClassName();

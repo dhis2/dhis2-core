@@ -741,7 +741,7 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     assertNotNull(manager.get(Section.class, "JwcV2ZifEQf"));
     assertTrue(
         dataset.getSections().stream()
-            .filter(s -> s.getUid().equals("JwcV2ZifEQf"))
+            .filter(s -> "JwcV2ZifEQf".equals(s.getUid()))
             .findFirst()
             .get()
             .getDataElements()
@@ -767,7 +767,7 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     assertNotNull(manager.get(Section.class, "JwcV2ZifEQf"));
     assertFalse(
         dataset.getSections().stream()
-            .filter(s -> s.getUid().equals("JwcV2ZifEQf"))
+            .filter(s -> "JwcV2ZifEQf".equals(s.getUid()))
             .findFirst()
             .get()
             .getDataElements()
@@ -877,7 +877,7 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     User user = manager.get(User.class, "sPWjoHSY03y");
     assertNotNull(user);
     assertTrue(
-        user.getUserRoles().stream().anyMatch(userRole -> userRole.getUid().equals("xJZBzAHI88H")));
+        user.getUserRoles().stream().anyMatch(userRole -> "xJZBzAHI88H".equals(userRole.getUid())));
   }
 
   @Test
@@ -1118,10 +1118,9 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     assertTrue(
         report.hasErrorReport(
             errorReport ->
-                errorReport
-                    .getMessage()
-                    .equals(
-                        "Duplicate reference [XJGLlMAMCcn] (Category) on object Gender [faV8QvLgIwB] (CategoryCombo) for association `category`")));
+                "Duplicate reference [XJGLlMAMCcn] (Category) on object Gender [faV8QvLgIwB] (CategoryCombo) for association `category`"
+                    .equals(errorReport
+                    .getMessage())));
   }
 
   private MetadataImportParams createParams(ImportStrategy importStrategy) {

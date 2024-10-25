@@ -212,9 +212,9 @@ class JobConfigurationControllerTest extends H2ControllerIntegrationTestBase {
   void testGetJobTypeInfo() {
     for (JsonObject e :
         GET("/jobConfigurations/jobTypes").content().getList("jobTypes", JsonObject.class)) {
-      if (e.getString("jobType").string().equals("ANALYTICS_TABLE")) {
+      if ("ANALYTICS_TABLE".equals(e.getString("jobType").string())) {
         for (JsonObject param : e.getList("jobParameters", JsonObject.class)) {
-          if (param.getString("name").string().equals("skipTableTypes")) {
+          if ("skipTableTypes".equals(param.getString("name").string())) {
             assertEquals(
                 List.of(
                     "DATA_VALUE",

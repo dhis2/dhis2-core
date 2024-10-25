@@ -108,7 +108,7 @@ public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation
       if (urlSplit.length > 3) {
         String type = urlSplit[2];
 
-        if (urlSplit[1].equals("api") && externalClasses.get(type) != null) {
+        if ("api".equals(urlSplit[1]) && externalClasses.get(type) != null) {
           String uid = getUidPart(urlSplit[3]);
 
           if (CodeGenerator.isValidUid(uid)) {

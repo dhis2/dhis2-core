@@ -87,7 +87,7 @@ public class FieldFilterParser {
           token = fieldSplit[idx];
 
           if ((containsAny(token, ":", "~", "|"))) {
-            if (token.equals(":")) {
+            if (":".equals(token)) {
               idx++;
             }
 
@@ -120,8 +120,8 @@ public class FieldFilterParser {
             transformerParameters.add(transformerNameBuilder.toString());
             break;
           } else if (isFieldSeparator(token)
-              || (token.equals("]") && !insideParameters)
-              || (token.equals("[") && !insideParameters)) {
+              || ("]".equals(token) && !insideParameters)
+              || ("[".equals(token) && !insideParameters)) {
             idx--;
             break;
           }

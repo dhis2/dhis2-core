@@ -449,7 +449,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
             ? jobType.getRelativeApiElements().get(field.getName())
             : "";
 
-    if (relativeApiElements != null && !relativeApiElements.equals("")) {
+    if (relativeApiElements != null && !"".equals(relativeApiElements)) {
       property.setRelativeApiEndpoint(relativeApiElements);
     }
 

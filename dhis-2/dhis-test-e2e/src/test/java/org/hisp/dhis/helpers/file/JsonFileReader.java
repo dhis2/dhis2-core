@@ -83,7 +83,7 @@ public class JsonFileReader implements FileReader {
     replace(
         p -> {
           JsonObject object = ((JsonElement) p).getAsJsonObject();
-          if (replacedValue.equalsIgnoreCase("uniqueid")) {
+          if ("uniqueid".equalsIgnoreCase(replacedValue)) {
             object.addProperty(propertyName, new IdGenerator().generateUniqueId());
           } else {
             object.addProperty(propertyName, replacedValue);
@@ -104,7 +104,7 @@ public class JsonFileReader implements FileReader {
           if (!jsonObject.has(propertyName)) {
             return;
           }
-          if (replacedValue.equalsIgnoreCase("uniqueid")) {
+          if ("uniqueid".equalsIgnoreCase(replacedValue)) {
             jsonObject.addProperty(propertyName, new IdGenerator().generateUniqueId());
           } else {
             jsonObject.addProperty(propertyName, replacedValue);

@@ -451,6 +451,6 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   private static boolean isUndefinedCronExpression(String cronExpression) {
     return cronExpression == null
         || cronExpression.isEmpty()
-        || cronExpression.equals("* * * * * ?");
+        || "* * * * * ?".equals(cronExpression);
   }
 }

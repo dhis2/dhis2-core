@@ -196,7 +196,7 @@ public class MeController {
 
   private boolean fieldsContains(String key, List<String> fields) {
     for (String field : fields) {
-      if (field.contains(key) || field.equals("*") || field.startsWith(":")) {
+      if (field.contains(key) || "*".equals(field) || field.startsWith(":")) {
         return true;
       }
     }

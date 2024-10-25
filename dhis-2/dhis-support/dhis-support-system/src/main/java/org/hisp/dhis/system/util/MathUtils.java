@@ -389,7 +389,7 @@ public class MathUtils {
    * @return if the provided string argument is to be considered as a boolean.
    */
   public static boolean isBool(String value) {
-    return value != null && (value.equals("true") || value.equals("false"));
+    return value != null && ("true".equals(value) || "false".equals(value));
   }
 
   /**

@@ -145,7 +145,7 @@ class MessageServiceTest extends PostgresIntegrationTestBase {
     assertEquals("Subject", conversation.getSubject());
     assertEquals(3, conversation.getUserMessages().size());
     assertEquals(1, conversation.getMessages().size());
-    assertTrue(conversation.getMessages().iterator().next().getText().equals("Text"));
+    assertTrue("Text".equals(conversation.getMessages().iterator().next().getText()));
   }
 
   @Test

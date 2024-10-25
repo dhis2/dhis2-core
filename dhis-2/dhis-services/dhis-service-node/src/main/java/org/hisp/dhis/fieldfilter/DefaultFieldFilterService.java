@@ -703,7 +703,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
   private boolean isBaseIdentifiableObjectIdOnly(
       @Nonnull Object object, @Nonnull List<String> fields) {
     return fields.size() == 1
-        && fields.get(0).equals("id")
+        && "id".equals(fields.get(0))
         && object instanceof BaseIdentifiableObject;
   }
 

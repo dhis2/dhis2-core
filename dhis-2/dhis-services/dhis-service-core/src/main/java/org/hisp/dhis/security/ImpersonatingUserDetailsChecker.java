@@ -48,7 +48,7 @@ public class ImpersonatingUserDetailsChecker extends AccountStatusUserDetailsChe
 
     boolean userToImpersonateIsSuper =
         userToImpersonate.getAuthorities().stream()
-            .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ALL"));
+            .anyMatch(grantedAuthority -> "ALL".equals(grantedAuthority.getAuthority()));
 
     if ((!currentUser.isSuper() && userToImpersonateIsSuper)) {
       throw new InsufficientAuthenticationException(

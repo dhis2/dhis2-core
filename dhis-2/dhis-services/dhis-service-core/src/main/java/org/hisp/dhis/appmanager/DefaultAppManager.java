@@ -393,7 +393,7 @@ public class DefaultAppManager implements AppManager {
 
   @Override
   public boolean isAccessible(App app) {
-    return app.getKey().equals("login")
+    return "login".equals(app.getKey())
         || CurrentUserUtil.hasAnyAuthority(
             List.of(
                 Authorities.ALL.toString(),

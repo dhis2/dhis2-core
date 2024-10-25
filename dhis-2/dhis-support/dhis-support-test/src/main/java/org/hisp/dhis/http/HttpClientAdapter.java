@@ -207,7 +207,7 @@ public interface HttpClientAdapter {
     List<Header> headers = new ArrayList<>();
     for (RequestComponent c : components) {
       if (c instanceof Header header) {
-        if (header.name().equalsIgnoreCase("ContentType")) {
+        if ("ContentType".equalsIgnoreCase(header.name())) {
           // last provided content type wins
           contentMediaType = header.value().toString();
         } else {
@@ -277,7 +277,7 @@ public interface HttpClientAdapter {
      * @return raw content body in UTF-8 encoding
      */
     public String content(String contentType) {
-      if (contentType.equals("application/json")) {
+      if ("application/json".equals(contentType)) {
         fail("Use one of the other content() methods for JSON");
       }
       String actualContentType = header("Content-Type");

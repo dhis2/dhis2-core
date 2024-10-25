@@ -59,8 +59,8 @@ public class HttpServletRequestPaths {
     String xForwardedPort = request.getHeader("X-Forwarded-Port");
 
     if (xForwardedProto != null
-        && (xForwardedProto.equalsIgnoreCase("http")
-            || xForwardedProto.equalsIgnoreCase("https"))) {
+        && ("http".equalsIgnoreCase(xForwardedProto)
+            || "https".equalsIgnoreCase(xForwardedProto))) {
       builder.append(xForwardedProto);
     } else {
       builder.append(request.getScheme());

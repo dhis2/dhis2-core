@@ -80,7 +80,7 @@ public class XmlFileReader implements FileReader {
       for (int i = 0; i < nodes.getLength(); i++) {
         Node node = nodes.item(i).getAttributes().getNamedItem(propertyName);
 
-        if (replacedValue.equalsIgnoreCase("uniqueid")) {
+        if ("uniqueid".equalsIgnoreCase(replacedValue)) {
           node.setNodeValue(new IdGenerator().generateUniqueId());
           continue;
         }

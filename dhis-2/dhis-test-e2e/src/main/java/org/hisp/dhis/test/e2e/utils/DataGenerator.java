@@ -79,7 +79,7 @@ public class DataGenerator {
             new JsonPrimitive(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").format(date));
       }
       case BOOLEAN -> {
-        if (property.getName().equalsIgnoreCase("external")) {
+        if ("external".equalsIgnoreCase(property.getName())) {
           jsonElement = new JsonPrimitive(true);
           break;
         }
@@ -180,8 +180,8 @@ public class DataGenerator {
     int randomConstant = -1;
     JsonPrimitive element = null;
     while (randomConstant == -1
-        || (property.getName().equals("valueType")
-            && property.getConstants().get(randomConstant).equals("MULTI_TEXT"))) {
+        || ("valueType".equals(property.getName())
+            && "MULTI_TEXT".equals(property.getConstants().get(randomConstant)))) {
       randomConstant = faker.number().numberBetween(0, property.getConstants().size() - 1);
       element = new JsonPrimitive(property.getConstants().get(randomConstant));
     }

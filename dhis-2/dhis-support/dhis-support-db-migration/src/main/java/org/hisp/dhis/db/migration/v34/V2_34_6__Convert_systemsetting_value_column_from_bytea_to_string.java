@@ -83,7 +83,7 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string
       boolean continueWithMigration = false;
       try (Statement stmt = context.getConnection().createStatement();
           ResultSet rs = stmt.executeQuery(CHECK_SYSTEM_SETTING_VALUE_TYPE_SQL); ) {
-        if (rs.next() && rs.getString("data_type").equals("bytea")) {
+        if (rs.next() && "bytea".equals(rs.getString("data_type"))) {
           continueWithMigration = true;
         }
       }

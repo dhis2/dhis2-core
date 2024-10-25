@@ -1001,7 +1001,7 @@ final class ApiExtractor {
 
   @Nonnull
   private static ParameterDetails getParameterDetails(RequestParam a, Parameter p) {
-    boolean hasDefault = !a.defaultValue().equals("\n\t\t\n\t\t\n\ue000\ue001\ue002\n\t\t\t\t\n");
+    boolean hasDefault = !"\n\t\t\n\t\t\n\ue000\ue001\ue002\n\t\t\t\t\n".equals(a.defaultValue());
     boolean required = a.required() && !hasDefault;
     String javaDefaultValue = hasDefault ? a.defaultValue() : null;
     Class<?> type = p.getType();

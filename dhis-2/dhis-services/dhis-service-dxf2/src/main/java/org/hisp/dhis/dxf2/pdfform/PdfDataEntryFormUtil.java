@@ -253,9 +253,9 @@ public class PdfDataEntryFormUtil {
       int fieldType = Integer.parseInt(strArrFldName[3].substring(1));
 
       if (fieldType == PdfFieldCell.TYPE_CHECKBOX) {
-        if (fldValue.compareTo("On") == 0) {
+        if ("On".compareTo(fldValue) == 0) {
           fldValue = "true";
-        } else if (fldValue.compareTo("Off") == 0) {
+        } else if ("Off".compareTo(fldValue) == 0) {
           fldValue = null;
         }
       }

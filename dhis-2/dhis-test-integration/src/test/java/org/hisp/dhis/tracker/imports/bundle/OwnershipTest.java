@@ -169,7 +169,7 @@ class OwnershipTest extends TrackerTest {
     List<Enrollment> enrollments = manager.getAll(Enrollment.class);
     assertEquals(2, enrollments.size());
     Enrollment enrollment =
-        enrollments.stream().filter(e -> e.getUid().equals("TvctPPhpD8u")).findAny().get();
+        enrollments.stream().filter(e -> "TvctPPhpD8u".equals(e.getUid())).findAny().get();
     compareEnrollmentBasicProperties(enrollment, trackerObjects.getEnrollments().get(0));
     assertNull(enrollment.getCompletedBy());
     assertNull(enrollment.getCompletedDate());
@@ -188,7 +188,7 @@ class OwnershipTest extends TrackerTest {
     assertEquals(1, updatedReport.getStats().getUpdated());
     enrollments = manager.getAll(Enrollment.class);
     assertEquals(2, enrollments.size());
-    enrollment = enrollments.stream().filter(e -> e.getUid().equals("TvctPPhpD8u")).findAny().get();
+    enrollment = enrollments.stream().filter(e -> "TvctPPhpD8u".equals(e.getUid())).findAny().get();
     compareEnrollmentBasicProperties(enrollment, updatedEnrollment);
     assertNotNull(enrollment.getCompletedBy());
     assertNotNull(enrollment.getCompletedDate());
@@ -200,7 +200,7 @@ class OwnershipTest extends TrackerTest {
     TrackerObjects trackerObjects = fromJson("tracker/ownership_enrollment.json");
     List<Enrollment> enrollments = manager.getAll(Enrollment.class);
     assertEquals(2, enrollments.size());
-    enrollments.stream().filter(e -> e.getUid().equals("TvctPPhpD8u")).findAny().get();
+    enrollments.stream().filter(e -> "TvctPPhpD8u".equals(e.getUid())).findAny().get();
     params.setImportStrategy(TrackerImportStrategy.DELETE);
     ImportReport updatedReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(updatedReport);
