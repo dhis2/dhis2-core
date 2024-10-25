@@ -272,7 +272,7 @@ public class DeduplicationHelper {
     }
 
     List<RelationshipType> relationshipTypes =
-        relationshipService.getRelationships(mergeObject.getRelationships()).stream()
+        relationshipService.getRelationships(UID.of(mergeObject.getRelationships())).stream()
             .map(Relationship::getRelationshipType)
             .distinct()
             .toList();
