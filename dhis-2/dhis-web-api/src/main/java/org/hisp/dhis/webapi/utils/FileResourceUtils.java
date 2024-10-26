@@ -88,11 +88,7 @@ public class FileResourceUtils {
   private static final int AVATAR_TARGET_HEIGHT = 200;
   private static final int AVATAR_TARGET_WIDTH = 200;
 
-  private static final int ORGUNIT_TARGET_HEIGHT = 800;
-  private static final int ORGUNIT_TARGET_WIDTH = 800;
-
   private static final long MAX_AVATAR_IMAGE_SIZE_IN_BYTES = 2_000_000;
-  private static final long MAX_ORGUNIT_IMAGE_SIZE_IN_BYTES = 8_000_000;
 
   private static final List<String> ALLOWED_IMAGE_FILE_EXTENSIONS =
       List.of("jpg", "jpeg", "png", "gif");
@@ -333,10 +329,5 @@ public class FileResourceUtils {
       throws IOException {
     return resizeImageToCustomSize(
         multipartFile, AVATAR_TARGET_WIDTH, AVATAR_TARGET_HEIGHT, Mode.AUTOMATIC);
-  }
-
-  public MultipartFile resizeOrgToDefaultSize(MultipartFile multipartFile) throws IOException {
-    return resizeImageToCustomSize(
-        multipartFile, ORGUNIT_TARGET_WIDTH, ORGUNIT_TARGET_HEIGHT, Mode.AUTOMATIC);
   }
 }
