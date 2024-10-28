@@ -36,6 +36,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -132,7 +133,8 @@ class DefaultEventService implements EventService {
   }
 
   @Override
-  public Event getEvent(@Nonnull UID event) throws ForbiddenException, NotFoundException {
+  public Event getEvent(@Nonnull UID event)
+      throws ForbiddenException, NotFoundException, BadRequestException {
     return getEvent(event, EventParams.FALSE, CurrentUserUtil.getCurrentUserDetails());
   }
 
@@ -143,18 +145,21 @@ class DefaultEventService implements EventService {
   }
 
   public Event getEvent(@Nonnull UID eventUid, EventParams eventParams, UserDetails user)
-      throws NotFoundException, ForbiddenException {
-    Event event = manager.get(Event.class, eventUid.getValue());
-    if (event == null) {
+      throws NotFoundException, BadRequestException, ForbiddenException {
+    EventOperationParams operationParams =
+        EventOperationParams.builder()
+            .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
+            .events(Set.of(eventUid))
+            .eventParams(eventParams)
+            .build();
+    PageParams pageParams = new PageParams(1, 1, false);
+
+    Page<Event> events = getEvents(operationParams, pageParams);
+
+    if (events.getItems().isEmpty()) {
       throw new NotFoundException(Event.class, eventUid.getValue());
     }
-
-    List<String> errors = trackerAccessManager.canRead(user, event, false);
-    if (!errors.isEmpty()) {
-      throw new ForbiddenException(errors.toString());
-    }
-
-    return getEvent(event, eventParams, user);
+    return events.getItems().get(0);
   }
 
   private Event getEvent(@Nonnull Event event, EventParams eventParams, UserDetails user) {
