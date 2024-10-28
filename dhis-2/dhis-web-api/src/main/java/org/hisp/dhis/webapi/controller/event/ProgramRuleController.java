@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.event;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import lombok.AllArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -56,6 +57,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @AllArgsConstructor
 @RequestMapping("/api/programRules")
+@OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
 public class ProgramRuleController extends AbstractCrudController<ProgramRule> {
   private final I18nManager i18nManager;
 

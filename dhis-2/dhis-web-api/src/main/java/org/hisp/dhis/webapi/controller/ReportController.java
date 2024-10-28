@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.List;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.j2ee.servlets.BaseHttpServlet;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -70,6 +71,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @Controller
 @RequestMapping("/api/reports")
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class ReportController extends AbstractCrudController<Report> {
   @Autowired public ReportService reportService;
 

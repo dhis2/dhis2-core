@@ -34,6 +34,7 @@ import static org.hisp.dhis.security.Authorities.F_LEGEND_SET_PUBLIC_ADD;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -52,6 +53,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 @RequestMapping("/api/legendSets")
+@OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
 public class LegendSetController extends AbstractCrudController<LegendSet> {
   @Override
   @RequiresAuthority(anyOf = {F_LEGEND_SET_PUBLIC_ADD, F_LEGEND_SET_PRIVATE_ADD})

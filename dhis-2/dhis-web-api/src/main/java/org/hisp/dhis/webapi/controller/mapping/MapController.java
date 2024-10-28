@@ -46,6 +46,7 @@ import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -90,6 +91,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @Controller
 @RequestMapping("/api/maps")
+@OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
 public class MapController extends AbstractCrudController<Map> {
   private static final int MAP_MIN_WIDTH = 140;
 
