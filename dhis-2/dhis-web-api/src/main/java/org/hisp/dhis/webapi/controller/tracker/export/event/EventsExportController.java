@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeGzip;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeZip;
@@ -48,8 +47,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+import javax.annotation.Nullable;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Response.Status;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -176,9 +177,15 @@ class EventsExportController {
         fieldFilterService.toObjectNodes(
             EVENTS_MAPPER.fromCollection(events), requestParams.getFields());
 
+    foo(null);
+
     return ResponseEntity.ok()
         .contentType(MediaType.APPLICATION_JSON)
         .body(Page.withoutPager(EVENTS, objectNodes));
+  }
+
+  void foo(@Nullable String a) {
+    System.out.println(a.charAt(0));
   }
 
   @GetMapping(produces = CONTENT_TYPE_JSON_GZIP)
@@ -305,7 +312,8 @@ class EventsExportController {
     validateUnsupportedParameter(
         request,
         "dimension",
-        "Request parameter 'dimension' is only supported for images by API /tracker/event/dataValues/{dataElement}/image");
+        "Request parameter 'dimension' is only supported for images by API"
+            + " /tracker/event/dataValues/{dataElement}/image");
 
     return fileResourceRequestHandler.handle(
         request, eventService.getFileResource(event, dataElement));

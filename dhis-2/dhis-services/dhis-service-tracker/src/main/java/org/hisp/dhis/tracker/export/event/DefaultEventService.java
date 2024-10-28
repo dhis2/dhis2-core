@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.export.event;
 
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
@@ -46,9 +45,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.FileResourceStream;
@@ -131,23 +128,18 @@ class DefaultEventService implements EventService {
 
   @Override
   public Event getEvent(@Nonnull UID event) throws ForbiddenException, NotFoundException {
-    return getEvent(event, EventParams.FALSE, CurrentUserUtil.getCurrentUserDetails());
+    return getEvent(event, EventParams.FALSE);
   }
 
   @Override
-  public Event getEvent(@Nonnull UID event, @Nonnull EventParams eventParams)
-      throws ForbiddenException, NotFoundException {
-    return getEvent(event, eventParams, CurrentUserUtil.getCurrentUserDetails());
-  }
-
-  public Event getEvent(@Nonnull UID eventUid, EventParams eventParams, UserDetails user)
+  public Event getEvent(@Nonnull UID event, EventParams eventParams)
       throws NotFoundException, ForbiddenException {
-    Page<Event> events = null;
+    Page<Event> events;
     try {
       EventOperationParams operationParams =
           EventOperationParams.builder()
               .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
-              .events(Set.of(eventUid))
+              .events(Set.of(event))
               .eventParams(eventParams)
               .build();
       events = getEvents(operationParams, new PageParams(1, 1, false));
@@ -157,79 +149,9 @@ class DefaultEventService implements EventService {
     }
 
     if (events.getItems().isEmpty()) {
-      throw new NotFoundException(Event.class, eventUid.getValue());
+      throw new NotFoundException(Event.class, event.getValue());
     }
     return events.getItems().get(0);
-  }
-
-  private Event getEvent(@Nonnull Event event, EventParams eventParams, UserDetails user) {
-    Event result = new Event();
-    result.setId(event.getId());
-    result.setUid(event.getUid());
-
-    result.setStatus(event.getStatus());
-    result.setOccurredDate(event.getOccurredDate());
-    result.setScheduledDate(event.getScheduledDate());
-    result.setStoredBy(event.getStoredBy());
-    result.setCompletedBy(event.getCompletedBy());
-    result.setCompletedDate(event.getCompletedDate());
-    result.setCreated(event.getCreated());
-    result.setCreatedByUserInfo(event.getCreatedByUserInfo());
-    result.setLastUpdatedByUserInfo(event.getLastUpdatedByUserInfo());
-    result.setCreatedAtClient(event.getCreatedAtClient());
-    result.setLastUpdated(event.getLastUpdated());
-    result.setLastUpdatedAtClient(event.getLastUpdatedAtClient());
-    result.setGeometry(event.getGeometry());
-    result.setDeleted(event.isDeleted());
-    result.setAssignedUser(event.getAssignedUser());
-
-    OrganisationUnit ou = event.getOrganisationUnit();
-
-    result.setEnrollment(event.getEnrollment());
-    result.setProgramStage(event.getProgramStage());
-
-    result.setOrganisationUnit(ou);
-    result.setProgramStage(event.getProgramStage());
-
-    result.setAttributeOptionCombo(event.getAttributeOptionCombo());
-
-    for (EventDataValue dataValue : event.getEventDataValues()) {
-      if (dataElementService.getDataElement(dataValue.getDataElement())
-          != null) // check permissions
-      {
-        EventDataValue value = new EventDataValue();
-        value.setCreated(dataValue.getCreated());
-        value.setCreatedByUserInfo(dataValue.getCreatedByUserInfo());
-        value.setLastUpdated(dataValue.getLastUpdated());
-        value.setLastUpdatedByUserInfo(dataValue.getLastUpdatedByUserInfo());
-        value.setDataElement(dataValue.getDataElement());
-        value.setValue(dataValue.getValue());
-        value.setProvidedElsewhere(dataValue.getProvidedElsewhere());
-        value.setStoredBy(dataValue.getStoredBy());
-
-        result.getEventDataValues().add(value);
-      } else {
-        log.info("Cannot find data element with UID {}", dataValue.getDataElement());
-      }
-    }
-
-    result.getNotes().addAll(event.getNotes());
-
-    if (eventParams.isIncludeRelationships()) {
-      Set<RelationshipItem> relationshipItems = new HashSet<>();
-
-      for (RelationshipItem relationshipItem : event.getRelationshipItems()) {
-        Relationship daoRelationship = relationshipItem.getRelationship();
-        if (trackerAccessManager.canRead(user, daoRelationship).isEmpty()
-            && (!daoRelationship.isDeleted())) {
-          relationshipItems.add(relationshipItem);
-        }
-      }
-
-      result.setRelationshipItems(relationshipItems);
-    }
-
-    return result;
   }
 
   @Override
