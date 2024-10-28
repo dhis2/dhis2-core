@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.stream.Stream;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.tracker.export.event.EventService;
@@ -106,7 +105,7 @@ class EventsExportControllerH2Test extends H2ControllerIntegrationTestBase {
   @MethodSource
   void shouldMatchContentTypeAndAttachment_whenEndpointForCompressedEventJsonIsInvoked(
       String url, String expectedContentType, String expectedAttachment, String encoding)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
 
     when(eventService.getEvents(any())).thenReturn(List.of());
 

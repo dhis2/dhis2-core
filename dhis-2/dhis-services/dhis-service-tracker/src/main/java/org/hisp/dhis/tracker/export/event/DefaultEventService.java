@@ -35,7 +35,6 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
@@ -70,8 +69,6 @@ import org.springframework.transaction.annotation.Transactional;
 class DefaultEventService implements EventService {
 
   private final EventStore eventStore;
-
-  private final IdentifiableObjectManager manager;
 
   private final TrackerAccessManager trackerAccessManager;
 
@@ -133,8 +130,7 @@ class DefaultEventService implements EventService {
   }
 
   @Override
-  public Event getEvent(@Nonnull UID event)
-      throws ForbiddenException, NotFoundException, BadRequestException {
+  public Event getEvent(@Nonnull UID event) throws ForbiddenException, NotFoundException {
     return getEvent(event, EventParams.FALSE, CurrentUserUtil.getCurrentUserDetails());
   }
 
@@ -145,16 +141,20 @@ class DefaultEventService implements EventService {
   }
 
   public Event getEvent(@Nonnull UID eventUid, EventParams eventParams, UserDetails user)
-      throws NotFoundException, BadRequestException, ForbiddenException {
-    EventOperationParams operationParams =
-        EventOperationParams.builder()
-            .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
-            .events(Set.of(eventUid))
-            .eventParams(eventParams)
-            .build();
-    PageParams pageParams = new PageParams(1, 1, false);
-
-    Page<Event> events = getEvents(operationParams, pageParams);
+      throws NotFoundException, ForbiddenException {
+    Page<Event> events = null;
+    try {
+      EventOperationParams operationParams =
+          EventOperationParams.builder()
+              .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
+              .events(Set.of(eventUid))
+              .eventParams(eventParams)
+              .build();
+      events = getEvents(operationParams, new PageParams(1, 1, false));
+    } catch (BadRequestException e) {
+      throw new IllegalArgumentException(
+          "this must be a bug in how the EventOperationParams are built");
+    }
 
     if (events.getItems().isEmpty()) {
       throw new NotFoundException(Event.class, eventUid.getValue());
@@ -250,20 +250,17 @@ class DefaultEventService implements EventService {
   @Override
   public RelationshipItem getEventInRelationshipItem(
       @Nonnull UID uid, @Nonnull EventParams eventParams) throws NotFoundException {
+    Event event = null;
+    try {
+      event = getEvent(uid, eventParams);
+    } catch (ForbiddenException e) {
+      // events are not shown in relationships if the user has no access to them
+    }
+
     RelationshipItem relationshipItem = new RelationshipItem();
-
-    Event event = manager.get(Event.class, uid.getValue());
-    if (event == null) {
-      throw new NotFoundException(Event.class, uid);
-    }
-
-    UserDetails currentUser = getCurrentUserDetails();
-    List<String> errors = trackerAccessManager.canRead(currentUser, event, false);
-    if (!errors.isEmpty()) {
-      return null;
-    }
-
-    relationshipItem.setEvent(getEvent(event, eventParams, currentUser));
+    relationshipItem.setEvent(event);
+    // TODO(ivo) this was only to detach from hibernate, right?
+    // relationshipItem.setEvent(getEvent(event, eventParams, currentUser));
     return relationshipItem;
   }
 

@@ -196,6 +196,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     manager.update(event);
     relationship(event, to);
 
+    injectSecurityContextUser(user);
+
     JsonEvent pathEvent =
         GET("/tracker/events/{id}?fields=*", event.getUid())
             .content(HttpStatus.OK)
@@ -789,18 +791,18 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   private DataElement dataElement(ValueType type) {
-    DataElement de = createDataElement('B');
-    de.setValueType(type);
-    de.getSharing().setOwner(owner);
-    manager.save(de, false);
-    return de;
+    DataElement result = createDataElement('B');
+    result.setValueType(type);
+    result.getSharing().setOwner(owner);
+    manager.save(result, false);
+    return result;
   }
 
   private EventDataValue dataValue(DataElement de, String value) {
-    EventDataValue dv = new EventDataValue();
-    dv.setDataElement(de.getUid());
-    dv.setValue(value);
-    return dv;
+    EventDataValue result = new EventDataValue();
+    result.setDataElement(de.getUid());
+    result.setValue(value);
+    return result;
   }
 
   private TrackedEntityType trackedEntityTypeAccessible() {
@@ -824,21 +826,21 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   private TrackedEntity trackedEntity() {
-    TrackedEntity te = trackedEntity(orgUnit);
-    manager.save(te, false);
-    return te;
+    TrackedEntity result = trackedEntity(orgUnit);
+    manager.save(result, false);
+    return result;
   }
 
   private TrackedEntity trackedEntityNotInSearchScope() {
-    TrackedEntity te = trackedEntity(anotherOrgUnit);
-    manager.save(te, false);
-    return te;
+    TrackedEntity result = trackedEntity(anotherOrgUnit);
+    manager.save(result, false);
+    return result;
   }
 
   private TrackedEntity trackedEntity(TrackedEntityType trackedEntityType) {
-    TrackedEntity te = trackedEntity(orgUnit, trackedEntityType);
-    manager.save(te, false);
-    return te;
+    TrackedEntity result = trackedEntity(orgUnit, trackedEntityType);
+    manager.save(result, false);
+    return result;
   }
 
   private TrackedEntity trackedEntity(OrganisationUnit orgUnit) {
@@ -847,28 +849,28 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
   private TrackedEntity trackedEntity(
       OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity te = createTrackedEntity(orgUnit);
-    te.setTrackedEntityType(trackedEntityType);
-    te.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    te.getSharing().setOwner(owner);
-    return te;
+    TrackedEntity result = createTrackedEntity(orgUnit);
+    result.setTrackedEntityType(trackedEntityType);
+    result.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    result.getSharing().setOwner(owner);
+    return result;
   }
 
   private Enrollment enrollment(TrackedEntity te) {
-    Enrollment enrollment = new Enrollment(program, te, te.getOrganisationUnit());
-    enrollment.setAutoFields();
-    enrollment.setEnrollmentDate(new Date());
-    enrollment.setOccurredDate(new Date());
-    enrollment.setStatus(EnrollmentStatus.COMPLETED);
-    manager.save(enrollment);
-    return enrollment;
+    Enrollment result = new Enrollment(program, te, te.getOrganisationUnit());
+    result.setAutoFields();
+    result.setEnrollmentDate(new Date());
+    result.setOccurredDate(new Date());
+    result.setStatus(EnrollmentStatus.COMPLETED);
+    manager.save(result);
+    return result;
   }
 
   private Event event(Enrollment enrollment) {
-    Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
-    event.setAutoFields();
-    manager.save(event);
-    return event;
+    Event result = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
+    result.setAutoFields();
+    manager.save(result);
+    return result;
   }
 
   private UserAccess userAccess() {
