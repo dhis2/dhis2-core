@@ -127,9 +127,9 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // given category state before merge
     List<Category> categorySourcesBefore =
         categoryService.getCategoriesByCategoryOption(
-            List.of(coSource1A.getUidType(), coSource2B.getUidType()));
+            List.of(UID.of(coSource1A.getUid()), UID.of(coSource2B.getUid())));
     List<Category> categoryTargetBefore =
-        categoryService.getCategoriesByCategoryOption(List.of(coTarget3A.getUidType()));
+        categoryService.getCategoriesByCategoryOption(List.of(UID.of(coTarget3A.getUid())));
 
     assertEquals(
         2, categorySourcesBefore.size(), "Expect 2 categories with source category option refs");
@@ -143,9 +143,9 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // then
     List<Category> categorySources =
         categoryService.getCategoriesByCategoryOption(
-            List.of(coSource1A.getUidType(), coSource2B.getUidType()));
+            List.of(UID.from(coSource1A), UID.from(coSource2B)));
     List<Category> categoryTarget =
-        categoryService.getCategoriesByCategoryOption(List.of(coTarget3A.getUidType()));
+        categoryService.getCategoriesByCategoryOption(List.of(UID.from(coTarget3A)));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
 
     assertFalse(report.hasErrorMessages());
@@ -163,9 +163,9 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // given category state before merge
     List<Category> categorySourcesBefore =
         categoryService.getCategoriesByCategoryOption(
-            List.of(coSource1A.getUidType(), coSource2B.getUidType()));
+            List.of(UID.from(coSource1A), UID.from(coSource2B)));
     List<Category> categoryTargetBefore =
-        categoryService.getCategoriesByCategoryOption(List.of(coTarget3A.getUidType()));
+        categoryService.getCategoriesByCategoryOption(List.of(UID.from(coTarget3A)));
 
     assertEquals(
         2, categorySourcesBefore.size(), "Expect 2 categories with source category option refs");
@@ -180,9 +180,9 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // then
     List<Category> categorySources =
         categoryService.getCategoriesByCategoryOption(
-            List.of(coSource1A.getUidType(), coSource2B.getUidType()));
+            List.of(UID.from(coSource1A), UID.from(coSource2B)));
     List<Category> categoryTarget =
-        categoryService.getCategoriesByCategoryOption(List.of(coTarget3A.getUidType()));
+        categoryService.getCategoriesByCategoryOption(List.of(UID.from(coTarget3A)));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
 
     assertFalse(report.hasErrorMessages());
@@ -213,9 +213,9 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // confirm cat option combo state before merge
     List<CategoryOptionCombo> sourceCocsBefore =
         categoryService.getCategoryOptionCombosByCategoryOption(
-            List.of(UID.of(coSource1A.getUid()), UID.of(coSource2B.getUid())));
+            List.of(UID.from(coSource1A), UID.from(coSource2B)));
     List<CategoryOptionCombo> targetCocsBefore =
-        categoryService.getCategoryOptionCombosByCategoryOption(List.of(coTarget3A.getUidType()));
+        categoryService.getCategoryOptionCombosByCategoryOption(List.of(UID.from(coTarget3A)));
 
     assertEquals(3, sourceCocsBefore.size(), "Expect 3 entries with source category option refs");
     assertEquals(2, targetCocsBefore.size(), "Expect 2 entries with target category option refs");
@@ -227,9 +227,9 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // then
     List<CategoryOptionCombo> sourceCocs =
         categoryService.getCategoryOptionCombosByCategoryOption(
-            List.of(coSource1A.getUidType(), coSource2B.getUidType()));
+            List.of(UID.from(coSource1A), UID.from(coSource2B)));
     List<CategoryOptionCombo> targetCocs =
-        categoryService.getCategoryOptionCombosByCategoryOption(List.of(coTarget3A.getUidType()));
+        categoryService.getCategoryOptionCombosByCategoryOption(List.of(UID.from(coTarget3A)));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
 
     assertFalse(report.hasErrorMessages());
@@ -253,9 +253,9 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // confirm cat option combos state before merge
     List<CategoryOptionCombo> sourceCocsBefore =
         categoryService.getCategoryOptionCombosByCategoryOption(
-            List.of(coSource1A.getUidType(), coSource2B.getUidType()));
+            List.of(UID.from(coSource1A), UID.from(coSource2B)));
     List<CategoryOptionCombo> targetCocsBefore =
-        categoryService.getCategoryOptionCombosByCategoryOption(List.of(coTarget3A.getUidType()));
+        categoryService.getCategoryOptionCombosByCategoryOption(List.of(UID.from(coTarget3A)));
 
     assertEquals(3, sourceCocsBefore.size(), "Expect 3 entries with source category option refs");
     assertEquals(2, targetCocsBefore.size(), "Expect 2 entries with target category option refs");
@@ -269,9 +269,9 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // then
     List<CategoryOptionCombo> sourceCocs =
         categoryService.getCategoryOptionCombosByCategoryOption(
-            List.of(coSource1A.getUidType(), coSource2B.getUidType()));
+            List.of(UID.from(coSource1A), UID.from(coSource2B)));
     List<CategoryOptionCombo> targetCocs =
-        categoryService.getCategoryOptionCombosByCategoryOption(List.of(coTarget3A.getUidType()));
+        categoryService.getCategoryOptionCombosByCategoryOption(List.of(UID.from(coTarget3A)));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
 
     assertFalse(report.hasErrorMessages());
@@ -298,9 +298,9 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // confirm cat option combo state before merge
     List<CategoryOptionCombo> sourceCocsBefore =
         categoryService.getCategoryOptionCombosByCategoryOption(
-            List.of(coSource1A.getUidType(), coSource2B.getUidType()));
+            List.of(UID.from(coSource1A), UID.from(coSource2B)));
     List<CategoryOptionCombo> targetCocsBefore =
-        categoryService.getCategoryOptionCombosByCategoryOption(List.of(coTarget3A.getUidType()));
+        categoryService.getCategoryOptionCombosByCategoryOption(List.of(UID.from(coTarget3A)));
 
     assertEquals(1, sourceCocsBefore.size(), "Expect 1 entry with source category option ref");
     assertEquals(1, targetCocsBefore.size(), "Expect 1 entry with target category option ref");
@@ -312,9 +312,9 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // then
     List<CategoryOptionCombo> sourceCocs =
         categoryService.getCategoryOptionCombosByCategoryOption(
-            List.of(coSource1A.getUidType(), coSource2B.getUidType()));
+            List.of(UID.from(coSource1A), UID.from(coSource2B)));
     List<CategoryOptionCombo> targetCocs =
-        categoryService.getCategoryOptionCombosByCategoryOption(List.of(coTarget3A.getUidType()));
+        categoryService.getCategoryOptionCombosByCategoryOption(List.of(UID.from(coTarget3A)));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
     List<CategoryOption> catOptions =
         targetCocs.stream()
@@ -362,9 +362,9 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // then
     List<OrganisationUnit> orgUnitSources =
         organisationUnitService.getByCategoryOption(
-            List.of(coSource1A.getUidType(), coSource2B.getUidType()));
+            List.of(UID.from(coSource1A), UID.from(coSource2B)));
     List<OrganisationUnit> orgUnitTarget =
-        organisationUnitService.getByCategoryOption(List.of(coTarget3A.getUidType()));
+        organisationUnitService.getByCategoryOption(List.of(UID.from(coTarget3A)));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
 
     assertFalse(report.hasErrorMessages());
@@ -405,9 +405,9 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // then
     List<OrganisationUnit> orgUnitSources =
         organisationUnitService.getByCategoryOption(
-            List.of(coSource1A.getUidType(), coSource2B.getUidType()));
+            List.of(UID.from(coSource1A), UID.from(coSource2B)));
     List<OrganisationUnit> orgUnitTarget =
-        organisationUnitService.getByCategoryOption(List.of(coTarget3A.getUidType()));
+        organisationUnitService.getByCategoryOption(List.of(UID.from(coTarget3A)));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
 
     assertFalse(report.hasErrorMessages());
@@ -434,9 +434,9 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // confirm org unit state before merge
     List<OrganisationUnit> sourceOusBefore =
         organisationUnitService.getByCategoryOption(
-            List.of(coSource1A.getUidType(), coSource2B.getUidType()));
+            List.of(UID.from(coSource1A), UID.from(coSource2B)));
     List<OrganisationUnit> targetOusBefore =
-        organisationUnitService.getByCategoryOption(List.of(coTarget3A.getUidType()));
+        organisationUnitService.getByCategoryOption(List.of(UID.from(coTarget3A)));
 
     assertEquals(1, sourceOusBefore.size(), "Expect 1 entry with source category option refs");
     assertEquals(1, targetOusBefore.size(), "Expect 1 entry with target category option ref");
@@ -448,9 +448,9 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // then
     List<OrganisationUnit> sourceOus =
         organisationUnitService.getByCategoryOption(
-            List.of(coSource1A.getUidType(), coSource2B.getUidType()));
+            List.of(UID.from(coSource1A), UID.from(coSource2B)));
     List<OrganisationUnit> targetOus =
-        organisationUnitService.getByCategoryOption(List.of(coTarget3A.getUidType()));
+        organisationUnitService.getByCategoryOption(List.of(UID.from(coTarget3A)));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
     List<CategoryOption> catOptions =
         targetOus.stream().flatMap(orgUnit -> orgUnit.getCategoryOptions().stream()).toList();
@@ -497,9 +497,9 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // then
     List<CategoryOptionGroup> cogSources =
         categoryService.getCategoryOptionGroupByCategoryOption(
-            List.of(coSource1A.getUidType(), coSource2B.getUidType()));
+            List.of(UID.from(coSource1A), UID.from(coSource2B)));
     List<CategoryOptionGroup> cogTarget =
-        categoryService.getCategoryOptionGroupByCategoryOption(List.of(coTarget3A.getUidType()));
+        categoryService.getCategoryOptionGroupByCategoryOption(List.of(UID.from(coTarget3A)));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
 
     assertFalse(report.hasErrorMessages());
@@ -540,9 +540,9 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // then
     List<CategoryOptionGroup> cogSources =
         categoryService.getCategoryOptionGroupByCategoryOption(
-            List.of(coSource1A.getUidType(), coSource2B.getUidType()));
+            List.of(UID.from(coSource1A), UID.from(coSource2B)));
     List<CategoryOptionGroup> cogTarget =
-        categoryService.getCategoryOptionGroupByCategoryOption(List.of(coTarget3A.getUidType()));
+        categoryService.getCategoryOptionGroupByCategoryOption(List.of(UID.from(coTarget3A)));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
 
     assertFalse(report.hasErrorMessages());
@@ -568,9 +568,9 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // confirm cat option combo state before merge
     List<CategoryOptionGroup> sourceCogsBefore =
         categoryService.getCategoryOptionGroupByCategoryOption(
-            List.of(coSource1A.getUidType(), coSource2B.getUidType()));
+            List.of(UID.from(coSource1A), UID.from(coSource2B)));
     List<CategoryOptionGroup> targetCogsBefore =
-        categoryService.getCategoryOptionGroupByCategoryOption(List.of(coTarget3A.getUidType()));
+        categoryService.getCategoryOptionGroupByCategoryOption(List.of(UID.from(coTarget3A)));
 
     assertEquals(1, sourceCogsBefore.size(), "Expect 1 entry with source category option ref");
     assertEquals(1, targetCogsBefore.size(), "Expect 1 entry with target category option ref");
@@ -582,9 +582,9 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // then
     List<CategoryOptionGroup> sourceCogs =
         categoryService.getCategoryOptionGroupByCategoryOption(
-            List.of(coSource1A.getUidType(), coSource2B.getUidType()));
+            List.of(UID.from(coSource1A), UID.from(coSource2B)));
     List<CategoryOptionGroup> targetCogs =
-        categoryService.getCategoryOptionGroupByCategoryOption(List.of(coTarget3A.getUidType()));
+        categoryService.getCategoryOptionGroupByCategoryOption(List.of(UID.from(coTarget3A)));
     List<CategoryOption> allCategoryOptions = categoryService.getAllCategoryOptions();
     List<CategoryOption> catOptions =
         targetCogs.stream().flatMap(catOptGroup -> catOptGroup.getMembers().stream()).toList();
