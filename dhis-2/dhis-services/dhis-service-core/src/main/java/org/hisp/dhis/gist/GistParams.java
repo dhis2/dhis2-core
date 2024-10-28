@@ -86,9 +86,7 @@ public final class GistParams {
       See [Gist inverse parameter](https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata-gist.html#the-inverse-parameter).""")
   boolean inverse = false;
 
-  @OpenApi.Description(
-      """
-      Old name for `totalPages`.""")
+  @OpenApi.Description("Old name for `totalPages`.")
   @Deprecated(since = "2.41", forRemoval = true)
   Boolean total;
 
