@@ -128,6 +128,7 @@ public class DefaultUserService implements UserService {
   private final Cache<String> userDisplayNameCache;
   private final Cache<Integer> userFailedLoginAttemptCache;
   private final Cache<Integer> userAccountRecoverAttemptCache;
+  private final Cache<Integer> twoFaDisableFailedAttemptCache;
 
   public DefaultUserService(
       UserSettingService userSettingService,
@@ -177,6 +178,7 @@ public class DefaultUserService implements UserService {
     this.jsonMapper = jsonMapper;
     this.userFailedLoginAttemptCache = cacheProvider.createUserFailedLoginAttemptCache(0);
     this.userAccountRecoverAttemptCache = cacheProvider.createUserAccountRecoverAttemptCache(0);
+    this.twoFaDisableFailedAttemptCache = cacheProvider.createDisable2FAFailedAttemptCache(0);
   }
 
   @Override
@@ -803,6 +805,23 @@ public class DefaultUserService implements UserService {
     approveTwoFactorSecret(user, CurrentUserUtil.getCurrentUserDetails());
   }
 
+  @Override
+  public void registerFailed2FADisableAttempt(String username) {
+    Integer attempts = twoFaDisableFailedAttemptCache.get(username).orElse(0);
+    attempts++;
+    twoFaDisableFailedAttemptCache.put(username, attempts);
+  }
+
+  @Override
+  public void registerSuccess2FADisable(String username) {
+    twoFaDisableFailedAttemptCache.invalidate(username);
+  }
+
+  @Override
+  public boolean twoFaDisableIsLocked(String username) {
+    return twoFaDisableFailedAttemptCache.get(username).orElse(0) >= LOGIN_MAX_FAILED_ATTEMPTS;
+  }
+
   @Transactional
   @Override
   public void disableTwoFa(User user, String code) {
@@ -810,11 +829,17 @@ public class DefaultUserService implements UserService {
       throw new IllegalStateException("Two factor is not enabled, enable first");
     }
 
+    if (twoFaDisableIsLocked(user.getUsername())) {
+      throw new IllegalStateException("Too many failed attempts, try again later");
+    }
+
     if (!TwoFactoryAuthenticationUtils.verify(code, user.getSecret())) {
+      registerFailed2FADisableAttempt(user.getUsername());
       throw new IllegalStateException("Invalid code");
     }
 
     resetTwoFactor(user, CurrentUserUtil.getCurrentUserDetails());
+    registerSuccess2FADisable(user.getUsername());
   }
 
   @Override
