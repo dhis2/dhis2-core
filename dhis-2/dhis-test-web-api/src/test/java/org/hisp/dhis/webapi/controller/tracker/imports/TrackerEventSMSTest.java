@@ -608,7 +608,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void shouldCreateEventInEventProgramViaEventRegistrationParserCommand()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws ForbiddenException, BadRequestException {
     SMSCommand command = new SMSCommand();
     command.setName("visit");
     command.setParserType(ParserType.EVENT_REGISTRATION_PARSER);
@@ -649,7 +649,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     List<Event> events =
         eventService.getEvents(
             EventOperationParams.builder()
-                .program(UID.of(eventProgram))
+                .program(eventProgram)
                 .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
                 .eventParams(EventParams.FALSE)
                 .build());
@@ -672,7 +672,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void shouldCreateEventAndEnrollmentInTrackerProgramViaProgramStageDataEntryCommand()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws ForbiddenException, BadRequestException {
     SMSCommand command = new SMSCommand();
     command.setName("birth");
     command.setParserType(ParserType.PROGRAM_STAGE_DATAENTRY_PARSER);
@@ -714,8 +714,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     List<Enrollment> enrollments =
         enrollmentService.getEnrollments(
             EnrollmentOperationParams.builder()
-                .trackedEntity(UID.of(trackedEntity))
-                .program(UID.of(trackerProgram))
+                .trackedEntity(trackedEntity)
+                .program(trackerProgram)
                 .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
                 .build());
     assertHasSize(1, enrollments);
@@ -730,8 +730,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     List<Event> events =
         eventService.getEvents(
             EventOperationParams.builder()
-                .trackedEntity(UID.of(trackedEntity))
-                .program(UID.of(trackerProgram))
+                .trackedEntity(trackedEntity)
+                .program(trackerProgram)
                 .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
                 .eventParams(EventParams.FALSE)
                 .build());
@@ -755,7 +755,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void shouldCreateEventInExistingEnrollmentInTrackerProgramViaProgramStageDataEntryCommand()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws ForbiddenException, BadRequestException {
     SMSCommand command = new SMSCommand();
     command.setName("birth");
     command.setParserType(ParserType.PROGRAM_STAGE_DATAENTRY_PARSER);
@@ -798,8 +798,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     List<Event> events =
         eventService.getEvents(
             EventOperationParams.builder()
-                .trackedEntity(UID.of(trackedEntity))
-                .program(UID.of(trackerProgram))
+                .trackedEntity(trackedEntity)
+                .program(trackerProgram)
                 .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
                 .eventParams(EventParams.FALSE)
                 .build());

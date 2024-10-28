@@ -35,6 +35,9 @@ import lombok.Builder;
 import lombok.Getter;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.Order;
 
@@ -62,6 +65,26 @@ public class RelationshipOperationParams {
 
     public RelationshipOperationParamsBuilder orderBy(String field, SortDirection direction) {
       this.order.add(new Order(field, direction));
+      return this;
+    }
+
+    public RelationshipOperationParamsBuilder identifier(UID uid) {
+      this.identifier = uid;
+      return this;
+    }
+
+    public RelationshipOperationParamsBuilder identifier(TrackedEntity trackedEntity) {
+      this.identifier = UID.of(trackedEntity);
+      return this;
+    }
+
+    public RelationshipOperationParamsBuilder identifier(Enrollment enrollment) {
+      this.identifier = UID.of(enrollment);
+      return this;
+    }
+
+    public RelationshipOperationParamsBuilder identifier(Event event) {
+      this.identifier = UID.of(event);
       return this;
     }
   }

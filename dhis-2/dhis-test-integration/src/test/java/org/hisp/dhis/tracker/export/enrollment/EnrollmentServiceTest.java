@@ -309,8 +309,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     assertNotNull(enrollment);
     assertContainsOnly(
-        List.of(eventA.getUid()),
-        enrollment.getEvents().stream().map(Event::getUid).collect(Collectors.toList()));
+        List.of(eventA.getUid()), enrollment.getEvents().stream().map(Event::getUid).toList());
   }
 
   @Test
@@ -449,14 +448,14 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetEnrollmentsWhenUserHasReadAccessToProgramAndSearchScopeAccessToOrgUnit()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
 
     manager.updateNoAcl(programA);
 
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
-            .program(UID.of(programA))
+            .program(programA)
             .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
             .build();
 
@@ -470,16 +469,13 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetEnrollmentsWhenUserHasReadAccessToProgramAndNoOrgUnitNorOrgUnitModeSpecified()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
 
     manager.updateNoAcl(programA);
 
     EnrollmentOperationParams params =
-        EnrollmentOperationParams.builder()
-            .program(UID.of(programA))
-            .orgUnitMode(ACCESSIBLE)
-            .build();
+        EnrollmentOperationParams.builder().program(programA).orgUnitMode(ACCESSIBLE).build();
 
     List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
 
@@ -491,7 +487,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetEnrollmentsInCaptureScopeIfOrgUnitModeCapture()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
 
     manager.updateNoAcl(programA);
@@ -509,15 +505,15 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetEnrollmentWhenEnrollmentsAndOtherParamsAreSpecified()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
 
     manager.updateNoAcl(programA);
 
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
-            .program(UID.of(programA))
-            .enrollments(Set.of(UID.of(enrollmentA)))
+            .program(programA)
+            .enrollments(enrollmentA)
             .orgUnitMode(ACCESSIBLE)
             .build();
 
@@ -529,15 +525,15 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetEnrollmentsByTrackedEntityWhenUserHasAccessToTrackedEntityType()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
     manager.updateNoAcl(programA);
 
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
-            .orgUnits(Set.of(UID.of(trackedEntityA.getOrganisationUnit())))
+            .orgUnits(trackedEntityA.getOrganisationUnit())
             .orgUnitMode(SELECTED)
-            .trackedEntity(UID.of(trackedEntityA))
+            .trackedEntity(trackedEntityA)
             .build();
 
     List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
@@ -548,12 +544,12 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnEnrollmentIfEnrollmentWasUpdatedBeforePassedDateAndTime()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     Date oneHourBeforeLastUpdated = oneHourBefore(enrollmentA.getLastUpdated());
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnits(Set.of(UID.of(orgUnitA)))
+            .orgUnits(orgUnitA)
             .orgUnitMode(SELECTED)
             .lastUpdated(oneHourBeforeLastUpdated)
             .build();
@@ -565,12 +561,12 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnEmptyIfEnrollmentWasUpdatedAfterPassedDateAndTime()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     Date oneHourAfterLastUpdated = oneHourAfter(enrollmentA.getLastUpdated());
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnits(Set.of(UID.of(orgUnitA)))
+            .orgUnits(orgUnitA)
             .orgUnitMode(SELECTED)
             .lastUpdated(oneHourAfterLastUpdated)
             .build();
@@ -582,15 +578,15 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnEnrollmentIfEnrollmentStartedBeforePassedDateAndTime()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
     Date oneHourBeforeEnrollmentDate = oneHourBefore(enrollmentA.getEnrollmentDate());
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnits(Set.of(UID.of(orgUnitA)))
+            .orgUnits(orgUnitA)
             .orgUnitMode(SELECTED)
-            .program(UID.of(programA))
+            .program(programA)
             .programStartDate(oneHourBeforeEnrollmentDate)
             .build();
 
@@ -601,15 +597,15 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnEmptyIfEnrollmentStartedAfterPassedDateAndTime()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
     Date oneHourAfterEnrollmentDate = oneHourAfter(enrollmentA.getEnrollmentDate());
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnits(Set.of(UID.of(orgUnitA)))
+            .orgUnits(orgUnitA)
             .orgUnitMode(SELECTED)
-            .program(UID.of(programA))
+            .program(programA)
             .programStartDate(oneHourAfterEnrollmentDate)
             .build();
 
@@ -620,15 +616,15 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnEnrollmentIfEnrollmentEndedAfterPassedDateAndTime()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
     Date oneHourAfterEnrollmentDate = oneHourAfter(enrollmentA.getEnrollmentDate());
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnits(Set.of(UID.of(orgUnitA)))
+            .orgUnits(orgUnitA)
             .orgUnitMode(SELECTED)
-            .program(UID.of(programA))
+            .program(programA)
             .programEndDate(oneHourAfterEnrollmentDate)
             .build();
 
@@ -639,15 +635,15 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnEmptyIfEnrollmentEndedBeforePassedDateAndTime()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
     Date oneHourBeforeEnrollmentDate = oneHourBefore(enrollmentA.getEnrollmentDate());
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnits(Set.of(UID.of(orgUnitA)))
+            .orgUnits(orgUnitA)
             .orgUnitMode(SELECTED)
-            .program(UID.of(programA))
+            .program(programA)
             .programEndDate(oneHourBeforeEnrollmentDate)
             .build();
 
@@ -658,7 +654,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnAllAccessibleEnrollmentsInTheSystemWhenModeAllAndUserAuthorized()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(authorizedUser);
 
     EnrollmentOperationParams operationParams =
@@ -687,10 +683,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(authorizedUser);
 
     EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder()
-            .orgUnitMode(DESCENDANTS)
-            .orgUnits(Set.of(UID.of(orgUnitA)))
-            .build();
+        EnrollmentOperationParams.builder().orgUnitMode(DESCENDANTS).orgUnits(orgUnitA).build();
 
     ForbiddenException exception =
         assertThrows(
@@ -702,7 +695,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnAllEnrollmentsWhenOrgUnitModeAllAndUserAuthorized()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(admin);
 
     EnrollmentOperationParams operationParams =
@@ -715,13 +708,10 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnAllDescendantsOfSelectedOrgUnitWhenOrgUnitModeDescendants()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
 
     EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder()
-            .orgUnits(Set.of(UID.of(orgUnitA)))
-            .orgUnitMode(DESCENDANTS)
-            .build();
+        EnrollmentOperationParams.builder().orgUnits(orgUnitA).orgUnitMode(DESCENDANTS).build();
 
     List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
     assertContainsOnly(
@@ -731,13 +721,10 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnChildrenOfRootOrgUnitWhenOrgUnitModeChildren()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
 
     EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder()
-            .orgUnits(Set.of(UID.of(orgUnitA)))
-            .orgUnitMode(CHILDREN)
-            .build();
+        EnrollmentOperationParams.builder().orgUnits(orgUnitA).orgUnitMode(CHILDREN).build();
 
     List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
     assertContainsOnly(List.of(enrollmentA.getUid(), enrollmentChildA.getUid()), uids(enrollments));
@@ -745,13 +732,10 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnChildrenOfRequestedOrgUnitWhenOrgUnitModeChildren()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
 
     EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder()
-            .orgUnits(Set.of(UID.of(orgUnitChildA)))
-            .orgUnitMode(CHILDREN)
-            .build();
+        EnrollmentOperationParams.builder().orgUnits(orgUnitChildA).orgUnitMode(CHILDREN).build();
 
     List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
     assertContainsOnly(
@@ -761,11 +745,11 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   @Test
   void
       shouldReturnAllChildrenOfRequestedOrgUnitsWhenOrgUnitModeChildrenAndMultipleOrgUnitsRequested()
-          throws ForbiddenException, BadRequestException, NotFoundException {
+          throws ForbiddenException, BadRequestException {
 
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
-            .orgUnits(UID.of(orgUnitA, orgUnitChildA))
+            .orgUnits(orgUnitA, orgUnitChildA)
             .orgUnitMode(CHILDREN)
             .build();
 
@@ -813,7 +797,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   private static List<String> attributeUids(Enrollment enrollment) {
     return enrollment.getTrackedEntity().getTrackedEntityAttributeValues().stream()
         .map(v -> v.getAttribute().getUid())
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private static Set<String> relationshipUids(Enrollment enrollment) {

@@ -227,10 +227,7 @@ class EnrollmentOperationParamsMapperTest {
       throws ForbiddenException, BadRequestException {
 
     EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder()
-            .orgUnits(Set.of(UID.of(orgUnit1)))
-            .orgUnitMode(CHILDREN)
-            .build();
+        EnrollmentOperationParams.builder().orgUnits(orgUnit1).orgUnitMode(CHILDREN).build();
 
     EnrollmentQueryParams params = mapper.map(operationParams, user);
 

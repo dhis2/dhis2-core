@@ -136,7 +136,7 @@ class EventExporterTest extends TrackerTest {
     injectSecurityContextUser(importUser);
 
     operationParamsBuilder = EventOperationParams.builder().eventParams(EventParams.FALSE);
-    operationParamsBuilder.orgUnit(UID.of(orgUnit)).orgUnitMode(SELECTED);
+    operationParamsBuilder.orgUnit(orgUnit).orgUnitMode(SELECTED);
   }
 
   @Test
@@ -144,7 +144,7 @@ class EventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         operationParamsBuilder
-            .trackedEntity(UID.of(trackedEntity))
+            .trackedEntity(trackedEntity)
             .enrollments(Set.of(UID.of("TvctPPhpD8z")))
             .build();
 
@@ -189,7 +189,7 @@ class EventExporterTest extends TrackerTest {
 
   @Test
   void testExportEvents() throws ForbiddenException, BadRequestException {
-    EventOperationParams params = operationParamsBuilder.programStage(UID.of(programStage)).build();
+    EventOperationParams params = operationParamsBuilder.programStage(programStage).build();
 
     List<String> events = getEvents(params);
 
@@ -200,7 +200,7 @@ class EventExporterTest extends TrackerTest {
   void testExportEventsWhenFilteringByEnrollment() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         operationParamsBuilder
-            .trackedEntity(UID.of(trackedEntity))
+            .trackedEntity(trackedEntity)
             .enrollments(Set.of(UID.of("TvctPPhpD8z")))
             .build();
 
@@ -215,7 +215,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("TvctPPhpD8z")))
-            .programStage(UID.of(programStage))
+            .programStage(programStage)
             .occurredAfter(getDate(2018, 1, 1))
             .occurredBefore(getDate(2020, 1, 29))
             .skipChangedBefore(getDate(2018, 1, 1))
@@ -231,7 +231,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("TvctPPhpD8z")))
-            .programStage(UID.of(programStage))
+            .programStage(programStage)
             .updatedWithin("1d")
             .build();
 
@@ -246,7 +246,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("TvctPPhpD8z")))
-            .programStage(UID.of(programStage))
+            .programStage(programStage)
             .occurredBefore(Date.from(getDate(2020, 1, 28).toInstant().plus(1, ChronoUnit.HOURS)))
             .occurredAfter(Date.from(getDate(2020, 1, 28).toInstant().minus(1, ChronoUnit.HOURS)))
             .build();
@@ -262,7 +262,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("TvctPPhpD8z")))
-            .programStage(UID.of(programStage))
+            .programStage(programStage)
             .occurredBefore(getDate(2020, 1, 28))
             .build();
 
@@ -277,7 +277,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("TvctPPhpD8z")))
-            .programStage(UID.of(programStage))
+            .programStage(programStage)
             .occurredAfter(getDate(2020, 1, 28))
             .build();
 
@@ -292,7 +292,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("TvctPPhpD8z")))
-            .programStage(UID.of(programStage))
+            .programStage(programStage)
             .updatedAfter(
                 Date.from(
                     date.toInstant()
@@ -353,7 +353,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
-            .programStage(UID.of(programStage))
+            .programStage(programStage)
             .dataElementFilters(
                 Map.of(UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
             .build();
@@ -373,7 +373,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
-            .programStage(UID.of(programStage))
+            .programStage(programStage)
             .enrollmentStatus(EnrollmentStatus.ACTIVE)
             .dataElementFilters(
                 Map.of(UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
@@ -392,7 +392,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
-            .programStage(UID.of(programStage))
+            .programStage(programStage)
             .programType(ProgramType.WITH_REGISTRATION)
             .dataElementFilters(
                 Map.of(UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
@@ -411,7 +411,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
-            .programStage(UID.of(programStage))
+            .programStage(programStage)
             .dataElementFilters(
                 Map.of(
                     UID.of(dataElement),
@@ -431,7 +431,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
-            .programStage(UID.of(programStage))
+            .programStage(programStage)
             .dataElementFilters(
                 Map.of(
                     UID.of(dataElement),
@@ -451,8 +451,8 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
-            .programStage(UID.of(programStage))
-            .program(UID.of(program))
+            .programStage(programStage)
+            .program(program)
             .attributeCategoryCombo(UID.of("bjDvmb4bfuf"))
             .attributeCategoryOptions(Set.of(UID.of("xYerKDKCefk")))
             .dataElementFilters(
@@ -635,8 +635,8 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("TvctPPhpD8z")))
-            .programStage(UID.of(programStage))
-            .program(UID.of(program))
+            .programStage(programStage)
+            .program(program)
             .attributeCategoryCombo(UID.of("bjDvmb4bfuf"))
             .attributeCategoryOptions(Set.of(UID.of("xYerKDKCefk")))
             .dataElementFilters(
@@ -656,7 +656,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
-            .programStage(UID.of(programStage))
+            .programStage(programStage)
             .dataElementFilters(
                 Map.of(UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EQ, "option1"))))
             .build();
@@ -673,7 +673,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
-            .programStage(UID.of(programStage))
+            .programStage(programStage)
             .dataElementFilters(
                 Map.of(
                     UID.of(dataElement),
@@ -692,7 +692,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
-            .programStage(UID.of(programStage))
+            .programStage(programStage)
             .dataElementFilters(
                 Map.of(UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%opt%"))))
             .build();
@@ -709,7 +709,7 @@ class EventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
-            .programStage(UID.of(programStage))
+            .programStage(programStage)
             .dataElementFilters(
                 Map.of(
                     UID.of(dataElement),
@@ -905,7 +905,7 @@ class EventExporterTest extends TrackerTest {
           throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         operationParamsBuilder
-            .orgUnit(UID.of(orgUnit))
+            .orgUnit(orgUnit)
             .attributeFilters(Map.of(UID.of("notUpdated0"), List.of()))
             .build();
 
@@ -921,7 +921,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentFilterNumericAttributes() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         operationParamsBuilder
-            .orgUnit(UID.of(orgUnit))
+            .orgUnit(orgUnit)
             .attributeFilters(
                 Map.of(
                     UID.of("numericAttr"),
@@ -942,7 +942,7 @@ class EventExporterTest extends TrackerTest {
   void testEnrollmentFilterAttributes() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         operationParamsBuilder
-            .orgUnit(UID.of(orgUnit))
+            .orgUnit(orgUnit)
             .attributeFilters(
                 Map.of(
                     UID.of("toUpdate000"),
@@ -962,7 +962,7 @@ class EventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         operationParamsBuilder
-            .orgUnit(UID.of(orgUnit))
+            .orgUnit(orgUnit)
             .attributeFilters(
                 Map.of(
                     UID.of("toUpdate000"),
@@ -984,7 +984,7 @@ class EventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         operationParamsBuilder
-            .orgUnit(UID.of(orgUnit))
+            .orgUnit(orgUnit)
             .attributeFilters(
                 Map.of(
                     UID.of("toUpdate000"),

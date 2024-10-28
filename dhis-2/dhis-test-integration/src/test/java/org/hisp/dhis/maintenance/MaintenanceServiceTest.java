@@ -505,7 +505,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, BadRequestException {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
-            .enrollments(Set.of(UID.of(enrollment)))
+            .enrollments(enrollment)
             .orgUnitMode(ALL)
             .includeDeleted(true)
             .build();

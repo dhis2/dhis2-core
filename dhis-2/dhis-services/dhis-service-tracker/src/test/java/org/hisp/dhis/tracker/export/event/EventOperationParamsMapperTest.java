@@ -154,8 +154,7 @@ class EventOperationParamsMapperTest {
   void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToProgramStage() {
     ProgramStage programStage = new ProgramStage();
     programStage.setUid("PlZSBEN7iZd");
-    EventOperationParams eventOperationParams =
-        eventBuilder.programStage(UID.of(programStage)).build();
+    EventOperationParams eventOperationParams = eventBuilder.programStage(programStage).build();
 
     when(aclService.canDataRead(user, programStage)).thenReturn(false);
     when(programStageService.getProgramStage("PlZSBEN7iZd")).thenReturn(programStage);
@@ -438,8 +437,8 @@ class EventOperationParamsMapperTest {
 
     EventOperationParams operationParams =
         eventBuilder
-            .program(UID.of(program))
-            .orgUnit(UID.of(searchScopeChildOrgUnit))
+            .program(program)
+            .orgUnit(searchScopeChildOrgUnit)
             .orgUnitMode(orgUnitMode)
             .build();
 
@@ -472,11 +471,7 @@ class EventOperationParamsMapperTest {
         .thenReturn(searchScopeChildOrgUnit);
 
     EventOperationParams operationParams =
-        eventBuilder
-            .program(UID.of(program))
-            .orgUnit(UID.of(searchScopeChildOrgUnit))
-            .orgUnitMode(ALL)
-            .build();
+        eventBuilder.program(program).orgUnit(searchScopeChildOrgUnit).orgUnitMode(ALL).build();
 
     EventQueryParams queryParams = mapper.map(operationParams, UserDetails.fromUser(user));
     assertEquals(searchScopeChildOrgUnit, queryParams.getOrgUnit());
@@ -489,7 +484,7 @@ class EventOperationParamsMapperTest {
     OrganisationUnit orgUnit = createOrgUnit("name");
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
     EventOperationParams operationParams =
-        EventOperationParams.builder().orgUnit(UID.of(orgUnit)).orgUnitMode(orgUnitMode).build();
+        EventOperationParams.builder().orgUnit(orgUnit).orgUnitMode(orgUnitMode).build();
 
     ForbiddenException exception =
         assertThrows(
