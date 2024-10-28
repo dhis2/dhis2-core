@@ -42,6 +42,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.Maturity.Beta;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -87,6 +88,7 @@ public class CategoryOptionController extends AbstractCrudController<CategoryOpt
                 new IllegalArgumentException("At least one categoryOption uid must be specified"));
   }
 
+  @Beta
   @ResponseStatus(HttpStatus.OK)
   @RequiresAuthority(anyOf = F_CATEGORY_OPTION_MERGE)
   @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
