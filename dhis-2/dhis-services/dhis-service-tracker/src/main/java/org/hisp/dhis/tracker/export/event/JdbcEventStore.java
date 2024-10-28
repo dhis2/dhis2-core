@@ -120,8 +120,8 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 class JdbcEventStore implements EventStore {
   private static final String RELATIONSHIP_IDS_QUERY =
-      " left join (select ri.eventid as ri_ev_id, json_agg(ri.relationshipid) as ev_rl from relationshipitem ri"
-          + " group by ri_ev_id) as fgh on fgh.ri_ev_id=event.ev_id ";
+      " left join (select ri.eventid as ri_ev_id, json_agg(ri.relationshipid) as ev_rl from"
+          + " relationshipitem ri group by ri_ev_id) as fgh on fgh.ri_ev_id=event.ev_id ";
 
   private static final String EVENT_NOTE_QUERY =
       "select evn.eventid as evn_id,"
@@ -395,7 +395,7 @@ class JdbcEventStore implements EventStore {
               Note note = new Note();
               note.setUid(resultSet.getString("note_uid"));
               note.setNoteText(resultSet.getString("note_text"));
-              note.setCreated(resultSet.getDate("note_created"));
+              note.setCreated(resultSet.getTimestamp("note_created"));
               note.setCreator(resultSet.getString("note_creator"));
 
               if (resultSet.getObject("note_user_id") != null) {
@@ -409,7 +409,7 @@ class JdbcEventStore implements EventStore {
                 note.setLastUpdatedBy(noteLastUpdatedBy);
               }
 
-              note.setLastUpdated(resultSet.getDate("note_lastupdated"));
+              note.setLastUpdated(resultSet.getTimestamp("note_lastupdated"));
 
               event.getNotes().add(note);
               notes.add(resultSet.getString("note_id"));
@@ -805,7 +805,8 @@ class JdbcEventStore implements EventStore {
             .append(COLUMN_EVENT_DELETED)
             .append(", ")
             .append(
-                "ST_AsText( ev.geometry ) as ev_geometry, au.uid as user_assigned, (au.firstName || ' ' || au.surName) as ")
+                "ST_AsText( ev.geometry ) as ev_geometry, au.uid as user_assigned, (au.firstName ||"
+                    + " ' ' || au.surName) as ")
             .append(COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME)
             .append(",")
             .append(
@@ -843,7 +844,8 @@ class JdbcEventStore implements EventStore {
         .append("te.trackedentityid as te_id, te.uid as ")
         .append(COLUMN_TRACKEDENTITY_UID)
         .append(
-            ", teou.uid as te_ou, teou.name as te_ou_name, te.created as te_created, te.inactive as te_inactive ")
+            ", teou.uid as te_ou, teou.name as te_ou_name, te.created as te_created, te.inactive as"
+                + " te_inactive ")
         .append(
             getFromWhereClause(
                 params,
@@ -884,7 +886,8 @@ class JdbcEventStore implements EventStore {
           .append(
               "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid) ")
           .append(
-              "inner join organisationunit evou on (coalesce(po.organisationunitid, ev.organisationunitid)=evou.organisationunitid) ")
+              "inner join organisationunit evou on (coalesce(po.organisationunitid,"
+                  + " ev.organisationunitid)=evou.organisationunitid) ")
           .append(
               "inner join organisationunit ou on (ev.organisationunitid=ou.organisationunitid) ");
     } else {
@@ -1506,12 +1509,12 @@ class JdbcEventStore implements EventStore {
    */
   private String getCategoryOptionComboQuery(User user) {
     String joinCondition =
-        " inner join (select coc.uid, coc.attributevalues, coc.code, coc.categoryoptioncomboid as id,"
-            + " string_agg(co.uid, ',') as co_uids, count(co.categoryoptionid) as co_count"
-            + " from categoryoptioncombo coc "
-            + " inner join categoryoptioncombos_categoryoptions cocco on coc.categoryoptioncomboid = cocco.categoryoptioncomboid"
-            + " inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid"
-            + " group by coc.categoryoptioncomboid ";
+        " inner join (select coc.uid, coc.attributevalues, coc.code, coc.categoryoptioncomboid as"
+            + " id, string_agg(co.uid, ',') as co_uids, count(co.categoryoptionid) as co_count from"
+            + " categoryoptioncombo coc  inner join categoryoptioncombos_categoryoptions cocco on"
+            + " coc.categoryoptioncomboid = cocco.categoryoptioncomboid inner join categoryoption"
+            + " co on cocco.categoryoptionid = co.categoryoptionid group by"
+            + " coc.categoryoptioncomboid ";
 
     if (!isSuper(user)) {
       joinCondition =
@@ -1539,7 +1542,8 @@ class JdbcEventStore implements EventStore {
         if (!ORDERABLE_FIELDS.containsKey(field)) {
           throw new IllegalArgumentException(
               String.format(
-                  "Cannot order by '%s'. Supported are data elements, tracked entity attributes and fields '%s'.",
+                  "Cannot order by '%s'. Supported are data elements, tracked entity attributes and"
+                      + " fields '%s'.",
                   field, String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
         }
 
@@ -1551,7 +1555,8 @@ class JdbcEventStore implements EventStore {
       } else {
         throw new IllegalArgumentException(
             String.format(
-                "Cannot order by '%s'. Supported are data elements, tracked entity attributes and fields '%s'.",
+                "Cannot order by '%s'. Supported are data elements, tracked entity attributes and"
+                    + " fields '%s'.",
                 order.getField(),
                 String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
       }
@@ -1565,10 +1570,11 @@ class JdbcEventStore implements EventStore {
   }
 
   private String getAttributeValueQuery() {
-    return "select pav.trackedentityid as pav_id, pav.created as pav_created, pav.lastupdated as pav_lastupdated, "
-        + "pav.value as pav_value, ta.uid as ta_uid, ta.name as ta_name, ta.valuetype as ta_valuetype "
-        + "from trackedentityattributevalue pav "
-        + "inner join trackedentityattribute ta on pav.trackedentityattributeid=ta.trackedentityattributeid ";
+    return "select pav.trackedentityid as pav_id, pav.created as pav_created, pav.lastupdated as"
+        + " pav_lastupdated, pav.value as pav_value, ta.uid as ta_uid, ta.name as ta_name,"
+        + " ta.valuetype as ta_valuetype from trackedentityattributevalue pav inner join"
+        + " trackedentityattribute ta on"
+        + " pav.trackedentityattributeid=ta.trackedentityattributeid ";
   }
 
   private boolean isSuper(User user) {
