@@ -205,7 +205,7 @@
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
     <httpcomponents-core.version>5.3.1</httpcomponents-core.version>
-    <httpcomponents-client5.version>5.3.1</httpcomponents-client5.version>
+    <httpcomponents-client5.version>5.4</httpcomponents-client5.version>
     <kafka.version>3.8.0</kafka.version>
 
     <!-- Monitoring -->
