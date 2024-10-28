@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.merge.category;
 
-import com.google.common.collect.ImmutableList;
 import jakarta.persistence.EntityManager;
 import java.util.HashSet;
 import java.util.List;
@@ -62,7 +61,7 @@ public class CategoryOptionMergeService implements MergeService {
   private final CategoryOptionMergeHandler categoryOptionMergeHandler;
   private final MergeValidator validator;
   private final EntityManager entityManager;
-  private ImmutableList<MetadataMergeHandler> metadataMergeHandlers;
+  private List<MetadataMergeHandler> metadataMergeHandlers;
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
@@ -114,13 +113,12 @@ public class CategoryOptionMergeService implements MergeService {
   @PostConstruct
   private void initMergeHandlers() {
     metadataMergeHandlers =
-        ImmutableList.<MetadataMergeHandler>builder()
-            .add(categoryOptionMergeHandler::handleCategories)
-            .add(categoryOptionMergeHandler::handleCategoryOptionCombos)
-            .add(categoryOptionMergeHandler::handleOrganisationUnits)
-            .add(categoryOptionMergeHandler::handleCategoryOptionGroups)
-            .add(categoryOptionMergeHandler::handleCategoryDimensions)
-            .build();
+        List.of(
+            categoryOptionMergeHandler::handleCategories,
+            categoryOptionMergeHandler::handleCategoryOptionCombos,
+            categoryOptionMergeHandler::handleOrganisationUnits,
+            categoryOptionMergeHandler::handleCategoryOptionGroups,
+            categoryOptionMergeHandler::handleCategoryDimensions);
   }
 
   /**

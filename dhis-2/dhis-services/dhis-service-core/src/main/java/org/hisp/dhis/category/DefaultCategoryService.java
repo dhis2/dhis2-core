@@ -306,7 +306,7 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   public List<CategoryOption> getCategoryOptionsByUid(List<String> catOptionUids) {
-    return idObjectManager.getByUid(CategoryOption.class, catOptionUids);
+    return categoryOptionStore.getByUid(catOptionUids);
   }
 
   // -------------------------------------------------------------------------
