@@ -1119,8 +1119,7 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
         report.hasErrorReport(
             errorReport ->
                 "Duplicate reference [XJGLlMAMCcn] (Category) on object Gender [faV8QvLgIwB] (CategoryCombo) for association `category`"
-                    .equals(errorReport
-                    .getMessage())));
+                    .equals(errorReport.getMessage())));
   }
 
   private MetadataImportParams createParams(ImportStrategy importStrategy) {
