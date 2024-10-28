@@ -40,14 +40,14 @@ import org.hisp.dhis.category.CategoryOptionGroupStore;
 import org.hisp.dhis.category.CategoryStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 /**
  * Merge handler for metadata entities.
  *
  * @author david mackessy
  */
-@Service
+@Component
 @RequiredArgsConstructor
 public class CategoryOptionMergeHandler {
 

@@ -45,7 +45,7 @@ import org.hisp.dhis.datavalue.DataValueAuditStore;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeRequest;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 /**
  * Merge handler for data
@@ -53,7 +53,7 @@ import org.springframework.stereotype.Service;
  * @author david mackessy
  */
 @Slf4j
-@Service
+@Component
 @RequiredArgsConstructor
 public class DataDataElementMergeHandler {
 

@@ -47,14 +47,14 @@ import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorStore;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 /**
  * Merge handler for metadata entities.
  *
  * @author david mackessy
  */
-@Service
+@Component
 @RequiredArgsConstructor
 public class MetadataDataElementMergeHandler {
 
