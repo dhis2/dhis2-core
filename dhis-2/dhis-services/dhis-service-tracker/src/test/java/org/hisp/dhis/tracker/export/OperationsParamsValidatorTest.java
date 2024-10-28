@@ -32,6 +32,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
@@ -53,7 +54,6 @@ import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -113,8 +113,7 @@ class OperationsParamsValidatorTest {
   @Test
   void shouldFailWhenOuModeCaptureAndUserHasNoOrgUnitsAssigned() {
     Exception exception =
-        Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(CAPTURE, program, user));
+        assertThrows(ForbiddenException.class, () -> validateOrgUnitMode(CAPTURE, program, user));
 
     assertEquals("User needs to be assigned data capture org units", exception.getMessage());
   }
@@ -127,8 +126,8 @@ class OperationsParamsValidatorTest {
       OrganisationUnitSelectionMode orgUnitMode) {
 
     Exception exception =
-        Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(orgUnitMode, program, user));
+        assertThrows(
+            ForbiddenException.class, () -> validateOrgUnitMode(orgUnitMode, program, user));
 
     assertEquals(
         "User needs to be assigned either search or data capture org units",
@@ -138,8 +137,7 @@ class OperationsParamsValidatorTest {
   @Test
   void shouldFailWhenOuModeAllAndNotSuperuser() {
     Exception exception =
-        Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(ALL, program, user));
+        assertThrows(ForbiddenException.class, () -> validateOrgUnitMode(ALL, program, user));
 
     assertEquals(
         "User is not authorized to query across all organisation units", exception.getMessage());
@@ -150,7 +148,7 @@ class OperationsParamsValidatorTest {
     when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(null);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             BadRequestException.class,
             () -> paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
 
@@ -173,7 +171,7 @@ class OperationsParamsValidatorTest {
     when(aclService.canDataRead(user, program)).thenReturn(false);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             ForbiddenException.class,
             () -> paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
 
@@ -196,7 +194,6 @@ class OperationsParamsValidatorTest {
 
   @Test
   void shouldThrowForbiddenExceptionWhenUserHasNoAccessToProgramTrackedEntityType() {
-
     TrackedEntityType trackedEntityType = new TrackedEntityType("trackedEntityType", "");
     program.setTrackedEntityType(trackedEntityType);
     when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
@@ -204,7 +201,7 @@ class OperationsParamsValidatorTest {
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(false);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             ForbiddenException.class,
             () -> paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
 
@@ -222,7 +219,7 @@ class OperationsParamsValidatorTest {
     when(aclService.canDataRead(user, program)).thenReturn(true);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             BadRequestException.class,
             () -> paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
 
@@ -244,7 +241,7 @@ class OperationsParamsValidatorTest {
     when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue())).thenReturn(null);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             BadRequestException.class,
             () -> paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user));
 
@@ -274,7 +271,7 @@ class OperationsParamsValidatorTest {
     when(aclService.canDataRead(user, trackedEntity.getTrackedEntityType())).thenReturn(false);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             ForbiddenException.class,
             () -> paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user));
 
@@ -291,7 +288,7 @@ class OperationsParamsValidatorTest {
         .thenReturn(null);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             BadRequestException.class,
             () -> paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID, user));
 
@@ -321,7 +318,7 @@ class OperationsParamsValidatorTest {
     when(aclService.canDataRead(user, trackedEntityType)).thenReturn(false);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             ForbiddenException.class,
             () -> paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID, user));
 
@@ -337,7 +334,7 @@ class OperationsParamsValidatorTest {
     when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID.getValue())).thenReturn(null);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             BadRequestException.class,
             () -> paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID), user));
 
@@ -364,7 +361,7 @@ class OperationsParamsValidatorTest {
     when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID.getValue())).thenReturn(orgUnit);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             ForbiddenException.class,
             () -> paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID), user));
 

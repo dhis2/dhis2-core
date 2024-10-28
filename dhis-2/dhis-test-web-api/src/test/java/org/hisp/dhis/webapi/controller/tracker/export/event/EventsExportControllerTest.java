@@ -172,6 +172,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void getEventsFailsIfGivenAttributeCategoryOptionsAndDeprecatedAttributeCos() {
+    switchContextToUser(user);
+
     assertStartsWith(
         "Only one parameter of 'attributeCos' (deprecated",
         GET("/tracker/events?attributeCategoryOptions=Hq3Kc6HK4OZ&attributeCos=Hq3Kc6HK4OZ")
@@ -181,6 +183,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void getEventsFailsIfGivenAttributeCcAndAttributeCategoryCombo() {
+    switchContextToUser(user);
+
     assertStartsWith(
         "Only one parameter of 'attributeCc' and 'attributeCategoryCombo'",
         GET("/tracker/events?attributeCc=FQnYqKlIHxd&attributeCategoryCombo=YApXsOpwiXk")
@@ -195,6 +199,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     event.setNotes(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
     manager.update(event);
     relationship(event, to);
+    switchContextToUser(user);
 
     JsonEvent pathEvent =
         GET("/tracker/events/{id}?fields=*", event.getUid())
@@ -206,14 +211,14 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
             .getList("events", JsonEvent.class);
 
     assertHasSize(1, queryEvents.stream().toList());
-    assertEquals(pathEvent.toJson(), queryEvents.get(0).toJson());
+    assertEquals(
+        pathEvent.toJson(), queryEvents.get(0).toJson(), "the event JSON must be identical");
   }
 
   @Test
   void getEventById() {
     Event event = event(enrollment(trackedEntity()));
-
-    injectSecurityContextUser(user);
+    switchContextToUser(user);
 
     JsonEvent json =
         GET("/tracker/events/{id}", event.getUid()).content(HttpStatus.OK).as(JsonEvent.class);
@@ -224,8 +229,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void getEventByIdWithFields() {
     Event event = event(enrollment(trackedEntity()));
-
-    injectSecurityContextUser(user);
+    switchContextToUser(user);
 
     JsonEvent jsonEvent =
         GET("/tracker/events/{id}?fields=orgUnit,status", event.getUid())
@@ -242,8 +246,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     Event event = event(enrollment(trackedEntity()));
     event.setNotes(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
     manager.update(event);
-
-    injectSecurityContextUser(user);
+    switchContextToUser(user);
 
     JsonEvent jsonEvent =
         GET("/tracker/events/{uid}?fields=notes", event.getUid())
@@ -261,8 +264,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     Event event = event(enrollment(trackedEntity()));
     event.getEventDataValues().add(dv);
     manager.update(event);
-
-    injectSecurityContextUser(user);
+    switchContextToUser(user);
 
     JsonEvent eventJson =
         GET("/tracker/events/{id}?fields=dataValues", event.getUid())
@@ -283,8 +285,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     TrackedEntity to = trackedEntity();
     Event from = event(enrollment(to));
     Relationship relationship = relationship(from, to);
-
-    injectSecurityContextUser(user);
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET("/tracker/events/{id}?fields=relationships", from.getUid())
@@ -315,9 +316,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     TrackedEntity to = trackedEntity();
     Event from = event(enrollment(to));
     relationship(relationshipTypeNotAccessible(), from, to);
-    // this.switchContextToUser(user);
-
-    injectSecurityContextUser(user);
+    manager.flush();
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET("/tracker/events/{id}?fields=relationships", from.getUid())
@@ -333,9 +333,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     TrackedEntity to = trackedEntity(type);
     Event from = event(enrollment(to));
     relationship(from, to);
-
-    // this.switchContextToUser(user);
-    injectSecurityContextUser(user);
+    manager.flush();
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET("/tracker/events/{id}?fields=relationships", from.getUid())
@@ -350,14 +349,10 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     TrackedEntity to = trackedEntityNotInSearchScope();
     Event from = event(enrollment(to));
     relationship(from, to);
-    // this.switchContextToUser(user);
-    injectSecurityContextUser(user);
+    manager.flush();
+    switchContextToUser(user);
 
-    assertTrue(
-        GET("/tracker/events/{id}", from.getUid())
-            .error(HttpStatus.FORBIDDEN)
-            .getMessage()
-            .contains("OWNERSHIP_ACCESS_DENIED"));
+    GET("/tracker/events/{id}", from.getUid()).error(HttpStatus.NOT_FOUND);
   }
 
   @Test
@@ -366,8 +361,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     TrackedEntity from = trackedEntity(type);
     Event to = event(enrollment(from));
     relationship(from, to);
-    // this.switchContextToUser(user);
-    injectSecurityContextUser(user);
+    manager.flush();
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET("/tracker/events/{id}?fields=relationships", to.getUid())
@@ -395,7 +390,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     event.setEventDataValues(eventDataValues);
     manager.save(event);
 
-    injectSecurityContextUser(user);
+    switchContextToUser(user);
 
     JsonObject jsonEvent = GET("/tracker/events/{id}", event.getUid()).content(HttpStatus.OK);
 
@@ -418,7 +413,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void getEventByIdNotFound() {
-    injectSecurityContextUser(user);
+    switchContextToUser(user);
 
     assertEquals(
         "Event with id Hq3Kc6HK4OZ could not be found.",
@@ -433,8 +428,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     Event event = event(enrollment(trackedEntity()));
     event.getEventDataValues().add(dataValue(de, file.getUid()));
     manager.update(event);
-
-    injectSecurityContextUser(user);
+    manager.flush();
+    switchContextToUser(user);
 
     HttpResponse response =
         GET(
@@ -458,9 +453,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     FileResource file = storeFile("image/png", "file content");
 
     event.getEventDataValues().add(dataValue(de, file.getUid()));
-    manager.update(event);
-
-    injectSecurityContextUser(user);
+    manager.flush();
+    switchContextToUser(user);
 
     HttpResponse response =
         GET(
@@ -483,9 +477,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
     Event event = event(enrollment(trackedEntity()));
     event.getEventDataValues().add(dataValue(de, file.getUid()));
-    manager.update(event);
-
-    injectSecurityContextUser(user);
+    manager.flush();
+    switchContextToUser(user);
 
     HttpResponse response =
         GET(
@@ -519,7 +512,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
     String deUid = CodeGenerator.generateUid();
 
-    injectSecurityContextUser(user);
+    switchContextToUser(user);
 
     assertStartsWith(
         "DataElement with id " + deUid,
@@ -542,7 +535,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     manager.update(event);
 
     // this.switchContextToUser(user);
-    injectSecurityContextUser(user);
+    switchContextToUser(user);
 
     GET("/tracker/events/{eventUid}/dataValues/{dataElementUid}/file", event.getUid(), de.getUid())
         .error(HttpStatus.NOT_FOUND);
@@ -556,7 +549,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     event.getEventDataValues().add(dataValue(de, "true"));
     manager.update(event);
 
-    injectSecurityContextUser(user);
+    switchContextToUser(user);
 
     assertStartsWith(
         "Data element " + de.getUid() + " is not a file",
@@ -573,7 +566,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     Event event = event(enrollment(trackedEntity()));
     DataElement de = dataElement(ValueType.FILE_RESOURCE);
 
-    injectSecurityContextUser(user);
+    switchContextToUser(user);
 
     assertEquals(
         "DataValue for data element " + de.getUid() + " could not be found.",
@@ -595,7 +588,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     event.getEventDataValues().add(dataValue(de, file.getUid()));
     manager.update(event);
 
-    injectSecurityContextUser(user);
+    switchContextToUser(user);
 
     GET("/tracker/events/{eventUid}/dataValues/{dataElementUid}/file", event.getUid(), de.getUid())
         .error(HttpStatus.CONFLICT);
@@ -610,7 +603,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     event.getEventDataValues().add(dataValue(de, fileUid));
     manager.update(event);
 
-    injectSecurityContextUser(user);
+    switchContextToUser(user);
 
     assertStartsWith(
         "FileResource with id " + fileUid,
@@ -631,13 +624,11 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     Event event = event(enrollment(trackedEntityNotInSearchScope()));
     event.getEventDataValues().add(dataValue(de, file.getUid()));
     manager.update(event);
-
-    injectSecurityContextUser(user);
-
-    this.switchContextToUser(user);
+    manager.flush();
+    switchContextToUser(user);
 
     GET("/tracker/events/{eventUid}/dataValues/{dataElementUid}/file", event.getUid(), de.getUid())
-        .error(HttpStatus.FORBIDDEN);
+        .error(HttpStatus.NOT_FOUND);
   }
 
   @Test
@@ -648,8 +639,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
     event.getEventDataValues().add(dataValue(de, file.getUid()));
     manager.update(event);
-
-    injectSecurityContextUser(user);
+    manager.flush();
+    switchContextToUser(user);
 
     HttpResponse response =
         GET(
@@ -684,8 +675,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
     event.getEventDataValues().add(dataValue(de, file.getUid()));
     manager.update(event);
-
-    injectSecurityContextUser(user);
+    manager.flush();
+    switchContextToUser(user);
 
     HttpResponse response =
         GET(
@@ -711,7 +702,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     event.getEventDataValues().add(dataValue(de, file.getUid()));
     manager.update(event);
 
-    injectSecurityContextUser(user);
+    switchContextToUser(user);
 
     String message =
         GET(
@@ -732,8 +723,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     Event event = event(enrollment(trackedEntity()));
     event.getEventDataValues().add(dataValue(de, file.getUid()));
     manager.update(event);
-
-    injectSecurityContextUser(user);
+    manager.flush();
+    switchContextToUser(user);
 
     String message =
         GET(
@@ -765,8 +756,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
     event.getEventDataValues().add(dataValue(de, file.getUid()));
     manager.update(event);
-
-    injectSecurityContextUser(user);
+    manager.flush();
+    switchContextToUser(user);
 
     String message =
         GET(
@@ -789,18 +780,18 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   private DataElement dataElement(ValueType type) {
-    DataElement de = createDataElement('B');
-    de.setValueType(type);
-    de.getSharing().setOwner(owner);
-    manager.save(de, false);
-    return de;
+    DataElement result = createDataElement('B');
+    result.setValueType(type);
+    result.getSharing().setOwner(owner);
+    manager.save(result, false);
+    return result;
   }
 
   private EventDataValue dataValue(DataElement de, String value) {
-    EventDataValue dv = new EventDataValue();
-    dv.setDataElement(de.getUid());
-    dv.setValue(value);
-    return dv;
+    EventDataValue result = new EventDataValue();
+    result.setDataElement(de.getUid());
+    result.setValue(value);
+    return result;
   }
 
   private TrackedEntityType trackedEntityTypeAccessible() {
@@ -824,21 +815,21 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   private TrackedEntity trackedEntity() {
-    TrackedEntity te = trackedEntity(orgUnit);
-    manager.save(te, false);
-    return te;
+    TrackedEntity result = trackedEntity(orgUnit);
+    manager.save(result, false);
+    return result;
   }
 
   private TrackedEntity trackedEntityNotInSearchScope() {
-    TrackedEntity te = trackedEntity(anotherOrgUnit);
-    manager.save(te, false);
-    return te;
+    TrackedEntity result = trackedEntity(anotherOrgUnit);
+    manager.save(result, false);
+    return result;
   }
 
   private TrackedEntity trackedEntity(TrackedEntityType trackedEntityType) {
-    TrackedEntity te = trackedEntity(orgUnit, trackedEntityType);
-    manager.save(te, false);
-    return te;
+    TrackedEntity result = trackedEntity(orgUnit, trackedEntityType);
+    manager.save(result, false);
+    return result;
   }
 
   private TrackedEntity trackedEntity(OrganisationUnit orgUnit) {
@@ -847,28 +838,28 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
   private TrackedEntity trackedEntity(
       OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity te = createTrackedEntity(orgUnit);
-    te.setTrackedEntityType(trackedEntityType);
-    te.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    te.getSharing().setOwner(owner);
-    return te;
+    TrackedEntity result = createTrackedEntity(orgUnit);
+    result.setTrackedEntityType(trackedEntityType);
+    result.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    result.getSharing().setOwner(owner);
+    return result;
   }
 
   private Enrollment enrollment(TrackedEntity te) {
-    Enrollment enrollment = new Enrollment(program, te, te.getOrganisationUnit());
-    enrollment.setAutoFields();
-    enrollment.setEnrollmentDate(new Date());
-    enrollment.setOccurredDate(new Date());
-    enrollment.setStatus(EnrollmentStatus.COMPLETED);
-    manager.save(enrollment);
-    return enrollment;
+    Enrollment result = new Enrollment(program, te, te.getOrganisationUnit());
+    result.setAutoFields();
+    result.setEnrollmentDate(new Date());
+    result.setOccurredDate(new Date());
+    result.setStatus(EnrollmentStatus.COMPLETED);
+    manager.save(result);
+    return result;
   }
 
   private Event event(Enrollment enrollment) {
-    Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
-    event.setAutoFields();
-    manager.save(event);
-    return event;
+    Event result = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
+    result.setAutoFields();
+    manager.save(result);
+    return result;
   }
 
   private UserAccess userAccess() {

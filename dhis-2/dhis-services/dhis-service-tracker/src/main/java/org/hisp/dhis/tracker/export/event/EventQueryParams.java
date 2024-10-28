@@ -482,6 +482,11 @@ class EventQueryParams {
     return this;
   }
 
+  public EventQueryParams filterBy(DataElement de) {
+    this.dataElements.putIfAbsent(de, new ArrayList<>());
+    return this;
+  }
+
   public EventQueryParams setIncludeDeleted(boolean includeDeleted) {
     this.includeDeleted = includeDeleted;
     return this;

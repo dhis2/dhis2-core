@@ -73,12 +73,12 @@ public class OperationsParamsValidator {
    *
    * @param orgUnitMode the {@link OrganisationUnitSelectionMode orgUnitMode} used in the current
    *     case
-   * @throws BadRequestException if a validation error occurs for any of the three aforementioned
+   * @throws ForbiddenException if a validation error occurs for any of the three aforementioned
    *     modes
    */
   public static void validateOrgUnitMode(
       OrganisationUnitSelectionMode orgUnitMode, Program program, UserDetails user)
-      throws BadRequestException {
+      throws ForbiddenException {
     switch (orgUnitMode) {
       case ALL -> validateUserCanSearchOrgUnitModeALL(user);
       case SELECTED, ACCESSIBLE, DESCENDANTS, CHILDREN -> validateUserScope(program, user);
@@ -87,30 +87,28 @@ public class OperationsParamsValidator {
   }
 
   private static void validateUserCanSearchOrgUnitModeALL(UserDetails user)
-      throws BadRequestException {
+      throws ForbiddenException {
     if (!user.isAuthorized(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS)) {
-      throw new BadRequestException(
-          "User is not authorized to query across all organisation units");
+      throw new ForbiddenException("User is not authorized to query across all organisation units");
     }
   }
 
   private static void validateUserScope(Program program, UserDetails user)
-      throws BadRequestException {
-
+      throws ForbiddenException {
     if (program != null && (program.isClosed() || program.isProtected())) {
       if (user.getUserOrgUnitIds().isEmpty()) {
-        throw new BadRequestException("User needs to be assigned data capture org units");
+        throw new ForbiddenException("User needs to be assigned data capture org units");
       }
 
     } else if (user.getUserEffectiveSearchOrgUnitIds().isEmpty()) {
-      throw new BadRequestException(
+      throw new ForbiddenException(
           "User needs to be assigned either search or data capture org units");
     }
   }
 
-  private static void validateCaptureScope(UserDetails user) throws BadRequestException {
+  private static void validateCaptureScope(UserDetails user) throws ForbiddenException {
     if (user.getUserOrgUnitIds().isEmpty()) {
-      throw new BadRequestException("User needs to be assigned data capture org units");
+      throw new ForbiddenException("User needs to be assigned data capture org units");
     }
   }
 
