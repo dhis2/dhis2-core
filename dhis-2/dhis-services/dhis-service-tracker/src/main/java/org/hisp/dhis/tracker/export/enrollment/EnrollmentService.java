@@ -50,11 +50,11 @@ public interface EnrollmentService {
 
   /** Get all enrollments matching given params. */
   List<Enrollment> getEnrollments(EnrollmentOperationParams params)
-      throws BadRequestException, ForbiddenException, NotFoundException;
+      throws BadRequestException, ForbiddenException;
 
   /** Get a page of enrollments matching given params. */
   Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
-      throws BadRequestException, ForbiddenException, NotFoundException;
+      throws BadRequestException, ForbiddenException;
 
   /**
    * Get event matching given {@code UID} under the privileges the user in the context. This method

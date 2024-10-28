@@ -39,6 +39,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.UserDetails;
 
 /**
@@ -72,17 +73,29 @@ public final class UID implements Serializable {
     return value;
   }
 
+  public static UID generate() {
+    return new UID(CodeGenerator.generateUid());
+  }
+
   @JsonCreator
   public static UID of(@Nonnull String value) {
     return new UID(value);
   }
 
   public static UID of(@Nonnull UserDetails currentUser) {
+    // TODO:(DHIS2-18296) Refactor SystemUser to use a valid uid
+    if (currentUser instanceof SystemUser) {
+      return new UID("systemUser1");
+    }
     return new UID(currentUser.getUid());
   }
 
   public static UID of(@CheckForNull UidObject object) {
     return object == null ? null : new UID(object.getUid());
+  }
+
+  public static Set<UID> of(@Nonnull String... values) {
+    return Stream.of(values).map(UID::of).collect(toUnmodifiableSet());
   }
 
   public static Set<UID> of(@Nonnull Collection<String> values) {

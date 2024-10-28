@@ -31,13 +31,11 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
-import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 
 import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -65,18 +63,14 @@ class EnrollmentOperationParamsMapper {
   public EnrollmentQueryParams map(
       @Nonnull EnrollmentOperationParams operationParams, @Nonnull UserDetails user)
       throws BadRequestException, ForbiddenException {
-    Program program =
-        paramsValidator.validateTrackerProgram(
-            applyIfNotNull(operationParams.getProgram(), UID::getValue), user);
+    Program program = paramsValidator.validateTrackerProgram(operationParams.getProgram(), user);
     TrackedEntityType trackedEntityType =
-        paramsValidator.validateTrackedEntityType(
-            applyIfNotNull(operationParams.getTrackedEntityType(), UID::getValue), user);
+        paramsValidator.validateTrackedEntityType(operationParams.getTrackedEntityType(), user);
     TrackedEntity trackedEntity =
-        paramsValidator.validateTrackedEntity(
-            applyIfNotNull(operationParams.getTrackedEntity(), UID::getValue), user);
+        paramsValidator.validateTrackedEntity(operationParams.getTrackedEntity(), user);
 
     Set<OrganisationUnit> orgUnits =
-        paramsValidator.validateOrgUnits(UID.toValueSet(operationParams.getOrgUnits()), user);
+        paramsValidator.validateOrgUnits(operationParams.getOrgUnits(), user);
     validateOrgUnitMode(operationParams.getOrgUnitMode(), program, user);
 
     EnrollmentQueryParams params = new EnrollmentQueryParams();

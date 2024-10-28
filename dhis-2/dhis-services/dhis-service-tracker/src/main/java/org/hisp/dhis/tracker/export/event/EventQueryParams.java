@@ -44,6 +44,7 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -123,7 +124,7 @@ class EventQueryParams {
 
   private boolean includeAllDataElements;
 
-  private Set<String> events = new HashSet<>();
+  private Set<UID> events = new HashSet<>();
 
   /** Each attribute will affect the final SQL query. Some attributes are filtered on. */
   private final Map<TrackedEntityAttribute, List<QueryFilter>> attributes = new HashMap<>();
@@ -138,16 +139,16 @@ class EventQueryParams {
 
   private boolean includeDeleted;
 
-  private Set<String> accessiblePrograms;
+  private Set<UID> accessiblePrograms;
 
-  private Set<String> accessibleProgramStages;
+  private Set<UID> accessibleProgramStages;
 
   private boolean synchronizationQuery;
 
   /** Indicates a point in the time used to decide the data that should not be synchronized */
   private Date skipChangedBefore;
 
-  private Set<String> enrollments;
+  private Set<UID> enrollments;
 
   @Getter private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
@@ -441,11 +442,11 @@ class EventQueryParams {
     return this;
   }
 
-  public Set<String> getEvents() {
+  public Set<UID> getEvents() {
     return events;
   }
 
-  public EventQueryParams setEvents(Set<String> events) {
+  public EventQueryParams setEvents(Set<UID> events) {
     this.events = events;
     return this;
   }
@@ -490,20 +491,20 @@ class EventQueryParams {
     return this.includeDeleted;
   }
 
-  public Set<String> getAccessiblePrograms() {
+  public Set<UID> getAccessiblePrograms() {
     return accessiblePrograms;
   }
 
-  public EventQueryParams setAccessiblePrograms(Set<String> accessiblePrograms) {
+  public EventQueryParams setAccessiblePrograms(Set<UID> accessiblePrograms) {
     this.accessiblePrograms = accessiblePrograms;
     return this;
   }
 
-  public Set<String> getAccessibleProgramStages() {
+  public Set<UID> getAccessibleProgramStages() {
     return accessibleProgramStages;
   }
 
-  public EventQueryParams setAccessibleProgramStages(Set<String> accessibleProgramStages) {
+  public EventQueryParams setAccessibleProgramStages(Set<UID> accessibleProgramStages) {
     this.accessibleProgramStages = accessibleProgramStages;
     return this;
   }
@@ -530,11 +531,11 @@ class EventQueryParams {
     return this;
   }
 
-  public Set<String> getEnrollments() {
+  public Set<UID> getEnrollments() {
     return enrollments;
   }
 
-  public EventQueryParams setEnrollments(Set<String> enrollments) {
+  public EventQueryParams setEnrollments(Set<UID> enrollments) {
     this.enrollments = enrollments;
     return this;
   }

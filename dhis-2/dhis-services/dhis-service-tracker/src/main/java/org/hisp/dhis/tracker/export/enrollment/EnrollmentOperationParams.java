@@ -39,7 +39,12 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.Order;
 
 @Getter
@@ -108,6 +113,60 @@ public class EnrollmentOperationParams {
 
     public EnrollmentOperationParamsBuilder orderBy(String field, SortDirection direction) {
       this.order.add(new Order(field, direction));
+      return this;
+    }
+
+    public EnrollmentOperationParamsBuilder trackedEntityType(UID uid) {
+      this.trackedEntityType = uid;
+      return this;
+    }
+
+    public EnrollmentOperationParamsBuilder trackedEntityType(TrackedEntityType trackedEntityType) {
+      this.trackedEntityType = UID.of(trackedEntityType);
+      return this;
+    }
+
+    public EnrollmentOperationParamsBuilder trackedEntity(UID uid) {
+      this.trackedEntity = uid;
+      return this;
+    }
+
+    public EnrollmentOperationParamsBuilder trackedEntity(TrackedEntity trackedEntity) {
+      this.trackedEntity = UID.of(trackedEntity);
+      return this;
+    }
+
+    public EnrollmentOperationParamsBuilder program(UID uid) {
+      this.program = uid;
+      return this;
+    }
+
+    public EnrollmentOperationParamsBuilder program(Program program) {
+      this.program = UID.of(program);
+      return this;
+    }
+
+    public EnrollmentOperationParamsBuilder orgUnits(Set<UID> uids) {
+      this.orgUnits$value = uids;
+      this.orgUnits$set = true;
+      return this;
+    }
+
+    public EnrollmentOperationParamsBuilder orgUnits(OrganisationUnit... organisationUnits) {
+      this.orgUnits$value = UID.of(organisationUnits);
+      this.orgUnits$set = true;
+      return this;
+    }
+
+    public EnrollmentOperationParamsBuilder enrollments(Set<UID> uids) {
+      this.enrollments$value = uids;
+      this.enrollments$set = true;
+      return this;
+    }
+
+    public EnrollmentOperationParamsBuilder enrollments(Enrollment... enrollments) {
+      this.enrollments$value = UID.of(enrollments);
+      this.enrollments$set = true;
       return this;
     }
   }

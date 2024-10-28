@@ -57,6 +57,7 @@ import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.event.EventStatus;
@@ -468,7 +469,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       trackedEntity
           .append(whereAnd.whereAnd())
           .append("TE.uid IN (")
-          .append(encodeAndQuote(params.getTrackedEntityUids()))
+          .append(encodeAndQuote(UID.toValueSet(params.getTrackedEntities())))
           .append(") ");
     }
 
@@ -845,7 +846,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append("SELECT userinfoid AS userid ")
           .append("FROM userinfo ")
           .append("WHERE uid IN (")
-          .append(encodeAndQuote(params.getAssignedUserQueryParam().getAssignedUsers()))
+          .append(
+              encodeAndQuote(UID.toValueSet(params.getAssignedUserQueryParam().getAssignedUsers())))
           .append(") ")
           .append(") AU ON AU.userid = EV.assigneduserid");
     }

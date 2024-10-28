@@ -140,8 +140,7 @@ class RelationshipsExportController {
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           List<FieldPath> fields)
       throws NotFoundException, ForbiddenException {
-    Relationship relationship =
-        RELATIONSHIP_MAPPER.from(relationshipService.getRelationship(uid.getValue()));
+    Relationship relationship = RELATIONSHIP_MAPPER.from(relationshipService.getRelationship(uid));
 
     return ResponseEntity.ok(fieldFilterService.toObjectNode(relationship, fields));
   }

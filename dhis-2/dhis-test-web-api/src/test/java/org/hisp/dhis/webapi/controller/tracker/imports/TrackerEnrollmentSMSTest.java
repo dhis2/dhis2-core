@@ -228,7 +228,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     submission.setTrackerProgram(trackerProgram.getUid());
     submission.setTrackedEntityInstance(CodeGenerator.generateUid());
     submission.setTrackedEntityType(trackedEntityType.getUid());
-    UID enrollmentUid = UID.of(CodeGenerator.generateUid());
+    UID enrollmentUid = UID.generate();
     submission.setEnrollment(enrollmentUid.getValue());
     submission.setEnrollmentDate(DateUtils.getDate(2024, 9, 2, 10, 15));
     submission.setIncidentDate(DateUtils.getDate(2024, 9, 3, 16, 23));
@@ -267,13 +267,13 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     assertDoesNotThrow(
         () ->
             trackedEntityService.getTrackedEntity(
-                submission.getTrackedEntityInstance().getUid(),
-                submission.getTrackerProgram().getUid(),
+                UID.of(submission.getTrackedEntityInstance().getUid()),
+                UID.of(submission.getTrackerProgram().getUid()),
                 TrackedEntityParams.FALSE));
     TrackedEntity actualTe =
         trackedEntityService.getTrackedEntity(
-            submission.getTrackedEntityInstance().getUid(),
-            submission.getTrackerProgram().getUid(),
+            UID.of(submission.getTrackedEntityInstance().getUid()),
+            UID.of(submission.getTrackerProgram().getUid()),
             TrackedEntityParams.FALSE.withIncludeAttributes(true));
     assertAll(
         "created tracked entity with tracked entity attribute values",
@@ -367,13 +367,13 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     assertDoesNotThrow(
         () ->
             trackedEntityService.getTrackedEntity(
-                submission.getTrackedEntityInstance().getUid(),
-                submission.getTrackerProgram().getUid(),
+                UID.of(submission.getTrackedEntityInstance().getUid()),
+                UID.of(submission.getTrackerProgram().getUid()),
                 TrackedEntityParams.FALSE));
     TrackedEntity actualTe =
         trackedEntityService.getTrackedEntity(
-            submission.getTrackedEntityInstance().getUid(),
-            submission.getTrackerProgram().getUid(),
+            UID.of(submission.getTrackedEntityInstance().getUid()),
+            UID.of(submission.getTrackerProgram().getUid()),
             TrackedEntityParams.FALSE.withIncludeAttributes(true));
     assertAll(
         "update tracked entity with tracked entity attribute values",
@@ -439,7 +439,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     List<Enrollment> enrollments =
         enrollmentService.getEnrollments(
             EnrollmentOperationParams.builder()
-                .program(UID.of(trackerProgram))
+                .program(trackerProgram)
                 .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
                 .build());
     assertHasSize(1, enrollments);
@@ -455,11 +455,11 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     assertDoesNotThrow(
         () ->
             trackedEntityService.getTrackedEntity(
-                trackedEntity.getUid(), trackerProgram.getUid(), TrackedEntityParams.FALSE));
+                UID.of(trackedEntity), UID.of(trackerProgram), TrackedEntityParams.FALSE));
     TrackedEntity actualTe =
         trackedEntityService.getTrackedEntity(
-            trackedEntity.getUid(),
-            trackerProgram.getUid(),
+            UID.of(trackedEntity),
+            UID.of(trackerProgram),
             TrackedEntityParams.FALSE.withIncludeAttributes(true));
     assertAll(
         "created tracked entity with tracked entity attribute values",

@@ -387,14 +387,6 @@ class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerInte
         () -> assertChange(attribute, previousValue, currentValue, actual));
   }
 
-  private static void assertDelete(
-      TrackedEntityAttribute attribute, String previousValue, JsonTrackedEntityChangeLog actual) {
-    assertAll(
-        () -> assertUser(actual),
-        () -> assertEquals("DELETE", actual.getType()),
-        () -> assertChange(attribute, previousValue, null, actual));
-  }
-
   private static void assertChange(
       TrackedEntityAttribute attribute,
       String previousValue,

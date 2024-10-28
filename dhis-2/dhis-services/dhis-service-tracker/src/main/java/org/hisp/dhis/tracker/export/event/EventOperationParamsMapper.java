@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
+import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 
 import java.util.List;
 import java.util.Map;
@@ -83,19 +84,22 @@ class EventOperationParamsMapper {
   public EventQueryParams map(
       @Nonnull EventOperationParams operationParams, @Nonnull UserDetails user)
       throws BadRequestException, ForbiddenException {
-    Program program = paramsValidator.validateProgramAccess(operationParams.getProgramUid(), user);
-    ProgramStage programStage = validateProgramStage(operationParams.getProgramStageUid(), user);
+    Program program = paramsValidator.validateProgramAccess(operationParams.getProgram(), user);
+    ProgramStage programStage =
+        validateProgramStage(
+            applyIfNotNull(operationParams.getProgramStage(), UID::getValue), user);
     TrackedEntity trackedEntity =
-        paramsValidator.validateTrackedEntity(operationParams.getTrackedEntityUid(), user);
-    OrganisationUnit orgUnit = validateRequestedOrgUnit(operationParams.getOrgUnitUid(), user);
+        paramsValidator.validateTrackedEntity(operationParams.getTrackedEntity(), user);
+    OrganisationUnit orgUnit =
+        validateRequestedOrgUnit(applyIfNotNull(operationParams.getOrgUnit(), UID::getValue), user);
     validateOrgUnitMode(operationParams.getOrgUnitMode(), program, user);
 
     CategoryOptionCombo attributeOptionCombo =
         categoryOptionComboService.getAttributeOptionCombo(
             operationParams.getAttributeCategoryCombo() != null
-                ? operationParams.getAttributeCategoryCombo()
+                ? operationParams.getAttributeCategoryCombo().getValue()
                 : null,
-            operationParams.getAttributeCategoryOptions(),
+            UID.toValueSet(operationParams.getAttributeCategoryOptions()),
             true);
 
     validateAttributeOptionCombo(attributeOptionCombo, user);
@@ -118,7 +122,7 @@ class EventOperationParamsMapper {
             new AssignedUserQueryParam(
                 operationParams.getAssignedUserMode(),
                 operationParams.getAssignedUsers(),
-                user.getUid()))
+                UID.of(user)))
         .setOccurredStartDate(operationParams.getOccurredAfter())
         .setOccurredEndDate(operationParams.getOccurredBefore())
         .setScheduledStartDate(operationParams.getScheduledAfter())
@@ -190,10 +194,10 @@ class EventOperationParamsMapper {
   }
 
   private void mapDataElementFilters(
-      EventQueryParams params, Map<String, List<QueryFilter>> dataElementFilters)
+      EventQueryParams params, Map<UID, List<QueryFilter>> dataElementFilters)
       throws BadRequestException {
-    for (Entry<String, List<QueryFilter>> dataElementFilter : dataElementFilters.entrySet()) {
-      DataElement de = dataElementService.getDataElement(dataElementFilter.getKey());
+    for (Entry<UID, List<QueryFilter>> dataElementFilter : dataElementFilters.entrySet()) {
+      DataElement de = dataElementService.getDataElement(dataElementFilter.getKey().getValue());
       if (de == null) {
         throw new BadRequestException(
             String.format(
@@ -208,11 +212,12 @@ class EventOperationParamsMapper {
   }
 
   private void mapAttributeFilters(
-      EventQueryParams params, Map<String, List<QueryFilter>> attributeFilters)
+      EventQueryParams params, Map<UID, List<QueryFilter>> attributeFilters)
       throws BadRequestException {
-    for (Map.Entry<String, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
+    for (Map.Entry<UID, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
       TrackedEntityAttribute tea =
-          trackedEntityAttributeService.getTrackedEntityAttribute(attributeFilter.getKey());
+          trackedEntityAttributeService.getTrackedEntityAttribute(
+              attributeFilter.getKey().getValue());
       if (tea == null) {
         throw new BadRequestException(
             String.format(
