@@ -364,7 +364,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void shouldFailDeletingNonExistingEvent() throws SmsCompressionException {
-    UID uid = UID.of(CodeGenerator.generateUid());
+    UID uid = UID.generate();
     assertThrows(NotFoundException.class, () -> eventService.getEvent(uid));
 
     DeleteSmsSubmission submission = new DeleteSmsSubmission();

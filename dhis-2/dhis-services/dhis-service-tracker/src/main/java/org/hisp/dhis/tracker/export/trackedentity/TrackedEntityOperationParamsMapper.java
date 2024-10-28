@@ -59,7 +59,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -92,23 +91,18 @@ class TrackedEntityOperationParamsMapper {
   public TrackedEntityQueryParams map(
       TrackedEntityOperationParams operationParams, UserDetails user)
       throws BadRequestException, ForbiddenException {
-    Program program =
-        paramsValidator.validateTrackerProgram(
-            ObjectUtils.applyIfNotNull(operationParams.getProgram(), UID::getValue), user);
+    Program program = paramsValidator.validateTrackerProgram(operationParams.getProgram(), user);
     ProgramStage programStage = validateProgramStage(operationParams, program);
 
     TrackedEntityType requestedTrackedEntityType =
-        paramsValidator.validateTrackedEntityType(
-            ObjectUtils.applyIfNotNull(operationParams.getTrackedEntityType(), UID::getValue),
-            user);
+        paramsValidator.validateTrackedEntityType(operationParams.getTrackedEntityType(), user);
 
     List<TrackedEntityType> trackedEntityTypes = getTrackedEntityTypes(program, user);
 
     List<Program> programs = getTrackerPrograms(program, user);
 
     Set<OrganisationUnit> orgUnits =
-        paramsValidator.validateOrgUnits(
-            UID.toValueSet(operationParams.getOrganisationUnits()), user);
+        paramsValidator.validateOrgUnits(operationParams.getOrganisationUnits(), user);
     validateOrgUnitMode(operationParams.getOrgUnitMode(), program, user);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();

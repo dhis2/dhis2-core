@@ -228,7 +228,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     submission.setTrackerProgram(trackerProgram.getUid());
     submission.setTrackedEntityInstance(CodeGenerator.generateUid());
     submission.setTrackedEntityType(trackedEntityType.getUid());
-    UID enrollmentUid = UID.of(CodeGenerator.generateUid());
+    UID enrollmentUid = UID.generate();
     submission.setEnrollment(enrollmentUid.getValue());
     submission.setEnrollmentDate(DateUtils.getDate(2024, 9, 2, 10, 15));
     submission.setIncidentDate(DateUtils.getDate(2024, 9, 3, 16, 23));

@@ -73,6 +73,10 @@ public final class UID implements Serializable {
     return value;
   }
 
+  public static UID generate() {
+    return new UID(CodeGenerator.generateUid());
+  }
+
   @JsonCreator
   public static UID of(@Nonnull String value) {
     return new UID(value);

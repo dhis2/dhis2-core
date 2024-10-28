@@ -35,6 +35,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -121,16 +122,16 @@ public class OperationsParamsValidator {
    * @throws ForbiddenException if the user has no data read access to the program or its tracked
    *     entity type
    */
-  public Program validateTrackerProgram(String programUid, UserDetails user)
+  public Program validateTrackerProgram(UID uid, UserDetails user)
       throws BadRequestException, ForbiddenException {
-    Program program = validateProgramAccess(programUid, user);
+    Program program = validateProgramAccess(uid, user);
 
     if (program == null) {
       return null;
     }
 
     if (program.isWithoutRegistration()) {
-      throw new BadRequestException("Program specified is not a tracker program: " + programUid);
+      throw new BadRequestException("Program specified is not a tracker program: " + uid);
     }
 
     if (program.getTrackedEntityType() != null
@@ -151,15 +152,15 @@ public class OperationsParamsValidator {
    * @throws BadRequestException if the program uid does not exist
    * @throws ForbiddenException if the user has no data read access to the program
    */
-  public Program validateProgramAccess(String programUid, UserDetails user)
+  public Program validateProgramAccess(UID uid, UserDetails user)
       throws BadRequestException, ForbiddenException {
-    if (programUid == null) {
+    if (uid == null) {
       return null;
     }
 
-    Program program = programService.getProgram(programUid);
+    Program program = programService.getProgram(uid.getValue());
     if (program == null) {
-      throw new BadRequestException("Program is specified but does not exist: " + programUid);
+      throw new BadRequestException("Program is specified but does not exist: " + uid);
     }
 
     if (!aclService.canDataRead(user, program)) {
@@ -176,17 +177,16 @@ public class OperationsParamsValidator {
    * @throws BadRequestException if the tracked entity uid does not exist
    * @throws ForbiddenException if the user has no data read access to type of the tracked entity
    */
-  public TrackedEntity validateTrackedEntity(String trackedEntityUid, UserDetails user)
+  public TrackedEntity validateTrackedEntity(UID uid, UserDetails user)
       throws BadRequestException, ForbiddenException {
-    if (trackedEntityUid == null) {
+    if (uid == null) {
       return null;
     }
 
     // TODO(tracker) Are these validations enough? Should we check for ownership too?
-    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, trackedEntityUid);
+    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, uid.getValue());
     if (trackedEntity == null) {
-      throw new BadRequestException(
-          "Tracked entity is specified but does not exist: " + trackedEntityUid);
+      throw new BadRequestException("Tracked entity is specified but does not exist: " + uid);
     }
     trackedEntityAuditService.addTrackedEntityAudit(trackedEntity, user.getUsername(), READ);
 
@@ -207,13 +207,14 @@ public class OperationsParamsValidator {
    * @throws BadRequestException if the tracked entity type uid does not exist
    * @throws ForbiddenException if the user has no data read access to the tracked entity type
    */
-  public TrackedEntityType validateTrackedEntityType(String uid, UserDetails user)
+  public TrackedEntityType validateTrackedEntityType(UID uid, UserDetails user)
       throws BadRequestException, ForbiddenException {
     if (uid == null) {
       return null;
     }
 
-    TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType(uid);
+    TrackedEntityType trackedEntityType =
+        trackedEntityTypeService.getTrackedEntityType(uid.getValue());
     if (trackedEntityType == null) {
       throw new BadRequestException("Tracked entity type is specified but does not exist: " + uid);
     }
@@ -234,11 +235,11 @@ public class OperationsParamsValidator {
    * @throws BadRequestException if the org unit uid does not exist
    * @throws ForbiddenException if the org unit is not part of the user scope
    */
-  public Set<OrganisationUnit> validateOrgUnits(Set<String> orgUnitIds, UserDetails user)
+  public Set<OrganisationUnit> validateOrgUnits(Set<UID> orgUnitIds, UserDetails user)
       throws BadRequestException, ForbiddenException {
     Set<OrganisationUnit> orgUnits = new HashSet<>();
-    for (String orgUnitUid : orgUnitIds) {
-      OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(orgUnitUid);
+    for (UID orgUnitUid : orgUnitIds) {
+      OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(orgUnitUid.getValue());
       if (orgUnit == null) {
         throw new BadRequestException("Organisation unit does not exist: " + orgUnitUid);
       }

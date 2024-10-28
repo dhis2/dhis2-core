@@ -273,7 +273,7 @@ class EventOperationParamsMapperTest {
 
   @Test
   void shouldFailWhenAttributeInGivenAttributeFilterDoesNotExist() {
-    UID filterName = UID.of(CodeGenerator.generateUid());
+    UID filterName = UID.generate();
     EventOperationParams operationParams =
         eventBuilder.attributeFilters(Map.of(filterName, List.of())).build();
 
@@ -386,7 +386,7 @@ class EventOperationParamsMapperTest {
 
   @Test
   void shouldFailWhenDataElementInGivenDataElementFilterDoesNotExist() {
-    UID filterName = UID.of(CodeGenerator.generateUid());
+    UID filterName = UID.generate();
     EventOperationParams operationParams =
         eventBuilder.dataElementFilters(Map.of(filterName, List.of())).build();
 
