@@ -171,8 +171,11 @@ public class FileResourceController extends AbstractFullReadOnlyController<FileR
       @RequestParam(defaultValue = "DATA_VALUE") FileResourceDomain domain,
       @RequestParam(required = false) String uid)
       throws IOException, ConflictException {
-    FileResource fileResource;
 
+    FileResourceUtils.validateFileSize(
+        file, Long.parseLong(dhisConfig.getProperty(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES)));
+
+    FileResource fileResource;
     if (domain.equals(FileResourceDomain.ICON)) {
       validateCustomIconFile(file);
       fileResource = fileResourceUtils.saveFileResource(uid, resizeIconToDefaultSize(file), domain);
