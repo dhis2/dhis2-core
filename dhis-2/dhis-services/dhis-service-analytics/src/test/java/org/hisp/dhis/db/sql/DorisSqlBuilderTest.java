@@ -266,7 +266,8 @@ class DorisSqlBuilderTest {
   void testRenameTable() {
     Table table = getTableA();
 
-    String expected = """
+    String expected =
+        """
         alter table `immunization` rename `immunization_main`;""";
 
     assertEquals(expected, sqlBuilder.renameTable(table, "immunization_main"));
@@ -326,7 +327,8 @@ class DorisSqlBuilderTest {
 
   @Test
   void testCountRows() {
-    String expected = """
+    String expected =
+        """
         select count(*) as row_count from `immunization`;""";
 
     assertEquals(expected, sqlBuilder.countRows(getTableA()));
