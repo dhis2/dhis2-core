@@ -66,7 +66,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@OpenApi.Document(entity = I18n.class)
+@OpenApi.Document(
+    entity = I18n.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping("/api/locales")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

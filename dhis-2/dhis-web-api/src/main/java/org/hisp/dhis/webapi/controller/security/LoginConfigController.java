@@ -42,7 +42,7 @@ import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.setting.SystemSettingsTranslationService;
 import org.hisp.dhis.system.SystemService;
-import org.hisp.dhis.webapi.controller.Server;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -52,7 +52,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Document(entity = Server.class)
+@OpenApi.Document(
+    entity = User.class,
+    classifiers = {"team:platform", "purpose:support"})
 @RestController
 @RequestMapping("/api/loginConfig")
 @RequiredArgsConstructor

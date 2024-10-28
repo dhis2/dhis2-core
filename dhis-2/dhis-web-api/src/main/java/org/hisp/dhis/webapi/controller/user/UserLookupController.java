@@ -55,7 +55,10 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Lars Helge Overland
  */
-@OpenApi.Document(entity = User.class, group = OpenApi.Document.GROUP_QUERY)
+@OpenApi.Document(
+    entity = User.class,
+    group = OpenApi.Document.GROUP_QUERY,
+    classifiers = {"team:platform", "purpose:metadata"})
 @RestController
 @RequestMapping("/api/userLookup")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

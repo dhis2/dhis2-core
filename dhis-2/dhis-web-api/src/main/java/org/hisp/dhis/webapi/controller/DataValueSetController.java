@@ -92,7 +92,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Document(entity = DataValue.class)
+@OpenApi.Document(
+    entity = DataValue.class,
+    classifiers = {"team:platform", "purpose:data"})
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/api/dataValueSets")

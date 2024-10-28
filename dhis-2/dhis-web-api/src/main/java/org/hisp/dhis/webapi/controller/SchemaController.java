@@ -65,7 +65,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(entity = Server.class)
+@OpenApi.Document(
+    entity = Server.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @RestController
 @RequestMapping("/api/schemas")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

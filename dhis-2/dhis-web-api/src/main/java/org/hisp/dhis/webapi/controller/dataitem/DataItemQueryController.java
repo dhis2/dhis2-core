@@ -73,7 +73,9 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author maikel arabori
  */
-@OpenApi.Document(entity = DataItem.class)
+@OpenApi.Document(
+    entity = DataItem.class,
+    classifiers = {"team:analytics", "purpose:analytics"})
 @Slf4j
 @ApiVersion({DEFAULT, ALL})
 @RequiredArgsConstructor

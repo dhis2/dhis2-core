@@ -74,7 +74,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Document(entity = Configuration.class)
+@OpenApi.Document(
+    entity = Configuration.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping("/api/configuration")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

@@ -68,7 +68,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /** Zubair <rajazubair.asghar@gmail.com> */
-@OpenApi.Document(entity = SmsGateway.class)
+@OpenApi.Document(
+    entity = SmsGateway.class,
+    classifiers = {"team:tracker", "purpose:metadata"})
 @RestController
 @RequestMapping("/api/gateways")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

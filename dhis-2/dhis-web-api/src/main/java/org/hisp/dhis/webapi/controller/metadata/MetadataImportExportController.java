@@ -94,7 +94,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(entity = Metadata.class)
+@OpenApi.Document(
+    entity = Metadata.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/metadata")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

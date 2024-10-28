@@ -115,6 +115,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @Controller
 @RequestMapping("/api/dataSets")
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class DataSetController extends AbstractCrudController<DataSet> {
   public static final String DSD_TRANSFORM = "/templates/metadata2dsd.xsl";
 

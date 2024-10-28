@@ -51,7 +51,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(entity = DeletedObject.class)
+@OpenApi.Document(
+    entity = DeletedObject.class,
+    classifiers = {"team:platform", "purpose:support"})
 @RestController
 @RequestMapping("/api/deletedObjects")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

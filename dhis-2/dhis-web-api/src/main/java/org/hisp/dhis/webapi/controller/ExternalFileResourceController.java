@@ -58,7 +58,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Stian Sandvold
  */
-@OpenApi.Document(entity = ExternalFileResource.class)
+@OpenApi.Document(
+    entity = ExternalFileResource.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping("/api/externalFileResources")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

@@ -50,7 +50,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Document(entity = Server.class)
+@OpenApi.Document(
+    entity = Server.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping("/api/tokens")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

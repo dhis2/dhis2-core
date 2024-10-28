@@ -59,7 +59,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
  *
  * @author Ameen Mohamed
  */
-@OpenApi.Document(entity = TrackedEntityAttribute.class)
+@OpenApi.Document(
+    entity = TrackedEntityAttribute.class,
+    classifiers = {"team:tracker", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/trigramSummary")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

@@ -108,7 +108,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(entity = Audit.class)
+@OpenApi.Document(
+    entity = Audit.class,
+    classifiers = {"team:platform", "purpose:support"})
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/audits")

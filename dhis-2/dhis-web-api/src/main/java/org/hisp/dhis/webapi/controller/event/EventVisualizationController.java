@@ -52,6 +52,7 @@ import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
@@ -89,6 +90,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/api/eventVisualizations")
 @ApiVersion({DEFAULT, ALL})
 @AllArgsConstructor
+@OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
 public class EventVisualizationController extends AbstractCrudController<EventVisualization> {
   private final DimensionService dimensionService;
 

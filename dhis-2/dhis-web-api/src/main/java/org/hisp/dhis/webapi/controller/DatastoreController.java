@@ -75,7 +75,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Stian Sandvold
  */
-@OpenApi.Document(entity = DatastoreEntry.class)
+@OpenApi.Document(
+    entity = DatastoreEntry.class,
+    classifiers = {"team:platform", "purpose:data"})
 @Controller
 @RequestMapping("/api/dataStore")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

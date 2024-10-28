@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -72,6 +73,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/sms/outbound")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@OpenApi.Document(classifiers = {"team:tracker", "purpose:data"})
 public class SmsOutboundController extends AbstractCrudController<OutboundSms> {
   private final MessageSender smsMessageSender;
 

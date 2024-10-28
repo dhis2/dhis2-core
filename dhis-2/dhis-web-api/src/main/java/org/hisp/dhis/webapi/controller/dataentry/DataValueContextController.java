@@ -53,7 +53,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@OpenApi.Document(entity = DataValue.class)
+@OpenApi.Document(
+    entity = DataValue.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/dataEntry")

@@ -40,6 +40,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataObjects;
@@ -50,6 +51,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiToken;
@@ -69,6 +71,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping({"/api/apiToken", "/api/apiTokens"})
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@OpenApi.Document(
+    entity = Icon.class,
+    classifiers = {"team:platform", "purpose:support"})
 public class ApiTokenController extends AbstractCrudController<ApiToken> {
   public static final String METHOD_TYPE_IS_NOT_SUPPORTED_MSG = "Method type is not supported";
 

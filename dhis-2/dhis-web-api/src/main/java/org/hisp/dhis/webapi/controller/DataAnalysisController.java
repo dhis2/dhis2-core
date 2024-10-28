@@ -109,7 +109,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Joao Antunes
  */
-@OpenApi.Document(entity = ValidationRule.class)
+@OpenApi.Document(
+    entity = ValidationRule.class,
+    classifiers = {"team:tracker", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/dataAnalysis")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

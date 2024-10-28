@@ -37,7 +37,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@OpenApi.Document(entity = Server.class)
+@OpenApi.Document(
+    entity = Server.class,
+    classifiers = {"team:platform", "purpose:support"})
 @RestController
 @RequestMapping("/api/staticConfiguration/")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

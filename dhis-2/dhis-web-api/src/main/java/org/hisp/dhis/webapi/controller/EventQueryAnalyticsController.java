@@ -70,8 +70,8 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
-import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.util.PeriodCriteriaUtils;
@@ -88,7 +88,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-@OpenApi.Document(entity = DataValue.class)
+@OpenApi.Document(
+    entity = Event.class,
+    classifiers = {"team:analytics", "purpose:analytics"})
 @Controller
 @ApiVersion({DEFAULT, ALL})
 @AllArgsConstructor

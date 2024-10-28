@@ -42,7 +42,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 /**
  * @author Luciano Fiandesio
  */
-@OpenApi.Document(entity = Server.class)
+@OpenApi.Document(
+    entity = Server.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Profile("!test")
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

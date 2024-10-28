@@ -88,7 +88,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(entity = Sharing.class)
+@OpenApi.Document(
+    entity = Sharing.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/sharing")
 @Slf4j

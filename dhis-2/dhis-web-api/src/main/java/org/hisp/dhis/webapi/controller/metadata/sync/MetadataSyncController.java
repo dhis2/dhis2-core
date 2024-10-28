@@ -60,7 +60,9 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author vanyas
  */
-@OpenApi.Document(entity = Metadata.class)
+@OpenApi.Document(
+    entity = Metadata.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @RestController
 @RequestMapping("/api/metadata/sync")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

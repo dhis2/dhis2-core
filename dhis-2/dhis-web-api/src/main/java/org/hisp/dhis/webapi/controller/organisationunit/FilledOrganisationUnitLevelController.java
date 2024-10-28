@@ -59,7 +59,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Document(entity = OrganisationUnitLevel.class)
+@OpenApi.Document(
+    entity = OrganisationUnitLevel.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/api/filledOrganisationUnitLevels")

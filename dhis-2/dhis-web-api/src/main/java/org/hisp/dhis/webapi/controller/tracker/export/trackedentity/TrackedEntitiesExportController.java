@@ -86,7 +86,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @OpenApi.EntityType(TrackedEntity.class)
-@OpenApi.Document(entity = org.hisp.dhis.trackedentity.TrackedEntity.class)
+@OpenApi.Document(
+    entity = org.hisp.dhis.trackedentity.TrackedEntity.class,
+    classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping("/api/tracker/trackedEntities")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
