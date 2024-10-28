@@ -84,15 +84,12 @@ class EventOperationParamsMapper {
   public EventQueryParams map(
       @Nonnull EventOperationParams operationParams, @Nonnull UserDetails user)
       throws BadRequestException, ForbiddenException {
-    Program program =
-        paramsValidator.validateProgramAccess(
-            applyIfNotNull(operationParams.getProgram(), UID::getValue), user);
+    Program program = paramsValidator.validateProgramAccess(operationParams.getProgram(), user);
     ProgramStage programStage =
         validateProgramStage(
             applyIfNotNull(operationParams.getProgramStage(), UID::getValue), user);
     TrackedEntity trackedEntity =
-        paramsValidator.validateTrackedEntity(
-            applyIfNotNull(operationParams.getTrackedEntity(), UID::getValue), user);
+        paramsValidator.validateTrackedEntity(operationParams.getTrackedEntity(), user);
     OrganisationUnit orgUnit =
         validateRequestedOrgUnit(applyIfNotNull(operationParams.getOrgUnit(), UID::getValue), user);
     validateOrgUnitMode(operationParams.getOrgUnitMode(), program, user);

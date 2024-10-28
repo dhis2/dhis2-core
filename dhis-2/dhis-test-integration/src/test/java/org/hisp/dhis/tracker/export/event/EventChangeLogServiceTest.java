@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.util.List;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -96,9 +95,7 @@ class EventChangeLogServiceTest extends TrackerTest {
   void shouldFailWhenEventDoesNotExist() {
     assertThrows(
         NotFoundException.class,
-        () ->
-            eventChangeLogService.getEventChangeLog(
-                UID.of(CodeGenerator.generateUid()), null, null));
+        () -> eventChangeLogService.getEventChangeLog(UID.generate(), null, null));
   }
 
   @Test
@@ -106,9 +103,7 @@ class EventChangeLogServiceTest extends TrackerTest {
     trackerObjectDeletionService.deleteEvents(List.of("D9PbzJY8bJM"));
     assertThrows(
         NotFoundException.class,
-        () ->
-            eventChangeLogService.getEventChangeLog(
-                UID.of(CodeGenerator.generateUid()), null, null));
+        () -> eventChangeLogService.getEventChangeLog(UID.generate(), null, null));
   }
 
   @Test
