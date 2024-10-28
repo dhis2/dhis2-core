@@ -39,11 +39,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -410,12 +410,13 @@ public class HibernateOrganisationUnitStore
   }
 
   @Override
-  public List<OrganisationUnit> getByCategoryOption(Collection<CategoryOption> categoryOptions) {
+  public List<OrganisationUnit> getByCategoryOption(@Nonnull Collection<String> categoryOptions) {
+    if (categoryOptions.isEmpty()) return List.of();
     return getQuery(
             """
             select distinct ou from OrganisationUnit ou
             join ou.categoryOptions co
-            where co in :categoryOptions
+            where co.uid in :categoryOptions
             """,
             OrganisationUnit.class)
         .setParameter("categoryOptions", categoryOptions)

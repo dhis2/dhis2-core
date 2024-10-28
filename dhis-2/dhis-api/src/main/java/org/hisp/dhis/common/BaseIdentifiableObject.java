@@ -196,6 +196,10 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
     return uid;
   }
 
+  public UID getUidType() {
+    return UID.of(getUid());
+  }
+
   public void setUid(String uid) {
     this.uid = uid;
   }

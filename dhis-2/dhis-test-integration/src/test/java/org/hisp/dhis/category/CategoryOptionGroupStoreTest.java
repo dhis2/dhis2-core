@@ -182,7 +182,8 @@ class CategoryOptionGroupStoreTest extends PostgresIntegrationTestBase {
     categoryOptionGroupStore.save(cogD);
 
     List<CategoryOptionGroup> cogs =
-        categoryOptionGroupStore.getByCategoryOption(List.of(coA, coB, coC));
+        categoryOptionGroupStore.getByCategoryOption(
+            List.of(coA.getUid(), coB.getUid(), coC.getUid()));
 
     assertEquals(3, cogs.size());
     assertTrue(

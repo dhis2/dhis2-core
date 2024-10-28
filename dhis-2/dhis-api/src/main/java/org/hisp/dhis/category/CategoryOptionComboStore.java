@@ -65,5 +65,5 @@ public interface CategoryOptionComboStore extends IdentifiableObjectStore<Catego
    * @return categoryOptionCombos with refs to categoryOptions
    */
   List<CategoryOptionCombo> getCategoryOptionCombosByCategoryOption(
-      Collection<CategoryOption> categoryOptions);
+      Collection<String> categoryOptions);
 }

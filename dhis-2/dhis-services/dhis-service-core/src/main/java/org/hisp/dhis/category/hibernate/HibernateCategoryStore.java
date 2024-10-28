@@ -31,8 +31,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryStore;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -91,12 +91,13 @@ public class HibernateCategoryStore extends HibernateIdentifiableObjectStore<Cat
   }
 
   @Override
-  public List<Category> getCategoriesByCategoryOption(Collection<CategoryOption> categoryOptions) {
+  public List<Category> getCategoriesByCategoryOption(@Nonnull Collection<String> categoryOptions) {
+    if (categoryOptions.isEmpty()) return List.of();
     return getQuery(
             """
             select distinct c from Category c
             join c.categoryOptions co
-            where co in :categoryOptions
+            where co.uid in :categoryOptions
             """,
             Category.class)
         .setParameter("categoryOptions", categoryOptions)

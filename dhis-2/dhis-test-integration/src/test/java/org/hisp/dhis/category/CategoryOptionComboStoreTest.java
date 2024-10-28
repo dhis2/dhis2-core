@@ -315,7 +315,8 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
     categoryService.updateOptionCombos(categoryCombo);
 
     List<CategoryOptionCombo> cocsByCategoryOption =
-        categoryOptionComboStore.getCategoryOptionCombosByCategoryOption(List.of(co1, co2, co3));
+        categoryOptionComboStore.getCategoryOptionCombosByCategoryOption(
+            List.of(co1.getUid(), co2.getUid(), co3.getUid()));
 
     assertEquals(4, cocsByCategoryOption.size(), "4 CategoryOptionCombos should be present");
     List<String> cos =

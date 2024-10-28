@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
@@ -151,7 +152,7 @@ public interface CategoryService {
    * @param categoryOptions refs to search for
    * @return categories with refs to categoryOptions
    */
-  List<Category> getCategoriesByCategoryOption(Collection<CategoryOption> categoryOptions);
+  List<Category> getCategoriesByCategoryOption(Collection<UID> categoryOptions);
 
   // -------------------------------------------------------------------------
   // CategoryOption
@@ -476,7 +477,7 @@ public interface CategoryService {
    * @return categoryOptionCombos with refs to categoryOptions
    */
   List<CategoryOptionCombo> getCategoryOptionCombosByCategoryOption(
-      Collection<CategoryOption> categoryOptions);
+      Collection<UID> categoryOptions);
 
   // -------------------------------------------------------------------------
   // DataElementOperand
@@ -526,8 +527,7 @@ public interface CategoryService {
 
   List<CategoryOptionGroup> getCategoryOptionGroups(CategoryOptionGroupSet groupSet);
 
-  List<CategoryOptionGroup> getCategoryOptionGroupByCategoryOption(
-      Collection<CategoryOption> categoryOptions);
+  List<CategoryOptionGroup> getCategoryOptionGroupByCategoryOption(Collection<UID> categoryOptions);
 
   /**
    * Returns a set of CategoryOptionGroups that may be seen by the current user, if the current user

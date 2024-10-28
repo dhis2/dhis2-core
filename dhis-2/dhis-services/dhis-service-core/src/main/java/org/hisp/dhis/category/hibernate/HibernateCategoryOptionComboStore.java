@@ -31,6 +31,7 @@ import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hibernate.NonUniqueResultException;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
@@ -147,12 +148,13 @@ public class HibernateCategoryOptionComboStore
 
   @Override
   public List<CategoryOptionCombo> getCategoryOptionCombosByCategoryOption(
-      Collection<CategoryOption> categoryOptions) {
+      @Nonnull Collection<String> categoryOptions) {
+    if (categoryOptions.isEmpty()) return List.of();
     return getQuery(
             """
             select distinct coc from CategoryOption co
             join co.categoryOptionCombos coc
-            where co in :categoryOptions
+            where co.uid in :categoryOptions
             """,
             CategoryOptionCombo.class)
         .setParameter("categoryOptions", categoryOptions)

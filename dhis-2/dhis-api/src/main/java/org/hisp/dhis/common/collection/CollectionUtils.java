@@ -53,6 +53,7 @@ import java.util.stream.StreamSupport;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 
 /**
@@ -401,5 +402,12 @@ public class CollectionUtils {
     Map<T, T> result = new HashMap<>();
     Stream.of(maps).forEach(result::putAll);
     return ImmutableMap.copyOf(result);
+  }
+
+  public static <T extends BaseIdentifiableObject> List<String> toUidValueList(
+      @Nonnull Collection<T> elements) {
+    return elements.isEmpty()
+        ? List.of()
+        : elements.stream().map(BaseIdentifiableObject::getUid).toList();
   }
 }

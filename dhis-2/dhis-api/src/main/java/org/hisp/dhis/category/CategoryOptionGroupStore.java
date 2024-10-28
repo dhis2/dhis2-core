@@ -34,5 +34,5 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 public interface CategoryOptionGroupStore extends IdentifiableObjectStore<CategoryOptionGroup> {
   List<CategoryOptionGroup> getCategoryOptionGroups(CategoryOptionGroupSet groupSet);
 
-  List<CategoryOptionGroup> getByCategoryOption(Collection<CategoryOption> categoryOptions);
+  List<CategoryOptionGroup> getByCategoryOption(Collection<String> categoryOptions);
 }

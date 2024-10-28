@@ -43,6 +43,7 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
@@ -198,8 +199,8 @@ public class DefaultCategoryService implements CategoryService {
   }
 
   @Override
-  public List<Category> getCategoriesByCategoryOption(Collection<CategoryOption> categoryOptions) {
-    return categoryStore.getCategoriesByCategoryOption(categoryOptions);
+  public List<Category> getCategoriesByCategoryOption(Collection<UID> categoryOptions) {
+    return categoryStore.getCategoriesByCategoryOption(UID.toValueList(categoryOptions));
   }
 
   // -------------------------------------------------------------------------
@@ -663,8 +664,9 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   public List<CategoryOptionCombo> getCategoryOptionCombosByCategoryOption(
-      Collection<CategoryOption> categoryOptions) {
-    return categoryOptionComboStore.getCategoryOptionCombosByCategoryOption(categoryOptions);
+      Collection<UID> categoryOptionsUids) {
+    return categoryOptionComboStore.getCategoryOptionCombosByCategoryOption(
+        UID.toValueList(categoryOptionsUids));
   }
 
   // -------------------------------------------------------------------------
@@ -779,8 +781,8 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   public List<CategoryOptionGroup> getCategoryOptionGroupByCategoryOption(
-      Collection<CategoryOption> categoryOptions) {
-    return categoryOptionGroupStore.getByCategoryOption(categoryOptions);
+      Collection<UID> categoryOptions) {
+    return categoryOptionGroupStore.getByCategoryOption(UID.toValueList(categoryOptions));
   }
 
   @Override

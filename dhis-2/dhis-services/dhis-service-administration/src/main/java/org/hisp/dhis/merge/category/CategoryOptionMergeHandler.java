@@ -38,6 +38,7 @@ import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupStore;
 import org.hisp.dhis.category.CategoryStore;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.springframework.stereotype.Component;
@@ -64,7 +65,8 @@ public class CategoryOptionMergeHandler {
    * @param target to add
    */
   public void handleCategories(List<CategoryOption> sources, CategoryOption target) {
-    List<Category> sourceCategories = categoryStore.getCategoriesByCategoryOption(sources);
+    List<Category> sourceCategories =
+        categoryStore.getCategoriesByCategoryOption(CollectionUtils.toUidValueList(sources));
     sourceCategories.forEach(
         c -> {
           c.addCategoryOption(target);
@@ -80,7 +82,8 @@ public class CategoryOptionMergeHandler {
    */
   public void handleCategoryOptionCombos(List<CategoryOption> sources, CategoryOption target) {
     List<CategoryOptionCombo> sourceCocs =
-        categoryOptionComboStore.getCategoryOptionCombosByCategoryOption(sources);
+        categoryOptionComboStore.getCategoryOptionCombosByCategoryOption(
+            CollectionUtils.toUidValueList(sources));
 
     sources.forEach(s -> s.removeCategoryOptionCombos(sourceCocs));
     target.addCategoryOptionCombos(sourceCocs);
@@ -93,7 +96,8 @@ public class CategoryOptionMergeHandler {
    * @param target to add
    */
   public void handleOrganisationUnits(List<CategoryOption> sources, CategoryOption target) {
-    List<OrganisationUnit> sourceOus = organisationUnitStore.getByCategoryOption(sources);
+    List<OrganisationUnit> sourceOus =
+        organisationUnitStore.getByCategoryOption(CollectionUtils.toUidValueList(sources));
 
     sourceOus.forEach(
         ou -> {
@@ -109,7 +113,8 @@ public class CategoryOptionMergeHandler {
    * @param target to add
    */
   public void handleCategoryOptionGroups(List<CategoryOption> sources, CategoryOption target) {
-    List<CategoryOptionGroup> sourceCogs = categoryOptionGroupStore.getByCategoryOption(sources);
+    List<CategoryOptionGroup> sourceCogs =
+        categoryOptionGroupStore.getByCategoryOption(CollectionUtils.toUidValueList(sources));
 
     sourceCogs.forEach(
         cog -> {
@@ -125,7 +130,8 @@ public class CategoryOptionMergeHandler {
    * @param target to add
    */
   public void handleCategoryDimensions(List<CategoryOption> sources, CategoryOption target) {
-    List<CategoryDimension> sourceCds = categoryDimensionStore.getByCategoryOption(sources);
+    List<CategoryDimension> sourceCds =
+        categoryDimensionStore.getByCategoryOption(CollectionUtils.toUidValueList(sources));
 
     sourceCds.forEach(
         cd -> {

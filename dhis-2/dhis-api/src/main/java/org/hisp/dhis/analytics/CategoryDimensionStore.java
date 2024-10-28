@@ -44,5 +44,5 @@ public interface CategoryDimensionStore extends GenericStore<CategoryDimension> 
    * @param categoryOptions to search for
    * @return matching {@link CategoryDimension}s
    */
-  List<CategoryDimension> getByCategoryOption(Collection<CategoryOption> categoryOptions);
+  List<CategoryDimension> getByCategoryOption(Collection<String> categoryOptions);
 }

@@ -185,7 +185,8 @@ class OrganisationUnitStoreIntegrationTest extends PostgresIntegrationTestBase {
 
     // when
     List<OrganisationUnit> organisationUnits =
-        organisationUnitStore.getByCategoryOption(List.of(co1, co2, co3));
+        organisationUnitStore.getByCategoryOption(
+            List.of(co1.getUid(), co2.getUid(), co3.getUid()));
 
     // then
     assertEquals(2, organisationUnits.size());

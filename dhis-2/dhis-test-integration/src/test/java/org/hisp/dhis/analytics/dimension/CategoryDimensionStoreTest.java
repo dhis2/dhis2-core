@@ -88,7 +88,8 @@ class CategoryDimensionStoreTest extends PostgresIntegrationTestBase {
 
     // when retrieving CategoryDimensions by CategoryOption (3)
     List<CategoryDimension> cdsByCategoryOption =
-        categoryDimensionStore.getByCategoryOption(List.of(co1, co2, co3));
+        categoryDimensionStore.getByCategoryOption(
+            List.of(co1.getUid(), co2.getUid(), co3.getUid()));
 
     // then
     assertEquals(3, cdsByCategoryOption.size(), "3 CategoryDimensions should be present");

@@ -30,9 +30,9 @@ package org.hisp.dhis.analytics.hibernate;
 import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.analytics.CategoryDimensionStore;
 import org.hisp.dhis.category.CategoryDimension;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -51,12 +51,13 @@ public class HibernateCategoryDimensionStore extends HibernateGenericStore<Categ
   }
 
   @Override
-  public List<CategoryDimension> getByCategoryOption(Collection<CategoryOption> categoryOptions) {
+  public List<CategoryDimension> getByCategoryOption(@Nonnull Collection<String> categoryOptions) {
+    if (categoryOptions.isEmpty()) return List.of();
     return getQuery(
             """
             select distinct cd from CategoryDimension cd
             join cd.items co
-            where co in :categoryOptions
+            where co.uid in :categoryOptions
             """,
             CategoryDimension.class)
         .setParameter("categoryOptions", categoryOptions)

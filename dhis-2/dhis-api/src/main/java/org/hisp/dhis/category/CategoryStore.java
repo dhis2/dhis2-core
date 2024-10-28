@@ -42,5 +42,5 @@ public interface CategoryStore extends GenericDimensionalObjectStore<Category> {
 
   List<Category> getCategoriesNoAcl(DataDimensionType dataDimensionType, boolean dataDimension);
 
-  List<Category> getCategoriesByCategoryOption(Collection<CategoryOption> categoryOptions);
+  List<Category> getCategoriesByCategoryOption(Collection<String> categoryOptions);
 }

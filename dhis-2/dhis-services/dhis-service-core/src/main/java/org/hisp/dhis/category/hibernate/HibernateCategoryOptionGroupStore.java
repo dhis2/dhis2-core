@@ -32,7 +32,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Join;
 import java.util.Collection;
 import java.util.List;
-import org.hisp.dhis.category.CategoryOption;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryOptionGroupStore;
@@ -78,12 +78,14 @@ public class HibernateCategoryOptionGroupStore
   }
 
   @Override
-  public List<CategoryOptionGroup> getByCategoryOption(Collection<CategoryOption> categoryOptions) {
+  public List<CategoryOptionGroup> getByCategoryOption(
+      @Nonnull Collection<String> categoryOptions) {
+    if (categoryOptions.isEmpty()) return List.of();
     return getQuery(
             """
             select distinct cog from CategoryOptionGroup cog
             join cog.members co
-            where co in :categoryOptions
+            where co.uid in :categoryOptions
             """,
             CategoryOptionGroup.class)
         .setParameter("categoryOptions", categoryOptions)

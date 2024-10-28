@@ -65,7 +65,8 @@ class CategoryStoreTest extends PostgresIntegrationTestBase {
     categoryService.addCategory(c4);
 
     List<Category> categoriesByCategoryOption =
-        categoryStore.getCategoriesByCategoryOption(List.of(co1, co2, co3));
+        categoryStore.getCategoriesByCategoryOption(
+            List.of(co1.getUid(), co2.getUid(), co3.getUid()));
 
     assertEquals(2, categoriesByCategoryOption.size(), "2 Categories should be present");
     List<String> categoryOptions =
