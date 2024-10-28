@@ -47,8 +47,12 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.export.Order;
 
 @Getter
@@ -164,6 +168,46 @@ public class EventOperationParams {
 
     public EventOperationParamsBuilder orderBy(UID uid, SortDirection direction) {
       this.order.add(new Order(uid, direction));
+      return this;
+    }
+
+    public EventOperationParamsBuilder program(UID uid) {
+      this.program = uid;
+      return this;
+    }
+
+    public EventOperationParamsBuilder program(Program program) {
+      this.program = UID.of(program);
+      return this;
+    }
+
+    public EventOperationParamsBuilder programStage(UID uid) {
+      this.programStage = uid;
+      return this;
+    }
+
+    public EventOperationParamsBuilder programStage(ProgramStage programStage) {
+      this.programStage = UID.of(programStage);
+      return this;
+    }
+
+    public EventOperationParamsBuilder orgUnit(UID uid) {
+      this.orgUnit = uid;
+      return this;
+    }
+
+    public EventOperationParamsBuilder orgUnit(OrganisationUnit orgUnit) {
+      this.orgUnit = UID.of(orgUnit);
+      return this;
+    }
+
+    public EventOperationParamsBuilder trackedEntity(UID uid) {
+      this.trackedEntity = uid;
+      return this;
+    }
+
+    public EventOperationParamsBuilder trackedEntity(TrackedEntity trackedEntity) {
+      this.trackedEntity = UID.of(trackedEntity);
       return this;
     }
   }
