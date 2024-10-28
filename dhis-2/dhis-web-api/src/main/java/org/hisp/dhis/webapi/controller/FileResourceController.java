@@ -124,10 +124,12 @@ public class FileResourceController {
     }
 
     response.setContentType(fileResource.getContentType());
+
     response.setHeader(
         HttpHeaders.CONTENT_LENGTH,
         String.valueOf(fileResourceService.getFileResourceContentLength(fileResource)));
     response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName());
+
     HeaderUtils.setSecurityHeaders(
         response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
 
@@ -149,15 +151,19 @@ public class FileResourceController {
       @RequestParam(defaultValue = "DATA_VALUE") FileResourceDomain domain,
       @RequestParam(required = false) String uid)
       throws IOException, WebMessageException {
-    FileResource fileResource;
 
+    FileResourceUtils.validateFileSize(
+        file, Long.parseLong(dhisConfig.getProperty(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES)));
+    FileResource fileResource;
     if (domain.equals(FileResourceDomain.ICON)) {
       validateCustomIconFile(file);
       fileResource = fileResourceUtils.saveFileResource(uid, resizeIconToDefaultSize(file), domain);
+
     } else if (domain.equals(FileResourceDomain.USER_AVATAR)) {
       fileResourceUtils.validateUserAvatar(file);
       fileResource =
           fileResourceUtils.saveFileResource(uid, resizeAvatarToDefaultSize(file), domain);
+
     } else {
       fileResource = fileResourceUtils.saveFileResource(uid, file, domain);
     }

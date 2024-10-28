@@ -88,12 +88,29 @@ public class FileResourceUtils {
   private static final int AVATAR_TARGET_HEIGHT = 200;
   private static final int AVATAR_TARGET_WIDTH = 200;
 
-  private static final long MAX_AVATAR_FILE_SIZE_IN_BYTES = 2_000_000;
+  private static final long MAX_AVATAR_IMAGE_SIZE_IN_BYTES = 2_000_000;
 
-  private static final List<String> ALLOWED_AVATAR_FILE_EXTENSIONS =
+  private static final List<String> ALLOWED_IMAGE_FILE_EXTENSIONS =
       List.of("jpg", "jpeg", "png", "gif");
-  private static final List<String> ALLOWED_AVATAR_MIME_TYPES =
+  private static final List<String> ALLOWED_IMAGE_MIME_TYPES =
       List.of("image/jpeg", "image/png", "image/gif");
+
+  private static class MultipartFileByteSource extends ByteSource {
+    private MultipartFile file;
+
+    public MultipartFileByteSource(MultipartFile file) {
+      this.file = file;
+    }
+
+    @Override
+    public InputStream openStream() {
+      try {
+        return file.getInputStream();
+      } catch (IOException ioe) {
+        return new NullInputStream(0);
+      }
+    }
+  }
 
   /**
    * Transfers the given multipart file content to a local temporary file.
@@ -224,31 +241,10 @@ public class FileResourceUtils {
     return fileResource;
   }
 
-  // -------------------------------------------------------------------------
-  // Inner classes
-  // -------------------------------------------------------------------------
-
-  private class MultipartFileByteSource extends ByteSource {
-    private MultipartFile file;
-
-    public MultipartFileByteSource(MultipartFile file) {
-      this.file = file;
-    }
-
-    @Override
-    public InputStream openStream() throws IOException {
-      try {
-        return file.getInputStream();
-      } catch (IOException ioe) {
-        return new NullInputStream(0);
-      }
-    }
-  }
-
   public void validateUserAvatar(@Nonnull MultipartFile file) {
-    validateContentType(file.getContentType(), ALLOWED_AVATAR_MIME_TYPES);
-    validateFileExtension(file.getOriginalFilename(), ALLOWED_AVATAR_FILE_EXTENSIONS);
-    validateFileSize(file, MAX_AVATAR_FILE_SIZE_IN_BYTES);
+    validateContentType(file.getContentType(), ALLOWED_IMAGE_MIME_TYPES);
+    validateFileExtension(file.getOriginalFilename(), ALLOWED_IMAGE_FILE_EXTENSIONS);
+    validateFileSize(file, MAX_AVATAR_IMAGE_SIZE_IN_BYTES);
   }
 
   private void validateContentType(String contentType, @Nonnull List<String> validExtensions) {
@@ -274,7 +270,7 @@ public class FileResourceUtils {
     }
   }
 
-  private static void validateFileSize(@Nonnull MultipartFile file, long maxFileSizeInBytes) {
+  public static void validateFileSize(@Nonnull MultipartFile file, long maxFileSizeInBytes) {
     if (file.getSize() > maxFileSizeInBytes) {
       throw new IllegalQueryException(
           String.format(
