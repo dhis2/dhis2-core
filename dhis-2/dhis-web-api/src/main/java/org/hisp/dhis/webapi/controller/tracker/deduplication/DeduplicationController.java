@@ -74,7 +74,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpStatusCodeException;
 
-@OpenApi.Document(domain = PotentialDuplicate.class)
+@OpenApi.Document(
+    entity = TrackedEntity.class,
+    classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping("/api/potentialDuplicates")
 @ApiVersion(include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})

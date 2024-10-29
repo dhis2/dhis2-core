@@ -40,6 +40,7 @@ import java.util.Iterator;
 import java.util.List;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -88,6 +89,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @Controller
 @RequestMapping("/api/interpretations")
+@OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
 public class InterpretationController extends AbstractCrudController<Interpretation> {
   @Autowired private InterpretationService interpretationService;
 

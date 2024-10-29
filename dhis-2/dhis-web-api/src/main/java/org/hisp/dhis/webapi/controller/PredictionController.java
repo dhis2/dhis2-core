@@ -44,7 +44,6 @@ import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
@@ -62,7 +61,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Jim Grace
  */
-@OpenApi.Document(domain = Predictor.class)
+@OpenApi.Document(
+    entity = Predictor.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/predictions")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -70,7 +71,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class PredictionController {
 
   private final PredictionService predictionService;
-  private final JobConfigurationService jobConfigurationService;
   private final JobSchedulerService jobSchedulerService;
 
   @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT})

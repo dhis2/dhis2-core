@@ -59,7 +59,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @OpenApi.EntityType(org.hisp.dhis.relationship.Relationship.class)
-@OpenApi.Document(domain = org.hisp.dhis.relationship.Relationship.class)
+@OpenApi.Document(
+    entity = org.hisp.dhis.relationship.Relationship.class,
+    classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping(produces = APPLICATION_JSON_VALUE, value = "/api/tracker/relationships")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

@@ -32,6 +32,7 @@ import java.util.Set;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.feedback.ConflictException;
@@ -51,6 +52,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  */
 @Controller
 @RequestMapping("/api/categoryCombos")
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class CategoryComboController extends AbstractCrudController<CategoryCombo> {
   @Autowired private CategoryService categoryService;
 
