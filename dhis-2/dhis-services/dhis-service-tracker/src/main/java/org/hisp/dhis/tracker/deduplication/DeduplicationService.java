@@ -28,13 +28,14 @@
 package org.hisp.dhis.tracker.deduplication;
 
 import java.util.List;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 
 public interface DeduplicationService {
   PotentialDuplicate getPotentialDuplicateById(long id);
 
-  PotentialDuplicate getPotentialDuplicateByUid(String uid);
+  PotentialDuplicate getPotentialDuplicateByUid(UID uid);
 
   int countPotentialDuplicates(PotentialDuplicateCriteria criteria);
 

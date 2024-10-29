@@ -47,6 +47,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
@@ -54,6 +55,7 @@ import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -178,27 +180,27 @@ class HibernatePotentialDuplicateStore
             "select count(potentialduplicateid) from potentialduplicate pd "
                 + "where (pd.original = :original and pd.duplicate = :duplicate) or (pd.original = :duplicate and pd.duplicate = :original)");
 
-    query.setParameter("original", potentialDuplicate.getOriginal());
-    query.setParameter("duplicate", potentialDuplicate.getDuplicate());
+    query.setParameter("original", potentialDuplicate.getOriginal().getValue());
+    query.setParameter("duplicate", potentialDuplicate.getDuplicate().getValue());
 
     return query.getSingleResult().intValue() != 0;
   }
 
   public void moveTrackedEntityAttributeValues(
-      TrackedEntity original, TrackedEntity duplicate, List<String> trackedEntityAttributes) {
+      TrackedEntity original, TrackedEntity duplicate, Set<UID> trackedEntityAttributes) {
     // Collect existing teav from original for the tea list
     Map<String, TrackedEntityAttributeValue> originalAttributeValueMap = new HashMap<>();
     original
         .getTrackedEntityAttributeValues()
         .forEach(
             oav -> {
-              if (trackedEntityAttributes.contains(oav.getAttribute().getUid())) {
+              if (trackedEntityAttributes.contains(UID.of(oav.getAttribute()))) {
                 originalAttributeValueMap.put(oav.getAttribute().getUid(), oav);
               }
             });
 
     duplicate.getTrackedEntityAttributeValues().stream()
-        .filter(av -> trackedEntityAttributes.contains(av.getAttribute().getUid()))
+        .filter(av -> trackedEntityAttributes.contains(UID.of(av.getAttribute())))
         .forEach(
             av -> {
               TrackedEntityAttributeValue updatedTeav;
@@ -251,9 +253,9 @@ class HibernatePotentialDuplicateStore
   }
 
   public void moveRelationships(
-      TrackedEntity original, TrackedEntity duplicate, List<String> relationships) {
+      TrackedEntity original, TrackedEntity duplicate, Set<UID> relationships) {
     duplicate.getRelationshipItems().stream()
-        .filter(r -> relationships.contains(r.getRelationship().getUid()))
+        .filter(r -> relationships.contains(UID.of(r.getRelationship())))
         .forEach(
             ri -> {
               ri.setTrackedEntity(original);
@@ -263,11 +265,11 @@ class HibernatePotentialDuplicateStore
   }
 
   public void moveEnrollments(
-      TrackedEntity original, TrackedEntity duplicate, List<String> enrollments) {
+      TrackedEntity original, TrackedEntity duplicate, Set<UID> enrollments) {
     List<Enrollment> enrollmentList =
         duplicate.getEnrollments().stream()
             .filter(e -> !e.isDeleted())
-            .filter(e -> enrollments.contains(e.getUid()))
+            .filter(e -> enrollments.contains(UID.of(e)))
             .toList();
 
     enrollmentList.forEach(duplicate.getEnrollments()::remove);
@@ -300,7 +302,7 @@ class HibernatePotentialDuplicateStore
             rel ->
                 duplicate.getRelationshipItems().stream()
                     .map(RelationshipItem::getRelationship)
-                    .filter(r -> r.getUid().equals(rel))
+                    .filter(r -> r.getUid().equals(rel.getValue()))
                     .findAny()
                     .ifPresent(
                         relationship ->
@@ -313,7 +315,7 @@ class HibernatePotentialDuplicateStore
                                     .klass(
                                         HibernateProxyUtils.getRealClass(relationship)
                                             .getCanonicalName())
-                                    .uid(rel)
+                                    .uid(rel.getValue())
                                     .auditableEntity(
                                         new AuditableEntity(Relationship.class, relationship))
                                     .build())));

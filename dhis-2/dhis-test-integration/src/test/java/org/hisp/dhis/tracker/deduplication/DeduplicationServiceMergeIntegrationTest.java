@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -102,7 +103,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
     manager.update(original);
     manager.update(duplicate);
     PotentialDuplicate potentialDuplicate =
-        new PotentialDuplicate(original.getUid(), duplicate.getUid());
+        new PotentialDuplicate(UID.of(original), UID.of(duplicate));
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
     DeduplicationMergeParams deduplicationMergeParams =
         DeduplicationMergeParams.builder()
@@ -114,8 +115,8 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
         requireNonNull(manager.get(TrackedEntity.class, original.getUid())).getLastUpdated();
     deduplicationService.autoMerge(deduplicationMergeParams);
     assertEquals(
-        deduplicationService.getPotentialDuplicateByUid(potentialDuplicate.getUid()).getStatus(),
-        DeduplicationStatus.MERGED);
+        DeduplicationStatus.MERGED,
+        deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
     assertTrue(
         requireNonNull(manager.get(TrackedEntity.class, original.getUid()))
                 .getLastUpdated()
@@ -161,7 +162,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
     manager.update(original);
     manager.update(duplicate);
     PotentialDuplicate potentialDuplicate =
-        new PotentialDuplicate(original.getUid(), duplicate.getUid());
+        new PotentialDuplicate(UID.of(original), UID.of(duplicate));
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
     DeduplicationMergeParams deduplicationMergeParams =
         DeduplicationMergeParams.builder()
@@ -173,8 +174,8 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
         requireNonNull(manager.get(TrackedEntity.class, original.getUid())).getLastUpdated();
     deduplicationService.autoMerge(deduplicationMergeParams);
     assertEquals(
-        deduplicationService.getPotentialDuplicateByUid(potentialDuplicate.getUid()).getStatus(),
-        DeduplicationStatus.MERGED);
+        DeduplicationStatus.MERGED,
+        deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
     assertTrue(
         requireNonNull(manager.get(TrackedEntity.class, original.getUid()))
                 .getLastUpdated()
