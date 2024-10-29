@@ -48,6 +48,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.openapi.JsonGenerator.Language;
 
 /**
  * A classic command line application to generate DHIS2 OpenAPI documents.
@@ -190,10 +191,9 @@ public class OpenApiTool implements ToolProvider {
               .replace(".json", "");
       OpenApiGenerator.Info info =
           OpenApiGenerator.Info.DEFAULT.toBuilder().title("DHIS2 API - " + title).build();
-      String doc =
-          filename.endsWith(".json")
-              ? OpenApiGenerator.generateJson(api, PRETTY_PRINT, info)
-              : OpenApiGenerator.generateYaml(api, PRETTY_PRINT, info);
+      OpenApiGenerationParams params = new OpenApiGenerationParams();
+      Language language = filename.endsWith(".json") ? Language.JSON : Language.YAML;
+      String doc = OpenApiGenerator.generate(api, PRETTY_PRINT, language, info, params);
       Path output = Files.writeString(file, doc);
       int controllers = api.getControllers().size();
       int endpoints = api.getControllers().stream().mapToInt(c -> c.getEndpoints().size()).sum();

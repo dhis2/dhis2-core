@@ -94,6 +94,10 @@ public class Api {
     Schema generate(Endpoint endpoint, Type source, Class<?>... args);
   }
 
+  /**
+   * The controller classes available for consideration. This is not a selection but the entire
+   * available API surface.
+   */
   Set<Class<?>> context;
 
   /** Can be set to enable debug mode */

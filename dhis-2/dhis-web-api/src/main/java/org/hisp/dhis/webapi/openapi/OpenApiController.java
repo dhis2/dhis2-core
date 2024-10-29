@@ -42,7 +42,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -52,6 +51,9 @@ import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.webapi.openapi.JsonGenerator.Format;
+import org.hisp.dhis.webapi.openapi.JsonGenerator.Language;
+import org.hisp.dhis.webapi.openapi.OpenApiGenerator.Info;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -100,42 +102,6 @@ public class OpenApiController {
     }
   }
 
-  @Data
-  @OpenApi.Shared
-  public static class OpenApiGenerationParams {
-    @OpenApi.Description(
-        """
-      Regenerate the response even if a cached response is available.
-      Mainly used during development to see effects of hot-swap code changes.""")
-    boolean skipCache = false;
-
-    @OpenApi.Description(
-        """
-      Shared schema names must be unique.
-      To ensure this either a unique name is picked (`false`) or the generation fails (`true`)""")
-    boolean failOnNameClash = false;
-
-    @OpenApi.Description(
-        """
-      Declarations can be logically inconsistent; for example a parameter that is both required and has a default value.
-      Either this is ignored and only logs a warning (`false`) or the generation fails (`true`)""")
-    boolean failOnInconsistency = false;
-
-    @OpenApi.Description(
-        """
-      Annotations that narrow the rendered type to one of the super-types of the type declared will be ignored
-      and as a consequence types occur fully expanded (with all their properties).
-      Note that this does not affect types that are re-defined as a different type using annotations.""")
-    @Maturity.Beta
-    @OpenApi.Since(42)
-    boolean expandedRefs = false;
-
-    @OpenApi.Ignore
-    boolean isCachable() {
-      return !skipCache && !expandedRefs;
-    }
-  }
-
   /*
    * HTML
    */
@@ -155,6 +121,9 @@ public class OpenApiController {
       OpenApiRenderer.OpenApiRenderingParams rendering,
       HttpServletRequest request,
       HttpServletResponse response) {
+    generation.setIncludeXClassifiers(true);
+    generation.setIncludeXProperties(true);
+
     if (notModified(request, response, generation)) return;
 
     boolean cached = scope.isCachable() && generation.isCachable();
@@ -167,8 +136,7 @@ public class OpenApiController {
     }
 
     StringWriter json = new StringWriter();
-    writeDocument(
-        request, generation, scope, () -> new PrintWriter(json), OpenApiGenerator::generateJson);
+    writeDocument(request, generation, scope, () -> new PrintWriter(json), Language.JSON);
 
     String html = OpenApiRenderer.render(json.toString(), rendering);
     if (cached) updateFullHtml(html);
@@ -186,13 +154,15 @@ public class OpenApiController {
       OpenApiRenderer.OpenApiRenderingParams rendering,
       HttpServletRequest request,
       HttpServletResponse response) {
+    generation.setIncludeXClassifiers(true);
+    generation.setIncludeXProperties(true);
+
     if (notModified(request, response, generation)) return;
 
     StringWriter json = new StringWriter();
     OpenApiScopeParams scope = new OpenApiScopeParams();
     scope.setScope(Set.of("path./api/" + path));
-    writeDocument(
-        request, generation, scope, () -> new PrintWriter(json), OpenApiGenerator::generateJson);
+    writeDocument(request, generation, scope, () -> new PrintWriter(json), Language.JSON);
 
     getWriter(response, TEXT_HTML_VALUE)
         .get()
@@ -214,8 +184,7 @@ public class OpenApiController {
 
     OpenApiScopeParams scope = new OpenApiScopeParams();
     scope.setScope(Set.of("path./api/" + path));
-    writeDocument(
-        request, generation, scope, getYamlWriter(response), OpenApiGenerator::generateYaml);
+    writeDocument(request, generation, scope, getYamlWriter(response), Language.YAML);
   }
 
   @OpenApi.Response(String.class)
@@ -229,8 +198,7 @@ public class OpenApiController {
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
-    writeDocument(
-        request, generation, scope, getYamlWriter(response), OpenApiGenerator::generateYaml);
+    writeDocument(request, generation, scope, getYamlWriter(response), Language.YAML);
   }
 
   /*
@@ -248,8 +216,7 @@ public class OpenApiController {
 
     OpenApiScopeParams scope = new OpenApiScopeParams();
     scope.setScope(Set.of("path./api/" + path));
-    writeDocument(
-        request, generation, scope, getJsonWriter(response), OpenApiGenerator::generateJson);
+    writeDocument(request, generation, scope, getJsonWriter(response), Language.JSON);
   }
 
   @OpenApi.Response(JsonObject.class)
@@ -263,8 +230,7 @@ public class OpenApiController {
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
-    writeDocument(
-        request, generation, scope, getJsonWriter(response), OpenApiGenerator::generateJson);
+    writeDocument(request, generation, scope, getJsonWriter(response), Language.JSON);
   }
 
   private Supplier<PrintWriter> getYamlWriter(HttpServletResponse response) {
@@ -292,11 +258,12 @@ public class OpenApiController {
       OpenApiGenerationParams params,
       OpenApiScopeParams scope,
       Supplier<PrintWriter> getWriter,
-      BiFunction<Api, String, String> writer) {
+      Language language) {
 
     Api api = getApiCached(params, scope);
-
-    getWriter.get().write(writer.apply(api, getServerUrl(request)));
+    Info info = Info.DEFAULT.toBuilder().serverUrl(getServerUrl(request)).build();
+    String document = OpenApiGenerator.generate(api, Format.PRETTY_PRINT, language, info, params);
+    getWriter.get().write(document);
   }
 
   @Nonnull

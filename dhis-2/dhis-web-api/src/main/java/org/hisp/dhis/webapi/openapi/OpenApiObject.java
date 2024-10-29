@@ -135,8 +135,8 @@ public interface OpenApiObject extends JsonObject {
      *
      * @return all possible values for each classification
      */
-    default JsonMultiMap<JsonString> x_navigation() {
-      return getMultiMap("x-navigation", JsonString.class);
+    default JsonMultiMap<JsonString> x_classifiers() {
+      return getMultiMap("x-classifiers", JsonString.class);
     }
   }
 

@@ -656,7 +656,7 @@ public class OpenApiRenderer {
         "scope",
         () -> appendRaw("Scope"),
         () -> {
-          api.info().x_navigation().forEach(this::renderScopeMenuItem);
+          api.info().x_classifiers().forEach(this::renderScopeMenuItem);
           appendInputButton("Full API (single page)", "addUrlParameter('scope', '')");
           appendInputButton("+ &#128435;", "addUrlParameter('source', 'true')");
         });
