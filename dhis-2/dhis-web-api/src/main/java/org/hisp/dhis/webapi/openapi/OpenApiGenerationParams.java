@@ -84,10 +84,20 @@ public class OpenApiGenerationParams {
   boolean includeXClassifiers = false;
 
   /**
-   * @return only cache if the content is the full standard document and caching should be applied
+   * @return cache key to use for {@link Api} objects, null when no cache should be used
    */
   @OpenApi.Ignore
-  boolean isCachable() {
-    return !skipCache && !expandedRefs;
+  String getApiCacheKey() {
+    if (skipCache) return null;
+    return expandedRefs ? "full-extended" : "full-default";
+  }
+
+  @OpenApi.Ignore
+  String getDocumentCacheKey() {
+    if (skipCache) return null;
+    String key = "";
+    if (includeXProperties) key += "x";
+    if (includeXClassifiers) key += "c";
+    return getApiCacheKey() + "-" + key;
   }
 }

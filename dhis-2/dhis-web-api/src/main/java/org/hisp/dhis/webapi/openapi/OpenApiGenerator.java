@@ -95,7 +95,7 @@ public class OpenApiGenerator extends JsonGenerator {
   }
 
   public static String generate(
-      Api api, Format format, Language language, Info info, OpenApiGenerationParams params) {
+      Language language, Api api, Format format, Info info, OpenApiGenerationParams params) {
     int endpoints = 0;
     for (Api.Controller c : api.getControllers()) endpoints += c.getEndpoints().size();
     int capacity = endpoints * 256 + api.getSchemas().size() * 512;

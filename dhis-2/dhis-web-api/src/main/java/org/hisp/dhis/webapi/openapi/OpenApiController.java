@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.webapi.openapi.OpenApiRenderer.renderHTML;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 
@@ -35,18 +37,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.io.UncheckedIOException;
-import java.lang.ref.SoftReference;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.experimental.Accessors;
+import org.hisp.dhis.cache.SoftCache;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
@@ -60,6 +61,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Maturity.Beta
 @OpenApi.Document(entity = OpenApi.class)
@@ -72,16 +76,9 @@ public class OpenApiController {
 
   private final ApplicationContext context;
 
-  private static SoftReference<Api> fullApi;
-  private static SoftReference<String> fullHtml;
-
-  private static synchronized void updateFullHtml(String html) {
-    fullHtml = new SoftReference<>(html);
-  }
-
-  private static synchronized void updateFullApi(Api api) {
-    fullApi = new SoftReference<>(api);
-  }
+  private static final SoftCache<Api> API_CACHE = new SoftCache<>();
+  private static final SoftCache<String> JSON_CACHE = new SoftCache<>();
+  private static final SoftCache<String> HTML_CACHE = new SoftCache<>();
 
   /**
    * As long as the server is the same the response will be for the same request, so we just create
@@ -90,6 +87,7 @@ public class OpenApiController {
   private static final String E_TAG = "v" + System.currentTimeMillis();
 
   @Data
+  @Accessors(chain = true)
   @OpenApi.Shared
   public static class OpenApiScopeParams {
     @OpenApi.Description(
@@ -118,29 +116,16 @@ public class OpenApiController {
   public void getOpenApiHtml(
       OpenApiGenerationParams generation,
       OpenApiScopeParams scope,
-      OpenApiRenderer.OpenApiRenderingParams rendering,
+      OpenApiRenderingParams rendering,
       HttpServletRequest request,
       HttpServletResponse response) {
+    if (notModified(request, response, generation)) return;
+
+    // for HTML X-properties must be included
     generation.setIncludeXClassifiers(true);
     generation.setIncludeXProperties(true);
 
-    if (notModified(request, response, generation)) return;
-
-    boolean cached = scope.isCachable() && generation.isCachable();
-    if (cached && fullHtml != null) {
-      String fullHtml = OpenApiController.fullHtml.get();
-      if (fullHtml != null) {
-        getWriter(response, TEXT_HTML_VALUE).get().write(fullHtml);
-        return;
-      }
-    }
-
-    StringWriter json = new StringWriter();
-    writeDocument(request, generation, scope, () -> new PrintWriter(json), Language.JSON);
-
-    String html = OpenApiRenderer.render(json.toString(), rendering);
-    if (cached) updateFullHtml(html);
-    getWriter(response, TEXT_HTML_VALUE).get().write(html);
+    getHtmlWriter(response).write(renderCached(scope, generation, rendering));
   }
 
   @OpenApi.Description(
@@ -151,22 +136,17 @@ public class OpenApiController {
   public void getPathOpenApiHtml(
       @PathVariable String path,
       OpenApiGenerationParams generation,
-      OpenApiRenderer.OpenApiRenderingParams rendering,
+      OpenApiRenderingParams rendering,
       HttpServletRequest request,
       HttpServletResponse response) {
+    if (notModified(request, response, generation)) return;
+
+    // for HTML X-properties must be included
     generation.setIncludeXClassifiers(true);
     generation.setIncludeXProperties(true);
 
-    if (notModified(request, response, generation)) return;
-
-    StringWriter json = new StringWriter();
-    OpenApiScopeParams scope = new OpenApiScopeParams();
-    scope.setScope(Set.of("path./api/" + path));
-    writeDocument(request, generation, scope, () -> new PrintWriter(json), Language.JSON);
-
-    getWriter(response, TEXT_HTML_VALUE)
-        .get()
-        .write(OpenApiRenderer.render(json.toString(), rendering));
+    OpenApiScopeParams scope = new OpenApiScopeParams().setScope(Set.of("path./api/" + path));
+    getHtmlWriter(response).write(renderCached(scope, generation, rendering));
   }
 
   /*
@@ -182,9 +162,8 @@ public class OpenApiController {
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
-    OpenApiScopeParams scope = new OpenApiScopeParams();
-    scope.setScope(Set.of("path./api/" + path));
-    writeDocument(request, generation, scope, getYamlWriter(response), Language.YAML);
+    OpenApiScopeParams scope = new OpenApiScopeParams().setScope(Set.of("path./api/" + path));
+    getYamlWriter(response).write(generateCached(Language.YAML, scope, generation));
   }
 
   @OpenApi.Response(String.class)
@@ -198,7 +177,7 @@ public class OpenApiController {
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
-    writeDocument(request, generation, scope, getYamlWriter(response), Language.YAML);
+    getYamlWriter(response).write(generateCached(Language.YAML, scope, generation));
   }
 
   /*
@@ -214,9 +193,8 @@ public class OpenApiController {
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
-    OpenApiScopeParams scope = new OpenApiScopeParams();
-    scope.setScope(Set.of("path./api/" + path));
-    writeDocument(request, generation, scope, getJsonWriter(response), Language.JSON);
+    OpenApiScopeParams scope = new OpenApiScopeParams().setScope(Set.of("path./api/" + path));
+    getJsonWriter(response).write(generateCached(Language.JSON, scope, generation));
   }
 
   @OpenApi.Response(JsonObject.class)
@@ -230,57 +208,56 @@ public class OpenApiController {
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
-    writeDocument(request, generation, scope, getJsonWriter(response), Language.JSON);
+    getJsonWriter(response).write(generateCached(Language.JSON, scope, generation));
   }
 
-  private Supplier<PrintWriter> getYamlWriter(HttpServletResponse response) {
+  private PrintWriter getHtmlWriter(HttpServletResponse response) {
+    return getWriter(response, TEXT_HTML_VALUE);
+  }
+
+  private PrintWriter getYamlWriter(HttpServletResponse response) {
     return getWriter(response, APPLICATION_X_YAML);
   }
 
-  private Supplier<PrintWriter> getJsonWriter(HttpServletResponse response) {
+  private PrintWriter getJsonWriter(HttpServletResponse response) {
     return getWriter(response, APPLICATION_JSON_VALUE);
   }
 
-  private Supplier<PrintWriter> getWriter(HttpServletResponse response, String contentType) {
-    return () -> {
-      response.setContentType(contentType);
-      response.setHeader("ETag", E_TAG);
-      try {
-        return response.getWriter();
-      } catch (IOException ex) {
-        throw new UncheckedIOException(ex);
-      }
-    };
-  }
-
-  private void writeDocument(
-      HttpServletRequest request,
-      OpenApiGenerationParams params,
-      OpenApiScopeParams scope,
-      Supplier<PrintWriter> getWriter,
-      Language language) {
-
-    Api api = getApiCached(params, scope);
-    Info info = Info.DEFAULT.toBuilder().serverUrl(getServerUrl(request)).build();
-    String document = OpenApiGenerator.generate(api, Format.PRETTY_PRINT, language, info, params);
-    getWriter.get().write(document);
-  }
-
-  @Nonnull
-  private Api getApiCached(OpenApiGenerationParams generation, OpenApiScopeParams scope) {
-    if (scope.isCachable() && generation.isCachable()) {
-      Api api = fullApi == null ? null : fullApi.get();
-      if (api == null) {
-        api = getApiUncached(generation, scope);
-        updateFullApi(api);
-      }
-      return api;
+  private PrintWriter getWriter(HttpServletResponse response, String contentType) {
+    response.setContentType(contentType);
+    response.setHeader("ETag", E_TAG);
+    try {
+      return response.getWriter();
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
-    return getApiUncached(generation, scope);
   }
 
   @Nonnull
-  private Api getApiUncached(OpenApiGenerationParams generation, OpenApiScopeParams scope) {
+  private String renderCached(
+      OpenApiScopeParams scope,
+      OpenApiGenerationParams generation,
+      OpenApiRenderingParams rendering) {
+    String cacheKey = !scope.isCachable() ? null : generation.getDocumentCacheKey();
+    return HTML_CACHE.get(
+        cacheKey, () -> renderHTML(generateCached(Language.JSON, scope, generation), rendering));
+  }
+
+  @Nonnull
+  private String generateCached(
+      Language language, OpenApiScopeParams scope, OpenApiGenerationParams params) {
+    String apiCacheKey = scope.isCachable() ? params.getApiCacheKey() : null;
+    String cacheKey = scope.isCachable() ? params.getDocumentCacheKey() : null;
+    if (cacheKey != null) cacheKey += "-" + (language == Language.JSON ? "json" : "yaml");
+    Api api = API_CACHE.get(apiCacheKey, () -> computeApi(scope, params));
+    Info info = Info.DEFAULT.toBuilder().serverUrl(getServerUrl()).build();
+    return JSON_CACHE.get(
+        cacheKey,
+        () -> OpenApiGenerator.generate(language, api, Format.PRETTY_PRINT, info, params));
+  }
+
+  @Nonnull
+  private Api computeApi(OpenApiScopeParams scope, OpenApiGenerationParams generation) {
     Map<String, Set<String>> filters = new HashMap<>();
     for (String s : scope.scope) {
       String key = s.substring(0, s.indexOf('.'));
@@ -329,7 +306,10 @@ public class OpenApiController {
    * And any of the variants when it comes to the path the controller allows to query an OpenAPI
    * document.
    */
-  private static String getServerUrl(HttpServletRequest request) {
+  private static String getServerUrl() {
+    RequestAttributes requestAttributes =
+        requireNonNull(RequestContextHolder.getRequestAttributes());
+    HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
     StringBuffer url = request.getRequestURL();
     String servletPath = request.getServletPath();
     servletPath = servletPath.substring(servletPath.indexOf("/api") + 1);

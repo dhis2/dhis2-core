@@ -193,7 +193,7 @@ public class OpenApiTool implements ToolProvider {
           OpenApiGenerator.Info.DEFAULT.toBuilder().title("DHIS2 API - " + title).build();
       OpenApiGenerationParams params = new OpenApiGenerationParams();
       Language language = filename.endsWith(".json") ? Language.JSON : Language.YAML;
-      String doc = OpenApiGenerator.generate(api, PRETTY_PRINT, language, info, params);
+      String doc = OpenApiGenerator.generate(language, api, PRETTY_PRINT, info, params);
       Path output = Files.writeString(file, doc);
       int controllers = api.getControllers().size();
       int endpoints = api.getControllers().stream().mapToInt(c -> c.getEndpoints().size()).sum();

@@ -46,9 +46,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import javax.annotation.CheckForNull;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonNodeType;
@@ -71,22 +69,6 @@ import org.intellij.lang.annotations.Language;
  */
 @RequiredArgsConstructor
 public class OpenApiRenderer {
-
-  @Data
-  @OpenApi.Shared
-  public static class OpenApiRenderingParams {
-    boolean sortEndpointsByMethod = true; // make this a sortEndpointsBy=method,path,id thing?
-
-    @OpenApi.Description(
-        "Include the JSON source in the operations and schemas (for debug purposes)")
-    boolean source = false;
-
-    @OpenApi.Description(
-        """
-      Values of a shared enum with less than the limit values will show the first n values up to limit
-      directly where the type is used""")
-    int inlineEnumsLimit = 0;
-  }
 
   @Language("css")
   private static final String CSS =
@@ -592,9 +574,9 @@ public class OpenApiRenderer {
   Rendering...
    */
 
-  public static String render(String json, OpenApiRenderingParams params) {
+  public static String renderHTML(String json, OpenApiRenderingParams params) {
     OpenApiRenderer html = new OpenApiRenderer(JsonValue.of(json).as(OpenApiObject.class), params);
-    return html.render();
+    return html.renderHTML();
   }
 
   private final OpenApiObject api;
@@ -606,7 +588,7 @@ public class OpenApiRenderer {
     return out.toString();
   }
 
-  public String render() {
+  public String renderHTML() {
     renderDocument();
     return toString();
   }
