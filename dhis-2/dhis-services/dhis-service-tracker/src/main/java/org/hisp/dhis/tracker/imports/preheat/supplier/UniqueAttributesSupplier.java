@@ -208,7 +208,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
     }
 
     // If an attribute and value appear in 2 or more tracked entities
-    // it means that is not unique
+    // it means that is not uniqueF
     return teByAttributeValue.entrySet().stream()
         .filter(e -> e.getValue().size() > 1)
         .flatMap(av -> buildUniqueAttributeValues(av.getKey(), av.getValue()).stream())

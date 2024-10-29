@@ -209,11 +209,12 @@ public class DeduplicationController {
               + DeduplicationStatus.MERGED.name());
   }
 
-  private PotentialDuplicate getPotentialDuplicateBy(UID id) throws NotFoundException {
-    return Optional.ofNullable(deduplicationService.getPotentialDuplicateByUid(id))
+  private PotentialDuplicate getPotentialDuplicateBy(UID uid) throws NotFoundException {
+    return Optional.ofNullable(deduplicationService.getPotentialDuplicateByUid(uid))
         .orElseThrow(
             () ->
-                new NotFoundException("No potentialDuplicate records found with id '" + id + "'."));
+                new NotFoundException(
+                    "No potentialDuplicate records found with id '" + uid + "'."));
   }
 
   private void validatePotentialDuplicate(PotentialDuplicate potentialDuplicate)

@@ -76,7 +76,7 @@ public class DeduplicationHelper {
     MergeObject mergeObject = params.getMergeObject();
 
     /*
-     * Step 1: Make sure all references objects exists in duplicate
+     * Step 1: Make sure all reference objects exists in duplicate
      */
     Set<UID> validTrackedEntityAttributes =
         duplicate.getTrackedEntityAttributeValues().stream()
@@ -114,7 +114,7 @@ public class DeduplicationHelper {
     }
 
     /*
-     * Step 3: Duplicate Relationships and Enrollments
+     * Step 2: Duplicate Relationships and Enrollments
      */
     Set<Relationship> relationshipsToMerge =
         params.getDuplicate().getRelationshipItems().stream()
@@ -152,7 +152,7 @@ public class DeduplicationHelper {
     }
 
     /*
-     * Step 4: Make sure no relationships will become self-referencing.
+     * Step 3: Make sure no relationships will become self-referencing.
      */
     Set<String> relationshipsToMergeUids =
         relationshipsToMerge.stream().map(IdentifiableObject::getUid).collect(Collectors.toSet());

@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -65,7 +66,7 @@ public class DefaultDeduplicationService implements DeduplicationService {
 
   @Override
   @Transactional(readOnly = true)
-  public PotentialDuplicate getPotentialDuplicateByUid(UID uid) {
+  public PotentialDuplicate getPotentialDuplicateByUid(@Nonnull UID uid) {
     return potentialDuplicateStore.getByUid(uid.getValue());
   }
 
