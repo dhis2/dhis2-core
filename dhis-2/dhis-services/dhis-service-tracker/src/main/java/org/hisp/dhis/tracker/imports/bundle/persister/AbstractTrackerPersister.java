@@ -122,15 +122,12 @@ public abstract class AbstractTrackerPersister<
         //
         persistOwnership(bundle, trackerDto, convertedDto);
 
-        updateDataValues(
-            entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
-
         //
         // Save or update the entity
         //
         if (isNew(bundle, trackerDto)) {
           entityManager.persist(convertedDto);
-          // entityManager.flush();
+          entityManager.flush();
           typeReport.getStats().incCreated();
           typeReport.addEntity(objectReport);
           updateAttributes(
@@ -149,6 +146,9 @@ public abstract class AbstractTrackerPersister<
                 .ifPresent(updatedTrackedEntities::add);
           }
         }
+
+        updateDataValues(
+            entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
 
         if (!bundle.isSkipSideEffects()) {
           notificationDataBundles.add(handleNotifications(bundle, convertedDto, triggers));
