@@ -181,8 +181,6 @@ class DefaultEventService implements EventService {
 
     RelationshipItem relationshipItem = new RelationshipItem();
     relationshipItem.setEvent(event);
-    // TODO(ivo) this was only to detach from hibernate, right?
-    // relationshipItem.setEvent(getEvent(event, eventParams, currentUser));
     return relationshipItem;
   }
 

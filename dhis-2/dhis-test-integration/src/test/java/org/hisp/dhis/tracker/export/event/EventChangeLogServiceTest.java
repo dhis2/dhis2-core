@@ -101,6 +101,7 @@ class EventChangeLogServiceTest extends TrackerTest {
   @Test
   void shouldFailWhenEventIsSoftDeleted() throws NotFoundException {
     trackerObjectDeletionService.deleteEvents(List.of("D9PbzJY8bJM"));
+
     assertThrows(
         NotFoundException.class,
         () -> eventChangeLogService.getEventChangeLog(UID.generate(), null, null));
@@ -111,7 +112,7 @@ class EventChangeLogServiceTest extends TrackerTest {
     testAsUser("o1HMTIzBGo7");
 
     assertThrows(
-        ForbiddenException.class,
+        NotFoundException.class,
         () -> eventChangeLogService.getEventChangeLog(UID.of("D9PbzJY8bJM"), null, null));
   }
 
@@ -120,7 +121,7 @@ class EventChangeLogServiceTest extends TrackerTest {
     testAsUser("o1HMTIzBGo7");
 
     assertThrows(
-        ForbiddenException.class,
+        NotFoundException.class,
         () -> eventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG"), null, null));
   }
 
@@ -129,7 +130,7 @@ class EventChangeLogServiceTest extends TrackerTest {
     testAsUser("FIgVWzUCkpw");
 
     assertThrows(
-        ForbiddenException.class,
+        NotFoundException.class,
         () -> eventChangeLogService.getEventChangeLog(UID.of("H0PbzJY8bJG"), null, null));
   }
 
@@ -138,136 +139,149 @@ class EventChangeLogServiceTest extends TrackerTest {
     testAsUser("o1HMTIzBGo7");
 
     assertThrows(
-        ForbiddenException.class,
+        NotFoundException.class,
         () -> eventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG"), null, null));
   }
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsCreated() throws NotFoundException, ForbiddenException {
-    Event event = getEvent("QRYjLTiJTrA");
-    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
+    String event = "QRYjLTiJTrA";
+    String dataElement = getDataElement(event);
 
     Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(
-            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
+            UID.of(event), defaultOperationParams, defaultPageParams);
 
     assertNumberOfChanges(1, changeLogs.getItems());
-    assertCreate(dataElementUid, "15", changeLogs.getItems().get(0));
+    assertCreate(dataElement, "15", changeLogs.getItems().get(0));
   }
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsDeleted()
       throws NotFoundException, IOException, ForbiddenException {
-    Event event = getEvent("QRYjLTiJTrA");
-    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
+    String event = "QRYjLTiJTrA";
+    String dataElement = getDataElement(event);
 
-    TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
-    updateDataValue(trackerObjects, event, dataElementUid, "");
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+    updateDataValue(event, dataElement, "");
 
     Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(
-            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
+            UID.of(event), defaultOperationParams, defaultPageParams);
+    // EventChangeLog[createdBy=IdentifiableObjectSnapshot(id=0, code=null, uid=tTgjgobT1oS),
+    // createdAt=2024-10-29 05:44:47.673, type=CREATE,
+    // change=Change[dataValue=DataValueChange[dataElement=GieVkTxp4HH, previousValue=null,
+    // currentValue=15]]]
 
     assertNumberOfChanges(2, changeLogs.getItems());
     assertAll(
-        () -> assertDelete(dataElementUid, "15", changeLogs.getItems().get(0)),
-        () -> assertCreate(dataElementUid, "15", changeLogs.getItems().get(1)));
+        () -> assertDelete(dataElement, "15", changeLogs.getItems().get(0)),
+        () -> assertCreate(dataElement, "15", changeLogs.getItems().get(1)));
   }
 
   @Test
   void shouldNotUpdateChangeLogsWhenDataValueIsDeletedTwiceInARow()
       throws NotFoundException, IOException, ForbiddenException {
-    Event event = getEvent("QRYjLTiJTrA");
-    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
+    String event = "QRYjLTiJTrA";
+    String dataElement = getDataElement(event);
 
-    TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
-    updateDataValue(trackerObjects, event, dataElementUid, "");
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
-    updateDataValue(trackerObjects, event, dataElementUid, "");
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+    updateDataValue(event, dataElement, "");
+    updateDataValue(event, dataElement, "");
 
     Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(
-            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
+            UID.of(event), defaultOperationParams, defaultPageParams);
 
     assertNumberOfChanges(2, changeLogs.getItems());
     assertAll(
-        () -> assertDelete(dataElementUid, "15", changeLogs.getItems().get(0)),
-        () -> assertCreate(dataElementUid, "15", changeLogs.getItems().get(1)));
+        () -> assertDelete(dataElement, "15", changeLogs.getItems().get(0)),
+        () -> assertCreate(dataElement, "15", changeLogs.getItems().get(1)));
   }
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsUpdated()
       throws NotFoundException, IOException, ForbiddenException {
-    Event event = getEvent("QRYjLTiJTrA");
-    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
+    String event = "QRYjLTiJTrA";
+    String dataElement = getDataElement(event);
 
-    TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
-    updateDataValue(trackerObjects, event, dataElementUid, "20");
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+    updateDataValue(event, dataElement, "20");
 
     Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(
-            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
+            UID.of(event), defaultOperationParams, defaultPageParams);
+    // EventChangeLog[createdBy=IdentifiableObjectSnapshot(id=0, code=null, uid=tTgjgobT1oS),
+    // createdAt=2024-10-29 05:46:41.829, type=CREATE,
+    // change=Change[dataValue=DataValueChange[dataElement=GieVkTxp4HH, previousValue=null,
+    // currentValue=15]]]
 
     assertNumberOfChanges(2, changeLogs.getItems());
     assertAll(
-        () -> assertUpdate(dataElementUid, "15", "20", changeLogs.getItems().get(0)),
-        () -> assertCreate(dataElementUid, "15", changeLogs.getItems().get(1)));
+        () -> assertUpdate(dataElement, "15", "20", changeLogs.getItems().get(0)),
+        () -> assertCreate(dataElement, "15", changeLogs.getItems().get(1)));
   }
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsUpdatedTwiceInARow()
       throws NotFoundException, IOException, ForbiddenException {
-    Event event = getEvent("QRYjLTiJTrA");
-    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
+    String event = "QRYjLTiJTrA";
+    String dataElement = getDataElement(event);
 
-    TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
-    updateDataValue(trackerObjects, event, dataElementUid, "20");
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
-    updateDataValue(trackerObjects, event, dataElementUid, "25");
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+    updateDataValue(event, dataElement, "20");
+    updateDataValue(event, dataElement, "25");
 
     Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(
-            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
+            UID.of(event), defaultOperationParams, defaultPageParams);
+    // EventChangeLog[createdBy=IdentifiableObjectSnapshot(id=0, code=null, uid=tTgjgobT1oS),
+    // createdAt=2024-10-29 05:48:25.094, type=UPDATE,
+    // change=Change[dataValue=DataValueChange[dataElement=GieVkTxp4HH, previousValue=15,
+    // currentValue=20]]]
+    // EventChangeLog[createdBy=IdentifiableObjectSnapshot(id=0, code=null, uid=tTgjgobT1oS),
+    // createdAt=2024-10-29 05:48:24.511, type=CREATE,
+    // change=Change[dataValue=DataValueChange[dataElement=GieVkTxp4HH, previousValue=null,
+    // currentValue=15]]]
 
     assertNumberOfChanges(3, changeLogs.getItems());
     assertAll(
-        () -> assertUpdate(dataElementUid, "20", "25", changeLogs.getItems().get(0)),
-        () -> assertUpdate(dataElementUid, "15", "20", changeLogs.getItems().get(1)),
-        () -> assertCreate(dataElementUid, "15", changeLogs.getItems().get(2)));
+        () -> assertUpdate(dataElement, "20", "25", changeLogs.getItems().get(0)),
+        () -> assertUpdate(dataElement, "15", "20", changeLogs.getItems().get(1)),
+        () -> assertCreate(dataElement, "15", changeLogs.getItems().get(2)));
   }
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsCreatedUpdatedAndDeleted()
       throws IOException, NotFoundException, ForbiddenException {
-    Event event = getEvent("QRYjLTiJTrA");
-    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
+    String event = "QRYjLTiJTrA";
+    String dataElement = getDataElement(event);
 
-    TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
-    updateDataValue(trackerObjects, event, dataElementUid, "20");
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
-
-    updateDataValue(trackerObjects, event, dataElementUid, "");
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+    updateDataValue(event, dataElement, "20");
+    updateDataValue(event, dataElement, "");
 
     Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(
-            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
+            UID.of(event), defaultOperationParams, defaultPageParams);
+    // [
+    //  EventChangeLog[createdBy=IdentifiableObjectSnapshot(id=0, code=null, uid=tTgjgobT1oS),
+    // createdAt=2024-10-29 05:36:08.056, type=UPDATE,
+    // change=Change[dataValue=DataValueChange[dataElement=GieVkTxp4HH, previousValue=15,
+    // currentValue=20]]],
+    //  EventChangeLog[createdBy=IdentifiableObjectSnapshot(id=0, code=null, uid=tTgjgobT1oS),
+    // createdAt=2024-10-29 05:36:07.458, type=CREATE,
+    // change=Change[dataValue=DataValueChange[dataElement=GieVkTxp4HH, previousValue=null,
+    // currentValue=15]]]
+    // ]
 
     assertNumberOfChanges(3, changeLogs.getItems());
     assertAll(
-        () -> assertDelete(dataElementUid, "20", changeLogs.getItems().get(0)),
-        () -> assertUpdate(dataElementUid, "15", "20", changeLogs.getItems().get(1)),
-        () -> assertCreate(dataElementUid, "15", changeLogs.getItems().get(2)));
+        () -> assertDelete(dataElement, "20", changeLogs.getItems().get(0)),
+        () -> assertUpdate(dataElement, "15", "20", changeLogs.getItems().get(1)),
+        () -> assertCreate(dataElement, "15", changeLogs.getItems().get(2)));
   }
 
-  private void updateDataValue(
-      TrackerObjects trackerObjects, Event event, String dataElementUid, String newValue) {
+  private void updateDataValue(String event, String dataElementUid, String newValue)
+      throws IOException {
+    TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
     trackerObjects.getEvents().stream()
-        .filter(e -> e.getEvent().equalsIgnoreCase(event.getUid()))
+        .filter(e -> e.getEvent().equalsIgnoreCase(event))
         .findFirst()
         .flatMap(
             e ->
@@ -276,12 +290,19 @@ class EventChangeLogServiceTest extends TrackerTest {
                         dv -> dv.getDataElement().getIdentifier().equalsIgnoreCase(dataElementUid))
                     .findFirst())
         .ifPresent(dv -> dv.setValue(newValue));
+    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+  }
+
+  private String getDataElement(String uid) {
+    Event event = getEvent(uid);
+    String dataElement = event.getEventDataValues().iterator().next().getDataElement();
+    assertNotNull(dataElement);
+    return dataElement;
   }
 
   private Event getEvent(String uid) {
     Event event = manager.get(Event.class, uid);
     assertNotNull(event);
-
     return event;
   }
 
