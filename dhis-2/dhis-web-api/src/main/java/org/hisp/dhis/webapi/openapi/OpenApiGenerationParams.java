@@ -94,7 +94,6 @@ public class OpenApiGenerationParams {
 
   @OpenApi.Ignore
   String getDocumentCacheKey() {
-    if (skipCache) return null;
     String key = "";
     if (includeXProperties) key += "x";
     if (includeXClassifiers) key += "c";

@@ -95,8 +95,8 @@ public class OpenApiController {
     Set<String> scope = Set.of();
 
     @OpenApi.Ignore
-    boolean isCachable() {
-      return scope.isEmpty();
+    String getCacheKey() {
+      return String.join("+", scope) + ":";
     }
   }
 
@@ -238,7 +238,8 @@ public class OpenApiController {
       OpenApiScopeParams scope,
       OpenApiGenerationParams generation,
       OpenApiRenderingParams rendering) {
-    String cacheKey = !scope.isCachable() ? null : generation.getDocumentCacheKey();
+    String cacheKey =
+        generation.isSkipCache() ? null : scope.getCacheKey() + generation.getDocumentCacheKey();
     return HTML_CACHE.get(
         cacheKey, () -> renderHTML(generateCached(Language.JSON, scope, generation), rendering));
   }
@@ -246,8 +247,10 @@ public class OpenApiController {
   @Nonnull
   private String generateCached(
       Language language, OpenApiScopeParams scope, OpenApiGenerationParams params) {
-    String apiCacheKey = scope.isCachable() ? params.getApiCacheKey() : null;
-    String cacheKey = scope.isCachable() ? params.getDocumentCacheKey() : null;
+    String apiCacheKey =
+        params.isSkipCache() ? null : scope.getCacheKey() + params.getApiCacheKey();
+    String cacheKey =
+        params.isSkipCache() ? null : scope.getCacheKey() + params.getDocumentCacheKey();
     if (cacheKey != null) cacheKey += "-" + (language == Language.JSON ? "json" : "yaml");
     Api api = API_CACHE.get(apiCacheKey, () -> computeApi(scope, params));
     Info info = Info.DEFAULT.toBuilder().serverUrl(getServerUrl()).build();
