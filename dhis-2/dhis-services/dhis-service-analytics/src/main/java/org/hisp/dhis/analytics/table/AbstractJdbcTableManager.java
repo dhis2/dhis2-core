@@ -188,7 +188,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   @Override
   public void createTable(AnalyticsTable table) {
     createAnalyticsTable(table);
-    createAnalyticsTablePartitions(table);
+
+    if (!sqlBuilder.supportsDeclarativePartitioning()) {
+      createAnalyticsTablePartitions(table);
+    }
   }
 
   /**
