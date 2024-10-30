@@ -83,7 +83,6 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -98,8 +97,6 @@ public class DefaultDataQueryService implements DataQueryService {
   private final IdentifiableObjectManager idObjectManager;
 
   private final AnalyticsSecurityManager securityManager;
-
-  private final UserSettingsService userSettingsService;
 
   // -------------------------------------------------------------------------
   // DataQueryService implementation

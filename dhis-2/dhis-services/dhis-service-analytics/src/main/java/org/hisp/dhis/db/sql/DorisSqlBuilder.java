@@ -268,6 +268,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
     if (table.hasPartitions()) {
       sql.append("partition by range(year) ("); // Make configurable
+
       for (TablePartition partition : table.getPartitions()) {
         sql.append("partition ")
             .append(quote(partition.getName()))
@@ -275,6 +276,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
             .append(partition.getValue()) // Set last partition to max value
             .append("\"),");
       }
+
       removeLastComma(sql).append(") ");
     }
 
