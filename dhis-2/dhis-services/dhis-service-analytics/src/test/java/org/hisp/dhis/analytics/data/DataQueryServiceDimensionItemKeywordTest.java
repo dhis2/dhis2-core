@@ -142,8 +142,7 @@ class DataQueryServiceDimensionItemKeywordTest {
             dimensionService,
             aclService);
     target =
-        new DefaultDataQueryService(
-            dimensionalObjectProducer, idObjectManager, securityManager, userSettingsService);
+        new DefaultDataQueryService(dimensionalObjectProducer, idObjectManager, securityManager);
 
     rb = new RequestBuilder();
 

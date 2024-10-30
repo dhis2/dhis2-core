@@ -47,6 +47,7 @@ import org.hisp.dhis.legend.LegendSet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("unchecked")
 class DataElementConditionTest {
 
   private DimensionIdentifier<DimensionParam> dimensionIdentifier;
