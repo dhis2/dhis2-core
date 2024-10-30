@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -48,13 +49,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private DeduplicationService deduplicationService;
 
-  private static final String trackedEntityA = "trackedentA";
+  private static final UID TRACKED_ENTITY_A = UID.generate();
 
-  private static final String trackedEntityB = "trackedentB";
+  private static final UID TRACKED_ENTITY_B = UID.generate();
 
-  private static final String trackedEntityC = "trackedentC";
+  private static final UID TRACKED_ENTITY_C = UID.generate();
 
-  private static final String trackedEntityD = "trackedentD";
+  private static final UID TRACKED_ENTITY_D = UID.generate();
 
   @BeforeEach
   public void setupTestUser() {
@@ -64,12 +65,14 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetAllPotentialDuplicateByDifferentStatus() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
+    PotentialDuplicate potentialDuplicate =
+        new PotentialDuplicate(TRACKED_ENTITY_A, TRACKED_ENTITY_B);
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
-    PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate(trackedEntityC, trackedEntityD);
+    PotentialDuplicate potentialDuplicate1 =
+        new PotentialDuplicate(TRACKED_ENTITY_C, TRACKED_ENTITY_D);
     deduplicationService.addPotentialDuplicate(potentialDuplicate1);
 
-    List<String> potentialDuplicates = List.of(trackedEntityA, trackedEntityC);
+    List<UID> potentialDuplicates = List.of(TRACKED_ENTITY_A, TRACKED_ENTITY_C);
 
     PotentialDuplicateCriteria criteria = new PotentialDuplicateCriteria();
 
@@ -98,7 +101,8 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testAddPotentialDuplicate() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
+    PotentialDuplicate potentialDuplicate =
+        new PotentialDuplicate(TRACKED_ENTITY_A, TRACKED_ENTITY_B);
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
     assertNotEquals(0, potentialDuplicate.getId());
     assertEquals(
@@ -108,19 +112,22 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetPotentialDuplicateByUid() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
+    PotentialDuplicate potentialDuplicate =
+        new PotentialDuplicate(TRACKED_ENTITY_A, TRACKED_ENTITY_B);
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
     assertNotEquals(0, potentialDuplicate.getId());
     assertEquals(
         potentialDuplicate,
-        deduplicationService.getPotentialDuplicateByUid(potentialDuplicate.getUid()));
+        deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)));
   }
 
   @Test
   void testGetPotentialDuplicateDifferentStatus() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
+    PotentialDuplicate potentialDuplicate =
+        new PotentialDuplicate(TRACKED_ENTITY_A, TRACKED_ENTITY_B);
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
-    PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate(trackedEntityC, trackedEntityB);
+    PotentialDuplicate potentialDuplicate1 =
+        new PotentialDuplicate(TRACKED_ENTITY_C, TRACKED_ENTITY_B);
     deduplicationService.addPotentialDuplicate(potentialDuplicate1);
 
     potentialDuplicate.setStatus(DeduplicationStatus.INVALID);
@@ -130,7 +137,7 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
     deduplicationService.updatePotentialDuplicate(potentialDuplicate1);
 
     PotentialDuplicateCriteria criteria = new PotentialDuplicateCriteria();
-    criteria.setTrackedEntities(Collections.singletonList(trackedEntityB));
+    criteria.setTrackedEntities(Collections.singletonList(TRACKED_ENTITY_B));
     criteria.setStatus(DeduplicationStatus.INVALID);
     assertEquals(
         Collections.singletonList(potentialDuplicate),
@@ -139,7 +146,8 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testCreatePotentialDuplicateNotCreationStatus() {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
+    PotentialDuplicate potentialDuplicate =
+        new PotentialDuplicate(TRACKED_ENTITY_A, TRACKED_ENTITY_B);
     potentialDuplicate.setStatus(DeduplicationStatus.ALL);
 
     assertThrows(
@@ -149,7 +157,8 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testExistsDuplicate() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
+    PotentialDuplicate potentialDuplicate =
+        new PotentialDuplicate(TRACKED_ENTITY_A, TRACKED_ENTITY_B);
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
     assertTrue(deduplicationService.exists(potentialDuplicate));
   }
@@ -157,42 +166,48 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Test
   void testShouldThrowWhenMissingTrackedEntityBProperty()
       throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
+    PotentialDuplicate potentialDuplicate =
+        new PotentialDuplicate(TRACKED_ENTITY_A, TRACKED_ENTITY_B);
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
     assertThrows(
         PotentialDuplicateConflictException.class,
-        () -> deduplicationService.exists(new PotentialDuplicate(trackedEntityA, null)));
+        () -> deduplicationService.exists(new PotentialDuplicate(TRACKED_ENTITY_A, null)));
   }
 
   @Test
   void testShouldThrowWhenMissingTrackedEntityAProperty()
       throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
+    PotentialDuplicate potentialDuplicate =
+        new PotentialDuplicate(TRACKED_ENTITY_A, TRACKED_ENTITY_B);
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
     assertThrows(
         PotentialDuplicateConflictException.class,
-        () -> deduplicationService.exists(new PotentialDuplicate(null, trackedEntityB)));
+        () -> deduplicationService.exists(new PotentialDuplicate(null, TRACKED_ENTITY_B)));
   }
 
   @Test
   void testExistsTwoTrackedEntitiesReverse() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
+    PotentialDuplicate potentialDuplicate =
+        new PotentialDuplicate(TRACKED_ENTITY_A, TRACKED_ENTITY_B);
     PotentialDuplicate potentialDuplicateReverse =
-        new PotentialDuplicate(trackedEntityB, trackedEntityA);
+        new PotentialDuplicate(TRACKED_ENTITY_B, TRACKED_ENTITY_A);
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
     assertTrue(deduplicationService.exists(potentialDuplicateReverse));
   }
 
   @Test
   void testGetAllPotentialDuplicatedByQuery() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
-    PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate(trackedEntityC, trackedEntityD);
-    PotentialDuplicate potentialDuplicate2 = new PotentialDuplicate(trackedEntityA, trackedEntityD);
+    PotentialDuplicate potentialDuplicate =
+        new PotentialDuplicate(TRACKED_ENTITY_A, TRACKED_ENTITY_B);
+    PotentialDuplicate potentialDuplicate1 =
+        new PotentialDuplicate(TRACKED_ENTITY_C, TRACKED_ENTITY_D);
+    PotentialDuplicate potentialDuplicate2 =
+        new PotentialDuplicate(TRACKED_ENTITY_A, TRACKED_ENTITY_D);
     PotentialDuplicateCriteria criteria = new PotentialDuplicateCriteria();
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
     deduplicationService.addPotentialDuplicate(potentialDuplicate1);
     deduplicationService.addPotentialDuplicate(potentialDuplicate2);
-    criteria.setTrackedEntities(Collections.singletonList(trackedEntityA));
+    criteria.setTrackedEntities(Collections.singletonList(TRACKED_ENTITY_A));
     List<PotentialDuplicate> list = deduplicationService.getPotentialDuplicates(criteria);
     assertEquals(2, list.size());
     assertTrue(list.contains(potentialDuplicate));
@@ -201,17 +216,19 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testCountPotentialDuplicates() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
-    PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate(trackedEntityC, trackedEntityD);
+    PotentialDuplicate potentialDuplicate =
+        new PotentialDuplicate(TRACKED_ENTITY_A, TRACKED_ENTITY_B);
+    PotentialDuplicate potentialDuplicate1 =
+        new PotentialDuplicate(TRACKED_ENTITY_C, TRACKED_ENTITY_D);
     PotentialDuplicateCriteria criteria = new PotentialDuplicateCriteria();
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
     deduplicationService.addPotentialDuplicate(potentialDuplicate1);
     criteria.setStatus(DeduplicationStatus.ALL);
     assertEquals(2, deduplicationService.countPotentialDuplicates(criteria));
     criteria.setStatus(DeduplicationStatus.OPEN);
-    criteria.setTrackedEntities(Arrays.asList(trackedEntityA, trackedEntityC));
+    criteria.setTrackedEntities(Arrays.asList(TRACKED_ENTITY_A, TRACKED_ENTITY_C));
     assertEquals(2, deduplicationService.countPotentialDuplicates(criteria));
-    criteria.setTrackedEntities(Collections.singletonList(trackedEntityC));
+    criteria.setTrackedEntities(Collections.singletonList(TRACKED_ENTITY_C));
     assertEquals(1, deduplicationService.countPotentialDuplicates(criteria));
     criteria.setStatus(DeduplicationStatus.INVALID);
     assertEquals(0, deduplicationService.countPotentialDuplicates(criteria));
@@ -219,7 +236,8 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testUpdatePotentialDuplicate() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
+    PotentialDuplicate potentialDuplicate =
+        new PotentialDuplicate(TRACKED_ENTITY_A, TRACKED_ENTITY_B);
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
     assertEquals(
         DeduplicationStatus.OPEN,
@@ -233,7 +251,8 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldThrowWhenOrderFieldNotExists() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
+    PotentialDuplicate potentialDuplicate =
+        new PotentialDuplicate(TRACKED_ENTITY_A, TRACKED_ENTITY_B);
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
 
     PotentialDuplicateCriteria criteria = new PotentialDuplicateCriteria();

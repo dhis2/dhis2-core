@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 @Data
@@ -42,7 +43,7 @@ public class PotentialDuplicateCriteria extends PagingAndSortingCriteriaAdapter 
   @OpenApi.Property(defaultValue = "true")
   private Boolean paging;
 
-  private List<String> trackedEntities = new ArrayList<>();
+  private List<UID> trackedEntities = new ArrayList<>();
 
   private DeduplicationStatus status = DeduplicationStatus.OPEN;
 
