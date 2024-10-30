@@ -394,7 +394,7 @@ class JdbcEventStore implements EventStore {
               Note note = new Note();
               note.setUid(resultSet.getString("note_uid"));
               note.setNoteText(resultSet.getString("note_text"));
-              note.setCreated(resultSet.getDate("note_created"));
+              note.setCreated(resultSet.getTimestamp("note_created"));
               note.setCreator(resultSet.getString("note_creator"));
 
               if (resultSet.getObject("note_user_id") != null) {
@@ -408,7 +408,7 @@ class JdbcEventStore implements EventStore {
                 note.setLastUpdatedBy(noteLastUpdatedBy);
               }
 
-              note.setLastUpdated(resultSet.getDate("note_lastupdated"));
+              note.setLastUpdated(resultSet.getTimestamp("note_lastupdated"));
 
               event.getNotes().add(note);
               notes.add(resultSet.getString("note_id"));
