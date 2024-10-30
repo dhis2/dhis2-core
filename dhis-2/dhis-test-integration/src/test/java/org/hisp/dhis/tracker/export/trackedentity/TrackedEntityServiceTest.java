@@ -1572,8 +1572,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     trackerOwnershipManager.assignOwnership(
         trackedEntityB, programB, inaccessibleOrgUnit, true, true);
     TrackedEntityOperationParams operationParams = createOperationParams(orgUnitA, trackedEntityA);
-
     injectSecurityContextUser(user);
+
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     TrackedEntity trackedEntity = trackedEntities.get(0);
