@@ -671,9 +671,9 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ALL).build();
 
-    BadRequestException exception =
+    ForbiddenException exception =
         assertThrows(
-            BadRequestException.class, () -> enrollmentService.getEnrollments(operationParams));
+            ForbiddenException.class, () -> enrollmentService.getEnrollments(operationParams));
     assertEquals(
         "User is not authorized to query across all organisation units", exception.getMessage());
   }

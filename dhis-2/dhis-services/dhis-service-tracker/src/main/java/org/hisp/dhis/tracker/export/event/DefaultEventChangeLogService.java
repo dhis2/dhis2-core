@@ -70,13 +70,12 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   @Override
   @Transactional(readOnly = true)
   public Page<EventChangeLog> getEventChangeLog(
-      UID eventUid, EventChangeLogOperationParams operationParams, PageParams pageParams)
+      UID event, EventChangeLogOperationParams operationParams, PageParams pageParams)
       throws NotFoundException, ForbiddenException {
     // check existence and access
-    eventService.getEvent(eventUid);
+    eventService.getEvent(event);
 
-    return jdbcEventChangeLogStore.getEventChangeLog(
-        eventUid, operationParams.getOrder(), pageParams);
+    return jdbcEventChangeLogStore.getEventChangeLog(event, operationParams.getOrder(), pageParams);
   }
 
   @Transactional

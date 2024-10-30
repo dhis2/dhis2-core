@@ -30,6 +30,7 @@ package org.hisp.dhis.common;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
@@ -67,6 +68,7 @@ public final class UID implements Serializable {
   }
 
   @Override
+  @JsonValue
   public String toString() {
     return value;
   }
