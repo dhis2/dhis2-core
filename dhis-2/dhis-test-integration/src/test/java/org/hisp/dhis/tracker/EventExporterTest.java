@@ -48,6 +48,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
@@ -76,12 +77,14 @@ import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
@@ -112,14 +115,14 @@ class EventExporterTest extends TrackerTest {
   private Program program;
 
   final Function<EventQueryParams, List<String>> eventsFunction =
-      (params) ->
+      params ->
           eventService.getEvents(params).getEvents().stream()
               .map(Event::getEvent)
               .collect(Collectors.toList());
 
   /** EVENT_ID is at position 0 in column headers in events grid */
   final Function<EventQueryParams, List<String>> eventsGridFunction =
-      (params) ->
+      params ->
           eventService.getEventsGrid(params).getRows().stream()
               .map(r -> r.get(0).toString())
               .collect(Collectors.toList());
@@ -180,6 +183,7 @@ class EventExporterTest extends TrackerTest {
 
   @Test
   void shouldReturnEventsWithNotes() {
+    ProgramStageInstance pTzf9KYMk72 = get(ProgramStageInstance.class, "pTzf9KYMk72");
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnit(orgUnit);
     params.setEvents(Set.of("pTzf9KYMk72"));
@@ -188,13 +192,7 @@ class EventExporterTest extends TrackerTest {
     Events events = eventService.getEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), eventUids(events));
-    List<Note> notes = events.getEvents().get(0).getNotes();
-    assertContainsOnly(
-        List.of("SGuCABkhpgn", "DRKO4xUVrpr"),
-        notes.stream().map(Note::getNote).collect(Collectors.toList()));
-    assertAll(
-        () -> assertNote(importUser, "comment value", notes.get(0)),
-        () -> assertNote(importUser, "comment value", notes.get(1)));
+    assertNotes(pTzf9KYMk72.getComments(), events.getEvents().get(0).getNotes());
   }
 
   @ParameterizedTest
@@ -1226,11 +1224,47 @@ class EventExporterTest extends TrackerTest {
         List.of("mHWCacsGYYn", "QesgJkTyTCk", "QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
   }
 
-  private void assertNote(User expectedLastUpdatedBy, String expectedNote, Note actual) {
-    assertEquals(expectedNote, actual.getValue());
-    UserInfoSnapshot lastUpdatedBy = actual.getLastUpdatedBy();
-    assertEquals(expectedLastUpdatedBy.getUid(), lastUpdatedBy.getUid());
-    assertEquals(expectedLastUpdatedBy.getUsername(), lastUpdatedBy.getUsername());
+  private static void assertNotes(List<TrackedEntityComment> expected, List<Note> actual) {
+    Map<String, TrackedEntityComment> expectedNotes =
+        expected.stream()
+            .collect(Collectors.toMap(IdentifiableObject::getUid, Function.identity()));
+    Map<String, Note> actualNotes =
+        actual.stream().collect(Collectors.toMap(Note::getNote, Function.identity()));
+    List<Executable> assertions =
+        expectedNotes.entrySet().stream()
+            .map(
+                entry ->
+                    (Executable)
+                        () -> {
+                          TrackedEntityComment expectedNote = entry.getValue();
+                          Note actualNote = actualNotes.get(entry.getKey());
+                          assertNotNull(
+                              actualNote, "note " + expectedNote.getUid() + " does not exist");
+                          assertAll(
+                              "note assertions " + expectedNote.getUid(),
+                              () ->
+                                  assertEquals(
+                                      expectedNote.getCommentText(),
+                                      actualNote.getValue(),
+                                      "commentText"),
+                              () ->
+                                  assertEquals(
+                                      expectedNote.getCreator(),
+                                      actualNote.getStoredBy(),
+                                      "creator"),
+                              () ->
+                                  assertEquals(
+                                      DateUtils.getIso8601NoTz(expectedNote.getCreated()),
+                                      actualNote.getStoredDate(),
+                                      "created"),
+                              () ->
+                                  assertEquals(
+                                      expectedNote.getLastUpdated(),
+                                      actualNote.getLastUpdated(),
+                                      "lastUpdated"));
+                        })
+            .collect(Collectors.toList());
+    assertAll("note assertions", assertions);
   }
 
   private DataElement dataElement(String uid) {
