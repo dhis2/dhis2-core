@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.webapi.servlet;
 
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.FilterRegistration;
+import jakarta.servlet.MultipartConfigElement;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletRegistration;
+import jakarta.servlet.SessionTrackingMode;
 import java.util.EnumSet;
-import javax.servlet.DispatcherType;
-import javax.servlet.FilterRegistration;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletRegistration;
-import javax.servlet.SessionTrackingMode;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
@@ -45,6 +46,7 @@ import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
+import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.filter.DelegatingFilterProxy;
@@ -98,6 +100,7 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     dispatcher.setAsyncSupported(true);
     dispatcher.setLoadOnStartup(1);
     dispatcher.addMapping("/*");
+    dispatcher.setMultipartConfig(new MultipartConfigElement(""));
 
     context
         .addServlet("TempGetAppMenuServlet", TempGetAppMenuServlet.class)
@@ -137,5 +140,13 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     context
         .addFilter("GlobalShellFilter", new DelegatingFilterProxy("globalShellFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
+
+    context.addServlet("RootPageServlet", LoginFallbackServlet.class).addMapping("/login.html");
+
+    String profile = System.getProperty("spring.profiles.active");
+    if (profile == null || !profile.equals("embeddedJetty")) {
+      RequestContextListener requestContextListener = new RequestContextListener();
+      context.addListener(requestContextListener);
+    }
   }
 }

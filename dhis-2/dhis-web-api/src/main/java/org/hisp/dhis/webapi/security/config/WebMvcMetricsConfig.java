@@ -33,11 +33,11 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.spring.web.servlet.DefaultWebMvcTagsProvider;
 import io.micrometer.spring.web.servlet.WebMvcMetricsFilter;
 import io.micrometer.spring.web.servlet.WebMvcTagsProvider;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.monitoring.metrics.MetricsEnabler;
@@ -47,6 +47,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 /**
@@ -54,7 +55,7 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
  */
 @Configuration
 @Conditional(WebMvcMetricsConfig.WebMvcMetricsEnabledCondition.class)
-public class WebMvcMetricsConfig {
+public class WebMvcMetricsConfig implements WebMvcConfigurer {
   @Bean
   public DefaultWebMvcTagsProvider servletTagsProvider() {
     return new DefaultWebMvcTagsProvider();
@@ -71,7 +72,7 @@ public class WebMvcMetricsConfig {
 
   @Configuration
   @Conditional(WebMvcMetricsDisabledCondition.class)
-  static class DataSourcePoolMetadataMetricsConfiguration {
+  static class DataSourcePoolMetadataMetricsConfig {
     @Bean
     public PassThroughWebMvcMetricsFilter webMetricsFilter() {
       return new PassThroughWebMvcMetricsFilter();

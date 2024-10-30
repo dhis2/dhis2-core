@@ -33,10 +33,10 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -47,6 +47,7 @@ import org.hisp.dhis.datastore.DatastoreQuery;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -68,7 +69,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Stian Sandvold
  */
-@OpenApi.Document(domain = UserDatastoreEntry.class)
+@OpenApi.Document(
+    entity = UserDatastoreEntry.class,
+    classifiers = {"team:platform", "purpose:data"})
 @Controller
 @RequestMapping("/api/userDataStore")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -137,7 +140,7 @@ public class UserDatastoreController extends AbstractDatastoreController {
       @RequestParam(required = false, defaultValue = "false") boolean includeAll,
       DatastoreParams params,
       HttpServletResponse response)
-      throws IOException, ConflictException {
+      throws IOException, ConflictException, ForbiddenException {
     DatastoreQuery query =
         service.plan(
             DatastoreQuery.builder()

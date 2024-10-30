@@ -27,27 +27,29 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Path;
 import org.hisp.dhis.common.auth.ApiTokenAuth;
 import org.hisp.dhis.common.auth.HttpBasicAuth;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link EventHookController} using (mocked) REST requests.
  *
  * @author Morten Olav Hansen
  */
-class EventHookControllerTest extends DhisControllerIntegrationTest {
+@Transactional
+class EventHookControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void testGetEventHooks() {
     JsonObject eventHooks = GET("/eventHooks").content(HttpStatus.OK);
@@ -61,7 +63,7 @@ class EventHookControllerTest extends DhisControllerIntegrationTest {
   void testCreateEventHookWebhookApiToken() {
     String id =
         assertStatus(
-            HttpStatus.CREATED, POST("/eventHooks", Body("event-hook/webhook-api-token.json")));
+            HttpStatus.CREATED, POST("/eventHooks", Path.of("event-hook/webhook-api-token.json")));
     assertEquals("bRNvL6NMQXb", id);
 
     JsonObject eventHook = GET("/eventHooks/{id}", id).content(HttpStatus.OK);
@@ -87,7 +89,7 @@ class EventHookControllerTest extends DhisControllerIntegrationTest {
   void testCreateEventHookWebhookHttpBasic() {
     String id =
         assertStatus(
-            HttpStatus.CREATED, POST("/eventHooks", Body("event-hook/webhook-http-basic.json")));
+            HttpStatus.CREATED, POST("/eventHooks", Path.of("event-hook/webhook-http-basic.json")));
     assertEquals("bRNvL6NMQXb", id);
 
     JsonObject eventHook = GET("/eventHooks/{id}", id).content(HttpStatus.OK);
@@ -115,7 +117,7 @@ class EventHookControllerTest extends DhisControllerIntegrationTest {
   void testCreateEventHookWebhookHttpBasicDefaultEnabled() {
     String id =
         assertStatus(
-            HttpStatus.CREATED, POST("/eventHooks", Body("event-hook/webhook-http-basic.json")));
+            HttpStatus.CREATED, POST("/eventHooks", Path.of("event-hook/webhook-http-basic.json")));
     assertEquals("bRNvL6NMQXb", id);
 
     JsonObject eventHook = GET("/eventHooks/{id}", id).content(HttpStatus.OK);
@@ -144,7 +146,7 @@ class EventHookControllerTest extends DhisControllerIntegrationTest {
   void testDeleteEventHookWebhookHttpBasic() {
     String id =
         assertStatus(
-            HttpStatus.CREATED, POST("/eventHooks", Body("event-hook/webhook-http-basic.json")));
+            HttpStatus.CREATED, POST("/eventHooks", Path.of("event-hook/webhook-http-basic.json")));
     assertEquals("bRNvL6NMQXb", id);
 
     GET("/eventHooks/{id}", id).content(HttpStatus.OK);

@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.program.hibernate;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTempOwner;
 import org.hisp.dhis.program.ProgramTempOwnerStore;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -59,13 +58,13 @@ public class HibernateProgramTempOwnerStore extends HibernateGenericStore<Progra
   }
 
   @Override
-  public int getValidTempOwnerCount(
-      Program program, TrackedEntity trackedEntity, UserDetails user) {
+  public int getValidTempOwnerCount(Program program, String trackedEntity, UserDetails user) {
     final String sql =
         "select count(1) from programtempowner "
-            + "where programid = ? and trackedentityid=? and userid=? "
+            + " join trackedentity t on t.trackedentityid = programtempowner.trackedentityid "
+            + "where programid = ? and t.uid=? and userid=? "
             + "and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0";
-    Object[] args = new Object[] {program.getId(), trackedEntity.getId(), user.getId()};
+    Object[] args = new Object[] {program.getId(), trackedEntity, user.getId()};
     return jdbcTemplate.queryForObject(sql, Integer.class, args);
   }
 }

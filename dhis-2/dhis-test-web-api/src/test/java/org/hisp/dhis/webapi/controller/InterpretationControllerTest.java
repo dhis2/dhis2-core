@@ -27,29 +27,34 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpClientAdapter.Body;
+import static org.hisp.dhis.http.HttpClientAdapter.ContentType;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link InterpretationController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-class InterpretationControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class InterpretationControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private VisualizationService visualizationService;
 
@@ -95,7 +100,10 @@ class InterpretationControllerTest extends DhisControllerConvenienceTest {
         409,
         "ERROR",
         "Visualization does not exist or is not accessible: xyz",
-        POST("/interpretations/visualization/xyz?pe=2021&ou=" + ouId, "text/plain:text")
+        POST(
+                "/interpretations/visualization/xyz?pe=2021&ou=" + ouId,
+                ContentType("text/plain"),
+                Body("text"))
             .content(HttpStatus.CONFLICT));
   }
 
@@ -106,7 +114,10 @@ class InterpretationControllerTest extends DhisControllerConvenienceTest {
         409,
         "ERROR",
         "EventVisualization does not exist or is not accessible: xyz",
-        POST("/interpretations/eventVisualization/xyz?pe=2021&ou=" + ouId, "text/plain:text")
+        POST(
+                "/interpretations/eventVisualization/xyz?pe=2021&ou=" + ouId,
+                ContentType("text/plain"),
+                Body("text"))
             .content(HttpStatus.CONFLICT));
   }
 
@@ -117,7 +128,7 @@ class InterpretationControllerTest extends DhisControllerConvenienceTest {
         409,
         "ERROR",
         "Map does not exist or is not accessible: xyz",
-        POST("/interpretations/map/xyz?pe=2021&ou=" + ouId, "text/plain:text")
+        POST("/interpretations/map/xyz?pe=2021&ou=" + ouId, ContentType("text/plain"), Body("text"))
             .content(HttpStatus.CONFLICT));
   }
 
@@ -128,7 +139,10 @@ class InterpretationControllerTest extends DhisControllerConvenienceTest {
         409,
         "ERROR",
         "Event report does not exist or is not accessible: xyz",
-        POST("/interpretations/eventReport/xyz?pe=2021&ou=" + ouId, "text/plain:text")
+        POST(
+                "/interpretations/eventReport/xyz?pe=2021&ou=" + ouId,
+                ContentType("text/plain"),
+                Body("text"))
             .content(HttpStatus.CONFLICT));
   }
 
@@ -139,7 +153,10 @@ class InterpretationControllerTest extends DhisControllerConvenienceTest {
         409,
         "ERROR",
         "Event chart does not exist or is not accessible: xyz",
-        POST("/interpretations/eventChart/xyz?pe=2021&ou=" + ouId, "text/plain:text")
+        POST(
+                "/interpretations/eventChart/xyz?pe=2021&ou=" + ouId,
+                ContentType("text/plain"),
+                Body("text"))
             .content(HttpStatus.CONFLICT));
   }
 
@@ -150,13 +167,18 @@ class InterpretationControllerTest extends DhisControllerConvenienceTest {
         409,
         "ERROR",
         "Data set does not exist or is not accessible: xyz",
-        POST("/interpretations/dataSetReport/xyz?pe=2021&ou=" + ouId, "text/plain:text")
+        POST(
+                "/interpretations/dataSetReport/xyz?pe=2021&ou=" + ouId,
+                ContentType("text/plain"),
+                Body("text"))
             .content(HttpStatus.CONFLICT));
   }
 
   @Test
   void testUpdateInterpretation() {
-    assertStatus(HttpStatus.NO_CONTENT, PUT("/interpretations/" + uid, "text/plain:text"));
+    assertStatus(
+        HttpStatus.NO_CONTENT,
+        PUT("/interpretations/" + uid, ContentType("text/plain"), Body("text")));
   }
 
   @Test
@@ -166,7 +188,8 @@ class InterpretationControllerTest extends DhisControllerConvenienceTest {
         404,
         "ERROR",
         "Interpretation does not exist: xyz",
-        PUT("/interpretations/xyz", "text/plain:text").content(HttpStatus.NOT_FOUND));
+        PUT("/interpretations/xyz", ContentType("text/plain"), Body("text"))
+            .content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -176,7 +199,7 @@ class InterpretationControllerTest extends DhisControllerConvenienceTest {
         201,
         "OK",
         "Commented created",
-        POST("/interpretations/" + uid + "/comments", "text/plain:comment")
+        POST("/interpretations/" + uid + "/comments", ContentType("text/plain"), Body("comment"))
             .content(HttpStatus.CREATED));
     JsonObject comments = GET("/interpretations/{uid}/comments", uid).content(HttpStatus.OK);
     assertEquals(1, comments.getArray("comments").size());
@@ -189,7 +212,8 @@ class InterpretationControllerTest extends DhisControllerConvenienceTest {
         409,
         "ERROR",
         "Interpretation does not exist: xyz",
-        POST("/interpretations/xyz/comments", "text/plain:comment").content(HttpStatus.CONFLICT));
+        POST("/interpretations/xyz/comments", ContentType("text/plain"), Body("comment"))
+            .content(HttpStatus.CONFLICT));
   }
 
   @Test
@@ -197,10 +221,16 @@ class InterpretationControllerTest extends DhisControllerConvenienceTest {
     String cuid =
         assertStatus(
             HttpStatus.CREATED,
-            POST("/interpretations/" + uid + "/comments", "text/plain:comment"));
+            POST(
+                "/interpretations/" + uid + "/comments",
+                ContentType("text/plain"),
+                Body("comment")));
     assertStatus(
         HttpStatus.NO_CONTENT,
-        PUT("/interpretations/" + uid + "/comments/" + cuid, "text/plain:new comment"));
+        PUT(
+            "/interpretations/" + uid + "/comments/" + cuid,
+            ContentType("text/plain"),
+            Body("new comment")));
     JsonObject comments = GET("/interpretations/{uid}/comments/", uid).content();
     assertEquals(
         "new comment", comments.getArray("comments").getObject(0).getString("text").string());
@@ -213,7 +243,7 @@ class InterpretationControllerTest extends DhisControllerConvenienceTest {
         409,
         "ERROR",
         "Interpretation does not exist: xyz",
-        PUT("/interpretations/xyz/comments/abc", "text/plain:comment")
+        PUT("/interpretations/xyz/comments/abc", ContentType("text/plain"), Body("comment"))
             .content(HttpStatus.CONFLICT));
   }
 
@@ -222,7 +252,10 @@ class InterpretationControllerTest extends DhisControllerConvenienceTest {
     String cuid =
         assertStatus(
             HttpStatus.CREATED,
-            POST("/interpretations/" + uid + "/comments", "text/plain:comment"));
+            POST(
+                "/interpretations/" + uid + "/comments",
+                ContentType("text/plain"),
+                Body("comment")));
     assertStatus(HttpStatus.NO_CONTENT, DELETE("/interpretations/" + uid + "/comments/" + cuid));
     JsonObject comments = GET("/interpretations/{uid}/comments", uid).content(HttpStatus.OK);
     assertEquals(0, comments.getArray("comments").size());
@@ -307,7 +340,7 @@ class InterpretationControllerTest extends DhisControllerConvenienceTest {
         201,
         "OK",
         "Commented created",
-        POST("/interpretations/" + uid + "/comments", "text/plain:comment")
+        POST("/interpretations/" + uid + "/comments", ContentType("text/plain"), Body("comment"))
             .content(HttpStatus.CREATED));
     JsonObject comments =
         GET("/interpretations/{uid}/comments?fields=access,id", uid).content(HttpStatus.OK);

@@ -33,12 +33,12 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -46,8 +46,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -67,7 +66,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Henning Håkonsen
  * @author Morten Svanaes
  */
-@OpenApi.Document(domain = User.class)
+@OpenApi.Document(
+    entity = User.class,
+    classifiers = {"team:platform", "purpose:support"})
 @RestController
 @RequestMapping("/api/2fa")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -75,19 +76,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class TwoFactorController {
   private final UserService defaultUserService;
 
-  private final SystemSettingManager systemSettingManager;
-
   /**
    * @deprecated Use {@link #generateQRCode}.
-   * @param currentUser
-   * @return
-   * @throws WebMessageException
    */
   @Deprecated(since = "2.39")
   @GetMapping(value = "/qr", produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
   @ResponseBody
-  public Map<String, Object> getQrCode(@CurrentUser UserDetails currentUser)
+  public Map<String, String> getQrCode(@CurrentUser UserDetails currentUser)
       throws WebMessageException {
     if (currentUser == null) {
       throw new WebMessageException(conflict(ErrorCode.E3027.getMessage(), ErrorCode.E3027));
@@ -96,9 +92,11 @@ public class TwoFactorController {
     return Map.of("url", "url");
   }
 
+  @OpenApi.Response(byte[].class)
   @GetMapping(value = "/qrCode", produces = APPLICATION_OCTET_STREAM_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public void generateQRCode(@CurrentUser User currentUser, HttpServletResponse response)
+  public void generateQRCode(
+      @CurrentUser User currentUser, HttpServletResponse response, SystemSettings settings)
       throws IOException, WebMessageException {
     if (currentUser == null) {
       throw new WebMessageException(conflict(ErrorCode.E3027.getMessage(), ErrorCode.E3027));
@@ -111,7 +109,7 @@ public class TwoFactorController {
 
     defaultUserService.generateTwoFactorOtpSecretForApproval(currentUser);
 
-    String appName = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
+    String appName = settings.getApplicationTitle();
 
     List<ErrorCode> errorCodes = new ArrayList<>();
 
@@ -148,7 +146,6 @@ public class TwoFactorController {
    *
    * @param body The body of the request.
    * @param currentUser This is the user that is currently logged in.
-   * @return
    */
   @PostMapping(
       value = "/enabled",
@@ -179,7 +176,6 @@ public class TwoFactorController {
    *
    * @param body The body of the request.
    * @param currentUser This is the user that is currently logged in.
-   * @return
    */
   @PostMapping(
       value = "/disabled",
@@ -195,7 +191,12 @@ public class TwoFactorController {
       throw new WebMessageException(conflict(ErrorCode.E3031.getMessage(), ErrorCode.E3031));
     }
 
+    if (defaultUserService.twoFaDisableIsLocked(currentUser.getUsername())) {
+      throw new WebMessageException(conflict(ErrorCode.E3042.getMessage(), ErrorCode.E3042));
+    }
+
     if (!verifyCode(code, currentUser)) {
+      defaultUserService.registerFailed2FADisableAttempt(currentUser.getUsername());
       return unauthorized(ErrorCode.E3023.getMessage());
     }
 

@@ -2,6 +2,7 @@
 
 set -euo pipefail
 
+BASE_IMAGE=${BASE_IMAGE}
 IMAGE_REPOSITORY=${IMAGE_REPOSITORY:-'dhis2/core'}
 IMAGE_APP_ROOT=${IMAGE_APP_ROOT:-'/usr/local/tomcat/webapps/ROOT'}
 IMAGE_USER=${IMAGE_USER:-'65534'}
@@ -36,40 +37,47 @@ function create_rolling_tags() {
   minor="${image_tag_segments[1]}"
   patch="${image_tag_segments[2]}"
 
-  # Always create M.m.p and 2.M.m.p
+  # Always create M.m.p tags.
   rolling_tags=(
     "$image_tag"
     "$old_version_schema_prefix.$image_tag"
   )
 
-  # If patch(hotfix) is the latest for given minor(patch) create M.m + 2.M.m
-  latest_hotfix_version="$(
+  latest_patch_version="$(
     echo "$stable_versions_json" |
-    jq -r --argjson major "$major" --argjson minor "$minor" \
-    '.versions[] | select(.version == $major) .patchVersions[] | select(.version == $minor) .hotfixVersion' |
-    sort -n |
-    tail -1
+    jq -r --argjson major "$major" \
+    '.versions[] | select(.version == $major) .latestHotfixVersion'
   )"
-  if [[ "$patch" == "$latest_hotfix_version" ]]; then
-    echo "The patch version $patch is the latest for the minor version $minor"
+
+  latest_minor_version="$(
+    echo "$stable_versions_json" |
+    jq -r --argjson major "$major" \
+    '.versions[] | select(.version == $major) | .latestPatchVersion'
+  )"
+
+  latest_major_version="$(
+    echo "$stable_versions_json" |
+    jq -r '.versions[] | select(.latest == true) .version'
+  )"
+
+  if [[ "$major" -gt "$latest_major_version" ]] || \
+     [[ "$minor" -gt "$latest_minor_version" ]] || \
+     [[ "$patch" -ge "$latest_patch_version" && "$minor" -eq "$latest_minor_version" ]]; then
+    echo "New major, new minor or new/existing patch for the latest minor version, creating M.m and M tags."
+    rolling_tags+=(
+      "$major.$minor"
+      "$major"
+      "$old_version_schema_prefix.$major.$minor"
+      "$old_version_schema_prefix.$major"
+    )
+  fi
+
+  if [[ "$patch" -gt "$latest_patch_version" && "$minor" -lt "$latest_minor_version" ]]; then
+    echo "New patch for a non-latest minor version, creating M.m tags."
     rolling_tags+=(
       "$major.$minor"
       "$old_version_schema_prefix.$major.$minor"
     )
-  fi
-
-  # If version is the latest create M + 2.M
-  latest_version="$(
-    echo "$stable_versions_json" |
-    jq -r --argjson major "$major" \
-    '.versions[] | select(.version == $major) | "\(.version).\(.latestPatchVersion).\(.latestHotfixVersion)"'
-  )"
-  if [[ "$image_tag" == "$latest_version" ]]; then
-      echo "Version $image_tag is the latest version for the supported major version $major"
-      rolling_tags+=(
-        "$major"
-        "$old_version_schema_prefix.$major"
-      )
   fi
 }
 
@@ -203,12 +211,6 @@ if [[ ${rebuild_image:-} -eq 1 ]]; then
 else
   use_new_war
 fi
-
-jdk_version="$(
-  echo "$stable_versions_json" |
-  jq -r --argjson major "$major" '.versions[] | select(.version == $major) .jdk'
-)"
-BASE_IMAGE="${BASE_IMAGE:-"tomcat:9.0-jre$jdk_version"}"
 
 build_main_image
 

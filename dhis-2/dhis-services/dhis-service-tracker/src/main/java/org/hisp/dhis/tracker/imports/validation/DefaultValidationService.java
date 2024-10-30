@@ -31,12 +31,13 @@ import static org.hisp.dhis.tracker.imports.validation.PersistablesFilter.filter
 
 import java.util.HashSet;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.hisp.dhis.tracker.imports.ValidationMode;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
@@ -54,22 +55,24 @@ public class DefaultValidationService implements ValidationService {
   @Qualifier("org.hisp.dhis.tracker.imports.validation.validator.RuleEngineValidator")
   private final Validator<TrackerBundle> ruleEngineValidator;
 
+  @Nonnull
   @Override
-  public ValidationResult validate(TrackerBundle bundle) {
+  public ValidationResult validate(@Nonnull TrackerBundle bundle) {
     return validate(bundle, validator);
   }
 
+  @Nonnull
   @Override
-  public ValidationResult validateRuleEngine(TrackerBundle bundle) {
+  public ValidationResult validateRuleEngine(@Nonnull TrackerBundle bundle) {
     return validate(bundle, ruleEngineValidator);
   }
 
   private ValidationResult validate(TrackerBundle bundle, Validator<TrackerBundle> validator) {
-    User user = bundle.getUser();
-    if ((user == null || user.isSuper()) && ValidationMode.SKIP == bundle.getValidationMode()) {
+    UserDetails user = bundle.getUser();
+    if (user.isSuper() && ValidationMode.SKIP == bundle.getValidationMode()) {
       log.warn(
           "Skipping validation for metadata import by user '"
-              + bundle.getUsername()
+              + user.getUsername()
               + "'. Not recommended.");
       return new Result(
           bundle.getTrackedEntities(),

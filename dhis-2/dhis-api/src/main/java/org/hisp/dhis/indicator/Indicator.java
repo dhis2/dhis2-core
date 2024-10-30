@@ -34,6 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.HashSet;
 import java.util.Set;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -119,7 +120,7 @@ public class Indicator extends BaseDataDimensionalItemObject implements Metadata
   }
 
   public void removeAllAttributeValues() {
-    attributeValues.clear();
+    setAttributeValues(AttributeValues.empty());
   }
 
   public boolean hasDecimals() {

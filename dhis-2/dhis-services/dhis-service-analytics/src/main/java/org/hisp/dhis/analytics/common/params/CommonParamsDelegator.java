@@ -154,7 +154,7 @@ public class CommonParamsDelegator {
    *
    * @return the list of {@link DimensionalItemObject}.
    */
-  public List<DimensionalItemObject> getOrgUnitDimensionOrFilterItems() {
+  public List<DimensionalItemObject> getOrgUnitsInDimensionOrFilterItems() {
     return getDimensionOptions(ORGUNIT_DIM_ID, getAllDimensionalObjects());
   }
 

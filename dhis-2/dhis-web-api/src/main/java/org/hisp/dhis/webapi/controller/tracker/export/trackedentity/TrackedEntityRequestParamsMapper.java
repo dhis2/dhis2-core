@@ -48,7 +48,7 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.TrackedEntityOperationParamsBuilder;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -70,12 +70,15 @@ class TrackedEntityRequestParamsMapper {
   private final TrackedEntityFieldsParamMapper fieldsParamMapper;
 
   public TrackedEntityOperationParams map(
-      TrackedEntityRequestParams trackedEntityRequestParams, User user) throws BadRequestException {
-    return map(trackedEntityRequestParams, user, trackedEntityRequestParams.getFields());
+      TrackedEntityRequestParams trackedEntityRequestParams, UserDetails user)
+      throws BadRequestException {
+    return map(trackedEntityRequestParams, trackedEntityRequestParams.getFields(), user);
   }
 
   public TrackedEntityOperationParams map(
-      TrackedEntityRequestParams trackedEntityRequestParams, User user, List<FieldPath> fields)
+      TrackedEntityRequestParams trackedEntityRequestParams,
+      List<FieldPath> fields,
+      UserDetails user)
       throws BadRequestException {
     validateRemovedParameters(trackedEntityRequestParams);
 
@@ -120,13 +123,12 @@ class TrackedEntityRequestParamsMapper {
     validateOrderParams(trackedEntityRequestParams.getOrder(), ORDERABLE_FIELD_NAMES, "attribute");
     validateRequestParams(trackedEntityRequestParams, trackedEntities);
 
-    Map<String, List<QueryFilter>> filters = parseFilters(trackedEntityRequestParams.getFilter());
+    Map<UID, List<QueryFilter>> filters = parseFilters(trackedEntityRequestParams.getFilter());
 
     TrackedEntityOperationParamsBuilder builder =
         TrackedEntityOperationParams.builder()
-            .programUid(applyIfNotNull(trackedEntityRequestParams.getProgram(), UID::getValue))
-            .programStageUid(
-                applyIfNotNull(trackedEntityRequestParams.getProgramStage(), UID::getValue))
+            .program(trackedEntityRequestParams.getProgram())
+            .programStage(trackedEntityRequestParams.getProgramStage())
             .enrollmentStatus(enrollmentStatus)
             .followUp(trackedEntityRequestParams.getFollowUp())
             .lastUpdatedStartDate(
@@ -146,9 +148,8 @@ class TrackedEntityRequestParamsMapper {
             .programIncidentEndDate(
                 applyIfNotNull(
                     trackedEntityRequestParams.getEnrollmentOccurredBefore(), EndDateTime::toDate))
-            .trackedEntityTypeUid(
-                applyIfNotNull(trackedEntityRequestParams.getTrackedEntityType(), UID::getValue))
-            .organisationUnits(UID.toValueSet(orgUnitUids))
+            .trackedEntityType(trackedEntityRequestParams.getTrackedEntityType())
+            .organisationUnits(orgUnitUids)
             .orgUnitMode(orgUnitMode)
             .eventStatus(trackedEntityRequestParams.getEventStatus())
             .eventStartDate(
@@ -159,11 +160,8 @@ class TrackedEntityRequestParamsMapper {
                     trackedEntityRequestParams.getEventOccurredBefore(), EndDateTime::toDate))
             .assignedUserQueryParam(
                 new AssignedUserQueryParam(
-                    trackedEntityRequestParams.getAssignedUserMode(),
-                    user,
-                    UID.toValueSet(assignedUsers)))
-            .user(user)
-            .trackedEntityUids(UID.toValueSet(trackedEntities))
+                    trackedEntityRequestParams.getAssignedUserMode(), assignedUsers, UID.of(user)))
+            .trackedEntities(trackedEntities)
             .filters(filters)
             .includeDeleted(trackedEntityRequestParams.isIncludeDeleted())
             .potentialDuplicate(trackedEntityRequestParams.getPotentialDuplicate())

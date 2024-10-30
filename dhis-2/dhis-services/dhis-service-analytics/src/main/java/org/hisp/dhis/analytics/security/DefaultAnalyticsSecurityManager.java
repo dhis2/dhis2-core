@@ -58,7 +58,7 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
@@ -75,7 +75,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
 
   private final DataApprovalLevelService approvalLevelService;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final DimensionService dimensionService;
 
@@ -127,7 +127,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
    */
   private void decideAccessDataViewOrganisationUnits(
       List<OrganisationUnit> queryOrgUnits, User user) throws IllegalQueryException {
-    if (queryOrgUnits.isEmpty() || user == null || !user.hasDataViewOrganisationUnit()) {
+    if (queryOrgUnits.isEmpty() || !user.hasDataViewOrganisationUnit()) {
       return; // Allow if no
     }
 
@@ -238,12 +238,11 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    boolean hideUnapprovedData = systemSettingManager.hideUnapprovedDataInAnalytics();
+    boolean hideUnapprovedData =
+        settingsProvider.getCurrentSettings().isHideUnapprovedDataInAnalytics();
+    boolean canViewUnapprovedData = currentUser.isAuthorized(F_VIEW_UNAPPROVED_DATA);
 
-    boolean canViewUnapprovedData =
-        currentUser == null || currentUser.isAuthorized(F_VIEW_UNAPPROVED_DATA);
-
-    if (hideUnapprovedData && currentUser != null) {
+    if (hideUnapprovedData) {
       Map<OrganisationUnit, Integer> approvalLevels = null;
 
       if (params.hasApprovalLevel()) {
@@ -311,7 +310,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
     // Check if current user has data view organisation units
     // ---------------------------------------------------------------------
 
-    if (params == null || currentUser == null || !currentUser.hasDataViewOrganisationUnit()) {
+    if (params == null || !currentUser.hasDataViewOrganisationUnit()) {
       return;
     }
 
@@ -353,7 +352,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
     // Check if current user has dimension constraints
     // ---------------------------------------------------------------------
 
-    if (params == null || currentUser == null) {
+    if (params == null) {
       return;
     }
 

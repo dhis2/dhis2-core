@@ -27,10 +27,8 @@
  */
 package org.hisp.dhis.user;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
@@ -92,7 +90,7 @@ public class SystemUser implements UserDetails {
 
   @Override
   public String getUid() {
-    return "system-process";
+    return "XXXXXSystem";
   }
 
   @Override
@@ -139,6 +137,12 @@ public class SystemUser implements UserDetails {
     return Set.of();
   }
 
+  @Nonnull
+  @Override
+  public Set<String> getUserEffectiveSearchOrgUnitIds() {
+    return Set.of();
+  }
+
   @Override
   public boolean hasAnyAuthority(Collection<String> auths) {
     return true;
@@ -157,12 +161,6 @@ public class SystemUser implements UserDetails {
   @Override
   public boolean isAuthorized(@Nonnull Authorities auth) {
     return true;
-  }
-
-  @Nonnull
-  @Override
-  public Map<String, Serializable> getUserSettings() {
-    return Map.of();
   }
 
   @Nonnull

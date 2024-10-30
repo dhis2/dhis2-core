@@ -29,10 +29,12 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.lang.String.format;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Optional;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.user.CurrentUser;
@@ -48,8 +50,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 @RequestMapping("/api/identifiableObjects")
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class IdentifiableObjectController extends AbstractCrudController<IdentifiableObject> {
 
+  @Nonnull
   @Override
   @SuppressWarnings("unchecked")
   public IdentifiableObject getEntity(String uid, WebOptions options) throws NotFoundException {
@@ -58,12 +62,6 @@ public class IdentifiableObjectController extends AbstractCrudController<Identif
       throw new NotFoundException(format("No identifiable object with id `%s` exists", uid));
     }
     return object.get();
-  }
-
-  @Override
-  public WebMessage postXmlObject(HttpServletRequest request)
-      throws HttpRequestMethodNotSupportedException {
-    throw new HttpRequestMethodNotSupportedException("POST");
   }
 
   @Override

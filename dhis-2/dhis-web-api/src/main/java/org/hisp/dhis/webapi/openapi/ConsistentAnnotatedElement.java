@@ -39,6 +39,7 @@ import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.Value;
@@ -123,11 +124,7 @@ class ConsistentAnnotatedElement implements AnnotatedElement {
       }
       in = in.getSuperclass();
       if (in != Object.class) {
-        try {
-          m = in.getDeclaredMethod(method.getName(), method.getParameterTypes());
-        } catch (NoSuchMethodException e) {
-          m = null;
-        }
+        m = getDeclaredMethod(in, method.getName(), method.getParameterTypes());
       }
     }
     return toArray(annotations, type);
@@ -157,15 +154,23 @@ class ConsistentAnnotatedElement implements AnnotatedElement {
       }
       in = in.getSuperclass();
       if (in != Object.class) {
-        try {
-          Method m = in.getDeclaredMethod(on.getName(), on.getParameterTypes());
-          p = m.getParameters()[index];
-        } catch (NoSuchMethodException e) {
-          p = null;
-        }
+        Method m = getDeclaredMethod(in, on.getName(), on.getParameterTypes());
+        p = m == null ? null : m.getParameters()[index];
       }
     }
     return toArray(annotations, type);
+  }
+
+  private static Method getDeclaredMethod(
+      Class<?> declaringClass, String name, Class<?>[] parameters) {
+    for (Method m : declaringClass.getDeclaredMethods()) {
+      if (name.equals(m.getName())
+          && m.getParameterCount() == parameters.length
+          && Arrays.equals(parameters, m.getParameterTypes())) {
+        return m;
+      }
+    }
+    return null;
   }
 
   private <T extends Annotation> T[] toArray(List<T> list, Class<T> elementType) {

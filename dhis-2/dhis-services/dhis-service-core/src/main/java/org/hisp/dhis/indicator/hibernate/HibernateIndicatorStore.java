@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.indicator.hibernate;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorStore;
@@ -89,21 +89,15 @@ public class HibernateIndicatorStore extends HibernateIdentifiableObjectStore<In
 
   @Override
   public List<Indicator> getIndicatorsWithNumeratorContaining(String search) {
-    // language=sql
-    TypedQuery<Indicator> query =
-        entityManager.createQuery(
-            "FROM Indicator i where i.numerator like :search", Indicator.class);
-    query.setParameter("search", "%" + search + "%");
-    return query.getResultList();
+    return getQuery("FROM Indicator i where i.numerator like :search", Indicator.class)
+        .setParameter("search", "%" + search + "%")
+        .getResultList();
   }
 
   @Override
   public List<Indicator> getIndicatorsWithDenominatorContaining(String search) {
-    // language=sql
-    TypedQuery<Indicator> query =
-        entityManager.createQuery(
-            "FROM Indicator i where i.denominator like :search", Indicator.class);
-    query.setParameter("search", "%" + search + "%");
-    return query.getResultList();
+    return getQuery("FROM Indicator i where i.denominator like :search", Indicator.class)
+        .setParameter("search", "%" + search + "%")
+        .getResultList();
   }
 }

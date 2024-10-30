@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.user;
 
-import java.io.Serializable;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.Builder;
@@ -62,11 +60,11 @@ public class UserDetailsImpl implements UserDetails {
   @Nonnull private final Collection<GrantedAuthority> authorities;
   @Nonnull private final Set<String> allAuthorities;
   @Nonnull private final Set<String> allRestrictions;
-  @Nonnull private final Map<String, Serializable> userSettings;
   @Nonnull private final Set<String> userGroupIds;
   @Nonnull private final Set<String> userOrgUnitIds;
   @Nonnull private final Set<String> userDataOrgUnitIds;
   @Nonnull private final Set<String> userSearchOrgUnitIds;
+  @Nonnull private final Set<String> userEffectiveSearchOrgUnitIds;
   private final boolean isSuper;
   @Nonnull private final Set<String> userRoleIds;
 

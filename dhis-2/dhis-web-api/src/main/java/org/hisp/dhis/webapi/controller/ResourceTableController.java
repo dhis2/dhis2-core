@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.OWNERSHIP;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
+import static org.hisp.dhis.analytics.AnalyticsTableType.VALIDATION_RESULT;
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
@@ -75,7 +76,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author Lars Helge Overland. This is the AnalyticsExportController
  */
 @Slf4j
-@OpenApi.Document(domain = Server.class)
+@OpenApi.Document(
+    entity = Server.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping("/api/resourceTables")
 @ApiVersion({DEFAULT, ALL})
@@ -93,6 +96,7 @@ public class ResourceTableController {
   public WebMessage analytics(
       @RequestParam(defaultValue = "false") Boolean skipResourceTables,
       @RequestParam(defaultValue = "false") Boolean skipAggregate,
+      @RequestParam(defaultValue = "false") Boolean skipValidationResult,
       @RequestParam(defaultValue = "false") Boolean skipEvents,
       @RequestParam(defaultValue = "false") Boolean skipEnrollment,
       @RequestParam(defaultValue = "false") Boolean skipTrackedEntities,
@@ -107,6 +111,10 @@ public class ResourceTableController {
       skipTableTypes.add(DATA_VALUE);
       skipTableTypes.add(COMPLETENESS);
       skipTableTypes.add(COMPLETENESS_TARGET);
+    }
+
+    if (isTrue(skipValidationResult)) {
+      skipTableTypes.add(VALIDATION_RESULT);
     }
 
     if (isTrue(skipEvents)) {
@@ -161,7 +169,7 @@ public class ResourceTableController {
       throws ConflictException, NotFoundException {
     log.debug("Executing requested job of type: '{}'", configuration.getJobType());
 
-    jobSchedulerService.executeNow(jobConfigurationService.create(configuration));
+    jobSchedulerService.createThenExecute(configuration);
 
     return jobConfigurationReport(configuration);
   }

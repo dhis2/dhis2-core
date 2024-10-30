@@ -75,8 +75,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.DateUtils;
@@ -165,7 +165,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       DataApprovalLevelService dataApprovalLevelService,
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
@@ -179,7 +179,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         idObjectManager,
         organisationUnitService,
         categoryService,
-        systemSettingManager,
+        settingsProvider,
         dataApprovalLevelService,
         resourceTableService,
         tableHookService,
@@ -273,11 +273,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
   @Override
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    boolean skipDataTypeValidation =
-        systemSettingManager.getBoolSetting(
-            SettingKey.SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT);
-    boolean includeZeroValues =
-        systemSettingManager.getBoolSetting(SettingKey.INCLUDE_ZERO_VALUES_IN_ANALYTICS);
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    boolean skipDataTypeValidation = settings.getSkipDataTypeValidationInAnalyticsTableExport();
+    boolean includeZeroValues = settings.getIncludeZeroValuesInAnalytics();
 
     String doubleDataType = sqlBuilder.dataTypeDouble();
     String numericClause =
@@ -341,8 +339,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     String tableName = partition.getName();
     String valTypes = quotedCommaDelimitedString(ObjectUtils.asStringList(valueTypes));
     boolean respectStartEndDates =
-        systemSettingManager.getBoolSetting(
-            SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT);
+        settingsProvider
+            .getCurrentSettings()
+            .getRespectMetaDataStartEndDatesInAnalyticsTableExport();
     String approvalSelectExpression = getApprovalSelectExpression(partition.getYear());
     String approvalClause = getApprovalJoinClause(partition.getYear());
     String partitionClause = getPartitionClause(partition);
@@ -728,10 +727,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    * @param year the year of the data partition.
    */
   private boolean isApprovalEnabled(Integer year) {
-    boolean setting = systemSettingManager.hideUnapprovedDataInAnalytics();
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    boolean setting = settings.isHideUnapprovedDataInAnalytics();
     boolean levels = !dataApprovalLevelService.getAllDataApprovalLevels().isEmpty();
-    Integer maxYears =
-        systemSettingManager.getIntegerSetting(SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD);
+    int maxYears = settings.getIgnoreAnalyticsApprovalYearThreshold();
 
     log.debug(
         "Hide approval setting: {}, approval levels exists: {}, max years threshold: {}",
@@ -801,7 +800,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         // Table "t2" is the complement of the t1 table. It contains all values belong to the
         // specific median (see t1).
         // To "group by" criteria is added the time dimension (periodid). This part of the query has
-        // to be verified (maybe add TEI to aggregation criteria).
+        // to be verified (maybe add TE to aggregation criteria).
         + "(select dv1.dataelementid as dataelementid, "
         + "dv1.sourceid as sourceid, "
         + "dv1.categoryoptioncomboid  as categoryoptioncomboid, "

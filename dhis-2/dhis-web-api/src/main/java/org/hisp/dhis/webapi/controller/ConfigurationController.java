@@ -31,10 +31,10 @@ import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.security.Authorities.F_SYSTEM_SETTING;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
-import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -54,8 +54,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.util.ObjectUtils;
@@ -75,7 +74,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = Configuration.class)
+@OpenApi.Document(
+    entity = Configuration.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping("/api/configuration")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -89,8 +90,6 @@ public class ConfigurationController {
   @Autowired private PeriodService periodService;
 
   @Autowired private RenderService renderService;
-
-  @Autowired private SystemSettingManager systemSettingManager;
 
   @Autowired private AppManager appManager;
 
@@ -384,13 +383,13 @@ public class ConfigurationController {
   }
 
   @GetMapping("/remoteServerUrl")
-  public @ResponseBody String getRemoteServerUrl(Model model, HttpServletRequest request) {
-    return systemSettingManager.getStringSetting(SettingKey.REMOTE_INSTANCE_URL);
+  public @ResponseBody String getRemoteServerUrl(SystemSettings settings) {
+    return settings.getRemoteInstanceUrl();
   }
 
   @GetMapping("/remoteServerUsername")
-  public @ResponseBody String getRemoteServerUsername(Model model, HttpServletRequest request) {
-    return systemSettingManager.getStringSetting(SettingKey.REMOTE_INSTANCE_USERNAME);
+  public @ResponseBody String getRemoteServerUsername(SystemSettings settings) {
+    return settings.getRemoteInstanceUsername();
   }
 
   @GetMapping("/facilityOrgUnitGroupSet")

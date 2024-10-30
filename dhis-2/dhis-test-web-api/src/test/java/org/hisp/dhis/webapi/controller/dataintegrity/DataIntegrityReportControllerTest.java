@@ -30,23 +30,21 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.common.CodeGenerator.generateUid;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.hisp.dhis.web.WebClientUtils.objectReference;
-import static org.hisp.dhis.web.WebClientUtils.objectReferences;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
-import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegrityReport;
 import org.hisp.dhis.webapi.controller.DataIntegrityController;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -65,15 +63,17 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     // if the report does not have any strings in the JSON tree there are no
     // errors since all collection/maps have string values
     JsonDataIntegrityReport report = getDataIntegrityReport();
-    assertEquals(0, report.node().count(JsonNodeType.STRING));
+    assertEquals(1, report.node().count(JsonNodeType.STRING));
+    assertEquals("FlattenedDataIntegrityReport", report.getString("responseType").string());
   }
 
   @Test
   void testDataElementChecksOnly() {
     JsonDataIntegrityReport report = getDataIntegrityReport("/dataIntegrity?checks=data-element*");
-    assertEquals(5, report.size());
+    assertEquals(6, report.size());
     assertTrue(
         report.has(
+            "responseType",
             "dataElementsWithoutDataSet",
             "dataElementsWithoutGroups",
             "dataElementsAssignedToDataSetsWithDifferentPeriodTypes",
@@ -85,9 +85,10 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
   void testExclusiveGroupsChecksOnly() {
     JsonDataIntegrityReport report =
         getDataIntegrityReport("/dataIntegrity?checks=*exclusive-group*");
-    assertEquals(3, report.size());
+    assertEquals(4, report.size());
     assertTrue(
         report.has(
+            "responseType",
             "dataElementsViolatingExclusiveGroupSets",
             "indicatorsViolatingExclusiveGroupSets",
             "organisationUnitsViolatingExclusiveGroupSets"));
@@ -97,7 +98,7 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
   void testPeriodsDuplicatesOnly() {
     JsonDataIntegrityReport report =
         getDataIntegrityReport("/dataIntegrity?checks=periods_same_start_date_period_type");
-    assertEquals(1, report.size());
+    assertEquals(2, report.size());
     assertTrue(report.getArray("duplicatePeriods").exists());
   }
 
@@ -640,5 +641,22 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
     return GET("/system/taskSummaries/{type}/{id}", jobType, id)
         .content()
         .as(JsonDataIntegrityReport.class);
+  }
+
+  private static String objectReferences(String... uids) {
+    StringBuilder str = new StringBuilder();
+    str.append('[');
+    for (String uid : uids) {
+      if (str.length() > 1) {
+        str.append(',');
+      }
+      str.append(objectReference(uid));
+    }
+    str.append(']');
+    return str.toString();
+  }
+
+  private static String objectReference(String uid) {
+    return String.format("{\"id\":\"%s\"}", uid);
   }
 }

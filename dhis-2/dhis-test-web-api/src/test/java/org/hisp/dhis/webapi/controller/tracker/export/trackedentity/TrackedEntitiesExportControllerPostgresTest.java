@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
-import static org.hisp.dhis.utils.Assertions.assertContains;
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -47,14 +47,16 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -62,20 +64,20 @@ import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage.JsonPager;
 import org.hisp.dhis.webapi.controller.tracker.JsonTrackedEntityChangeLog;
 import org.hisp.dhis.webapi.controller.tracker.JsonUser;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Transactional;
 
-class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrationTest {
+@Transactional
+class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private ObjectBundleService objectBundleService;
 
@@ -84,8 +86,6 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
   @Autowired private RenderService _renderService;
 
   @Autowired private TrackerImportService trackerImportService;
-
-  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -98,11 +98,14 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
     this.renderService = _renderService;
     setUpMetadata("tracker/simple_metadata.json");
 
-    TrackerImportParams params = TrackerImportParams.builder().userId(superUser.getUid()).build();
+    User importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
+
+    TrackerImportParams params = TrackerImportParams.builder().build();
     assertNoDataErrors(
         trackerImportService.importTracker(params, fromJson("tracker/single_te.json")));
 
-    trackedEntity = trackedEntityService.getTrackedEntity("IOR1AXXl24H");
+    trackedEntity = manager.get(TrackedEntity.class, "IOR1AXXl24H");
 
     JsonWebMessage importResponse =
         POST("/tracker?async=false&importStrategy=UPDATE", createJsonPayload(2))
@@ -382,14 +385,6 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
         () -> assertUser(actual),
         () -> assertEquals("UPDATE", actual.getType()),
         () -> assertChange(attribute, previousValue, currentValue, actual));
-  }
-
-  private static void assertDelete(
-      TrackedEntityAttribute attribute, String previousValue, JsonTrackedEntityChangeLog actual) {
-    assertAll(
-        () -> assertUser(actual),
-        () -> assertEquals("DELETE", actual.getType()),
-        () -> assertChange(attribute, previousValue, null, actual));
   }
 
   private static void assertChange(

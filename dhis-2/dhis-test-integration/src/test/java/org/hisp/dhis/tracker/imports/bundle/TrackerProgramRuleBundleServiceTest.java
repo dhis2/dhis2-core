@@ -33,6 +33,10 @@ import java.io.IOException;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionService;
@@ -41,7 +45,8 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.SystemUser;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -56,11 +61,18 @@ class TrackerProgramRuleBundleServiceTest extends TrackerTest {
 
   @Autowired private ProgramRuleActionService programRuleActionService;
 
-  @Autowired protected UserService _userService;
+  @Autowired private ProgramNotificationTemplateService notificationTemplateService;
 
-  @Override
-  protected void initTest() throws IOException {
-    userService = _userService;
+  @BeforeAll
+  void setUp() throws IOException {
+    ProgramNotificationTemplate pnt =
+        createProgramNotificationTemplate(
+            "test_pnt",
+            0,
+            NotificationTrigger.PROGRAM_RULE,
+            ProgramNotificationRecipient.USER_GROUP);
+    notificationTemplateService.save(pnt);
+
     ObjectBundle bundle = setUpMetadata("tracker/event_metadata.json");
     ProgramRule programRule =
         createProgramRule(
@@ -68,7 +80,8 @@ class TrackerProgramRuleBundleServiceTest extends TrackerTest {
     programRuleService.addProgramRule(programRule);
     ProgramRuleAction programRuleAction = createProgramRuleAction('A', programRule);
     programRuleAction.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
-    programRuleAction.setTemplateUid("pmPWHy7XTmL");
+    programRuleAction.setTemplateUid(pnt.getUid());
+    programRuleAction.setNotificationTemplate(pnt);
     programRuleActionService.addProgramRuleAction(programRuleAction);
     programRule.getProgramRuleActions().add(programRuleAction);
     programRuleService.updateProgramRule(programRule);
@@ -76,12 +89,12 @@ class TrackerProgramRuleBundleServiceTest extends TrackerTest {
 
   @Test
   void testRunRuleEngineForEventOnBundleCreate() throws IOException {
+    injectSecurityContextUser(userService.getUser("tTgjgobT1oS"));
     TrackerObjects trackerObjects = fromJson("tracker/event_events_and_enrollment.json");
     assertEquals(8, trackerObjects.getEvents().size());
     TrackerBundle trackerBundle =
-        trackerBundleService.create(
-            new TrackerImportParams(), trackerObjects, userService.getUser(ADMIN_USER_UID));
+        trackerBundleService.create(new TrackerImportParams(), trackerObjects, new SystemUser());
     trackerBundle = trackerBundleService.runRuleEngine(trackerBundle);
-    assertEquals(trackerBundle.getEvents().size(), trackerBundle.getEventRuleEffects().size());
+    assertEquals(trackerBundle.getEvents().size(), trackerBundle.getEventNotifications().size());
   }
 }

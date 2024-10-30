@@ -30,10 +30,11 @@ package org.hisp.dhis.webapi.controller.mapping;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import javax.imageio.ImageIO;
-import javax.servlet.http.HttpServletResponse;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -62,6 +63,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  */
 @Controller
 @RequestMapping("/api/mapViews")
+@OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
 public class MapViewController extends AbstractCrudController<MapView> {
   @Autowired private MappingService mappingService;
 
@@ -131,7 +133,7 @@ public class MapViewController extends AbstractCrudController<MapView> {
     query.setDefaultOrder();
     query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
 
-    if (options.getOptions().containsKey("query")) {
+    if (objects == null && options.getOptions().containsKey("query")) {
       entityList =
           Lists.newArrayList(manager.filter(getEntityClass(), options.getOptions().get("query")));
     } else {

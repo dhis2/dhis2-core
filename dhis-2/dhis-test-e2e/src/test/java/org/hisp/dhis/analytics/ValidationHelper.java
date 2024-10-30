@@ -32,7 +32,7 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 
 import java.util.List;
-import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
 
 /**
  * Helper class to assist during the validation/assertion in e2e analytics tests.

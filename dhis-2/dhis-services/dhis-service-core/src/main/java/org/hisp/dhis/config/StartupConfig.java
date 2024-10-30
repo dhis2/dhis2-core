@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.config;
 
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManagerFactory;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator;
@@ -38,7 +38,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodTypePopulator;
 import org.hisp.dhis.scheduling.JobScheduler;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.startup.ConfigurationPopulator;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
 import org.hisp.dhis.startup.I18nLocalePopulator;
@@ -65,7 +65,9 @@ public class StartupConfig {
 
   @Bean("org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator")
   public DataElementDefaultDimensionPopulator dataElementDefaultDimensionPopulator(
-      DataElementService dataElementService, CategoryService categoryService) {
+      DataElementService dataElementService,
+      CategoryService categoryService,
+      UserService userService) {
     DataElementDefaultDimensionPopulator populator =
         new DataElementDefaultDimensionPopulator(dataElementService, categoryService);
     populator.setName("DataElementDefaultDimensionPopulator");
@@ -105,8 +107,8 @@ public class StartupConfig {
   }
 
   @Bean("org.hisp.dhis.startup.SettingUpgrader")
-  public SettingUpgrader settingUpgrader(SystemSettingManager systemSettingManager) {
-    SettingUpgrader upgrader = new SettingUpgrader(systemSettingManager);
+  public SettingUpgrader settingUpgrader(SystemSettingsService settingsService) {
+    SettingUpgrader upgrader = new SettingUpgrader(settingsService);
     upgrader.setRunlevel(14);
     upgrader.setName("SettingUpgrader");
     upgrader.setSkipInTests(true);

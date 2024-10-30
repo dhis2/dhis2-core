@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.tracker.imports.validation;
 
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.TrackerType.RELATIONSHIP;
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.imports.validation.PersistablesFilter.filter;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E5000;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.test.utils.Assertions;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -58,7 +59,6 @@ import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.validator.AssertValidations;
-import org.hisp.dhis.utils.Assertions;
 import org.junit.jupiter.api.Test;
 
 class PersistablesFilterTest {
@@ -483,7 +483,6 @@ class PersistablesFilterTest {
         // set child/parent links
         Enrollment enrollment =
             Enrollment.builder().enrollment(uid).trackedEntity(parent.entity.getUid()).build();
-        parent.entity.getEnrollments().add(enrollment);
         return new Entity<>(enrollment);
       }
 
@@ -510,7 +509,6 @@ class PersistablesFilterTest {
         // enrollment.
         // They do have a "fake" enrollment (a default program) but it's not set on the event DTO.
         Event event = Event.builder().event(uid).enrollment(parent.entity.getUid()).build();
-        parent.entity.getEvents().add(event);
         return new Entity<>(event);
       }
 
@@ -563,10 +561,7 @@ class PersistablesFilterTest {
       }
 
       private <T extends TrackerDto> List<T> toEntitiesInPayload(List<Entity<T>> entities) {
-        return entities.stream()
-            .filter(e -> e.isInPayload)
-            .map(e -> e.entity)
-            .collect(Collectors.toList());
+        return entities.stream().filter(e -> e.isInPayload).map(e -> e.entity).toList();
       }
 
       private <T extends TrackerDto> Set<String> invalid(List<Entity<T>> entities) {
@@ -652,7 +647,7 @@ class PersistablesFilterTest {
 
   private static <T extends TrackerDto> List<String> persistableUids(
       PersistablesFilter.Result persistable, Class<T> type) {
-    return persistable.get(type).stream().map(TrackerDto::getUid).collect(Collectors.toList());
+    return persistable.get(type).stream().map(TrackerDto::getUid).toList();
   }
 
   private static void assertHasError(

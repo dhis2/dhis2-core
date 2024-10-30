@@ -27,7 +27,23 @@
  */
 package org.hisp.dhis.webmessage;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.OpenApi;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface WebMessageResponse {}
+@OpenApi.Kind("WebMessageResponse")
+public interface WebMessageResponse {
+
+  @Nonnull
+  @JsonIgnore
+  Class<? extends WebMessageResponse> getResponseClassType();
+
+  @JsonProperty
+  default String getResponseType() {
+    return getResponseClassType().getSimpleName();
+  }
+}

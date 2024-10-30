@@ -188,7 +188,6 @@
         "F_PROGRAM_RULE_DELETE",
         "F_ORGUNITGROUP_DELETE",
         "F_DATAELEMENTGROUPSET_PRIVATE_ADD",
-        "M_dhis-web-tracker-capture",
         "F_LOCALE_ADD",
         "F_LEGEND_ADD",
         "F_CATEGORY_OPTION_GROUP_PRIVATE_ADD",

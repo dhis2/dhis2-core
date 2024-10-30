@@ -30,24 +30,23 @@ package org.hisp.dhis.trackedentity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeTableManager;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -55,7 +54,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * @author Ameen
  */
-class TrackedEntityAttributeStoreIntegrationTest extends IntegrationTestBase {
+class TrackedEntityAttributeStoreIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private TrackedEntityAttributeService attributeService;
 
   @Autowired private TrackedEntityAttributeTableManager trackedEntityAttributeTableManager;
@@ -66,7 +65,7 @@ class TrackedEntityAttributeStoreIntegrationTest extends IntegrationTestBase {
 
   @Autowired private ProgramService programService;
 
-  @Autowired private TrackedEntityService trackedEntityService;
+  @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackedEntityAttributeValueService entityAttributeValueService;
 
@@ -84,9 +83,8 @@ class TrackedEntityAttributeStoreIntegrationTest extends IntegrationTestBase {
 
   private TrackedEntityAttribute attributeZ;
 
-  @Override
-  public void setUpTest() {
-
+  @BeforeEach
+  void setUp() {
     attributeW = createTrackedEntityAttribute('W');
     attributeW.setUnique(true);
     attributeY = createTrackedEntityAttribute('Y');
@@ -233,37 +231,5 @@ class TrackedEntityAttributeStoreIntegrationTest extends IntegrationTestBase {
 
     assertNotNull(attributeIds);
     assertTrue(attributeIds.contains(attributeW.getId()));
-  }
-
-  @Test
-  void shouldValidateUniquenessWhenAttributeIsUnique() {
-    OrganisationUnit organisationUnit = createOrganisationUnit('A');
-    organisationUnitService.addOrganisationUnit(organisationUnit);
-
-    attributeService.addTrackedEntityAttribute(attributeW);
-
-    TrackedEntityType trackedEntityType = createTrackedEntityType('K');
-    TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
-    trackedEntityTypeAttribute.setTrackedEntityAttribute(attributeW);
-    trackedEntityTypeAttribute.setTrackedEntityType(trackedEntityType);
-    trackedEntityType.setTrackedEntityTypeAttributes(List.of(trackedEntityTypeAttribute));
-    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
-
-    TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
-
-    trackedEntity.setOrganisationUnit(organisationUnit);
-    trackedEntity.setTrackedEntityType(trackedEntityType);
-
-    trackedEntityService.addTrackedEntity(trackedEntity);
-
-    TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
-    trackedEntityAttributeValue.setAttribute(attributeW);
-    trackedEntityAttributeValue.setTrackedEntity(trackedEntity);
-    trackedEntityAttributeValue.setValue("unique_value");
-    entityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValue);
-
-    assertNull(
-        attributeService.validateAttributeUniquenessWithinScope(
-            attributeW, "some_non_unique_value", trackedEntity, organisationUnit));
   }
 }

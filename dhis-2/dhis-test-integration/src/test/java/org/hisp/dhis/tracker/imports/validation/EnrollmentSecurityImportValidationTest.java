@@ -52,7 +52,6 @@ import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.TrackerTest;
@@ -62,9 +61,9 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -72,8 +71,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 class EnrollmentSecurityImportValidationTest extends TrackerTest {
-  @Autowired protected TrackedEntityService trackedEntityService;
-
   @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private IdentifiableObjectManager manager;
@@ -81,8 +78,6 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
   @Autowired private ProgramStageDataElementService programStageDataElementService;
 
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
-
-  @Autowired private UserService _userService;
 
   private TrackedEntity maleA;
 
@@ -108,19 +103,23 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
 
   private TrackedEntityType trackedEntityType;
 
-  @Override
-  protected void initTest() throws IOException {
-    userService = _userService;
+  private User importUser;
+
+  @BeforeAll
+  void setUp() throws IOException {
     setUpMetadata("tracker/tracker_basic_metadata.json");
-    injectAdminUser();
+
+    importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
+
+    TrackerImportParams params = TrackerImportParams.builder().build();
     assertNoErrors(
         trackerImportService.importTracker(
-            new TrackerImportParams(),
-            fromJson("tracker/validations/enrollments_te_te-data.json")));
+            params, fromJson("tracker/validations/enrollments_te_te-data.json")));
   }
 
   private void setup() {
-    injectAdminUser();
+    injectSecurityContextUser(importUser);
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');
     manager.save(organisationUnitA);
@@ -181,15 +180,14 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
 
   @Test
   void testNoWriteAccessToOrg() throws IOException {
-    TrackerObjects trackerObjects =
-        fromJson("tracker/validations/enrollments_te_enrollments-data.json");
     User user = userService.getUser(USER_2);
     injectSecurityContextUser(user);
     TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(user.getUid());
     params.setImportStrategy(CREATE);
 
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            params, fromJson("tracker/validations/enrollments_te_enrollments-data.json"));
 
     assertHasErrors(importReport, 4, ValidationCode.E1000);
   }
@@ -211,7 +209,6 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
     injectSecurityContextUser(user);
     TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_no-access-te.json");
     TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(user.getUid());
     params.setImportStrategy(CREATE);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -239,7 +236,6 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/enrollments_no-access-program.json");
     TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(user.getUid());
     params.setImportStrategy(CREATE);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -263,7 +259,6 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/enrollments_no-access-program.json");
     TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(user.getUid());
     params.setImportStrategy(CREATE);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -286,7 +281,6 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/enrollments_program-tetype-missmatch.json");
     TrackerImportParams params = new TrackerImportParams();
-    params.setUserId(user.getUid());
     params.setImportStrategy(CREATE);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -300,8 +294,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
     setup();
     TrackedEntity trackedEntityB = createTrackedEntity(trackedEntityType, organisationUnitB);
     User userA = createUser(organisationUnitA);
-    TrackerImportParams params =
-        TrackerImportParams.builder().userId(userA.getUid()).importStrategy(CREATE).build();
+    TrackerImportParams params = TrackerImportParams.builder().importStrategy(CREATE).build();
 
     injectSecurityContextUser(userA);
     ImportReport importReport =
@@ -321,8 +314,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
     Program programB = createProgram(organisationUnitB);
     TrackedEntity trackedEntityB = createTrackedEntity(trackedEntityType, organisationUnitB);
     User userB = createUser(organisationUnitB);
-    TrackerImportParams params =
-        TrackerImportParams.builder().userId(userB.getUid()).importStrategy(CREATE).build();
+    TrackerImportParams params = TrackerImportParams.builder().importStrategy(CREATE).build();
 
     injectSecurityContextUser(userB);
     ImportReport importReport =
@@ -362,7 +354,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
       TrackedEntityType trackedEntityType, OrganisationUnit orgUnit) {
     TrackedEntity trackedEntity = createTrackedEntity('T', orgUnit);
     trackedEntity.setTrackedEntityType(trackedEntityType);
-    trackedEntityService.addTrackedEntity(trackedEntity);
+    manager.save(trackedEntity);
 
     return trackedEntity;
   }

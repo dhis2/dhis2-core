@@ -36,13 +36,13 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -91,7 +91,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Halvdan Hoem Grelland <halvdan@dhis2.org>
  */
-@OpenApi.Document(domain = DataValue.class)
+@OpenApi.Document(
+    entity = DataValue.class,
+    classifiers = {"team:platform", "purpose:data"})
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequestMapping("/api/completeDataSetRegistrations")
@@ -155,7 +157,7 @@ public class CompleteDataSetRegistrationController {
         registrationExchangeService.saveCompleteDataSetRegistrationsXml(
             request.getInputStream(), importOptions);
     summary.setImportOptions(importOptions);
-    return importSummary(summary).withPlainResponseBefore(DhisApiVersion.V38);
+    return importSummary(summary);
   }
 
   @PostMapping(consumes = CONTENT_TYPE_JSON, produces = CONTENT_TYPE_JSON)
@@ -170,7 +172,7 @@ public class CompleteDataSetRegistrationController {
         registrationExchangeService.saveCompleteDataSetRegistrationsJson(
             request.getInputStream(), importOptions);
     summary.setImportOptions(importOptions);
-    return importSummary(summary).withPlainResponseBefore(DhisApiVersion.V38);
+    return importSummary(summary);
   }
 
   // -------------------------------------------------------------------------
@@ -264,8 +266,7 @@ public class CompleteDataSetRegistrationController {
 
     jobConfig.setJobParameters(importOptions);
     jobConfig.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
-    jobSchedulerService.executeNow(
-        jobConfigurationService.create(jobConfig, mimeType, request.getInputStream()));
+    jobSchedulerService.createThenExecute(jobConfig, mimeType, request.getInputStream());
 
     return jobConfigurationReport(jobConfig);
   }

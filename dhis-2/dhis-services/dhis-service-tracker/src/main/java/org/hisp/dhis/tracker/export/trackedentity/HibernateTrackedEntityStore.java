@@ -34,11 +34,17 @@ import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.system.util.SqlUtils.escape;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.util.DateUtils.toLongDateWithMillis;
 import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -46,29 +52,26 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -127,7 +130,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private final OrganisationUnitStore organisationUnitStore;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   public HibernateTrackedEntityStore(
       EntityManager entityManager,
@@ -135,14 +138,14 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       ApplicationEventPublisher publisher,
       AclService aclService,
       OrganisationUnitStore organisationUnitStore,
-      SystemSettingManager systemSettingManager) {
+      SystemSettingsProvider settingsProvider) {
     super(entityManager, jdbcTemplate, publisher, TrackedEntity.class, aclService, false);
 
     checkNotNull(organisationUnitStore);
-    checkNotNull(systemSettingManager);
+    checkNotNull(settingsProvider);
 
     this.organisationUnitStore = organisationUnitStore;
-    this.systemSettingManager = systemSettingManager;
+    this.settingsProvider = settingsProvider;
   }
 
   @Override
@@ -466,7 +469,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       trackedEntity
           .append(whereAnd.whereAnd())
           .append("TE.uid IN (")
-          .append(encodeAndQuote(params.getTrackedEntityUids()))
+          .append(encodeAndQuote(UID.toValueSet(params.getTrackedEntities())))
           .append(") ");
     }
 
@@ -622,7 +625,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   private String getFromSubQueryJoinOrgUnitConditions(TrackedEntityQueryParams params) {
     StringBuilder orgUnits = new StringBuilder();
 
-    params.handleOrganisationUnits();
+    handleOrganisationUnits(params);
 
     orgUnits
         .append(" INNER JOIN organisationunit OU ")
@@ -644,6 +647,26 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return orgUnits.toString();
   }
 
+  /**
+   * Prepares the organisation units of the given parameters to simplify querying. Mode ACCESSIBLE
+   * is converted to DESCENDANTS for organisation units linked to the search scope of the given
+   * user. Mode CAPTURE is converted to DESCENDANTS too, but using organisation units linked to the
+   * user's capture scope, and mode CHILDREN is converted to SELECTED for organisation units
+   * including all their children. Mode can be DESCENDANTS, SELECTED, ALL only after invoking this
+   * method.
+   */
+  private void handleOrganisationUnits(TrackedEntityQueryParams params) {
+    UserDetails user = getCurrentUserDetails();
+    if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
+      params.setOrgUnits(
+          new HashSet<>(organisationUnitStore.getByUid(user.getUserEffectiveSearchOrgUnitIds())));
+      params.setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+    } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CAPTURE)) {
+      params.setOrgUnits(new HashSet<>(organisationUnitStore.getByUid(user.getUserOrgUnitIds())));
+      params.setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+    }
+  }
+
   private String getOwnerOrgUnit(TrackedEntityQueryParams params) {
     if (params.hasProgram()) {
       return "PO.organisationunitid ";
@@ -659,11 +682,11 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     orgUnits.append("AND (");
 
     for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
-
-      OrganisationUnit ou = organisationUnitStore.getByUid(organisationUnit.getUid());
-      if (ou != null) {
-        orgUnits.append(orHlp.or()).append("OU.path LIKE '").append(ou.getPath()).append("%'");
-      }
+      orgUnits
+          .append(orHlp.or())
+          .append("OU.path LIKE '")
+          .append(organisationUnit.getPath())
+          .append("%'");
     }
 
     orgUnits.append(") ");
@@ -678,20 +701,16 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     orgUnits.append("AND (");
 
     for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
-
-      OrganisationUnit ou = organisationUnitStore.getByUid(organisationUnit.getUid());
-      if (ou != null) {
-        orgUnits
-            .append(orHlp.or())
-            .append(" OU.path LIKE '")
-            .append(ou.getPath())
-            .append("%'")
-            .append(" AND (ou.hierarchylevel = ")
-            .append(ou.getHierarchyLevel())
-            .append(" OR ou.hierarchylevel = ")
-            .append((ou.getHierarchyLevel() + 1))
-            .append(")");
-      }
+      orgUnits
+          .append(orHlp.or())
+          .append(" OU.path LIKE '")
+          .append(organisationUnit.getPath())
+          .append("%'")
+          .append(" AND (ou.hierarchylevel = ")
+          .append(organisationUnit.getHierarchyLevel())
+          .append(" OR ou.hierarchylevel = ")
+          .append((organisationUnit.getHierarchyLevel() + 1))
+          .append(")");
     }
 
     orgUnits.append(") ");
@@ -827,7 +846,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append("SELECT userinfoid AS userid ")
           .append("FROM userinfo ")
           .append("WHERE uid IN (")
-          .append(encodeAndQuote(params.getAssignedUserQueryParam().getAssignedUsers()))
+          .append(
+              encodeAndQuote(UID.toValueSet(params.getAssignedUserQueryParam().getAssignedUsers())))
           .append(") ")
           .append(") AU ON AU.userid = EV.assigneduserid");
     }
@@ -1018,7 +1038,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       TrackedEntityQueryParams params, PageParams pageParams) {
     StringBuilder limitOffset = new StringBuilder();
     int limit = params.getMaxTeLimit();
-    int teQueryLimit = systemSettingManager.getIntSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT);
+    int teQueryLimit = settingsProvider.getCurrentSettings().getTrackedEntityMaxLimit();
 
     if (limit == 0 && pageParams == null) {
       if (teQueryLimit > 0) {

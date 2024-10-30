@@ -40,24 +40,22 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class IndicatorDeletionHandlerTest extends TransactionalIntegrationTest {
+@Transactional
+class IndicatorDeletionHandlerTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private PeriodService periodService;
 
-  @Autowired private UserService _userService;
-
   private Indicator indicator;
 
-  @Override
-  public void setUpTest() {
-    userService = _userService;
-
+  @BeforeEach
+  void setUp() {
     IndicatorType type = new IndicatorType("Type", 1, true);
     manager.save(type);
 

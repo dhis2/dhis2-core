@@ -83,7 +83,7 @@
           "id": "rgG3Pygddq1"
         }
       ],
-      "surname": "admin",
+      "surname": "metadata admin",
       "lastUpdated": "2016-03-10T04:22:23.892+0000",
       "user": {
         "id": "Fiob73BgnJm"
@@ -101,13 +101,13 @@
       "selfRegistered": false,
       "cogsDimensionConstraints": [],
       "externalAuth": false,
-      "username": "admin",
+      "username": "metadataadmin",
       "teiSearchOrganisationUnits": [],
       "attributeValues": [],
       "id": "Fiob73BgnJm",
       "dataViewOrganisationUnits": [],
       "created": "2016-03-10T04:21:43.732+0000",
-      "firstName": "admin"
+      "firstName": "metadata admin"
     }
   ],
   "date": "2016-03-10T04:57:35.441+0000",
@@ -195,7 +195,7 @@
   ],
   "userRoles": [
     {
-      "name": "Superuser",
+      "name": "metadata Superuser",
       "programs": [],
       "created": "2016-03-10T04:21:43.745+0000",
       "id": "AVtowuIxwPY",

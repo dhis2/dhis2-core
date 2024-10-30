@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
-import static org.hisp.dhis.web.WebClient.Accept;
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClient.ContentType;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpClientAdapter.Accept;
+import static org.hisp.dhis.http.HttpClientAdapter.Body;
+import static org.hisp.dhis.http.HttpClientAdapter.ContentType;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -40,15 +41,15 @@ import static org.springframework.http.MediaType.APPLICATION_XML;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
-import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
@@ -56,7 +57,8 @@ import org.springframework.transaction.support.TransactionTemplate;
  *
  * @author Jan Bernitt
  */
-class DataValueSetControllerTest extends DhisControllerIntegrationTest {
+@Transactional
+class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired protected TransactionTemplate transactionTemplate;
 
@@ -74,14 +76,6 @@ class DataValueSetControllerTest extends DhisControllerIntegrationTest {
   void testPostJsonDataValueSet_Async() {
     JsonWebMessage msg = assertWebMessage(HttpStatus.OK, POST("/dataValueSets?async=true", "{}"));
     assertStartsWith("Initiated DATAVALUE_IMPORT", msg.getMessage());
-  }
-
-  @Test
-  void testPostJsonDataValueSet_Pre38() {
-    JsonImportSummary summary =
-        POST("/37/dataValueSets/", "{}").content(HttpStatus.OK).as(JsonImportSummary.class);
-    assertEquals("ImportSummary", summary.getResponseType());
-    assertEquals("SUCCESS", summary.getStatus());
   }
 
   @Test
@@ -120,18 +114,6 @@ class DataValueSetControllerTest extends DhisControllerIntegrationTest {
   }
 
   @Test
-  void testPostAdxDataValueSet_Pre38() {
-    HttpResponse response =
-        POST(
-            "/37/dataValueSets/",
-            Body("<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>"),
-            ContentType(CONTENT_TYPE_XML_ADX),
-            Accept(CONTENT_TYPE_XML));
-    assertEquals(HttpStatus.OK, response.status());
-    assertTrue(response.content(APPLICATION_XML.toString()).startsWith("<importSummary "));
-  }
-
-  @Test
   void testPostDxf2DataValueSet() {
     String content =
         POST(
@@ -157,18 +139,6 @@ class DataValueSetControllerTest extends DhisControllerIntegrationTest {
   }
 
   @Test
-  void testPostDxf2DataValueSet_Pre38() {
-    HttpResponse response =
-        POST(
-            "/37/dataValueSets/",
-            Body("<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\"></dataValueSet>"),
-            ContentType(APPLICATION_XML),
-            Accept(CONTENT_TYPE_XML));
-    assertEquals(HttpStatus.OK, response.status());
-    assertTrue(response.content(APPLICATION_XML.toString()).startsWith("<importSummary "));
-  }
-
-  @Test
   void testPostCsvDataValueSet() {
     assertWebMessage(
         "OK",
@@ -186,16 +156,6 @@ class DataValueSetControllerTest extends DhisControllerIntegrationTest {
             HttpStatus.OK,
             POST("/dataValueSets?async=true", Body("abc"), ContentType("application/csv")));
     assertStartsWith("Initiated DATAVALUE_IMPORT", msg.getMessage());
-  }
-
-  @Test
-  void testPostCsvDataValueSet_Pre38() {
-    JsonImportSummary summary =
-        POST("/37/dataValueSets/", Body("abc"), ContentType("application/csv"))
-            .content(HttpStatus.OK)
-            .as(JsonImportSummary.class);
-    assertEquals("ImportSummary", summary.getResponseType());
-    assertEquals("SUCCESS", summary.getStatus());
   }
 
   @Test

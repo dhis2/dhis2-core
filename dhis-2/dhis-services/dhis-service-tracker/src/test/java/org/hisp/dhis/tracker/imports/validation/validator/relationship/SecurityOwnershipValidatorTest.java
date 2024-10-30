@@ -27,24 +27,28 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.DELETE;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4020;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.converter.RelationshipTrackerConverterService;
+import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
+import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
+import org.hisp.dhis.user.SystemUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,7 +56,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class SecurityOwnershipValidatorTest {
+class SecurityOwnershipValidatorTest extends TestBase {
 
   private SecurityOwnershipValidator validator;
 
@@ -60,11 +64,7 @@ class SecurityOwnershipValidatorTest {
 
   @Mock private TrackerPreheat preheat;
 
-  @Mock private AclService aclService;
-
   @Mock private TrackerAccessManager trackerAccessManager;
-
-  @Mock private RelationshipTrackerConverterService converterService;
 
   private org.hisp.dhis.relationship.Relationship convertedRelationship;
 
@@ -74,22 +74,34 @@ class SecurityOwnershipValidatorTest {
 
   @BeforeEach
   public void setUp() {
-    validator = new SecurityOwnershipValidator(trackerAccessManager, converterService);
+    validator = new SecurityOwnershipValidator(trackerAccessManager);
+    MetadataIdentifier relationshipTypeUid = MetadataIdentifier.ofUid("relationshipType");
 
     when(bundle.getPreheat()).thenReturn(preheat);
+    lenient()
+        .when(preheat.getRelationshipType(relationshipTypeUid))
+        .thenReturn(
+            createPersonToPersonRelationshipType(
+                'A', createProgram('A'), createTrackedEntityType('A'), false));
 
     TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new Reporter(idSchemes);
-    relationship = new Relationship();
-    relationship.setRelationship("relationshipUid");
+    relationship =
+        Relationship.builder()
+            .relationship("relationshipUid")
+            .relationshipType(relationshipTypeUid)
+            .from(RelationshipItem.builder().build())
+            .to(RelationshipItem.builder().build())
+            .build();
 
-    convertedRelationship = new org.hisp.dhis.relationship.Relationship();
+    convertedRelationship = TrackerObjectsMapper.map(preheat, relationship, new SystemUser());
   }
 
   @Test
   void shouldCreateWhenUserHasWriteAccessToRelationship() {
+    SystemUser user = new SystemUser();
     when(bundle.getStrategy(relationship)).thenReturn(CREATE);
-    when(converterService.from(preheat, relationship)).thenReturn(convertedRelationship);
+    when(bundle.getUser()).thenReturn(user);
     when(trackerAccessManager.canWrite(any(), eq(convertedRelationship))).thenReturn(List.of());
 
     validator.validate(reporter, bundle, relationship);
@@ -99,8 +111,9 @@ class SecurityOwnershipValidatorTest {
 
   @Test
   void shouldFailToCreateWhenUserHasNoWriteAccessToRelationship() {
+    SystemUser user = new SystemUser();
     when(bundle.getStrategy(relationship)).thenReturn(CREATE);
-    when(converterService.from(preheat, relationship)).thenReturn(convertedRelationship);
+    when(bundle.getUser()).thenReturn(user);
     when(trackerAccessManager.canWrite(any(), eq(convertedRelationship)))
         .thenReturn(List.of("error"));
 

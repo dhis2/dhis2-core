@@ -27,28 +27,25 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.commons.util.RelationshipUtils;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
@@ -57,22 +54,24 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.test.utils.RelationshipUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired protected UserService _userService;
-
-  @Autowired private EnrollmentService enrollmentService;
-
-  @Autowired private EventService eventService;
 
   @Autowired private RelationshipService relationshipService;
 
@@ -118,10 +117,8 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
 
   private TrackedEntityType trackedEntityType;
 
-  @Override
-  protected void setUpTest() throws Exception {
-    userService = _userService;
-
+  @BeforeAll
+  void setUp() {
     enrollmentDate = new Date();
 
     orgUnitA = createOrganisationUnit('A');
@@ -163,18 +160,22 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     program.setProgramStages(Set.of(programStage, inaccessibleProgramStage));
     manager.save(program, false);
 
-    enrollmentA =
-        enrollmentService.enrollTrackedEntity(
-            teA, program, enrollmentDate, enrollmentDate, orgUnitA);
-    eventA =
-        eventService.createEvent(
-            enrollmentA, programStage, enrollmentDate, enrollmentDate, orgUnitA);
+    enrollmentA = createEnrollment(program, teA, orgUnitA);
+    manager.save(enrollmentA);
+    teA.getEnrollments().add(enrollmentA);
+    manager.update(teA);
 
-    Enrollment enrollmentB =
-        enrollmentService.enrollTrackedEntity(teB, program, new Date(), new Date(), orgUnitA);
-    inaccessibleEvent =
-        eventService.createEvent(
-            enrollmentB, inaccessibleProgramStage, enrollmentDate, enrollmentDate, orgUnitA);
+    eventA = createEvent(programStage, enrollmentA, orgUnitA);
+    eventA.setOccurredDate(enrollmentDate);
+    manager.save(eventA);
+
+    Enrollment enrollmentB = createEnrollment(program, teB, orgUnitA);
+    manager.save(enrollmentB);
+    teA.getEnrollments().add(enrollmentB);
+    manager.update(teA);
+    inaccessibleEvent = createEvent(inaccessibleProgramStage, enrollmentB, orgUnitA);
+    inaccessibleEvent.setOccurredDate(enrollmentDate);
+    manager.save(inaccessibleEvent);
 
     teToTeType
         .getFromConstraint()
@@ -236,59 +237,54 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void shouldNotReturnRelationshipByTrackedEntityIfUserHasNoAccessToTrackedEntityType()
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
 
     Relationship accessible = relationship(teA, teB);
     relationship(teA, inaccessibleTe, teToInaccessibleTeType);
 
     RelationshipOperationParams operationParams =
-        RelationshipOperationParams.builder().type(TRACKED_ENTITY).identifier(teA.getUid()).build();
+        RelationshipOperationParams.builder().type(TRACKED_ENTITY).identifier(teA).build();
 
     List<Relationship> relationships = relationshipService.getRelationships(operationParams);
 
     assertContainsOnly(
-        List.of(accessible.getUid()),
-        relationships.stream().map(Relationship::getUid).collect(Collectors.toList()));
+        List.of(accessible.getUid()), relationships.stream().map(Relationship::getUid).toList());
   }
 
   @Test
   void shouldNotReturnRelationshipByEnrollmentIfUserHasNoAccessToRelationshipType()
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
     Relationship accessible = relationship(teA, enrollmentA);
     relationship(teB, enrollmentA, teToInaccessibleEnType);
 
     RelationshipOperationParams operationParams =
-        RelationshipOperationParams.builder()
-            .type(ENROLLMENT)
-            .identifier(enrollmentA.getUid())
-            .build();
+        RelationshipOperationParams.builder().type(ENROLLMENT).identifier(enrollmentA).build();
 
     List<Relationship> relationships = relationshipService.getRelationships(operationParams);
 
     assertContainsOnly(
-        List.of(accessible.getUid()),
-        relationships.stream().map(Relationship::getUid).collect(Collectors.toList()));
+        List.of(accessible.getUid()), relationships.stream().map(Relationship::getUid).toList());
   }
 
   @Test
   void shouldNotReturnRelationshipByEventIfUserHasNoAccessToProgramStage()
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
     Relationship accessible = relationship(teA, eventA);
     relationship(eventA, inaccessibleEvent);
 
     RelationshipOperationParams operationParams =
-        RelationshipOperationParams.builder().type(EVENT).identifier(eventA.getUid()).build();
+        RelationshipOperationParams.builder().type(EVENT).identifier(eventA).build();
 
     List<Relationship> relationships = relationshipService.getRelationships(operationParams);
 
     assertContainsOnly(
-        List.of(accessible.getUid()),
-        relationships.stream().map(Relationship::getUid).collect(Collectors.toList()));
+        List.of(accessible.getUid()), relationships.stream().map(Relationship::getUid).toList());
   }
 
   @Test
-  void shouldNotReturnRelationshipWhenTeIsTransferredAndUserHasNoAccessToAtLeastOneProgram() {
-    injectSecurityContextUser(getAdminUser());
+  void shouldNotReturnRelationshipWhenTeIsTransferredAndUserHasNoAccessToAtLeastOneProgram()
+      throws ForbiddenException {
+    injectAdminIntoSecurityContext();
 
     TrackedEntityType trackedEntityType = createTrackedEntityType('X');
     manager.save(trackedEntityType, false);
@@ -296,19 +292,19 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     Program program = protectedProgram('P', trackedEntityType, orgUnitA);
     program.getSharing().setOwner(user); // set metadata access to the program
     program.setProgramStages(Set.of(programStage));
+    program.setOrganisationUnits(Set.of(orgUnitA, orgUnitB));
     manager.save(program, false);
 
     TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA);
     trackedEntityFrom.setTrackedEntityType(trackedEntityType);
     manager.save(trackedEntityFrom);
 
-    enrollmentService.addEnrollment(createEnrollment(program, trackedEntityFrom, orgUnitA));
+    manager.save(createEnrollment(program, trackedEntityFrom, orgUnitA));
 
     trackerOwnershipAccessManager.assignOwnership(
         trackedEntityFrom, program, orgUnitA, false, true);
 
-    trackerOwnershipAccessManager.transferOwnership(
-        trackedEntityFrom, program, orgUnitB, false, true);
+    trackerOwnershipAccessManager.transferOwnership(trackedEntityFrom, program, orgUnitB);
 
     TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA);
     trackedEntityTo.setTrackedEntityType(trackedEntityType);
@@ -321,7 +317,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder()
             .type(TRACKED_ENTITY)
-            .identifier(trackedEntityFrom.getUid())
+            .identifier(trackedEntityFrom)
             .build();
 
     assertThrows(
@@ -332,8 +328,8 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void shouldExcludeRelationshipWhenProgramIsProtectedAndUserHasNoAccess()
-      throws ForbiddenException, NotFoundException {
-    injectSecurityContextUser(getAdminUser());
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    injectAdminIntoSecurityContext();
 
     TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA);
     trackedEntityFrom.setTrackedEntityType(trackedEntityType);
@@ -358,14 +354,13 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder()
             .type(TRACKED_ENTITY)
-            .identifier(trackedEntityFrom.getUid())
+            .identifier(trackedEntityFrom)
             .build();
 
     List<Relationship> relationships = relationshipService.getRelationships(operationParams);
 
     assertContainsOnly(
-        List.of(accessible.getUid()),
-        relationships.stream().map(Relationship::getUid).collect(Collectors.toList()));
+        List.of(accessible.getUid()), relationships.stream().map(Relationship::getUid).toList());
   }
 
   @Test
@@ -399,7 +394,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder()
             .type(TRACKED_ENTITY)
-            .identifier(trackedEntityFrom.getUid())
+            .identifier(trackedEntityFrom)
             .build();
 
     assertThrows(
@@ -438,7 +433,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder()
             .type(TRACKED_ENTITY)
-            .identifier(trackedEntityFrom.getUid())
+            .identifier(trackedEntityFrom)
             .build();
 
     assertThrows(

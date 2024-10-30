@@ -51,11 +51,7 @@ public class TrackedEntity implements TrackerDto, Serializable {
 
   @JsonProperty private MetadataIdentifier trackedEntityType;
 
-  @JsonProperty private Instant createdAt;
-
   @JsonProperty private Instant createdAtClient;
-
-  @JsonProperty private Instant updatedAt;
 
   @JsonProperty private Instant updatedAtClient;
 
@@ -63,23 +59,13 @@ public class TrackedEntity implements TrackerDto, Serializable {
 
   @JsonProperty private boolean inactive;
 
-  @JsonProperty private boolean deleted;
-
   @JsonProperty private boolean potentialDuplicate;
 
   @JsonProperty private Geometry geometry;
 
   @JsonProperty private String storedBy;
 
-  @JsonProperty private User createdBy;
-
-  @JsonProperty private User updatedBy;
-
-  @JsonProperty @Builder.Default private List<Relationship> relationships = new ArrayList<>();
-
   @JsonProperty @Builder.Default private List<Attribute> attributes = new ArrayList<>();
-
-  @JsonProperty @Builder.Default private List<Enrollment> enrollments = new ArrayList<>();
 
   @Override
   public String getUid() {

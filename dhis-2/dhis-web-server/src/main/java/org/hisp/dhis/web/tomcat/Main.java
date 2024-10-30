@@ -61,6 +61,7 @@ import org.apache.catalina.webresources.AbstractResourceSet;
 import org.apache.catalina.webresources.EmptyResource;
 import org.apache.catalina.webresources.StandardRoot;
 import org.apache.tomcat.util.scan.StandardJarScanFilter;
+import org.hisp.dhis.common.CodeGenerator;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -75,18 +76,22 @@ import org.springframework.util.StringUtils;
 @Slf4j
 public class Main {
 
-  private static final int PORT = 8080;
+  private static final int DEFAULT_HTTP_PORT = 8080;
+
+  private static int getPort() {
+    return Integer.parseInt(System.getProperty("server.port", Integer.toString(DEFAULT_HTTP_PORT)));
+  }
 
   public static void main(String[] args) throws Exception {
-
     Tomcat tomcat = new Tomcat();
     tomcat.setBaseDir(createTempDir());
-    tomcat.setPort(PORT);
+    int port = getPort();
+    tomcat.setPort(port);
 
     Connector connector = new Connector("org.apache.coyote.http11.Http11NioProtocol");
     connector.setThrowOnFailure(true);
     tomcat.getService().addConnector(connector);
-    connector.setPort(PORT);
+    connector.setPort(port);
     connector.setProperty("relaxedQueryChars", "\\ { } | [ ]");
     tomcat.setConnector(connector);
     registerConnectorExecutor(tomcat, connector);
@@ -183,7 +188,7 @@ public class Main {
 
   private static String createTempDir() {
     try {
-      File tempDir = File.createTempFile("tomcat.", "." + PORT);
+      File tempDir = File.createTempFile("tomcat.", "." + CodeGenerator.generateCode(8));
       tempDir.delete();
       tempDir.mkdir();
       tempDir.deleteOnExit();

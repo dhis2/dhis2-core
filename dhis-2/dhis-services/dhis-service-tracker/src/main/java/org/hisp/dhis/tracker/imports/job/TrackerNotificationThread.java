@@ -50,11 +50,11 @@ import org.springframework.stereotype.Component;
 public class TrackerNotificationThread extends SecurityContextRunnable {
   private final Notifier notifier;
 
-  private TrackerSideEffectDataBundle sideEffectDataBundle;
+  private TrackerNotificationDataBundle notificationDataBundle;
 
   private final IdentifiableObjectManager manager;
 
-  private final Map<SideEffectTrigger, Consumer<Long>> serviceMapper;
+  private final Map<NotificationTrigger, Consumer<Long>> serviceMapper;
 
   public TrackerNotificationThread(
       ProgramNotificationService programNotificationService,
@@ -64,23 +64,23 @@ public class TrackerNotificationThread extends SecurityContextRunnable {
     this.manager = manager;
     this.serviceMapper =
         Map.of(
-            SideEffectTrigger.ENROLLMENT, programNotificationService::sendEnrollmentNotifications,
-            SideEffectTrigger.EVENT_COMPLETION,
+            NotificationTrigger.ENROLLMENT, programNotificationService::sendEnrollmentNotifications,
+            NotificationTrigger.EVENT_COMPLETION,
                 programNotificationService::sendEventCompletionNotifications,
-            SideEffectTrigger.ENROLLMENT_COMPLETION,
+            NotificationTrigger.ENROLLMENT_COMPLETION,
                 programNotificationService::sendEnrollmentCompletionNotifications);
   }
 
   @Override
   public void call() {
-    if (sideEffectDataBundle == null) {
+    if (notificationDataBundle == null) {
       return;
     }
 
-    for (SideEffectTrigger trigger : sideEffectDataBundle.getTriggers()) {
+    for (NotificationTrigger trigger : notificationDataBundle.getTriggers()) {
       if (serviceMapper.containsKey(trigger)) {
         BaseIdentifiableObject object =
-            manager.get(sideEffectDataBundle.getKlass(), sideEffectDataBundle.getObject());
+            manager.get(notificationDataBundle.getKlass(), notificationDataBundle.getObject());
         if (object != null) {
           serviceMapper.get(trigger).accept(object.getId());
         }
@@ -88,12 +88,12 @@ public class TrackerNotificationThread extends SecurityContextRunnable {
     }
 
     notifier.notify(
-        sideEffectDataBundle.getJobConfiguration(),
+        notificationDataBundle.getJobConfiguration(),
         NotificationLevel.DEBUG,
-        "Tracker notification side effects completed");
+        "Tracker notification handling completed");
   }
 
-  public void setSideEffectDataBundle(TrackerSideEffectDataBundle sideEffectDataBundle) {
-    this.sideEffectDataBundle = sideEffectDataBundle;
+  public void setNotificationDataBundle(TrackerNotificationDataBundle notificationDataBundle) {
+    this.notificationDataBundle = notificationDataBundle;
   }
 }

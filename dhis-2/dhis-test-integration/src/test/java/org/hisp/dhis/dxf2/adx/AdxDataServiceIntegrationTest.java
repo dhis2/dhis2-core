@@ -29,8 +29,8 @@ package org.hisp.dhis.dxf2.adx;
 
 import static org.hisp.dhis.common.IdScheme.CODE;
 import static org.hisp.dhis.common.IdScheme.UID;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
@@ -67,9 +67,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +78,7 @@ import org.springframework.core.io.ClassPathResource;
 /*
  * @author Jim Grace
  */
-class AdxDataServiceIntegrationTest extends IntegrationTestBase {
+class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private AdxDataService adxDataService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
@@ -88,8 +88,6 @@ class AdxDataServiceIntegrationTest extends IntegrationTestBase {
   @Autowired private DataValueService dataValueService;
 
   @Autowired private OrganisationUnitGroupService organisationUnitGroupService;
-
-  @Autowired private UserService _userService;
 
   private CategoryOption coUnder5;
 
@@ -149,10 +147,8 @@ class AdxDataServiceIntegrationTest extends IntegrationTestBase {
 
   private User user;
 
-  @Override
-  public void setUpTest() {
-    // UserService
-    userService = _userService;
+  @BeforeEach
+  void setUp() {
     // Category Option
     coUnder5 = new CategoryOption("Under 5");
     coOver5 = new CategoryOption("Over 5");
@@ -300,7 +296,7 @@ class AdxDataServiceIntegrationTest extends IntegrationTestBase {
     ougA.addOrganisationUnit(ouB);
     organisationUnitGroupService.addOrganisationUnitGroup(ougA);
     // User & Current User Service
-    user = createAndInjectAdminUser();
+    user = getAdminUser();
     user.setOrganisationUnits(Sets.newHashSet(ouA, ouB));
     userService.addUser(user);
     injectSecurityContextUser(user);

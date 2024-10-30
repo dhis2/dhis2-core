@@ -32,15 +32,17 @@ import static org.hisp.dhis.security.Authorities.F_MOBILE_SENDSMS;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
@@ -66,7 +68,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /** Zubair <rajazubair.asghar@gmail.com> */
-@OpenApi.Document(domain = SmsGateway.class)
+@OpenApi.Document(
+    entity = SmsGateway.class,
+    classifiers = {"team:tracker", "purpose:metadata"})
 @RestController
 @RequestMapping("/api/gateways")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -87,6 +91,12 @@ public class SmsGatewayController {
   // GET
   // -------------------------------------------------------------------------
 
+  @OpenApi.Response(
+      status = OpenApi.Response.Status.OK,
+      object = {
+        @OpenApi.Property(name = "pager", value = Pager.class),
+        @OpenApi.Property(name = "gateways", value = SmsGatewayConfig[].class)
+      })
   @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonRoot> getGateways(
@@ -97,6 +107,7 @@ public class SmsGatewayController {
     return ResponseEntity.ok(JsonRoot.of("gateways", fieldFilterService.toObjectNodes(params)));
   }
 
+  @OpenApi.Response(SmsGatewayConfig.class)
   @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @GetMapping(value = "/{uid}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<ObjectNode> getGatewayConfiguration(
@@ -114,7 +125,8 @@ public class SmsGatewayController {
   @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @PutMapping("/default/{uid}")
   @ResponseBody
-  public WebMessage setDefault(@PathVariable String uid) throws NotFoundException {
+  public WebMessage setDefault(@PathVariable String uid)
+      throws NotFoundException, ForbiddenException, ConflictException, BadRequestException {
     SmsGatewayConfig gateway = getExistingConfig(uid);
 
     gatewayAdminService.setDefaultGateway(gateway);
@@ -125,7 +137,11 @@ public class SmsGatewayController {
   @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @PutMapping("/{uid}")
   public WebMessage updateGateway(@PathVariable String uid, HttpServletRequest request)
-      throws IOException, NotFoundException, ConflictException {
+      throws IOException,
+          NotFoundException,
+          ConflictException,
+          ForbiddenException,
+          BadRequestException {
     SmsGatewayConfig config = getExistingConfig(uid);
 
     SmsGatewayConfig updatedConfig =
@@ -146,8 +162,8 @@ public class SmsGatewayController {
   @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @PostMapping
   @ResponseBody
-  public WebMessage addGateway(HttpServletRequest request, HttpServletResponse response)
-      throws IOException, ConflictException {
+  public WebMessage addGateway(HttpServletRequest request)
+      throws IOException, ConflictException, ForbiddenException, BadRequestException {
     SmsGatewayConfig config =
         renderService.fromJson(request.getInputStream(), SmsGatewayConfig.class);
 
@@ -167,7 +183,8 @@ public class SmsGatewayController {
   @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @DeleteMapping("/{uid}")
   @ResponseBody
-  public WebMessage removeGateway(@PathVariable String uid) throws NotFoundException {
+  public WebMessage removeGateway(@PathVariable String uid)
+      throws NotFoundException, ForbiddenException, ConflictException, BadRequestException {
     getExistingConfig(uid);
 
     gatewayAdminService.removeGatewayByUid(uid);

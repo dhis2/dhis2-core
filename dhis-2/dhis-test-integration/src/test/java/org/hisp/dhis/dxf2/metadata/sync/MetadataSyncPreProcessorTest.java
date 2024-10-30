@@ -51,9 +51,9 @@ import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.Disabled;
@@ -64,11 +64,11 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author aamerm
  */
 @Disabled
-class MetadataSyncPreProcessorTest extends IntegrationTestBase {
+class MetadataSyncPreProcessorTest extends PostgresIntegrationTestBase {
 
   @Autowired private SynchronizationManager synchronizationManager;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService settingsService;
 
   @Autowired private MetadataSyncPreProcessor metadataSyncPreProcessor;
 
@@ -228,13 +228,13 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase {
     currentVersion.setCreated(new Date());
     currentVersion.setHashCode("samplehashcode1");
     MetadataVersion version2 = new MetadataVersion("Version2", VersionType.ATOMIC);
-    org.joda.time.DateTime dateTime = dateTimeFormatter.parseDateTime("2016-06-21 10:45:50Z");
+    DateTime dateTime = dateTimeFormatter.parseDateTime("2016-06-21 10:45:50Z");
     version2.setCreated(dateTime.toDate());
     MetadataVersion version3 = new MetadataVersion("Version3", VersionType.ATOMIC);
-    org.joda.time.DateTime dateTime2 = dateTimeFormatter.parseDateTime("2016-06-21 10:45:54Z");
+    DateTime dateTime2 = dateTimeFormatter.parseDateTime("2016-06-21 10:45:54Z");
     version3.setCreated(dateTime2.toDate());
     MetadataVersion version4 = new MetadataVersion("Version4", VersionType.ATOMIC);
-    org.joda.time.DateTime dateTime3 = dateTimeFormatter.parseDateTime("2016-06-21 10:45:58Z");
+    DateTime dateTime3 = dateTimeFormatter.parseDateTime("2016-06-21 10:45:58Z");
     version4.setCreated(dateTime3.toDate());
     List<MetadataVersion> metadataVersionList = new ArrayList<>();
     metadataVersionList.add(version2);
@@ -245,8 +245,7 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase {
     List<MetadataVersion> expectedListOfVersions =
         metadataSyncPreProcessor.handleMetadataVersionsList(
             mockRetryContext, currentVersion, JobProgress.noop());
-    verify(systemSettingManager)
-        .saveSystemSetting(SettingKey.REMOTE_METADATA_VERSION, version4.getName());
+    verify(settingsService).put("keyRemoteMetadataVersion", version4.getName());
     assertEquals(3, expectedListOfVersions.size());
   }
 }

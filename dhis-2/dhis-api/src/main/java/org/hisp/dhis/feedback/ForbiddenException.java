@@ -35,11 +35,12 @@ import java.util.function.Supplier;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.webmessage.WebMessageResponse;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.webmessage.WebResponse;
 
 @Getter
 @Accessors(chain = true)
-@OpenApi.Response(status = FORBIDDEN, value = WebMessageResponse.class)
+@OpenApi.Response(status = FORBIDDEN, value = WebResponse.class)
 public final class ForbiddenException extends Exception implements Error {
   public static <E extends RuntimeException, V> V on(Class<E> type, Supplier<V> operation)
       throws ForbiddenException {
@@ -61,6 +62,10 @@ public final class ForbiddenException extends Exception implements Error {
 
   public ForbiddenException(Class<?> type, String uid) {
     this("User has no access to " + type.getSimpleName() + ":" + uid);
+  }
+
+  public ForbiddenException(Class<?> type, UID uid) {
+    this(type, uid.getValue());
   }
 
   public ForbiddenException(ErrorCode code, Object... args) {

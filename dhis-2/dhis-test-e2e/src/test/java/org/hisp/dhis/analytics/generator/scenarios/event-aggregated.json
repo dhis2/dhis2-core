@@ -1,0 +1,11 @@
+{
+  "scenarios": [
+    {
+      "name": "financialYear2023Sep",
+      "query": "/api/42/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:2023Sep&dimension=A03MvHHogjR.a3kGcGDCuk6&stage=A03MvHHogjR&displayProperty=NAME&totalPages=false&outputType=EVENT",
+      "version": {
+        "min": 42
+      }
+    }
+  ]
+}

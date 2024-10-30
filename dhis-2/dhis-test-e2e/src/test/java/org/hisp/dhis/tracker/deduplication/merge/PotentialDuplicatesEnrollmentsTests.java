@@ -39,10 +39,10 @@ import com.google.gson.JsonObject;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import org.hisp.dhis.Constants;
-import org.hisp.dhis.dto.TrackerApiResponse;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.file.JsonFileReader;
+import org.hisp.dhis.test.e2e.Constants;
+import org.hisp.dhis.test.e2e.dto.TrackerApiResponse;
+import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicatesApiTest;
 import org.hisp.dhis.tracker.imports.databuilder.TrackedEntityDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,7 +58,7 @@ public class PotentialDuplicatesEnrollmentsTests extends PotentialDuplicatesApiT
   }
 
   @Test
-  public void shouldNotBeMergedWhenBothTrackedEntitysEnrolledInSameProgram() {
+  public void shouldNotBeMergedWhenBothTrackedEntitiesEnrolledInSameProgram() {
     String teA =
         createTrackedEntityWithEnrollmentsAndEvents(Constants.TRACKER_PROGRAM_ID, "nlXNK4b7LVr")
             .extractImportedTrackedEntities()

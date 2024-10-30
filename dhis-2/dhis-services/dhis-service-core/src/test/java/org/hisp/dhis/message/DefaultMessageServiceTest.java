@@ -42,7 +42,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.message.hibernate.HibernateMessageConversationStore;
 import org.hisp.dhis.user.SystemUser;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,13 +61,13 @@ class DefaultMessageServiceTest {
   @Mock private DhisConfigurationProvider configurationProvider;
   @Mock private ConfigurationService configurationService;
 
-  @Mock private EmailMessageSender emailMessageSender;
+  @Mock private MessageSender emailMessageSender;
 
   @Mock private List<MessageSender> messageSenders = new ArrayList<>();
 
   @InjectMocks private DefaultMessageService messageService;
   @Mock private HibernateMessageConversationStore messageConversationStore;
-  @Mock private UserSettingService userSettingService;
+  @Mock private UserSettingsService userSettingsService;
   @Mock private I18nManager i18nManager;
 
   @ParameterizedTest

@@ -30,6 +30,7 @@ package org.hisp.dhis.validation.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 
+import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -37,7 +38,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.query.Query;
@@ -290,11 +290,10 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
    * @return String to add restrictions to the HQL query.
    */
   private String getUserRestrictions(SqlHelper sqlHelper) {
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    if (currentUserDetails == null || currentUserDetails.isSuper()) {
+    if (CurrentUserUtil.getCurrentUserDetails().isSuper()) {
       return "";
     }
-
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     StringBuilder restrictions = new StringBuilder();
 
     // ---------------------------------------------------------------------
@@ -308,7 +307,7 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
     if (!userOrgUnits.isEmpty()) {
       for (OrganisationUnit ou : userOrgUnits) {
         restrictions.append(
-            (restrictions.length() == 0 ? " " + sqlHelper.whereAnd() + " (" : " or ")
+            (restrictions.isEmpty() ? " " + sqlHelper.whereAnd() + " (" : " or ")
                 + "locate('"
                 + ou.getUid()
                 + "',vr.organisationUnit.path) <> 0");

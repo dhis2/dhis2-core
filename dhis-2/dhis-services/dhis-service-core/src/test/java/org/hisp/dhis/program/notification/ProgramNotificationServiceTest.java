@@ -30,6 +30,7 @@ package org.hisp.dhis.program.notification;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyLong;
@@ -38,13 +39,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
+import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -58,9 +59,7 @@ import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -68,6 +67,7 @@ import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateMapper;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -78,13 +78,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Zubair Asghar.
  */
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
-class ProgramNotificationServiceTest extends DhisConvenienceTest {
+class ProgramNotificationServiceTest extends TestBase {
 
   private static final String SUBJECT = "subject";
 
@@ -102,15 +104,11 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
   private static final String ATT_EMAIL = "attr@test.org";
 
-  private String notificationTemplate = CodeGenerator.generateUid();
+  private final String notificationTemplate = CodeGenerator.generateUid();
 
   @Mock private ProgramMessageService programMessageService;
 
   @Mock private MessageService messageService;
-
-  @Mock private EnrollmentStore enrollmentStore;
-
-  @Mock private EventStore eventStore;
 
   @Mock private IdentifiableObjectManager manager;
 
@@ -120,17 +118,24 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
   @Mock private ProgramNotificationTemplateService notificationTemplateService;
 
-  private NotificationTemplateMapper notificationTemplateMapper = new NotificationTemplateMapper();
+  @Mock private EntityManager entityManager;
+
+  @Mock private JdbcTemplate jdbcTemplate;
+
+  @Mock private ApplicationEventPublisher applicationEventPublisher;
+
+  private final NotificationTemplateMapper notificationTemplateMapper =
+      new NotificationTemplateMapper();
 
   private DefaultProgramNotificationService programNotificationService;
 
-  private Set<Enrollment> enrollments = new HashSet<>();
+  private final Set<Enrollment> enrollments = new HashSet<>();
 
-  private Set<Event> events = new HashSet<>();
+  private final Set<Event> events = new HashSet<>();
 
-  private List<ProgramMessage> sentProgramMessages = new ArrayList<>();
+  private final List<ProgramMessage> sentProgramMessages = new ArrayList<>();
 
-  private List<MockMessage> sentInternalMessages = new ArrayList<>();
+  private final List<MockMessage> sentInternalMessages = new ArrayList<>();
 
   private User userA;
 
@@ -152,15 +157,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
   private UserGroup userGroupBasedOnParent;
 
-  private OrganisationUnit root;
-
-  private OrganisationUnit lvlOneLeft;
-
-  private OrganisationUnit lvlOneRight;
-
   private OrganisationUnit lvlTwoLeftLeft;
-
-  private OrganisationUnit lvlTwoLeftRight;
 
   private TrackedEntity te;
 
@@ -170,21 +167,11 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
   private TrackedEntityAttribute trackedEntityAttribute;
 
-  private TrackedEntityAttribute trackedEntityAttributeEmail;
-
   private ProgramTrackedEntityAttribute programTrackedEntityAttribute;
-
-  private ProgramTrackedEntityAttribute programTrackedEntityAttributeEmail;
-
-  private TrackedEntityAttributeValue attributeValue;
-
-  private TrackedEntityAttributeValue attributeValueEmail;
 
   private NotificationMessage notificationMessage;
 
   private ProgramNotificationTemplate programNotificationTemplate;
-
-  private ProgramNotificationTemplate programNotificationTemplateForToday;
 
   private ProgramNotificationInstance programNotificationInstaceForToday;
 
@@ -194,13 +181,14 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
         new DefaultProgramNotificationService(
             this.programMessageService,
             this.messageService,
-            this.enrollmentStore,
-            this.eventStore,
             this.manager,
             this.programNotificationRenderer,
             this.programStageNotificationRenderer,
             notificationTemplateService,
-            notificationTemplateMapper);
+            notificationTemplateMapper,
+            entityManager,
+            jdbcTemplate,
+            applicationEventPublisher);
 
     setUpInstances();
   }
@@ -213,7 +201,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
   @Test
   void testIfEnrollmentIsNull() {
-    when(enrollmentStore.get(anyLong())).thenReturn(null);
+    when(manager.get(eq(Enrollment.class), any(Long.class))).thenReturn(null);
 
     programNotificationService.sendEnrollmentCompletionNotifications(0);
 
@@ -222,7 +210,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
   @Test
   void testIfEventIsNull() {
-    when(eventStore.get(anyLong())).thenReturn(null);
+    when(manager.get(eq(Event.class), anyLong())).thenReturn(null);
 
     programNotificationService.sendEventCompletionNotifications(0);
 
@@ -231,7 +219,8 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
   @Test
   void testSendCompletionNotification() {
-    when(enrollmentStore.get(anyLong())).thenReturn(enrollments.iterator().next());
+    when(manager.get(eq(Enrollment.class), any(Long.class)))
+        .thenReturn(enrollments.iterator().next());
 
     when(programMessageService.sendMessages(anyList()))
         .thenAnswer(
@@ -257,7 +246,8 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
   @Test
   void testSendEnrollmentNotification() {
-    when(enrollmentStore.get(anyLong())).thenReturn(enrollments.iterator().next());
+    when(manager.get(eq(Enrollment.class), any(Long.class)))
+        .thenReturn(enrollments.iterator().next());
 
     when(programMessageService.sendMessages(anyList()))
         .thenAnswer(
@@ -283,7 +273,8 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
   @Test
   void testUserGroupRecipient() {
-    when(enrollmentStore.get(anyLong())).thenReturn(enrollments.iterator().next());
+    when(manager.get(eq(Enrollment.class), any(Long.class)))
+        .thenReturn(enrollments.iterator().next());
 
     when(messageService.sendMessage(any()))
         .thenAnswer(
@@ -310,7 +301,8 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
   @Test
   void testOuContactRecipient() {
-    when(enrollmentStore.get(anyLong())).thenReturn(enrollments.iterator().next());
+    when(manager.get(eq(Enrollment.class), any(Long.class)))
+        .thenReturn(enrollments.iterator().next());
 
     when(programMessageService.sendMessages(anyList()))
         .thenAnswer(
@@ -339,7 +331,8 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
   @Test
   void testProgramAttributeRecipientWithSMS() {
-    when(enrollmentStore.get(anyLong())).thenReturn(enrollments.iterator().next());
+    when(manager.get(eq(Enrollment.class), any(Long.class)))
+        .thenReturn(enrollments.iterator().next());
 
     when(programMessageService.sendMessages(anyList()))
         .thenAnswer(
@@ -369,7 +362,8 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
   @Test
   void testProgramAttributeRecipientWithEMAIL() {
-    when(enrollmentStore.get(anyLong())).thenReturn(enrollments.iterator().next());
+    when(manager.get(eq(Enrollment.class), any(Long.class)))
+        .thenReturn(enrollments.iterator().next());
 
     when(programMessageService.sendMessages(anyList()))
         .thenAnswer(
@@ -399,7 +393,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
   @Test
   void testDataElementRecipientWithSMS() {
-    when(eventStore.get(anyLong())).thenReturn(events.iterator().next());
+    when(manager.get(eq(Event.class), anyLong())).thenReturn(events.iterator().next());
 
     when(programMessageService.sendMessages(anyList()))
         .thenAnswer(
@@ -432,7 +426,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
   @Test
   void testDataElementRecipientWithEmail() {
-    when(eventStore.get(anyLong())).thenReturn(events.iterator().next());
+    when(manager.get(eq(Event.class), anyLong())).thenReturn(events.iterator().next());
 
     when(programMessageService.sendMessages(anyList()))
         .thenAnswer(
@@ -465,7 +459,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
   @Test
   void testDataElementRecipientWithInternalRecipients() {
-    when(eventStore.get(anyLong())).thenReturn(events.iterator().next());
+    when(manager.get(eq(Event.class), anyLong())).thenReturn(events.iterator().next());
 
     when(messageService.sendMessage(any()))
         .thenAnswer(
@@ -500,7 +494,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
   @Test
   void testSendToParent() {
-    when(eventStore.get(anyLong())).thenReturn(events.iterator().next());
+    when(manager.get(eq(Event.class), anyLong())).thenReturn(events.iterator().next());
 
     when(messageService.sendMessage(any()))
         .thenAnswer(
@@ -532,7 +526,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
   @Test
   void testSendToHierarchy() {
-    when(eventStore.get(anyLong())).thenReturn(events.iterator().next());
+    when(manager.get(eq(Event.class), anyLong())).thenReturn(events.iterator().next());
 
     when(messageService.sendMessage(any()))
         .thenAnswer(
@@ -570,7 +564,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
   @Test
   void testSendToUsersAtOu() {
-    when(eventStore.get(anyLong())).thenReturn(events.iterator().next());
+    when(manager.get(eq(Event.class), anyLong())).thenReturn(events.iterator().next());
 
     when(messageService.sendMessage(any()))
         .thenAnswer(
@@ -651,7 +645,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
     Date today = cal.getTime();
     cal.add(java.util.Calendar.DATE, -1);
 
-    programNotificationTemplateForToday =
+    ProgramNotificationTemplate programNotificationTemplateForToday =
         createProgramNotificationTemplate(
             TEMPLATE_NAME,
             0,
@@ -667,12 +661,12 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
     programNotificationInstaceForToday.setAutoFields();
     programNotificationInstaceForToday.setScheduledAt(today);
 
-    root = createOrganisationUnit('R');
-    lvlOneLeft = createOrganisationUnit('1');
-    lvlOneRight = createOrganisationUnit('2');
+    OrganisationUnit root = createOrganisationUnit('R');
+    OrganisationUnit lvlOneLeft = createOrganisationUnit('1');
+    OrganisationUnit lvlOneRight = createOrganisationUnit('2');
     lvlTwoLeftLeft = createOrganisationUnit('3');
     lvlTwoLeftLeft.setPhoneNumber(OU_PHONE_NUMBER);
-    lvlTwoLeftRight = createOrganisationUnit('4');
+    OrganisationUnit lvlTwoLeftRight = createOrganisationUnit('4');
 
     configureHierarchy(root, lvlOneLeft, lvlOneRight, lvlTwoLeftLeft, lvlTwoLeftRight);
 
@@ -732,12 +726,12 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
     programA.getProgramAttributes().add(programTrackedEntityAttribute);
 
     trackedEntityAttribute = createTrackedEntityAttribute('T');
-    trackedEntityAttributeEmail = createTrackedEntityAttribute('E');
+    TrackedEntityAttribute trackedEntityAttributeEmail = createTrackedEntityAttribute('E');
     trackedEntityAttribute.setValueType(ValueType.PHONE_NUMBER);
     trackedEntityAttribute.setValueType(ValueType.EMAIL);
     programTrackedEntityAttribute =
         createProgramTrackedEntityAttribute(programA, trackedEntityAttribute);
-    programTrackedEntityAttributeEmail =
+    ProgramTrackedEntityAttribute programTrackedEntityAttributeEmail =
         createProgramTrackedEntityAttribute(programA, trackedEntityAttributeEmail);
     programTrackedEntityAttribute.setAttribute(trackedEntityAttribute);
     programTrackedEntityAttributeEmail.setAttribute(trackedEntityAttributeEmail);
@@ -755,8 +749,10 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
     te.setAutoFields();
     te.setOrganisationUnit(lvlTwoLeftLeft);
 
-    attributeValue = createTrackedEntityAttributeValue('P', te, trackedEntityAttribute);
-    attributeValueEmail = createTrackedEntityAttributeValue('E', te, trackedEntityAttribute);
+    TrackedEntityAttributeValue attributeValue =
+        createTrackedEntityAttributeValue('P', te, trackedEntityAttribute);
+    TrackedEntityAttributeValue attributeValueEmail =
+        createTrackedEntityAttributeValue('E', te, trackedEntityAttribute);
     attributeValue.setValue(ATT_PHONE_NUMBER);
     attributeValueEmail.setValue(ATT_EMAIL);
     te.getTrackedEntityAttributeValues().add(attributeValue);

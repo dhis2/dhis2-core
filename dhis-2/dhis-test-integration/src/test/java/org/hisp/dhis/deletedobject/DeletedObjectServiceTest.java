@@ -37,32 +37,32 @@ import java.util.concurrent.TimeUnit;
 import org.awaitility.Awaitility;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class DeletedObjectServiceTest extends IntegrationTestBase {
+class DeletedObjectServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private DeletedObjectService deletedObjectService;
 
   @Autowired private IdentifiableObjectManager manager;
 
-  private DeletedObject elementA = new DeletedObject(createDataElement('A'));
+  @Autowired private DbmsManager dbmsManager;
 
-  private DeletedObject elementB = new DeletedObject(createDataElement('B'));
-
-  private DeletedObject elementC = new DeletedObject(createDataElement('C'));
-
-  private DeletedObject elementD = new DeletedObject(createDataElement('D'));
-
-  private DeletedObject elementE = new DeletedObject(createDataElement('E'));
+  @Autowired private TransactionTemplate transactionTemplate;
 
   @Test
   void testAddDeletedObject() {
+    DeletedObject elementA = new DeletedObject(createDataElement('A'));
+    DeletedObject elementB = new DeletedObject(createDataElement('B'));
+    DeletedObject elementC = new DeletedObject(createDataElement('C'));
+
     deletedObjectService.addDeletedObject(elementA);
     deletedObjectService.addDeletedObject(elementB);
     deletedObjectService.addDeletedObject(elementC);
@@ -71,6 +71,12 @@ class DeletedObjectServiceTest extends IntegrationTestBase {
 
   @Test
   void testGetDeletedObject() {
+    DeletedObject elementA = new DeletedObject(createDataElement('A'));
+    DeletedObject elementB = new DeletedObject(createDataElement('B'));
+    DeletedObject elementC = new DeletedObject(createDataElement('C'));
+    DeletedObject elementD = new DeletedObject(createDataElement('D'));
+    DeletedObject elementE = new DeletedObject(createDataElement('E'));
+
     DeletedObjectQuery deletedObjectQuery = new DeletedObjectQuery();
     deletedObjectQuery.setTotal(5);
     deletedObjectQuery.setPageSize(2);
@@ -99,6 +105,10 @@ class DeletedObjectServiceTest extends IntegrationTestBase {
 
   @Test
   void testSearchForKlass() {
+    DeletedObject elementA = new DeletedObject(createDataElement('A'));
+    DeletedObject elementB = new DeletedObject(createDataElement('B'));
+    DeletedObject elementC = new DeletedObject(createDataElement('C'));
+
     deletedObjectService.addDeletedObject(elementA);
     deletedObjectService.addDeletedObject(elementB);
     deletedObjectService.addDeletedObject(elementC);

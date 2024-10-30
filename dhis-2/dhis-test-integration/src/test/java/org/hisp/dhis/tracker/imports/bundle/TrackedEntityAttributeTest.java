@@ -39,7 +39,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -48,7 +47,9 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -65,21 +66,22 @@ class TrackedEntityAttributeTest extends TrackerTest {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired protected UserService _userService;
+  private User importUser;
 
-  @Override
-  protected void initTest() throws IOException {
-    userService = _userService;
+  @BeforeAll
+  void setUp() throws IOException {
     setUpMetadata("tracker/te_with_tea_metadata.json");
-    injectAdminUser();
+
+    importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
   }
 
   @Test
   void testTrackedAttributePreheater() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/te_with_tea_data.json");
+
     TrackerPreheat preheat =
-        trackerPreheatService.preheat(
-            trackerObjects, new TrackerIdSchemeParams(), userService.getUser(ADMIN_USER_UID));
+        trackerPreheatService.preheat(trackerObjects, new TrackerIdSchemeParams());
     assertNotNull(preheat.get(OrganisationUnit.class, "cNEZTkdAvmg"));
     assertNotNull(preheat.get(TrackedEntityType.class, "KrYIdvLxkMb"));
     assertNotNull(preheat.get(TrackedEntityAttribute.class, "sYn3tkL3XKa"));
@@ -89,8 +91,9 @@ class TrackedEntityAttributeTest extends TrackerTest {
 
   @Test
   void testTrackedAttributeValueBundleImporter() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/te_with_tea_data.json");
     TrackerImportParams params = TrackerImportParams.builder().build();
+    TrackerObjects trackerObjects = fromJson("tracker/te_with_tea_data.json");
+
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
 

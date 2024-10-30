@@ -31,10 +31,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.google.common.collect.Lists;
 import org.hamcrest.Matchers;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -48,7 +48,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class StrategyPreProcessorTest extends DhisConvenienceTest {
+class StrategyPreProcessorTest extends TestBase {
 
   private static final String TE_UID = "TeiUid";
 

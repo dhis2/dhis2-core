@@ -29,14 +29,14 @@ package org.hisp.dhis.minmax.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -179,6 +179,18 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
         .setParameterList("dataElements", dataElements)
         .setParameter("path", parent.getPath() + "%")
         .executeUpdate();
+  }
+
+  @Override
+  public List<MinMaxDataElement> getByDataElement(Collection<DataElement> dataElements) {
+    return getQuery(
+            """
+            from  MinMaxDataElement mmde
+            where mmde.dataElement in :dataElements
+            """,
+            MinMaxDataElement.class)
+        .setParameter("dataElements", dataElements)
+        .list();
   }
 
   private Predicate parseFilter(CriteriaBuilder builder, Root<?> root, List<String> filters) {

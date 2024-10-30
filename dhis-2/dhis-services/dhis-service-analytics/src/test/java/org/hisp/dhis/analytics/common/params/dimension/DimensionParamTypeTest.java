@@ -27,32 +27,32 @@
  */
 package org.hisp.dhis.analytics.common.params.dimension;
 
-import static java.util.List.of;
+import static java.util.Set.of;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
-import java.util.List;
-import org.hisp.dhis.analytics.common.CommonQueryRequest;
+import java.util.Set;
+import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.junit.jupiter.api.Test;
 
 /** Unit tests for {@link DimensionParamType}. */
 class DimensionParamTypeTest {
   @Test
   void mapDates() {
-    CommonQueryRequest request =
-        new CommonQueryRequest()
+    CommonRequestParams request =
+        new CommonRequestParams()
             .withEventDate(of("IpHINAT79UW.LAST_YEAR"))
-            .withIncidentDate(of("LAST_MONTH"))
+            .withOccurredDate(of("LAST_MONTH"))
             .withEnrollmentDate(of("2021-06-30"))
             .withLastUpdated(of("TODAY"))
             .withScheduledDate(of("YESTERDAY"));
     Collection<String> dateFilters = DimensionParamType.DATE_FILTERS.getUidsGetter().apply(request);
 
-    List<String> expected =
+    Set<String> expected =
         of(
             "IpHINAT79UW.pe:LAST_YEAR:EVENT_DATE",
             "pe:2021-06-30:ENROLLMENT_DATE",
-            "pe:LAST_MONTH:INCIDENT_DATE",
+            "pe:LAST_MONTH:OCCURRED_DATE",
             "pe:YESTERDAY:SCHEDULED_DATE",
             "pe:TODAY:LAST_UPDATED");
 

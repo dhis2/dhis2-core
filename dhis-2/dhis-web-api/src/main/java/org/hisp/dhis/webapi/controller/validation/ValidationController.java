@@ -63,7 +63,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = DataSet.class)
+@OpenApi.Document(entity = DataSet.class)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/validation")
@@ -113,7 +113,7 @@ public class ValidationController {
       throws ConflictException, @OpenApi.Ignore NotFoundException {
     JobConfiguration config = new JobConfiguration(JobType.VALIDATION_RESULTS_NOTIFICATION);
 
-    jobSchedulerService.executeNow(jobConfigurationService.create(config));
+    jobSchedulerService.createThenExecute(config);
 
     return jobConfigurationReport(config);
   }

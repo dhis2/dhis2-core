@@ -30,9 +30,9 @@ package org.hisp.dhis.dataelement;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.period.PeriodType;
@@ -172,6 +172,14 @@ public interface DataElementService {
    */
   List<DataElement> getDataElementsByAggregationLevel(int aggregationLevel);
 
+  /**
+   * Get all {@link DataElement}s by string value of {@link org.hisp.dhis.common.UID}
+   *
+   * @param dataElements data element {@link org.hisp.dhis.common.UID}s
+   * @return {@link DataElement}s found
+   */
+  List<DataElement> getDataElementsByUid(List<String> dataElements);
+
   // -------------------------------------------------------------------------
   // DataElementGroup
   // -------------------------------------------------------------------------
@@ -264,9 +272,9 @@ public interface DataElementService {
 
   List<DataElementGroupSet> getAllDataElementGroupSets();
 
-  List<DataElement> getByAttributeAndValue(Attribute attribute, String value);
+  List<DataElement> getByAttributeAndValue(UID attribute, String value);
 
-  List<DataElement> getByAttribute(Attribute attribute);
+  List<DataElement> getByAttribute(UID attribute);
 
-  DataElement getByUniqueAttributeValue(Attribute attribute, String value);
+  DataElement getByUniqueAttributeValue(UID attribute, String value);
 }

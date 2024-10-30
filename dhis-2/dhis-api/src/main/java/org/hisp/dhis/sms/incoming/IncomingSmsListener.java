@@ -27,8 +27,12 @@
  */
 package org.hisp.dhis.sms.incoming;
 
-public interface IncomingSmsListener {
-  boolean accept(IncomingSms sms);
+import javax.annotation.Nonnull;
+import org.hisp.dhis.user.UserDetails;
 
-  void receive(IncomingSms sms);
+public interface IncomingSmsListener {
+  boolean accept(@Nonnull IncomingSms sms);
+
+  /** Receive processes an sms sent by the given user. */
+  void receive(@Nonnull IncomingSms sms, @Nonnull UserDetails smsCreatedBy);
 }

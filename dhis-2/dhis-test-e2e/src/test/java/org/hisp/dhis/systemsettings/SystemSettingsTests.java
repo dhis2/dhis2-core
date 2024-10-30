@@ -35,13 +35,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.google.gson.JsonObject;
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.SystemSettingActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.TestCleanUp;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.SystemSettingActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -72,6 +71,8 @@ class SystemSettingsTests extends ApiTest {
 
   private static final String FRENCH_INTRO = "French - Welcome to the DHIS2";
 
+  private static final String CONTENT_TYPE_TEXT_PLAIN = "text/plain; charset=UTF-8";
+
   private SystemSettingActions systemSettingActions;
 
   @BeforeEach
@@ -89,14 +90,14 @@ class SystemSettingsTests extends ApiTest {
     params.add("value=" + DEFAULT_FOOTER);
 
     systemSettingActions.post(
-        APPLICATION_FOOTER_KEY, ContentType.TEXT.toString(), new JsonObject(), params);
+        APPLICATION_FOOTER_KEY, CONTENT_TYPE_TEXT_PLAIN, new JsonObject(), params);
     // ------------------------
 
     params = new QueryParamsBuilder();
     params.add("value=" + DEFAULT_INTRO);
 
     systemSettingActions.post(
-        APPLICATION_INTRO_KEY, ContentType.TEXT.toString(), new JsonObject(), params);
+        APPLICATION_INTRO_KEY, CONTENT_TYPE_TEXT_PLAIN, new JsonObject(), params);
     // ------------------------
 
     params = new QueryParamsBuilder();
@@ -104,7 +105,7 @@ class SystemSettingsTests extends ApiTest {
     params.add("locale=en");
 
     systemSettingActions.post(
-        APPLICATION_INTRO_KEY, ContentType.TEXT.toString(), new JsonObject(), params);
+        APPLICATION_INTRO_KEY, CONTENT_TYPE_TEXT_PLAIN, new JsonObject(), params);
     // ------------------------
 
     params = new QueryParamsBuilder();
@@ -112,7 +113,7 @@ class SystemSettingsTests extends ApiTest {
     params.add("locale=fr");
 
     systemSettingActions.post(
-        APPLICATION_INTRO_KEY, ContentType.TEXT.toString(), new JsonObject(), params);
+        APPLICATION_INTRO_KEY, CONTENT_TYPE_TEXT_PLAIN, new JsonObject(), params);
   }
 
   @Test
@@ -124,7 +125,7 @@ class SystemSettingsTests extends ApiTest {
 
     ApiResponse response =
         systemSettingActions.post(
-            APPLICATION_FOOTER_KEY, ContentType.TEXT.toString(), new JsonObject(), params);
+            APPLICATION_FOOTER_KEY, CONTENT_TYPE_TEXT_PLAIN, new JsonObject(), params);
 
     response.validate().statusCode(200).body(containsString(specificFooter));
   }
@@ -136,8 +137,8 @@ class SystemSettingsTests extends ApiTest {
     ApiResponse response =
         systemSettingActions.get(
             APPLICATION_INTRO_KEY,
-            ContentType.TEXT.toString(),
-            ContentType.TEXT.toString(),
+            CONTENT_TYPE_TEXT_PLAIN,
+            CONTENT_TYPE_TEXT_PLAIN,
             new QueryParamsBuilder().add("locale=pl"));
 
     response.validate().statusCode(200).body(containsString(DEFAULT_INTRO));
@@ -150,9 +151,9 @@ class SystemSettingsTests extends ApiTest {
     ApiResponse response =
         systemSettingActions.get(
             APPLICATION_INTRO_KEY,
-            ContentType.TEXT.toString(),
-            ContentType.TEXT.toString(),
-            new QueryParamsBuilder());
+            CONTENT_TYPE_TEXT_PLAIN,
+            CONTENT_TYPE_TEXT_PLAIN,
+            new QueryParamsBuilder().add("locale="));
 
     response.validate().log().all().statusCode(200).body(containsString(ENGLISH_INTRO));
   }
@@ -164,8 +165,8 @@ class SystemSettingsTests extends ApiTest {
     ApiResponse response =
         systemSettingActions.get(
             APPLICATION_INTRO_KEY,
-            ContentType.TEXT.toString(),
-            ContentType.TEXT.toString(),
+            CONTENT_TYPE_TEXT_PLAIN,
+            CONTENT_TYPE_TEXT_PLAIN,
             new QueryParamsBuilder().add("locale=fr"));
 
     response.validate().statusCode(200).body(containsString(FRENCH_INTRO));
@@ -197,8 +198,8 @@ class SystemSettingsTests extends ApiTest {
     response =
         systemSettingActions.get(
             APPLICATION_INTRO_KEY,
-            ContentType.TEXT.toString(),
-            ContentType.TEXT.toString(),
+            CONTENT_TYPE_TEXT_PLAIN,
+            CONTENT_TYPE_TEXT_PLAIN,
             new QueryParamsBuilder().add("locale=fr"));
 
     response.validate().statusCode(200).body(containsString(DEFAULT_INTRO));
@@ -215,13 +216,13 @@ class SystemSettingsTests extends ApiTest {
     response =
         systemSettingActions.get(
             APPLICATION_INTRO_KEY,
-            ContentType.TEXT.toString(),
-            ContentType.TEXT.toString(),
+            CONTENT_TYPE_TEXT_PLAIN,
+            CONTENT_TYPE_TEXT_PLAIN,
             new QueryParamsBuilder());
 
     response.validate().statusCode(200);
 
-    assertEquals(StringUtils.EMPTY, response.getAsString());
+    assertEquals(ENGLISH_INTRO, response.getAsString());
   }
 
   @Test
@@ -229,8 +230,8 @@ class SystemSettingsTests extends ApiTest {
     ApiResponse response =
         systemSettingActions.get(
             MAX_SYNC_ATTEMPTS_KEY,
-            ContentType.TEXT.toString(),
-            ContentType.TEXT.toString(),
+            CONTENT_TYPE_TEXT_PLAIN,
+            CONTENT_TYPE_TEXT_PLAIN,
             new QueryParamsBuilder());
 
     response
@@ -242,8 +243,8 @@ class SystemSettingsTests extends ApiTest {
     response =
         systemSettingActions.get(
             MAX_PASSWORD_LENGTH_KEY,
-            ContentType.TEXT.toString(),
-            ContentType.TEXT.toString(),
+            CONTENT_TYPE_TEXT_PLAIN,
+            CONTENT_TYPE_TEXT_PLAIN,
             new QueryParamsBuilder());
 
     response
@@ -255,8 +256,8 @@ class SystemSettingsTests extends ApiTest {
     response =
         systemSettingActions.get(
             EMAIL_SENDER_KEY,
-            ContentType.TEXT.toString(),
-            ContentType.TEXT.toString(),
+            CONTENT_TYPE_TEXT_PLAIN,
+            CONTENT_TYPE_TEXT_PLAIN,
             new QueryParamsBuilder());
   }
 

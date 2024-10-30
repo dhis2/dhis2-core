@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -55,18 +54,19 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class ObjectBundleServiceAttributesTest extends IntegrationTestBase {
+class ObjectBundleServiceAttributesTest extends PostgresIntegrationTestBase {
 
   @Autowired private ObjectBundleService objectBundleService;
 
@@ -76,14 +76,13 @@ class ObjectBundleServiceAttributesTest extends IntegrationTestBase {
 
   @Autowired private RenderService _renderService;
 
-  @Autowired private UserService _userService;
-
   @Autowired private AttributeService attributeService;
 
-  @Override
-  public void setUpTest() {
+  @Autowired private TransactionTemplate transactionTemplate;
+
+  @BeforeEach
+  void setUp() {
     renderService = _renderService;
-    userService = _userService;
   }
 
   @Test
@@ -135,7 +134,7 @@ class ObjectBundleServiceAttributesTest extends IntegrationTestBase {
     assertEquals(2, dataSet.getDataSetElements().size());
     assertEquals(PeriodType.getPeriodTypeByName("Monthly"), dataSet.getPeriodType());
     assertNotNull(user);
-    assertEquals("admin", user.getUsername());
+    assertEquals("metadataadmin", user.getUsername());
     assertFalse(user.getUserRoles().isEmpty());
     assertFalse(user.getOrganisationUnits().isEmpty());
     assertEquals("PdWlltZnVZe", user.getOrganisationUnit().getUid());
@@ -235,9 +234,6 @@ class ObjectBundleServiceAttributesTest extends IntegrationTestBase {
     attribute.setMandatory(true);
     attribute.setDataElementAttribute(true);
     manager.save(attribute);
-    AttributeValue attributeValue1 = new AttributeValue("Value1", attribute);
-    AttributeValue attributeValue2 = new AttributeValue("Value2", attribute);
-    AttributeValue attributeValue3 = new AttributeValue("Value3", attribute);
     DataElement de1 = createDataElement('A');
     DataElement de2 = createDataElement('B');
     DataElement de3 = createDataElement('C');
@@ -246,9 +242,9 @@ class ObjectBundleServiceAttributesTest extends IntegrationTestBase {
           manager.save(de1);
           manager.save(de2);
           manager.save(de3);
-          attributeService.addAttributeValue(de1, attributeValue1);
-          attributeService.addAttributeValue(de2, attributeValue2);
-          attributeService.addAttributeValue(de3, attributeValue3);
+          attributeService.addAttributeValue(de1, attribute.getUid(), "Value1");
+          attributeService.addAttributeValue(de2, attribute.getUid(), "Value2");
+          attributeService.addAttributeValue(de3, attribute.getUid(), "Value3");
           manager.clear();
           return null;
         });

@@ -29,15 +29,19 @@ package org.hisp.dhis.webapi.controller.event;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
 import org.hisp.dhis.rules.models.RuleValidationResult;
+import org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -51,26 +55,22 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author markusbekken
  */
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/api/programRuleActions")
+@OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
 public class ProgramRuleActionController extends AbstractCrudController<ProgramRuleAction> {
   private final I18nManager i18nManager;
 
-  private final ProgramRuleEngineService programRuleEngineService;
-
-  public ProgramRuleActionController(
-      I18nManager i18nManager, ProgramRuleEngineService programRuleEngineService) {
-    this.i18nManager = i18nManager;
-    this.programRuleEngineService = programRuleEngineService;
-  }
+  private final ProgramRuleEngine programRuleEngine;
 
   @PostMapping(value = "/data/expression/description", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public WebMessage getDataExpressionDescription(
-      @RequestBody String condition, @RequestParam String programId) {
+      @RequestBody String condition, @RequestParam UID programId) throws BadRequestException {
     I18n i18n = i18nManager.getI18n();
 
     RuleValidationResult result =
-        programRuleEngineService.getDataExpressionDescription(condition, programId);
+        programRuleEngine.getDataExpressionDescription(condition, programId);
 
     if (result.getValid()) {
       return new DescriptiveWebMessage(Status.OK, HttpStatus.OK)

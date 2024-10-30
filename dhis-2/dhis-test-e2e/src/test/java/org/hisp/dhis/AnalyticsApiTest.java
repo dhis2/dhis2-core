@@ -31,9 +31,9 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 import io.restassured.http.ContentType;
-import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.helpers.extensions.AnalyticsSetupExtension;
 import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestInstance;
@@ -55,7 +55,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * <p>ie.: mvn -Djunit.jupiter.execution.timeout.mode=disabled test
  *
  * <p>All tests are written on top of the database Sierra Leone 2.39.0. It can be downloaded at
- * https://databases.dhis2.org/sierra-leone/2.39.0/analytics_be/dhis2-db-sierra-leone.sql.gz
+ * https://databases.dhis2.org/sierra-leone/2.39.6/analytics_be/dhis2-db-sierra-leone.sql.gz
  *
  * <p>If some test is failing and some investigation is needed, we can simply download the database
  * version above and run the respective WAR of the DHIS2 failing branch on top of that DB. It's a

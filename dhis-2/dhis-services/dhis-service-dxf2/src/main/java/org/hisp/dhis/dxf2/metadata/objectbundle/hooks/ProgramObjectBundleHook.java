@@ -31,13 +31,14 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.program.EventProgramEnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
@@ -53,11 +54,13 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
-  private final EnrollmentService enrollmentService;
+  private final EventProgramEnrollmentService eventProgramEnrollmentService;
 
   private final ProgramStageService programStageService;
 
   private final AclService aclService;
+
+  private final IdentifiableObjectManager identifiableObjectManager;
 
   @Override
   public void postCreate(Program object, ObjectBundle bundle) {
@@ -131,12 +134,12 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
       enrollment.setStatus(EnrollmentStatus.ACTIVE);
       enrollment.setStoredBy("system-process");
 
-      this.enrollmentService.addEnrollment(enrollment);
+      identifiableObjectManager.save(enrollment);
     }
   }
 
   private int getProgramInstancesCount(Program program) {
-    return enrollmentService.getEnrollments(program, EnrollmentStatus.ACTIVE).size();
+    return eventProgramEnrollmentService.getEnrollments(program, EnrollmentStatus.ACTIVE).size();
   }
 
   private void validateAttributeSecurity(

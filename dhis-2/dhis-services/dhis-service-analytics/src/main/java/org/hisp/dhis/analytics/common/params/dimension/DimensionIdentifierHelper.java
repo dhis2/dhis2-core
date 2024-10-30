@@ -38,8 +38,8 @@ import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.Sta
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.OUNAME;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.DATA_ELEMENT;
 import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
-import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
-import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
+import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.TRACKED_ENTITY_ALIAS;
+import static org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilders.isOfType;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
@@ -65,14 +65,17 @@ public class DimensionIdentifierHelper {
    * dimension.
    */
   private static final Map<StaticDimension, Function<DimensionIdentifier<DimensionParam>, String>>
-      DISPLAYNAME_EXTRACTOR_BY_STATIC_DIMENSION =
+      DISPLAY_NAME_EXTRACTOR_BY_STATIC_DIMENSION =
           Map.of(
               ENROLLMENTDATE,
               di -> di.getProgram().getElement().getDisplayEnrollmentDateLabel(),
               INCIDENTDATE,
               di -> di.getProgram().getElement().getDisplayIncidentDateLabel(),
               OCCURREDDATE,
-              di -> di.getProgramStage().getElement().getDisplayExecutionDateLabel(),
+              di ->
+                  di.isEnrollmentDimension()
+                      ? di.getProgram().getElement().getDisplayIncidentDateLabel()
+                      : di.getProgramStage().getElement().getDisplayExecutionDateLabel(),
               OUNAME,
               di -> di.getProgram().getElement().getDisplayOrgUnitLabel());
 
@@ -189,13 +192,13 @@ public class DimensionIdentifierHelper {
         .map(DimensionIdentifier::getPrefix)
         .filter(StringUtils::isNotBlank)
         .map(s -> quote ? doubleQuote(s) : s)
-        .orElse(TEI_ALIAS);
+        .orElse(TRACKED_ENTITY_ALIAS);
   }
 
   public static boolean supportsCustomLabel(
       DimensionIdentifier<DimensionParam> dimensionIdentifier) {
     return Objects.nonNull(dimensionIdentifier.getDimension().getStaticDimension())
-        && DISPLAYNAME_EXTRACTOR_BY_STATIC_DIMENSION.containsKey(
+        && DISPLAY_NAME_EXTRACTOR_BY_STATIC_DIMENSION.containsKey(
             dimensionIdentifier.getDimension().getStaticDimension());
   }
 
@@ -275,7 +278,7 @@ public class DimensionIdentifierHelper {
   private static String getStaticDimensionDisplayName(
       DimensionIdentifier<DimensionParam> dimensionIdentifier) {
     try {
-      return DISPLAYNAME_EXTRACTOR_BY_STATIC_DIMENSION
+      return DISPLAY_NAME_EXTRACTOR_BY_STATIC_DIMENSION
           .get(dimensionIdentifier.getDimension().getStaticDimension())
           .apply(dimensionIdentifier);
     } catch (Exception e) {

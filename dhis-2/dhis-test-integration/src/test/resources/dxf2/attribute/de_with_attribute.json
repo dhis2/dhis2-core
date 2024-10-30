@@ -18,7 +18,7 @@
       "valueType": "INTEGER",
       "attributeValues": [
         {
-          "value": true,
+          "value": "true",
           "attribute": {
             "id": "PtyV6lLcmol",
             "name": "testAttribute"

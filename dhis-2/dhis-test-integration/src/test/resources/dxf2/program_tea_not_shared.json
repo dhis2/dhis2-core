@@ -372,8 +372,8 @@
           "id": "AOin24YR0Dh"
         }
       ],
-      "surname": "admin",
-      "firstName": "admin",
+      "surname": "metadata admin",
+      "firstName": "metadata admin",
       "id": "A3U6uPM3H58",
       "lastUpdated": "2016-03-11T06:57:46.094+0000",
       "lastLogin": "2016-03-11T06:51:52.462+0000",
@@ -382,7 +382,7 @@
         "id": "A3U6uPM3H58"
       },
       "passwordLastUpdated": "2016-03-11T06:51:52.462+0000",
-      "username": "admin",
+      "username": "metadataadmin",
       "disabled": false,
       "selfRegistered": false,
       "userRoles": [
@@ -450,7 +450,7 @@
         "F_APPROVE_DATA_LOWER_LEVELS",
         "F_TRACKED_ENTITY_DATAVALUE_DELETE"
       ],
-      "name": "Superuser",
+      "name": "metadata Superuser",
       "created": "2016-03-11T06:51:52.447+0000",
       "programs": [],
       "id": "RrHdx6L9ksj",

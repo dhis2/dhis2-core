@@ -27,10 +27,13 @@
  */
 package org.hisp.dhis.sms.command.hibernate;
 
+import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.sms.command.SMSCommand;
+import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.parse.ParserType;
 
 public interface SMSCommandStore extends IdentifiableObjectStore<SMSCommand> {
@@ -39,4 +42,6 @@ public interface SMSCommandStore extends IdentifiableObjectStore<SMSCommand> {
   SMSCommand getSMSCommand(String commandName, ParserType parserType);
 
   int countDataSetSmsCommands(DataSet dataSet);
+
+  List<SMSCode> getCodesByDataElement(Collection<DataElement> dataElements);
 }

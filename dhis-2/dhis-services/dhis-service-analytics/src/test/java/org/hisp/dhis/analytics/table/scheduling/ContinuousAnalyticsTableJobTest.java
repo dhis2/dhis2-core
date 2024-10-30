@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table.scheduling;
 
-import static org.hisp.dhis.setting.SettingKey.NEXT_ANALYTICS_TABLE_UPDATE;
 import static org.hisp.dhis.util.DateUtils.getDate;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -36,7 +35,8 @@ import static org.mockito.Mockito.when;
 import java.util.Date;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.common.TableInfoReader;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,7 +47,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ContinuousAnalyticsTableJobTest {
   @Mock private AnalyticsTableGenerator analyticsTableGenerator;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsService settingsService;
+  @Mock private SystemSettings settings;
 
   @Mock private TableInfoReader tableInfoReader;
 
@@ -59,15 +60,14 @@ class ContinuousAnalyticsTableJobTest {
 
   @BeforeEach
   public void beforeEach() {
+    when(settingsService.getCurrentSettings()).thenReturn(settings);
     job =
-        new ContinuousAnalyticsTableJob(
-            analyticsTableGenerator, systemSettingManager, tableInfoReader);
+        new ContinuousAnalyticsTableJob(analyticsTableGenerator, settingsService, tableInfoReader);
   }
 
   @Test
   void testRunFullUpdate() {
-    when(systemSettingManager.getSystemSetting(NEXT_ANALYTICS_TABLE_UPDATE, Date.class))
-        .thenReturn(dateB);
+    when(settings.getNextAnalyticsTableUpdate()).thenReturn(dateB);
 
     assertFalse(job.runFullUpdate(dateA));
     assertTrue(job.runFullUpdate(dateC));
@@ -75,8 +75,7 @@ class ContinuousAnalyticsTableJobTest {
 
   @Test
   void testRunFullUpdateNullNextUpdate() {
-    when(systemSettingManager.getSystemSetting(NEXT_ANALYTICS_TABLE_UPDATE, Date.class))
-        .thenReturn(null);
+    when(settings.getNextAnalyticsTableUpdate()).thenReturn(new Date(0L));
 
     assertTrue(job.runFullUpdate(dateA));
     assertTrue(job.runFullUpdate(dateC));

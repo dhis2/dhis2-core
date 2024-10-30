@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program;
 
+import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
@@ -36,7 +37,7 @@ import org.hisp.dhis.dataelement.DataElement;
  */
 public interface ProgramStageDataElementStore
     extends IdentifiableObjectStore<ProgramStageDataElement> {
-  String ID = EventStore.class.getName();
+  String ID = ProgramStageDataElementStore.class.getName();
 
   /**
    * Retrieve ProgramStageDataElement list on a program stage and a data element
@@ -48,4 +49,6 @@ public interface ProgramStageDataElementStore
   ProgramStageDataElement get(ProgramStage programStage, DataElement dataElement);
 
   List<ProgramStageDataElement> getProgramStageDataElements(DataElement dataElement);
+
+  List<ProgramStageDataElement> getAllByDataElement(Collection<DataElement> dataElements);
 }

@@ -28,11 +28,11 @@
 package org.hisp.dhis.tracker;
 
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.tracker.imports.domain.MetadataIdentifier.ofAttribute;
 import static org.hisp.dhis.tracker.imports.domain.MetadataIdentifier.ofCode;
 import static org.hisp.dhis.tracker.imports.domain.MetadataIdentifier.ofName;
 import static org.hisp.dhis.tracker.imports.domain.MetadataIdentifier.ofUid;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
@@ -53,10 +53,7 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerIdentifierCollector;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
@@ -128,15 +125,6 @@ class TrackerIdentifierCollectorTest {
 
   @Test
   void collectEvents() {
-
-    TrackerIdSchemeParams idSchemes =
-        TrackerIdSchemeParams.builder()
-            .orgUnitIdScheme(TrackerIdSchemeParam.NAME)
-            .programIdScheme(TrackerIdSchemeParam.ofAttribute("NTVsGflP5Ix"))
-            .dataElementIdScheme(TrackerIdSchemeParam.UID)
-            .categoryOptionComboIdScheme(TrackerIdSchemeParam.CODE)
-            .build();
-
     Event event =
         Event.builder()
             .event(uid())
@@ -193,13 +181,6 @@ class TrackerIdentifierCollectorTest {
 
   @Test
   void collectRelationships() {
-
-    TrackerIdSchemeParams idSchemes =
-        TrackerIdSchemeParams.builder()
-            .idScheme(TrackerIdSchemeParam.ofAttribute("NTVsGflP5Ix"))
-            .orgUnitIdScheme(TrackerIdSchemeParam.NAME)
-            .build();
-
     Relationship relationship =
         Relationship.builder()
             .relationship(uid())
@@ -222,10 +203,6 @@ class TrackerIdentifierCollectorTest {
 
   private String uid() {
     return CodeGenerator.generateUid();
-  }
-
-  private TrackerImportParams.TrackerImportParamsBuilder params(TrackerIdSchemeParams idSchemes) {
-    return TrackerImportParams.builder().idSchemes(idSchemes);
   }
 
   private List<Attribute> teAttributes(String... uids) {

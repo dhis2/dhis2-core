@@ -32,14 +32,15 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -70,6 +71,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -82,7 +84,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Kristian Wærstad
  */
-@OpenApi.Document(domain = Icon.class)
+@OpenApi.Document(
+    entity = Icon.class,
+    classifiers = {"team:platform", "purpose:support"})
 @RestController
 @RequestMapping("/api/icons")
 @Slf4j
@@ -153,6 +157,13 @@ public class IconController {
     Icon icon = iconService.addIcon(request, null);
 
     return created(format("Icon created with key %s", icon.getKey()));
+  }
+
+  @Maturity.Alpha
+  @PatchMapping
+  public WebMessage repairPhantomIcons() throws ConflictException {
+    int repaired = iconService.repairPhantomDefaultIcons();
+    return ok(format("%d icons repaired", repaired));
   }
 
   @PutMapping(value = "/{key}")

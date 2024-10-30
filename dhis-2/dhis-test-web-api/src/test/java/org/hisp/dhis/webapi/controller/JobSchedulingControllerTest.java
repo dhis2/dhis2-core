@@ -33,15 +33,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.scheduling.SchedulingController}.
  *
  * @author Jan Bernitt
  */
-class JobSchedulingControllerTest extends DhisControllerIntegrationTest {
+@Transactional
+class JobSchedulingControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testGetRunningProgressTypesOnly() {

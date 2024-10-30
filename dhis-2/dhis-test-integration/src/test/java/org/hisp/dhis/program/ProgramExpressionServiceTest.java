@@ -33,24 +33,30 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.HashSet;
 import java.util.Set;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran
  */
-class ProgramExpressionServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class ProgramExpressionServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramExpressionService programExpressionService;
 
-  @Autowired private TrackedEntityService trackedEntityService;
+  @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -72,8 +78,8 @@ class ProgramExpressionServiceTest extends SingleSetupIntegrationTestBase {
 
   private ProgramStage stageB;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     Program program = createProgram('A', new HashSet<>(), organisationUnit);
@@ -94,7 +100,7 @@ class ProgramExpressionServiceTest extends SingleSetupIntegrationTestBase {
     dataElementService.addDataElement(dataElementA);
     dataElementService.addDataElement(dataElementB);
     TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
-    trackedEntityService.addTrackedEntity(trackedEntity);
+    manager.save(trackedEntity);
     programExpressionA =
         new ProgramExpression(
             "["

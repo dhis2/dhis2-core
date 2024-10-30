@@ -34,8 +34,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
+import jakarta.servlet.http.HttpServletResponse;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -62,7 +62,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = DataValue.class)
+@OpenApi.Document(
+    entity = DataValue.class,
+    classifiers = {"team:analytics", "purpose:analytics"})
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
@@ -162,6 +164,18 @@ public class AnalyticsController {
     GridUtils.toXls(
         getGridWithAttachment(
             criteria, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL, "data.xls", response),
+        response.getOutputStream());
+  }
+
+  @GetMapping(value = RESOURCE_PATH + ".xlsx")
+  public void getXlsx(
+      AggregateAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
+    GridUtils.toXlsx(
+        getGridWithAttachment(
+            criteria, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL, "data.xlsx", response),
         response.getOutputStream());
   }
 

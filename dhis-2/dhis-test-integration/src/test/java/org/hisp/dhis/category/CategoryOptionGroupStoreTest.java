@@ -33,10 +33,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.hibernate.PropertyValueException;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Test needs to extend DhisTest in order to test the bidirectional group set to group association
@@ -44,7 +48,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Lars Helge Overland
  */
-class CategoryOptionGroupStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class CategoryOptionGroupStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
 
@@ -66,11 +72,8 @@ class CategoryOptionGroupStoreTest extends SingleSetupIntegrationTestBase {
 
   private CategoryOption coH;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-  @Override
-  protected void setUpTest() {
+  @BeforeAll
+  void setUp() {
     coA = createCategoryOption('A');
     coB = createCategoryOption('B');
     coC = createCategoryOption('C');

@@ -41,14 +41,14 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
-import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.metadata.DataElementActions;
-import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.metadata.SharingActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.TrackerApiResponse;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.Constants;
+import org.hisp.dhis.test.e2e.actions.metadata.DataElementActions;
+import org.hisp.dhis.test.e2e.actions.metadata.ProgramActions;
+import org.hisp.dhis.test.e2e.actions.metadata.SharingActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.dto.TrackerApiResponse;
+import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.imports.databuilder.EventDataBuilder;
 import org.junit.jupiter.api.BeforeAll;
@@ -126,11 +126,7 @@ public class EventsDataValueValidationTests extends TrackerApiTest {
   }
 
   @ParameterizedTest
-  @CsvSource({
-    "ON_COMPLETE,ACTIVE",
-    "ON_UPDATE_AND_INSERT,SCHEDULE",
-    "ON_UPDATE_AND_INSERT,SKIPPED"
-  })
+  @CsvSource({"ON_COMPLETE,ACTIVE"})
   public void shouldRemoveMandatoryDataValue(String validationStrategy, String eventStatus) {
     programActions.programStageActions.setValidationStrategy(programStageId, validationStrategy);
 

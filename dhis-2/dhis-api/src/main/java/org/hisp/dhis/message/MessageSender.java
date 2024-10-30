@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.message;
 
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
@@ -39,6 +41,7 @@ import org.springframework.util.concurrent.ListenableFuture;
  * @author Lars Helge Overland
  */
 public interface MessageSender {
+
   /**
    * Sends a message. The given message will be sent to the given set of users.
    *
@@ -71,4 +74,14 @@ public interface MessageSender {
 
   /** To check if given service is configured and ready to use. */
   boolean isConfigured();
+
+  default List<OutboundMessage> getMessagesByEmail(String recipient) {
+    return List.of();
+  }
+
+  default void clearMessages() {}
+
+  default List<OutboundMessage> getAllMessages() {
+    return List.of();
+  }
 }

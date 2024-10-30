@@ -27,23 +27,35 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import static org.hisp.dhis.changelog.ChangeLogType.READ;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
+
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.relationship.RelationshipService;
+import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.program.notification.ProgramNotificationInstance;
+import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
+import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
+import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.converter.EnrollmentTrackerConverterService;
-import org.hisp.dhis.tracker.imports.converter.EventTrackerConverterService;
-import org.hisp.dhis.tracker.imports.domain.Relationship;
+import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.relationship.RelationshipQueryParams;
+import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -52,51 +64,61 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeletionService {
-  private final EnrollmentService enrollmentService;
+  private final IdentifiableObjectManager manager;
 
-  private final TrackedEntityService teService;
+  private final TrackedEntityAuditService trackedEntityAuditService;
 
-  private final EventService eventService;
+  private final RelationshipStore relationshipStore;
 
-  private final RelationshipService relationshipService;
+  private final TrackedEntityAttributeValueService attributeValueService;
 
-  private final EnrollmentTrackerConverterService enrollmentTrackerConverterService;
+  private final EventChangeLogService eventChangeLogService;
 
-  private final EventTrackerConverterService eventTrackerConverterService;
+  private final TrackedEntityChangeLogService attributeValueAuditService;
+
+  private final ProgramNotificationInstanceService programNotificationInstanceService;
 
   @Override
-  public TrackerTypeReport deleteEnrollments(TrackerBundle bundle) {
+  public TrackerTypeReport deleteEnrollments(List<String> enrollments) throws NotFoundException {
+    UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.ENROLLMENT);
 
-    List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments = bundle.getEnrollments();
-
-    for (org.hisp.dhis.tracker.imports.domain.Enrollment value : enrollments) {
-      String uid = value.getEnrollment();
-
+    for (String uid : enrollments) {
       Entity objectReport = new Entity(TrackerType.ENROLLMENT, uid);
 
-      Enrollment enrollment = enrollmentService.getEnrollment(uid);
-      enrollment.setLastUpdatedByUserInfo(bundle.getUserInfo());
+      Enrollment enrollment = manager.get(Enrollment.class, uid);
+      if (enrollment == null) {
+        throw new NotFoundException(Enrollment.class, uid);
+      }
+      enrollment.setLastUpdatedByUserInfo(userInfoSnapshot);
 
-      List<org.hisp.dhis.tracker.imports.domain.Event> events =
-          eventTrackerConverterService.to(
-              enrollment.getEvents().stream().filter(event -> !event.isDeleted()).toList());
+      List<String> events =
+          enrollment.getEvents().stream()
+              .filter(event -> !event.isDeleted())
+              .map(BaseIdentifiableObject::getUid)
+              .toList();
+      deleteEvents(events);
 
-      TrackerBundle trackerBundle =
-          TrackerBundle.builder()
-              .events(events)
-              .user(bundle.getUser())
-              .userInfo(bundle.getUserInfo())
-              .build();
+      RelationshipQueryParams params = RelationshipQueryParams.builder().entity(enrollment).build();
+      List<String> relationships =
+          relationshipStore.getByEnrollment(enrollment, params).stream()
+              .map(BaseIdentifiableObject::getUid)
+              .toList();
 
-      deleteEvents(trackerBundle);
+      deleteRelationships(relationships);
+
+      List<ProgramNotificationInstance> notificationInstances =
+          programNotificationInstanceService.getProgramNotificationInstances(
+              ProgramNotificationInstanceParam.builder().enrollment(enrollment).build());
+
+      notificationInstances.forEach(programNotificationInstanceService::delete);
 
       TrackedEntity te = enrollment.getTrackedEntity();
-      te.setLastUpdatedByUserInfo(bundle.getUserInfo());
-      te.getEnrollments().remove(enrollment);
+      te.setLastUpdatedByUserInfo(userInfoSnapshot);
 
-      enrollmentService.deleteEnrollment(enrollment);
-      teService.updateTrackedEntity(te);
+      manager.delete(enrollment);
+
+      manager.update(te);
 
       typeReport.getStats().incDeleted();
       typeReport.addEntity(objectReport);
@@ -106,32 +128,45 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   }
 
   @Override
-  public TrackerTypeReport deleteEvents(TrackerBundle bundle) {
+  public TrackerTypeReport deleteEvents(List<String> events) throws NotFoundException {
+    UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.EVENT);
-
-    List<org.hisp.dhis.tracker.imports.domain.Event> events = bundle.getEvents();
-
-    for (org.hisp.dhis.tracker.imports.domain.Event value : events) {
-      String uid = value.getEvent();
-
+    for (String uid : events) {
       Entity objectReport = new Entity(TrackerType.EVENT, uid);
 
-      Event event = eventService.getEvent(uid);
-      event.setLastUpdatedByUserInfo(bundle.getUserInfo());
+      Event event = manager.get(Event.class, uid);
+      event.setLastUpdatedByUserInfo(userInfoSnapshot);
 
-      eventService.deleteEvent(event);
+      RelationshipQueryParams params = RelationshipQueryParams.builder().entity(event).build();
+      List<String> relationships =
+          relationshipStore.getByEvent(event, params).stream()
+              .map(BaseIdentifiableObject::getUid)
+              .toList();
+
+      deleteRelationships(relationships);
+
+      // This is needed until deprecated method
+      // eventChangeLogService.getTrackedEntityDataValueChangeLogs is removed.
+      eventChangeLogService.deleteTrackedEntityDataValueChangeLog(event);
+
+      List<ProgramNotificationInstance> notificationInstances =
+          programNotificationInstanceService.getProgramNotificationInstances(
+              ProgramNotificationInstanceParam.builder().event(event).build());
+
+      notificationInstances.forEach(programNotificationInstanceService::delete);
+
+      manager.delete(event);
 
       if (event.getProgramStage().getProgram().isRegistration()) {
         TrackedEntity entity = event.getEnrollment().getTrackedEntity();
-        entity.setLastUpdatedByUserInfo(bundle.getUserInfo());
+        entity.setLastUpdatedByUserInfo(userInfoSnapshot);
 
-        teService.updateTrackedEntity(entity);
+        manager.update(entity);
 
         Enrollment enrollment = event.getEnrollment();
-        enrollment.setLastUpdatedByUserInfo(bundle.getUserInfo());
+        enrollment.setLastUpdatedByUserInfo(userInfoSnapshot);
 
-        enrollment.getEvents().remove(event);
-        enrollmentService.updateEnrollment(enrollment);
+        manager.update(enrollment);
       }
 
       typeReport.getStats().incDeleted();
@@ -142,36 +177,49 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   }
 
   @Override
-  public TrackerTypeReport deleteTrackedEntity(TrackerBundle bundle) {
+  public TrackerTypeReport deleteTrackedEntities(List<String> trackedEntities)
+      throws NotFoundException {
+    UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.TRACKED_ENTITY);
 
-    List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities =
-        bundle.getTrackedEntities();
-
-    for (org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity : trackedEntities) {
-      String uid = trackedEntity.getTrackedEntity();
-
+    for (String uid : trackedEntities) {
       Entity objectReport = new Entity(TrackerType.TRACKED_ENTITY, uid);
 
-      TrackedEntity entity = teService.getTrackedEntity(uid);
-      entity.setLastUpdatedByUserInfo(bundle.getUserInfo());
+      TrackedEntity entity = manager.get(TrackedEntity.class, uid);
+      if (entity == null) {
+        throw new NotFoundException(TrackedEntity.class, uid);
+      }
+      trackedEntityAuditService.addTrackedEntityAudit(entity, getCurrentUsername(), READ);
+
+      entity.setLastUpdatedByUserInfo(userInfoSnapshot);
 
       Set<Enrollment> daoEnrollments = entity.getEnrollments();
 
-      List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments =
-          enrollmentTrackerConverterService.to(
-              daoEnrollments.stream().filter(enrollment -> !enrollment.isDeleted()).toList());
+      List<String> enrollments =
+          daoEnrollments.stream()
+              .filter(enrollment -> !enrollment.isDeleted())
+              .map(BaseIdentifiableObject::getUid)
+              .toList();
+      deleteEnrollments(enrollments);
 
-      TrackerBundle trackerBundle =
-          TrackerBundle.builder()
-              .enrollments(enrollments)
-              .user(bundle.getUser())
-              .userInfo(bundle.getUserInfo())
-              .build();
+      RelationshipQueryParams params = RelationshipQueryParams.builder().entity(entity).build();
+      List<String> relationships =
+          relationshipStore.getByTrackedEntity(entity, params).stream()
+              .map(BaseIdentifiableObject::getUid)
+              .toList();
 
-      deleteEnrollments(trackerBundle);
+      deleteRelationships(relationships);
 
-      teService.deleteTrackedEntity(entity);
+      Collection<TrackedEntityAttributeValue> attributeValues =
+          attributeValueService.getTrackedEntityAttributeValues(entity);
+
+      for (TrackedEntityAttributeValue attributeValue : attributeValues) {
+        attributeValueService.deleteTrackedEntityAttributeValue(attributeValue);
+      }
+
+      attributeValueAuditService.deleteTrackedEntityAttributeValueChangeLogs(entity);
+
+      manager.delete(entity);
 
       typeReport.getStats().incDeleted();
       typeReport.addEntity(objectReport);
@@ -181,20 +229,18 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   }
 
   @Override
-  public TrackerTypeReport deleteRelationships(TrackerBundle bundle) {
+  public TrackerTypeReport deleteRelationships(List<String> relationships)
+      throws NotFoundException {
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.RELATIONSHIP);
 
-    List<Relationship> relationships = bundle.getRelationships();
-
-    for (Relationship value : relationships) {
-      String uid = value.getRelationship();
-
+    for (String uid : relationships) {
       Entity objectReport = new Entity(TrackerType.RELATIONSHIP, uid);
 
-      org.hisp.dhis.relationship.Relationship relationship =
-          relationshipService.getRelationship(uid);
-
-      relationshipService.deleteRelationship(relationship);
+      Relationship relationship = manager.get(Relationship.class, uid);
+      if (relationship == null) {
+        throw new NotFoundException(Relationship.class, uid);
+      }
+      manager.delete(relationship);
 
       typeReport.getStats().incDeleted();
       typeReport.addEntity(objectReport);

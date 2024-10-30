@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.user;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Collection;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.auth.RegistrationParams;
@@ -41,7 +41,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -61,7 +61,7 @@ public class DefaultUserAccountService implements UserAccountService {
   private final UserService userService;
   private final ConfigurationService configService;
   private final TwoFactorAuthenticationProvider twoFactorAuthProvider;
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
   private final PasswordValidationService passwordValidationService;
 
   private static final int MAX_LENGTH = 80;
@@ -169,7 +169,7 @@ public class DefaultUserAccountService implements UserAccountService {
 
   private void validateCaptcha(String recapResponse, String remoteAddress)
       throws BadRequestException, IOException {
-    if (!systemSettingManager.selfRegistrationNoRecaptcha()) {
+    if (!settingsProvider.getCurrentSettings().getSelfRegistrationNoRecaptcha()) {
       if (recapResponse == null) {
         log.warn("Recaptcha validation failed, null response received");
         throw new BadRequestException("Recaptcha validation failed.");

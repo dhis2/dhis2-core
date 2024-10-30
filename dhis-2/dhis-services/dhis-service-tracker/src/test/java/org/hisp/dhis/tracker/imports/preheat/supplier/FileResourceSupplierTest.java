@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.supplier;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -36,11 +36,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
@@ -61,7 +61,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Enrico Colasante
  */
 @ExtendWith(MockitoExtension.class)
-class FileResourceSupplierTest extends DhisConvenienceTest {
+class FileResourceSupplierTest extends TestBase {
 
   private FileResourceSupplier supplier;
 
@@ -187,18 +187,11 @@ class FileResourceSupplierTest extends DhisConvenienceTest {
   }
 
   private Attribute numericAttribute() {
-    return Attribute.builder()
-        .attribute(MetadataIdentifier.ofUid("numeric"))
-        .valueType(ValueType.NUMBER)
-        .build();
+    return Attribute.builder().attribute(MetadataIdentifier.ofUid("numeric")).build();
   }
 
   private Attribute fileAttribute(String uid, String value) {
-    return Attribute.builder()
-        .attribute(MetadataIdentifier.ofUid(uid))
-        .valueType(ValueType.FILE_RESOURCE)
-        .value(value)
-        .build();
+    return Attribute.builder().attribute(MetadataIdentifier.ofUid(uid)).value(value).build();
   }
 
   private TrackedEntity trackedEntity(Attribute... attributes) {

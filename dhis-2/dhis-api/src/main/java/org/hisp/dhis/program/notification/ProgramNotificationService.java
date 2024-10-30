@@ -28,6 +28,7 @@
 package org.hisp.dhis.program.notification;
 
 import java.util.Date;
+import java.util.List;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -106,4 +107,28 @@ public interface ProgramNotificationService {
    * @param enrollment the Enrollment id.
    */
   void sendEnrollmentNotifications(long enrollment);
+
+  /**
+   * Get all events which have notifications with the given ProgramNotificationTemplate scheduled on
+   * the given date.
+   *
+   * @param template the template.
+   * @param notificationDate the Date for which the notification is scheduled.
+   * @return a list of Event.
+   */
+  @Deprecated
+  List<Event> getWithScheduledNotifications(
+      ProgramNotificationTemplate template, Date notificationDate);
+
+  /**
+   * Get all enrollments which have notifications with the given ProgramNotificationTemplate
+   * scheduled on the given date.
+   *
+   * @param template the template.
+   * @param notificationDate the Date for which the notification is scheduled.
+   * @return a list of Enrollment.
+   */
+  @Deprecated
+  List<Enrollment> getEnrollmentsWithScheduledNotifications(
+      ProgramNotificationTemplate template, Date notificationDate);
 }

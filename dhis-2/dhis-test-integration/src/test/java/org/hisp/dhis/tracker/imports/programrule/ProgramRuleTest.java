@@ -58,7 +58,8 @@ import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -89,14 +90,13 @@ class ProgramRuleTest extends TrackerTest {
 
   private ProgramStage programStageOnComplete;
 
-  @Autowired protected UserService _userService;
-
-  @Override
-  public void initTest() throws IOException {
-
-    userService = _userService;
-
+  @BeforeAll
+  void setUp() throws IOException {
     ObjectBundle bundle = setUpMetadata("tracker/simple_metadata.json");
+
+    User importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
+
     program = bundle.getPreheat().get(PreheatIdentifier.UID, Program.class, "BFcipDERJnf");
     programWithoutRegistration =
         bundle.getPreheat().get(PreheatIdentifier.UID, Program.class, "BFcipDERJne");
@@ -111,8 +111,6 @@ class ProgramRuleTest extends TrackerTest {
         createProgramRuleVariableWithDataElement('A', program, dataElement2);
     programRuleVariableService.addProgramRuleVariable(programRuleVariable);
     constantService.saveConstant(constant());
-
-    injectAdminUser();
   }
 
   @Test

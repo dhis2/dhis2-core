@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertEnrollmentWithinRelationship;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertEventWithinRelationshipItem;
@@ -45,10 +45,10 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.note.Note;
@@ -64,6 +64,7 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
@@ -73,8 +74,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonAttribute;
 import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
 import org.hisp.dhis.webapi.controller.tracker.JsonNote;
@@ -85,8 +84,10 @@ import org.hisp.dhis.webapi.controller.tracker.JsonUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class RelationshipsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -129,8 +130,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     anotherOrgUnit.getSharing().setOwner(owner);
     manager.save(anotherOrgUnit, false);
 
-    user = createUserWithId("tester", CodeGenerator.generateUid());
-    user.addOrganisationUnit(orgUnit);
+    user = createAndAddUser("tester", orgUnit);
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
     this.userService.updateUser(user);
 
@@ -177,6 +177,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     TrackedEntity to = trackedEntity();
     Event from = event(enrollment(to));
     Relationship r = relationship(from, to);
+    switchContextToUser(user);
 
     JsonRelationship relationship =
         GET("/tracker/relationships/{uid}", r.getUid())
@@ -195,6 +196,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     TrackedEntity to = trackedEntity();
     Event from = event(enrollment(to));
     Relationship r = relationship(from, to);
+    switchContextToUser(user);
 
     JsonRelationship relationship =
         GET("/tracker/relationships/{uid}?fields=*", r.getUid())
@@ -211,6 +213,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     TrackedEntity to = trackedEntity();
     Event from = event(enrollment(to));
     Relationship r = relationship(from, to);
+    switchContextToUser(user);
 
     JsonRelationship relationship =
         GET("/tracker/relationships/{uid}?fields=relationship,from[event]", r.getUid())
@@ -251,6 +254,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     TrackedEntity to = trackedEntity();
     Event from = event(enrollment(to));
     Relationship r = relationship(from, to);
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?event={uid}", from.getUid())
@@ -269,6 +273,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     TrackedEntity to = trackedEntity();
     Event from = event(enrollment(to));
     Relationship r = relationship(from, to);
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?event={uid}&fields=*", from.getUid())
@@ -285,6 +290,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     TrackedEntity to = trackedEntity();
     Event from = event(enrollment(to));
     Relationship r = relationship(from, to);
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?event={uid}&fields=relationship,from[event]", from.getUid())
@@ -305,6 +311,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     Event from = event(enrollment(to));
     from.setAssignedUser(owner);
     relationship(from, to);
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?event={uid}&fields=from[event[assignedUser]]", from.getUid())
@@ -334,6 +341,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     type.setFromConstraint(toConstraint);
 
     manager.update(type);
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET(
@@ -353,6 +361,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     Event from = event(enrollment(to));
     from.setNotes(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
     relationship(from, to);
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?event={uid}&fields=from[event[notes]]", from.getUid())
@@ -367,6 +376,8 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void getRelationshipsByEventNotFound() {
+    switchContextToUser(user);
+
     assertStartsWith(
         "Event with id Hq3Kc6HK4OZ",
         GET("/tracker/relationships?event=Hq3Kc6HK4OZ").error(HttpStatus.NOT_FOUND).getMessage());
@@ -377,6 +388,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     TrackedEntity to = trackedEntity();
     Enrollment from = enrollment(to);
     Relationship r = relationship(from, to);
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?enrollment=" + from.getUid())
@@ -394,6 +406,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     TrackedEntity to = trackedEntity();
     Enrollment from = enrollment(to);
     Relationship r = relationship(from, to);
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?enrollment={uid}&fields=*", from.getUid())
@@ -410,6 +423,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     Enrollment from = enrollment(trackedEntity());
     Event to = event(from);
     relationship(from, to);
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET(
@@ -443,6 +457,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     constraint.setTrackerDataView(trackerDataView);
 
     type.setFromConstraint(constraint);
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET(
@@ -462,6 +477,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     Enrollment from = enrollment(to);
     from.setNotes(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
     relationship(from, to);
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?enrollment={uid}&fields=from[enrollment[notes]]", from.getUid())
@@ -488,6 +504,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     TrackedEntity to = trackedEntity();
     Enrollment from = enrollment(to);
     Relationship r = relationship(from, to);
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?trackedEntity={trackedEntity}", to.getUid())
@@ -508,6 +525,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
     r.setDeleted(true);
     manager.update(r);
+    switchContextToUser(user);
 
     assertNoRelationships(
         GET("/tracker/relationships?trackedEntity={te}", to.getUid()).content(HttpStatus.OK));
@@ -521,6 +539,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
     r.setDeleted(true);
     manager.update(r);
+    switchContextToUser(user);
 
     assertNoRelationships(
         GET("/tracker/relationships?enrollment={en}", from.getUid()).content(HttpStatus.OK));
@@ -534,6 +553,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
     r.setDeleted(true);
     manager.update(r);
+    switchContextToUser(user);
 
     assertNoRelationships(
         GET("/tracker/relationships?event={ev}", from.getUid()).content(HttpStatus.OK));
@@ -547,6 +567,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
     r.setDeleted(true);
     manager.update(r);
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?trackedEntity={te}&includeDeleted=true", to.getUid())
@@ -564,6 +585,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
     r.setDeleted(true);
     manager.update(r);
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?event={ev}&includeDeleted=true", from.getUid())
@@ -581,6 +603,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
     r.setDeleted(true);
     manager.update(r);
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?enrollment={en}&includeDeleted=true", from.getUid())
@@ -595,6 +618,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     TrackedEntity to = trackedEntity();
     Enrollment from = enrollment(to);
     Relationship r = relationship(from, to);
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?tei=" + to.getUid())
@@ -612,6 +636,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     TrackedEntity to = trackedEntity();
     Enrollment from = enrollment(to);
     relationship(from, to);
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET(
@@ -653,6 +678,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
     type.setFromConstraint(fromConstraint);
     type.setToConstraint(toConstraint);
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET(
@@ -678,6 +704,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     Enrollment from = enrollment(to);
     to.setProgramOwners(Set.of(new TrackedEntityProgramOwner(to, from.getProgram(), orgUnit)));
     relationship(from, to);
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET(
@@ -698,6 +725,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     TrackedEntity from = trackedEntity();
     TrackedEntity to = trackedEntity();
     Relationship r = relationship(from, to);
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?trackedEntity={trackedEntity}", from.getUid())
@@ -715,6 +743,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     TrackedEntity from = trackedEntity();
     TrackedEntity to = trackedEntity();
     Relationship r = relationship(from, to);
+    switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
         GET("/tracker/relationships?trackedEntity={trackedEntity}", from.getUid())
@@ -732,7 +761,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     TrackedEntity from = trackedEntity();
     TrackedEntity to = trackedEntity();
     relationship(relationshipTypeNotAccessible(), from, to);
-    this.switchContextToUser(user);
+    switchContextToUser(user);
 
     assertNoRelationships(
         GET("/tracker/relationships?trackedEntity={trackedEntity}", from.getUid())
@@ -744,7 +773,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     TrackedEntity from = trackedEntity();
     TrackedEntity to = trackedEntityNotInSearchScope();
     relationship(from, to);
-    this.switchContextToUser(user);
+    switchContextToUser(user);
 
     assertNoRelationships(
         GET("/tracker/relationships?trackedEntity={trackedEntity}", from.getUid())
@@ -756,7 +785,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     TrackedEntity from = trackedEntityNotInSearchScope();
     TrackedEntity to = trackedEntity();
     relationship(from, to);
-    this.switchContextToUser(user);
+    switchContextToUser(user);
 
     assertEquals(
         HttpStatus.FORBIDDEN,
@@ -770,7 +799,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     TrackedEntity from = trackedEntity(type);
     TrackedEntity to = trackedEntity(type);
     relationship(from, to);
-    this.switchContextToUser(user);
+    switchContextToUser(user);
 
     assertEquals(
         HttpStatus.FORBIDDEN,

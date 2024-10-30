@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.bundle;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -61,7 +60,7 @@ class TrackerBundleTest {
             .events(Collections.singletonList(new Event()))
             .build();
     assertEquals(AtomicMode.ALL, trackerBundle.getAtomicMode());
-    assertSame(trackerBundle.getValidationMode(), ValidationMode.SKIP);
+    assertEquals(ValidationMode.SKIP, trackerBundle.getValidationMode());
     assertFalse(trackerBundle.getTrackedEntities().isEmpty());
     assertFalse(trackerBundle.getEnrollments().isEmpty());
     assertFalse(trackerBundle.getEvents().isEmpty());
@@ -78,7 +77,7 @@ class TrackerBundleTest {
             .events(Arrays.asList(new Event(), new Event()))
             .build();
     assertEquals(AtomicMode.ALL, trackerBundle.getAtomicMode());
-    assertSame(trackerBundle.getValidationMode(), ValidationMode.SKIP);
+    assertEquals(ValidationMode.SKIP, trackerBundle.getValidationMode());
     assertEquals(2, trackerBundle.getTrackedEntities().size());
     assertEquals(2, trackerBundle.getEnrollments().size());
     assertEquals(2, trackerBundle.getEvents().size());

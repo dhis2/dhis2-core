@@ -64,8 +64,8 @@ class EnrollmentFieldsParamMapper {
 
   private static EnrollmentParams initUsingAllOrNoFields(Map<String, FieldPath> roots) {
     EnrollmentParams params = EnrollmentParams.FALSE;
-    if (roots.containsKey(FieldPreset.ALL)) {
-      FieldPath p = roots.get(FieldPreset.ALL);
+    if (roots.containsKey(FieldPreset.ALL.getName())) {
+      FieldPath p = roots.get(FieldPreset.ALL.getName());
       if (p.isRoot() && !p.isExclude()) {
         params = EnrollmentParams.TRUE;
       }

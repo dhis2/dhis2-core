@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
@@ -86,7 +85,7 @@ public class MetadataAttributeCheck implements ObjectValidationCheck {
             : Map.of();
 
     for (T object : objects) {
-      if (CollectionUtils.isEmpty(object.getAttributeValues())) {
+      if (object.getAttributeValues().isEmpty()) {
         continue;
       }
 
@@ -95,15 +94,10 @@ public class MetadataAttributeCheck implements ObjectValidationCheck {
       object
           .getAttributeValues()
           .forEach(
-              av ->
-                  getValueType(
-                          av.getAttribute().getUid(),
-                          attributesMap,
-                          klass.getSimpleName(),
-                          errorReports::add)
+              (attributeId, value) ->
+                  getValueType(attributeId, attributesMap, klass.getSimpleName(), errorReports::add)
                       .ifPresent(
-                          type ->
-                              attributeValidator.validate(type, av.getValue(), errorReports::add)));
+                          type -> attributeValidator.validate(type, value, errorReports::add)));
 
       if (!errorReports.isEmpty()) {
         addReports.accept(createObjectReport(errorReports, object, bundle));

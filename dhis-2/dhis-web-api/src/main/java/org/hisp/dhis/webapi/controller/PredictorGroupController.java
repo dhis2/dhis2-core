@@ -33,14 +33,14 @@ import static org.hisp.dhis.security.Authorities.F_PREDICTOR_RUN;
 
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.dxf2.common.TranslateParams;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
 import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -53,8 +53,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @Controller
 @RequestMapping("/api/predictorGroups")
+@RequiredArgsConstructor
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class PredictorGroupController extends AbstractCrudController<PredictorGroup> {
-  @Autowired private PredictionService predictionService;
+
+  private final PredictionService predictionService;
 
   @RequestMapping(
       value = "/{uid}/run",
@@ -62,10 +65,7 @@ public class PredictorGroupController extends AbstractCrudController<PredictorGr
   @RequiresAuthority(anyOf = F_PREDICTOR_RUN)
   @ResponseBody
   public WebMessage runPredictorGroup(
-      @PathVariable("uid") String uid,
-      @RequestParam Date startDate,
-      @RequestParam Date endDate,
-      TranslateParams translateParams) {
+      @PathVariable("uid") String uid, @RequestParam Date startDate, @RequestParam Date endDate) {
     try {
       PredictionSummary predictionSummary =
           predictionService.predictAll(startDate, endDate, null, List.of(uid), JobProgress.noop());

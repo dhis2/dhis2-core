@@ -32,14 +32,14 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -60,9 +60,8 @@ import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -84,7 +83,9 @@ import org.springframework.web.client.HttpStatusCodeException;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(domain = TrackedEntity.class)
+@OpenApi.Document(
+    entity = TrackedEntity.class,
+    classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping("/api/tracker")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -104,19 +105,17 @@ public class TrackerImportController {
 
   private final ObjectMapper jsonMapper;
 
-  private final UserService userService;
-
   @PostMapping(value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public WebMessage asyncPostJsonTracker(
-      HttpServletRequest request, ImportRequestParams importRequestParams, @RequestBody Body body)
+      HttpServletRequest request,
+      ImportRequestParams importRequestParams,
+      @RequestBody Body body,
+      @CurrentUser UserDetails currentUser)
       throws ConflictException, NotFoundException, IOException {
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    String userUid = currentUser == null ? null : currentUser.getUid();
-
     TrackerImportParams trackerImportParams =
-        TrackerImportParamsMapper.trackerImportParams(userUid, importRequestParams);
+        TrackerImportParamsMapper.trackerImportParams(importRequestParams);
     TrackerObjects trackerObjects =
         TrackerImportParamsMapper.trackerObjects(body, trackerImportParams.getIdSchemes());
 
@@ -124,7 +123,7 @@ public class TrackerImportController {
         trackerImportParams,
         MimeType.valueOf("application/json"),
         trackerObjects,
-        userUid,
+        currentUser.getUid(),
         request);
   }
 
@@ -141,8 +140,7 @@ public class TrackerImportController {
 
     byte[] jsonInput = jsonMapper.writeValueAsBytes(trackerObjects);
 
-    jobSchedulerService.executeNow(
-        jobConfigurationService.create(config, contentType, new ByteArrayInputStream(jsonInput)));
+    jobSchedulerService.createThenExecute(config, contentType, new ByteArrayInputStream(jsonInput));
     String jobId = config.getUid();
     String location = ContextUtils.getRootPath(request) + "/tracker/jobs/" + jobId;
     return ok(TRACKER_JOB_ADDED)
@@ -157,11 +155,7 @@ public class TrackerImportController {
   public ResponseEntity<ImportReport> syncPostJsonTracker(
       ImportRequestParams importRequestParams, @RequestBody Body body) {
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    String userUid = currentUser == null ? null : currentUser.getUid();
-
-    TrackerImportParams params =
-        TrackerImportParamsMapper.trackerImportParams(userUid, importRequestParams);
+    TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(importRequestParams);
     TrackerObjects trackerObjects =
         TrackerImportParamsMapper.trackerObjects(body, params.getIdSchemes());
     ImportReport importReport =
@@ -184,11 +178,9 @@ public class TrackerImportController {
   public WebMessage asyncPostCsvTracker(
       HttpServletRequest request,
       ImportRequestParams importRequest,
-      @RequestParam(required = false, defaultValue = "true") boolean skipFirst)
+      @RequestParam(required = false, defaultValue = "true") boolean skipFirst,
+      @CurrentUser UserDetails currentUser)
       throws IOException, ParseException, ConflictException, NotFoundException {
-
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    String userUid = currentUser == null ? null : currentUser.getUid();
 
     InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat(request.getInputStream());
 
@@ -197,13 +189,17 @@ public class TrackerImportController {
     Body body = Body.builder().events(events).build();
 
     TrackerImportParams trackerImportParams =
-        TrackerImportParamsMapper.trackerImportParams(userUid, importRequest);
+        TrackerImportParamsMapper.trackerImportParams(importRequest);
 
     TrackerObjects trackerObjects =
         TrackerImportParamsMapper.trackerObjects(body, trackerImportParams.getIdSchemes());
 
     return startAsyncTracker(
-        trackerImportParams, MimeType.valueOf("application/csv"), trackerObjects, userUid, request);
+        trackerImportParams,
+        MimeType.valueOf("application/csv"),
+        trackerObjects,
+        currentUser.getUid(),
+        request);
   }
 
   @PostMapping(
@@ -217,17 +213,13 @@ public class TrackerImportController {
       @RequestParam(required = false, defaultValue = "true") boolean skipFirst,
       @RequestParam(defaultValue = "errors", required = false) TrackerBundleReportMode reportMode)
       throws IOException, ParseException {
-
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    String userUid = currentUser == null ? null : currentUser.getUid();
-
     InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat(request.getInputStream());
 
     List<Event> events = csvEventService.read(inputStream, skipFirst);
     Body body = Body.builder().events(events).build();
 
     TrackerImportParams trackerImportParams =
-        TrackerImportParamsMapper.trackerImportParams(userUid, importRequest);
+        TrackerImportParamsMapper.trackerImportParams(importRequest);
     TrackerObjects trackerObjects =
         TrackerImportParamsMapper.trackerObjects(body, trackerImportParams.getIdSchemes());
     ImportReport importReport =

@@ -27,30 +27,42 @@
  */
 package org.hisp.dhis.dxf2.metadata.sync;
 
+import static java.util.Map.entry;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author anilkumk
  */
-class MetadataSystemSettingServiceTest extends SingleSetupIntegrationTestBase {
-  @Autowired SystemSettingManager systemSettingManager;
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class MetadataSystemSettingServiceTest extends PostgresIntegrationTestBase {
+  @Autowired SystemSettingsService settingsService;
 
   @Autowired DefaultMetadataSystemSettingService metadataSystemSettingService;
 
   @BeforeEach
-  public void setup() {
-    systemSettingManager.saveSystemSetting(SettingKey.REMOTE_INSTANCE_URL, "http://localhost:9080");
-    systemSettingManager.saveSystemSetting(SettingKey.REMOTE_INSTANCE_USERNAME, "username");
-    systemSettingManager.saveSystemSetting(SettingKey.REMOTE_INSTANCE_PASSWORD, "password");
-    systemSettingManager.saveSystemSetting(SettingKey.STOP_METADATA_SYNC, true);
+  public void setup() throws Exception {
+    settingsService.putAll(
+        Map.ofEntries(
+            entry("keyRemoteInstanceUrl", "http://localhost:9080"),
+            entry("keyRemoteInstanceUsername", "username"),
+            entry("keyRemoteInstancePassword", "password"),
+            entry("keyStopMetadataSync", "true")));
+    settingsService.clearCurrentSettings();
   }
 
   @Test
@@ -103,16 +115,16 @@ class MetadataSystemSettingServiceTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testShouldGetStopMetadataSyncSettingValue() {
-    Boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting();
+    boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting();
 
-    assertEquals(true, stopMetadataSync);
+    assertTrue(stopMetadataSync);
   }
 
   @Test
   void testShouldReturnFalseIfStopMetadataSyncSettingValueIsNull() {
-    systemSettingManager.saveSystemSetting(SettingKey.STOP_METADATA_SYNC, null);
-    Boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting();
+    settingsService.deleteAll(Set.of("keyStopMetadataSync"));
+    boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting();
 
-    assertEquals(false, stopMetadataSync);
+    assertFalse(stopMetadataSync);
   }
 }

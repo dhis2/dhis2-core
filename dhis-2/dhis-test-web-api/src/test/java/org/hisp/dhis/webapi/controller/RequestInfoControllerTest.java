@@ -27,20 +27,22 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClient.Header;
+import static org.hisp.dhis.http.HttpClientAdapter.Header;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link RequestInfoController}.
  *
  * @author Jan Bernitt
  */
-class RequestInfoControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class RequestInfoControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetCurrentInfo_NoHeader() {
     JsonObject info = GET("/request").content();

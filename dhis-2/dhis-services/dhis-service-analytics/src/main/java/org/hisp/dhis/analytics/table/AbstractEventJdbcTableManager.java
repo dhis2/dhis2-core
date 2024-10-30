@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
+import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
 import java.util.ArrayList;
@@ -53,7 +55,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -66,7 +68,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       DataApprovalLevelService dataApprovalLevelService,
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
@@ -80,7 +82,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         idObjectManager,
         organisationUnitService,
         categoryService,
-        systemSettingManager,
+        settingsProvider,
         dataApprovalLevelService,
         resourceTableService,
         tableHookService,
@@ -91,6 +93,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         periodDataProvider,
         sqlBuilder);
   }
+
+  public static final String OU_NAME_COL_SUFFIX = "_name";
 
   protected final String getNumericClause() {
     return " and value ~* '" + NUMERIC_LENIENT_REGEXP + "'";
@@ -188,7 +192,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           replace(
               """
               (select ${select} from trackedentityattributevalue \
-              where trackedentityid=pi.trackedentityid \
+              where trackedentityid=en.trackedentityid \
               and trackedentityattributeid=${attributeId}\
               ${dataClause})${closingParentheses} as ${attributeUid}""",
               Map.of(
@@ -210,8 +214,46 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
               .selectExpression(sql)
               .skipIndex(skipIndex)
               .build());
-    }
 
+      if (attribute.getValueType().isOrganisationUnit()) {
+        String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
+        String ouNameSql = selectForInsert(attribute, fromTypeSql, dataClause);
+
+        columns.add(
+            AnalyticsTableColumn.builder()
+                .name((attribute.getUid() + OU_NAME_COL_SUFFIX))
+                .columnType(AnalyticsColumnType.DYNAMIC)
+                .dataType(TEXT)
+                .selectExpression(ouNameSql)
+                .skipIndex(SKIP)
+                .build());
+      }
+    }
     return columns;
+  }
+
+  /**
+   * The select statement used by the table population.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @param fromType the sql snippet related to "from" part
+   * @param dataClause the data type related clause like "NUMERIC"
+   * @return
+   */
+  protected String selectForInsert(
+      TrackedEntityAttribute attribute, String fromType, String dataClause) {
+    return replace(
+        """
+            (select ${fromType} from trackedentityattributevalue \
+            where trackedentityid=en.trackedentityid \
+            and trackedentityattributeid=${attributeId}\
+            ${dataClause})\
+            ${closingParentheses} as ${attributeUid}""",
+        Map.of(
+            "fromType", fromType,
+            "dataClause", dataClause,
+            "attributeId", String.valueOf(attribute.getId()),
+            "closingParentheses", getClosingParentheses(fromType),
+            "attributeUid", quote(attribute.getUid())));
   }
 }

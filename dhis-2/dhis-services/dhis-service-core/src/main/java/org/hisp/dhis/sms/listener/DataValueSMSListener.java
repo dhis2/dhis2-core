@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -51,8 +52,6 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.EnrollmentService;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.sms.command.CompletenessMethod;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
@@ -63,8 +62,8 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -94,26 +93,16 @@ public class DataValueSMSListener extends CommandSMSListener {
   private final DataElementService dataElementService;
 
   public DataValueSMSListener(
-      EnrollmentService enrollmentService,
-      CategoryService dataElementCategoryService,
-      EventService eventService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      @Qualifier("smsMessageSender") MessageSender smsSender,
+      MessageSender smsMessageSender,
       CompleteDataSetRegistrationService registrationService,
       DataValueService dataValueService,
       CategoryService dataElementCategoryService1,
       SMSCommandService smsCommandService,
       DataSetService dataSetService,
       DataElementService dataElementService) {
-    super(
-        enrollmentService,
-        dataElementCategoryService,
-        eventService,
-        userService,
-        incomingSmsService,
-        smsSender);
-
+    super(userService, incomingSmsService, smsMessageSender);
     this.registrationService = registrationService;
     this.dataValueService = dataValueService;
     this.dataElementCategoryService = dataElementCategoryService1;
@@ -124,7 +113,10 @@ public class DataValueSMSListener extends CommandSMSListener {
 
   @Override
   protected void postProcess(
-      IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage) {
+      @Nonnull IncomingSms sms,
+      @Nonnull UserDetails smsCreatedBy,
+      @Nonnull SMSCommand smsCommand,
+      @Nonnull Map<String, String> codeValues) {
     String message = sms.getText();
 
     Date date = SmsUtils.lookForDate(message);
@@ -165,12 +157,13 @@ public class DataValueSMSListener extends CommandSMSListener {
     boolean valueStored = false;
 
     for (SMSCode code : smsCommand.getCodes()) {
-      if (parsedMessage.containsKey(code.getCode())) {
-        valueStored = storeDataValue(sms, orgUnit, parsedMessage, code, smsCommand, date);
+      if (codeValues.containsKey(code.getCode())) {
+        valueStored =
+            storeDataValue(sms, smsCreatedBy, orgUnit, codeValues, code, smsCommand, date);
       }
     }
 
-    if (parsedMessage.isEmpty()) {
+    if (codeValues.isEmpty()) {
       sendFeedback(
           org.apache.commons.lang3.StringUtils.defaultIfEmpty(
               smsCommand.getDefaultMessage(),
@@ -191,8 +184,8 @@ public class DataValueSMSListener extends CommandSMSListener {
       return;
     }
 
-    if (markCompleteDataSet(sms, orgUnit, smsCommand, date)) {
-      sendSuccessFeedback(senderPhoneNumber, smsCommand, parsedMessage, date, orgUnit);
+    if (markCompleteDataSet(sms, smsCreatedBy, orgUnit, smsCommand, date)) {
+      sendSuccessFeedback(senderPhoneNumber, smsCommand, codeValues, date, orgUnit);
 
       update(sms, SmsMessageStatus.PROCESSED, true);
     } else {
@@ -203,7 +196,7 @@ public class DataValueSMSListener extends CommandSMSListener {
   }
 
   @Override
-  protected SMSCommand getSMSCommand(IncomingSms sms) {
+  protected SMSCommand getSMSCommand(@Nonnull IncomingSms sms) {
     return smsCommandService.getSMSCommand(
         SmsUtils.getCommandString(sms), ParserType.KEY_VALUE_PARSER);
   }
@@ -232,14 +225,15 @@ public class DataValueSMSListener extends CommandSMSListener {
 
   private boolean storeDataValue(
       IncomingSms sms,
+      UserDetails smsCreatedBy,
       OrganisationUnit orgunit,
       Map<String, String> parsedMessage,
       SMSCode code,
       SMSCommand command,
       Date date) {
+    validateUserOrgUnits(smsCreatedBy);
     String sender = sms.getOriginator();
-    String storedBy =
-        SmsUtils.getUser(sender, command, Collections.singletonList(getUser(sms))).getUsername();
+    String storedBy = smsCreatedBy.getUsername();
 
     if (StringUtils.isBlank(storedBy)) {
       storedBy = "[unknown] from [" + sender + "]";
@@ -365,7 +359,11 @@ public class DataValueSMSListener extends CommandSMSListener {
   }
 
   private boolean markCompleteDataSet(
-      IncomingSms sms, OrganisationUnit orgunit, SMSCommand command, Date date) {
+      IncomingSms sms,
+      UserDetails smsCreatedBy,
+      OrganisationUnit orgunit,
+      SMSCommand command,
+      Date date) {
     String sender = sms.getOriginator();
 
     Period period = null;
@@ -399,8 +397,8 @@ public class DataValueSMSListener extends CommandSMSListener {
     }
 
     // Go through the complete process
-    String storedBy =
-        SmsUtils.getUser(sender, command, Collections.singletonList(getUser(sms))).getUsername();
+    validateUserOrgUnits(smsCreatedBy);
+    String storedBy = smsCreatedBy.getUsername();
 
     if (StringUtils.isBlank(storedBy)) {
       storedBy = "[unknown] from [" + sender + "]";
@@ -466,12 +464,11 @@ public class DataValueSMSListener extends CommandSMSListener {
 
     notInReport = notInReport.substring(0, notInReport.length() - 1);
 
-    if (smsSender.isConfigured()) {
-      if (command.getSuccessMessage() != null
-          && !StringUtils.isEmpty(command.getSuccessMessage())) {
-        smsSender.sendMessage(null, command.getSuccessMessage(), sender);
+    if (smsMessageSender.isConfigured()) {
+      if (command.getSuccessMessage() != null) {
+        smsMessageSender.sendMessage(null, command.getSuccessMessage(), sender);
       } else {
-        smsSender.sendMessage(null, reportBack, sender);
+        smsMessageSender.sendMessage(null, reportBack, sender);
       }
     } else {
       log.info("No sms configuration found.");

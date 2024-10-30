@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dataset;
 
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
@@ -134,21 +134,13 @@ public class DefaultDataSetService implements DataSetService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataSet> getUserDataRead(UserDetails user) {
-    if (user == null) {
-      return Lists.newArrayList();
-    }
-
+  public List<DataSet> getUserDataRead(@Nonnull UserDetails user) {
     return user.isSuper() ? getAllDataSets() : dataSetStore.getDataReadAll(user);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataSet> getUserDataWrite(UserDetails userDetails) {
-    if (userDetails == null) {
-      return Lists.newArrayList();
-    }
-
+  public List<DataSet> getUserDataWrite(@Nonnull UserDetails userDetails) {
     return userDetails.isSuper() ? getAllDataSets() : dataSetStore.getDataWriteAll(userDetails);
   }
 
@@ -302,13 +294,11 @@ public class DefaultDataSetService implements DataSetService {
       Period period,
       OrganisationUnit organisationUnit,
       CategoryOptionCombo attributeOptionCombo,
-      UserDetails userDetails,
+      @Nonnull UserDetails userDetails,
       Date now) {
-    if (userDetails == null || !userDetails.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
+    if (!userDetails.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       now = now != null ? now : new Date();
-
       boolean expired = dataElement.isExpired(period, now);
-
       if (expired && lockExceptionStore.getCount(dataElement, period, organisationUnit) == 0L) {
         return LockStatus.LOCKED;
       }

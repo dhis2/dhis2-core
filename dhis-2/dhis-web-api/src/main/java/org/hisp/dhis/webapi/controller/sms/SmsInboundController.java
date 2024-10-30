@@ -30,18 +30,34 @@ package org.hisp.dhis.webapi.controller.sms;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.scheduling.JobType.SMS_INBOUND_PROCESSING;
+import static org.hisp.dhis.security.Authorities.F_MOBILE_SENDSMS;
 import static org.hisp.dhis.security.Authorities.F_MOBILE_SETTINGS;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobSchedulerService;
+import org.hisp.dhis.scheduling.parameters.SmsInboundProcessingJobParameters;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
@@ -51,10 +67,14 @@ import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -67,6 +87,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/sms/inbound")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
+@OpenApi.Document(classifiers = {"team:tracker", "purpose:data"})
 public class SmsInboundController extends AbstractCrudController<IncomingSms> {
   private final IncomingSmsService incomingSMSService;
 
@@ -76,9 +97,21 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms> {
 
   private final UserService userService;
 
-  // -------------------------------------------------------------------------
-  // POST
-  // -------------------------------------------------------------------------
+  private final JobConfigurationService jobConfigurationService;
+  private final JobSchedulerService jobSchedulerService;
+
+  @Override
+  @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
+  @GetMapping
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<IncomingSms>> getObjectList(
+      @RequestParam Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      @CurrentUser UserDetails currentUser)
+      throws ForbiddenException, BadRequestException {
+    return getObjectList(
+        rpParameters, orderParams, response, currentUser, !rpParameters.containsKey("query"), null);
+  }
 
   @PostMapping(produces = APPLICATION_JSON_VALUE)
   @RequiresAuthority(anyOf = F_MOBILE_SETTINGS)
@@ -88,8 +121,8 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms> {
       @RequestParam(required = false) Date receivedTime,
       @RequestParam String message,
       @RequestParam(defaultValue = "Unknown", required = false) String gateway,
-      @CurrentUser User currentUser)
-      throws WebMessageException {
+      @Nonnull @CurrentUser User currentUser)
+      throws WebMessageException, ConflictException, NotFoundException {
     if (originator == null || originator.length() <= 0) {
       return conflict("Originator must be specified");
     }
@@ -98,29 +131,39 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms> {
       return conflict("Message must be specified");
     }
 
-    long smsId =
-        incomingSMSService.save(
-            message,
-            originator,
-            gateway,
-            receivedTime,
-            getUserByPhoneNumber(originator, message, currentUser));
+    IncomingSms sms = new IncomingSms();
+    sms.setOriginator(originator);
+    sms.setReceivedDate(receivedTime);
+    sms.setText(message);
+    sms.setGatewayId(gateway);
 
-    return ok("Received SMS: " + smsId);
+    return handleIncomingSms(currentUser, sms);
   }
 
   @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @RequiresAuthority(anyOf = F_MOBILE_SETTINGS)
   @ResponseBody
-  public WebMessage receiveSMSMessage(HttpServletRequest request, @CurrentUser User currentUser)
-      throws WebMessageException, IOException {
+  public WebMessage receiveSMSMessage(
+      HttpServletRequest request, @Nonnull @CurrentUser User currentUser)
+      throws WebMessageException, IOException, ConflictException, NotFoundException {
 
     IncomingSms sms = renderService.fromJson(request.getInputStream(), IncomingSms.class);
-    sms.setCreatedBy(getUserByPhoneNumber(sms.getOriginator(), sms.getText(), currentUser));
 
-    long smsId = incomingSMSService.save(sms);
+    return handleIncomingSms(currentUser, sms);
+  }
 
-    return ok("Received SMS: " + smsId);
+  private WebMessage handleIncomingSms(@CurrentUser User currentUser, IncomingSms sms)
+      throws WebMessageException, ConflictException, NotFoundException {
+    User user = getUserByPhoneNumber(sms.getOriginator(), sms.getText(), currentUser);
+    sms.setCreatedBy(user);
+
+    String smsUid = incomingSMSService.save(sms);
+    JobConfiguration jobConfig = new JobConfiguration(SMS_INBOUND_PROCESSING);
+    jobConfig.setJobParameters(new SmsInboundProcessingJobParameters(smsUid));
+    jobConfig.setExecutedBy(user.getUid());
+    jobSchedulerService.createThenExecute(jobConfig);
+
+    return ok("Received SMS: " + smsUid);
   }
 
   @PostMapping(value = "/import", produces = APPLICATION_JSON_VALUE)
@@ -135,10 +178,6 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms> {
 
     return ok("Import successful");
   }
-
-  // -------------------------------------------------------------------------
-  // DELETE
-  // -------------------------------------------------------------------------
 
   @DeleteMapping(value = "/{uid}", produces = APPLICATION_JSON_VALUE)
   @RequiresAuthority(anyOf = F_MOBILE_SETTINGS)
@@ -164,23 +203,23 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms> {
     return ok("Objects deleted");
   }
 
-  // -------------------------------------------------------------------------
-  // SUPPORTIVE METHOD
-  // -------------------------------------------------------------------------
-
-  private User getUserByPhoneNumber(String phoneNumber, String text, User currentUser)
+  private @CheckForNull User getUserByPhoneNumber(String phoneNumber, String text, User currentUser)
       throws WebMessageException {
-    SMSCommand unregisteredParser =
-        smsCommandService.getSMSCommand(
-            SmsUtils.getCommandString(text), ParserType.UNREGISTERED_PARSER);
+    if (SmsUtils.isBase64(text)) { // compression bases SMS https://github.com/dhis2/sms-compression
+      if (!phoneNumber.equals(currentUser.getPhoneNumber())) {
+        // current user does not belong to this number
+        throw new WebMessageException(
+            conflict("Originator's number does not match user's Phone number"));
+      }
 
-    List<User> users = userService.getUsersByPhoneNumber(phoneNumber);
-
-    if (SmsUtils.isBase64(text)) {
-      return handleCompressedCommands(currentUser, phoneNumber);
+      return currentUser;
     }
 
-    if (users == null || users.isEmpty()) {
+    List<User> users = userService.getUsersByPhoneNumber(phoneNumber);
+    if (users.isEmpty()) {
+      SMSCommand unregisteredParser =
+          smsCommandService.getSMSCommand(
+              SmsUtils.getCommandString(text), ParserType.UNREGISTERED_PARSER);
       if (unregisteredParser != null) {
         return null;
       }
@@ -191,16 +230,5 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms> {
     }
 
     return users.iterator().next();
-  }
-
-  private User handleCompressedCommands(User currentUser, String phoneNumber)
-      throws WebMessageException {
-    if (currentUser != null && !phoneNumber.equals(currentUser.getPhoneNumber())) {
-      // current user does not belong to this number
-      throw new WebMessageException(
-          conflict("Originator's number does not match user's Phone number"));
-    }
-
-    return currentUser;
   }
 }

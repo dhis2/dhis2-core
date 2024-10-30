@@ -59,21 +59,21 @@ public abstract class BaseSMSListener implements IncomingSmsListener {
 
   protected final IncomingSmsService incomingSmsService;
 
-  protected final MessageSender smsSender;
+  protected final MessageSender smsMessageSender;
 
-  protected BaseSMSListener(IncomingSmsService incomingSmsService, MessageSender smsSender) {
+  protected BaseSMSListener(IncomingSmsService incomingSmsService, MessageSender smsMessageSender) {
     checkNotNull(incomingSmsService);
-    checkNotNull(smsSender);
+    checkNotNull(smsMessageSender);
 
     this.incomingSmsService = incomingSmsService;
-    this.smsSender = smsSender;
+    this.smsMessageSender = smsMessageSender;
   }
 
   protected void sendFeedback(String message, String sender, int logType) {
     LOGGER.getOrDefault(logType, log::info).accept(message);
 
-    if (smsSender.isConfigured()) {
-      smsSender.sendMessage(null, message, sender);
+    if (smsMessageSender.isConfigured()) {
+      smsMessageSender.sendMessage(null, message, sender);
       return;
     }
 
@@ -86,9 +86,9 @@ public abstract class BaseSMSListener implements IncomingSmsListener {
         resp.getCode() < 100 ? SmsMessageStatus.PROCESSED : SmsMessageStatus.FAILED;
     update(sms, status, true);
 
-    if (smsSender.isConfigured()) {
+    if (smsMessageSender.isConfigured()) {
       String msg = String.format("%d:%s", messageID, resp.toString());
-      smsSender.sendMessage(null, msg, sms.getOriginator());
+      smsMessageSender.sendMessage(null, msg, sms.getOriginator());
       return;
     }
 

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.minmax;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -42,14 +42,20 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Kristian Nordal
  */
-class MinMaxDataElementStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class MinMaxDataElementStoreTest extends PostgresIntegrationTestBase {
   @Autowired private DataElementService dataElementService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
@@ -172,5 +178,48 @@ class MinMaxDataElementStoreTest extends SingleSetupIntegrationTestBase {
     result = minMaxDataElementStore.query(params);
     assertNotNull(result);
     assertEquals(2, result.size());
+  }
+
+  @Test
+  @DisplayName("retrieving min max data elements by data element returns expected entries")
+  void getMinMaxDataElementsByDataElement() {
+    // given
+    DataElement deW = createDataElementAndSave('W');
+    DataElement deX = createDataElementAndSave('X');
+    DataElement deY = createDataElementAndSave('Y');
+    DataElement deZ = createDataElementAndSave('Z');
+
+    createMinMaxDataElementAndSave(deW);
+    createMinMaxDataElementAndSave(deX);
+    createMinMaxDataElementAndSave(deY);
+    createMinMaxDataElementAndSave(deZ);
+
+    // when
+    List<MinMaxDataElement> allByDataElement =
+        minMaxDataElementStore.getByDataElement(List.of(deW, deX));
+
+    // then
+    assertEquals(2, allByDataElement.size());
+    assertTrue(
+        allByDataElement.stream()
+            .map(mmde -> mmde.getDataElement().getUid())
+            .toList()
+            .containsAll(List.of(deW.getUid(), deX.getUid())));
+  }
+
+  private DataElement createDataElementAndSave(char c) {
+    DataElement de = createDataElement(c);
+    dataElementService.addDataElement(de);
+    return de;
+  }
+
+  private MinMaxDataElement createMinMaxDataElementAndSave(DataElement de) {
+    OrganisationUnit ou = createOrganisationUnit(de.getName());
+    organisationUnitService.addOrganisationUnit(ou);
+    MinMaxDataElement minMaxDataElement =
+        new MinMaxDataElement(
+            de, ou, categoryService.getDefaultCategoryOptionCombo(), 0, 100, false);
+    minMaxDataElementStore.save(minMaxDataElement);
+    return minMaxDataElement;
   }
 }

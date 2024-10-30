@@ -30,15 +30,18 @@ package org.hisp.dhis.webapi.controller.event;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import lombok.AllArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
 import org.hisp.dhis.rules.models.RuleValidationResult;
+import org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -54,18 +57,19 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @AllArgsConstructor
 @RequestMapping("/api/programRules")
+@OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
 public class ProgramRuleController extends AbstractCrudController<ProgramRule> {
   private final I18nManager i18nManager;
 
-  private final ProgramRuleEngineService programRuleEngineService;
+  private final ProgramRuleEngine programRuleEngine;
 
   @PostMapping(value = "/condition/description", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public WebMessage validateCondition(
-      @RequestBody String condition, @RequestParam String programId) {
+  public WebMessage validateCondition(@RequestBody String condition, @RequestParam UID programId)
+      throws BadRequestException {
     I18n i18n = i18nManager.getI18n();
 
-    RuleValidationResult result = programRuleEngineService.getDescription(condition, programId);
+    RuleValidationResult result = programRuleEngine.getDescription(condition, programId);
 
     if (result.getValid()) {
       return new DescriptiveWebMessage(Status.OK, HttpStatus.OK)

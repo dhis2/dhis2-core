@@ -29,11 +29,10 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -71,9 +70,9 @@ public class DuplicateRelationshipSupplier extends AbstractPreheatSupplier {
                     RelationshipKeySupport.getRelationshipKey(
                             rel, getRelationshipType(rel, relationshipTypes))
                         .asString())
-            .collect(Collectors.toList());
+            .toList();
 
-    return relationshipStore.getByUid(relationshipStore.getUidsByRelationshipKeys(keys));
+    return relationshipStore.getUidsByRelationshipKeys(keys);
   }
 
   private RelationshipType getRelationshipType(

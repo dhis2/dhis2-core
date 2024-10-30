@@ -33,6 +33,7 @@ import static org.hisp.dhis.util.DateUtils.addDays;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -56,6 +57,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.InterpretableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.VersionedObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
@@ -133,10 +135,10 @@ public class DataSet extends BaseDimensionalItemObject
   private int version;
 
   /** How many days after period is over will this dataSet auto-lock */
-  private int expiryDays;
+  private double expiryDays;
 
   /** Days after period end to qualify for timely data submission */
-  private int timelyDays;
+  private double timelyDays;
 
   /** User group which will receive notifications when data set is marked complete, can be null. */
   private UserGroup notificationRecipients;
@@ -193,6 +195,8 @@ public class DataSet extends BaseDimensionalItemObject
   private boolean compulsoryFieldsCompleteOnly;
 
   private ObjectStyle style;
+
+  private String displayOptions;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -455,7 +459,7 @@ public class DataSet extends BaseDimensionalItemObject
       return false;
     }
     Date date = now != null ? now : new Date();
-    return !Period.isDateInTimeFrame(null, addDays(period.getEndDate(), expiryDays), date);
+    return !Period.isDateWithTimeInTimeFrame(null, addDays(period.getEndDate(), expiryDays), date);
   }
 
   /**
@@ -617,21 +621,21 @@ public class DataSet extends BaseDimensionalItemObject
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @PropertyRange(min = Integer.MIN_VALUE)
-  public int getExpiryDays() {
+  public double getExpiryDays() {
     return expiryDays;
   }
 
-  public void setExpiryDays(int expiryDays) {
+  public void setExpiryDays(double expiryDays) {
     this.expiryDays = expiryDays;
   }
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getTimelyDays() {
+  public double getTimelyDays() {
     return timelyDays;
   }
 
-  public void setTimelyDays(int timelyDays) {
+  public void setTimelyDays(double timelyDays) {
     this.timelyDays = timelyDays;
   }
 
@@ -776,6 +780,17 @@ public class DataSet extends BaseDimensionalItemObject
 
   public void setStyle(ObjectStyle style) {
     this.style = style;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @OpenApi.Property(ObjectNode.class)
+  public String getDisplayOptions() {
+    return displayOptions;
+  }
+
+  public void setDisplayOptions(String displayOptions) {
+    this.displayOptions = displayOptions;
   }
 
   @Override

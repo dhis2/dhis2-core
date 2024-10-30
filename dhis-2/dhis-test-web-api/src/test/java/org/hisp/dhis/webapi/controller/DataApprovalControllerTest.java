@@ -27,29 +27,31 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonDataApprovalPermissions;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonDataApprovalPermissions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link DataApprovalController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-class DataApprovalControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class DataApprovalControllerTest extends H2ControllerIntegrationTestBase {
 
   private String ouId;
 
@@ -116,7 +118,7 @@ class DataApprovalControllerTest extends DhisControllerConvenienceTest {
                     + "'}]"
                     + "}"));
 
-    getSuperUser().addOrganisationUnit(manager.get(OrganisationUnit.class, ouId));
+    getAdminUser().addOrganisationUnit(manager.get(OrganisationUnit.class, ouId));
   }
 
   @Test

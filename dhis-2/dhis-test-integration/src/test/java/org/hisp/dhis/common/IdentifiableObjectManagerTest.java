@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.common;
 
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -39,15 +39,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -56,24 +55,27 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class IdentifiableObjectManagerTest extends TransactionalIntegrationTest {
+@Transactional
+class IdentifiableObjectManagerTest extends PostgresIntegrationTestBase {
   private Attribute atA;
 
   @PersistenceContext private EntityManager entityManager;
@@ -84,16 +86,14 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest {
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
-  @Autowired private UserService _userService;
+  @Autowired private DbmsManager dbmsManager;
 
-  @Override
-  protected void setUpTest() throws Exception {
+  @BeforeEach
+  void setUp() {
     atA = createAttribute('A');
     atA.setUnique(true);
     atA.setDataElementAttribute(true);
     attributeService.addAttribute(atA);
-
-    this.userService = _userService;
   }
 
   @Test
@@ -157,8 +157,8 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest {
     DataElement dataElementB = createDataElement('B');
     dataElementService.addDataElement(dataElementA);
     dataElementService.addDataElement(dataElementB);
-    attributeService.addAttributeValue(dataElementA, new AttributeValue(atA, "DEA"));
-    attributeService.addAttributeValue(dataElementB, new AttributeValue(atA, "DEB"));
+    attributeService.addAttributeValue(dataElementA, atA.getUid(), "DEA");
+    attributeService.addAttributeValue(dataElementB, atA.getUid(), "DEB");
     assertEquals(
         dataElementA, idObjectManager.getObject(DataElement.class, IdScheme.from(atA), "DEA"));
     assertEquals(
@@ -340,7 +340,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest {
   void userDeniedCreateObject() {
     createUserAndInjectSecurityContext(false);
     DataElement dataElement = createDataElement('A');
-    assertThrows(CreateAccessDeniedException.class, () -> idObjectManager.save(dataElement));
+    assertThrows(AccessDeniedException.class, () -> idObjectManager.save(dataElement));
   }
 
   @Test
@@ -368,7 +368,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest {
     createUserAndInjectSecurityContext(false, "F_DATAELEMENT_PRIVATE_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
-    assertThrows(CreateAccessDeniedException.class, () -> idObjectManager.save(dataElement, false));
+    assertThrows(AccessDeniedException.class, () -> idObjectManager.save(dataElement, false));
   }
 
   @Test
@@ -394,7 +394,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest {
     createUserAndInjectSecurityContext(false);
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
-    assertThrows(CreateAccessDeniedException.class, () -> idObjectManager.save(dataElement, false));
+    assertThrows(AccessDeniedException.class, () -> idObjectManager.save(dataElement, false));
   }
 
   //  @Test
