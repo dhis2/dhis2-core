@@ -1674,13 +1674,13 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     DataSetElement dse4 = new DataSetElement(ds4, deRandom);
 
     DataElement de1 = createDataElement('g');
-    de1.getDataSetElements().add(dse1);
+    de1.addDataSetElement(dse1);
     DataElement de2 = createDataElement('h');
-    de2.getDataSetElements().add(dse2);
+    de2.addDataSetElement(dse2);
     DataElement de3 = createDataElement('i');
-    de3.getDataSetElements().add(dse3);
+    de3.addDataSetElement(dse3);
     DataElement de4 = createDataElement('j');
-    de4.getDataSetElements().add(dse4);
+    de4.addDataSetElement(dse4);
 
     ds1.addDataSetElement(dse1);
     ds2.addDataSetElement(dse2);
@@ -1711,7 +1711,15 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
             .distinct()
             .toList();
 
+    List<DataSet> dataSets = dataSetStore.getByUid(List.of(ds1.getUid(), ds2.getUid()));
+    List<DataElement> updatedDsDes =
+        dataSets.stream().flatMap(ds -> ds.getDataElements().stream()).distinct().toList();
+
+    assertTrue(updatedDsDes.contains(deTarget));
+    assertEquals(1, updatedDsDes.size());
+
     assertFalse(report.hasErrorMessages());
+
     assertEquals(2, allDataSetElsDataElement.size(), "there should be only 2 data element present");
     assertTrue(
         allDataSetElsDataElement.contains(deTarget),
