@@ -35,6 +35,7 @@ import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.TablePartition;
 import org.hisp.dhis.db.model.constraint.Nullable;
 
 @RequiredArgsConstructor
@@ -265,7 +266,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
     // Partitions
 
-    /*
     if (table.hasPartitions()) {
       sql.append("partition by range(year) ("); // Make configurable
 
@@ -278,7 +278,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
       }
 
       removeLastComma(sql).append(") ");
-    }*/
+    }
 
     // Distribution
 
