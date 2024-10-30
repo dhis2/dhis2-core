@@ -211,10 +211,7 @@ public class DeduplicationController {
 
   private PotentialDuplicate getPotentialDuplicateBy(UID uid) throws NotFoundException {
     return Optional.ofNullable(deduplicationService.getPotentialDuplicateByUid(uid))
-        .orElseThrow(
-            () ->
-                new NotFoundException(
-                    "No potentialDuplicate records found with id '" + uid + "'."));
+        .orElseThrow(() -> new NotFoundException(PotentialDuplicate.class, uid));
   }
 
   private void validatePotentialDuplicate(PotentialDuplicate potentialDuplicate)
@@ -259,9 +256,7 @@ public class DeduplicationController {
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, uid.getValue());
     // TODO(tracker) Do we need to apply ACL here?
     return Optional.ofNullable(trackedEntity)
-        .orElseThrow(
-            () ->
-                new NotFoundException("No tracked entity found with id '" + trackedEntity + "'."));
+        .orElseThrow(() -> new NotFoundException(TrackedEntity.class, uid));
   }
 
   private void canReadTrackedEntity(TrackedEntity trackedEntity) throws ForbiddenException {
