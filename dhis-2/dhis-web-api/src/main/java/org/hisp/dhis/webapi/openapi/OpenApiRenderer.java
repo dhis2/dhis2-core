@@ -53,6 +53,7 @@ import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.webapi.openapi.ApiClassification.Classifier;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.MediaTypeObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.OperationObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.ParameterObject;
@@ -574,13 +575,15 @@ public class OpenApiRenderer {
   Rendering...
    */
 
-  public static String renderHTML(String json, OpenApiRenderingParams params) {
-    OpenApiRenderer html = new OpenApiRenderer(JsonValue.of(json).as(OpenApiObject.class), params);
-    return html.renderHTML();
+  public static String renderHTML(String json, OpenApiRenderingParams params, ApiStatistics stats) {
+    OpenApiRenderer renderer =
+        new OpenApiRenderer(JsonValue.of(json).as(OpenApiObject.class), params, stats);
+    return renderer.renderHTML();
   }
 
   private final OpenApiObject api;
   private final OpenApiRenderingParams params;
+  private final ApiStatistics stats;
   private final StringBuilder out = new StringBuilder();
 
   @Override
@@ -638,13 +641,13 @@ public class OpenApiRenderer {
         "scope",
         () -> appendRaw("Scope"),
         () -> {
-          api.info().x_classifiers().forEach(this::renderScopeMenuItem);
+          stats.getClassifications().getClassifiers().forEach(this::renderScopeMenuItem);
           appendInputButton("Full API (single page)", "addUrlParameter('scope', '')");
           appendInputButton("+ &#128435;", "addUrlParameter('source', 'true')");
         });
   }
 
-  private void renderScopeMenuItem(String classifier, JsonList<JsonString> values) {
+  private void renderScopeMenuItem(String classifier, List<Classifier> classifiers) {
     appendTag(
         "div",
         () -> {
@@ -654,11 +657,17 @@ public class OpenApiRenderer {
               Map.of("data-key", classifier),
               () -> {
                 appendTag("option", Map.of("value", ""), "(select and click go or +)");
-                values.forEach(v -> appendTag("option", Map.of("value", v.string()), v.string()));
+                classifiers.forEach(this::renderScopeMenuOption);
               });
           appendInputButton("go", "modifyLocationSearch(this)");
           appendInputButton("+", "modifyLocationSearch(this)");
         });
+  }
+
+  private void renderScopeMenuOption(Classifier c) {
+    int p = c.percentage();
+    appendTag(
+        "option", Map.of("value", c.value()), c.value() + (p < 1 ? "" : " (%d%%)".formatted(p)));
   }
 
   private void renderHotkeysMenu() {

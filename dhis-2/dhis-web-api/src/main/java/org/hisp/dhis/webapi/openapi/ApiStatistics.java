@@ -27,4 +27,10 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
-public class ApiStatistics {}
+import lombok.Value;
+
+@Value
+public class ApiStatistics {
+
+  ApiClassification classifications;
+}

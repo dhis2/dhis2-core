@@ -145,10 +145,6 @@ public class OpenApiGenerator extends JsonGenerator {
     return params.isIncludeXProperties();
   }
 
-  private boolean xClassifiers() {
-    return params.isIncludeXClassifiers();
-  }
-
   private void generateDocument() {
     addRootObject(
         () -> {
@@ -171,13 +167,6 @@ public class OpenApiGenerator extends JsonGenerator {
                       addStringMember("url", info.contactUrl);
                       addStringMember("email", info.contactEmail);
                     });
-                if (xClassifiers())
-                  addObjectMember(
-                      "x-classifiers",
-                      () ->
-                          ApiClassification.of(api.getContext())
-                              .getClassifiers()
-                              .forEach(this::addArrayMember));
               });
           addArrayMember(
               "tags",
@@ -242,7 +231,7 @@ public class OpenApiGenerator extends JsonGenerator {
           }
           addStringMultilineMember("description", endpoint.getDescription().orElse(NO_DESCRIPTION));
           addStringMember("operationId", getUniqueOperationId(endpoint));
-          if (xClassifiers())
+          if (xProperties())
             addObjectMember(
                 "x-classifiers",
                 () -> endpoint.getIn().getClassifiers().forEach(this::addStringMember));

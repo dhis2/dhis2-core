@@ -71,32 +71,23 @@ public class OpenApiGenerationParams {
   boolean expandedRefs = false;
 
   @Beta
+  @OpenApi.Since(42)
   @OpenApi.Description(
       """
     Set `true` to include non-standard OpenAPI properties supported by DHIS2
     (excluding `x-classifiers` which is switched separately by `includeXClassifiers`)""")
   boolean includeXProperties = false;
 
-  @Beta
-  @OpenApi.Description(
-      """
-    Set `true` to also include `x-classifiers` non-standard properties""")
-  boolean includeXClassifiers = false;
-
   /**
    * @return cache key to use for {@link Api} objects, null when no cache should be used
    */
   @OpenApi.Ignore
   String getApiCacheKey() {
-    if (skipCache) return null;
     return expandedRefs ? "full-extended" : "full-default";
   }
 
   @OpenApi.Ignore
   String getDocumentCacheKey() {
-    String key = "";
-    if (includeXProperties) key += "x";
-    if (includeXClassifiers) key += "c";
-    return getApiCacheKey() + "-" + key;
+    return getApiCacheKey() + "-" + (includeXProperties ? "x" : "s");
   }
 }

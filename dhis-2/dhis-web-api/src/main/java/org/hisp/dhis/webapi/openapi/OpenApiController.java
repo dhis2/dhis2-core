@@ -89,7 +89,7 @@ public class OpenApiController {
   @Data
   @Accessors(chain = true)
   @OpenApi.Shared
-  public static class OpenApiScopeParams {
+  public static class OpenApiScopingParams {
     @OpenApi.Description(
         "When given only operations in controllers matching the scope are considered")
     Set<String> scope = Set.of();
@@ -115,17 +115,16 @@ public class OpenApiController {
       produces = TEXT_HTML_VALUE)
   public void getOpenApiHtml(
       OpenApiGenerationParams generation,
-      OpenApiScopeParams scope,
+      OpenApiScopingParams scoping,
       OpenApiRenderingParams rendering,
       HttpServletRequest request,
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
     // for HTML X-properties must be included
-    generation.setIncludeXClassifiers(true);
     generation.setIncludeXProperties(true);
 
-    getHtmlWriter(response).write(renderCached(scope, generation, rendering));
+    getHtmlWriter(response).write(renderCached(scoping, generation, rendering));
   }
 
   @OpenApi.Description(
@@ -142,10 +141,9 @@ public class OpenApiController {
     if (notModified(request, response, generation)) return;
 
     // for HTML X-properties must be included
-    generation.setIncludeXClassifiers(true);
     generation.setIncludeXProperties(true);
 
-    OpenApiScopeParams scope = new OpenApiScopeParams().setScope(Set.of("path./api/" + path));
+    OpenApiScopingParams scope = new OpenApiScopingParams().setScope(Set.of("path./api/" + path));
     getHtmlWriter(response).write(renderCached(scope, generation, rendering));
   }
 
@@ -162,7 +160,7 @@ public class OpenApiController {
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
-    OpenApiScopeParams scope = new OpenApiScopeParams().setScope(Set.of("path./api/" + path));
+    OpenApiScopingParams scope = new OpenApiScopingParams().setScope(Set.of("path./api/" + path));
     getYamlWriter(response).write(generateCached(Language.YAML, scope, generation));
   }
 
@@ -172,12 +170,12 @@ public class OpenApiController {
       produces = APPLICATION_X_YAML)
   public void getOpenApiYaml(
       OpenApiGenerationParams generation,
-      OpenApiScopeParams scope,
+      OpenApiScopingParams scoping,
       HttpServletRequest request,
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
-    getYamlWriter(response).write(generateCached(Language.YAML, scope, generation));
+    getYamlWriter(response).write(generateCached(Language.YAML, scoping, generation));
   }
 
   /*
@@ -193,7 +191,7 @@ public class OpenApiController {
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
-    OpenApiScopeParams scope = new OpenApiScopeParams().setScope(Set.of("path./api/" + path));
+    OpenApiScopingParams scope = new OpenApiScopingParams().setScope(Set.of("path./api/" + path));
     getJsonWriter(response).write(generateCached(Language.JSON, scope, generation));
   }
 
@@ -203,12 +201,12 @@ public class OpenApiController {
       produces = APPLICATION_JSON_VALUE)
   public void getOpenApiJson(
       OpenApiGenerationParams generation,
-      OpenApiScopeParams scope,
+      OpenApiScopingParams scoping,
       HttpServletRequest request,
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
-    getJsonWriter(response).write(generateCached(Language.JSON, scope, generation));
+    getJsonWriter(response).write(generateCached(Language.JSON, scoping, generation));
   }
 
   private PrintWriter getHtmlWriter(HttpServletResponse response) {
@@ -235,24 +233,30 @@ public class OpenApiController {
 
   @Nonnull
   private String renderCached(
-      OpenApiScopeParams scope,
+      OpenApiScopingParams scoping,
       OpenApiGenerationParams generation,
       OpenApiRenderingParams rendering) {
     String cacheKey =
-        generation.isSkipCache() ? null : scope.getCacheKey() + generation.getDocumentCacheKey();
+        generation.isSkipCache() ? null : scoping.getCacheKey() + generation.getDocumentCacheKey();
     return HTML_CACHE.get(
-        cacheKey, () -> renderHTML(generateCached(Language.JSON, scope, generation), rendering));
+        cacheKey,
+        () -> {
+          String json = generateCached(Language.JSON, scoping, generation);
+          Api inScope = extractCached(scoping, generation);
+          Api fullScope = extractCached(new OpenApiScopingParams(), new OpenApiGenerationParams());
+          ApiStatistics stats =
+              new ApiStatistics(ApiClassification.of(fullScope.getScope().controllers()));
+          return renderHTML(json, rendering, stats);
+        });
   }
 
   @Nonnull
   private String generateCached(
-      Language language, OpenApiScopeParams scope, OpenApiGenerationParams params) {
-    String apiCacheKey =
-        params.isSkipCache() ? null : scope.getCacheKey() + params.getApiCacheKey();
+      Language language, OpenApiScopingParams scoping, OpenApiGenerationParams params) {
     String cacheKey =
-        params.isSkipCache() ? null : scope.getCacheKey() + params.getDocumentCacheKey();
+        params.isSkipCache() ? null : scoping.getCacheKey() + params.getDocumentCacheKey();
     if (cacheKey != null) cacheKey += "-" + (language == Language.JSON ? "json" : "yaml");
-    Api api = API_CACHE.get(apiCacheKey, () -> computeApi(scope, params));
+    Api api = extractCached(scoping, params);
     Info info = Info.DEFAULT.toBuilder().serverUrl(getServerUrl()).build();
     return JSON_CACHE.get(
         cacheKey,
@@ -260,18 +264,25 @@ public class OpenApiController {
   }
 
   @Nonnull
-  private Api computeApi(OpenApiScopeParams scope, OpenApiGenerationParams generation) {
+  private Api extractCached(OpenApiScopingParams scope, OpenApiGenerationParams params) {
+    String apiCacheKey =
+        params.isSkipCache() ? null : scope.getCacheKey() + params.getApiCacheKey();
+    return API_CACHE.get(apiCacheKey, () -> computeApi(scope, params));
+  }
+
+  @Nonnull
+  private Api computeApi(OpenApiScopingParams scoping, OpenApiGenerationParams generation) {
     Map<String, Set<String>> filters = new HashMap<>();
-    for (String s : scope.scope) {
+    for (String s : scoping.scope) {
       String key = s.substring(0, s.indexOf('.'));
       String value = s.substring(s.indexOf('.') + 1);
       filters.computeIfAbsent(key, k -> new HashSet<>()).add(value);
     }
+    Set<Class<?>> controllers = getAllControllerClasses();
+    Api.Scope scope =
+        new Api.Scope(controllers, filters, ApiClassification.matches(controllers, filters));
     Api api =
-        ApiExtractor.extractApi(
-            new ApiExtractor.Configuration(
-                new ApiExtractor.Scope(getAllControllerClasses(), filters),
-                generation.expandedRefs));
+        ApiExtractor.extractApi(scope, new ApiExtractor.Configuration(generation.expandedRefs));
     ApiIntegrator.integrateApi(
         api,
         ApiIntegrator.Configuration.builder()

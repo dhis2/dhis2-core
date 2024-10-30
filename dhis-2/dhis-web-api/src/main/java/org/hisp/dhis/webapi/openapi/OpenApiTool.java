@@ -113,7 +113,8 @@ public class OpenApiTool implements ToolProvider {
     out.println("Generated Documents");
     String filename = args[args.length - 1];
 
-    ApiExtractor.Scope scope = new ApiExtractor.Scope(controllers, filters);
+    Api.Scope scope =
+        new Api.Scope(controllers, filters, ApiClassification.matches(controllers, filters));
     if (!group) {
       return generateDocument(filename, out, err, scope);
     }
@@ -141,10 +142,10 @@ public class OpenApiTool implements ToolProvider {
   }
 
   private AtomicInteger generateDocumentsFromDocumentAnnotation(
-      String to, PrintWriter out, PrintWriter err, ApiExtractor.Scope scope) {
+      String to, PrintWriter out, PrintWriter err, Api.Scope scope) {
     Map<String, Set<Class<?>>> byDoc = new TreeMap<>();
-    scope.controllers().stream()
-        .filter(scope::includes)
+    scope
+        .matches()
         .forEach(
             cls -> byDoc.computeIfAbsent(getDocumentName(cls), key -> new HashSet<>()).add(cls));
     return generateDocumentsFromGroups(to, out, err, scope, byDoc);
@@ -154,7 +155,7 @@ public class OpenApiTool implements ToolProvider {
       String to,
       PrintWriter out,
       PrintWriter err,
-      ApiExtractor.Scope scope,
+      Api.Scope scope,
       Map<String, Set<Class<?>>> groups) {
 
     String dir =
@@ -169,15 +170,21 @@ public class OpenApiTool implements ToolProvider {
           String filename = dir + "/openapi-" + name + fileExtension;
           errorCode.addAndGet(
               generateDocument(
-                  filename, out, err, new ApiExtractor.Scope(classes, scope.filters())));
+                  filename,
+                  out,
+                  err,
+                  new Api.Scope(
+                      classes,
+                      scope.filters(),
+                      ApiClassification.matches(classes, scope.filters()))));
         });
     return errorCode;
   }
 
   private Integer generateDocument(
-      String filename, PrintWriter out, PrintWriter err, ApiExtractor.Scope scope) {
+      String filename, PrintWriter out, PrintWriter err, Api.Scope scope) {
     try {
-      Api api = ApiExtractor.extractApi(new ApiExtractor.Configuration(scope, false));
+      Api api = ApiExtractor.extractApi(scope, new ApiExtractor.Configuration(false));
 
       ApiIntegrator.integrateApi(
           api, ApiIntegrator.Configuration.builder().failOnNameClash(true).build());

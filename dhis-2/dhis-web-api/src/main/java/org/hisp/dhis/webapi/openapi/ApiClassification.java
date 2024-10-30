@@ -28,21 +28,26 @@
 package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Collections.unmodifiableMap;
-import static java.util.Collections.unmodifiableSet;
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import org.hisp.dhis.common.OpenApi;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * The aggregated classifiers map for a set of given controller {@link Class}es.
@@ -55,13 +60,16 @@ import lombok.ToString;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public final class ApiClassification {
 
+  public record Classifier(String value, int percentage) {}
+
   /**
    * All controllers considered in the classification. This is the basis of the analysis and
    * therefore also the key or identity of a classification.
    */
   @EqualsAndHashCode.Include private final Set<Class<?>> controllers;
 
-  @Getter private final Map<String, Set<String>> classifiers;
+  /** All possible values for each type of classifier */
+  @Getter private final Map<String, List<Classifier>> classifiers;
 
   private static final Map<Set<Class<?>>, ApiClassification> CACHE = new ConcurrentHashMap<>();
 
@@ -70,22 +78,69 @@ public final class ApiClassification {
   }
 
   private static ApiClassification create(Set<Class<?>> controllers) {
-    TreeMap<String, Set<String>> classifiers = new TreeMap<>();
+    Map<String, Set<String>> classifiers = collectAllClassifiers(controllers);
+    return new ApiClassification(controllers, sortedByValueCount(controllers, classifiers));
+  }
+
+  @Nonnull
+  private static Map<String, Set<String>> collectAllClassifiers(Set<Class<?>> controllers) {
+    Map<String, Set<String>> classifiers = new TreeMap<>();
     controllers.forEach(
         c ->
             OpenApiAnnotations.getClassifiers(c)
                 .forEach(
                     (classifier, value) ->
                         classifiers.computeIfAbsent(classifier, k -> new TreeSet<>()).add(value)));
-    LinkedHashMap<String, Set<String>> sortedBySize =
+    return classifiers;
+  }
+
+  @Nonnull
+  private static Map<String, List<Classifier>> sortedByValueCount(
+      @Nonnull Set<Class<?>> controllers, Map<String, Set<String>> classifiers) {
+    return unmodifiableMap(
         classifiers.entrySet().stream()
             .sorted(comparingInt(e -> e.getValue().size()))
             .collect(
                 toMap(
                     Map.Entry::getKey,
-                    e -> unmodifiableSet(e.getValue()),
+                    e ->
+                        e.getValue().stream()
+                            .map(v -> toClassifier(e.getKey(), v, controllers))
+                            .toList(),
                     (x, y) -> y,
-                    LinkedHashMap::new));
-    return new ApiClassification(controllers, unmodifiableMap(sortedBySize));
+                    LinkedHashMap::new)));
+  }
+
+  private static Classifier toClassifier(
+      String key, String value, @Nonnull Set<Class<?>> controllers) {
+    int c = matchesCount(controllers, Map.of(key, Set.of(value)));
+    return new Classifier(value, 100 * c / controllers.size());
+  }
+
+  static int matchesCount(
+      @Nonnull Set<Class<?>> controllers, @Nonnull Map<String, Set<String>> filters) {
+    return (int) controllers.stream().filter(c -> matches(filters, c)).count();
+  }
+
+  static Set<Class<?>> matches(
+      @Nonnull Set<Class<?>> controllers, @Nonnull Map<String, Set<String>> filters) {
+    return controllers.stream().filter(c -> matches(filters, c)).collect(toUnmodifiableSet());
+  }
+
+  private static boolean matches(@Nonnull Map<String, Set<String>> filters, Class<?> controller) {
+    if (!isControllerType(controller)) return false;
+    if (filters.isEmpty()) return true;
+    Map<String, String> present = OpenApiAnnotations.getClassifiers(controller);
+    for (Map.Entry<String, Set<String>> filter : filters.entrySet()) {
+      String value = present.get(filter.getKey());
+      if (value != null && filter.getValue().contains(value)) return true;
+    }
+    return false;
+  }
+
+  private static boolean isControllerType(Class<?> source) {
+    return (source.isAnnotationPresent(RestController.class)
+            || source.isAnnotationPresent(Controller.class))
+        && !source.isAnnotationPresent(OpenApi.Ignore.class);
   }
 }
