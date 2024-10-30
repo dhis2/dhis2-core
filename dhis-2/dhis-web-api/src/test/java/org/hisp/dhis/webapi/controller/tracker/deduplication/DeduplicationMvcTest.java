@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.deduplication;
 
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -59,6 +60,7 @@ import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateForbiddenException;
 import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -101,6 +103,7 @@ class DeduplicationMvcTest {
 
   @BeforeEach
   void setUp() {
+    injectSecurityContextNoSettings(new SystemUser());
     deduplicationMergeParams =
         DeduplicationMergeParams.builder()
             .potentialDuplicate(new PotentialDuplicate(original, duplicate))

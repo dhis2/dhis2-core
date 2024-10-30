@@ -33,7 +33,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
@@ -51,7 +50,6 @@ class RelationshipOperationParamsMapper {
   private final TrackedEntityService trackedEntityService;
   private final EnrollmentService enrollmentService;
   private final EventService eventService;
-  private final TrackerAccessManager accessManager;
 
   @Transactional(readOnly = true)
   public RelationshipQueryParams map(@Nonnull RelationshipOperationParams params)
