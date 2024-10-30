@@ -128,8 +128,6 @@ public abstract class AbstractTrackerPersister<
         if (isNew(bundle, trackerDto)) {
           entityManager.persist(convertedDto);
           entityManager.flush();
-          // TODO Add this in PR description: Needs to update data values after persisting the
-          // entity, if not the FK constraint to change logs is not satisfied
           updateDataValues(
               entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
           typeReport.getStats().incCreated();
@@ -141,8 +139,6 @@ public abstract class AbstractTrackerPersister<
             typeReport.getStats().incIgnored();
             // Relationships are not updated. A warning was already added to the report
           } else {
-            // TODO Add this in PR description: Needs to update data values first, if not deleted
-            // values will not be updated in the event object
             updateDataValues(
                 entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
             updateAttributes(
