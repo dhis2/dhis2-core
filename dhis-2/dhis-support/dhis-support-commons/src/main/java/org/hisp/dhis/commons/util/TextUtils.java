@@ -660,8 +660,8 @@ public class TextUtils {
   }
 
   /**
-   * Returns the names of the variables in the given input. The definition of a variable is
-   * ${variableName}.
+   * Returns the names of the variables in the given input. The definition of a variable is <code>
+   * ${variableName}</code>.
    *
    * @param input the input potentially containing variables.
    * @return a set of variable names.
