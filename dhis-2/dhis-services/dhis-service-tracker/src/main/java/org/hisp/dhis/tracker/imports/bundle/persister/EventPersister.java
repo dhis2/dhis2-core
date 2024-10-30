@@ -51,7 +51,6 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
-import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
@@ -175,18 +174,20 @@ public class EventPersister
             logDataValueChange(
                 user.getUsername(),
                 dataElement,
+                "",
                 event,
                 dataValue.getValue(),
-                dataValue.isProvidedElsewhere(),
+                null,
                 ChangeLogType.CREATE);
             saveDataValue(dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isUpdate(dbDataValue, dataValue)) {
             logDataValueChange(
                 user.getUsername(),
                 dataElement,
+                "",
                 event,
+                dataValue.getValue(),
                 dbDataValue.getValue(),
-                dbDataValue.getProvidedElsewhere(),
                 ChangeLogType.UPDATE);
             updateDataValue(
                 dbDataValue, dataValue, event, dataElement, user, entityManager, preheat);
@@ -194,9 +195,10 @@ public class EventPersister
             logDataValueChange(
                 user.getUsername(),
                 dataElement,
+                "",
                 event,
+                null,
                 dbDataValue.getValue(),
-                dbDataValue.getProvidedElsewhere(),
                 ChangeLogType.DELETE);
             deleteDataValue(dbDataValue, event, dataElement, entityManager, preheat);
           }
@@ -264,22 +266,15 @@ public class EventPersister
 
   private void logDataValueChange(
       String userName,
-      DataElement de,
+      DataElement dataElement,
+      String eventProperty,
       Event event,
-      String value,
-      boolean providedElsewhere,
+      String currentValue,
+      String previousValue,
       ChangeLogType changeLogType) {
 
-    TrackedEntityDataValueChangeLog changeLog = new TrackedEntityDataValueChangeLog();
-    changeLog.setEvent(event);
-    changeLog.setValue(value);
-    changeLog.setAuditType(changeLogType);
-    changeLog.setDataElement(de);
-    changeLog.setModifiedBy(userName);
-    changeLog.setProvidedElsewhere(providedElsewhere);
-    changeLog.setCreated(new Date());
-
-    eventChangeLogService.addTrackedEntityDataValueChangeLog(changeLog);
+    eventChangeLogService.addEventChangeLog(
+        event, dataElement, eventProperty, currentValue, previousValue, changeLogType, userName);
   }
 
   @Override

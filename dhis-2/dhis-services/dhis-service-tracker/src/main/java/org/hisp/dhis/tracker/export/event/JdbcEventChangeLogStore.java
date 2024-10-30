@@ -29,12 +29,16 @@ package org.hisp.dhis.tracker.export.event;
 
 import static java.util.Map.entry;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
@@ -43,6 +47,7 @@ import org.hisp.dhis.tracker.export.event.EventChangeLog.Change;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 @Repository("org.hisp.dhis.tracker.export.event.JdbcEventChangeLogStore")
@@ -51,6 +56,8 @@ class JdbcEventChangeLogStore {
   private static final String COLUMN_CHANGELOG_CREATED = "created";
   private static final String DEFAULT_ORDER =
       COLUMN_CHANGELOG_CREATED + " " + SortDirection.DESC.getValue();
+
+  private final NamedParameterJdbcTemplate jdbcTemplate;
 
   /**
    * Event change logs can be ordered by given fields which correspond to fields on {@link
@@ -63,8 +70,6 @@ class JdbcEventChangeLogStore {
   private static final Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(entry("createdAt", COLUMN_CHANGELOG_CREATED));
 
-  private final NamedParameterJdbcTemplate jdbcTemplate;
-
   private static final RowMapper<EventChangeLog> customEventChangeLogRowMapper =
       (rs, rowNum) -> {
         UserInfoSnapshot createdBy = new UserInfoSnapshot();
@@ -76,7 +81,7 @@ class JdbcEventChangeLogStore {
         return new EventChangeLog(
             createdBy,
             rs.getTimestamp(COLUMN_CHANGELOG_CREATED),
-            rs.getString("type"),
+            rs.getString("changelogtype"),
             new Change(
                 new EventChangeLog.DataValueChange(
                     rs.getString("dataelementuid"),
@@ -84,36 +89,49 @@ class JdbcEventChangeLogStore {
                     rs.getString("currentvalue"))));
       };
 
+  public void addEventChangeLog(
+      Event event,
+      DataElement dataElement,
+      String eventProperty,
+      String currentValue,
+      String previousValue,
+      ChangeLogType changeLogType,
+      String userName) {
+    // language=SQL
+    String sql =
+        """
+        insert into eventchangelog (eventid, dataelementid, eventproperty, currentvalue, previousvalue, changelogtype, created, createdby)
+        values (:eventId, :dataElementId, :eventProperty, :currentValue, :previousValue, :changeLogType, :created, :createdBy)
+      """;
+
+    MapSqlParameterSource params =
+        new MapSqlParameterSource()
+            .addValue("eventId", event.getId())
+            .addValue("dataElementId", dataElement.getId())
+            .addValue("eventProperty", eventProperty)
+            .addValue("currentValue", currentValue)
+            .addValue("previousValue", previousValue)
+            .addValue("changeLogType", changeLogType.name())
+            .addValue("created", new Date())
+            .addValue("createdBy", userName);
+
+    jdbcTemplate.update(sql, params);
+  }
+
   public Page<EventChangeLog> getEventChangeLog(
       UID event, List<Order> order, PageParams pageParams) {
     // language=SQL
     String sql =
         """
-            select
-              cl.type,
-              case
-                when cl.type = 'CREATE' then cl.previouschangelogvalue
-                when cl.type = 'UPDATE' and cl.currentchangelogvalue is null then cl.currentvalue
-                when cl.type = 'UPDATE' and cl.currentchangelogvalue is not null then cl.currentchangelogvalue
-              end as currentvalue,
-              case
-                when cl.type = 'DELETE' then cl.previouschangelogvalue
-                when cl.type = 'UPDATE' then cl.previouschangelogvalue
-              end as previousvalue, cl.dataelementuid, cl.created, cl.username, cl.firstname, cl.surname, cl.useruid
-            from
-              (select t.created, d.uid as dataelementuid, t.audittype as type, u.firstname, u.surname, u.username, u.uid as useruid,
-                  LAG (t.value) OVER (PARTITION BY t.eventid, t.dataelementid ORDER BY t.created DESC) AS currentchangelogvalue,
-                  t.value as previouschangelogvalue,
-                  e.eventdatavalues -> d.uid  ->> 'value' as currentvalue
-              from trackedentitydatavalueaudit t
-              join event e using (eventid)
-              join dataelement d using (dataelementid)
-              join userinfo u on u.username = t.modifiedby
-              where t.audittype in ('CREATE', 'UPDATE', 'DELETE')
-              and e.uid = :uid
-              order by %s
-              limit :limit offset :offset) cl
-            """
+           select d.uid as dataelementuid, ecl.currentvalue, ecl.previousvalue, ecl.changelogtype, ecl.created, ecl.createdby, ui.firstname, ui.surname, COALESCE(ui.username, ecl.createdby) as username, ui.uid as useruid
+           from eventchangelog ecl
+           join event e using (eventid)
+           left join dataelement d using (dataelementid)
+           left join userinfo ui on ui.username = ecl.createdby
+           where e.uid = :uid
+           order by %s
+           limit :limit offset :offset;
+        """
             .formatted(sortExpressions(order));
 
     final MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -137,6 +155,24 @@ class JdbcEventChangeLogStore {
 
     return Page.withPrevAndNext(
         changeLogs, pageParams.getPage(), pageParams.getPageSize(), prevPage, null);
+  }
+
+  public void deleteEventChangeLog(Event event) {
+    String sql = """
+          DELETE FROM eventchangelog WHERE eventid = :eventid
+        """;
+    SqlParameterSource params = new MapSqlParameterSource().addValue("eventid", event.getId());
+    jdbcTemplate.update(sql, params);
+  }
+
+  public void deleteEventChangeLog(DataElement dataElement) {
+    String sql =
+        """
+          DELETE FROM eventchangelog WHERE dataelementio = :dataelementio
+        """;
+    SqlParameterSource params =
+        new MapSqlParameterSource().addValue("dataelementio", dataElement.getId());
+    jdbcTemplate.update(sql, params);
   }
 
   private static String sortExpressions(List<Order> order) {

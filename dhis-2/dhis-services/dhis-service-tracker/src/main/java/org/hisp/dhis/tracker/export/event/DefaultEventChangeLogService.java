@@ -32,6 +32,7 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -52,6 +53,20 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   private final HibernateTrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore;
   private final TrackerAccessManager trackerAccessManager;
 
+  @Transactional
+  @Override
+  public void addEventChangeLog(
+      Event event,
+      DataElement dataElement,
+      String eventProperty,
+      String currentValue,
+      String previousValue,
+      ChangeLogType changeLogType,
+      String userName) {
+    jdbcEventChangeLogStore.addEventChangeLog(
+        event, dataElement, eventProperty, currentValue, previousValue, changeLogType, userName);
+  }
+
   @Override
   @Transactional(readOnly = true)
   public Page<EventChangeLog> getEventChangeLog(
@@ -62,6 +77,18 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
 
     return jdbcEventChangeLogStore.getEventChangeLog(
         eventUid, operationParams.getOrder(), pageParams);
+  }
+
+  @Transactional
+  @Override
+  public void deleteEventChangeLog(Event event) {
+    jdbcEventChangeLogStore.deleteEventChangeLog(event);
+  }
+
+  @Transactional
+  @Override
+  public void deleteEventChangeLog(DataElement dataElement) {
+    jdbcEventChangeLogStore.deleteEventChangeLog(dataElement);
   }
 
   @Override

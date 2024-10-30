@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.export.event;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -36,6 +37,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface EventChangeLogService {
 
@@ -55,15 +57,31 @@ public interface EventChangeLogService {
   List<TrackedEntityDataValueChangeLog> getTrackedEntityDataValueChangeLogs(
       TrackedEntityDataValueChangeLogQueryParams params);
 
+  @Deprecated(since = "2.42")
   void addTrackedEntityDataValueChangeLog(
       TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog);
+
+  void addEventChangeLog(
+      Event event,
+      DataElement dataElement,
+      String eventProperty,
+      String currentValue,
+      String previousValue,
+      ChangeLogType changeLogType,
+      String userName);
 
   @Deprecated(since = "2.42")
   int countTrackedEntityDataValueChangeLogs(TrackedEntityDataValueChangeLogQueryParams params);
 
   void deleteTrackedEntityDataValueChangeLog(Event event);
 
+  @Transactional
+  void deleteEventChangeLog(Event event);
+
   void deleteTrackedEntityDataValueChangeLog(DataElement dataElement);
+
+  @Transactional
+  void deleteEventChangeLog(DataElement dataElement);
 
   /**
    * Fields the {@link #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)} can order

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,6 +38,7 @@ import java.io.IOException;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
@@ -264,6 +266,29 @@ class EventChangeLogServiceTest extends TrackerTest {
         () -> assertCreate(dataElementUid, "15", changeLogs.getItems().get(2)));
   }
 
+  @Test
+  void shouldReturnOnlyUserNameWhenUserDoesNotExistInDatabase()
+      throws ForbiddenException, NotFoundException {
+    Event event = getEvent("QRYjLTiJTrA");
+    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
+    DataElement dataElement = manager.get(DataElement.class, dataElementUid);
+    User fakeUser = new User();
+    fakeUser.setUsername("fakeUserName");
+    eventChangeLogService.addEventChangeLog(
+        event, dataElement, "", "current", "previous", UPDATE, fakeUser.getUsername());
+
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(
+            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
+
+    assertNumberOfChanges(2, changeLogs.getItems());
+    assertAll(
+        () ->
+            assertUpdate(
+                dataElementUid, "previous", "current", changeLogs.getItems().get(0), fakeUser),
+        () -> assertCreate(dataElementUid, "15", changeLogs.getItems().get(1)));
+  }
+
   private void updateDataValue(
       TrackerObjects trackerObjects, Event event, String dataElementUid, String newValue) {
     trackerObjects.getEvents().stream()
@@ -308,8 +333,17 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   private void assertUpdate(
       String dataElement, String previousValue, String currentValue, EventChangeLog changeLog) {
+    assertUpdate(dataElement, previousValue, currentValue, changeLog, importUser);
+  }
+
+  private void assertUpdate(
+      String dataElement,
+      String previousValue,
+      String currentValue,
+      EventChangeLog changeLog,
+      User user) {
     assertAll(
-        () -> assertUser(importUser, changeLog),
+        () -> assertUser(user, changeLog),
         () -> assertEquals("UPDATE", changeLog.type()),
         () -> assertChange(dataElement, previousValue, currentValue, changeLog));
   }
