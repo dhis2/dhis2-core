@@ -1621,10 +1621,10 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     DataElement de4 = createDataElement('j');
     de4.getDataSetElements().add(dse4);
 
-    ds1.setDataSetElements(Set.of(dse1));
-    ds2.setDataSetElements(Set.of(dse2));
-    ds3.setDataSetElements(Set.of(dse3));
-    ds4.setDataSetElements(Set.of(dse4));
+    ds1.addDataSetElement(dse1);
+    ds2.addDataSetElement(dse2);
+    ds3.addDataSetElement(dse3);
+    ds4.addDataSetElement(dse4);
 
     identifiableObjectManager.save(List.of(ds1, ds2, ds3, ds4, de1, de2, de3, de4));
 
@@ -1682,10 +1682,10 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     DataElement de4 = createDataElement('j');
     de4.getDataSetElements().add(dse4);
 
-    ds1.setDataSetElements(Set.of(dse1));
-    ds2.setDataSetElements(Set.of(dse2));
-    ds3.setDataSetElements(Set.of(dse3));
-    ds4.setDataSetElements(Set.of(dse4));
+    ds1.addDataSetElement(dse1);
+    ds2.addDataSetElement(dse2);
+    ds3.addDataSetElement(dse3);
+    ds4.addDataSetElement(dse4);
 
     identifiableObjectManager.save(List.of(ds1, ds2, ds3, ds4, de1, de2, de3, de4));
 
