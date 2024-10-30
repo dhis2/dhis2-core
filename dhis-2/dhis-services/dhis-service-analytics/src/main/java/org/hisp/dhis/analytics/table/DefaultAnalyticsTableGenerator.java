@@ -111,6 +111,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     progress.startingStage("Invalidate analytics caches", SKIP_STAGE);
     progress.runStage(analyticsCache::invalidateAll);
     progress.runStage(outliersCache::invalidateAll);
+    clock.logTime( "Analytics tables updated" );
     progress.completedProcess("Analytics tables updated: {}", clock.time());
   }
 
