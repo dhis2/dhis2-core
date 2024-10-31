@@ -244,12 +244,16 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     switchContextToUser(user);
 
     JsonWebMessage response =
-        POST("/sms/inbound", format("""
+        POST(
+                "/sms/inbound",
+                format(
+                    """
 {
 "text": "%s",
 "originator": "%s"
 }
-""", text, originator))
+""",
+                    text, originator))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
 

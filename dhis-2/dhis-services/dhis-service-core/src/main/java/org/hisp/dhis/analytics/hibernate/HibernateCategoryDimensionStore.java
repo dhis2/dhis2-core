@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,45 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.analytics.hibernate;
 
+import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.dataelement.DataElement;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.analytics.CategoryDimensionStore;
+import org.hisp.dhis.category.CategoryDimension;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
- * @author Lars Helge Overland
+ * @author david mackessy
  */
-public interface CategoryOptionComboStore extends IdentifiableObjectStore<CategoryOptionCombo> {
-  CategoryOptionCombo getCategoryOptionCombo(
-      CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions);
+@Repository
+public class HibernateCategoryDimensionStore extends HibernateGenericStore<CategoryDimension>
+    implements CategoryDimensionStore {
 
-  void updateNames();
+  public HibernateCategoryDimensionStore(
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, CategoryDimension.class, false);
+  }
 
-  void deleteNoRollBack(CategoryOptionCombo categoryOptionCombo);
-
-  /**
-   * Fetch all {@link CategoryOptionCombo} from a given {@link CategoryOptionGroup} uid, that are
-   * also contained in the {@link CategoryCombo} of the {@link DataElement}.
-   *
-   * <p>A {@link CategoryOptionGroup} is a collection of {@link CategoryOption}. Therefore, this
-   * method finds all {@link CategoryOptionCombo} for all the members of the given {@link
-   * CategoryOptionGroup}
-   *
-   * @param groupId a {@link CategoryOptionGroup} uid
-   * @param dataElementId a {@link DataElement} uid
-   * @return a List of {@link CategoryOptionCombo} or empty List
-   */
-  List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid(String groupId, String dataElementId);
-
-  /**
-   * Retrieves all CategoryOptionCombos with a ref to any of the CategoryOptions passed in.
-   *
-   * @param categoryOptions refs to search for
-   * @return categoryOptionCombos with refs to categoryOptions
-   */
-  List<CategoryOptionCombo> getCategoryOptionCombosByCategoryOption(
-      Collection<String> categoryOptions);
+  @Override
+  public List<CategoryDimension> getByCategoryOption(@Nonnull Collection<String> categoryOptions) {
+    if (categoryOptions.isEmpty()) return List.of();
+    return getQuery(
+            """
+            select distinct cd from CategoryDimension cd
+            join cd.items co
+            where co.uid in :categoryOptions
+            """,
+            CategoryDimension.class)
+        .setParameter("categoryOptions", categoryOptions)
+        .getResultList();
+  }
 }

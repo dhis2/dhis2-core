@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataelement;
+package org.hisp.dhis.category;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -39,23 +39,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryComboStore;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionComboStore;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.category.CategoryOptionGroupSetStore;
-import org.hisp.dhis.category.CategoryOptionGroupStore;
-import org.hisp.dhis.category.CategoryOptionStore;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.category.CategoryStore;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.security.acl.AccessStringHelper;
@@ -208,6 +198,11 @@ public class DefaultCategoryService implements CategoryService {
     return categoryStore.getCategoriesNoAcl(DataDimensionType.ATTRIBUTE, true);
   }
 
+  @Override
+  public List<Category> getCategoriesByCategoryOption(Collection<UID> categoryOptions) {
+    return categoryStore.getCategoriesByCategoryOption(UID.toValueList(categoryOptions));
+  }
+
   // -------------------------------------------------------------------------
   // CategoryOption
   // -------------------------------------------------------------------------
@@ -308,6 +303,11 @@ public class DefaultCategoryService implements CategoryService {
     }
 
     return options;
+  }
+
+  @Override
+  public List<CategoryOption> getCategoryOptionsByUid(List<String> catOptionUids) {
+    return categoryOptionStore.getByUid(catOptionUids);
   }
 
   // -------------------------------------------------------------------------
@@ -662,6 +662,13 @@ public class DefaultCategoryService implements CategoryService {
     categoryOptionComboStore.updateNames();
   }
 
+  @Override
+  public List<CategoryOptionCombo> getCategoryOptionCombosByCategoryOption(
+      Collection<UID> categoryOptionsUids) {
+    return categoryOptionComboStore.getCategoryOptionCombosByCategoryOption(
+        UID.toValueList(categoryOptionsUids));
+  }
+
   // -------------------------------------------------------------------------
   // DataElementOperand
   // -------------------------------------------------------------------------
@@ -770,6 +777,12 @@ public class DefaultCategoryService implements CategoryService {
   @Transactional(readOnly = true)
   public List<CategoryOptionGroup> getCategoryOptionGroups(CategoryOptionGroupSet groupSet) {
     return categoryOptionGroupStore.getCategoryOptionGroups(groupSet);
+  }
+
+  @Override
+  public List<CategoryOptionGroup> getCategoryOptionGroupByCategoryOption(
+      Collection<UID> categoryOptions) {
+    return categoryOptionGroupStore.getByCategoryOption(UID.toValueList(categoryOptions));
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.webapi.openapi;
 
-import java.util.Collection;
 import java.util.List;
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.GenericDimensionalObjectStore;
+import java.util.Map;
 
 /**
- * @author Lars Helge Overland
+ * @param classifications all classifications available
+ * @param full the entire API with no filters
+ * @param partial the API currently shown
  */
-public interface CategoryStore extends GenericDimensionalObjectStore<Category> {
-  List<Category> getCategoriesByDimensionType(DataDimensionType dataDimensionType);
+public record ApiStatistics(ApiClassifications classifications, Api full, Api partial) {
 
-  List<Category> getCategories(DataDimensionType dataDimensionType, boolean dataDimension);
+  ApiStatistics(Api full, Api partial) {
+    this(ApiClassifications.of(full.getScope().controllers()), full, partial);
+  }
 
-  List<Category> getCategoriesNoAcl(DataDimensionType dataDimensionType, boolean dataDimension);
+  record Ratio(String name, int count, int total, int percentage) {
+    Ratio(String name, int count, int total) {
+      this(name, count, total, 100 * count / total);
+    }
+  }
 
-  List<Category> getCategoriesByCategoryOption(Collection<String> categoryOptions);
+  List<Ratio> compute() {
+    return List.of(
+        new Ratio("operations", operations(partial), operations(full)),
+        new Ratio("schemas", schemas(partial), schemas(full)),
+        new Ratio("parameters", parameters(partial), parameters(full)));
+  }
+
+  private static int operations(Api in) {
+    return in.getEndpoints().values().stream().mapToInt(Map::size).sum();
+  }
+
+  private static int schemas(Api in) {
+    return in.getComponents().getSchemas().size();
+  }
+
+  private static int parameters(Api in) {
+    return in.getComponents().getParameters().values().stream().mapToInt(List::size).sum();
+  }
 }

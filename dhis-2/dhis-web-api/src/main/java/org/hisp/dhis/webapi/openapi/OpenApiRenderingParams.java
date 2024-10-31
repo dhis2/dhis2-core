@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.webapi.openapi;
 
-import java.util.Collection;
-import java.util.List;
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.GenericDimensionalObjectStore;
+import lombok.Data;
+import org.hisp.dhis.common.Maturity.Alpha;
+import org.hisp.dhis.common.Maturity.Beta;
+import org.hisp.dhis.common.Maturity.Stable;
+import org.hisp.dhis.common.OpenApi;
 
-/**
- * @author Lars Helge Overland
- */
-public interface CategoryStore extends GenericDimensionalObjectStore<Category> {
-  List<Category> getCategoriesByDimensionType(DataDimensionType dataDimensionType);
+@Data
+@OpenApi.Shared
+public class OpenApiRenderingParams {
+  @Alpha boolean sortEndpointsByMethod = true; // make this a sortEndpointsBy=method,path,id thing?
 
-  List<Category> getCategories(DataDimensionType dataDimensionType, boolean dataDimension);
+  @Stable
+  @OpenApi.Description("Include the JSON source in the operations and schemas (for debug purposes)")
+  boolean source = false;
 
-  List<Category> getCategoriesNoAcl(DataDimensionType dataDimensionType, boolean dataDimension);
-
-  List<Category> getCategoriesByCategoryOption(Collection<String> categoryOptions);
+  @Beta
+  @OpenApi.Description(
+      """
+    Values of a shared enum with less than the limit values will show the first n values up to limit
+    directly where the type is used""")
+  int inlineEnumsLimit = 0;
 }

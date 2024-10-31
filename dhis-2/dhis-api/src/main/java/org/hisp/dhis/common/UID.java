@@ -105,4 +105,9 @@ public final class UID implements Serializable {
   public static List<String> toValueList(Collection<UID> uids) {
     return uids.stream().map(UID::getValue).toList();
   }
+
+  public static <T extends BaseIdentifiableObject> Set<String> toUidValueSet(
+      @Nonnull Collection<T> elements) {
+    return elements.stream().map(BaseIdentifiableObject::getUid).collect(toUnmodifiableSet());
+  }
 }
