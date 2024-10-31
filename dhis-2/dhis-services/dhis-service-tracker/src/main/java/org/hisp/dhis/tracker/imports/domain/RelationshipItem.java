@@ -33,6 +33,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -43,9 +44,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RelationshipItem implements Serializable {
 
-  @JsonProperty private String trackedEntity;
+  @JsonProperty private UID trackedEntity;
 
-  @JsonProperty private String enrollment;
+  @JsonProperty private UID enrollment;
 
-  @JsonProperty private String event;
+  @JsonProperty private UID event;
 }

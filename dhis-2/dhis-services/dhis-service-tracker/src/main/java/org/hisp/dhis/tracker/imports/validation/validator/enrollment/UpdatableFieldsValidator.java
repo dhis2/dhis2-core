@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1127;
 
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -54,7 +55,7 @@ class UpdatableFieldsValidator
     reporter.addErrorIf(
         () -> !enrollment.getProgram().isEqualTo(program), enrollment, E1127, "program");
     reporter.addErrorIf(
-        () -> !trackedEntity.getUid().equals(enrollment.getTrackedEntity()),
+        () -> !UID.of(trackedEntity).equals(enrollment.getTrackedEntity()),
         enrollment,
         E1127,
         "trackedEntity");

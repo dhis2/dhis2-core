@@ -35,7 +35,7 @@ import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidatio
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -58,7 +58,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class MetaValidatorTest {
   private static final String ORG_UNIT_UID = "OrgUnitUid";
 
-  private static final String TRACKED_ENTITY_UID = "TrackedEntityUid";
+  private static final UID TRACKED_ENTITY_UID = UID.generate();
 
   private static final String PROGRAM_UID = "ProgramUid";
 
@@ -144,7 +144,7 @@ class MetaValidatorTest {
 
   private Enrollment validEnrollment() {
     return Enrollment.builder()
-        .enrollment(CodeGenerator.generateUid())
+        .enrollment(UID.generate())
         .trackedEntity(TRACKED_ENTITY_UID)
         .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID))
         .program(MetadataIdentifier.ofUid(PROGRAM_UID))

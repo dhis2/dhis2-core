@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -194,7 +195,7 @@ class AttributeValidator
                     enrollment.getEnrollment()));
   }
 
-  private MetadataIdentifier getOrgUnitUidFromTei(TrackerBundle bundle, String teUid) {
+  private MetadataIdentifier getOrgUnitUidFromTei(TrackerBundle bundle, UID teUid) {
     return bundle
         .findTrackedEntityByUid(teUid)
         .map(org.hisp.dhis.tracker.imports.domain.TrackedEntity::getOrgUnit)

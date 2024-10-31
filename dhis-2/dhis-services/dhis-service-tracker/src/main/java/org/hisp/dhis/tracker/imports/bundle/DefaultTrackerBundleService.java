@@ -39,6 +39,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -137,17 +138,17 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   }
 
   private void updateTrackedEntitiesLastUpdated(TrackerBundle bundle) {
-    Set<String> updatedTrackedEntities = bundle.getUpdatedTrackedEntities();
+    Set<UID> updatedTrackedEntities = bundle.getUpdatedTrackedEntities();
 
     if (updatedTrackedEntities.isEmpty()) {
       return;
     }
 
-    List<List<String>> uidsPartitions =
+    List<List<UID>> uidsPartitions =
         Lists.partition(Lists.newArrayList(bundle.getUpdatedTrackedEntities()), 20000);
 
     try (Session session = entityManager.unwrap(Session.class)) {
-      for (List<String> trackedEntities : uidsPartitions) {
+      for (List<UID> trackedEntities : uidsPartitions) {
         if (trackedEntities.isEmpty()) {
           continue;
         }
@@ -157,12 +158,12 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   }
 
   private void executeLastUpdatedQuery(
-      Session session, List<String> trackedEntities, UserDetails user) {
+      Session session, List<UID> trackedEntities, UserDetails user) {
     try {
       UserInfoSnapshot userInfo = UserInfoSnapshot.from(user);
       session
           .getNamedQuery("updateTrackedEntitiesLastUpdated")
-          .setParameter("trackedEntities", trackedEntities)
+          .setParameter("trackedEntities", UID.toValueList(trackedEntities))
           .setParameter("lastUpdated", new Date())
           .setParameter("lastupdatedbyuserinfo", mapper.writeValueAsString(userInfo))
           .executeUpdate();

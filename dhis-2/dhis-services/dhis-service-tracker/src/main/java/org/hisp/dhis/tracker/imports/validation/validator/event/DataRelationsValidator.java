@@ -42,7 +42,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -94,7 +93,7 @@ class DataRelationsValidator implements Validator<Event> {
       return;
     }
 
-    if (StringUtils.isEmpty(event.getEnrollment())) {
+    if (event.getEnrollment() == null) {
       reporter.addError(event, E1033, event.getEvent());
     } else {
       Program enrollmentProgram = getEnrollmentProgramFromEvent(bundle, event);

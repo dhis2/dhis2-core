@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
+import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
+
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -42,6 +44,7 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil;
@@ -116,11 +119,11 @@ class CsvEventService implements CsvService<Event> {
 
   private static CsvEventDataValue map(Event event) {
     CsvEventDataValue result = new CsvEventDataValue();
-    result.setEvent(event.getEvent());
+    result.setEvent(applyIfNotNull(event.getEvent(), UID::getValue));
     result.setStatus(event.getStatus() != null ? event.getStatus().name() : null);
     result.setProgram(event.getProgram());
     result.setProgramStage(event.getProgramStage());
-    result.setEnrollment(event.getEnrollment());
+    result.setEnrollment(applyIfNotNull(event.getEnrollment(), UID::getValue));
     result.setOrgUnit(event.getOrgUnit());
     result.setOccurredAt(event.getOccurredAt() == null ? null : event.getOccurredAt().toString());
     result.setScheduledAt(
@@ -193,7 +196,7 @@ class CsvEventService implements CsvService<Event> {
     while (iterator.hasNext()) {
       CsvEventDataValue dataValue = iterator.next();
 
-      if (!Objects.equals(event.getEvent(), dataValue.getEvent())) {
+      if (!Objects.equals(applyIfNotNull(event.getEvent(), UID::getValue), dataValue.getEvent())) {
         event = map(dataValue);
         events.add(event);
       }
@@ -223,14 +226,15 @@ class CsvEventService implements CsvService<Event> {
   private static Event map(CsvEventDataValue dataValue) throws ParseException {
     Event event;
     event = new Event();
-    event.setEvent(dataValue.getEvent());
+    event.setEvent(StringUtils.isBlank(dataValue.getEvent()) ? null : UID.of(dataValue.getEvent()));
     event.setStatus(
         StringUtils.isEmpty(dataValue.getStatus())
             ? EventStatus.ACTIVE
             : Enum.valueOf(EventStatus.class, dataValue.getStatus()));
     event.setProgram(dataValue.getProgram());
     event.setProgramStage(dataValue.getProgramStage());
-    event.setEnrollment(dataValue.getEnrollment());
+    event.setEnrollment(
+        StringUtils.isBlank(dataValue.getEnrollment()) ? null : UID.of(dataValue.getEnrollment()));
     event.setOrgUnit(dataValue.getOrgUnit());
     event.setCreatedAt(DateUtils.instantFromDateAsString(dataValue.getCreatedAt()));
     event.setCreatedAtClient(DateUtils.instantFromDateAsString(dataValue.getCreatedAtClient()));

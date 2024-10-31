@@ -43,7 +43,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.ValidationMode;
@@ -152,7 +152,7 @@ class DefaultValidationServiceTest extends TestBase {
   }
 
   private TrackedEntity trackedEntity() {
-    return TrackedEntity.builder().trackedEntity(CodeGenerator.generateUid()).build();
+    return TrackedEntity.builder().trackedEntity(UID.generate()).build();
   }
 
   private List<TrackedEntity> trackedEntities(TrackedEntity... trackedEntities) {

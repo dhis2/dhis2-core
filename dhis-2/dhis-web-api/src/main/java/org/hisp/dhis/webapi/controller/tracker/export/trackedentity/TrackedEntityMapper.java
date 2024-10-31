@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 import static java.util.Map.entry;
 
 import java.util.Map;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.ProgramOwnerMapper;
@@ -80,4 +81,8 @@ interface TrackedEntityMapper
   @Mapping(target = "attributes", source = "trackedEntityAttributeValues")
   @Override
   org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity from(TrackedEntity trackedEntity);
+
+  default UID map(String value) {
+    return UID.of(value);
+  }
 }

@@ -34,6 +34,7 @@ import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidatio
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
@@ -74,7 +75,7 @@ class DuplicationValidatorTest {
   void shouldFailWhenRelationshipIsDuplicated() {
     Relationship relationship =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .relationshipType(MetadataIdentifier.ofUid(createRelTypeConstraint().getUid()))
             .from(trackedEntityRelationshipItem())
             .to(trackedEntityRelationshipItem())
@@ -91,7 +92,7 @@ class DuplicationValidatorTest {
   void shouldBeValidWhenRelationshipIsNotDuplicated() {
     Relationship relationship =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .relationshipType(MetadataIdentifier.ofUid(createRelTypeConstraint().getUid()))
             .from(trackedEntityRelationshipItem())
             .to(trackedEntityRelationshipItem())
@@ -121,6 +122,6 @@ class DuplicationValidatorTest {
   }
 
   private RelationshipItem trackedEntityRelationshipItem() {
-    return RelationshipItem.builder().trackedEntity(CodeGenerator.generateUid()).build();
+    return RelationshipItem.builder().trackedEntity(UID.generate()).build();
   }
 }

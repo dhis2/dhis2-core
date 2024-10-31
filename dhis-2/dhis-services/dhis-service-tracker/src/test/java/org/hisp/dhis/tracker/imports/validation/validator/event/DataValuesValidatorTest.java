@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -159,7 +159,7 @@ class DataValuesValidatorTest {
 
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.SKIPPED)
             .dataValues(Set.of(dataValue()))
@@ -194,7 +194,7 @@ class DataValuesValidatorTest {
 
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
             .dataValues(Set.of(dataValue()))
@@ -245,7 +245,7 @@ class DataValuesValidatorTest {
   void shouldPassValidationWhenAMandatoryDataElementIsMissingAndDataValueIsAlreadyPresentInDB(
       EventStatus savedStatus, EventStatus newStatus) {
     DataElement dataElement = dataElement();
-    String eventUid = CodeGenerator.generateUid();
+    UID eventUid = UID.generate();
     when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
         .thenReturn(dataElement);
 
@@ -286,7 +286,7 @@ class DataValuesValidatorTest {
   void shouldFailValidationWhenAMandatoryDataElementIsMissingAndDataValuesAreCreated(
       EventStatus savedStatus, EventStatus newStatus) {
     DataElement dataElement = dataElement();
-    String eventUid = CodeGenerator.generateUid();
+    UID eventUid = UID.generate();
     when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
         .thenReturn(dataElement);
 
@@ -380,7 +380,7 @@ class DataValuesValidatorTest {
     notPresentDataValue.setDataElement(MetadataIdentifier.ofUid("de_not_present_in_program_stage"));
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(dataValue(), notPresentDataValue))
@@ -440,7 +440,7 @@ class DataValuesValidatorTest {
 
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.SKIPPED)
             .dataValues(Set.of(validDataValue))
@@ -492,7 +492,7 @@ class DataValuesValidatorTest {
     validDataValue.setValue(null);
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
             .dataValues(Set.of(validDataValue))
@@ -518,7 +518,7 @@ class DataValuesValidatorTest {
     validDataValue.setValue(null);
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(validDataValue))
@@ -532,7 +532,7 @@ class DataValuesValidatorTest {
   @Test
   void shouldFailValidationWhenDataElementValueNullAndStrategyUpdate() {
     DataElement validDataElement = dataElement();
-    String eventUid = CodeGenerator.generateUid();
+    UID eventUid = UID.generate();
     when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
         .thenReturn(validDataElement);
 
@@ -572,7 +572,7 @@ class DataValuesValidatorTest {
     validDataValue.setValue(null);
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
             .dataValues(Set.of(validDataValue))
@@ -623,7 +623,7 @@ class DataValuesValidatorTest {
     validDataValue.setValue(null);
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
             .dataValues(Set.of(validDataValue))
@@ -648,7 +648,7 @@ class DataValuesValidatorTest {
     validDataValue.setValue("1");
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.SCHEDULE)
             .dataValues(Set.of(validDataValue))
@@ -673,7 +673,7 @@ class DataValuesValidatorTest {
     validDataValue.setValue("1");
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.SKIPPED)
             .dataValues(Set.of(validDataValue))
@@ -698,7 +698,7 @@ class DataValuesValidatorTest {
     validDataValue.setValue("1");
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.OVERDUE)
             .dataValues(Set.of(validDataValue))
@@ -749,7 +749,7 @@ class DataValuesValidatorTest {
     when(preheat.get(FileResource.class, validDataValue.getValue())).thenReturn(fileResource);
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(validDataValue))
@@ -786,7 +786,7 @@ class DataValuesValidatorTest {
     when(preheat.get(FileResource.class, validDataValue.getValue())).thenReturn(fileResource);
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(validDataValue))
@@ -798,8 +798,9 @@ class DataValuesValidatorTest {
 
     assertHasError(reporter, event, ValidationCode.E1009);
 
-    event.setEvent("XYZ");
-    fileResource.setFileResourceOwner("ABC");
+    UID uid = UID.generate();
+    event.setEvent(UID.generate());
+    fileResource.setFileResourceOwner(uid.getValue());
 
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
 
@@ -809,8 +810,8 @@ class DataValuesValidatorTest {
 
     assertHasError(reporter, event, ValidationCode.E1009);
 
-    event.setEvent("ABC");
-    fileResource.setFileResourceOwner("ABC");
+    event.setEvent(uid);
+    fileResource.setFileResourceOwner(uid.getValue());
 
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
 
@@ -894,7 +895,7 @@ class DataValuesValidatorTest {
 
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.SKIPPED)
             .dataValues(Set.of(validDataValue))
@@ -961,7 +962,7 @@ class DataValuesValidatorTest {
 
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.SKIPPED)
             .dataValues(Set.of(validDataValue))
@@ -987,7 +988,7 @@ class DataValuesValidatorTest {
 
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(invalidDataValue))
@@ -1039,7 +1040,7 @@ class DataValuesValidatorTest {
     validDataValue.setValue(value);
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.SKIPPED)
             .dataValues(Set.of(validDataValue))
@@ -1051,10 +1052,9 @@ class DataValuesValidatorTest {
     assertHasError(reporter, event, ValidationCode.E1302);
   }
 
-  private org.hisp.dhis.program.Event event(
-      String uid, EventStatus status, Set<String> dataElements) {
+  private org.hisp.dhis.program.Event event(UID uid, EventStatus status, Set<String> dataElements) {
     org.hisp.dhis.program.Event event = new org.hisp.dhis.program.Event();
-    event.setUid(uid);
+    event.setUid(uid.getValue());
     event.setStatus(status);
     event.setEventDataValues(
         dataElements.stream()
@@ -1063,9 +1063,9 @@ class DataValuesValidatorTest {
     return event;
   }
 
-  private org.hisp.dhis.program.Event event(String uid, EventStatus status) {
+  private org.hisp.dhis.program.Event event(UID uid, EventStatus status) {
     org.hisp.dhis.program.Event event = new org.hisp.dhis.program.Event();
-    event.setUid(uid);
+    event.setUid(uid.getValue());
     event.setStatus(status);
     return event;
   }

@@ -89,7 +89,8 @@ public class EventPersister
 
     return TrackerNotificationDataBundle.builder()
         .klass(Event.class)
-        .eventNotifications(bundle.getEventNotifications().get(UID.of(event.getUid())))
+        .eventNotifications(
+            bundle.getEventNotifications().getOrDefault(UID.of(event.getUid()), List.of()))
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUser().getUsername())
@@ -158,7 +159,7 @@ public class EventPersister
       Event event,
       UserDetails user) {
     Map<String, EventDataValue> dataValueDBMap =
-        Optional.ofNullable(preheat.getEvent(event.getUid()))
+        Optional.ofNullable(preheat.getEvent(UID.of(event)))
             .map(
                 a ->
                     a.getEventDataValues().stream()
@@ -289,10 +290,10 @@ public class EventPersister
   }
 
   @Override
-  protected String getUpdatedTrackedEntity(Event entity) {
+  protected UID getUpdatedTrackedEntity(Event entity) {
     return Optional.ofNullable(entity.getEnrollment())
         .filter(e -> e.getTrackedEntity() != null)
-        .map(e -> e.getTrackedEntity().getUid())
+        .map(e -> UID.of(e.getTrackedEntity()))
         .orElse(null);
   }
 

@@ -33,6 +33,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4000;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
@@ -66,9 +67,9 @@ class LinkValidatorTest {
     RelationshipType relType = createRelTypeConstraint();
     Relationship relationship =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
-            .from(trackedEntityRelationshipItem(CodeGenerator.generateUid()))
-            .to(trackedEntityRelationshipItem(CodeGenerator.generateUid()))
+            .relationship(UID.generate())
+            .from(trackedEntityRelationshipItem(UID.generate()))
+            .to(trackedEntityRelationshipItem(UID.generate()))
             .relationshipType(MetadataIdentifier.ofUid(relType.getUid()))
             .build();
 
@@ -80,10 +81,10 @@ class LinkValidatorTest {
   @Test
   void shouldFailWhenRelationshipLinksEntityToItself() {
     RelationshipType relType = createRelTypeConstraint();
-    String uid = CodeGenerator.generateUid();
+    UID uid = UID.generate();
     Relationship relationship =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .from(trackedEntityRelationshipItem(uid))
             .to(trackedEntityRelationshipItem(uid))
             .relationshipType(MetadataIdentifier.ofUid(relType.getUid()))
@@ -114,7 +115,7 @@ class LinkValidatorTest {
     return relType;
   }
 
-  private RelationshipItem trackedEntityRelationshipItem(String trackedEntityUid) {
+  private RelationshipItem trackedEntityRelationshipItem(UID trackedEntityUid) {
     return RelationshipItem.builder().trackedEntity(trackedEntityUid).build();
   }
 }

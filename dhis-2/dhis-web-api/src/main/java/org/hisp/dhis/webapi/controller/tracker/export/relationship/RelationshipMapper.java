@@ -32,6 +32,7 @@ import static java.util.Map.entry;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
@@ -63,6 +64,10 @@ public abstract class RelationshipMapper
   @Mapping(target = "updatedAt", source = "lastUpdated")
   @Override
   public abstract Relationship from(org.hisp.dhis.relationship.Relationship relationship);
+
+  UID map(String value) {
+    return UID.of(value);
+  }
 
   /**
    * Maps {@code Set}'s of {@link org.hisp.dhis.relationship.RelationshipItem}'s to {@link

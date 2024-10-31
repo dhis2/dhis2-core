@@ -37,6 +37,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
 import java.util.List;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -71,9 +72,9 @@ class RepeatedEventsValidatorTest extends TestBase {
   private static final String NOT_REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION =
       "NOT_REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION";
 
-  private static final String ENROLLMENT_A = "ENROLLMENT_A";
+  private static final UID ENROLLMENT_A = UID.generate();
 
-  private static final String ENROLLMENT_B = "ENROLLMENT_B";
+  private static final UID ENROLLMENT_B = UID.generate();
 
   private RepeatedEventsValidator validator;
 
@@ -99,7 +100,7 @@ class RepeatedEventsValidatorTest extends TestBase {
     when(preheat.getProgramStage(
             MetadataIdentifier.ofUid(NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION)))
         .thenReturn(notRepeatebleProgramStageWithRegistration());
-    List<Event> events = Lists.newArrayList(notRepeatableEvent("A"));
+    List<Event> events = Lists.newArrayList(notRepeatableEvent());
     bundle.setEvents(events);
     events.forEach(e -> bundle.setStrategy(e, TrackerImportStrategy.CREATE_AND_UPDATE));
 
@@ -114,9 +115,9 @@ class RepeatedEventsValidatorTest extends TestBase {
             MetadataIdentifier.ofUid(NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION)))
         .thenReturn(notRepeatebleProgramStageWithRegistration());
     // given
-    Event event = notRepeatableEvent("A");
+    Event event = notRepeatableEvent();
     Enrollment enrollment = new Enrollment();
-    enrollment.setUid(event.getEnrollment());
+    enrollment.setUid(event.getEnrollment().getValue());
 
     // when
     bundle.setStrategy(event, TrackerImportStrategy.CREATE);
@@ -143,7 +144,7 @@ class RepeatedEventsValidatorTest extends TestBase {
     when(preheat.getProgramStage(
             MetadataIdentifier.ofUid(NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION)))
         .thenReturn(notRepeatebleProgramStageWithRegistration());
-    List<Event> events = Lists.newArrayList(notRepeatableEvent("A"), notRepeatableEvent("B"));
+    List<Event> events = Lists.newArrayList(notRepeatableEvent(), notRepeatableEvent());
     bundle.setEvents(events);
     events.forEach(e -> bundle.setStrategy(e, TrackerImportStrategy.CREATE_AND_UPDATE));
 
@@ -173,7 +174,7 @@ class RepeatedEventsValidatorTest extends TestBase {
     when(preheat.getProgramStage(
             MetadataIdentifier.ofUid(REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION)))
         .thenReturn(repeatebleProgramStageWithRegistration());
-    List<Event> events = Lists.newArrayList(repeatableEvent("A"), repeatableEvent("B"));
+    List<Event> events = Lists.newArrayList(repeatableEvent(), repeatableEvent());
     bundle.setEvents(events);
     events.forEach(e -> bundle.setStrategy(e, TrackerImportStrategy.CREATE_AND_UPDATE));
 
@@ -187,8 +188,8 @@ class RepeatedEventsValidatorTest extends TestBase {
     when(preheat.getProgramStage(
             MetadataIdentifier.ofUid(NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION)))
         .thenReturn(notRepeatebleProgramStageWithRegistration());
-    Event invalidEvent = notRepeatableEvent("A");
-    List<Event> events = Lists.newArrayList(invalidEvent, notRepeatableEvent("B"));
+    Event invalidEvent = notRepeatableEvent();
+    List<Event> events = Lists.newArrayList(invalidEvent, notRepeatableEvent());
     bundle.setEvents(events);
     events.forEach(e -> bundle.setStrategy(e, TrackerImportStrategy.CREATE_AND_UPDATE));
     reporter.addError(
@@ -204,8 +205,8 @@ class RepeatedEventsValidatorTest extends TestBase {
     when(preheat.getProgramStage(
             MetadataIdentifier.ofUid(NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION)))
         .thenReturn(notRepeatebleProgramStageWithRegistration());
-    Event eventEnrollmentA = notRepeatableEvent("A");
-    Event eventEnrollmentB = notRepeatableEvent("B");
+    Event eventEnrollmentA = notRepeatableEvent();
+    Event eventEnrollmentB = notRepeatableEvent();
     eventEnrollmentB.setEnrollment(ENROLLMENT_B);
     List<Event> events = Lists.newArrayList(eventEnrollmentA, eventEnrollmentB);
     bundle.setEvents(events);
@@ -221,8 +222,8 @@ class RepeatedEventsValidatorTest extends TestBase {
     when(preheat.getProgramStage(
             MetadataIdentifier.ofUid(NOT_REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION)))
         .thenReturn(notRepeatebleProgramStageWithoutRegistration());
-    Event eventProgramA = programEvent("A");
-    Event eventProgramB = programEvent("B");
+    Event eventProgramA = programEvent();
+    Event eventProgramB = programEvent();
     List<Event> events = Lists.newArrayList(eventProgramA, eventProgramB);
     bundle.setEvents(events);
     events.forEach(e -> bundle.setStrategy(e, TrackerImportStrategy.CREATE_AND_UPDATE));
@@ -265,25 +266,25 @@ class RepeatedEventsValidatorTest extends TestBase {
     return program;
   }
 
-  private Event programEvent(String uid) {
+  private Event programEvent() {
     Event event = new Event();
-    event.setEvent(uid);
+    event.setEvent(UID.generate());
     event.setProgramStage(
         MetadataIdentifier.ofUid(NOT_REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION));
     return event;
   }
 
-  private Event notRepeatableEvent(String uid) {
+  private Event notRepeatableEvent() {
     Event event = new Event();
-    event.setEvent(uid);
+    event.setEvent(UID.generate());
     event.setEnrollment(ENROLLMENT_A);
     event.setProgramStage(MetadataIdentifier.ofUid(NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION));
     return event;
   }
 
-  private Event repeatableEvent(String uid) {
+  private Event repeatableEvent() {
     Event event = new Event();
-    event.setEvent(uid);
+    event.setEvent(UID.generate());
     event.setEnrollment(ENROLLMENT_A);
     event.setProgramStage(MetadataIdentifier.ofUid(REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION));
     return event;

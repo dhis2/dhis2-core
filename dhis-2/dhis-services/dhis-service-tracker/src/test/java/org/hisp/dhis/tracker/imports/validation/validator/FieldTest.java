@@ -39,6 +39,7 @@ import static org.hisp.dhis.tracker.imports.validation.validator.Field.field;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -68,15 +69,18 @@ class FieldTest {
   @Test
   void testFieldWithValidator() {
     Enrollment enrollment =
-        Enrollment.builder().enrollment("Kj6vYde4LHh").trackedEntity("PuBvJxDB73z").build();
+        Enrollment.builder()
+            .enrollment(UID.of("Kj6vYde4LHh"))
+            .trackedEntity(UID.of("PuBvJxDB73z"))
+            .build();
 
     Validator<String> isValidUid =
         (r, b, uid) -> {
           // to demonstrate that we are getting the trackedEntity field
-          r.addError(new Error(uid, E1000, ENROLLMENT, uid, List.of(uid)));
+          r.addError(new Error(uid, E1000, ENROLLMENT, UID.of(uid), List.of(uid)));
         };
 
-    Validator<Enrollment> validator = field(Enrollment::getTrackedEntity, isValidUid);
+    Validator<Enrollment> validator = field(e -> e.getTrackedEntity().getValue(), isValidUid);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -87,7 +91,10 @@ class FieldTest {
   void testFieldWithValidatorDoesNotCallValidatorIfItShouldNotRunOnGivenStrategy() {
     bundle = TrackerBundle.builder().importStrategy(UPDATE).build();
     Enrollment enrollment =
-        Enrollment.builder().enrollment("Kj6vYde4LHh").trackedEntity("PuBvJxDB73z").build();
+        Enrollment.builder()
+            .enrollment(UID.of("Kj6vYde4LHh"))
+            .trackedEntity(UID.of("PuBvJxDB73z"))
+            .build();
 
     Validator<String> isValidUid =
         new Validator<>() {
@@ -102,7 +109,7 @@ class FieldTest {
           }
         };
 
-    Validator<Enrollment> validator = field(Enrollment::getTrackedEntity, isValidUid);
+    Validator<Enrollment> validator = field(e -> e.getTrackedEntity().getValue(), isValidUid);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -114,10 +121,14 @@ class FieldTest {
     bundle =
         TrackerBundle.builder()
             .importStrategy(CREATE_AND_UPDATE)
-            .resolvedStrategyMap(new EnumMap<>(Map.of(ENROLLMENT, Map.of("Kj6vYde4LHh", UPDATE))))
+            .resolvedStrategyMap(
+                new EnumMap<>(Map.of(ENROLLMENT, Map.of(UID.of("Kj6vYde4LHh"), UPDATE))))
             .build();
     Enrollment enrollment =
-        Enrollment.builder().enrollment("Kj6vYde4LHh").trackedEntity("PuBvJxDB73z").build();
+        Enrollment.builder()
+            .enrollment(UID.of("Kj6vYde4LHh"))
+            .trackedEntity(UID.of("PuBvJxDB73z"))
+            .build();
 
     Validator<String> isValidUid =
         new Validator<>() {
@@ -132,7 +143,7 @@ class FieldTest {
           }
         };
 
-    Validator<Enrollment> validator = field(Enrollment::getTrackedEntity, isValidUid);
+    Validator<Enrollment> validator = field(e -> e.getTrackedEntity().getValue(), isValidUid);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -142,7 +153,10 @@ class FieldTest {
   @Test
   void testFieldWithPredicateFailing() {
     Enrollment enrollment =
-        Enrollment.builder().enrollment("Kj6vYde4LHh").trackedEntity("PuBvJxDB73z").build();
+        Enrollment.builder()
+            .enrollment(UID.of("Kj6vYde4LHh"))
+            .trackedEntity(UID.of("PuBvJxDB73z"))
+            .build();
 
     Validator<Enrollment> validator =
         field(Enrollment::getTrackedEntity, e -> false, E1000, "wrong 1", "wrong 2");
@@ -155,7 +169,10 @@ class FieldTest {
   @Test
   void testFieldWithPredicateSucceeding() {
     Enrollment enrollment =
-        Enrollment.builder().enrollment("Kj6vYde4LHh").trackedEntity("PuBvJxDB73z").build();
+        Enrollment.builder()
+            .enrollment(UID.of("Kj6vYde4LHh"))
+            .trackedEntity(UID.of("PuBvJxDB73z"))
+            .build();
 
     Validator<Enrollment> validator =
         field(Enrollment::getTrackedEntity, e -> true, E1000, "wrong 1", "wrong 2");
@@ -172,7 +189,8 @@ class FieldTest {
    */
   private static void addError(Reporter reporter, String message) {
     reporter.addError(
-        new Error(message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, "uid", List.of()));
+        new Error(
+            message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, UID.generate(), List.of()));
   }
 
   private List<String> actualErrorMessages() {

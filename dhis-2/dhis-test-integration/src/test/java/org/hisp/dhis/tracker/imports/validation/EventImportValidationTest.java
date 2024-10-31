@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.TrackerTest;
@@ -430,7 +431,7 @@ class EventImportValidationTest extends TrackerTest {
   private Event getEventFromReport(ImportReport importReport) {
     final Map<TrackerType, TrackerTypeReport> typeReportMap =
         importReport.getPersistenceReport().getTypeReportMap();
-    String newEvent = typeReportMap.get(TrackerType.EVENT).getEntityReport().get(0).getUid();
-    return manager.get(Event.class, newEvent);
+    UID newEvent = typeReportMap.get(TrackerType.EVENT).getEntityReport().get(0).getUid();
+    return manager.get(Event.class, newEvent.getValue());
   }
 }

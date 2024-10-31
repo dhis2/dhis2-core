@@ -40,7 +40,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.event.EventStatus;
@@ -94,7 +94,7 @@ public class ValidationUtils {
       {
         // If a note having the same UID already exist in the db, raise
         // warning, ignore the note and continue
-        if (isNotEmpty(note.getNote()) && preheat.hasNote(note.getNote())) {
+        if (preheat.hasNote(note.getNote())) {
           reporter.addWarning(dto, ValidationCode.E1119, note.getNote());
         } else {
           notes.add(note);
@@ -159,7 +159,7 @@ public class ValidationUtils {
   }
 
   public static Set<MetadataIdentifier> getTrackedEntityAttributes(
-      TrackerBundle bundle, String trackedEntityUid) {
+      TrackerBundle bundle, UID trackedEntityUid) {
     TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
     Set<MetadataIdentifier> savedTrackedEntityAttributes =
         Optional.of(bundle)
@@ -205,17 +205,17 @@ public class ValidationUtils {
             });
   }
 
-  public static boolean trackedEntityExists(TrackerBundle bundle, String teUid) {
+  public static boolean trackedEntityExists(TrackerBundle bundle, UID teUid) {
     return bundle.getPreheat().getTrackedEntity(teUid) != null
         || bundle.findTrackedEntityByUid(teUid).isPresent();
   }
 
-  public static boolean enrollmentExist(TrackerBundle bundle, String enrollmentUid) {
+  public static boolean enrollmentExist(TrackerBundle bundle, UID enrollmentUid) {
     return bundle.getPreheat().getEnrollment(enrollmentUid) != null
         || bundle.findEnrollmentByUid(enrollmentUid).isPresent();
   }
 
-  public static boolean eventExist(TrackerBundle bundle, String eventUid) {
+  public static boolean eventExist(TrackerBundle bundle, UID eventUid) {
     return bundle.getPreheat().getEvent(eventUid) != null
         || bundle.findEventByUid(eventUid).isPresent();
   }
@@ -236,27 +236,6 @@ public class ValidationUtils {
 
     if (!isValid) {
       reporter.addError(dto, ValidationCode.E1125, value, optionalObject.getOptionSet().getUid());
-    }
-  }
-
-  public static void validateNotesUid(List<Note> notes, Reporter reporter, TrackerDto dto) {
-    for (Note note : notes) {
-      checkUidFormat(note.getNote(), reporter, dto, note, note.getNote());
-    }
-  }
-
-  /**
-   * Check if the given UID has a valid format.
-   *
-   * @param checkUid a UID to be checked
-   * @param reporter a {@see Reporter} to which the error is added
-   * @param dto the dto to which the report will be linked to
-   * @param args list of arguments for the Error report
-   */
-  public static void checkUidFormat(
-      String checkUid, Reporter reporter, TrackerDto dto, Object... args) {
-    if (!CodeGenerator.isValidUid(checkUid)) {
-      reporter.addError(dto, ValidationCode.E1048, checkUid, args[0], args[1]);
     }
   }
 }

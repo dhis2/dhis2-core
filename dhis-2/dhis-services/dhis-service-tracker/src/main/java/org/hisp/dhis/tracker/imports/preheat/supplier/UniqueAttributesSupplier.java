@@ -46,6 +46,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -137,7 +138,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
   }
 
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity getEntityForEnrollment(
-      TrackerObjects trackerObjects, TrackerPreheat preheat, String teUid) {
+      TrackerObjects trackerObjects, TrackerPreheat preheat, UID teUid) {
     TrackedEntity trackedEntity = preheat.getTrackedEntity(teUid);
 
     // Get te from Preheat
@@ -247,7 +248,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
         .map(
             av ->
                 new UniqueAttributeValue(
-                    av.getTrackedEntity().getUid(),
+                    UID.of(av.getTrackedEntity()),
                     idSchemes.toMetadataIdentifier(av.getAttribute()),
                     av.getValue(),
                     idSchemes.toMetadataIdentifier(av.getTrackedEntity().getOrganisationUnit())))

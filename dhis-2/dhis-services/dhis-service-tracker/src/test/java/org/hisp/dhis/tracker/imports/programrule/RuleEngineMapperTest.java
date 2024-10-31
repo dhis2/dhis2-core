@@ -39,6 +39,7 @@ import java.util.Set;
 import kotlinx.datetime.Instant;
 import kotlinx.datetime.LocalDate;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -130,10 +131,16 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
     assertEquals(2, ruleEvents.size());
     assertEvent(
         eventA,
-        ruleEvents.stream().filter(e -> e.getEvent().equals(eventA.getUid())).findFirst().get());
+        ruleEvents.stream()
+            .filter(e -> e.getEvent().equals(eventA.getUid().getValue()))
+            .findFirst()
+            .get());
     assertEvent(
         eventB,
-        ruleEvents.stream().filter(e -> e.getEvent().equals(eventB.getUid())).findFirst().get());
+        ruleEvents.stream()
+            .filter(e -> e.getEvent().equals(eventB.getUid().getValue()))
+            .findFirst()
+            .get());
   }
 
   @Test
@@ -249,7 +256,7 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
   }
 
   private void assertEvent(org.hisp.dhis.tracker.imports.domain.Event event, RuleEvent ruleEvent) {
-    assertEquals(event.getUid(), ruleEvent.getEvent());
+    assertEquals(event.getUid().getValue(), ruleEvent.getEvent());
     assertEquals(event.getProgramStage().getIdentifier(), ruleEvent.getProgramStage());
     assertNotNull(ruleEvent.getProgramStageName());
     assertEquals(event.getStatus().name(), ruleEvent.getStatus().name());
@@ -282,7 +289,7 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
 
   private void assertEnrollment(
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment, RuleEnrollment ruleEnrollment) {
-    assertEquals(enrollment.getUid(), ruleEnrollment.getEnrollment());
+    assertEquals(enrollment.getUid().getValue(), ruleEnrollment.getEnrollment());
     assertNotNull(ruleEnrollment.getProgramName());
     assertDates(enrollment.getOccurredAt(), ruleEnrollment.getIncidentDate());
     assertDates(enrollment.getEnrolledAt(), ruleEnrollment.getEnrollmentDate());
@@ -330,8 +337,8 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
         .enrolledAt(NOW.toInstant())
         .occurredAt(TOMORROW.toInstant())
         .program(MetadataIdentifier.ofUid(program))
-        .trackedEntity(CodeGenerator.generateUid())
-        .enrollment(CodeGenerator.generateUid())
+        .trackedEntity(UID.generate())
+        .enrollment(UID.generate())
         .build();
   }
 
@@ -364,8 +371,8 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
 
   private org.hisp.dhis.tracker.imports.domain.Event payloadEvent() {
     return org.hisp.dhis.tracker.imports.domain.Event.builder()
-        .enrollment(CodeGenerator.generateUid())
-        .event(CodeGenerator.generateUid())
+        .enrollment(UID.generate())
+        .event(UID.generate())
         .programStage(MetadataIdentifier.ofUid(programStage.getUid()))
         .orgUnit(MetadataIdentifier.ofUid(organisationUnit.getUid()))
         .scheduledAt(YESTERDAY.toInstant())

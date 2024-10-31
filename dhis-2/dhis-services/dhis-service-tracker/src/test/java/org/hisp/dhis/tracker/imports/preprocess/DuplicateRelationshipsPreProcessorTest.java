@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -72,18 +73,18 @@ class DuplicateRelationshipsPreProcessorTest {
   @Test
   void test_relationshipIsIgnored_on_null_relType() {
     String relType = CodeGenerator.generateUid();
-    String fromTeUid = CodeGenerator.generateUid();
-    String toTeUid = CodeGenerator.generateUid();
+    UID fromTeUid = UID.generate();
+    UID toTeUid = UID.generate();
     Relationship relationship1 =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .relationshipType(MetadataIdentifier.ofUid(relType))
             .from(trackedEntityRelationshipItem(fromTeUid))
             .to(trackedEntityRelationshipItem(toTeUid))
             .build();
     Relationship relationship2 =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .relationshipType(MetadataIdentifier.ofUid(relType))
             .from(trackedEntityRelationshipItem(fromTeUid))
             .to(trackedEntityRelationshipItem(toTeUid))
@@ -107,9 +108,9 @@ class DuplicateRelationshipsPreProcessorTest {
   @Test
   void shouldRemoveRelationshipFromBundleWhenThereAreTwoIdenticalRelationships() {
     String relType = REL_TYPE_NONBIDIRECTIONAL_UID;
-    String fromTeUid = CodeGenerator.generateUid();
-    String toTeUid = CodeGenerator.generateUid();
-    String relUid = CodeGenerator.generateUid();
+    UID fromTeUid = UID.generate();
+    UID toTeUid = UID.generate();
+    UID relUid = UID.generate();
 
     Relationship relationship1 =
         Relationship.builder()
@@ -137,9 +138,9 @@ class DuplicateRelationshipsPreProcessorTest {
   @Test
   void shouldRemoveRelationshipFromBundleWhenThereAreTwoIdenticalRelationshipsWithDifferentUids() {
     String relType = REL_TYPE_NONBIDIRECTIONAL_UID;
-    String fromTeUid = CodeGenerator.generateUid();
-    String toTeUid = CodeGenerator.generateUid();
-    String relationship1Uid = CodeGenerator.generateUid();
+    UID fromTeUid = UID.generate();
+    UID toTeUid = UID.generate();
+    UID relationship1Uid = UID.generate();
     Relationship relationship1 =
         Relationship.builder()
             .relationship(relationship1Uid)
@@ -149,7 +150,7 @@ class DuplicateRelationshipsPreProcessorTest {
             .build();
     Relationship relationship2 =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .relationshipType(MetadataIdentifier.ofUid(relType))
             .from(trackedEntityRelationshipItem(fromTeUid))
             .to(trackedEntityRelationshipItem(toTeUid))
@@ -173,18 +174,18 @@ class DuplicateRelationshipsPreProcessorTest {
    */
   @Test
   void test_on_different_rels_none_is_removed() {
-    String fromTeUid = CodeGenerator.generateUid();
-    String toTeUid = CodeGenerator.generateUid();
+    UID fromTeUid = UID.generate();
+    UID toTeUid = UID.generate();
     Relationship relationship1 =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .relationshipType(MetadataIdentifier.ofUid(REL_TYPE_NONBIDIRECTIONAL_UID))
             .from(trackedEntityRelationshipItem(fromTeUid))
             .to(trackedEntityRelationshipItem(toTeUid))
             .build();
     Relationship relationship2 =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .relationshipType(MetadataIdentifier.ofUid(REL_TYPE_NONBIDIRECTIONAL_UID))
             .from(trackedEntityRelationshipItem(fromTeUid))
             .to(enrollmentRelationshipItem(toTeUid))
@@ -208,18 +209,18 @@ class DuplicateRelationshipsPreProcessorTest {
   @Test
   void test_on_identical_but_inverted_rels_none_is_removed() {
     String relType = REL_TYPE_NONBIDIRECTIONAL_UID;
-    String fromTeUid = CodeGenerator.generateUid();
-    String toTeUid = CodeGenerator.generateUid();
+    UID fromTeUid = UID.generate();
+    UID toTeUid = UID.generate();
     Relationship relationship1 =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .relationshipType(MetadataIdentifier.ofUid(relType))
             .from(trackedEntityRelationshipItem(fromTeUid))
             .to(trackedEntityRelationshipItem(toTeUid))
             .build();
     Relationship relationship2 =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .relationshipType(MetadataIdentifier.ofUid(relType))
             .from(trackedEntityRelationshipItem(toTeUid))
             .to(trackedEntityRelationshipItem(fromTeUid))
@@ -245,18 +246,18 @@ class DuplicateRelationshipsPreProcessorTest {
   @Test
   void test_on_identical_rels_but_inverted_type_bi_1_is_removed() {
     String relType = REL_TYPE_BIDIRECTIONAL_UID;
-    String fromTeUid = CodeGenerator.generateUid();
-    String toTeUid = CodeGenerator.generateUid();
+    UID fromTeUid = UID.generate();
+    UID toTeUid = UID.generate();
     Relationship relationship1 =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .relationshipType(MetadataIdentifier.ofUid(relType))
             .from(trackedEntityRelationshipItem(fromTeUid))
             .to(trackedEntityRelationshipItem(toTeUid))
             .build();
     Relationship relationship2 =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .relationshipType(MetadataIdentifier.ofUid(relType))
             .from(trackedEntityRelationshipItem(toTeUid))
             .to(trackedEntityRelationshipItem(fromTeUid))
@@ -282,18 +283,18 @@ class DuplicateRelationshipsPreProcessorTest {
   @Test
   void test_on_identical_rels_relType_bi_1_is_removed() {
     String relType = REL_TYPE_BIDIRECTIONAL_UID;
-    String fromTeUid = CodeGenerator.generateUid();
-    String toTeUid = CodeGenerator.generateUid();
+    UID fromTeUid = UID.generate();
+    UID toTeUid = UID.generate();
     Relationship relationship1 =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .relationshipType(MetadataIdentifier.ofUid(relType))
             .from(trackedEntityRelationshipItem(fromTeUid))
             .to(trackedEntityRelationshipItem(toTeUid))
             .build();
     Relationship relationship2 =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .relationshipType(MetadataIdentifier.ofUid(relType))
             .from(trackedEntityRelationshipItem(fromTeUid))
             .to(trackedEntityRelationshipItem(toTeUid))
@@ -307,11 +308,11 @@ class DuplicateRelationshipsPreProcessorTest {
     assertThat(bundle.getRelationships(), hasSize(1));
   }
 
-  private RelationshipItem trackedEntityRelationshipItem(String trackedEntityUid) {
+  private RelationshipItem trackedEntityRelationshipItem(UID trackedEntityUid) {
     return RelationshipItem.builder().trackedEntity(trackedEntityUid).build();
   }
 
-  private RelationshipItem enrollmentRelationshipItem(String enrollmentUid) {
+  private RelationshipItem enrollmentRelationshipItem(UID enrollmentUid) {
     return RelationshipItem.builder().enrollment(enrollmentUid).build();
   }
 }

@@ -90,7 +90,7 @@ public class TrackerImportJob implements Job {
                 e ->
                     progress.addError(
                         ValidationCode.valueOf(e.getErrorCode()),
-                        e.getUid(),
+                        e.getUid().getValue(),
                         e.getTrackerType(),
                         e.getArgs()));
       }

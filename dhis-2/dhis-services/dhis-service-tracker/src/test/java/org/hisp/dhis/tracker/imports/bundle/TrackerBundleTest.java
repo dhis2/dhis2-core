@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.ValidationMode;
@@ -87,7 +88,7 @@ class TrackerBundleTest {
   void testGetTrackedEntityGivenNull() {
     TrackerBundle bundle =
         TrackerBundle.builder()
-            .trackedEntities(List.of(TrackedEntity.builder().trackedEntity("uid").build()))
+            .trackedEntities(List.of(TrackedEntity.builder().trackedEntity(UID.generate()).build()))
             .build();
 
     assertTrue(bundle.findTrackedEntityByUid(null).isEmpty());
@@ -95,20 +96,23 @@ class TrackerBundleTest {
 
   @Test
   void testExistsTrackedEntity() {
+    UID existingTE = UID.generate();
+    UID missingTE = UID.generate();
+
     TrackerBundle bundle =
         TrackerBundle.builder()
-            .trackedEntities(List.of(TrackedEntity.builder().trackedEntity("uid").build()))
+            .trackedEntities(List.of(TrackedEntity.builder().trackedEntity(existingTE).build()))
             .build();
 
-    assertFalse(bundle.exists(TrackerType.TRACKED_ENTITY, "missing"));
-    assertTrue(bundle.exists(TrackedEntity.builder().trackedEntity("uid").build()));
+    assertFalse(bundle.exists(TrackerType.TRACKED_ENTITY, missingTE));
+    assertTrue(bundle.exists(TrackedEntity.builder().trackedEntity(existingTE).build()));
   }
 
   @Test
   void testGetEnrollmentGivenNull() {
     TrackerBundle bundle =
         TrackerBundle.builder()
-            .enrollments(List.of(Enrollment.builder().enrollment("uid").build()))
+            .enrollments(List.of(Enrollment.builder().enrollment(UID.generate()).build()))
             .build();
 
     assertTrue(bundle.findEnrollmentByUid(null).isEmpty());
@@ -116,37 +120,46 @@ class TrackerBundleTest {
 
   @Test
   void testExistsEnrollment() {
+    UID existingEnrollment = UID.generate();
+    UID missingEnrollment = UID.generate();
+
     TrackerBundle bundle =
         TrackerBundle.builder()
-            .enrollments(List.of(Enrollment.builder().enrollment("uid").build()))
+            .enrollments(List.of(Enrollment.builder().enrollment(existingEnrollment).build()))
             .build();
 
-    assertFalse(bundle.exists(TrackerType.ENROLLMENT, "missing"));
-    assertTrue(bundle.exists(Enrollment.builder().enrollment("uid").build()));
+    assertFalse(bundle.exists(TrackerType.ENROLLMENT, missingEnrollment));
+    assertTrue(bundle.exists(Enrollment.builder().enrollment(existingEnrollment).build()));
   }
 
   @Test
   void testGetEventGivenNull() {
     TrackerBundle bundle =
-        TrackerBundle.builder().events(List.of(Event.builder().event("uid").build())).build();
+        TrackerBundle.builder()
+            .events(List.of(Event.builder().event(UID.generate()).build()))
+            .build();
 
     assertTrue(bundle.findEventByUid(null).isEmpty());
   }
 
   @Test
   void testExistsEvent() {
+    UID existingEvent = UID.generate();
+    UID missingEvent = UID.generate();
     TrackerBundle bundle =
-        TrackerBundle.builder().events(List.of(Event.builder().event("uid").build())).build();
+        TrackerBundle.builder()
+            .events(List.of(Event.builder().event(existingEvent).build()))
+            .build();
 
-    assertFalse(bundle.exists(TrackerType.EVENT, "missing"));
-    assertTrue(bundle.exists(Event.builder().event("uid").build()));
+    assertFalse(bundle.exists(TrackerType.EVENT, missingEvent));
+    assertTrue(bundle.exists(Event.builder().event(existingEvent).build()));
   }
 
   @Test
   void testGetRelationshipGivenNull() {
     TrackerBundle bundle =
         TrackerBundle.builder()
-            .relationships(List.of(Relationship.builder().relationship("uid").build()))
+            .relationships(List.of(Relationship.builder().relationship(UID.generate()).build()))
             .build();
 
     assertTrue(bundle.findRelationshipByUid(null).isEmpty());
@@ -157,24 +170,27 @@ class TrackerBundleTest {
     TrackerBundle bundle =
         TrackerBundle.builder().relationships(List.of(Relationship.builder().build())).build();
 
-    assertTrue(bundle.findRelationshipByUid("uid").isEmpty());
+    assertTrue(bundle.findRelationshipByUid(UID.generate()).isEmpty());
   }
 
   @Test
   void testExistsRelationship() {
+    UID existingRelationship = UID.generate();
+    UID missingRelationship = UID.generate();
     TrackerBundle bundle =
         TrackerBundle.builder()
-            .relationships(List.of(Relationship.builder().relationship("uid").build()))
+            .relationships(
+                List.of(Relationship.builder().relationship(existingRelationship).build()))
             .build();
 
-    assertFalse(bundle.exists(TrackerType.RELATIONSHIP, "missing"));
-    assertTrue(bundle.exists(Relationship.builder().relationship("uid").build()));
+    assertFalse(bundle.exists(TrackerType.RELATIONSHIP, missingRelationship));
+    assertTrue(bundle.exists(Relationship.builder().relationship(existingRelationship).build()));
   }
 
   @Test
   void testExistsFailsOnNullType() {
     TrackerBundle bundle = TrackerBundle.builder().build();
 
-    assertThrows(NullPointerException.class, () -> bundle.exists(null, "uid"));
+    assertThrows(NullPointerException.class, () -> bundle.exists(null, UID.generate()));
   }
 }

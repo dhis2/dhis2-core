@@ -71,9 +71,9 @@ import org.mockito.quality.Strictness;
 class AssignDataValueExecutorTest extends TestBase {
   private static final UID RULE_UID = UID.of("TvctPPhpD8u");
 
-  private static final String EVENT_ID = "EventId";
+  private static final UID EVENT_ID = UID.generate();
 
-  private static final String SECOND_EVENT_ID = "SecondEventId";
+  private static final UID SECOND_EVENT_ID = UID.generate();
 
   private static final UID DATA_ELEMENT_UID = UID.of("h4w96yEMlzO");
 
@@ -366,7 +366,7 @@ class AssignDataValueExecutorTest extends TestBase {
   }
 
   private Optional<DataValue> findDataValueByUid(
-      TrackerBundle bundle, String eventUid, UID dataValueUid) {
+      TrackerBundle bundle, UID eventUid, UID dataValueUid) {
     Event event = bundle.findEventByUid(eventUid).get();
     return event.getDataValues().stream()
         .filter(dv -> dv.getDataElement().equals(MetadataIdentifier.ofUid(dataValueUid.getValue())))
@@ -374,7 +374,7 @@ class AssignDataValueExecutorTest extends TestBase {
   }
 
   private Optional<DataValue> findDataValueByCode(
-      TrackerBundle bundle, String eventUid, String dataValueCode) {
+      TrackerBundle bundle, UID eventUid, String dataValueCode) {
     Event event = bundle.findEventByUid(eventUid).get();
     return event.getDataValues().stream()
         .filter(dv -> dv.getDataElement().equals(MetadataIdentifier.ofCode(dataValueCode)))

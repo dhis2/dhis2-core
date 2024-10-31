@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.google.common.collect.Lists;
 import org.hamcrest.Matchers;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
@@ -50,21 +51,21 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class StrategyPreProcessorTest extends TestBase {
 
-  private static final String TE_UID = "TeiUid";
+  private static final UID TE_UID = UID.generate();
 
-  private static final String NEW_TE_UID = "NewTeiUid";
+  private static final UID NEW_TE_UID = UID.generate();
 
-  private static final String ENROLLMENT_UID = "EnrollmentUid";
+  private static final UID ENROLLMENT_UID = UID.generate();
 
-  private static final String NEW_ENROLLMENT_UID = "NewEnrollmentUid";
+  private static final UID NEW_ENROLLMENT_UID = UID.generate();
 
-  private static final String EVENT_UID = "EventUid";
+  private static final UID EVENT_UID = UID.generate();
 
-  private static final String NEW_EVENT_UID = "NewEventUid";
+  private static final UID NEW_EVENT_UID = UID.generate();
 
-  private static final String RELATIONSHIP_UID = "RelationshipUid";
+  private static final UID RELATIONSHIP_UID = UID.generate();
 
-  private static final String NEW_RELATIONSHIP_UID = "NewRelationshipUid";
+  private static final UID NEW_RELATIONSHIP_UID = UID.generate();
 
   private Event dbEvent;
 
@@ -97,25 +98,25 @@ class StrategyPreProcessorTest extends TestBase {
   @BeforeEach
   void setUp() {
     te = new TrackedEntity();
-    te.setUid(TE_UID);
+    te.setUid(TE_UID.getValue());
     trackedEntity = new org.hisp.dhis.tracker.imports.domain.TrackedEntity();
     trackedEntity.setTrackedEntity(TE_UID);
     newTrackedEntity = new org.hisp.dhis.tracker.imports.domain.TrackedEntity();
     newTrackedEntity.setTrackedEntity(NEW_TE_UID);
     preheatEnrollment = new Enrollment();
-    preheatEnrollment.setUid(ENROLLMENT_UID);
+    preheatEnrollment.setUid(ENROLLMENT_UID.getValue());
     enrollment = new org.hisp.dhis.tracker.imports.domain.Enrollment();
     enrollment.setEnrollment(ENROLLMENT_UID);
     newEnrollment = new org.hisp.dhis.tracker.imports.domain.Enrollment();
     newEnrollment.setEnrollment(NEW_ENROLLMENT_UID);
     dbEvent = new Event();
-    dbEvent.setUid(EVENT_UID);
+    dbEvent.setUid(EVENT_UID.getValue());
     event = new org.hisp.dhis.tracker.imports.domain.Event();
     event.setEvent(EVENT_UID);
     newEvent = new org.hisp.dhis.tracker.imports.domain.Event();
     newEvent.setEvent(NEW_EVENT_UID);
     relationship = new Relationship();
-    relationship.setUid(RELATIONSHIP_UID);
+    relationship.setUid(RELATIONSHIP_UID.getValue());
     payloadRelationship = new org.hisp.dhis.tracker.imports.domain.Relationship();
     payloadRelationship.setRelationship(RELATIONSHIP_UID);
     newPayloadRelationship = new org.hisp.dhis.tracker.imports.domain.Relationship();

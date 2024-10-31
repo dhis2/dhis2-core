@@ -37,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -87,11 +88,11 @@ public class TrackerIdentifierCollector {
     // out of the preheat using UIDs
     programRuleService
         .getDataElementsPresentInProgramRules()
-        .forEach(de -> addIdentifier(map, DataElement.class, de));
+        .forEach(de -> addIdentifier(map, DataElement.class, UID.of(de)));
 
     programRuleService
         .getTrackedEntityAttributesPresentInProgramRules()
-        .forEach(attribute -> addIdentifier(map, TrackedEntityAttribute.class, attribute));
+        .forEach(attribute -> addIdentifier(map, TrackedEntityAttribute.class, UID.of(attribute)));
   }
 
   private void collectTrackedEntities(
@@ -133,7 +134,7 @@ public class TrackerIdentifierCollector {
   private void collectNotes(Map<Class<?>, Set<String>> identifiers, List<Note> notes) {
     notes.forEach(
         note -> {
-          if (!StringUtils.isEmpty(note.getNote()) && !StringUtils.isEmpty(note.getValue())) {
+          if (note.getNote() != null && !StringUtils.isEmpty(note.getValue())) {
             addIdentifier(identifiers, org.hisp.dhis.note.Note.class, note.getNote());
           }
         });
@@ -187,16 +188,20 @@ public class TrackerIdentifierCollector {
 
   private <T> void addIdentifier(
       Map<Class<?>, Set<String>> identifiers, Class<T> klass, MetadataIdentifier identifier) {
-    addIdentifier(
-        identifiers, klass, identifier == null ? null : identifier.getIdentifierOrAttributeValue());
-  }
-
-  private <T> void addIdentifier(
-      Map<Class<?>, Set<String>> identifiers, Class<T> klass, String identifier) {
-    if (StringUtils.isEmpty(identifier) || identifiers == null || klass == null) {
+    String value = identifier == null ? null : identifier.getIdentifierOrAttributeValue();
+    if (StringUtils.isEmpty(value) || identifiers == null || klass == null) {
       return;
     }
 
-    identifiers.computeIfAbsent(klass, k -> new HashSet<>()).add(identifier);
+    identifiers.computeIfAbsent(klass, k -> new HashSet<>()).add(value);
+  }
+
+  private <T> void addIdentifier(
+      Map<Class<?>, Set<String>> identifiers, Class<T> klass, UID identifier) {
+    if (identifier == null || identifiers == null || klass == null) {
+      return;
+    }
+
+    identifiers.computeIfAbsent(klass, k -> new HashSet<>()).add(identifier.getValue());
   }
 }

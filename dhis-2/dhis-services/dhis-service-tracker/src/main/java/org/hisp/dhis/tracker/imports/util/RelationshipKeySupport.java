@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.tracker.imports.util;
 
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.hisp.dhis.util.ObjectUtils.*;
 
 import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
@@ -50,9 +51,9 @@ public class RelationshipKeySupport {
       RelationshipItem relationshipItem) {
     if (Objects.nonNull(relationshipItem)) {
       return RelationshipKey.RelationshipItemKey.builder()
-          .trackedEntity(trimToEmpty(relationshipItem.getTrackedEntity()))
-          .enrollment(trimToEmpty(relationshipItem.getEnrollment()))
-          .event(trimToEmpty(relationshipItem.getEvent()))
+          .trackedEntity(applyIfNotNull(relationshipItem.getTrackedEntity(), UID::getValue))
+          .enrollment(applyIfNotNull(relationshipItem.getEnrollment(), UID::getValue))
+          .event(applyIfNotNull(relationshipItem.getEvent(), UID::getValue))
           .build();
     }
     throw new IllegalStateException("Unable to determine uid for relationship item");

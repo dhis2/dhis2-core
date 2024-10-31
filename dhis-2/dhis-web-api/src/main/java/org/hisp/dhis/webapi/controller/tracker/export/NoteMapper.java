@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.Note;
 import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
@@ -42,4 +43,8 @@ public interface NoteMapper extends ViewMapper<org.hisp.dhis.note.Note, Note> {
   @Mapping(target = "storedBy", source = "creator")
   @Override
   Note from(org.hisp.dhis.note.Note note);
+
+  default UID map(String value) {
+    return UID.of(value);
+  }
 }

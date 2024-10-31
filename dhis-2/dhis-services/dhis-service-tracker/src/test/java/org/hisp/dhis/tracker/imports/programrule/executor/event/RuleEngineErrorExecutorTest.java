@@ -49,7 +49,7 @@ class RuleEngineErrorExecutorTest extends TestBase {
 
   private static final String ERROR_MESSAGE = "Error message";
 
-  private static final String EVENT_ID = "EventUid";
+  private static final UID EVENT_ID = UID.generate();
 
   private final RuleEngineErrorExecutor ruleEngineErrorExecutor =
       new RuleEngineErrorExecutor(RULE_UID, ERROR_MESSAGE);

@@ -45,6 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -103,7 +104,7 @@ public abstract class AbstractTrackerPersister<
     //
     List<T> dtos = getByType(getType(), bundle);
 
-    Set<String> updatedTrackedEntities = new HashSet<>();
+    Set<UID> updatedTrackedEntities = new HashSet<>();
 
     for (T trackerDto : dtos) {
 
@@ -196,7 +197,7 @@ public abstract class AbstractTrackerPersister<
   // // // // // // // //
 
   /** Get Tracked Entity for enrollments or events that have been updated */
-  protected abstract String getUpdatedTrackedEntity(V entity);
+  protected abstract UID getUpdatedTrackedEntity(V entity);
 
   /**
    * Converts an object implementing the {@link TrackerDto} interface into the corresponding

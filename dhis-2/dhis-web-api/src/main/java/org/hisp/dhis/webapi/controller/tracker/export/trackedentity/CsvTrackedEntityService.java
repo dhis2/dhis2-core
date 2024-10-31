@@ -89,7 +89,7 @@ class CsvTrackedEntityService implements CsvService<TrackedEntity> {
 
     for (TrackedEntity trackedEntity : trackedEntities) {
       CsvTrackedEntity trackedEntityValue = new CsvTrackedEntity();
-      trackedEntityValue.setTrackedEntity(trackedEntity.getTrackedEntity());
+      trackedEntityValue.setTrackedEntity(trackedEntity.getTrackedEntity().getValue());
       trackedEntityValue.setTrackedEntityType(trackedEntity.getTrackedEntityType());
       trackedEntityValue.setCreatedAt(checkForNull(trackedEntity.getCreatedAt()));
       trackedEntityValue.setCreatedAtClient(checkForNull(trackedEntity.getCreatedAtClient()));

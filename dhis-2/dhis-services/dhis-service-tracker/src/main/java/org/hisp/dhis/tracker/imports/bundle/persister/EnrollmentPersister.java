@@ -74,7 +74,7 @@ public class EnrollmentPersister
         entityManager,
         preheat,
         enrollment.getAttributes(),
-        preheat.getTrackedEntity(enrollmentToPersist.getTrackedEntity().getUid()),
+        preheat.getTrackedEntity(UID.of(enrollmentToPersist.getTrackedEntity())),
         user);
   }
 
@@ -92,7 +92,7 @@ public class EnrollmentPersister
   protected void updatePreheat(TrackerPreheat preheat, Enrollment enrollment) {
     preheat.putEnrollments(Collections.singletonList(enrollment));
     preheat.addProgramOwner(
-        enrollment.getTrackedEntity().getUid(),
+        UID.of(enrollment.getTrackedEntity()),
         enrollment.getProgram().getUid(),
         enrollment.getOrganisationUnit());
   }
@@ -104,7 +104,9 @@ public class EnrollmentPersister
     return TrackerNotificationDataBundle.builder()
         .klass(Enrollment.class)
         .enrollmentNotifications(
-            bundle.getEnrollmentNotifications().get(UID.of(enrollment.getUid())))
+            bundle
+                .getEnrollmentNotifications()
+                .getOrDefault(UID.of(enrollment.getUid()), List.of()))
         .object(enrollment.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUser().getUsername())
@@ -156,11 +158,11 @@ public class EnrollmentPersister
       org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto,
       Enrollment entity) {
     if (isNew(bundle, trackerDto)
-        && (bundle.getPreheat().getProgramOwner().get(entity.getTrackedEntity().getUid()) == null
+        && (bundle.getPreheat().getProgramOwner().get(UID.of(entity.getTrackedEntity())) == null
             || bundle
                     .getPreheat()
                     .getProgramOwner()
-                    .get(entity.getTrackedEntity().getUid())
+                    .get(UID.of(entity.getTrackedEntity()))
                     .get(entity.getProgram().getUid())
                 == null)) {
       trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
@@ -169,7 +171,7 @@ public class EnrollmentPersister
   }
 
   @Override
-  protected String getUpdatedTrackedEntity(Enrollment entity) {
-    return entity.getTrackedEntity().getUid();
+  protected UID getUpdatedTrackedEntity(Enrollment entity) {
+    return UID.of(entity.getTrackedEntity());
   }
 }

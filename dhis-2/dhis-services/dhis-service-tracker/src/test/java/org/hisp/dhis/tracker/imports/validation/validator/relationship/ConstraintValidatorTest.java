@@ -35,10 +35,11 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4010;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4012;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4014;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -91,7 +92,7 @@ class ConstraintValidatorTest {
 
     Relationship relationship =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .from(trackedEntityRelationshipItem())
             .to(trackedEntityRelationshipItem())
             .relationshipType(MetadataIdentifier.ofUid(relType.getUid()))
@@ -99,7 +100,7 @@ class ConstraintValidatorTest {
 
     when(bundle.getPreheat().getRelationshipType(relationship.getRelationshipType()))
         .thenReturn(relType);
-    when(bundle.getPreheat().getTrackedEntity(anyString())).thenReturn(trackedEntity);
+    when(bundle.getPreheat().getTrackedEntity(any())).thenReturn(trackedEntity);
     when(params.toMetadataIdentifier(trackedEntityType))
         .thenReturn(MetadataIdentifier.ofUid(trackedEntityType.getUid()));
     when(bundle.getPreheat().getIdSchemes()).thenReturn(params);
@@ -116,7 +117,7 @@ class ConstraintValidatorTest {
 
     Relationship relationship =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .from(trackedEntityRelationshipItem())
             .to(enrollmentRelationshipItem())
             .relationshipType(MetadataIdentifier.ofUid(relType.getUid()))
@@ -141,7 +142,7 @@ class ConstraintValidatorTest {
 
     Relationship relationship =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .from(trackedEntityRelationshipItem())
             .to(enrollmentRelationshipItem())
             .relationshipType(MetadataIdentifier.ofUid(relType.getUid()))
@@ -167,7 +168,7 @@ class ConstraintValidatorTest {
 
     Relationship relationship =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .from(enrollmentRelationshipItem())
             .to(enrollmentRelationshipItem())
             .relationshipType(MetadataIdentifier.ofUid(relType.getUid()))
@@ -198,7 +199,7 @@ class ConstraintValidatorTest {
 
     Relationship relationship =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .from(trackedEntityRelationshipItem())
             .to(trackedEntityRelationshipItem())
             .relationshipType(MetadataIdentifier.ofUid(relType.getUid()))
@@ -206,7 +207,7 @@ class ConstraintValidatorTest {
 
     when(bundle.getPreheat().getRelationshipType(relationship.getRelationshipType()))
         .thenReturn(relType);
-    when(bundle.getPreheat().getTrackedEntity(anyString())).thenReturn(trackedEntity);
+    when(bundle.getPreheat().getTrackedEntity(any())).thenReturn(trackedEntity);
     String uid = CodeGenerator.generateUid();
     when(params.toMetadataIdentifier(trackedEntityType)).thenReturn(MetadataIdentifier.ofUid(uid));
     when(bundle.getPreheat().getIdSchemes()).thenReturn(params);
@@ -228,7 +229,7 @@ class ConstraintValidatorTest {
 
     Relationship relationship =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .from(enrollmentRelationshipItem())
             .to(enrollmentRelationshipItem())
             .relationshipType(MetadataIdentifier.ofUid(relType.getUid()))
@@ -254,7 +255,7 @@ class ConstraintValidatorTest {
 
     Relationship relationship =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .from(RelationshipItem.builder().event(event()).build())
             .to(trackedEntityRelationshipItem())
             .relationshipType(MetadataIdentifier.ofUid(relType.getUid()))
@@ -279,7 +280,7 @@ class ConstraintValidatorTest {
 
     Relationship relationship =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .from(RelationshipItem.builder().event(event()).build())
             .to(trackedEntityRelationshipItem())
             .relationshipType(MetadataIdentifier.ofUid(relType.getUid()))
@@ -321,15 +322,15 @@ class ConstraintValidatorTest {
     return RelationshipItem.builder().enrollment(enrollment()).build();
   }
 
-  private String trackedEntity() {
-    return CodeGenerator.generateUid();
+  private UID trackedEntity() {
+    return UID.generate();
   }
 
-  private String enrollment() {
-    return CodeGenerator.generateUid();
+  private UID enrollment() {
+    return UID.generate();
   }
 
-  private String event() {
-    return CodeGenerator.generateUid();
+  private UID event() {
+    return UID.generate();
   }
 }

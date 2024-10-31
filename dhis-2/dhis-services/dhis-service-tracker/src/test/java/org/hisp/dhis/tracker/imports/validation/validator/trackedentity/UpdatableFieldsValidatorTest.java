@@ -33,6 +33,7 @@ import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidatio
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -66,11 +67,11 @@ class UpdatableFieldsValidatorTest {
 
   private static final String PROGRAM_STAGE_ID = "ProgramStageId";
 
-  private static final String TRACKED_ENTITY_ID = "TrackedEntityId";
+  private static final UID TRACKED_ENTITY_ID = UID.generate();
 
-  private static final String ENROLLMENT_ID = "EnrollmentId";
+  private static final UID ENROLLMENT_ID = UID.generate();
 
-  private static final String EVENT_ID = "EventId";
+  private static final UID EVENT_ID = UID.generate();
 
   private UpdatableFieldsValidator validator;
 
@@ -133,7 +134,7 @@ class UpdatableFieldsValidatorTest {
     trackedEntityType.setUid(TRACKED_ENTITY_TYPE_ID);
 
     TrackedEntity trackedEntity = new TrackedEntity();
-    trackedEntity.setUid(TRACKED_ENTITY_ID);
+    trackedEntity.setUid(TRACKED_ENTITY_ID.getValue());
     trackedEntity.setTrackedEntityType(trackedEntityType);
     return trackedEntity;
   }
@@ -143,7 +144,7 @@ class UpdatableFieldsValidatorTest {
     program.setUid(PROGRAM_ID);
 
     Enrollment enrollment = new Enrollment();
-    enrollment.setUid(ENROLLMENT_ID);
+    enrollment.setUid(ENROLLMENT_ID.getValue());
     enrollment.setProgram(program);
     enrollment.setTrackedEntity(trackedEntity());
     return enrollment;
@@ -154,7 +155,7 @@ class UpdatableFieldsValidatorTest {
     programStage.setUid(PROGRAM_STAGE_ID);
 
     Event event = new Event();
-    event.setUid(EVENT_ID);
+    event.setUid(EVENT_ID.getValue());
     event.setEnrollment(getEnrollment());
     event.setProgramStage(programStage);
     return event;

@@ -122,11 +122,10 @@ public class TrackerBundle {
   private Map<Event, List<RuleActionExecutor<Event>>> eventRuleActionExecutors = new HashMap<>();
 
   @Builder.Default
-  private Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap =
-      initStrategyMap();
+  private Map<TrackerType, Map<UID, TrackerImportStrategy>> resolvedStrategyMap = initStrategyMap();
 
-  private static Map<TrackerType, Map<String, TrackerImportStrategy>> initStrategyMap() {
-    Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap =
+  private static Map<TrackerType, Map<UID, TrackerImportStrategy>> initStrategyMap() {
+    Map<TrackerType, Map<UID, TrackerImportStrategy>> resolvedStrategyMap =
         new EnumMap<>(TrackerType.class);
 
     resolvedStrategyMap.put(TrackerType.RELATIONSHIP, new HashMap<>());
@@ -137,25 +136,25 @@ public class TrackerBundle {
     return resolvedStrategyMap;
   }
 
-  @Builder.Default @JsonIgnore private Set<String> updatedTrackedEntities = new HashSet<>();
+  @Builder.Default @JsonIgnore private Set<UID> updatedTrackedEntities = new HashSet<>();
 
-  public Optional<TrackedEntity> findTrackedEntityByUid(String uid) {
+  public Optional<TrackedEntity> findTrackedEntityByUid(UID uid) {
     return findById(this.trackedEntities, uid);
   }
 
-  public Optional<Enrollment> findEnrollmentByUid(String uid) {
+  public Optional<Enrollment> findEnrollmentByUid(UID uid) {
     return findById(this.enrollments, uid);
   }
 
-  public Optional<Event> findEventByUid(String uid) {
+  public Optional<Event> findEventByUid(UID uid) {
     return findById(this.events, uid);
   }
 
-  public Optional<Relationship> findRelationshipByUid(String uid) {
+  public Optional<Relationship> findRelationshipByUid(UID uid) {
     return findById(this.relationships, uid);
   }
 
-  private static <T extends TrackerDto> Optional<T> findById(List<T> entities, String uid) {
+  private static <T extends TrackerDto> Optional<T> findById(List<T> entities, UID uid) {
     return entities.stream().filter(e -> Objects.equals(e.getUid(), uid)).findFirst();
   }
 
@@ -167,8 +166,8 @@ public class TrackerBundle {
     return Map.copyOf(eventNotifications);
   }
 
-  public TrackerImportStrategy setStrategy(TrackerDto dto, TrackerImportStrategy strategy) {
-    return this.getResolvedStrategyMap().get(dto.getTrackerType()).put(dto.getUid(), strategy);
+  public void setStrategy(TrackerDto dto, TrackerImportStrategy strategy) {
+    this.getResolvedStrategyMap().get(dto.getTrackerType()).put(dto.getUid(), strategy);
   }
 
   public TrackerImportStrategy getStrategy(TrackerDto dto) {
@@ -203,7 +202,7 @@ public class TrackerBundle {
    * @param uid uid of entity to check
    * @return true if an entity of given type and UID exists in the payload
    */
-  public boolean exists(TrackerType type, String uid) {
+  public boolean exists(TrackerType type, UID uid) {
     Objects.requireNonNull(type);
 
     return switch (type) {

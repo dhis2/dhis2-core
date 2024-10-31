@@ -51,6 +51,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -359,57 +360,61 @@ class TrackerPreheatTest extends TestBase {
 
   @Test
   void testExistsTrackedEntity() {
-    assertFalse(preheat.exists(TrackerType.TRACKED_ENTITY, "uid"));
+    UID uid = UID.generate();
+    assertFalse(preheat.exists(TrackerType.TRACKED_ENTITY, uid));
 
     TrackedEntity te = new TrackedEntity();
-    te.setUid("uid");
+    te.setUid(uid.getValue());
     preheat.putTrackedEntities(List.of(te));
 
-    assertTrue(preheat.exists(TrackerType.TRACKED_ENTITY, "uid"));
+    assertTrue(preheat.exists(TrackerType.TRACKED_ENTITY, uid));
     assertTrue(
         preheat.exists(
             org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-                .trackedEntity("uid")
+                .trackedEntity(uid)
                 .build()));
   }
 
   @Test
   void testExistsEnrollment() {
-    assertFalse(preheat.exists(TrackerType.ENROLLMENT, "uid"));
+    UID uid = UID.generate();
+    assertFalse(preheat.exists(TrackerType.ENROLLMENT, uid));
 
     Enrollment enrollment = new Enrollment();
-    enrollment.setUid("uid");
+    enrollment.setUid(uid.getValue());
     preheat.putEnrollments(List.of(enrollment));
 
-    assertTrue(preheat.exists(TrackerType.ENROLLMENT, "uid"));
+    assertTrue(preheat.exists(TrackerType.ENROLLMENT, uid));
   }
 
   @Test
   void testExistsEvent() {
-    assertFalse(preheat.exists(TrackerType.EVENT, "uid"));
+    UID uid = UID.generate();
+    assertFalse(preheat.exists(TrackerType.EVENT, uid));
 
     Event event = new Event();
-    event.setUid("uid");
+    event.setUid(uid.getValue());
     preheat.putEvents(List.of(event));
 
-    assertTrue(preheat.exists(TrackerType.EVENT, "uid"));
+    assertTrue(preheat.exists(TrackerType.EVENT, uid));
   }
 
   @Test
   void testExistsRelationship() {
-    assertFalse(preheat.exists(TrackerType.RELATIONSHIP, "uid"));
+    UID uid = UID.generate();
+    assertFalse(preheat.exists(TrackerType.RELATIONSHIP, uid));
 
     org.hisp.dhis.relationship.Relationship relationship =
         new org.hisp.dhis.relationship.Relationship();
-    relationship.setUid("uid");
+    relationship.setUid(uid.getValue());
     preheat.putRelationship(relationship);
 
-    assertTrue(preheat.exists(TrackerType.RELATIONSHIP, "uid"));
+    assertTrue(preheat.exists(TrackerType.RELATIONSHIP, uid));
   }
 
   @Test
   void testExistsFailsOnNullType() {
-    assertThrows(NullPointerException.class, () -> preheat.exists(null, "uid"));
+    assertThrows(NullPointerException.class, () -> preheat.exists(null, UID.generate()));
   }
 
   private Set<MetadataIdentifier> categoryOptionIds(

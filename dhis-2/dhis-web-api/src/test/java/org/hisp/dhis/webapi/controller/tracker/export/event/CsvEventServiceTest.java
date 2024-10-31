@@ -46,6 +46,7 @@ import java.util.Set;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
@@ -87,7 +88,7 @@ class CsvEventServiceTest {
   void writeEventsWithoutDataValues() throws IOException {
     Event event =
         Event.builder()
-            .event("BuA2R2Gr4vt")
+            .event(UID.of("BuA2R2Gr4vt"))
             .followUp(true)
             .deleted(false)
             .status(EventStatus.ACTIVE)
@@ -109,7 +110,7 @@ class CsvEventServiceTest {
         DataValue.builder().dataElement("color").value("yellow").providedElsewhere(true).build();
     Event event =
         Event.builder()
-            .event("BuA2R2Gr4vt")
+            .event(UID.of("BuA2R2Gr4vt"))
             .followUp(true)
             .deleted(false)
             .status(EventStatus.ACTIVE)
@@ -142,7 +143,7 @@ class CsvEventServiceTest {
 
     assertFalse(events.isEmpty());
     assertEquals(1, events.size());
-    assertEquals("eventId", events.get(0).getEvent());
+    assertEquals(UID.of("h4w96yEMlzO"), events.get(0).getEvent());
     assertEquals("programId", events.get(0).getProgram());
     assertEquals("programStageId", events.get(0).getProgramStage());
     assertEquals("orgUnitId", events.get(0).getOrgUnit());
@@ -174,13 +175,13 @@ class CsvEventServiceTest {
 
     assertFalse(events.isEmpty());
     assertEquals(1, events.size());
-    assertEquals("eventId", events.get(0).getEvent());
+    assertEquals(UID.of("h4w96yEMlzO"), events.get(0).getEvent());
     assertEquals("programId", events.get(0).getProgram());
     assertEquals("programStageId", events.get(0).getProgramStage());
     assertEquals("orgUnitId", events.get(0).getOrgUnit());
     assertEquals("2020-02-26T23:01:00Z", events.get(0).getOccurredAt().toString());
     assertEquals(EventStatus.COMPLETED, events.get(0).getStatus());
-    assertEquals("enrollmentId", events.get(0).getEnrollment());
+    assertEquals(UID.of("ja8NY4PW7Xm"), events.get(0).getEnrollment());
     assertEquals("2020-02-26T23:02:00Z", events.get(0).getScheduledAt().toString());
     assertEquals("2020-02-26T23:03:00Z", events.get(0).getCreatedAt().toString());
     assertEquals("2020-02-26T23:04:00Z", events.get(0).getCreatedAtClient().toString());
@@ -258,7 +259,7 @@ class CsvEventServiceTest {
 
     assertEquals(
         """
-eventId,COMPLETED,programId,programStageId,enrollmentId,orgUnitId,2020-02-26T23:01:00Z,2020-02-26T23:02:00Z,,,,false,false,2020-02-26T23:03:00Z,,2020-02-26T23:05:00Z,,admin,2020-02-26T23:07:00Z,,attributeOptionCombo,attributeCategoryOptions,,dataElement,value,admin,false,,2020-02-26T23:08:00Z,2020-02-26T23:09:00Z
+h4w96yEMlzO,COMPLETED,programId,programStageId,ja8NY4PW7Xm,orgUnitId,2020-02-26T23:01:00Z,2020-02-26T23:02:00Z,,,,false,false,2020-02-26T23:03:00Z,,2020-02-26T23:05:00Z,,admin,2020-02-26T23:07:00Z,,attributeOptionCombo,attributeCategoryOptions,,dataElement,value,admin,false,,2020-02-26T23:08:00Z,2020-02-26T23:09:00Z
 """,
         csvStream.toString(),
         "The event does not match or not exists in the Zip File.");
@@ -288,7 +289,7 @@ eventId,COMPLETED,programId,programStageId,enrollmentId,orgUnitId,2020-02-26T23:
 
     assertEquals(
         """
-eventId,COMPLETED,programId,programStageId,enrollmentId,orgUnitId,2020-02-26T23:01:00Z,2020-02-26T23:02:00Z,,,,false,false,2020-02-26T23:03:00Z,,2020-02-26T23:05:00Z,,admin,2020-02-26T23:07:00Z,,attributeOptionCombo,attributeCategoryOptions,,dataElement,value,admin,false,,2020-02-26T23:08:00Z,2020-02-26T23:09:00Z
+h4w96yEMlzO,COMPLETED,programId,programStageId,ja8NY4PW7Xm,orgUnitId,2020-02-26T23:01:00Z,2020-02-26T23:02:00Z,,,,false,false,2020-02-26T23:03:00Z,,2020-02-26T23:05:00Z,,admin,2020-02-26T23:07:00Z,,attributeOptionCombo,attributeCategoryOptions,,dataElement,value,admin,false,,2020-02-26T23:08:00Z,2020-02-26T23:09:00Z
 """,
         csvStream.toString(),
         "The event does not match or not exists in the GZip File.");

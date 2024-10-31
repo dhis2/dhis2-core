@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.imports.validation.validator.event;
 
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1128;
 
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -51,7 +52,7 @@ class UpdatableFieldsValidator implements Validator<org.hisp.dhis.tracker.import
     reporter.addErrorIf(
         () ->
             event.getEnrollment() != null
-                && !event.getEnrollment().equals(preheatEvent.getEnrollment().getUid()),
+                && !event.getEnrollment().equals(UID.of(preheatEvent.getEnrollment())),
         event,
         E1128,
         "enrollment");

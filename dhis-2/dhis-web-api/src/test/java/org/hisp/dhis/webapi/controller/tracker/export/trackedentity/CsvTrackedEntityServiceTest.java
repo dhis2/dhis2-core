@@ -42,6 +42,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.geotools.geojson.geom.GeometryJSON;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
@@ -67,7 +68,7 @@ class CsvTrackedEntityServiceTest {
 
     service.write(out, List.of(trackedEntity), false);
     assertEquals(
-        "\"Test tracked entity\",,"
+        "h4w96yEMlzO,,"
             + instant.toString()
             + ",,,,\"Test org unit\",false,false,false,\"POINT (40 5)\",5.0,40.0,,,,,,,,,\n",
         out.toString());
@@ -86,7 +87,7 @@ class CsvTrackedEntityServiceTest {
 
     service.write(out, List.of(trackedEntity), false);
     assertEquals(
-        "\"Test tracked entity\",,"
+        "h4w96yEMlzO,,"
             + instant.toString()
             + ",,,,\"Test org unit\",false,false,false,\"LINESTRING (40 5, 41 6)\",,,,,,,,,,,\n",
         out.toString());
@@ -106,13 +107,13 @@ class CsvTrackedEntityServiceTest {
 
     service.write(out, trackedEntities, false);
     assertEquals(
-        "\"Test tracked entity\",,"
+        "h4w96yEMlzO,,"
             + instant.toString()
             + ",,,,\"Test org unit\",false,false,false,,,,,,,,,,,,\n"
-            + "\"Test tracked entity\",,"
+            + "h4w96yEMlzO,,"
             + instant
             + ",,,,\"Test org unit\",false,false,false,\"POINT (40 5)\",5.0,40.0,,,,,,,,,\n"
-            + "\"Test tracked entity\",,"
+            + "h4w96yEMlzO,,"
             + instant
             + ",,,,\"Test org unit\",false,false,false,,,,,,,,,,,,\n",
         out.toString());
@@ -136,16 +137,16 @@ class CsvTrackedEntityServiceTest {
 
     service.write(out, trackedEntities, false);
     assertEquals(
-        "\"Test tracked entity\",,"
+        "h4w96yEMlzO,,"
             + instant.toString()
             + ",,,,\"Test org unit\",false,false,false,,,,,,,,,,,,\n"
-            + "\"Test tracked entity\",,"
+            + "h4w96yEMlzO,,"
             + instant
             + ",,,,\"Test org unit\",false,false,false,\"POINT (40 5)\",5.0,40.0,,,,,,,,,\n"
-            + "\"Test tracked entity\",,"
+            + "h4w96yEMlzO,,"
             + instant
             + ",,,,\"Test org unit\",false,false,false,,,,,,,,,\"attribute 1\",,\"Age test\",AGE\n"
-            + "\"Test tracked entity\",,"
+            + "h4w96yEMlzO,,"
             + instant
             + ",,,,\"Test org unit\",false,false,false,,,,,,,,,\"attribute 2\",,\"Text test\",TEXT\n",
         out.toString());
@@ -178,8 +179,8 @@ class CsvTrackedEntityServiceTest {
 
     assertEquals(
         """
-"Test tracked entity",,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,,"attribute 1",,"Age test",AGE
-"Test tracked entity",,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,,"attribute 2",,"Text test",TEXT
+h4w96yEMlzO,,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,,"attribute 1",,"Age test",AGE
+h4w96yEMlzO,,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,,"attribute 2",,"Text test",TEXT
 """,
         csvStream.toString(),
         "The tracked entity does not match or not exists in the Zip File.");
@@ -207,8 +208,8 @@ class CsvTrackedEntityServiceTest {
 
     assertEquals(
         """
-"Test tracked entity",,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,,"attribute 1",,"Age test",AGE
-"Test tracked entity",,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,,"attribute 2",,"Text test",TEXT
+h4w96yEMlzO,,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,,"attribute 1",,"Age test",AGE
+h4w96yEMlzO,,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,,"attribute 2",,"Text test",TEXT
 """,
         csvStream.toString(),
         "The tracked entity does not match or not exists in the Zip File.");
@@ -240,7 +241,7 @@ class CsvTrackedEntityServiceTest {
 
   private TrackedEntity createTrackedEntity() {
     TrackedEntity trackedEntity = new TrackedEntity();
-    trackedEntity.setTrackedEntity("Test tracked entity");
+    trackedEntity.setTrackedEntity(UID.of("h4w96yEMlzO"));
     instant = Instant.parse("2022-09-29T15:15:30.00Z");
     trackedEntity.setCreatedAt(instant);
     trackedEntity.setOrgUnit("Test org unit");

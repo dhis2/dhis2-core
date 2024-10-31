@@ -68,7 +68,7 @@ class RuleEngineMapper {
     Program program = preheat.getProgram(enrollment.getProgram());
 
     return new RuleEnrollment(
-        enrollment.getUid(),
+        enrollment.getUid().getValue(),
         program.getName(),
         getDate(ObjectUtils.firstNonNull(enrollment.getOccurredAt(), enrollment.getEnrolledAt())),
         getDate(enrollment.getEnrolledAt()),
@@ -165,7 +165,7 @@ class RuleEngineMapper {
             : Instant.Companion.fromEpochMilliseconds(event.getCreated().getTime());
 
     return new RuleEvent(
-        eventToEvaluate.getUid(),
+        eventToEvaluate.getUid().getValue(),
         programStage.getUid(),
         programStage.getName(),
         RuleEventStatus.valueOf(eventToEvaluate.getStatus().toString()),

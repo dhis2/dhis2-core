@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -158,11 +159,11 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
         Enrollment.builder()
             .program(MetadataIdentifier.ofUid(programA.getUid()))
             .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
-            .trackedEntity(trackedEntityA.getUid())
+            .trackedEntity(UID.of(trackedEntityA))
             .status(EnrollmentStatus.ACTIVE)
             .enrolledAt(Instant.now())
             .occurredAt(Instant.now())
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .build();
 
     ImportReport importReport =
@@ -188,17 +189,17 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
 
   @Test
   void shouldSendTrackerNotificationAtEnrollmentCompletionAndThenEventCompletion() {
-    String eventUid = CodeGenerator.generateUid();
+    UID eventUid = UID.generate();
 
     Enrollment enrollment =
         Enrollment.builder()
             .program(MetadataIdentifier.ofUid(programA.getUid()))
             .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
-            .trackedEntity(trackedEntityA.getUid())
+            .trackedEntity(UID.of(trackedEntityA))
             .status(EnrollmentStatus.COMPLETED)
             .enrolledAt(Instant.now())
             .occurredAt(Instant.now())
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .build();
 
     org.hisp.dhis.tracker.imports.domain.Event event =
@@ -272,12 +273,12 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
 
   @Test
   void shouldSendEnrollmentCompletionNotificationWhenStatusIsUpdatedFromActiveToCompleted() {
-    String uid = CodeGenerator.generateUid();
+    UID uid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .program(MetadataIdentifier.ofUid(programA.getUid()))
             .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
-            .trackedEntity(trackedEntityA.getUid())
+            .trackedEntity(UID.of(trackedEntityA))
             .status(EnrollmentStatus.ACTIVE)
             .enrollment(uid)
             .enrolledAt(Instant.now())
@@ -308,7 +309,7 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .program(MetadataIdentifier.ofUid(programA.getUid()))
             .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
-            .trackedEntity(trackedEntityA.getUid())
+            .trackedEntity(UID.of(trackedEntityA))
             .status(EnrollmentStatus.COMPLETED)
             .enrollment(uid)
             .enrolledAt(Instant.now())
@@ -336,12 +337,12 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
 
   @Test
   void shouldSendEnrollmentCompletionNotificationOnlyOnce() {
-    String uid = CodeGenerator.generateUid();
+    UID uid = UID.generate();
     Enrollment enrollment =
         Enrollment.builder()
             .program(MetadataIdentifier.ofUid(programA.getUid()))
             .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
-            .trackedEntity(trackedEntityA.getUid())
+            .trackedEntity(UID.of(trackedEntityA))
             .status(EnrollmentStatus.COMPLETED)
             .enrollment(uid)
             .enrolledAt(Instant.now())

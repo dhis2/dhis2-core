@@ -38,10 +38,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
@@ -53,17 +51,6 @@ import org.junit.jupiter.api.Test;
  * @author Luciano Fiandesio
  */
 class BodyConverterTest {
-
-  private final BeanRandomizer rnd =
-      BeanRandomizer.create(
-          Map.of(
-              TrackedEntity.class,
-              Set.of("enrollments"),
-              Enrollment.class,
-              Set.of("events"),
-              Event.class,
-              Set.of("relationships")));
-
   private ObjectMapper objectMapper = new ObjectMapper();
 
   @BeforeEach
@@ -73,18 +60,21 @@ class BodyConverterTest {
 
   @Test
   void verifyNestedTeiStructureIsFlattenedDuringDeserialization() throws IOException {
-    List<Relationship> relationships1 = createRelationships(2, "rel1");
-    List<Relationship> relationships2 = createRelationships(2, "rel2");
-    List<Event> events1 = createEvent(3, "ev1", "enr1");
-    List<Event> events2 = createEvent(7, "ev2", "enr2");
+    List<Relationship> relationships1 = createRelationships(2);
+    List<Relationship> relationships2 = createRelationships(2);
+    UID enrollmentUID1 = UID.generate();
+    UID enrollmentUID2 = UID.generate();
+    UID teUID = UID.generate();
+    List<Event> events1 = createEvent(3, enrollmentUID1);
+    List<Event> events2 = createEvent(7, enrollmentUID2);
     List<Enrollment> enrollments = new ArrayList<>();
-    Enrollment enrollment1 = createEnrollment("enr1", "teABC", events1);
-    Enrollment enrollment2 = createEnrollment("enr2", "teABC", events2);
+    Enrollment enrollment1 = createEnrollment(enrollmentUID1, teUID, events1);
+    Enrollment enrollment2 = createEnrollment(enrollmentUID2, teUID, events2);
     enrollment1.setRelationships(relationships2);
     enrollment2.setRelationships(relationships1);
     enrollments.add(enrollment1);
     enrollments.add(enrollment2);
-    TrackedEntity trackedEntity = createTrackedEntity("teABC", enrollments);
+    TrackedEntity trackedEntity = createTrackedEntity(teUID, enrollments);
     trackedEntity.setRelationships(relationships1);
     Body build = Body.builder().trackedEntities(Collections.singletonList(trackedEntity)).build();
     String jsonPayload = toJson(build);
@@ -97,18 +87,21 @@ class BodyConverterTest {
 
   @Test
   void verifyNestedTeiStructureHasNestedDataClearedAfterFlattening() throws IOException {
-    List<Relationship> relationships1 = createRelationships(2, "rel1");
-    List<Relationship> relationships2 = createRelationships(2, "rel2");
-    List<Event> events1 = createEvent(3, "ev1", "enr1");
-    List<Event> events2 = createEvent(7, "ev2", "enr2");
+    List<Relationship> relationships1 = createRelationships(2);
+    List<Relationship> relationships2 = createRelationships(2);
+    UID enrollmentUID1 = UID.generate();
+    UID enrollmentUID2 = UID.generate();
+    UID teUID = UID.generate();
+    List<Event> events1 = createEvent(3, enrollmentUID1);
+    List<Event> events2 = createEvent(7, enrollmentUID2);
     List<Enrollment> enrollments = new ArrayList<>();
-    Enrollment enrollment1 = createEnrollment("enr1", "teABC", events1);
-    Enrollment enrollment2 = createEnrollment("enr2", "teABC", events2);
+    Enrollment enrollment1 = createEnrollment(enrollmentUID1, teUID, events1);
+    Enrollment enrollment2 = createEnrollment(enrollmentUID2, teUID, events2);
     enrollment1.setRelationships(relationships2);
     enrollment2.setRelationships(relationships1);
     enrollments.add(enrollment1);
     enrollments.add(enrollment2);
-    TrackedEntity trackedEntity = createTrackedEntity("teABC", enrollments);
+    TrackedEntity trackedEntity = createTrackedEntity(teUID, enrollments);
     trackedEntity.setRelationships(relationships1);
     Body build = Body.builder().trackedEntities(Collections.singletonList(trackedEntity)).build();
     String jsonPayload = toJson(build);
@@ -122,10 +115,10 @@ class BodyConverterTest {
 
   @Test
   void verifyUidIsAssignedWhenMissing() throws IOException {
-    List<Relationship> relationships1 = createRelationships(2, null);
-    List<Relationship> relationships2 = createRelationships(2, "rel2");
-    List<Event> events1 = createEvent(3, null, null);
-    List<Event> events2 = createEvent(7, null, null);
+    List<Relationship> relationships1 = createRelationships(2);
+    List<Relationship> relationships2 = createRelationships(2);
+    List<Event> events1 = createEvent(3, null);
+    List<Event> events2 = createEvent(7, null);
     List<Enrollment> enrollments = new ArrayList<>();
     Enrollment enrollment1 = createEnrollment(null, null, events1);
     Enrollment enrollment2 = createEnrollment(null, null, events2);
@@ -157,8 +150,8 @@ class BodyConverterTest {
         .forEach(r -> assertThat(r.getRelationship(), is(notNullValue())));
   }
 
-  private TrackedEntity createTrackedEntity(String uid, List<Enrollment> enrollments) {
-    TrackedEntity trackedEntity = rnd.nextObject(TrackedEntity.class);
+  private TrackedEntity createTrackedEntity(UID uid, List<Enrollment> enrollments) {
+    TrackedEntity trackedEntity = new TrackedEntity();
     trackedEntity.setGeometry(null);
     trackedEntity.setTrackedEntity(uid);
     trackedEntity.setEnrollments(enrollments);
@@ -169,8 +162,8 @@ class BodyConverterTest {
     return this.objectMapper.writeValueAsString(bundle);
   }
 
-  private Enrollment createEnrollment(String uid, String parent, List<Event> events) {
-    Enrollment enrollment = rnd.nextObject(Enrollment.class);
+  private Enrollment createEnrollment(UID uid, UID parent, List<Event> events) {
+    Enrollment enrollment = new Enrollment();
     enrollment.setGeometry(null);
     enrollment.setEnrollment(uid);
     enrollment.setTrackedEntity(parent);
@@ -178,23 +171,23 @@ class BodyConverterTest {
     return enrollment;
   }
 
-  private List<Event> createEvent(int size, String uid, String parent) {
+  private List<Event> createEvent(int size, UID parent) {
     List<Event> events = new ArrayList<>();
     for (int i = 0; i < size; i++) {
-      Event event = rnd.nextObject(Event.class);
+      Event event = new Event();
       event.setGeometry(null);
-      event.setEvent(uid + i);
+      event.setEvent(UID.generate());
       event.setEnrollment(parent);
       events.add(event);
     }
     return events;
   }
 
-  private List<Relationship> createRelationships(int size, String uid) {
+  private List<Relationship> createRelationships(int size) {
     List<Relationship> relationships = new ArrayList<>();
     for (int i = 0; i < size; i++) {
-      Relationship relationship = rnd.nextObject(Relationship.class);
-      relationship.setRelationship(uid + i);
+      Relationship relationship = new Relationship();
+      relationship.setRelationship(UID.generate());
       relationships.add(relationship);
     }
     return relationships;

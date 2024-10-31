@@ -47,6 +47,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
@@ -82,7 +83,7 @@ class DataRelationsValidatorTest extends TestBase {
 
   private static final String TE_TYPE_ID = "TE_TYPE_ID";
 
-  private static final String ENROLLMENT_ID = "ENROLLMENT_ID";
+  private static final UID ENROLLMENT_ID = UID.generate();
 
   private DataRelationsValidator validator;
 
@@ -118,7 +119,7 @@ class DataRelationsValidatorTest extends TestBase {
 
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
@@ -148,7 +149,7 @@ class DataRelationsValidatorTest extends TestBase {
 
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
@@ -175,7 +176,7 @@ class DataRelationsValidatorTest extends TestBase {
 
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
@@ -206,7 +207,7 @@ class DataRelationsValidatorTest extends TestBase {
 
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
@@ -238,7 +239,7 @@ class DataRelationsValidatorTest extends TestBase {
 
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
@@ -769,7 +770,7 @@ class DataRelationsValidatorTest extends TestBase {
 
     org.hisp.dhis.tracker.imports.domain.Enrollment e =
         new org.hisp.dhis.tracker.imports.domain.Enrollment();
-    e.setTrackedEntity(CodeGenerator.generateUid());
+    e.setTrackedEntity(UID.generate());
 
     when(bundle.findEnrollmentByUid(ENROLLMENT_ID)).thenReturn(Optional.of(e));
 
@@ -857,23 +858,23 @@ class DataRelationsValidatorTest extends TestBase {
     return programStage;
   }
 
-  private Enrollment enrollment(String uid, Program program) {
+  private Enrollment enrollment(UID uid, Program program) {
     Enrollment enrollment = enrollment(uid);
     enrollment.setProgram(program);
     enrollment.setTrackedEntity(new TrackedEntity());
     return enrollment;
   }
 
-  private Enrollment enrollment(String uid, TrackedEntity trackedEntity) {
+  private Enrollment enrollment(UID uid, TrackedEntity trackedEntity) {
     Enrollment enrollment = new Enrollment();
-    enrollment.setUid(uid);
+    enrollment.setUid(uid.getValue());
     enrollment.setTrackedEntity(trackedEntity);
     return enrollment;
   }
 
-  private Enrollment enrollment(String uid) {
+  private Enrollment enrollment(UID uid) {
     Enrollment enrollment = new Enrollment();
-    enrollment.setUid(uid);
+    enrollment.setUid(uid.getValue());
     return enrollment;
   }
 
@@ -959,7 +960,7 @@ class DataRelationsValidatorTest extends TestBase {
 
   private Event.EventBuilder eventBuilder() {
     return Event.builder()
-        .event(CodeGenerator.generateUid())
+        .event(UID.generate())
         .program(MetadataIdentifier.ofUid(PROGRAM_UID))
         .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
         .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))

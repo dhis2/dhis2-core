@@ -107,10 +107,11 @@ class MessageFormatter {
     if (Date.class.isAssignableFrom(type)) return (DateFormat.getInstance().format(argument));
     if (Instant.class.isAssignableFrom(type))
       return DateUtils.toIso8601NoTz(DateUtils.fromInstant((Instant) argument));
-    if (Enrollment.class.isAssignableFrom(type)) return ((Enrollment) argument).getEnrollment();
-    if (Event.class.isAssignableFrom(type)) return ((Event) argument).getEvent();
+    if (Enrollment.class.isAssignableFrom(type))
+      return ((Enrollment) argument).getEnrollment().getValue();
+    if (Event.class.isAssignableFrom(type)) return ((Event) argument).getEvent().getValue();
     if (TrackedEntity.class.isAssignableFrom(type))
-      return ((TrackedEntity) argument).getTrackedEntity();
+      return ((TrackedEntity) argument).getTrackedEntity().getValue();
     return argument.toString();
   }
 

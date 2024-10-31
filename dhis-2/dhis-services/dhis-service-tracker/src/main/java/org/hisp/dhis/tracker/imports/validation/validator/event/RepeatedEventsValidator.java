@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -50,22 +51,20 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
 class RepeatedEventsValidator implements Validator<List<Event>> {
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, List<Event> events) {
-    Map<Pair<MetadataIdentifier, String>, List<Event>>
-        eventsByEnrollmentAndNotRepeatableProgramStage =
-            events.stream()
-                .filter(e -> !reporter.isInvalid(e))
-                .filter(e -> !bundle.getStrategy(e).isDelete())
-                .filter(
-                    e -> {
-                      ProgramStage programStage =
-                          bundle.getPreheat().getProgramStage(e.getProgramStage());
-                      return programStage.getProgram().isRegistration()
-                          && !programStage.getRepeatable();
-                    })
-                .collect(
-                    Collectors.groupingBy(e -> Pair.of(e.getProgramStage(), e.getEnrollment())));
+    Map<Pair<MetadataIdentifier, UID>, List<Event>> eventsByEnrollmentAndNotRepeatableProgramStage =
+        events.stream()
+            .filter(e -> !reporter.isInvalid(e))
+            .filter(e -> !bundle.getStrategy(e).isDelete())
+            .filter(
+                e -> {
+                  ProgramStage programStage =
+                      bundle.getPreheat().getProgramStage(e.getProgramStage());
+                  return programStage.getProgram().isRegistration()
+                      && !programStage.getRepeatable();
+                })
+            .collect(Collectors.groupingBy(e -> Pair.of(e.getProgramStage(), e.getEnrollment())));
 
-    for (Map.Entry<Pair<MetadataIdentifier, String>, List<Event>> mapEntry :
+    for (Map.Entry<Pair<MetadataIdentifier, UID>, List<Event>> mapEntry :
         eventsByEnrollmentAndNotRepeatableProgramStage.entrySet()) {
       if (mapEntry.getValue().size() > 1) {
         for (Event event : mapEntry.getValue()) {

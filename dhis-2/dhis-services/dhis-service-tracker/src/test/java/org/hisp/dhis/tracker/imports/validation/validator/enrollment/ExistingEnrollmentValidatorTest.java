@@ -38,6 +38,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.HashMap;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
@@ -73,9 +74,11 @@ class ExistingEnrollmentValidatorTest {
 
   private static final String PROGRAM_UID = "program";
 
-  private static final String TRACKED_ENTIT_UID = "trackedEntity";
+  private static final UID TRACKED_ENTIT_UID = UID.generate();
 
-  private static final String ENROLLMENT_UID = "enrollment";
+  private static final UID ENROLLMENT_UID = UID.generate();
+
+  private static final UID ANOTHER_ENROLLMENT_UID = UID.generate();
 
   @BeforeEach
   public void setUp() {
@@ -91,7 +94,7 @@ class ExistingEnrollmentValidatorTest {
     when(enrollment.getTrackerType()).thenCallRealMethod();
 
     when(preheat.getTrackedEntity(TRACKED_ENTIT_UID)).thenReturn(trackedEntity);
-    when(trackedEntity.getUid()).thenReturn(TRACKED_ENTIT_UID);
+    when(trackedEntity.getUid()).thenReturn(TRACKED_ENTIT_UID.getValue());
 
     Program program = new Program();
     program.setOnlyEnrollOnce(false);
@@ -252,7 +255,7 @@ class ExistingEnrollmentValidatorTest {
                 Program program = new Program();
                 program.setUid(PROGRAM_UID);
 
-                enrollment.setUid("another_enrollment");
+                enrollment.setUid(ANOTHER_ENROLLMENT_UID.getValue());
                 enrollment.setStatus(status);
                 enrollment.setProgram(program);
 
@@ -264,7 +267,7 @@ class ExistingEnrollmentValidatorTest {
   private void setEnrollmentInPayload(EnrollmentStatus status) {
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollmentInBundle =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment("another_enrollment")
+            .enrollment(ANOTHER_ENROLLMENT_UID)
             .program(MetadataIdentifier.ofUid(PROGRAM_UID))
             .trackedEntity(TRACKED_ENTIT_UID)
             .status(status)

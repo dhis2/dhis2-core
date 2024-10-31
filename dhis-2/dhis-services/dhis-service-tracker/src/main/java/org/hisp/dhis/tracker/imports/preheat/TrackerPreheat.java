@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.imports.preheat;
 import static org.hisp.dhis.tracker.imports.util.RelationshipKeySupport.getRelationshipKey;
 import static org.hisp.dhis.tracker.imports.util.RelationshipKeySupport.hasRelationshipKey;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,6 +44,7 @@ import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
@@ -53,6 +53,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -197,25 +198,25 @@ public class TrackerPreheat {
    * Internal map of all preheated tracked entities, mainly used for confirming existence for
    * updates, and used for object merging.
    */
-  @Getter private final Map<String, TrackedEntity> trackedEntities = new HashMap<>();
+  @Getter private final Map<UID, TrackedEntity> trackedEntities = new HashMap<>();
 
   /**
    * Internal map of all preheated enrollments, mainly used for confirming existence for updates,
    * and used for object merging.
    */
-  @Getter private final Map<String, Enrollment> enrollments = new HashMap<>();
+  @Getter private final Map<UID, Enrollment> enrollments = new HashMap<>();
 
   /**
    * Internal map of all preheated events, mainly used for confirming existence for updates, and
    * used for object merging.
    */
-  @Getter private final Map<String, Event> events = new HashMap<>();
+  @Getter private final Map<UID, Event> events = new HashMap<>();
 
   /**
    * Internal map of all preheated relationships, mainly used for confirming existence for updates,
    * and used for object merging.
    */
-  @Getter private final Map<String, Relationship> relationships = new HashMap<>();
+  @Getter private final Map<UID, Relationship> relationships = new HashMap<>();
 
   /**
    * Internal set of all relationship keys and inverted keys already present in the DB. This is used
@@ -227,7 +228,7 @@ public class TrackerPreheat {
   private final Set<String> existingRelationships = new HashSet<>();
 
   /** Internal set of all preheated notes uids (events and enrollments) */
-  private final Set<String> notes = new HashSet<>();
+  private final Set<UID> notes = new HashSet<>();
 
   /**
    * Internal map of all existing TrackedEntityProgramOwner. Used for ownership validations and
@@ -236,12 +237,11 @@ public class TrackerPreheat {
    * is an object of {@link TrackedEntityProgramOwnerOrgUnit} holding the ownership OrganisationUnit
    */
   @Getter
-  private final Map<String, Map<String, TrackedEntityProgramOwnerOrgUnit>> programOwner =
+  private final Map<UID, Map<String, TrackedEntityProgramOwnerOrgUnit>> programOwner =
       new HashMap<>();
 
   /** A Map of trackedEntity uid connected to Enrollments */
-  @Getter @Setter
-  private Map<String, List<Enrollment>> trackedEntityToEnrollmentMap = new HashMap<>();
+  @Getter @Setter private Map<UID, List<Enrollment>> trackedEntityToEnrollmentMap = new HashMap<>();
 
   /** A Map of program uid and without registration {@see Enrollment}. */
   private final Map<String, Enrollment> enrollmentsWithoutRegistration = new HashMap<>();
@@ -259,14 +259,13 @@ public class TrackerPreheat {
    * This is going to be used to validate the uniqueness of attribute values in the Validation
    * phase.
    */
-  @Getter @Setter private List<UniqueAttributeValue> uniqueAttributeValues = Lists.newArrayList();
+  @Getter @Setter private List<UniqueAttributeValue> uniqueAttributeValues = new ArrayList<>();
 
   /** A list of all Enrollment UID having at least one Event that is not deleted. */
-  @Getter @Setter
-  private List<String> enrollmentsWithOneOrMoreNonDeletedEvent = Lists.newArrayList();
+  @Getter @Setter private Set<UID> enrollmentsWithOneOrMoreNonDeletedEvent = new HashSet<>();
 
   /** A list of Program Stage UID having 1 or more Events */
-  private final List<Pair<String, String>> programStageWithEvents = Lists.newArrayList();
+  private final List<Pair<String, UID>> programStageWithEvents = new ArrayList<>();
 
   /** idScheme map */
   @Getter @Setter private TrackerIdSchemeParams idSchemes = new TrackerIdSchemeParams();
@@ -435,48 +434,48 @@ public class TrackerPreheat {
     return this.put(idSchemes.getCategoryOptionComboIdScheme(), categoryOptionCombo);
   }
 
-  public TrackedEntity getTrackedEntity(String uid) {
+  public TrackedEntity getTrackedEntity(UID uid) {
     return trackedEntities.get(uid);
   }
 
   public void putTrackedEntities(List<TrackedEntity> trackedEntities) {
 
-    trackedEntities.forEach(te -> putTrackedEntity(te.getUid(), te));
+    trackedEntities.forEach(this::putTrackedEntity);
   }
 
-  private void putTrackedEntity(String uid, TrackedEntity trackedEntity) {
-    trackedEntities.put(uid, trackedEntity);
+  private void putTrackedEntity(TrackedEntity trackedEntity) {
+    trackedEntities.put(UID.of(trackedEntity), trackedEntity);
   }
 
-  public Enrollment getEnrollment(String uid) {
+  public Enrollment getEnrollment(UID uid) {
     return enrollments.get(uid);
   }
 
   public void putEnrollments(List<Enrollment> enrollments) {
-    enrollments.forEach(e -> putEnrollment(e.getUid(), e));
+    enrollments.forEach(this::putEnrollment);
   }
 
-  public void putEnrollment(String uid, Enrollment enrollment) {
-    enrollments.put(uid, enrollment);
+  public void putEnrollment(Enrollment enrollment) {
+    enrollments.put(UID.of(enrollment), enrollment);
   }
 
-  public Event getEvent(String uid) {
+  public Event getEvent(UID uid) {
     return events.get(uid);
   }
 
   public void putEvents(List<Event> events) {
-    events.forEach(event -> putEvent(event.getUid(), event));
+    events.forEach(this::putEvent);
   }
 
-  public void putEvent(String uid, Event event) {
-    events.put(uid, event);
+  public void putEvent(Event event) {
+    events.put(UID.of(event), event);
   }
 
-  public void addNotes(Set<String> notes) {
+  public void addNotes(Set<UID> notes) {
     this.notes.addAll(notes);
   }
 
-  public boolean hasNote(String uid) {
+  public boolean hasNote(UID uid) {
     return notes.contains(uid);
   }
 
@@ -484,8 +483,8 @@ public class TrackerPreheat {
     return get(RelationshipType.class, id);
   }
 
-  public Relationship getRelationship(String relationshipUid) {
-    return relationships.get(relationshipUid);
+  public Relationship getRelationship(UID uid) {
+    return relationships.get(uid);
   }
 
   public Relationship getRelationship(
@@ -516,9 +515,7 @@ public class TrackerPreheat {
   }
 
   public void putRelationship(Relationship relationship) {
-    if (Objects.nonNull(relationship)) {
-      relationships.put(relationship.getUid(), relationship);
-    }
+    relationships.put(UID.of(relationship), relationship);
   }
 
   public void addExistingRelationship(Relationship relationship) {
@@ -537,19 +534,20 @@ public class TrackerPreheat {
   }
 
   public void addProgramOwners(List<TrackedEntityProgramOwnerOrgUnit> tepos) {
-    tepos.forEach(tepo -> addProgramOwner(tepo.getTrackedEntityId(), tepo.getProgramId(), tepo));
+    tepos.forEach(
+        tepo -> addProgramOwner(UID.of(tepo.getTrackedEntityId()), tepo.getProgramId(), tepo));
   }
 
   private void addProgramOwner(
-      String teUid, String programUid, TrackedEntityProgramOwnerOrgUnit tepo) {
+      UID teUid, String programUid, TrackedEntityProgramOwnerOrgUnit tepo) {
     programOwner.computeIfAbsent(teUid, k -> new HashMap<>()).put(programUid, tepo);
   }
 
-  public void addProgramOwner(String teUid, String programUid, OrganisationUnit orgUnit) {
+  public void addProgramOwner(@Nonnull UID teUid, String programUid, OrganisationUnit orgUnit) {
     programOwner.computeIfAbsent(teUid, k -> new HashMap<>());
     if (!programOwner.get(teUid).containsKey(programUid)) {
       TrackedEntityProgramOwnerOrgUnit tepo =
-          new TrackedEntityProgramOwnerOrgUnit(teUid, programUid, orgUnit);
+          new TrackedEntityProgramOwnerOrgUnit(teUid.getValue(), programUid, orgUnit);
       programOwner.get(teUid).put(programUid, tepo);
     }
   }
@@ -610,15 +608,14 @@ public class TrackerPreheat {
     return get(TrackedEntityAttribute.class, id);
   }
 
-  public TrackerPreheat addProgramStageWithEvents(String programStageUid, String enrollmentUid) {
+  public TrackerPreheat addProgramStageWithEvents(String programStageUid, UID enrollmentUid) {
     this.programStageWithEvents.add(Pair.of(programStageUid, enrollmentUid));
     return this;
   }
 
-  public boolean hasProgramStageWithEvents(MetadataIdentifier programStage, String enrollmentUid) {
+  public boolean hasProgramStageWithEvents(MetadataIdentifier programStage, UID enrollmentUid) {
     ProgramStage ps = this.getProgramStage(programStage);
-    Enrollment enrollment = this.getEnrollment(enrollmentUid);
-    return this.programStageWithEvents.contains(Pair.of(ps.getUid(), enrollment.getUid()));
+    return this.programStageWithEvents.contains(Pair.of(ps.getUid(), enrollmentUid));
   }
 
   /** Checks if an entity exists in the DB. */
@@ -633,7 +630,7 @@ public class TrackerPreheat {
    * @param uid uid of entity to check
    * @return true if an entity of given type and UID exists in the DB
    */
-  public boolean exists(TrackerType type, String uid) {
+  public boolean exists(TrackerType type, UID uid) {
     Objects.requireNonNull(type);
 
     return switch (type) {

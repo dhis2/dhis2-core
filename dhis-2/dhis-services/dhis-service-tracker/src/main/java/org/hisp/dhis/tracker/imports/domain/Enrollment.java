@@ -36,6 +36,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.TrackerType;
 import org.locationtech.jts.geom.Geometry;
@@ -48,13 +49,13 @@ import org.locationtech.jts.geom.Geometry;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Enrollment implements TrackerDto, Serializable {
-  @JsonProperty private String enrollment;
+  @JsonProperty private UID enrollment;
 
   @JsonProperty private Instant createdAtClient;
 
   @JsonProperty private Instant updatedAtClient;
 
-  @JsonProperty private String trackedEntity;
+  @JsonProperty private UID trackedEntity;
 
   @JsonProperty private MetadataIdentifier program;
 
@@ -79,7 +80,7 @@ public class Enrollment implements TrackerDto, Serializable {
   @JsonProperty @Builder.Default private List<Note> notes = new ArrayList<>();
 
   @Override
-  public String getUid() {
+  public UID getUid() {
     return this.enrollment;
   }
 

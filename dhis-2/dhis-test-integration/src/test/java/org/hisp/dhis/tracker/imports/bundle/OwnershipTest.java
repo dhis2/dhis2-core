@@ -39,8 +39,8 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -111,7 +111,7 @@ class OwnershipTest extends TrackerTest {
     assertTrue(
         trackerObjects.getEnrollments().get(0).getOrgUnit().isEqualTo(tepo.getOrganisationUnit()));
     assertEquals(
-        trackerObjects.getEnrollments().get(0).getTrackedEntity(),
+        trackerObjects.getEnrollments().get(0).getTrackedEntity().getValue(),
         tepo.getTrackedEntity().getUid());
   }
 
@@ -223,7 +223,7 @@ class OwnershipTest extends TrackerTest {
     enrollments = manager.getAll(Enrollment.class);
     assertEquals(1, enrollments.size());
     params.setImportStrategy(TrackerImportStrategy.CREATE);
-    trackerObjects.getEnrollments().get(0).setEnrollment(CodeGenerator.generateUid());
+    trackerObjects.getEnrollments().get(0).setEnrollment(UID.generate());
     updatedReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(updatedReport);
     assertEquals(1, updatedReport.getStats().getCreated());
@@ -247,7 +247,7 @@ class OwnershipTest extends TrackerTest {
     Program pgm = manager.get(Program.class, "BFcipDERJnf");
     trackerOwnershipManager.transferOwnership(trackedEntity, pgm, ou);
     params.setImportStrategy(TrackerImportStrategy.CREATE);
-    trackerObjects.getEnrollments().get(0).setEnrollment(CodeGenerator.generateUid());
+    trackerObjects.getEnrollments().get(0).setEnrollment(UID.generate());
     updatedReport = trackerImportService.importTracker(params, trackerObjects);
     assertEquals(1, updatedReport.getStats().getIgnored());
     assertHasError(updatedReport, ValidationCode.E1102);

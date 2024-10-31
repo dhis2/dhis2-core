@@ -36,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -54,6 +55,7 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -102,7 +104,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       }
     }
 
-    String teUid = getTeUidFromEvent(bundle, event, program);
+    UID teUid = getTeUidFromEvent(bundle, event, program);
 
     CategoryOptionCombo categoryOptionCombo =
         bundle.getPreheat().getCategoryOptionCombo(event.getAttributeOptionCombo());
@@ -115,7 +117,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
           bundle,
           event,
           preheatEvent,
-          trackedEntity == null ? null : trackedEntity.getUid(),
+          trackedEntity == null ? null : UID.of(trackedEntity),
           ownerOrgUnit,
           bundle.getUser());
     } else {
@@ -139,7 +141,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       org.hisp.dhis.tracker.imports.domain.Event event,
       CategoryOptionCombo categoryOptionCombo,
       ProgramStage programStage,
-      String teUid,
+      UID teUid,
       OrganisationUnit organisationUnit,
       OrganisationUnit ownerOrgUnit,
       Program program,
@@ -168,7 +170,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.Event event,
       Event preheatEvent,
-      String teUid,
+      UID teUid,
       OrganisationUnit ownerOrgUnit,
       UserDetails user) {
     TrackerImportStrategy strategy = bundle.getStrategy(event);
@@ -192,7 +194,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     }
   }
 
-  private String getTeUidFromEvent(
+  private UID getTeUidFromEvent(
       TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event, Program program) {
     if (program.isWithoutRegistration()) {
       return null;
@@ -207,11 +209,11 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
           .orElse(null);
     }
 
-    return enrollment.getTrackedEntity().getUid();
+    return UID.of(enrollment.getTrackedEntity());
   }
 
   private OrganisationUnit getOwnerOrganisationUnit(
-      TrackerPreheat preheat, String teUid, Program program) {
+      TrackerPreheat preheat, UID teUid, Program program) {
     Map<String, TrackedEntityProgramOwnerOrgUnit> programOwner =
         preheat.getProgramOwner().get(teUid);
     if (programOwner == null || programOwner.get(program.getUid()) == null) {
@@ -236,7 +238,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
   private void checkTeTypeAndTeProgramAccess(
       Reporter reporter,
       TrackerDto dto,
-      String trackedEntity,
+      UID trackedEntity,
       OrganisationUnit ownerOrganisationUnit,
       Program program,
       UserDetails user) {
@@ -245,7 +247,11 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     }
 
     if (ownerOrganisationUnit != null
-        && !ownershipAccessManager.hasAccess(user, trackedEntity, ownerOrganisationUnit, program)) {
+        && !ownershipAccessManager.hasAccess(
+            user,
+            ObjectUtils.applyIfNotNull(trackedEntity, UID::getValue),
+            ownerOrganisationUnit,
+            program)) {
       reporter.addError(dto, ValidationCode.E1102, user, trackedEntity, program);
     }
   }
@@ -258,7 +264,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       OrganisationUnit eventOrgUnit,
       OrganisationUnit ownerOrgUnit,
       CategoryOptionCombo categoryOptionCombo,
-      String trackedEntity,
+      UID trackedEntity,
       boolean isCreatableInSearchScope) {
 
     if (bundle.getStrategy(event) != TrackerImportStrategy.UPDATE) {

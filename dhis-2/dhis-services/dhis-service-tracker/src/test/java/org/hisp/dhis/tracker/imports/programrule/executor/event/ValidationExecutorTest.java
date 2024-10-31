@@ -72,9 +72,9 @@ class ValidationExecutorTest extends TestBase {
 
   private static final String EVALUATED_DATA = "4.0";
 
-  private static final String ACTIVE_EVENT_ID = "EventUid";
+  private static final UID ACTIVE_EVENT_ID = UID.generate();
 
-  private static final String COMPLETED_EVENT_ID = "CompletedEventUid";
+  private static final UID COMPLETED_EVENT_ID = UID.generate();
 
   private static final String PROGRAM_STAGE_ID = "ProgramStageId";
 

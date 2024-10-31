@@ -42,6 +42,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SlimPager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
@@ -213,7 +214,7 @@ public class Assertions {
         () -> assertHasError(report.getValidationReport(), code));
   }
 
-  public static void assertHasError(ImportReport report, ValidationCode code, String entityUid) {
+  public static void assertHasError(ImportReport report, ValidationCode code, UID entityUid) {
     assertNotNull(report);
     assertAll(
         () ->
@@ -243,8 +244,7 @@ public class Assertions {
             "error with code %s not found in report with error(s) %s", code, report.getErrors()));
   }
 
-  public static void assertHasError(
-      ValidationReport report, ValidationCode code, String entityUid) {
+  public static void assertHasError(ValidationReport report, ValidationCode code, UID entityUid) {
     assertTrue(report.hasErrors(), "error not found since report has no errors");
     assertTrue(
         report.hasError(

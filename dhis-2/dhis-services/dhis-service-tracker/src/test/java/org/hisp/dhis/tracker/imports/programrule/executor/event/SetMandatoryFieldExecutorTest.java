@@ -67,9 +67,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class SetMandatoryFieldExecutorTest extends TestBase {
-  private static final String ACTIVE_EVENT_ID = "EventUid";
+  private static final UID ACTIVE_EVENT_ID = UID.generate();
 
-  private static final String COMPLETED_EVENT_ID = "CompletedEventUid";
+  private static final UID COMPLETED_EVENT_ID = UID.generate();
 
   private static final UID DATA_ELEMENT_UID = UID.of("h4w96yEMlzO");
 
@@ -251,18 +251,18 @@ class SetMandatoryFieldExecutorTest extends TestBase {
     assertEquals(error(RULE_UID, E1301, dataElement.getUid()), error.get());
   }
 
-  private org.hisp.dhis.program.Event eventWithMandatoryValue(String uid, EventStatus status) {
+  private org.hisp.dhis.program.Event eventWithMandatoryValue(UID uid, EventStatus status) {
     org.hisp.dhis.program.Event event = new org.hisp.dhis.program.Event();
-    event.setUid(uid);
+    event.setUid(uid.getValue());
     event.setStatus(status);
     event.setEventDataValues(
         Set.of(new EventDataValue(DATA_ELEMENT_UID.getValue(), DATA_ELEMENT_VALUE)));
     return event;
   }
 
-  private org.hisp.dhis.program.Event event(String uid, EventStatus status) {
+  private org.hisp.dhis.program.Event event(UID uid, EventStatus status) {
     org.hisp.dhis.program.Event event = new org.hisp.dhis.program.Event();
-    event.setUid(uid);
+    event.setUid(uid.getValue());
     event.setStatus(status);
     return event;
   }

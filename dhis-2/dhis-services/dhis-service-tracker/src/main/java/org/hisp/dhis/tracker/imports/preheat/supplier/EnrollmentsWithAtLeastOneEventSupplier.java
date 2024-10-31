@@ -30,8 +30,8 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -65,9 +65,9 @@ public class EnrollmentsWithAtLeastOneEventSupplier extends JdbcAbstractPreheatS
 
   @Override
   public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
-    final Map<String, Enrollment> enrollments = preheat.getEnrollments();
+    final Map<UID, Enrollment> enrollments = preheat.getEnrollments();
     List<Long> programStageIds =
-        enrollments.values().stream().map(IdentifiableObject::getId).collect(Collectors.toList());
+        enrollments.values().stream().map(IdentifiableObject::getId).toList();
 
     if (!programStageIds.isEmpty()) {
       List<String> uids = new ArrayList<>();
@@ -80,7 +80,7 @@ public class EnrollmentsWithAtLeastOneEventSupplier extends JdbcAbstractPreheatS
           rs -> {
             uids.add(rs.getString(COLUMN));
           });
-      preheat.setEnrollmentsWithOneOrMoreNonDeletedEvent(uids);
+      preheat.setEnrollmentsWithOneOrMoreNonDeletedEvent(UID.of(uids));
     }
   }
 }

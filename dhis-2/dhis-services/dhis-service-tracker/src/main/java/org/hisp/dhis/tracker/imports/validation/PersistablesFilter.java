@@ -44,7 +44,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -117,7 +117,7 @@ class PersistablesFilter {
    * example on DELETE event, enrollment, trackedEntity entities cannot be deleted if an invalid
    * relationship points to them.
    */
-  private final EnumMap<TrackerType, Set<String>> markedEntities =
+  private final EnumMap<TrackerType, Set<UID>> markedEntities =
       new EnumMap<>(
           Map.of(
               TRACKED_ENTITY, new HashSet<>(),
@@ -131,20 +131,20 @@ class PersistablesFilter {
 
   private final TrackerPreheat preheat;
 
-  private final EnumMap<TrackerType, Set<String>> invalidEntities;
+  private final EnumMap<TrackerType, Set<UID>> invalidEntities;
 
   private final TrackerImportStrategy importStrategy;
 
   public static Result filter(
       TrackerBundle bundle,
-      EnumMap<TrackerType, Set<String>> invalidEntities,
+      EnumMap<TrackerType, Set<UID>> invalidEntities,
       TrackerImportStrategy importStrategy) {
     return new PersistablesFilter(bundle, invalidEntities, importStrategy).result;
   }
 
   private PersistablesFilter(
       TrackerBundle bundle,
-      EnumMap<TrackerType, Set<String>> invalidEntities,
+      EnumMap<TrackerType, Set<UID>> invalidEntities,
       TrackerImportStrategy importStrategy) {
     this.bundle = bundle;
     this.preheat = bundle.getPreheat();
@@ -200,7 +200,7 @@ class PersistablesFilter {
     return !isContained(this.invalidEntities, entity);
   }
 
-  private boolean isContained(EnumMap<TrackerType, Set<String>> map, TrackerDto entity) {
+  private boolean isContained(EnumMap<TrackerType, Set<UID>> map, TrackerDto entity) {
     return map.get(entity.getTrackerType()).contains(entity.getUid());
   }
 
@@ -304,11 +304,11 @@ class PersistablesFilter {
    * @return a tracker dto only capturing the uid and type
    */
   private static TrackerDto toTrackerDto(RelationshipItem item) {
-    if (StringUtils.isNotEmpty(item.getTrackedEntity())) {
+    if (item.getTrackedEntity() != null) {
       return TrackedEntity.builder().trackedEntity(item.getTrackedEntity()).build();
-    } else if (StringUtils.isNotEmpty(item.getEnrollment())) {
+    } else if (item.getEnrollment() != null) {
       return Enrollment.builder().enrollment(item.getEnrollment()).build();
-    } else if (StringUtils.isNotEmpty(item.getEvent())) {
+    } else if (item.getEvent() != null) {
       return Event.builder().event(item.getEvent()).build();
     }
     // only reached if a new TrackerDto implementation is added
