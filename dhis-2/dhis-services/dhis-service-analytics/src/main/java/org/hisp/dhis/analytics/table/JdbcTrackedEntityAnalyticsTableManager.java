@@ -337,11 +337,10 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
     List<AnalyticsTableColumn> columns = new ArrayList<>(getFixedColumns());
 
     String enrolledInProgramExpression =
-        qualifyVariables(
-            """
-        \s exists(select 1 from $enrollment} en_0 \
+        """
+        \s exists(select 1 from ${enrollment} en_0 \
         where en_0.trackedentityid = te.trackedentityid \
-        and en_0.programid = ${programId})""");
+        and en_0.programid = ${programId})""";
 
     emptyIfNull(programsByTetUid.get(trackedEntityType.getUid()))
         .forEach(
@@ -351,7 +350,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
                         .name(program.getUid())
                         .dataType(BOOLEAN)
                         .selectExpression(
-                            replace(
+                            replaceQualify(
                                 enrolledInProgramExpression,
                                 Map.of("programId", String.valueOf(program.getId()))))
                         .build()));
@@ -372,7 +371,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
                         .name(tea.getUid())
                         .dataType(getColumnType(tea.getValueType(), isSpatialSupport()))
                         .selectExpression(
-                            castBasedOnType(tea.getValueType(), "\"" + tea.getUid() + "\".value"))
+                            castBasedOnType(tea.getValueType(), quote(tea.getUid()) + ".value"))
                         .build())
             .toList());
 
