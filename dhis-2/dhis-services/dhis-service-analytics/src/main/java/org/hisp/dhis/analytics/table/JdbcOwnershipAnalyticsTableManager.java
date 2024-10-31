@@ -267,7 +267,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
             where o.trackedentityid = p.trackedentityid \
             and p.programid=${programId} and p.organisationunitid is not null)) a \
             inner join ${trackedentity} te on a.trackedentityid = te.trackedentityid \
-            inner join ${organisationunit${ ou on a.organisationunitid = ou.organisationunitid \
+            inner join ${organisationunit} ou on a.organisationunitid = ou.organisationunitid \
             left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid \
             left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid \
             order by te.uid, a.startdate, a.enddate""",
