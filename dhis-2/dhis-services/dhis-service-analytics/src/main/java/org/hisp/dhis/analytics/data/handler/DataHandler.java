@@ -821,15 +821,15 @@ public class DataHandler {
   }
 
   /**
-   * Delivers a DataQueryParams instance for DataElementOperands. The dimension and filter operands
-   * are added to the query parameters.
+   * Based on the list of operands, it adds dimensions and filters into the given {@link
+   * DataQueryParams}.
    *
    * @param params the {@link DataQueryParams}.
    * @param operands the collection of {@link DataElementOperand}.
    * @param totalType the {@link TotalType}.
    * @return mapped DataQueryParams
    */
-  private DataQueryParams getOperandDataQueryParams(
+  DataQueryParams getOperandDataQueryParams(
       DataQueryParams params, List<DataElementOperand> operands, TotalType totalType) {
 
     List<DimensionalItemObject> dataElements = newArrayList(getDataElements(operands));
@@ -837,209 +837,196 @@ public class DataHandler {
         newArrayList(getCategoryOptionCombos(operands));
     List<DimensionalItemObject> attributeOptionCombos =
         newArrayList(getAttributeOptionCombos(operands));
+    List<DimensionalItemObject> dataElementOperands = params.getDataElementOperands();
+    List<DimensionalItemObject> filterDataElementOperands = params.getFilterDataElementOperands();
 
     DataQueryParams.Builder builder = newBuilder(params).removeDimension(DATA_X_DIM_ID);
 
-    addDataElementDimensionToDataQueryParamBuilder(builder, params, dataElements);
-    addDataElementFilterToDataQueryParamBuilder(builder, params, dataElements);
+    List<DimensionalItemObject> dataElementInDataElementOperands =
+        getDataElementInDataElementOperands(dataElementOperands, dataElements);
 
-    if (totalType.isCategoryOptionCombo()) {
-      addCategoryOptionComboDimensionToDataQueryParamBuilder(builder, params, categoryOptionCombos);
-      addCategoryOptionComboFilterToDataQueryParamBuilder(builder, params, categoryOptionCombos);
+    // Data elements.
+    if (!dataElementInDataElementOperands.isEmpty()) {
+      builder.addDimension(
+          new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, dataElementInDataElementOperands));
     }
 
+    List<DimensionalItemObject> filterDataElements =
+        getDataElementInDataElementOperands(filterDataElementOperands, dataElements);
+
+    if (!filterDataElements.isEmpty()) {
+      builder.addFilter(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, filterDataElements));
+    }
+
+    // Category option combos.
+    if (totalType.isCategoryOptionCombo()) {
+      List<DimensionalItemObject> combosInDataElementOperands =
+          getCategoryOptionCombosInDataElementOperands(dataElementOperands, categoryOptionCombos);
+
+      if (!combosInDataElementOperands.isEmpty()) {
+        builder.addDimension(
+            new BaseDimensionalObject(
+                CATEGORYOPTIONCOMBO_DIM_ID, CATEGORY_OPTION_COMBO, combosInDataElementOperands));
+      }
+
+      List<DimensionalItemObject> filterCategoryOptionCombos =
+          getCategoryOptionCombosInDataElementOperands(
+              filterDataElementOperands, categoryOptionCombos);
+
+      if (!filterCategoryOptionCombos.isEmpty()) {
+        builder.addFilter(
+            new BaseDimensionalObject(
+                CATEGORYOPTIONCOMBO_DIM_ID, CATEGORY_OPTION_COMBO, filterCategoryOptionCombos));
+      }
+    }
+
+    // Attribute option combos.
     if (totalType.isAttributeOptionCombo()) {
-      addAttributeOptionComboDimensionToDataQueryParamBuilder(
-          builder, params, attributeOptionCombos);
-      addAttributeOptionComboFilterToDataQueryParamBuilder(builder, params, attributeOptionCombos);
+      List<DimensionalItemObject> optionCombosInDataElementOperands =
+          getAttributeOptionComboDimensionInDataElementOperands(
+              dataElementOperands, attributeOptionCombos);
+
+      if (!optionCombosInDataElementOperands.isEmpty()) {
+        builder.addDimension(
+            new BaseDimensionalObject(
+                ATTRIBUTEOPTIONCOMBO_DIM_ID,
+                ATTRIBUTE_OPTION_COMBO,
+                optionCombosInDataElementOperands));
+      }
+
+      List<DimensionalItemObject> filterAttributeOptionCombos =
+          getAttributeOptionComboDimensionInDataElementOperands(
+              filterDataElementOperands, attributeOptionCombos);
+
+      if (!filterAttributeOptionCombos.isEmpty()) {
+        builder.addFilter(
+            new BaseDimensionalObject(
+                ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTE_OPTION_COMBO, filterAttributeOptionCombos));
+      }
     }
 
     return builder.build();
   }
 
   /**
-   * Add CategoryOptionCombo dimension to DataQueryParam builder.
+   * Returns a list of category option combos found in the given data element operands.
    *
-   * @param builder the {@link DataQueryParams.Builder}.
-   * @param params the {@link DataQueryParams}.
-   * @param categoryOptionCombos the collection of the {@link DimensionalItemObject}.
+   * @param dataElementOperands the list of {@link DimensionalItemObject}.
+   * @param categoryOptionCombos the list of {@link DimensionalItemObject}.
+   * @return the list of category option combos as {@link DimensionalItemObject}.
    */
-  private void addCategoryOptionComboDimensionToDataQueryParamBuilder(
-      DataQueryParams.Builder builder,
-      DataQueryParams params,
+  private List<DimensionalItemObject> getCategoryOptionCombosInDataElementOperands(
+      List<DimensionalItemObject> dataElementOperands,
       List<DimensionalItemObject> categoryOptionCombos) {
-    List<DimensionalItemObject> dimensionCategoryOptionCombos =
-        categoryOptionCombos.stream()
-            .filter(
-                coc ->
-                    params.getDataElementOperands().stream()
-                        .filter(deo -> ((DataElementOperand) deo).getCategoryOptionCombo() != null)
-                        .anyMatch(
-                            deo ->
-                                ((DataElementOperand) deo)
-                                    .getCategoryOptionCombo()
-                                    .getUid()
-                                    .equals(coc.getUid())))
-            .toList();
+    List<DimensionalItemObject> dimensionCategoryOptionCombos = new ArrayList<>();
 
-    if (!dimensionCategoryOptionCombos.isEmpty()) {
-      builder.addDimension(
-          new BaseDimensionalObject(
-              CATEGORYOPTIONCOMBO_DIM_ID, CATEGORY_OPTION_COMBO, dimensionCategoryOptionCombos));
+    for (DimensionalItemObject coc : categoryOptionCombos) {
+      if (matchCategoryOptionCombo(dataElementOperands, coc)) {
+        dimensionCategoryOptionCombos.add(coc);
+      }
     }
+
+    return dimensionCategoryOptionCombos;
   }
 
   /**
-   * Add CategoryOptionCombo filter to DataQueryParam builder.
+   * Evaluates the given list of data element operands and returns true if there is match for the
+   * "coc" provided.
    *
-   * @param builder the {@link DataQueryParams.Builder}.
-   * @param params the {@link DataQueryParams}.
-   * @param categoryOptionCombos the collection of the {@link DimensionalItemObject}.
+   * @param dataElementOperands the list of {@link DimensionalItemObject}.
+   * @param coc the {@DimensionalItemObject} representing a category option combo.
+   * @return true if there is a match, false otherwise.
    */
-  private void addCategoryOptionComboFilterToDataQueryParamBuilder(
-      DataQueryParams.Builder builder,
-      DataQueryParams params,
-      List<DimensionalItemObject> categoryOptionCombos) {
-    List<DimensionalItemObject> filterCategoryOptionCombos =
-        categoryOptionCombos.stream()
-            .filter(
-                coc ->
-                    params.getFilterDataElementOperands().stream()
-                        .filter(deo -> ((DataElementOperand) deo).getCategoryOptionCombo() != null)
-                        .anyMatch(
-                            deo ->
-                                ((DataElementOperand) deo)
-                                    .getCategoryOptionCombo()
-                                    .getUid()
-                                    .equals(coc.getUid())))
-            .toList();
-
-    if (!filterCategoryOptionCombos.isEmpty()) {
-      builder.addFilter(
-          new BaseDimensionalObject(
-              CATEGORYOPTIONCOMBO_DIM_ID, CATEGORY_OPTION_COMBO, filterCategoryOptionCombos));
+  private boolean matchCategoryOptionCombo(
+      List<DimensionalItemObject> dataElementOperands, DimensionalItemObject coc) {
+    for (DimensionalItemObject deo : dataElementOperands) {
+      if (((DataElementOperand) deo).getCategoryOptionCombo() != null
+          && (((DataElementOperand) deo).getCategoryOptionCombo().getUid().equals(coc.getUid()))) {
+        return true;
+      }
     }
+
+    return false;
   }
 
   /**
-   * Add AttributeOptionCombo dimension to DataQueryParam builder.
+   * Returns a list of attribute option combos found in the given data element operands.
    *
-   * @param builder the {@link DataQueryParams.Builder}.
-   * @param params the {@link DataQueryParams}.
-   * @param attributeOptionCombos the collection of the {@link DimensionalItemObject}.
+   * @param dataElementOperands the list of {@link DimensionalItemObject}.
+   * @param attributeOptionCombos the list of {@link DimensionalItemObject}.
+   * @return the list of attribute option combos as {@link DimensionalItemObject}.
    */
-  private void addAttributeOptionComboDimensionToDataQueryParamBuilder(
-      DataQueryParams.Builder builder,
-      DataQueryParams params,
+  private List<DimensionalItemObject> getAttributeOptionComboDimensionInDataElementOperands(
+      List<DimensionalItemObject> dataElementOperands,
       List<DimensionalItemObject> attributeOptionCombos) {
-    List<DimensionalItemObject> dimensionAttributeOptionCombos =
-        attributeOptionCombos.stream()
-            .filter(
-                aoc ->
-                    params.getDataElementOperands().stream()
-                        .filter(deo -> ((DataElementOperand) deo).getAttributeOptionCombo() != null)
-                        .anyMatch(
-                            deo ->
-                                ((DataElementOperand) deo)
-                                    .getAttributeOptionCombo()
-                                    .getUid()
-                                    .equals(aoc.getUid())))
-            .toList();
-
-    if (!dimensionAttributeOptionCombos.isEmpty()) {
-      builder.addDimension(
-          new BaseDimensionalObject(
-              ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTE_OPTION_COMBO, dimensionAttributeOptionCombos));
+    List<DimensionalItemObject> dimensionAttributeOptionCombos = new ArrayList<>();
+    for (DimensionalItemObject aoc : attributeOptionCombos) {
+      if (matchAttributeOptionCombo(dataElementOperands, aoc)) {
+        dimensionAttributeOptionCombos.add(aoc);
+      }
     }
+
+    return dimensionAttributeOptionCombos;
   }
 
   /**
-   * Add AttributeOptionCombo filter to DataQueryParam builder.
+   * Evaluates the given list of data element operands and returns true if there is match for the
+   * "aoc" provided.
    *
-   * @param builder the {@link DataQueryParams.Builder}.
-   * @param params the {@link DataQueryParams}.
-   * @param attributeOptionCombos the collection of the {@link DimensionalItemObject}.
+   * @param dataElementOperands the list of {@link DimensionalItemObject}.
+   * @param aoc the {@DimensionalItemObject} representing an attribute option combo.
+   * @return true if there is a match, false otherwise.
    */
-  private void addAttributeOptionComboFilterToDataQueryParamBuilder(
-      DataQueryParams.Builder builder,
-      DataQueryParams params,
-      List<DimensionalItemObject> attributeOptionCombos) {
-    List<DimensionalItemObject> filterAttributeOptionCombos =
-        attributeOptionCombos.stream()
-            .filter(
-                aoc ->
-                    params.getFilterDataElementOperands().stream()
-                        .filter(deo -> ((DataElementOperand) deo).getAttributeOptionCombo() != null)
-                        .anyMatch(
-                            deo ->
-                                ((DataElementOperand) deo)
-                                    .getAttributeOptionCombo()
-                                    .getUid()
-                                    .equals(aoc.getUid())))
-            .toList();
-
-    if (!filterAttributeOptionCombos.isEmpty()) {
-      builder.addFilter(
-          new BaseDimensionalObject(
-              ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTE_OPTION_COMBO, filterAttributeOptionCombos));
+  private boolean matchAttributeOptionCombo(
+      List<DimensionalItemObject> dataElementOperands, DimensionalItemObject aoc) {
+    for (DimensionalItemObject deo : dataElementOperands) {
+      if (((DataElementOperand) deo).getAttributeOptionCombo() != null
+          && (((DataElementOperand) deo).getAttributeOptionCombo().getUid().equals(aoc.getUid()))) {
+        return true;
+      }
     }
+
+    return false;
   }
 
   /**
-   * Add DataElement dimension to DataQueryParam builder.
+   * Returns a list of data elements found in the given data element operands.
    *
-   * @param builder the {@link DataQueryParams.Builder}.
-   * @param params the {@link DataQueryParams}.
-   * @param dataElements the collection of the {@link DimensionalItemObject}.
+   * @param dataElementOperands the list of {@link DimensionalItemObject}.
+   * @param dataElements the list of {@link DimensionalItemObject}.
+   * @return the list of data elements as {@link DimensionalItemObject}.
    */
-  private void addDataElementDimensionToDataQueryParamBuilder(
-      DataQueryParams.Builder builder,
-      DataQueryParams params,
-      List<DimensionalItemObject> dataElements) {
+  private List<DimensionalItemObject> getDataElementInDataElementOperands(
+      List<DimensionalItemObject> dataElementOperands, List<DimensionalItemObject> dataElements) {
+    List<DimensionalItemObject> dimensionDataElements = new ArrayList<>();
 
-    List<DimensionalItemObject> dimensionDataElements =
-        dataElements.stream()
-            .filter(
-                de ->
-                    params.getDataElementOperands().stream()
-                        .anyMatch(
-                            deo ->
-                                ((DataElementOperand) deo)
-                                    .getDataElement()
-                                    .getUid()
-                                    .equals(de.getUid())))
-            .toList();
-    if (!dimensionDataElements.isEmpty()) {
-      builder.addDimension(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, dimensionDataElements));
+    for (DimensionalItemObject de : dataElements) {
+      if (matchDataElement(dataElementOperands, de)) {
+        dimensionDataElements.add(de);
+      }
     }
+
+    return dimensionDataElements;
   }
 
   /**
-   * Add DataElement filter to DataQueryParam builder.
+   * Evaluates the given list of data element operands and returns true if there is match for the
+   * "de" provided.
    *
-   * @param builder the {@link DataQueryParams.Builder}.
-   * @param params the {@link DataQueryParams}.
-   * @param dataElements the collection of the {@link DimensionalItemObject}.
+   * @param dataElementOperands the list of {@link DimensionalItemObject}.
+   * @param de the {@DimensionalItemObject} representing a data element.
+   * @return true if there is a match, false otherwise.
    */
-  private void addDataElementFilterToDataQueryParamBuilder(
-      DataQueryParams.Builder builder,
-      DataQueryParams params,
-      List<DimensionalItemObject> dataElements) {
-    List<DimensionalItemObject> filterDataElements =
-        dataElements.stream()
-            .filter(
-                de ->
-                    params.getFilterDataElementOperands().stream()
-                        .anyMatch(
-                            deo ->
-                                ((DataElementOperand) deo)
-                                    .getDataElement()
-                                    .getUid()
-                                    .equals(de.getUid())))
-            .toList();
-    if (!filterDataElements.isEmpty()) {
-      builder.addFilter(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, filterDataElements));
+  private boolean matchDataElement(
+      List<DimensionalItemObject> dataElementOperands, DimensionalItemObject de) {
+    for (DimensionalItemObject deo : dataElementOperands) {
+      if (((DataElementOperand) deo).getDataElement() != null
+          && (((DataElementOperand) deo).getDataElement().getUid().equals(de.getUid()))) {
+        return true;
+      }
     }
+
+    return false;
   }
 
   /**
