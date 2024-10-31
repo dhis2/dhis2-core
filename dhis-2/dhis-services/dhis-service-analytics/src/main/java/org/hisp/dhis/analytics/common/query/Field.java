@@ -39,19 +39,17 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.With;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.springframework.lang.NonNull;
 
 /**
- * This class represents a {@link Renderable} field. It's mainly used for SQL query rendering and
+ * This class represents a {@link Renderable} field. It is mainly used for SQL query rendering and
  * headers display.
  */
 @RequiredArgsConstructor(staticName = "of", access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Slf4j
 public class Field extends BaseRenderable {
   private final String tableAlias;
 
@@ -63,10 +61,10 @@ public class Field extends BaseRenderable {
 
   private final Boolean quotingNeeded;
 
-  /** a flag to indicate whether the field will be used in the headers */
+  /** Indicates whether the field will be used in the headers. */
   @With @Getter private final boolean usedInHeaders;
 
-  /** virtual fields won't be added to the select clause */
+  /** Transient fields which is not added to the select clause. */
   @With @Getter private final boolean virtual;
 
   // A cached version of the rendered field.
