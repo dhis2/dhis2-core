@@ -530,21 +530,20 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       TrackedEntityAttribute attribute, String numericClause) {
     String selectClause = getSelectClause(attribute.getValueType(), "value");
     String query =
-        qualifyVariables(
-            """
+        """
           \s(select l.uid from ${maplegend} l \
           inner join ${trackedentityattributevalue} av on l.startvalue <= ${selectClause} \
           and l.endvalue > ${selectClause} \
           and l.maplegendsetid=${legendSetId} \
           and av.trackedentityid=en.trackedentityid \
-          and av.trackedentityattributeid=${attributeId} ${numericClause}) as ${column}""");
+          and av.trackedentityattributeid=${attributeId} ${numericClause}) as ${column}""";
 
     return attribute.getLegendSets().stream()
         .map(
             ls -> {
               String column = attribute.getUid() + PartitionUtils.SEP + ls.getUid();
               String sql =
-                  replace(
+                  replaceQualify(
                       query,
                       Map.of(
                           "selectClause", selectClause,
@@ -688,6 +687,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         and l.endvalue > ${select}
         and l.maplegendsetid=${legendSetId}
         and eventid=ev.eventid ${dataClause}) as ${column}""");
+
     return dataElement.getLegendSets().stream()
         .map(
             ls -> {
