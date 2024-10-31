@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
@@ -179,7 +178,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     Program program = partition.getMasterTable().getProgram();
 
     if (program.getProgramType() == WITHOUT_REGISTRATION) {
-      return; // Builds an empty table, but it may be joined in queries.
+      return; // Builds an empty table which may be joined in queries
     }
 
     String sql = getInputSql(program);
@@ -225,9 +224,24 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     }
   }
 
+  /**
+   * Returns a SQL select query. For the from clause, for tracked entities in this program in
+   * programownershiphistory, get one row for each programownershiphistory row and then get a final
+   * row from the trackedentityprogramowner table to show the final owner.
+   *
+   * <p>The start date values are dummy so that all the history table rows will be ordered first and
+   * the tracked entity owner table row will come last.
+   *
+   * <p>The start date in the analytics table will be a far past date for the first row for each
+   * tracked entity, or the previous row's end date plus one day in subsequent rows for that tracked
+   * entity.
+   *
+   * <p>Rows in programownershiphistory that don't have organisationunitid will be filtered out.
+   *
+   * @param program the {@link Program}.
+   * @return a SQL select query.
+   */
   private String getInputSql(Program program) {
-    // SELECT clause
-
     StringBuilder sb = new StringBuilder("select ");
 
     for (AnalyticsTableColumn col : getColumns()) {
@@ -236,40 +250,25 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
     sb.deleteCharAt(sb.length() - 1); // Remove the final ','.
 
-    // FROM clause
-
-    // For TRACKED ENTITIES in this program that are in programownershiphistory, get
-    // one row for each programownershiphistory row and then get a final
-    // row from the trackedentityprogramowner table to show the final owner.
-    //
-    // The start date values are dummy so that all the history table rows
-    // will be ordered first and the tracked entity owner table row will come last.
-    //
-    // (The start date in the analytics table will be a far past date for
-    // the first row for each TRACKED ENTITY, or the previous row's end date plus one
-    // day in subsequent rows for that TRACKED ENTITY.)
-    //
-    // Rows in programownershiphistory that don't have organisationunitid
-    // will be filtered out.
     sb.append(
-        replace(
+        replaceQualify(
             """
             \sfrom (\
             select h.trackedentityid, '${historyTableId}' as startdate, h.enddate as enddate, h.organisationunitid \
-            from programownershiphistory h \
+            from ${programownershiphistory} h \
             where h.programid=${programId} \
             and h.organisationunitid is not null \
             union \
             select o.trackedentityid, '${trackedEntityOwnTableId}' as startdate, null as enddate, o.organisationunitid \
-            from trackedentityprogramowner o \
+            from ${trackedentityprogramowner} o \
             where o.programid=${programId} \
             and exists (\
-            select 1 from programownershiphistory p \
+            select 1 from ${programownershiphistory} p \
             where o.trackedentityid = p.trackedentityid \
             and p.programid=${programId} \
             and p.organisationunitid is not null)) a \
-            inner join trackedentity te on a.trackedentityid = te.trackedentityid \
-            inner join organisationunit ou on a.organisationunitid = ou.organisationunitid \
+            inner join ${trackedentity} te on a.trackedentityid = te.trackedentityid \
+            inner join ${organisationunit${ ou on a.organisationunitid = ou.organisationunitid \
             left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid \
             left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid \
             order by te.uid, a.startdate, a.enddate""",

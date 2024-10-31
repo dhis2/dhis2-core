@@ -38,6 +38,7 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -147,7 +148,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   @Override
   public boolean hasUpdatedLatestData(Date startDate, Date endDate) {
     String sql =
-        replace(
+        replaceQualify(
             """
         select cdr.datasetid \
         from ${completedatasetregistration} cdr \
