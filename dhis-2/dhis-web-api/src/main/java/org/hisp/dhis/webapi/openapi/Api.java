@@ -83,6 +83,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @Value
 @Slf4j
 public class Api {
+
   /**
    * Can be used in {@link OpenApi.Param#value()} to point not to the type to use but the generator
    * to use.
@@ -94,7 +95,21 @@ public class Api {
     Schema generate(Endpoint endpoint, Type source, Class<?>... args);
   }
 
-  Set<Class<?>> context;
+  /**
+   * The included classes can be filtered based on REST API resource path or {@link
+   * OpenApi.Document#entity()} present on the controller class level. Method level path and tags
+   * will not be considered for this filter.
+   *
+   * @param controllers controllers all potential controllers
+   * @param filters the scope filter used (empty includes all)
+   * @param matches those classes in {@link #controllers} that are included in the filter
+   */
+  record Scope(
+      @Nonnull Set<Class<?>> controllers,
+      @Nonnull Map<String, Set<String>> filters,
+      @Nonnull Set<Class<?>> matches) {}
+
+  Scope scope;
 
   /** Can be set to enable debug mode */
   Maybe<Boolean> debug = new Maybe<>(false);

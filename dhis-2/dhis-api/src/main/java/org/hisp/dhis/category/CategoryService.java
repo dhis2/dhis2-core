@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
@@ -144,6 +145,14 @@ public interface CategoryService {
    * @return a list of CategoryCombos.
    */
   List<Category> getAttributeDataDimensionCategoriesNoAcl();
+
+  /**
+   * Retrieves all Categories with a ref to any of the CategoryOptions passed in.
+   *
+   * @param categoryOptions refs to search for
+   * @return categories with refs to categoryOptions
+   */
+  List<Category> getCategoriesByCategoryOption(Collection<UID> categoryOptions);
 
   // -------------------------------------------------------------------------
   // CategoryOption
@@ -461,6 +470,15 @@ public interface CategoryService {
   /** Updates the name property of all category option combinations. */
   void updateCategoryOptionComboNames();
 
+  /**
+   * Retrieves all CategoryOptionCombos with a ref to any of the CategoryOptions passed in.
+   *
+   * @param categoryOptions refs to search for
+   * @return categoryOptionCombos with refs to categoryOptions
+   */
+  List<CategoryOptionCombo> getCategoryOptionCombosByCategoryOption(
+      Collection<UID> categoryOptions);
+
   // -------------------------------------------------------------------------
   // DataElementOperand
   // -------------------------------------------------------------------------
@@ -509,6 +527,8 @@ public interface CategoryService {
 
   List<CategoryOptionGroup> getCategoryOptionGroups(CategoryOptionGroupSet groupSet);
 
+  List<CategoryOptionGroup> getCategoryOptionGroupByCategoryOption(Collection<UID> categoryOptions);
+
   /**
    * Returns a set of CategoryOptionGroups that may be seen by the current user, if the current user
    * has any CategoryOptionGroupSet constraint(s).
@@ -541,4 +561,6 @@ public interface CategoryService {
   CategoryOption getDefaultCategoryOption();
 
   Category getDefaultCategory();
+
+  List<CategoryOption> getCategoryOptionsByUid(List<String> catOptionUids);
 }

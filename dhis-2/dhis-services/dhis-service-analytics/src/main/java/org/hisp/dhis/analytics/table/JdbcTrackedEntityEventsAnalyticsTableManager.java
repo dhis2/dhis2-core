@@ -91,25 +91,26 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
 
   private static final String EVENT_DATA_VALUE_REBUILDER =
       """
-            (select json_object_agg(l2.keys, l2.datavalue) as value
-             from (select l1.uid,
-                          l1.keys,
-                          json_strip_nulls(json_build_object(
-                                  'value', l1.eventdatavalues -> l1.keys ->> 'value',
-                                  'created', l1.eventdatavalues -> l1.keys ->> 'created',
-                                  'storedBy', l1.eventdatavalues -> l1.keys ->> 'storedBy',
-                                  'lastUpdated', l1.eventdatavalues -> l1.keys ->> 'lastUpdated',
-                                  'providedElsewhere', l1.eventdatavalues -> l1.keys -> 'providedElsewhere',
-                                  'value_name', (select ou.name
-                                                 from organisationunit ou
-                                                 where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'),
-                                  'value_code', (select ou.code
-                                                 from organisationunit ou
-                                                 where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'))) as datavalue
-                   from (select inner_evt.*, jsonb_object_keys(inner_evt.eventdatavalues) keys
-                         from event inner_evt) as l1) as l2
-             where l2.uid = ev.uid
-             group by l2.uid)::jsonb
+      (select json_object_agg(l2.keys, l2.datavalue) as value
+      from (
+          select l1.uid,
+          l1.keys,
+          json_strip_nulls(json_build_object(
+          'value', l1.eventdatavalues -> l1.keys ->> 'value',
+          'created', l1.eventdatavalues -> l1.keys ->> 'created',
+          'storedBy', l1.eventdatavalues -> l1.keys ->> 'storedBy',
+          'lastUpdated', l1.eventdatavalues -> l1.keys ->> 'lastUpdated',
+          'providedElsewhere', l1.eventdatavalues -> l1.keys -> 'providedElsewhere',
+          'value_name', (select ou.name
+              from organisationunit ou
+              where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'),
+          'value_code', (select ou.code
+              from organisationunit ou
+              where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'))) as datavalue
+          from (select inner_evt.*, jsonb_object_keys(inner_evt.eventdatavalues) keys
+          from event inner_evt) as l1) as l2
+      where l2.uid = ev.uid
+      group by l2.uid)::jsonb
       """;
 
   private static final List<AnalyticsTableColumn> FIXED_COLS =
@@ -387,6 +388,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
    */
   @Override
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+    AnalyticsTable masterTable = partition.getMasterTable();
     String tableName = partition.getName();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
     String partitionClause = getPartitionClause(partition);
@@ -419,8 +421,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
                 ${partitionClause} \
                 and ev.deleted = false\s""",
                 Map.of(
-                    "tetId",
-                        String.valueOf(partition.getMasterTable().getTrackedEntityType().getId()),
+                    "tetId", String.valueOf(masterTable.getTrackedEntityType().getId()),
                     "startTime", toLongDate(params.getStartTime()),
                     "statuses", join(",", EXPORTABLE_EVENT_STATUSES),
                     "partitionClause", partitionClause)));
