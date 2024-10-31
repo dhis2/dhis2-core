@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,40 +27,34 @@
  */
 package org.hisp.dhis.common;
 
-import java.util.HashSet;
-import java.util.Objects;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.lang3.ObjectUtils;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class RegexUtils {
-  /**
-   * Return the matches in the given input based on the given pattern and group number.
-   *
-   * @param pattern the pattern.
-   * @param input the input. If the input is null, an empty set is returned.
-   * @param group the group, can be null.
-   * @return a set of matches.
-   */
-  public static Set<String> getMatches(Pattern pattern, String input, Integer group) {
-    Objects.requireNonNull(pattern);
+class RegexUtilsTest {
+  @Test
+  void testGetMatchesWithGroup() {
+    assertEquals(
+        Set.of("animal", "target"),
+        RegexUtils.getMatches(
+            Pattern.compile("\\$\\{([^}]+)\\}"), "The ${animal} jumped over the ${target}.", 1));
+  }
 
-    int gr = ObjectUtils.firstNonNull(group, 0);
+  @Test
+  void testGetMatchesWithNullInput() {
+    assertEquals(Set.of(), RegexUtils.getMatches(Pattern.compile("\\$\\{([^}]+)\\}"), null, 1));
+  }
 
-    Set<String> set = new HashSet<>();
-
-    if (input != null) {
-      Matcher matcher = pattern.matcher(input);
-
-      while (matcher.find()) {
-        set.add(matcher.group(gr));
-      }
-    }
-
-    return set;
+  @Test
+  void testGetMatchesWithNullGroup() {
+    assertEquals(
+        Set.of("${animal}", "${target}"),
+        RegexUtils.getMatches(
+            Pattern.compile("\\$\\{([^}]+)\\}"), "The ${animal} jumped over the ${target}.", null));
   }
 }
