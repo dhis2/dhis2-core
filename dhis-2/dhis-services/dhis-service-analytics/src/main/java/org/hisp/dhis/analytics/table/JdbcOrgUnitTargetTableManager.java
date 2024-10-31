@@ -152,11 +152,12 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
     sql = TextUtils.removeLastComma(sql) + " ";
 
     sql +=
-        """
-        from orgunitgroupmembers ougm
-        inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid
+        qualifyVariables(
+            """
+        from ${orgunitgroupmembers} ougm
+        inner join ${orgunitgroup} oug on ougm.orgunitgroupid=oug.orgunitgroupid
         left join analytics_rs_orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid
-        left join analytics_rs_organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid""";
+        left join analytics_rs_organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid""");
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }

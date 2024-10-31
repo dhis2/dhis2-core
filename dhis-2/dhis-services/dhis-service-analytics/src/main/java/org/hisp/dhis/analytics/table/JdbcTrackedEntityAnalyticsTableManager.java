@@ -338,7 +338,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
 
     String enrolledInProgramExpression =
         """
-        \s exists(select 1 from enrollment en_0 \
+        \s exists(select 1 from ${enrollment} en_0 \
         where en_0.trackedentityid = te.trackedentityid \
         and en_0.programid = ${programId})""";
 
@@ -350,7 +350,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
                         .name(program.getUid())
                         .dataType(BOOLEAN)
                         .selectExpression(
-                            replace(
+                            replaceQualify(
                                 enrolledInProgramExpression,
                                 Map.of("programId", String.valueOf(program.getId()))))
                         .build()));
@@ -371,7 +371,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
                         .name(tea.getUid())
                         .dataType(getColumnType(tea.getValueType(), isSpatialSupport()))
                         .selectExpression(
-                            castBasedOnType(tea.getValueType(), "\"" + tea.getUid() + "\".value"))
+                            castBasedOnType(tea.getValueType(), quote(tea.getUid()) + ".value"))
                         .build())
             .toList());
 
@@ -506,10 +506,10 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
 
     removeLastComma(sql)
         .append(
-            replace(
+            replaceQualify(
                 """
-                \s from trackedentity te \
-                left join organisationunit ou on te.organisationunitid = ou.organisationunitid \
+                \s from ${trackedentity} te \
+                left join ${organisationunit} ou on te.organisationunitid = ou.organisationunitid \
                 left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
                 left join analytics_rs_organisationunitgroupsetstructure ougs on te.organisationunitid = ougs.organisationunitid \
                 and (cast(${trackedEntityCreatedMonth} as date) = ougs.startdate \
