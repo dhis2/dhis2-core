@@ -175,9 +175,10 @@ public class MetadataDataElementMergeHandler {
   }
 
   /**
-   * Method retrieving {@link DataSetElement}s by source {@link DataElement} references. All
-   * retrieved {@link DataSetElement}s will have their {@link DataElement} replaced with the target
-   * {@link DataElement}.
+   * Method retrieving {@link DataSetElement}s by source {@link DataElement} references. Sources
+   * will have all found {@link DataSetElement}s removed. All found {@link DataSetElement}s will
+   * have their {@link DataElement} set as the target {@link DataElement}. All found {@link
+   * DataSetElement}s will be added to the target.
    *
    * @param sources source {@link DataElement}s used to retrieve {@link DataSetElement}s
    * @param target {@link DataElement} which will be set as the {@link DataElement} for an {@link
@@ -185,7 +186,12 @@ public class MetadataDataElementMergeHandler {
    */
   public void handleDataSetElement(List<DataElement> sources, DataElement target) {
     List<DataSetElement> dataSetElements = dataSetStore.getDataSetElementsByDataElement(sources);
-    dataSetElements.forEach(dse -> dse.setDataElement(target));
+    dataSetElements.forEach(
+        dse -> {
+          sources.forEach(de -> de.removeDataSetElement(dse));
+          dse.setDataElement(target);
+          target.addDataSetElement(dse);
+        });
   }
 
   /**

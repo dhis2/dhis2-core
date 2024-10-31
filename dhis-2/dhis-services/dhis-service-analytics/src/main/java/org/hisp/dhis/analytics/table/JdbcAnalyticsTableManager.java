@@ -369,7 +369,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             ${textValueExpression} as textvalue \
             from datavalue dv \
             inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
-            inner join analytics_rs_dataelementstructure des on dv.dataelementid = des.dataelementid \
+            inner join analytics_rs_dataelementstructure des on dv.dataelementid=des.dataelementid \
             inner join analytics_rs_dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid \
             inner join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
             inner join analytics_rs_organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid \
@@ -693,8 +693,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       sql.append(column + " = null,");
     }
 
-    sql.deleteCharAt(sql.length() - ",".length());
-    sql.append(" ");
+    sql.deleteCharAt(sql.length() - ",".length()).append(" ");
     sql.append(
         """
         where oulevel > ${aggregationLevel} \
