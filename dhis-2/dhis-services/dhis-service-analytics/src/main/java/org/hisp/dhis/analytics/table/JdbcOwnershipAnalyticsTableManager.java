@@ -265,8 +265,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
             and exists (\
             select 1 from ${programownershiphistory} p \
             where o.trackedentityid = p.trackedentityid \
-            and p.programid=${programId} \
-            and p.organisationunitid is not null)) a \
+            and p.programid=${programId} and p.organisationunitid is not null)) a \
             inner join ${trackedentity} te on a.trackedentityid = te.trackedentityid \
             inner join ${organisationunit${ ou on a.organisationunitid = ou.organisationunitid \
             left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid \

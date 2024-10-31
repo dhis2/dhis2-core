@@ -337,10 +337,11 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
     List<AnalyticsTableColumn> columns = new ArrayList<>(getFixedColumns());
 
     String enrolledInProgramExpression =
-        """
-        \s exists(select 1 from enrollment en_0 \
+        qualifyVariables(
+            """
+        \s exists(select 1 from $enrollment} en_0 \
         where en_0.trackedentityid = te.trackedentityid \
-        and en_0.programid = ${programId})""";
+        and en_0.programid = ${programId})""");
 
     emptyIfNull(programsByTetUid.get(trackedEntityType.getUid()))
         .forEach(
@@ -506,10 +507,10 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
 
     removeLastComma(sql)
         .append(
-            replace(
+            replaceQualify(
                 """
-                \s from trackedentity te \
-                left join organisationunit ou on te.organisationunitid = ou.organisationunitid \
+                \s from ${trackedentity} te \
+                left join ${organisationunit} ou on te.organisationunitid = ou.organisationunitid \
                 left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
                 left join analytics_rs_organisationunitgroupsetstructure ougs on te.organisationunitid = ougs.organisationunitid \
                 and (cast(${trackedEntityCreatedMonth} as date) = ougs.startdate \

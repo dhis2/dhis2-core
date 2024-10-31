@@ -328,10 +328,10 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
             """
             select temp.supportedyear from \
             (select distinct extract(year from ${eventDateExpression}) as supportedyear \
-            from trackedentity te \
-            inner join trackedentitytype tet on tet.trackedentitytypeid = te.trackedentitytypeid \
-            inner join enrollment en on en.trackedentityid = te.trackedentityid \
-            inner join event ev on ev.enrollmentid = en.enrollmentid \
+            from ${trackedentity} te \
+            inner join ${trackedentitytype} tet on tet.trackedentitytypeid = te.trackedentitytypeid \
+            inner join ${enrollment} en on en.trackedentityid = te.trackedentityid \
+            inner join ${event} ev on ev.enrollmentid = en.enrollmentid \
             where ev.lastupdated <= '${startTime}' \
             and tet.trackedentitytypeid = ${tetId} \
             and (${eventDateExpression}) is not null \
