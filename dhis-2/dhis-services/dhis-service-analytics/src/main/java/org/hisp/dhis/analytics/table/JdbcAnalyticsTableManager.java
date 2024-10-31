@@ -693,8 +693,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       sql.append(column + " = null,");
     }
 
-    sql.deleteCharAt(sql.length() - ",".length());
-    sql.append(" ");
+    sql.deleteCharAt(sql.length() - ",".length()).append(" ");
     sql.append(
         """
         where oulevel > ${aggregationLevel} \
