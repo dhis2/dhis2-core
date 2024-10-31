@@ -171,7 +171,8 @@ class EventOperationParamsMapper {
     }
     OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(orgUnitUid);
     if (orgUnit == null) {
-      throw new BadRequestException("Org unit is specified but does not exist: " + orgUnitUid);
+      throw new BadRequestException(
+          "Organisation unit is specified but does not exist: " + orgUnitUid);
     }
 
     if (!user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getPath())) {
@@ -203,6 +204,10 @@ class EventOperationParamsMapper {
             String.format(
                 "filter is invalid. Data element '%s' does not exist.",
                 dataElementFilter.getKey()));
+      }
+
+      if (dataElementFilter.getValue().isEmpty()) {
+        params.filterBy(de);
       }
 
       for (QueryFilter filter : dataElementFilter.getValue()) {

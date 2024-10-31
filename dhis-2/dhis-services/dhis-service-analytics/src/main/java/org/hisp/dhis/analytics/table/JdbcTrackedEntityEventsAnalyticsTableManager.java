@@ -324,14 +324,14 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params, TrackedEntityType tet) {
     StringBuilder sql = new StringBuilder();
     sql.append(
-        replace(
+        replaceQualify(
             """
             select temp.supportedyear from \
             (select distinct extract(year from ${eventDateExpression}) as supportedyear \
-            from trackedentity te \
-            inner join trackedentitytype tet on tet.trackedentitytypeid = te.trackedentitytypeid \
-            inner join enrollment en on en.trackedentityid = te.trackedentityid \
-            inner join event ev on ev.enrollmentid = en.enrollmentid \
+            from ${trackedentity} te \
+            inner join ${trackedentitytype} tet on tet.trackedentitytypeid = te.trackedentitytypeid \
+            inner join ${enrollment} en on en.trackedentityid = te.trackedentityid \
+            inner join ${event} ev on ev.enrollmentid = en.enrollmentid \
             where ev.lastupdated <= '${startTime}' \
             and tet.trackedentitytypeid = ${tetId} \
             and (${eventDateExpression}) is not null \
@@ -404,18 +404,15 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
 
     removeLastComma(sql)
         .append(
-            replace(
+            replaceQualify(
                 """
-                \s from event ev \
-                inner join enrollment en on en.enrollmentid = ev.enrollmentid \
-                and en.deleted = false \
-                inner join trackedentity te on te.trackedentityid = en.trackedentityid \
-                and te.deleted = false \
-                and te.trackedentitytypeid = ${tetId} \
-                and te.lastupdated < '${startTime}' \
-                left join programstage ps on ps.programstageid = ev.programstageid \
-                left join program p on p.programid = ps.programid \
-                left join organisationunit ou on ev.organisationunitid = ou.organisationunitid \
+                \s from ${event} ev \
+                inner join ${enrollment} en on en.enrollmentid = ev.enrollmentid and en.deleted = false \
+                inner join ${trackedentity} te on te.trackedentityid = en.trackedentityid \
+                and te.deleted = false and te.trackedentitytypeid = ${tetId} and te.lastupdated < '${startTime}' \
+                left join ${programstage} ps on ps.programstageid = ev.programstageid \
+                left join ${program} p on p.programid = ps.programid \
+                left join ${organisationunit} ou on ev.organisationunitid = ou.organisationunitid \
                 left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
                 where ev.status in (${statuses}) \
                 ${partitionClause} \

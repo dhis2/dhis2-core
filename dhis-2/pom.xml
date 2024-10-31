@@ -107,7 +107,7 @@
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
     <spring-retry.version>1.3.4</spring-retry.version>
     <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
-    <spring-ldap.version>2.4.1</spring-ldap.version>
+    <spring-ldap.version>2.4.2</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
     <lettuce.version>6.4.0.RELEASE</lettuce.version>
 
@@ -196,12 +196,12 @@
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
     <httpcomponents-core.version>5.3.1</httpcomponents-core.version>
-    <httpcomponents-client5.version>5.3.1</httpcomponents-client5.version>
-    <kafka.version>3.8.0</kafka.version>
+    <httpcomponents-client5.version>5.4.1</httpcomponents-client5.version>
+    <kafka.version>3.8.1</kafka.version>
 
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
-    <micrometer.version>1.13.5</micrometer.version>
+    <micrometer.version>1.13.6</micrometer.version>
     <prometheus-metrics-model.version>1.3.1</prometheus-metrics-model.version>
 
     <!-- Logging -->
@@ -213,7 +213,7 @@
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>3.0</hamcrest.version>
-    <testcontainers.version>1.20.2</testcontainers.version>
+    <testcontainers.version>1.20.3</testcontainers.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.2.2</awaitility.version>
     <swagger.version>2.1.21</swagger.version>
@@ -856,7 +856,7 @@
       <dependency>
         <groupId>org.jetbrains</groupId>
         <artifactId>annotations</artifactId>
-        <version>24.1.0</version>
+        <version>26.0.1</version>
         <scope>compile</scope>
       </dependency>
 
@@ -2028,7 +2028,10 @@ jasperreports.version=${jasperreports.version}
               <enabled>true</enabled>
             </upToDateChecking>
             <java>
-              <googleJavaFormat/>
+              <googleJavaFormat>
+                <version>1.24.0</version>
+                <style>GOOGLE</style>
+              </googleJavaFormat>
               <trimTrailingWhitespace/>
               <licenseHeader>
                 <file>${rootDir}/license-header</file>

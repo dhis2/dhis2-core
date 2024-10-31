@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
@@ -103,7 +104,7 @@ class DeduplicationServiceTest {
 
   @BeforeEach
   void setUp() throws ForbiddenException, NotFoundException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate("original", "duplicate");
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(UID.generate(), UID.generate());
     deduplicationMergeParams =
         DeduplicationMergeParams.builder()
             .potentialDuplicate(potentialDuplicate)
@@ -326,7 +327,6 @@ class DeduplicationServiceTest {
     injectSecurityContextNoSettings(actingUser);
 
     deduplicationService.manualMerge(deduplicationMergeParams);
-    verify(deduplicationHelper, times(1)).getInvalidReferenceErrors(deduplicationMergeParams);
     verify(deduplicationHelper, times(0)).generateMergeObject(trackedEntityA, trackedEntityB);
     verify(deduplicationHelper)
         .getUserAccessErrors(

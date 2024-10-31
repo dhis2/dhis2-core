@@ -171,7 +171,6 @@ public class DefaultRelationshipService implements RelationshipService {
   }
 
   private List<Relationship> getRelationships(RelationshipQueryParams queryParams) {
-
     if (queryParams.getEntity() instanceof TrackedEntity te) {
       return getRelationshipsByTrackedEntity(te, queryParams);
     }
@@ -184,7 +183,7 @@ public class DefaultRelationshipService implements RelationshipService {
       return getRelationshipsByEvent(ev, queryParams);
     }
 
-    throw new IllegalArgumentException("Unkown type");
+    throw new IllegalArgumentException("Unknown type");
   }
 
   private Page<Relationship> getRelationships(
@@ -202,7 +201,7 @@ public class DefaultRelationshipService implements RelationshipService {
       return getRelationshipsByEvent(ev, queryParams, pageParams);
     }
 
-    throw new IllegalArgumentException("Unkown type");
+    throw new IllegalArgumentException("Unknown type");
   }
 
   private List<String> accessErrors(UserDetails user, Relationship relationship) {

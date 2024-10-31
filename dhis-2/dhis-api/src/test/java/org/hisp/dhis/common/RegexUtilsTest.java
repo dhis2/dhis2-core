@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,44 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.deduplication;
+package org.hisp.dhis.common;
 
-import java.util.ArrayList;
-import java.util.List;
-import lombok.Data;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Data
-public class PotentialDuplicateCriteria extends PagingAndSortingCriteriaAdapter {
-  // TODO(tracker): set paging=true once skipPaging is removed. Both cannot have a default right
-  // now. This would lead to invalid parameters if the user passes the other param i.e.
-  // skipPaging==paging.
-  // isPaged() handles the default case of skipPaging==paging==null => paging enabled
-  @OpenApi.Property(defaultValue = "true")
-  private Boolean paging;
+import java.util.Set;
+import java.util.regex.Pattern;
+import org.junit.jupiter.api.Test;
 
-  private List<UID> trackedEntities = new ArrayList<>();
+/**
+ * @author Lars Helge Overland
+ */
+class RegexUtilsTest {
+  @Test
+  void testGetMatchesWithGroup() {
+    assertEquals(
+        Set.of("animal", "target"),
+        RegexUtils.getMatches(
+            Pattern.compile("\\$\\{([^}]+)\\}"), "The ${animal} jumped over the ${target}.", 1));
+  }
 
-  private DeduplicationStatus status = DeduplicationStatus.OPEN;
+  @Test
+  void testGetMatchesWithNullInput() {
+    assertEquals(Set.of(), RegexUtils.getMatches(Pattern.compile("\\$\\{([^}]+)\\}"), null, 1));
+  }
 
-  /**
-   * Indicates whether to return a page of items or all items. By default, responses are paginated.
-   *
-   * <p>Note: this assumes {@link #getPaging()} and {@link #getSkipPaging()} have been validated.
-   * Preference is given to {@link #getPaging()} as the other parameter is deprecated.
-   */
-  @OpenApi.Ignore
-  public boolean isPaged() {
-    if (getPaging() != null) {
-      return Boolean.TRUE.equals(getPaging());
-    }
-
-    if (getSkipPaging() != null) {
-      return Boolean.FALSE.equals(getSkipPaging());
-    }
-
-    return true;
+  @Test
+  void testGetMatchesWithNullGroup() {
+    assertEquals(
+        Set.of("${animal}", "${target}"),
+        RegexUtils.getMatches(
+            Pattern.compile("\\$\\{([^}]+)\\}"), "The ${animal} jumped over the ${target}.", null));
   }
 }
