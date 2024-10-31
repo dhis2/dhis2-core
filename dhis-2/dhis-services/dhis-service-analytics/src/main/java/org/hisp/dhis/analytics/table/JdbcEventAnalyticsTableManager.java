@@ -31,6 +31,7 @@ import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
+import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -319,7 +320,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             and ev.lastupdated >= '${startDate}' \
             and ev.lastupdated < '${endDate}' \
             limit 1;""",
-            List.of("event", "enrollment"),
             Map.of(
                 "programId", String.valueOf(program.getId()),
                 "startDate", toLongDate(startDate),
@@ -403,7 +403,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 "programId", String.valueOf(program.getId()),
                 "firstDataYear", String.valueOf(firstDataYear),
                 "latestDataYear", String.valueOf(latestDataYear),
-                "exportableEventStatues", String.join(",", EXPORTABLE_EVENT_STATUSES))));
+                "exportableEventStatues", String.join(",", EXPORTABLE_EVENT_STATUSES)));
 
     populateTableInternal(partition, fromClause.toString());
   }
@@ -549,7 +549,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               String sql =
                   replaceQualify(
                       query.toString(),
-                      List.of("maplegend", "trackedentityattributevalue"),
                       Map.of(
                           "selectClause", selectClause,
                           "legendSetId", String.valueOf(ls.getId()),
@@ -699,7 +698,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               String sql =
                   replaceQualify(
                       query,
-                      List.of("maplegend", "event"),
                       Map.of(
                           "select", select,
                           "legendSetId", String.valueOf(ls.getId()),
@@ -756,7 +754,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             ${fromDateClause}) as temp \
             where temp.supportedyear >= ${firstDataYear} \
             and temp.supportedyear <= ${latestDataYear}""",
-            List.of("event", "enrollment"),
             Map.of(
                 "eventDateExpression", eventDateExpression,
                 "startTime", toLongDate(params.getStartTime()),

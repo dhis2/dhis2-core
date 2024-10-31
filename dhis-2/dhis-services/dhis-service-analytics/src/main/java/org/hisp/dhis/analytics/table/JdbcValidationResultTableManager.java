@@ -198,7 +198,6 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
             inner join analytics_rs_categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid
             where vrs.created < '${startTime}'
             and vrs.created is not null ${partitionClause}""",
-            List.of("validationresult", "period", "validationrule"),
             Map.of(
                 "peStartDateMonth", sqlBuilder.dateTrunc("month", "ps.startdate"),
                 "startTime", toLongDate(params.getStartTime()),
@@ -223,7 +222,6 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
             where pe.startdate is not null
             and vrs.created < '${startTime}'
             ${fromDateClause}""",
-            List.of("validationresult", "period"),
             Map.of(
                 "startTime", toLongDate(params.getStartTime()), "fromDateClause", fromDateClause));
 

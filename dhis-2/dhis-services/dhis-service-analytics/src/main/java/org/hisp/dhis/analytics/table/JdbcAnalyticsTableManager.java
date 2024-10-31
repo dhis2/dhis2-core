@@ -226,7 +226,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             from ${datavalue} dv \
             where dv.lastupdated >= '${startDate}' and dv.lastupdated < '${endDate}' \
             limit 1;""",
-            List.of("datavalue"),
             Map.of(
                 "startDate", toLongDate(startDate),
                 "endDate", toLongDate(endDate)));
@@ -256,7 +255,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             inner join ${categoryoptioncombo} co on dv.categoryoptioncomboid=co.categoryoptioncomboid \
             inner join ${categoryoptioncombo} ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid \
             where dv.lastupdated >= '${startDate}'and dv.lastupdated < '${endDate}');""",
-            List.of("datavalue", "dataelement", "organisationunit", "categoryoptioncombo"),
             Map.of(
                 "tableName", qualify(getAnalyticsTableType().getTableName()),
                 "startDate", toLongDate(partition.getStartDate()),
@@ -383,7 +381,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
             inner join analytics_rs_categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid \
             inner join analytics_rs_categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid\s""",
-            List.of("datavalue"),
             Map.of(
                 "approvalSelectExpression", approvalSelectExpression,
                 "valueExpression", valueExpression,
@@ -676,7 +673,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
                 inner join ${period} pe on dv.periodid=pe.periodid \
                 where pe.startdate is not null \
                 and dv.lastupdated < '${startTime}'\s""",
-                List.of("datavalue", "period"),
                 Map.of("startTime", toLongDate(params.getStartTime()))));
 
     if (params.getFromDate() != null) {

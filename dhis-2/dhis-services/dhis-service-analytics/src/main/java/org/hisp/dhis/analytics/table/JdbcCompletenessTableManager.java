@@ -177,11 +177,6 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             inner join ${categoryoptioncombo} ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid \
             where cdr.lastupdated >= '${startDate}' \
             and cdr.lastupdated < '${endDate}');""",
-            List.of(
-                "completedatasetregistration",
-                "dataset",
-                "organisationunit",
-                "categoryoptioncombo"),
             Map.of(
                 "tableName", quote(getAnalyticsTableType().getTableName()),
                 "startDate", toLongDate(partition.getStartDate()),
@@ -236,13 +231,6 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             ${partitionClause} \
             and cdr.lastupdated < '${startTime}' \
             and cdr.completed = true""",
-            List.of(
-                "completedatasetregistration",
-                "dataset",
-                "period",
-                "analytics_rs_periodstructure",
-                "organisationunit",
-                "categoryoptioncombo"),
             Map.of(
                 "peStartDateMonth",
                 sqlBuilder.dateTrunc("month", "ps.startdate"),
@@ -315,7 +303,6 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             inner join period pe on cdr.periodid=pe.periodid \
             where pe.startdate is not null \
             and cdr.date < '${startTime}'""",
-            List.of("completedatasetregistration", "period"),
             Map.of("startTime", toLongDate(params.getStartTime())));
 
     if (params.getFromDate() != null) {
