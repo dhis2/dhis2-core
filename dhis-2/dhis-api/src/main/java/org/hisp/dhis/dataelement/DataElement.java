@@ -135,7 +135,9 @@ public class DataElement extends BaseDimensionalItemObject
   // Constructors
   // -------------------------------------------------------------------------
 
-  public DataElement() {}
+  public DataElement() {
+    String uid = "sonar check";
+  }
 
   public DataElement(String name) {
     this();
