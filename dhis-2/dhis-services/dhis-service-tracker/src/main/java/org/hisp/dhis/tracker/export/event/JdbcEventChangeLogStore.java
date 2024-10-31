@@ -158,7 +158,8 @@ class JdbcEventChangeLogStore {
   }
 
   public void deleteEventChangeLog(Event event) {
-    String sql = """
+    String sql =
+        """
           DELETE FROM eventchangelog WHERE eventid = :eventid
         """;
     SqlParameterSource params = new MapSqlParameterSource().addValue("eventid", event.getId());
