@@ -4,7 +4,7 @@
 create sequence if not exists eventchangelog_sequence;
 
 create table if not exists eventchangelog (
-    eventchangelogid int8 not null DEFAULT nextval('eventchangelog_sequence'),
+    eventchangelogid int8 not null default nextval('eventchangelog_sequence'),
     eventid int8 not null,
     dataelementid int8 null,
     eventproperty varchar(100) null,
@@ -13,12 +13,12 @@ create table if not exists eventchangelog (
     changelogtype varchar(100) not null,
     created timestamp not null,
     createdby varchar(255) not null,
-    constraint eventchangelog_pkey primary key (eventchangelogid)
+    constraint eventchangelog_pkey primary key (eventchangelogid),
+    constraint fk_eventchangelog_dataelementid foreign key (dataelementid) references dataelement(dataelementid),
+    constraint fk_eventchangelog_eventid foreign key (eventid) references event(eventid)
 );
 
 create index if not exists index_eventchangelog_programstageinstanceid on eventchangelog using btree (eventid);
-alter table eventchangelog add constraint fk_eventchangelog_dataelementid foreign key (dataelementid) references dataelement(dataelementid);
-alter table eventchangelog add constraint fk_eventchangelog_eventid foreign key (eventid) references "event"(eventid);
 
 -- Migrate data from trackedentitydatavalueaudit to eventchangelog
 insert into eventchangelog (eventchangelogid, eventid, dataelementid, currentvalue, previousvalue, created, createdby, changelogtype)
