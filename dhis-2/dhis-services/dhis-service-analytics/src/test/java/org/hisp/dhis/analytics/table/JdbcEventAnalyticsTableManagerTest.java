@@ -59,7 +59,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.time.LocalDate;
 import java.time.Year;
 import java.time.ZoneId;
@@ -765,7 +764,7 @@ class JdbcEventAnalyticsTableManagerTest {
             "select temp.supportedyear from (select distinct extract(year from "
                 + DATE_CLAUSE
                 + ") as supportedyear "
-                + "from \"event\" ev inner join enrollment en on ev.enrollmentid = en.enrollmentid "
+                + "from \"event\" ev inner join \"enrollment\" en on ev.enrollmentid = en.enrollmentid "
                 + "where ev.lastupdated <= '2019-08-01T00:00:00' and en.programid = 0 and ("
                 + DATE_CLAUSE
                 + ") is not null "
