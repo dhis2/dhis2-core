@@ -36,8 +36,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
 
 /**
  * @author Lars Helge Overland
@@ -70,7 +69,7 @@ final class ImportConfig {
   private final CategoryOptionCombo fallbackCatOptCombo;
 
   ImportConfig(
-      SystemSettingManager systemSettingManager,
+      SystemSettings settings,
       CategoryService categoryService,
       CompleteDataSetRegistrations registrations,
       ImportOptions options) {
@@ -111,24 +110,18 @@ final class ImportConfig {
 
     skipExistingCheck = options.isSkipExistingCheck();
 
-    strictPeriods =
-        options.isStrictPeriods()
-            || systemSettingManager.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_PERIODS);
+    strictPeriods = options.isStrictPeriods() || settings.getDataImportStrictPeriods();
 
     strictAttrOptionCombos =
         options.isStrictAttributeOptionCombos()
-            || systemSettingManager.getBoolSetting(
-                SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS);
+            || settings.getDataImportStrictAttributeOptionCombos();
 
     strictOrgUnits =
-        options.isStrictOrganisationUnits()
-            || systemSettingManager.getBoolSetting(
-                SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS);
+        options.isStrictOrganisationUnits() || settings.getDataImportStrictOrganisationUnits();
 
     requireAttrOptionCombos =
         options.isRequireAttributeOptionCombo()
-            || systemSettingManager.getBoolSetting(
-                SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO);
+            || settings.getDataImportRequireAttributeOptionCombo();
 
     fallbackCatOptCombo = categoryService.getDefaultCategoryOptionCombo();
   }

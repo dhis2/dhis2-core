@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.analytics.generator;
 
-import static org.apache.commons.io.FileUtils.lineIterator;
+import static org.apache.commons.lang3.ArrayUtils.contains;
+import static org.apache.commons.lang3.ArrayUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.defaultString;
@@ -35,12 +36,16 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.substringAfter;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.analytics.generator.GeneratorHelper.CLASS_NAME_PREFIX;
-import static org.hisp.dhis.analytics.generator.GeneratorHelper.FILE;
 import static org.hisp.dhis.analytics.generator.GeneratorHelper.MAX_TESTS_PER_CLASS;
+import static org.hisp.dhis.analytics.generator.GeneratorHelper.SCENARIOS;
+import static org.hisp.dhis.analytics.generator.GeneratorHelper.SCENARIO_FILE_LOCATION;
+import static org.hisp.dhis.analytics.generator.GeneratorHelper.TEST_OUTPUT_LOCATION;
 import static org.hisp.dhis.analytics.generator.GeneratorHelper.generateTestMethod;
 import static org.hisp.dhis.analytics.generator.GeneratorHelper.getClassDeclaration;
 import static org.hisp.dhis.analytics.generator.GeneratorHelper.getPackageAndImports;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -50,29 +55,27 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.commons.io.LineIterator;
+import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.helpers.file.JsonFileReader;
 
 /** Main class, responsible for starting the process of e2e test/code generation. */
 class Main {
-  /** Token used to separate the test name from its respective URL. */
-  static final String SEPARATOR = "@@";
+  /** Execution args. */
+  private static final int VERSION = 42;
 
-  /** This character is treated as comments. Lines starting with "#" are skipped. */
-  static final String COMMENT = "#";
-
-  /** The location of the test that contains the test alias and URLs. */
-  static final String FILE_LOCATION = "/src/test/java/org/hisp/dhis/analytics/generator/";
-
-  public static void main(String[] args) throws IOException {
-    Map<String, String> urls = loadTestUrls();
+  public static void main(String[] args) throws Exception {
+    Map<String, String> urls = loadTestQueries();
 
     // Creates a list of maps, where each element of the list represents test class that holds a map
-    // of test alias/URL.
+    // of test name/query.
     List<Map<String, String>> classes = getSubMaps(urls, MAX_TESTS_PER_CLASS);
 
     for (int i = 0; i < classes.size(); i++) {
       String className = CLASS_NAME_PREFIX + (i + 1) + "AutoTest";
-      BufferedWriter writer = new BufferedWriter(new FileWriter(className + ".java"));
+      File file = new File(TEST_OUTPUT_LOCATION + className + ".java");
+      file.getParentFile().mkdirs();
+
+      BufferedWriter writer = new BufferedWriter(new FileWriter(file));
 
       StringBuilder classContents = new StringBuilder(getPackageAndImports());
       classContents.append(getClassDeclaration(className));
@@ -80,19 +83,18 @@ class Main {
       Set<Map.Entry<String, String>> methods = classes.get(i).entrySet();
 
       for (Map.Entry<String, String> entry : methods) {
-        String alias = entry.getKey();
-        String url = entry.getValue();
+        String name = entry.getKey();
+        String query = entry.getValue();
 
-        if (isNotBlank(alias) && isNotBlank(url)) {
+        if (isNotBlank(name) && isNotBlank(query)) {
           // Aliases that contains ":" separator.
-          alias =
-              defaultString(trimToNull(substringAfter(alias, ":")), alias.replace(SPACE, EMPTY));
+          name = defaultString(trimToNull(substringAfter(name, ":")), name.replace(SPACE, EMPTY));
 
           // Removes all non-numeric and non-alphabet characters and apply camel case.
-          alias = alias.replaceAll("[^a-zA-Z0-9]", EMPTY);
+          name = name.replaceAll("[^a-zA-Z0-9]", EMPTY);
 
           // Generate the e2e test methods.
-          String testMethod = generateTestMethod(alias, url);
+          String testMethod = generateTestMethod(name, query);
           classContents.append(testMethod);
         }
       }
@@ -109,45 +111,40 @@ class Main {
     }
   }
 
-  private static Map<String, String> loadTestUrls() throws IOException {
-    Map<String, String> urls = new LinkedHashMap<>();
-    LineIterator it = lineIterator(new File("." + FILE_LOCATION + FILE));
+  private static Map<String, String> loadTestQueries() throws Exception {
+    JsonObject json =
+        ((JsonFileReader) new FileReaderUtils().read(new File(SCENARIO_FILE_LOCATION))).get();
+    List<JsonElement> scenarios = json.getAsJsonArray("scenarios").asList();
 
-    try {
-      while (it.hasNext()) {
-        String line = it.nextLine();
+    Map<String, String> queries = new LinkedHashMap<>();
 
-        // Ignore blank lines and comments.
-        if (isNotBlank(line) && !line.startsWith(COMMENT)) {
-          String[] urlDef = line.split(SEPARATOR);
+    for (JsonElement scenario : scenarios) {
+      JsonObject attrMap = ((JsonObject) scenario);
 
-          // Only accept definitions in the format "ALIASES_NAMES@@URL".
-          if (urlDef != null && urlDef.length == 2) {
-            String alias = trimToNull(urlDef[0]);
-            String url = trimToNull(urlDef[1]);
+      String name = trimToNull(attrMap.get("name").getAsString());
+      String query = trimToNull(attrMap.get("query").getAsString());
+      int minVersion = attrMap.get("version").getAsJsonObject().get("min").getAsInt();
 
-            if (alias != null && url != null) {
-              urls.put(alias, url);
-            }
-          }
+      if (isEmpty(SCENARIOS) || contains(SCENARIOS, name)) {
+        // Ignore names and queries that are null/empty.
+        if (name != null && query != null && minVersion <= VERSION) {
+          queries.put(name, query);
         }
       }
-    } finally {
-      it.close();
     }
 
-    // Should match the total of testing URLs found in the respective text file.
-    System.out.println("## TOTAL OF URLs found: " + urls.size());
+    // Should match the total of testing queries found in the respective file.
+    System.out.println("## TOTAL OF QUERIES found: " + queries.size());
 
-    return urls;
+    return queries;
   }
 
   private static List<Map<String, String>> getSubMaps(Map<String, String> map, int batchSize) {
     // List of classes.
     List<Map<String, String>> listOfSubMaps = new ArrayList<>();
 
-    // Map of aliases/URLs of a class.
-    Map<String, String> aliasesUrls = new LinkedHashMap<>();
+    // Map of names/queries of a class.
+    Map<String, String> namesQueries = new LinkedHashMap<>();
 
     int totalBatches = map.size() / batchSize;
     int currentBatch = 0;
@@ -155,10 +152,10 @@ class Main {
     boolean hasMissingEntries = false;
 
     for (Map.Entry<String, String> entry : map.entrySet()) {
-      aliasesUrls.put(entry.getKey(), entry.getValue());
-      if (aliasesUrls.size() == batchSize) {
-        listOfSubMaps.add(aliasesUrls);
-        aliasesUrls = new LinkedHashMap<>();
+      namesQueries.put(entry.getKey(), entry.getValue());
+      if (namesQueries.size() == batchSize) {
+        listOfSubMaps.add(namesQueries);
+        namesQueries = new LinkedHashMap<>();
         currentBatch++;
       } else if (totalBatches == currentBatch) {
         hasMissingEntries = true;
@@ -169,7 +166,7 @@ class Main {
     // {1,2,3}, {4,5,6}, {7,8} -> (this is the last sub-map).
     if (hasMissingEntries) {
       // Adds the missing ones.
-      listOfSubMaps.add(aliasesUrls);
+      listOfSubMaps.add(namesQueries);
     }
 
     return listOfSubMaps;

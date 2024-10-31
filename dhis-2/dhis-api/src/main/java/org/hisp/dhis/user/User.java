@@ -40,9 +40,11 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -205,7 +207,13 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
    *
    * <p>It is not initialised when loading a user from the database.
    */
-  private transient UserSettings settings;
+  private transient Map<String, String> settings;
+
+  /** User's verified email. */
+  private String verifiedEmail;
+
+  /** User's email verification token. */
+  private String emailVerificationToken;
 
   public User() {
     this.lastLogin = null;
@@ -622,11 +630,11 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Property(access = Property.Access.WRITE_ONLY)
-  public UserSettings getSettings() {
+  public Map<String, String> getSettings() {
     return settings;
   }
 
-  public void setSettings(UserSettings settings) {
+  public void setSettings(Map<String, String> settings) {
     this.settings = settings;
   }
 
@@ -773,31 +781,26 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   // Logic - tei search organisation unit
   // -------------------------------------------------------------------------
 
-  public boolean hasTeiSearchOrganisationUnit() {
+  private boolean hasTeiSearchOrganisationUnit() {
     return !CollectionUtils.isEmpty(teiSearchOrganisationUnits);
   }
 
-  public OrganisationUnit getTeiSearchOrganisationUnit() {
-    return CollectionUtils.isEmpty(teiSearchOrganisationUnits)
-        ? null
-        : teiSearchOrganisationUnits.iterator().next();
-  }
-
-  public boolean hasTeiSearchOrganisationUnitWithFallback() {
-    return hasTeiSearchOrganisationUnit() || hasOrganisationUnit();
+  /**
+   * Returns the tei search organisation units or organisation units if not exist. If you need both
+   * org unit scopes, use {@link #getEffectiveSearchOrganisationUnits} instead.
+   */
+  public Set<OrganisationUnit> getTeiSearchOrganisationUnitsWithFallback() {
+    return hasTeiSearchOrganisationUnit() ? teiSearchOrganisationUnits : organisationUnits;
   }
 
   /**
-   * Returns the first of the tei search organisation units associated with the user. If none,
-   * returns the first of the data capture organisation units. If none, return nulls.
+   * Users' capture scope and search scope org units can be entirely independent. The effective
+   * search org units are the union of both scopes. This method is intended for use during data
+   * import/export operations in the tracker.
    */
-  public OrganisationUnit getTeiSearchOrganisationUnitWithFallback() {
-    return hasTeiSearchOrganisationUnit() ? getTeiSearchOrganisationUnit() : getOrganisationUnit();
-  }
-
-  /** Returns the tei search organisation units or organisation units if not exist. */
-  public Set<OrganisationUnit> getTeiSearchOrganisationUnitsWithFallback() {
-    return hasTeiSearchOrganisationUnit() ? teiSearchOrganisationUnits : organisationUnits;
+  public Set<OrganisationUnit> getEffectiveSearchOrganisationUnits() {
+    return Stream.concat(teiSearchOrganisationUnits.stream(), organisationUnits.stream())
+        .collect(Collectors.toSet());
   }
 
   public String getOrganisationUnitsName() {
@@ -1181,6 +1184,26 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
   public void setAvatar(FileResource avatar) {
     this.avatar = avatar;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getVerifiedEmail() {
+    return this.verifiedEmail;
+  }
+
+  public void setVerifiedEmail(String verifiedEmail) {
+    this.verifiedEmail = verifiedEmail;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getEmailVerificationToken() {
+    return this.emailVerificationToken;
+  }
+
+  public void setEmailVerificationToken(String emailVerificationToken) {
+    this.emailVerificationToken = emailVerificationToken;
   }
 
   public static String username(User user) {

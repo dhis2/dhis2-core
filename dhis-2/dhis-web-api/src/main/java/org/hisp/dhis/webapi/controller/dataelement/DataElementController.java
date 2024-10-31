@@ -27,21 +27,66 @@
  */
 package org.hisp.dhis.webapi.controller.dataelement;
 
-import lombok.AllArgsConstructor;
+import static org.hisp.dhis.security.Authorities.F_DATA_ELEMENT_MERGE;
+import static org.hisp.dhis.webapi.controller.CrudControllerAdvice.getHelpfulMessage;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
+import jakarta.persistence.PersistenceException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.MergeReport;
+import org.hisp.dhis.merge.MergeParams;
+import org.hisp.dhis.merge.MergeProcessor;
+import org.hisp.dhis.merge.MergeType;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Controller
 @RequestMapping("/api/dataElements")
-@AllArgsConstructor
+@RequiredArgsConstructor
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class DataElementController extends AbstractCrudController<DataElement> {
+
   private final DataElementService dataElementService;
+  private final MergeProcessor dataElementMergeProcessor;
+
+  @ResponseStatus(HttpStatus.OK)
+  @RequiresAuthority(anyOf = F_DATA_ELEMENT_MERGE)
+  @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody WebMessage mergeDataElements(@RequestBody MergeParams params)
+      throws ConflictException {
+    log.info("Data element merge received");
+    params.setMergeType(MergeType.DATA_ELEMENT);
+
+    MergeReport report;
+    try {
+      report = dataElementMergeProcessor.processMerge(params);
+    } catch (PersistenceException ex) {
+      String helpfulMessage = getHelpfulMessage(ex);
+      log.error("Error while processing Data element merge: {}", helpfulMessage);
+      throw ex;
+    }
+
+    log.info("Data element merge processed with report: {}", report);
+    return WebMessageUtils.mergeReport(report);
+  }
 
   @Override
   protected void preCreateEntity(DataElement entity) {

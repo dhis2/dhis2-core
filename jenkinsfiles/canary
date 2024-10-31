@@ -30,14 +30,14 @@ pipeline {
                     def formatted = "${today.format('yyyyMMdd')}"
                     def source = "dhis2/core-dev:${branch}"
                     def target = "dhis2/core-canary:${branch}"
-                    
+
                     sh "docker pull ${source}"
                     sh "docker tag ${source} ${target}"
                     sh "docker tag ${source} ${target}-${formatted}"
                     withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
                         sh "docker push ${target}"
                         sh "docker push ${target}-${formatted}"
-                    }           
+                    }
                 }
             }
         }
@@ -47,7 +47,7 @@ pipeline {
                 echo 'Building DHIS2 ...'
                 script {
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
-                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml -P -default --update-snapshots -pl -dhis-test-coverage'
+                        sh 'mvn --threads 4 --batch-mode --no-transfer-progress clean install --file dhis-2/pom.xml --update-snapshots'
                     }
                 }
             }
@@ -83,8 +83,9 @@ pipeline {
                 FLYWAY_REPAIR_BEFORE_MIGRATION = "true"
                 INSTANCE_TTL = "315360000"
                 STARTUP_PROBE_FAILURE_THRESHOLD = "50"
-                LIVENESS_PROBE_TIMEOUT_SECONDS = "3"
-                READINESS_PROBE_TIMEOUT_SECONDS = "3"
+                LIVENESS_PROBE_TIMEOUT_SECONDS = "5"
+                READINESS_PROBE_TIMEOUT_SECONDS = "5"
+                CORE_RESOURCES_REQUESTS_MEMORY = "2500Mi"
             }
 
             steps {

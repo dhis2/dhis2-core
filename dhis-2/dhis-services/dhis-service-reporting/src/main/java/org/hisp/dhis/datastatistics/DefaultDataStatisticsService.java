@@ -44,7 +44,8 @@ import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.eventvisualization.EventVisualizationStore;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.program.EventService;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.statistics.StatisticsProvider;
 import org.hisp.dhis.system.SystemInfo;
@@ -77,8 +78,6 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
   private final DataValueService dataValueService;
 
   private final StatisticsProvider statisticsProvider;
-
-  private final EventService eventService;
 
   private final EventVisualizationStore eventVisualizationStore;
 
@@ -229,29 +228,30 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
 
     statistics.setUserInvitations(userInvitations);
 
-    // Data values
     Map<Integer, Integer> dataValueCount = new HashMap<>();
-
     dataValueCount.put(0, dataValueService.getDataValueCount(0));
     dataValueCount.put(1, dataValueService.getDataValueCount(1));
     dataValueCount.put(7, dataValueService.getDataValueCount(7));
     dataValueCount.put(30, dataValueService.getDataValueCount(30));
-
     statistics.setDataValueCount(dataValueCount);
 
-    // Events
     Map<Integer, Long> eventCount = new HashMap<>();
-
-    eventCount.put(0, eventService.getEventCount(0));
-    eventCount.put(1, eventService.getEventCount(1));
-    eventCount.put(7, eventService.getEventCount(7));
-    eventCount.put(30, eventService.getEventCount(30));
-
+    eventCount.put(0, (long) idObjectManager.getCountByLastUpdated(Event.class, todayMinusDays(0)));
+    eventCount.put(1, (long) idObjectManager.getCountByLastUpdated(Event.class, todayMinusDays(1)));
+    eventCount.put(7, (long) idObjectManager.getCountByLastUpdated(Event.class, todayMinusDays(7)));
+    eventCount.put(
+        30, (long) idObjectManager.getCountByLastUpdated(Event.class, todayMinusDays(30)));
     statistics.setEventCount(eventCount);
 
     statistics.setSystem(getDhis2Info());
 
     return statistics;
+  }
+
+  private static Date todayMinusDays(int days) {
+    Calendar cal = PeriodType.createCalendarInstance();
+    cal.add(Calendar.DAY_OF_YEAR, (days * -1));
+    return cal.getTime();
   }
 
   private Date getStartDate(Date day) {

@@ -19,7 +19,7 @@
             we use due to for example misconfigurations or so. If you want to increase the verbosity of specific
             packages use a logger like shown below. -->
             <AppenderRef ref="console" level="error"/>
-            <!-- Used to upload test logs during CI in case a test step fails. Verbosity is a bit higher so we have more
+            <!-- Used to upload test logs during CI in case a test step fails. Verbosity is a bit higher, so we have more
              information when debugging failed tests. -->
             <AppenderRef ref="file" level="warn"/>
         </Root>
@@ -28,9 +28,8 @@
         Adding an AppenderRef is necessary to overrule the log level we have set on the Root AppenderRefs.
         Once you add an AppenderRef to a Logger you need to set additivity to false otherwise logs might appear twice
         as they propagate up from the Logger to its parent which is the Root.
-        Check the log4j2 config documentation for more details. Uncommend the various loggers to debug the tests. -->
-        
-        
+        Check the log4j2 config documentation for more details. Uncomment the various loggers to debug the tests. -->
+
         <!-- DHIS2 -->
         <!--        
         <Logger name="org.hisp.dhis.migration" level="info" additivity="false">
@@ -72,6 +71,16 @@
         <!-- Hibernate binding parameters -->
         <!--<Logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE">
                <AppenderRef ref="console"/>
+        </Logger>-->
+
+        <!-- Uncomment if you want to debug our JUnit extension -->
+        <!--<Logger name="org.hisp.dhis.test.junit" level="debug">
+               <AppenderRef ref="console"/>
+        </Logger>-->
+
+        <!-- Uncomment to debug Spring bean creation/test configuration -->
+        <!--<Logger name="org.springframework.beans.factory.support.DefaultListableBeanFactory" level="debug" additivity="false">
+                <AppenderRef ref="console"/>
         </Logger>-->
     </Loggers>
 </Configuration>

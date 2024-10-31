@@ -48,9 +48,10 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -59,7 +60,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jim Grace
  */
-class ValidationServiceIntegrationTest extends IntegrationTestBase {
+class ValidationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private ValidationService validationService;
 
@@ -89,11 +90,8 @@ class ValidationServiceIntegrationTest extends IntegrationTestBase {
 
   private CategoryOptionCombo defaultCombo;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     this.userService = injectUserService;
 
     periodTypeMonthly = new MonthlyPeriodType();
@@ -109,9 +107,6 @@ class ValidationServiceIntegrationTest extends IntegrationTestBase {
     injectSecurityContextUser(user);
   }
 
-  // -------------------------------------------------------------------------
-  // Business logic tests
-  // -------------------------------------------------------------------------
   /** See https://jira.dhis2.org/browse/DHIS2-10336. */
   @Test
   void testDataElementAndDEO() {

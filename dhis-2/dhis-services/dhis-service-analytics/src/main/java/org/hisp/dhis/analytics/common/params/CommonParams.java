@@ -46,7 +46,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.With;
-import org.hisp.dhis.analytics.common.CommonQueryRequest;
+import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -68,7 +68,7 @@ import org.hisp.dhis.program.Program;
 @Builder(toBuilder = true)
 public class CommonParams {
   /** The original incoming request. */
-  private final CommonQueryRequest originalRequest;
+  private final CommonRequestParams originalRequest;
 
   /** The list of Program objects carried on by this object. */
   @Builder.Default private final List<Program> programs = new ArrayList<>();
@@ -164,13 +164,13 @@ public class CommonParams {
   /** Indicates if additional ou hierarchy data should be provided. */
   private final boolean showHierarchy;
 
-  /** whether the query should consider only items with lat/long coordinates */
+  /** Whether the query should consider only items with lat/long coordinates */
   private boolean coordinatesOnly;
 
-  /** whether the query should consider only items with geometry */
+  /** Whether the query should consider only items with geometry */
   private boolean geometryOnly;
 
-  /** whether the programs comes from the request or not */
+  /** Whether the programs come from the request or not. */
   @With private final boolean programsFromRequest;
 
   /**
@@ -221,7 +221,7 @@ public class CommonParams {
    * Gets all dimension identifiers, including parsed headers and order parameters, and removes
    * duplicates (by getting the first element of each group). Shouldn't be used when the order of
    * the dimension identifiers is important or when access to dimension identifiers restrictions is
-   * needed
+   * needed.
    *
    * @return the list of dimension identifiers
    */

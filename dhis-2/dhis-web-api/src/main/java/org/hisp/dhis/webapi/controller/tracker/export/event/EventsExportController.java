@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeGzip;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeZip;
@@ -44,12 +43,13 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Response.Status;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -85,6 +85,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @OpenApi.EntityType(Event.class)
+@OpenApi.Document(classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping("/api/tracker/events")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -151,7 +152,7 @@ class EventsExportController {
       // from a browser
       )
   ResponseEntity<Page<ObjectNode>> getEvents(EventRequestParams requestParams)
-      throws BadRequestException, ForbiddenException {
+      throws BadRequestException, ForbiddenException, NotFoundException {
     validatePaginationParameters(requestParams);
     EventOperationParams eventOperationParams = eventParamsMapper.map(requestParams);
 
@@ -183,7 +184,7 @@ class EventsExportController {
 
   @GetMapping(produces = CONTENT_TYPE_JSON_GZIP)
   void getEventsAsJsonGzip(EventRequestParams eventRequestParams, HttpServletResponse response)
-      throws BadRequestException, IOException, ForbiddenException {
+      throws BadRequestException, IOException, ForbiddenException, NotFoundException {
     validatePaginationParameters(eventRequestParams);
 
     EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
@@ -204,7 +205,7 @@ class EventsExportController {
 
   @GetMapping(produces = CONTENT_TYPE_JSON_ZIP)
   void getEventsAsJsonZip(EventRequestParams eventRequestParams, HttpServletResponse response)
-      throws BadRequestException, ForbiddenException, IOException {
+      throws BadRequestException, ForbiddenException, IOException, NotFoundException {
     validatePaginationParameters(eventRequestParams);
 
     EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
@@ -231,7 +232,7 @@ class EventsExportController {
       EventRequestParams eventRequestParams,
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
-      throws IOException, BadRequestException, ForbiddenException {
+      throws IOException, BadRequestException, ForbiddenException, NotFoundException {
     EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
 
     List<Event> events = eventService.getEvents(eventOperationParams);
@@ -248,7 +249,7 @@ class EventsExportController {
       EventRequestParams eventRequestParams,
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
-      throws IOException, BadRequestException, ForbiddenException {
+      throws IOException, BadRequestException, ForbiddenException, NotFoundException {
     EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
 
     List<Event> events = eventService.getEvents(eventOperationParams);
@@ -266,7 +267,7 @@ class EventsExportController {
       EventRequestParams eventRequestParams,
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
-      throws IOException, BadRequestException, ForbiddenException {
+      throws IOException, BadRequestException, ForbiddenException, NotFoundException {
     EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
 
     List<Event> events = eventService.getEvents(eventOperationParams);
@@ -291,7 +292,7 @@ class EventsExportController {
       throws NotFoundException, ForbiddenException {
     EventParams eventParams = eventsMapper.map(fields);
     org.hisp.dhis.webapi.controller.tracker.view.Event event =
-        EVENTS_MAPPER.from(eventService.getEvent(uid.getValue(), eventParams));
+        EVENTS_MAPPER.from(eventService.getEvent(uid, eventParams));
 
     return ResponseEntity.ok(fieldFilterService.toObjectNode(event, fields));
   }
@@ -301,11 +302,12 @@ class EventsExportController {
       @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
       @OpenApi.Param({UID.class, DataElement.class}) @PathVariable UID dataElement,
       HttpServletRequest request)
-      throws NotFoundException, ConflictException, BadRequestException {
+      throws NotFoundException, ConflictException, BadRequestException, ForbiddenException {
     validateUnsupportedParameter(
         request,
         "dimension",
-        "Request parameter 'dimension' is only supported for images by API /tracker/event/dataValues/{dataElement}/image");
+        "Request parameter 'dimension' is only supported for images by API"
+            + " /tracker/event/dataValues/{dataElement}/image");
 
     return fileResourceRequestHandler.handle(
         request, eventService.getFileResource(event, dataElement));
@@ -317,7 +319,7 @@ class EventsExportController {
       @OpenApi.Param({UID.class, DataElement.class}) @PathVariable UID dataElement,
       @RequestParam(required = false) ImageFileDimension dimension,
       HttpServletRequest request)
-      throws NotFoundException, ConflictException, BadRequestException {
+      throws NotFoundException, ConflictException, BadRequestException, ForbiddenException {
     return fileResourceRequestHandler.handle(
         request, eventService.getFileResourceImage(event, dataElement, dimension));
   }
@@ -327,7 +329,7 @@ class EventsExportController {
       @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
       ChangeLogRequestParams requestParams,
       HttpServletRequest request)
-      throws NotFoundException, BadRequestException {
+      throws NotFoundException, BadRequestException, ForbiddenException {
     EventChangeLogOperationParams operationParams =
         ChangeLogRequestParamsMapper.map(eventChangeLogService.getOrderableFields(), requestParams);
     PageParams pageParams =

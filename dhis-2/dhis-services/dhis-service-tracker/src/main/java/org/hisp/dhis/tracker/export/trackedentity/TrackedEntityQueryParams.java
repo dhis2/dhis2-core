@@ -47,6 +47,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -55,7 +56,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.User;
 
 @ToString
 public class TrackedEntityQueryParams {
@@ -114,7 +114,7 @@ public class TrackedEntityQueryParams {
   private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
   /** Set of te uids to explicitly select. */
-  private Set<String> trackedEntityUids = new HashSet<>();
+  private Set<UID> trackedEntities = new HashSet<>();
 
   /** ProgramStage to be used in conjunction with eventstatus. */
   private ProgramStage programStage;
@@ -143,38 +143,13 @@ public class TrackedEntityQueryParams {
   private final List<Order> order = new ArrayList<>();
 
   // -------------------------------------------------------------------------
-  // Transient properties
-  // -------------------------------------------------------------------------
-
-  /** Current user for query. */
-  private transient User user;
-
-  // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
 
   public TrackedEntityQueryParams() {}
 
-  /**
-   * Prepares the organisation units of the given parameters to simplify querying. Mode ACCESSIBLE
-   * is converted to DESCENDANTS for organisation units linked to the search scope of the given
-   * user. Mode CAPTURE is converted to DESCENDANTS too, but using organisation units linked to the
-   * user's capture scope, and mode CHILDREN is converted to SELECTED for organisation units
-   * including all their children. Mode can be DESCENDANTS, SELECTED, ALL only after invoking this
-   * method.
-   */
-  public void handleOrganisationUnits() {
-    if (user != null && isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
-      setOrgUnits(user.getTeiSearchOrganisationUnitsWithFallback());
-      setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    } else if (user != null && isOrganisationUnitMode(OrganisationUnitSelectionMode.CAPTURE)) {
-      setOrgUnits(user.getOrganisationUnits());
-      setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    }
-  }
-
   public boolean hasTrackedEntities() {
-    return CollectionUtils.isNotEmpty(this.trackedEntityUids);
+    return CollectionUtils.isNotEmpty(this.trackedEntities);
   }
 
   public boolean hasFilterForEvents() {
@@ -183,9 +158,10 @@ public class TrackedEntityQueryParams {
   }
 
   /** Returns a list of attributes and filters combined. */
-  public Set<String> getFilterIds() {
+  public Set<UID> getFilterIds() {
     return filters.keySet().stream()
         .map(BaseIdentifiableObject::getUid)
+        .map(UID::of)
         .collect(Collectors.toSet());
   }
 
@@ -481,11 +457,6 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public TrackedEntityQueryParams setUser(User user) {
-    this.user = user;
-    return this;
-  }
-
   public EventStatus getEventStatus() {
     return eventStatus;
   }
@@ -529,10 +500,6 @@ public class TrackedEntityQueryParams {
   public TrackedEntityQueryParams setIncludeDeleted(boolean includeDeleted) {
     this.includeDeleted = includeDeleted;
     return this;
-  }
-
-  public User getUser() {
-    return user;
   }
 
   /**
@@ -581,12 +548,12 @@ public class TrackedEntityQueryParams {
         .collect(Collectors.toSet());
   }
 
-  public Set<String> getTrackedEntityUids() {
-    return trackedEntityUids;
+  public Set<UID> getTrackedEntities() {
+    return trackedEntities;
   }
 
-  public TrackedEntityQueryParams setTrackedEntityUids(Set<String> trackedEntityUids) {
-    this.trackedEntityUids = trackedEntityUids;
+  public TrackedEntityQueryParams setTrackedEntities(Set<UID> trackedEntities) {
+    this.trackedEntities = trackedEntities;
     return this;
   }
 

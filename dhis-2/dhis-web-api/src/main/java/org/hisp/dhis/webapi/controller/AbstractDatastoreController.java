@@ -33,13 +33,13 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import javax.servlet.http.HttpServletResponse;
 import lombok.Value;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datastore.DatastoreFields;
@@ -47,6 +47,7 @@ import org.hisp.dhis.datastore.DatastoreQuery;
 import org.hisp.dhis.datastore.DatastoreQuery.Field;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.webapi.JsonWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -71,12 +72,12 @@ public abstract class AbstractDatastoreController {
   @FunctionalInterface
   interface DatastoreQueryExecutor {
     boolean getEntries(DatastoreQuery query, Predicate<Stream<DatastoreFields>> transform)
-        throws ConflictException;
+        throws ConflictException, ForbiddenException;
   }
 
   void writeEntries(
       HttpServletResponse response, DatastoreQuery query, DatastoreQueryExecutor runQuery)
-      throws IOException {
+      throws IOException, ForbiddenException {
     response.setContentType(APPLICATION_JSON_VALUE);
     setNoStore(response);
 

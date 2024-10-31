@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.program.EnrollmentStatus.CANCELLED;
+import static org.hisp.dhis.program.EnrollmentStatus.COMPLETED;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1020;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1021;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1023;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1025;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.ENROLLMENT_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1052;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -58,23 +58,29 @@ class DateValidator implements Validator<Enrollment> {
 
     if (Boolean.TRUE.equals(program.getDisplayIncidentDate())
         && Objects.isNull(enrollment.getOccurredAt())) {
-      reporter.addError(enrollment, E1023, enrollment.getOccurredAt());
+      reporter.addError(enrollment, E1023);
+    }
+
+    validateCompletedDateIsSetOnlyForSupportedStatus(reporter, enrollment);
+  }
+
+  private void validateCompletedDateIsSetOnlyForSupportedStatus(
+      Reporter reporter, Enrollment enrollment) {
+    if (enrollment.getCompletedAt() != null
+        && enrollment.getStatus() != COMPLETED
+        && enrollment.getStatus() != CANCELLED) {
+      reporter.addError(enrollment, E1052, enrollment, enrollment.getStatus());
     }
   }
 
   private void validateMandatoryDates(Reporter reporter, Enrollment enrollment) {
-    checkNotNull(enrollment, ENROLLMENT_CANT_BE_NULL);
-
     if (Objects.isNull(enrollment.getEnrolledAt())) {
-      reporter.addError(enrollment, E1025, enrollment.getEnrolledAt());
+      reporter.addError(enrollment, E1025);
     }
   }
 
   private void validateEnrollmentDatesNotInFuture(
       Reporter reporter, Program program, Enrollment enrollment) {
-    checkNotNull(program, PROGRAM_CANT_BE_NULL);
-    checkNotNull(enrollment, ENROLLMENT_CANT_BE_NULL);
-
     final LocalDate now = LocalDate.now();
     if (Objects.nonNull(enrollment.getEnrolledAt())
         && Boolean.FALSE.equals(program.getSelectEnrollmentDatesInFuture())

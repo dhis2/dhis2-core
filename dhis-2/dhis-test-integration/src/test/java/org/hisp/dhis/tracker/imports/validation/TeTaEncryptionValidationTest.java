@@ -37,50 +37,61 @@ import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class TeTaEncryptionValidationTest extends TrackerTest {
   @Autowired private TrackerImportService trackerImportService;
-  @Autowired protected UserService _userService;
 
-  @Override
-  protected void initTest() throws IOException {
-    userService = _userService;
+  private User importUser;
+
+  @BeforeAll
+  void setUp() throws IOException {
     setUpMetadata("tracker/validations/te-program_with_tea_encryption_metadata.json");
-    injectAdminUser();
+
+    importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
   }
 
   @Test
   void testUniqueFailInOrgUnit() throws IOException {
-    TrackerImportParams params = new TrackerImportParams();
+    TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/te-program_with_tea_unique_data_in_country.json");
+
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
     assertNoErrors(importReport);
 
     trackerObjects =
         fromJson("tracker/validations/te-program_with_tea_unique_data_in_country.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+
     importReport = trackerImportService.importTracker(params, trackerObjects);
+
     assertNoErrors(importReport);
     trackerObjects = fromJson("tracker/validations/te-program_with_tea_unique_data_in_region.json");
+
     importReport = trackerImportService.importTracker(params, trackerObjects);
+
     assertNoErrors(importReport);
   }
 
   @Test
   void testUniqueFail() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/te-program_with_tea_unique_data.json");
-    ImportReport importReport =
-        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
     assertNoErrors(importReport);
 
     trackerObjects = fromJson("tracker/validations/te-program_with_tea_unique_data2.json");
 
-    importReport = trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+    importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertHasOnlyErrors(importReport, ValidationCode.E1064);
   }

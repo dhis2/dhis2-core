@@ -30,47 +30,56 @@ package org.hisp.dhis.cache;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.TypedQuery;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.TypedQuery;
+import java.util.Properties;
 import org.hibernate.FlushMode;
 import org.hibernate.SessionFactory;
 import org.hibernate.jpa.QueryHints;
+import org.hisp.dhis.cache.HibernateQueryCacheTest.DhisConfig;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.scheduling.HousekeepingJob;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.jpa.EntityManagerHolder;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.ContextConfiguration;
 
-class HibernateQueryCacheTest extends HibernateCacheBaseTest {
+@ContextConfiguration(classes = {DhisConfig.class})
+class HibernateQueryCacheTest extends PostgresIntegrationTestBase {
+
+  static class DhisConfig {
+    @Bean
+    public DhisConfigurationProvider dhisConfigurationProvider() {
+      Properties override = new Properties();
+      override.put("hibernate.cache.use_query_cache", "true");
+      override.put("hibernate.cache.use_second_level_cache", "true");
+      PostgresDhisConfigurationProvider postgresDhisConfigurationProvider =
+          new PostgresDhisConfigurationProvider();
+      postgresDhisConfigurationProvider.addProperties(override);
+      return postgresDhisConfigurationProvider;
+    }
+  }
 
   private @Autowired EntityManagerFactory entityManagerFactory;
-  private @Autowired UserService _userService;
   private @Autowired HousekeepingJob housekeepingJob;
 
   private SessionFactory sessionFactory;
 
   @BeforeEach
-  public final void before() throws Exception {
-    this.entityManager = entityManagerFactory.createEntityManager();
+  void setUp() {
     this.sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
 
     this.entityManager.setProperty(org.hibernate.annotations.QueryHints.FLUSH_MODE, FlushMode.AUTO);
-    TransactionSynchronizationManager.bindResource(
-        entityManagerFactory, new EntityManagerHolder(entityManager));
 
-    userService = _userService;
-    User adminUser = preCreateInjectAdminUser();
-    injectSecurityContextUser(adminUser);
-    integrationTestBeforeEach();
     sessionFactory.getStatistics().setStatisticsEnabled(true);
     sessionFactory.getStatistics().clear();
   }

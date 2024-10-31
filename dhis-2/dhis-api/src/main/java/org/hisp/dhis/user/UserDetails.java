@@ -27,19 +27,21 @@
  */
 package org.hisp.dhis.user;
 
-import java.io.Serializable;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.UserDetailsImpl.UserDetailsImplBuilder;
 import org.springframework.security.core.GrantedAuthority;
 
-public interface UserDetails extends org.springframework.security.core.userdetails.UserDetails {
+public interface UserDetails
+    extends org.springframework.security.core.userdetails.UserDetails, UidObject {
 
   // TODO MAS: This is a workaround and usually indicated a design flaw, and that we should refactor
   // to use UserDetails higher up in the layers.
@@ -58,14 +60,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
       return null;
     }
     return createUserDetails(
-        user,
-        user.isAccountNonLocked(),
-        user.isCredentialsNonExpired(),
-        null,
-        null,
-        null,
-        new HashMap<>(),
-        true);
+        user, user.isAccountNonLocked(), user.isCredentialsNonExpired(), null, null, null, true);
   }
 
   /**
@@ -80,14 +75,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
       return null;
     }
     return createUserDetails(
-        user,
-        user.isAccountNonLocked(),
-        user.isCredentialsNonExpired(),
-        null,
-        null,
-        null,
-        new HashMap<>(),
-        false);
+        user, user.isAccountNonLocked(), user.isCredentialsNonExpired(), null, null, null, false);
   }
 
   @CheckForNull
@@ -97,8 +85,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
       boolean credentialsNonExpired,
       @CheckForNull Set<String> orgUnitUids,
       @CheckForNull Set<String> searchOrgUnitUids,
-      @CheckForNull Set<String> dataViewUnitUids,
-      @CheckForNull Map<String, Serializable> settings) {
+      @CheckForNull Set<String> dataViewUnitUids) {
     return createUserDetails(
         user,
         accountNonLocked,
@@ -106,7 +93,6 @@ public interface UserDetails extends org.springframework.security.core.userdetai
         orgUnitUids,
         searchOrgUnitUids,
         dataViewUnitUids,
-        settings,
         true);
   }
 
@@ -118,7 +104,6 @@ public interface UserDetails extends org.springframework.security.core.userdetai
       @CheckForNull Set<String> orgUnitUids,
       @CheckForNull Set<String> searchOrgUnitUids,
       @CheckForNull Set<String> dataViewUnitUids,
-      @CheckForNull Map<String, Serializable> settings,
       boolean loadOrgUnits) {
 
     if (user == null) {
@@ -146,8 +131,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
                     user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList()))
             .isSuper(user.isSuper())
             .userRoleIds(setOfIds(user.getUserRoles()))
-            .userGroupIds(user.getUid() == null ? Set.of() : setOfIds(user.getGroups()))
-            .userSettings(settings == null ? new HashMap<>() : new HashMap<>(settings));
+            .userGroupIds(user.getUid() == null ? Set.of() : setOfIds(user.getGroups()));
 
     if (loadOrgUnits) {
 
@@ -159,6 +143,12 @@ public interface UserDetails extends org.springframework.security.core.userdetai
               ? setOfIds(user.getTeiSearchOrganisationUnitsWithFallback())
               : (searchOrgUnitUids.isEmpty() ? orgUnitUids : searchOrgUnitUids);
 
+      Set<String> userEffectiveSearchOrgUnitIds =
+          Stream.of(userOrgUnitIds, userSearchOrgUnitIds)
+              .filter(Objects::nonNull)
+              .flatMap(Collection::stream)
+              .collect(Collectors.toSet());
+
       Set<String> userDataOrgUnitIds =
           (dataViewUnitUids == null)
               ? setOfIds(user.getDataViewOrganisationUnitsWithFallback())
@@ -167,6 +157,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
       userDetailsImplBuilder
           .userOrgUnitIds(userOrgUnitIds)
           .userSearchOrgUnitIds(userSearchOrgUnitIds)
+          .userEffectiveSearchOrgUnitIds(userEffectiveSearchOrgUnitIds)
           .userDataOrgUnitIds(userDataOrgUnitIds)
           .allRestrictions(user.getAllRestrictions());
 
@@ -174,6 +165,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
       userDetailsImplBuilder
           .userOrgUnitIds(Set.of())
           .userSearchOrgUnitIds(Set.of())
+          .userEffectiveSearchOrgUnitIds(Set.of())
           .userDataOrgUnitIds(Set.of())
           .allRestrictions(Set.of());
     }
@@ -205,6 +197,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
 
   boolean isSuper();
 
+  @Override
   String getUid();
 
   Long getId();
@@ -228,6 +221,9 @@ public interface UserDetails extends org.springframework.security.core.userdetai
   Set<String> getUserSearchOrgUnitIds();
 
   @Nonnull
+  Set<String> getUserEffectiveSearchOrgUnitIds();
+
+  @Nonnull
   Set<String> getUserDataOrgUnitIds();
 
   boolean hasAnyAuthority(Collection<String> auths);
@@ -237,9 +233,6 @@ public interface UserDetails extends org.springframework.security.core.userdetai
   boolean isAuthorized(String auth);
 
   boolean isAuthorized(@Nonnull Authorities auth);
-
-  @Nonnull
-  Map<String, Serializable> getUserSettings();
 
   @Nonnull
   Set<String> getUserRoleIds();
@@ -260,6 +253,10 @@ public interface UserDetails extends org.springframework.security.core.userdetai
 
   default boolean isInUserSearchHierarchy(String orgUnitPath) {
     return isInUserHierarchy(orgUnitPath, getUserSearchOrgUnitIds());
+  }
+
+  default boolean isInUserEffectiveSearchOrgUnitHierarchy(String orgUnitPath) {
+    return isInUserHierarchy(orgUnitPath, getUserEffectiveSearchOrgUnitIds());
   }
 
   default boolean isInUserDataHierarchy(String orgUnitPath) {

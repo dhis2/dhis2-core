@@ -33,6 +33,10 @@ import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 import static org.hisp.dhis.util.DateUtils.toLongDateWithMillis;
 import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -41,19 +45,18 @@ import java.util.function.Function;
 import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
@@ -91,15 +94,6 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
     super(entityManager, jdbcTemplate, publisher, Enrollment.class, aclService, true);
   }
 
-  @Override
-  public long countEnrollments(EnrollmentQueryParams params) {
-    String hql = buildCountEnrollmentHql(params);
-
-    Query<Long> query = getTypedQuery(hql);
-
-    return query.getSingleResult().longValue();
-  }
-
   private String buildCountEnrollmentHql(EnrollmentQueryParams params) {
     return buildEnrollmentHql(params)
         .getQuery()
@@ -127,6 +121,14 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
     return getPage(pageParams, query.list(), enrollmentCount);
   }
 
+  private long countEnrollments(EnrollmentQueryParams params) {
+    String hql = buildCountEnrollmentHql(params);
+
+    Query<Long> query = getTypedQuery(hql);
+
+    return query.getSingleResult().longValue();
+  }
+
   private Page<Enrollment> getPage(
       PageParams pageParams, List<Enrollment> enrollments, LongSupplier enrollmentCount) {
     if (pageParams.isPageTotal()) {
@@ -145,7 +147,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       hql +=
           hlp.whereAnd()
               + "en.uid in ("
-              + getQuotedCommaDelimitedString(params.getEnrollmentUids())
+              + getQuotedCommaDelimitedString(UID.toValueList(params.getEnrollments()))
               + ")";
     }
 
@@ -305,5 +307,11 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
   @Override
   public Set<String> getOrderableFields() {
     return ORDERABLE_FIELDS;
+  }
+
+  @Override
+  public void delete(@Nonnull Enrollment enrollment) {
+    enrollment.setStatus(EnrollmentStatus.CANCELLED);
+    super.delete(enrollment);
   }
 }

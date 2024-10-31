@@ -34,9 +34,9 @@ import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.BOOLEAN;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
-import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
@@ -62,7 +62,7 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -94,7 +94,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       DataApprovalLevelService dataApprovalLevelService,
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
@@ -108,7 +108,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
         idObjectManager,
         organisationUnitService,
         categoryService,
-        systemSettingManager,
+        settingsProvider,
         dataApprovalLevelService,
         resourceTableService,
         tableHookService,
@@ -151,12 +151,11 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     String sql =
         replaceQualify(
             """
-            select cdr.datasetid \
-            from ${completedatasetregistration} cdr \
-            where cdr.lastupdated >= '${startDate}' \
-            and cdr.lastupdated < '${endDate}' \
-            limit 1;""",
-            List.of("completedatasetregistration"),
+        select cdr.datasetid \
+        from ${completedatasetregistration} cdr \
+        where cdr.lastupdated >= '${startDate}' \
+        and cdr.lastupdated < '${endDate}' \
+        limit 1;""",
             Map.of("startDate", toLongDate(startDate), "endDate", toLongDate(endDate)));
 
     return !jdbcTemplate.queryForList(sql).isEmpty();
@@ -273,7 +272,8 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
   private List<AnalyticsTableColumn> getColumns() {
     String idColAlias = "concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',ao.uid) as id ";
-    String timelyDateDiff = "cast(cdr.date as date) - ps.enddate";
+    String timelyDateDiff =
+        "extract(epoch from (cdr.date - ps.enddate)) / ( " + DateUtils.SECONDS_PER_DAY + " )";
     String timelyAlias = "((" + timelyDateDiff + ") <= ds.timelydays) as timely";
 
     List<AnalyticsTableColumn> columns = new ArrayList<>();
@@ -298,7 +298,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     columns.add(
         AnalyticsTableColumn.builder()
             .name("value")
-            .dataType(DATE)
+            .dataType(TIMESTAMP)
             .valueType(FACT)
             .selectExpression("cdr.date as value")
             .build());
@@ -312,7 +312,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             """
             select distinct(extract(year from pe.startdate)) \
             from ${completedatasetregistration} cdr \
-            inner join ${period} pe on cdr.periodid=pe.periodid \
+            inner join period pe on cdr.periodid=pe.periodid \
             where pe.startdate is not null \
             and cdr.date < '${startTime}'""",
             List.of("completedatasetregistration", "period"),
@@ -322,7 +322,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
       sql +=
           replace(
               "and pe.startdate >= '${fromDate}'",
-              Map.of("fromDate", DateUtils.toMediumDate(params.getFromDate())));
+              Map.of("fromDate", DateUtils.toLongDate(params.getFromDate())));
     }
 
     return jdbcTemplate.queryForList(sql, Integer.class);

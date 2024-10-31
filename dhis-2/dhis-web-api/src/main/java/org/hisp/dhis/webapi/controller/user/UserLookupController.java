@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.OpenApi.Document.Group;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -56,7 +55,10 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = User.class, group = Group.QUERY)
+@OpenApi.Document(
+    entity = User.class,
+    group = OpenApi.Document.GROUP_QUERY,
+    classifiers = {"team:platform", "purpose:metadata"})
 @RestController
 @RequestMapping("/api/userLookup")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

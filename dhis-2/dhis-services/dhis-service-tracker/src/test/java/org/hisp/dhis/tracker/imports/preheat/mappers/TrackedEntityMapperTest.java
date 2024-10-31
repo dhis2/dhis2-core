@@ -27,15 +27,15 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.attributeValue;
 import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.attributeValues;
 import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.setIdSchemeFields;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -83,15 +83,15 @@ class TrackedEntityMapperTest {
     assertEquals("WTTYiPQDqh1", mapped.getTrackedEntityType().getUid());
     assertEquals("friendship", mapped.getTrackedEntityType().getName());
     assertEquals("red", mapped.getTrackedEntityType().getCode());
-    assertContainsOnly(
-        Set.of(attributeValue("m0GpPuMUfFW", "yellow")),
+    assertEquals(
+        AttributeValues.of(Map.of("m0GpPuMUfFW", "yellow")),
         mapped.getTrackedEntityType().getAttributeValues());
 
     assertEquals("HpSAvRWtdDR", mapped.getOrganisationUnit().getUid());
     assertEquals("meet", mapped.getOrganisationUnit().getName());
     assertEquals("green", mapped.getOrganisationUnit().getCode());
-    assertContainsOnly(
-        Set.of(attributeValue("m0GpPuMUfFW", "purple")),
+    assertEquals(
+        AttributeValues.of(Map.of("m0GpPuMUfFW", "purple")),
         mapped.getOrganisationUnit().getAttributeValues());
 
     Optional<TrackedEntityAttributeValue> actual =
@@ -101,7 +101,8 @@ class TrackedEntityMapperTest {
     assertEquals("khBzbxTLo8k", value.getAttribute().getUid());
     assertEquals("clouds", value.getAttribute().getName());
     assertEquals("orange", value.getAttribute().getCode());
-    assertContainsOnly(
-        Set.of(attributeValue("m0GpPuMUfFW", "purple")), value.getAttribute().getAttributeValues());
+    assertEquals(
+        AttributeValues.of(Map.of("m0GpPuMUfFW", "purple")),
+        value.getAttribute().getAttributeValues());
   }
 }

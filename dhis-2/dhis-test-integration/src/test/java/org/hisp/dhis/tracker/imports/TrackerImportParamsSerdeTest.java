@@ -46,9 +46,6 @@ class TrackerImportParamsSerdeTest extends TrackerTest {
 
   @Autowired private RenderService renderService;
 
-  @Override
-  protected void initTest() {}
-
   @Test
   void testJsonSerialization() throws Exception {
     TrackerIdSchemeParams identifierParams =

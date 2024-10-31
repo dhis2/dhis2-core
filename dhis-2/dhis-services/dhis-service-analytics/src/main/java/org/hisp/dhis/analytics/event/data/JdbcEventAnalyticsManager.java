@@ -66,6 +66,8 @@ import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -185,13 +187,14 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   public Grid getEventClusters(EventQueryParams params, Grid grid, int maxLimit) {
     List<String> clusterFields = params.getCoordinateFields();
     String sqlClusterFields =
-        getCoalesce(clusterFields, FallbackCoordinateFieldType.PSI_GEOMETRY.getValue());
+        getCoalesce(clusterFields, FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue());
 
     List<String> columns =
-        Lists.newArrayList("count(psi) as count", "ST_Extent(" + sqlClusterFields + ") as extent");
+        Lists.newArrayList(
+            "count(event) as count", "ST_Extent(" + sqlClusterFields + ") as extent");
 
     columns.add(
-        "case when count(psi) = 1 then ST_AsGeoJSON(array_to_string(array_agg("
+        "case when count(event) = 1 then ST_AsGeoJSON(array_to_string(array_agg("
             + sqlClusterFields
             + "), ','), 6) "
             + "else ST_AsGeoJSON(ST_Centroid(ST_Collect("
@@ -200,8 +203,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     columns.add(
         params.isIncludeClusterPoints()
-            ? "array_to_string(array_agg(psi), ',') as points"
-            : "case when count(psi) = 1 then array_to_string(array_agg(psi), ',') end as points");
+            ? "array_to_string(array_agg(event), ',') as points"
+            : "case when count(event) = 1 then array_to_string(array_agg(event), ',') end as points");
 
     String sql = "select " + StringUtils.join(columns, ",") + " ";
 
@@ -261,11 +264,11 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   @Override
   public Rectangle getRectangle(EventQueryParams params) {
     String sql =
-        "select count(psi) as "
+        "select count(event) as "
             + COL_COUNT
             + ", ST_Extent("
             + getCoalesce(
-                params.getCoordinateFields(), FallbackCoordinateFieldType.PSI_GEOMETRY.getValue())
+                params.getCoordinateFields(), FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue())
             + ") as "
             + COL_EXTENT
             + " ";
@@ -317,32 +320,36 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     ImmutableList.Builder<String> cols =
         new ImmutableList.Builder<String>()
             .add(
-                "psi",
-                "ps",
-                "occurreddate",
-                "storedby",
-                "createdbydisplayname",
-                "lastupdatedbydisplayname",
-                "lastupdated",
-                "scheduleddate");
+                EventAnalyticsColumnName.EVENT_COLUMN_NAME,
+                EventAnalyticsColumnName.PS_COLUMN_NAME,
+                EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
+                EventAnalyticsColumnName.STORED_BY_COLUMN_NAME,
+                EventAnalyticsColumnName.CREATED_BY_DISPLAYNAME_COLUMN_NAME,
+                EventAnalyticsColumnName.LAST_UPDATED_BY_DISPLAYNAME_COLUMN_NAME,
+                EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
+                EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
 
     if (params.getProgram().isRegistration()) {
-      cols.add("enrollmentdate", "incidentdate", "tei", "pi");
+      cols.add(
+          EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
+          EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME,
+          EventAnalyticsColumnName.TRACKED_ENTITY_COLUMN_NAME,
+          EventAnalyticsColumnName.ENROLLMENT_COLUMN_NAME);
     }
 
     String coordinatesFieldsSnippet =
         getCoalesce(
-            params.getCoordinateFields(), FallbackCoordinateFieldType.PSI_GEOMETRY.getValue());
+            params.getCoordinateFields(), FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue());
 
     cols.add(
         "ST_AsGeoJSON(" + coordinatesFieldsSnippet + ", 6) as geometry",
-        "longitude",
-        "latitude",
-        "ouname",
-        "ounamehierarchy",
-        "oucode",
-        "pistatus",
-        "psistatus");
+        EventAnalyticsColumnName.LONGITUDE_COLUMN_NAME,
+        EventAnalyticsColumnName.LATITUDE_COLUMN_NAME,
+        EventAnalyticsColumnName.OU_NAME_COLUMN_NAME,
+        AbstractJdbcTableManager.OU_NAME_HIERARCHY_COLUMN_NAME,
+        EventAnalyticsColumnName.OU_CODE_COLUMN_NAME,
+        EventAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME,
+        EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME);
 
     List<String> selectCols =
         ListUtils.distinctUnion(cols.build(), getSelectColumns(params, false));
@@ -370,7 +377,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     sql += " as " + ANALYTICS_TBL_ALIAS + " ";
 
     if (params.hasTimeField()) {
-      String joinCol = quoteAlias(params.getTimeFieldAsField());
+      String joinCol = quoteAlias(params.getTimeFieldAsField(AnalyticsType.EVENT));
       sql +=
           "left join analytics_rs_dateperiodstructure as "
               + DATE_PERIOD_STRUCT_ALIAS
@@ -544,7 +551,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (params.hasEnrollmentStatuses()) {
       sql +=
           hlp.whereAnd()
-              + " pistatus in ("
+              + " enrollmentstatus in ("
               + params.getEnrollmentStatus().stream()
                   .map(p -> singleQuote(p.name()))
                   .collect(joining(","))
@@ -554,7 +561,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (params.hasEventStatus()) {
       sql +=
           hlp.whereAnd()
-              + " psistatus in ("
+              + " eventstatus in ("
               + params.getEventStatus().stream()
                   .map(e -> singleQuote(e.name()))
                   .collect(joining(","))
@@ -567,7 +574,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
               + " "
               + getCoalesce(
                   resolveCoordinateFieldsColumnNames(params.getCoordinateFields(), params),
-                  FallbackCoordinateFieldType.PSI_GEOMETRY.getValue())
+                  FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue())
               + " is not null ";
     }
 
@@ -580,7 +587,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
           hlp.whereAnd()
               + " "
               + getCoalesce(
-                  params.getCoordinateFields(), FallbackCoordinateFieldType.PSI_GEOMETRY.getValue())
+                  params.getCoordinateFields(),
+                  FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue())
               + " && ST_MakeEnvelope("
               + params.getBbox()
               + ",4326) ";
@@ -659,7 +667,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         "Last value aggregation type query must have value dimension or a program indicator");
 
     String timeCol = quoteAlias(params.getTimeFieldAsFieldFallback());
-    String createdCol = quoteAlias(TimeField.CREATED.getField());
+    String createdCol = quoteAlias(TimeField.CREATED.getEventColumnName());
     String partitionByClause = getFirstOrLastValuePartitionByClause(params);
     String order =
         params.getAggregationTypeFallback().isFirstPeriodAggregationType() ? "asc" : "desc";
@@ -675,7 +683,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     } else {
       String valueItem = quoteAlias(params.getValue().getDimensionItem());
       columns =
-          quote("psi") + "," + valueItem + "," + getFirstOrLastValueSubqueryQuotedColumns(params);
+          quote("event") + "," + valueItem + "," + getFirstOrLastValueSubqueryQuotedColumns(params);
 
       Date latest = params.getLatestEndDate();
       Date earliest = addYears(latest, LAST_VALUE_YEARS_OFFSET);

@@ -28,35 +28,41 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.http.HttpAssertions.assertSeries;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpClientAdapter.Body;
+import static org.hisp.dhis.http.HttpClientAdapter.ContentType;
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePersonalAccessToken;
-import static org.hisp.dhis.web.WebClientUtils.assertSeries;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.concurrent.TimeUnit;
+import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.http.HttpStatus.Series;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiTokenStore;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonUser;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.web.HttpStatus.Series;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.MeController} API.
  *
  * @author Jan Bernitt
  */
-class MeControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class MeControllerTest extends H2ControllerIntegrationTestBase {
   private User userA;
 
   @Autowired private ApiTokenStore apiTokenStore;
@@ -70,7 +76,7 @@ class MeControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testGetCurrentUser() {
-    switchToSuperuser();
+    switchToAdminUser();
     assertEquals(getCurrentUser().getUid(), GET("/me").content().as(JsonUser.class).getId());
   }
 
@@ -117,13 +123,6 @@ class MeControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testGetSetting_Missing() {
-    assertEquals(
-        "Key is not supported: missing",
-        GET("/me/settings/missing").error(Series.CLIENT_ERROR).getMessage());
-  }
-
-  @Test
   void testChangePassword() {
     assertStatus(
         HttpStatus.ACCEPTED,
@@ -151,12 +150,12 @@ class MeControllerTest extends DhisControllerConvenienceTest {
   @Test
   void testVerifyPasswordText() {
     assertTrue(
-        POST("/me/verifyPassword", "text/plain:district")
+        POST("/me/verifyPassword", ContentType("text/plain"), Body("district"))
             .content()
             .getBoolean("isCorrectPassword")
             .booleanValue());
     assertFalse(
-        POST("/me/verifyPassword", "text/plain:wrong")
+        POST("/me/verifyPassword", ContentType("text/plain"), Body("wrong"))
             .content()
             .getBoolean("isCorrectPassword")
             .booleanValue());
@@ -190,7 +189,7 @@ class MeControllerTest extends DhisControllerConvenienceTest {
   @Test
   void testValidatePasswordText() {
     JsonPasswordValidation result =
-        POST("/me/validatePassword", "text/plain:$ecrEt42")
+        POST("/me/validatePassword", ContentType("text/plain"), Body("$ecrEt42"))
             .content()
             .as(JsonPasswordValidation.class);
     assertTrue(result.isValidPassword());
@@ -200,7 +199,7 @@ class MeControllerTest extends DhisControllerConvenienceTest {
   @Test
   void testValidatePasswordText_TooShort() {
     JsonPasswordValidation result =
-        POST("/me/validatePassword", "text/plain:secret")
+        POST("/me/validatePassword", ContentType("text/plain"), Body("secret"))
             .content()
             .as(JsonPasswordValidation.class);
     assertFalse(result.isValidPassword());
@@ -213,7 +212,8 @@ class MeControllerTest extends DhisControllerConvenienceTest {
     JsonPasswordValidation result =
         POST(
                 "/me/validatePassword",
-                "text/plain:supersecretsupersecretsupersecretsupersecretsupersecretsupersecretsuperse")
+                ContentType("text/plain"),
+                Body("supersecretsupersecretsupersecretsupersecretsupersecretsupersecretsuperse"))
             .content()
             .as(JsonPasswordValidation.class);
     assertFalse(result.isValidPassword());
@@ -226,7 +226,8 @@ class MeControllerTest extends DhisControllerConvenienceTest {
     JsonPasswordValidation result =
         POST(
                 "/me/validatePassword",
-                "text/plain:supersecretsupersecretsupersecretsupersecretsupersecretsupersecretsupers")
+                ContentType("text/plain"),
+                Body("supersecretsupersecretsupersecretsupersecretsupersecretsupersecretsupers"))
             .content()
             .as(JsonPasswordValidation.class);
     assertFalse(result.isValidPassword());
@@ -262,5 +263,17 @@ class MeControllerTest extends DhisControllerConvenienceTest {
     JsonValue id = patTokens.getObject(0).get("id");
 
     assertTrue(id.exists());
+  }
+
+  @Test
+  void testGetCurrentUserAttributeValues() {
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User userByUsername = userService.getUserByUsername(currentUsername);
+    userByUsername.setAttributeValues(
+        AttributeValues.of("{\"myattribute\": {\"value\": \"myvalue\"}}"));
+    userService.updateUser(userByUsername);
+
+    assertEquals(
+        "myvalue", GET("/me").content().as(JsonUser.class).getAttributeValues().get(0).getValue());
   }
 }

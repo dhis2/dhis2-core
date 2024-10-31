@@ -63,21 +63,13 @@ public class Event implements TrackerDto, Serializable {
 
   @JsonProperty private MetadataIdentifier orgUnit;
 
-  @JsonProperty @Builder.Default private List<Relationship> relationships = new ArrayList<>();
-
   @JsonProperty private Instant occurredAt;
 
   @JsonProperty private Instant scheduledAt;
 
   @JsonProperty private String storedBy;
 
-  @JsonProperty private boolean deleted;
-
-  @JsonProperty private Instant createdAt;
-
   @JsonProperty private Instant createdAtClient;
-
-  @JsonProperty private Instant updatedAt;
 
   @JsonProperty private Instant updatedAtClient;
 
@@ -86,17 +78,11 @@ public class Event implements TrackerDto, Serializable {
   @JsonProperty @Builder.Default
   private Set<MetadataIdentifier> attributeCategoryOptions = new HashSet<>();
 
-  @JsonProperty private String completedBy;
-
   @JsonProperty private Instant completedAt;
 
   @JsonProperty private Geometry geometry;
 
   @JsonProperty private User assignedUser;
-
-  @JsonProperty private User createdBy;
-
-  @JsonProperty private User updatedBy;
 
   @JsonProperty @Builder.Default private Set<DataValue> dataValues = new HashSet<>();
 

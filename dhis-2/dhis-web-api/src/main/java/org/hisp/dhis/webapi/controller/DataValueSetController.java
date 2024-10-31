@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.common.DhisApiVersion.V38;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
@@ -42,6 +41,8 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.stripFormatCompressionExte
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -50,8 +51,6 @@ import java.util.function.BiConsumer;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.Compression;
@@ -93,7 +92,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = DataValue.class)
+@OpenApi.Document(
+    entity = DataValue.class,
+    classifiers = {"team:platform", "purpose:data"})
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/api/dataValueSets")
@@ -241,7 +242,7 @@ public class DataValueSetController {
         dataValueSetService.importDataValueSetXml(request.getInputStream(), importOptions);
     summary.setImportOptions(importOptions);
 
-    return importSummary(summary).withPlainResponseBefore(V38);
+    return importSummary(summary);
   }
 
   @PostMapping(consumes = CONTENT_TYPE_XML_ADX)
@@ -256,7 +257,7 @@ public class DataValueSetController {
         adxDataService.saveDataValueSet(request.getInputStream(), importOptions, null);
     summary.setImportOptions(importOptions);
 
-    return importSummary(summary).withPlainResponseBefore(V38);
+    return importSummary(summary);
   }
 
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
@@ -271,7 +272,7 @@ public class DataValueSetController {
         dataValueSetService.importDataValueSetJson(request.getInputStream(), importOptions);
     summary.setImportOptions(importOptions);
 
-    return importSummary(summary).withPlainResponseBefore(V38);
+    return importSummary(summary);
   }
 
   @PostMapping(consumes = "application/csv")
@@ -286,7 +287,7 @@ public class DataValueSetController {
         dataValueSetService.importDataValueSetCsv(request.getInputStream(), importOptions);
     summary.setImportOptions(importOptions);
 
-    return importSummary(summary).withPlainResponseBefore(V38);
+    return importSummary(summary);
   }
 
   @PostMapping(consumes = CONTENT_TYPE_PDF)
@@ -301,7 +302,7 @@ public class DataValueSetController {
         dataValueSetService.importDataValueSetPdf(request.getInputStream(), importOptions);
     summary.setImportOptions(importOptions);
 
-    return importSummary(summary).withPlainResponseBefore(V38);
+    return importSummary(summary);
   }
 
   // -------------------------------------------------------------------------
@@ -317,8 +318,7 @@ public class DataValueSetController {
     config.setExecutedBy(currentUser.getUid());
     config.setJobParameters(importOptions);
 
-    jobSchedulerService.executeNow(
-        jobConfigurationService.create(config, mimeType, request.getInputStream()));
+    jobSchedulerService.createThenExecute(config, mimeType, request.getInputStream());
 
     return jobConfigurationReport(config);
   }

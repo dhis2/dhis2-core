@@ -32,9 +32,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 
@@ -47,7 +49,7 @@ class GistFilterControllerTest extends AbstractGistControllerTest {
 
   @Test
   void testFilter_Null() {
-    assertEquals(3, GET("/users/gist?filter=skype:null&headless=true").content().size());
+    assertEquals(2, GET("/users/gist?filter=skype:null&headless=true").content().size());
     assertEquals(0, GET("/users/gist?filter=surname:null&headless=true").content().size());
   }
 
@@ -86,22 +88,22 @@ class GistFilterControllerTest extends AbstractGistControllerTest {
     OrganisationUnit ou = organisationUnitService.getOrganisationUnit(orgUnitId);
     ou.setComment("");
     organisationUnitService.updateOrganisationUnit(ou);
-    assertEquals(3, GET("/users/gist?filter=surname:!empty&headless=true").content().size());
+    assertEquals(2, GET("/users/gist?filter=surname:!empty&headless=true").content().size());
     assertEquals(
         0, GET("/organisationUnits/gist?filter=comment:!empty&headless=true").content().size());
   }
 
   @Test
   void testFilter_LessThan() {
-    assertEquals(3, GET("/users/gist?filter=lastUpdated:lt:now&headless=true").content().size());
+    assertEquals(2, GET("/users/gist?filter=lastUpdated:lt:now&headless=true").content().size());
     assertEquals(
         0, GET("/users/gist?filter=lastUpdated:lt:2000-01-01&headless=true").content().size());
   }
 
   @Test
   void testFilter_LessThanOrEqual() {
-    assertEquals(3, GET("/users/gist?filter=created:le:now&headless=true").content().size());
-    assertEquals(3, GET("/users/gist?filter=created:lte:now&headless=true").content().size());
+    assertEquals(2, GET("/users/gist?filter=created:le:now&headless=true").content().size());
+    assertEquals(2, GET("/users/gist?filter=created:lte:now&headless=true").content().size());
     assertEquals(
         0, GET("/users/gist?filter=created:lte:2000-01-01&headless=true").content().size());
   }
@@ -109,7 +111,7 @@ class GistFilterControllerTest extends AbstractGistControllerTest {
   @Test
   void testFilter_GreaterThan() {
     assertEquals(
-        3, GET("/users/gist?filter=lastUpdated:gt:2000-01-01&headless=true").content().size());
+        2, GET("/users/gist?filter=lastUpdated:gt:2000-01-01&headless=true").content().size());
     assertEquals(
         0, GET("/users/gist?filter=lastUpdated:gt:2525-01-01&headless=true").content().size());
   }
@@ -117,8 +119,8 @@ class GistFilterControllerTest extends AbstractGistControllerTest {
   @Test
   void testFilter_GreaterThanOrEqual() {
     assertEquals(
-        3, GET("/users/gist?filter=created:gte:2000-01-01&headless=true").content().size());
-    assertEquals(3, GET("/users/gist?filter=created:ge:2000-01-01&headless=true").content().size());
+        2, GET("/users/gist?filter=created:gte:2000-01-01&headless=true").content().size());
+    assertEquals(2, GET("/users/gist?filter=created:ge:2000-01-01&headless=true").content().size());
     assertEquals(0, GET("/users/gist?filter=created:ge:2525-01-01&headless=true").content().size());
   }
 
@@ -126,16 +128,16 @@ class GistFilterControllerTest extends AbstractGistControllerTest {
   void testFilter_Like() {
     assertEquals(
         1, GET("/users/gist?filter=surname:like:?urnameuserGist&headless=true").content().size());
-    assertEquals(3, GET("/users/gist?filter=surname:like:Surna*&headless=true").content().size());
+    assertEquals(2, GET("/users/gist?filter=surname:like:Surna*&headless=true").content().size());
     assertEquals(0, GET("/users/gist?filter=surname:like:Zulu&headless=true").content().size());
   }
 
   @Test
   void testFilter_NotLike() {
-    assertEquals(3, GET("/users/gist?filter=username:!like:mike&headless=true").content().size());
-    assertEquals(3, GET("/users/gist?filter=surname:!like:?min&headless=true").content().size());
-    assertEquals(3, GET("/users/gist?filter=surname:!like:ap*&headless=true").content().size());
-    assertEquals(3, GET("/users/gist?filter=surname:!like:Sur?in&headless=true").content().size());
+    assertEquals(2, GET("/users/gist?filter=username:!like:mike&headless=true").content().size());
+    assertEquals(2, GET("/users/gist?filter=surname:!like:?min&headless=true").content().size());
+    assertEquals(2, GET("/users/gist?filter=surname:!like:ap*&headless=true").content().size());
+    assertEquals(2, GET("/users/gist?filter=surname:!like:Sur?in&headless=true").content().size());
   }
 
   @Test
@@ -143,34 +145,34 @@ class GistFilterControllerTest extends AbstractGistControllerTest {
     assertEquals(1, GET("/users/gist?filter=surname:ilike:DMIN&headless=true").content().size());
     assertEquals(
         0, GET("/users/gist?filter=surname:ilike:?headless&headless=true").content().size());
-    assertEquals(3, GET("/users/gist?filter=surname:ilike:Sur*&headless=true").content().size());
+    assertEquals(2, GET("/users/gist?filter=surname:ilike:Sur*&headless=true").content().size());
     assertEquals(0, GET("/users/gist?filter=surname:ilike:Zulu&headless=true").content().size());
   }
 
   @Test
   void testFilter_NotILike() {
-    assertEquals(3, GET("/users/gist?filter=username:!ilike:Mike&headless=true").content().size());
-    assertEquals(3, GET("/users/gist?filter=surname:!ilike:?min&headless=true").content().size());
-    assertEquals(3, GET("/users/gist?filter=surname:!ilike:aP*&headless=true").content().size());
-    assertEquals(3, GET("/users/gist?filter=surname:!ilike:Sur?in&headless=true").content().size());
+    assertEquals(2, GET("/users/gist?filter=username:!ilike:Mike&headless=true").content().size());
+    assertEquals(2, GET("/users/gist?filter=surname:!ilike:?min&headless=true").content().size());
+    assertEquals(2, GET("/users/gist?filter=surname:!ilike:aP*&headless=true").content().size());
+    assertEquals(2, GET("/users/gist?filter=surname:!ilike:Sur?in&headless=true").content().size());
   }
 
   @Test
   void testFilter_StartsWith() {
-    assertEquals(2, GET("/users/gist?filter=username:$like:ad&headless=true").content().size());
-    assertEquals(2, GET("/users/gist?filter=username:$ilike:Adm&headless=true").content().size());
+    assertEquals(1, GET("/users/gist?filter=username:$like:ad&headless=true").content().size());
+    assertEquals(1, GET("/users/gist?filter=username:$ilike:Adm&headless=true").content().size());
     assertEquals(
-        2, GET("/users/gist?filter=username:startsWith:Admi&headless=true").content().size());
+        1, GET("/users/gist?filter=username:startsWith:Admi&headless=true").content().size());
     assertEquals(
         0, GET("/users/gist?filter=username:startsWith:bat&headless=true").content().size());
   }
 
   @Test
   void testFilter_NotStartsWith() {
-    assertEquals(3, GET("/users/gist?filter=firstName:!$like:mike&headless=true").content().size());
-    assertEquals(3, GET("/users/gist?filter=firstName:!$ilike:bat&headless=true").content().size());
+    assertEquals(2, GET("/users/gist?filter=firstName:!$like:mike&headless=true").content().size());
+    assertEquals(2, GET("/users/gist?filter=firstName:!$ilike:bat&headless=true").content().size());
     assertEquals(
-        3, GET("/users/gist?filter=firstName:!startsWith:tic&headless=true").content().size());
+        2, GET("/users/gist?filter=firstName:!startsWith:tic&headless=true").content().size());
     assertEquals(
         0, GET("/users/gist?filter=firstName:!startsWith:Firs&headless=true").content().size());
   }
@@ -189,12 +191,12 @@ class GistFilterControllerTest extends AbstractGistControllerTest {
 
   @Test
   void testFilter_NotEndsWith() {
-    assertEquals(3, GET("/users/gist?filter=firstName:!like$:mike&headless=true").content().size());
-    assertEquals(3, GET("/users/gist?filter=firstName:!ilike$:bat&headless=true").content().size());
+    assertEquals(2, GET("/users/gist?filter=firstName:!like$:mike&headless=true").content().size());
+    assertEquals(2, GET("/users/gist?filter=firstName:!ilike$:bat&headless=true").content().size());
     assertEquals(
-        3, GET("/users/gist?filter=firstName:!endsWith:tic&headless=true").content().size());
+        2, GET("/users/gist?filter=firstName:!endsWith:tic&headless=true").content().size());
     assertEquals(
-        2, GET("/users/gist?filter=firstName:!endsWith:MiN&headless=true").content().size());
+        1, GET("/users/gist?filter=firstName:!endsWith:MiN&headless=true").content().size());
   }
 
   @Test
@@ -290,8 +292,8 @@ class GistFilterControllerTest extends AbstractGistControllerTest {
     // filter asks: does the user's have a user role which
     // name is equal to "Superuser"
     assertEquals(
-        getSuperuserUid(),
-        GET("/users/{id}/gist?fields=id&filter=userRoles.name:eq:Superuser", getSuperuserUid())
+        getAdminUid(),
+        GET("/users/{id}/gist?fields=id&filter=userRoles.name:eq:Superuser", getAdminUid())
             .content()
             .string());
   }
@@ -468,5 +470,14 @@ class GistFilterControllerTest extends AbstractGistControllerTest {
         GET("/dataSets/gist?fields=name&filter=name:ilike:paul&filter=name:eq:4&headless=true&order=name")
             .content()
             .stringValues());
+  }
+
+  @Test
+  void testFilter_PasswordTypeFieldsCannotBeFiltered() {
+    JsonWebMessage message =
+        GET("/users/gist?fields=username&filter=password:like:d*")
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
+    assertEquals("Filter not allowed: password:like:[d*]", message.getMessage());
   }
 }

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.jobs;
 
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -41,7 +42,9 @@ import org.hisp.dhis.scheduling.JobProgress.Status;
 import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.RecordingJobProgress;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.user.SystemUser;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,9 +54,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class MetadataSyncJobTest {
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsService settingsService;
   @Mock private MetadataVersionService metadataVersionService;
   @Mock private MetadataVersionDelegate metadataVersionDelegate;
+
+  @BeforeAll
+  static void setUp() {
+    SystemUser user = new SystemUser();
+    injectSecurityContextNoSettings(user);
+  }
 
   @Test
   @DisplayName(
@@ -67,7 +76,7 @@ class MetadataSyncJobTest {
     RecordingJobProgress jobProgress = new RecordingJobProgress(config);
 
     MetadataSyncPreProcessor preProcessor =
-        new MetadataSyncPreProcessor(systemSettingManager, null, null, null, null);
+        new MetadataSyncPreProcessor(settingsService, null, null, null, null);
 
     // when
     preProcessor.setUp(null, jobProgress);
@@ -90,7 +99,7 @@ class MetadataSyncJobTest {
 
     MetadataSyncPreProcessor preProcessor =
         new MetadataSyncPreProcessor(
-            systemSettingManager, metadataVersionService, metadataVersionDelegate, null, null);
+            settingsService, metadataVersionService, metadataVersionDelegate, null, null);
 
     MetadataVersion mdVersion = new MetadataVersion("test", VersionType.BEST_EFFORT);
     when(metadataVersionService.getCurrentVersion()).thenReturn(mdVersion);
@@ -116,7 +125,7 @@ class MetadataSyncJobTest {
 
     MetadataSyncPreProcessor preProcessor =
         new MetadataSyncPreProcessor(
-            systemSettingManager, metadataVersionService, metadataVersionDelegate, null, null);
+            settingsService, metadataVersionService, metadataVersionDelegate, null, null);
 
     MetadataVersion mdVersion = new MetadataVersion("test", VersionType.BEST_EFFORT);
     when(metadataVersionDelegate.getMetaDataDifference(mdVersion)).thenReturn(List.of());

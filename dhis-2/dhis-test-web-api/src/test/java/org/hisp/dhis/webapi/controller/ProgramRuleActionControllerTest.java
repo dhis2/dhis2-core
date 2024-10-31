@@ -27,19 +27,21 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.event.ProgramRuleActionController} using
@@ -47,7 +49,8 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class ProgramRuleActionControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetDataExpressionDescription() {
@@ -68,13 +71,11 @@ class ProgramRuleActionControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testGetDataExpressionDescription_NoSuchProgram() {
-    assertWebMessage(
-        "Conflict",
-        409,
-        "ERROR",
-        "Expression is not valid",
-        POST("/programRuleActions/data/expression/description?programId=xyz", "70")
-            .content(HttpStatus.CONFLICT));
+    assertEquals(
+        "Program is specified but does not exist: abcdefghijk",
+        POST("/programRuleActions/data/expression/description?programId=abcdefghijk", "70")
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
   }
 
   @Test

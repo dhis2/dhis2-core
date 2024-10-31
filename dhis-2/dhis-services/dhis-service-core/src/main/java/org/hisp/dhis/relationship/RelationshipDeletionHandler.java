@@ -27,15 +27,10 @@
  */
 package org.hisp.dhis.relationship;
 
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
-
-import java.util.Collection;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
@@ -43,56 +38,16 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class RelationshipDeletionHandler extends DeletionHandler {
-  private static final DeletionVeto VETO = new DeletionVeto(Relationship.class);
-
-  private final RelationshipService relationshipService;
-
+public class RelationshipDeletionHandler extends IdObjectDeletionHandler<Relationship> {
   @Override
-  protected void register() {
-    whenDeleting(TrackedEntity.class, this::deleteTrackedEntity);
-    whenDeleting(Event.class, this::deleteEvent);
-    whenDeleting(Enrollment.class, this::deleteEnrollment);
+  protected void registerHandler() {
     whenVetoing(RelationshipType.class, this::allowDeleteRelationshipType);
   }
 
-  private void deleteTrackedEntity(TrackedEntity trackedEntity) {
-    Collection<Relationship> relationships =
-        relationshipService.getRelationshipsByTrackedEntity(trackedEntity, false);
-
-    if (relationships != null) {
-      for (Relationship relationship : relationships) {
-        relationshipService.deleteRelationship(relationship);
-      }
-    }
-  }
-
-  private void deleteEvent(Event event) {
-    Collection<Relationship> relationships =
-        relationshipService.getRelationshipsByEvent(event, false);
-
-    if (relationships != null) {
-      for (Relationship relationship : relationships) {
-        relationshipService.deleteRelationship(relationship);
-      }
-    }
-  }
-
-  private void deleteEnrollment(Enrollment enrollment) {
-    Collection<Relationship> relationships =
-        relationshipService.getRelationshipsByEnrollment(enrollment, false);
-
-    if (relationships != null) {
-      for (Relationship relationship : relationships) {
-        relationshipService.deleteRelationship(relationship);
-      }
-    }
-  }
-
   private DeletionVeto allowDeleteRelationshipType(RelationshipType relationshipType) {
-    Collection<Relationship> relationships =
-        relationshipService.getRelationshipsByRelationshipType(relationshipType);
-
-    return relationships.isEmpty() ? ACCEPT : VETO;
+    return vetoIfExists(
+        VETO,
+        "select 1 from relationship where relationshiptypeid = :id limit 1",
+        Map.of("id", relationshipType.getId()));
   }
 }

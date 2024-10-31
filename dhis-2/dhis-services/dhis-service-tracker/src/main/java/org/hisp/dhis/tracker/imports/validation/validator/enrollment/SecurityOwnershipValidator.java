@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
 import java.util.Map;
 import javax.annotation.Nonnull;
@@ -41,7 +39,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
@@ -50,7 +48,6 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -71,7 +68,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
   public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
     TrackerImportStrategy strategy = bundle.getStrategy(enrollment);
     TrackerPreheat preheat = bundle.getPreheat();
-    User user = bundle.getUser();
+    UserDetails user = bundle.getUser();
     Program program =
         strategy.isUpdateOrDelete()
             ? bundle.getPreheat().getEnrollment(enrollment.getEnrollment()).getProgram()
@@ -79,7 +76,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
     TrackedEntity trackedEntity = getTrackedEntity(bundle, enrollment);
     OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit(preheat, trackedEntity, program);
 
-    checkEnrollmentOrgUnit(reporter, bundle, strategy, enrollment);
+    checkEnrollmentOrgUnit(reporter, bundle, strategy, enrollment, user);
 
     if (strategy.isDelete()) {
       boolean hasNonDeletedEvents = enrollmentHasEvents(preheat, enrollment.getEnrollment());
@@ -92,7 +89,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
     }
 
     checkWriteEnrollmentAccess(
-        reporter, bundle, enrollment, program, ownerOrgUnit, trackedEntity.getUid());
+        reporter, enrollment, program, ownerOrgUnit, trackedEntity.getUid(), user);
   }
 
   private TrackedEntity getTrackedEntity(TrackerBundle bundle, Enrollment enrollment) {
@@ -120,7 +117,12 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
                   bundle.getPreheat().getOrganisationUnit(entity.getOrgUnit()));
               return newEntity;
             })
-        .get();
+        .orElseGet(
+            () -> {
+              TrackedEntity newEntity = new TrackedEntity();
+              newEntity.setUid(enrollment.getTrackedEntity());
+              return newEntity;
+            });
   }
 
   private OrganisationUnit getOwnerOrganisationUnit(
@@ -142,7 +144,8 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
       Reporter reporter,
       TrackerBundle bundle,
       TrackerImportStrategy strategy,
-      Enrollment enrollment) {
+      Enrollment enrollment,
+      UserDetails user) {
     OrganisationUnit enrollmentOrgUnit;
 
     if (strategy.isUpdateOrDelete()) {
@@ -155,7 +158,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
     // If enrollment is newly created, or going to be deleted, capture scope
     // has to be checked
     if (strategy.isCreate() || strategy.isDelete()) {
-      checkOrgUnitInCaptureScope(reporter, bundle, enrollment, enrollmentOrgUnit);
+      checkOrgUnitInCaptureScope(reporter, enrollment, enrollmentOrgUnit, user);
     }
   }
 
@@ -165,24 +168,19 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
   }
 
   private void checkOrgUnitInCaptureScope(
-      Reporter reporter, TrackerBundle bundle, TrackerDto dto, OrganisationUnit orgUnit) {
-    UserDetails user = UserDetails.fromUser(bundle.getUser());
-
-    checkNotNull(user, USER_CANT_BE_NULL);
-
+      Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit, UserDetails user) {
     if (!user.isInUserHierarchy(orgUnit.getPath())) {
       reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
     }
   }
 
-  private void checkTeiTypeAndTeiProgramAccess(
+  private void checkTeTypeAndTeProgramAccess(
       Reporter reporter,
       TrackerDto dto,
-      UserDetails user,
       String trackedEntity,
       OrganisationUnit ownerOrganisationUnit,
-      Program program) {
-
+      Program program,
+      UserDetails user) {
     if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
       reporter.addError(dto, ValidationCode.E1104, user, program, program.getTrackedEntityType());
     }
@@ -195,22 +193,18 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
 
   private void checkWriteEnrollmentAccess(
       Reporter reporter,
-      TrackerBundle bundle,
       Enrollment enrollment,
       Program program,
       OrganisationUnit ownerOrgUnit,
-      String trackedEntity) {
-    UserDetails user = UserDetails.fromUser(bundle.getUser());
+      String trackedEntity,
+      UserDetails user) {
+    checkProgramWriteAccess(reporter, enrollment, program, user);
 
-    checkProgramWriteAccess(reporter, enrollment, user, program);
-
-    checkTeiTypeAndTeiProgramAccess(
-        reporter, enrollment, user, trackedEntity, ownerOrgUnit, program);
+    checkTeTypeAndTeProgramAccess(reporter, enrollment, trackedEntity, ownerOrgUnit, program, user);
   }
 
   private void checkProgramWriteAccess(
-      Reporter reporter, TrackerDto dto, UserDetails user, Program program) {
-
+      Reporter reporter, TrackerDto dto, Program program, UserDetails user) {
     if (!aclService.canDataWrite(user, program)) {
       reporter.addError(dto, ValidationCode.E1091, user, program);
     }

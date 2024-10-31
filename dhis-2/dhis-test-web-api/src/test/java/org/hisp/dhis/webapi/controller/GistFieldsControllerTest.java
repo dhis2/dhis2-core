@@ -29,18 +29,18 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.json.domain.JsonUserGroup;
+import org.hisp.dhis.test.webapi.json.domain.JsonUserGroup;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -52,7 +52,7 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
   @Test
   void testField_Sharing_EmbedsObject() {
     JsonObject groups =
-        GET("/users/{uid}/userGroups/gist?fields=id,sharing,users&headless=true", getSuperuserUid())
+        GET("/users/{uid}/userGroups/gist?fields=id,sharing,users&headless=true", getAdminUid())
             .content()
             .getObject(0);
     assertTrue(groups.has("id", "sharing"));
@@ -64,7 +64,7 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
   void testField_Single_List() {
     assertEquals(
         singletonList("groupX"),
-        GET("/users/{uid}/userGroups/gist?fields=name&headless=true", getSuperuserUid())
+        GET("/users/{uid}/userGroups/gist?fields=name&headless=true", getAdminUid())
             .content()
             .stringValues());
   }
@@ -80,18 +80,18 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
   @Test
   void testField_Single_OwnerObject() {
     assertEquals(
-        "Surnameadmin", GET("/users/{uid}/surname/gist", getSuperuserUid()).content().string());
+        "Surnameadmin", GET("/users/{uid}/surname/gist", getAdminUid()).content().string());
   }
 
   @Test
   void testField_Remove_BangSyntax() {
-    JsonObject user = GET("/users/{uid}/gist?fields=*,!surname", getSuperuserUid()).content();
+    JsonObject user = GET("/users/{uid}/gist?fields=*,!surname", getAdminUid()).content();
     assertFalse(user.has("surname"));
   }
 
   @Test
   void testField_Remove_MinusSyntax() {
-    JsonObject user = GET("/users/{uid}/gist?fields=*,-surname", getSuperuserUid()).content();
+    JsonObject user = GET("/users/{uid}/gist?fields=*,-surname", getAdminUid()).content();
     assertFalse(user.has("surname"));
   }
 
@@ -101,7 +101,7 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
     JsonArray users = GET("/users/gist?headless=true").content();
     JsonObject user0 = users.getObject(1);
     assertContainsOnly(Set.of("id", "code", "surname", "firstName", "username"), user0.names());
-    switchToSuperuser();
+    switchToAdminUser();
     users = GET("/users/gist?headless=true").content();
     user0 = users.getObject(0);
     assertTrue(user0.size() > 4);
@@ -112,7 +112,7 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
    */
   @Test
   void testField_Href() {
-    JsonArray users = GET("/users/gist?fields=id,href&headless=true", getSuperuserUid()).content();
+    JsonArray users = GET("/users/gist?fields=id,href&headless=true", getAdminUid()).content();
     JsonObject user0 = users.getObject(0);
     assertTrue(user0.has("id", "href"));
     assertEquals(
@@ -122,7 +122,7 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
   @Test
   void testField_ApiEndpoints_AbsoluteURLs() {
     JsonObject groups =
-        GET("/users/{uid}/userGroups/gist?fields=name,users&absoluteUrls=true", getSuperuserUid())
+        GET("/users/{uid}/userGroups/gist?fields=name,users&absoluteUrls=true", getAdminUid())
             .content();
     assertTrue(
         groups
@@ -151,7 +151,7 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
   @Test
   void testField_DisplayName() {
     JsonObject gist =
-        GET("/users/{uid}/userGroups/gist?fields=displayName,id", getSuperuserUid()).content();
+        GET("/users/{uid}/userGroups/gist?fields=displayName,id", getAdminUid()).content();
     JsonArray groups = gist.getArray("userGroups");
     assertEquals(1, groups.size());
     JsonObject group = groups.getObject(0);
@@ -181,8 +181,7 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
   @Test
   void testField_Access() {
     JsonArray groups =
-        GET("/users/{uid}/userGroups/gist?fields=id,access&headless=true", getSuperuserUid())
-            .content();
+        GET("/users/{uid}/userGroups/gist?fields=id,access&headless=true", getAdminUid()).content();
     assertEquals(1, groups.size());
     JsonObject group = groups.getObject(0);
     JsonObject access = group.getObject("access");
@@ -198,7 +197,8 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
   @Test
   void testField_UserNameAutomaticFromTransformation() {
     JsonArray users = GET("/users/gist?fields=id,name&headless=true").content();
-    assertEquals("FirstNameadmin Surnameadmin", users.getObject(1).getString("name").string());
+    assertEquals(
+        "FirstNameuserGist SurnameuserGist", users.getObject(1).getString("name").string());
   }
 
   @Test
@@ -212,7 +212,7 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
     assertEquals(1, members.size());
     JsonObject member = members.getObject(0);
     assertTrue(member.has("id", "username"));
-    assertEquals(getSuperuserUid(), member.getString("id").string());
+    assertEquals(getAdminUid(), member.getString("id").string());
     assertEquals("admin", member.getString("username").string());
   }
 }

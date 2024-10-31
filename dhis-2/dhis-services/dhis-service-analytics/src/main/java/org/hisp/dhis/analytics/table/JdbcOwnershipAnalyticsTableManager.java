@@ -63,7 +63,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.quick.JdbcConfiguration;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -85,14 +85,14 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
   private static final String HISTORY_TABLE_ID = "1001-01-01";
 
   // Must be later than the dummy HISTORY_TABLE_ID for SQL query order.
-  private static final String TEI_OWN_TABLE_ID = "2002-02-02";
+  private static final String TRACKED_ENTITY_OWN_TABLE_ID = "2002-02-02";
 
   protected static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           AnalyticsTableColumn.builder()
-              .name("teiuid")
+              .name("teuid")
               .dataType(CHARACTER_11)
-              .selectExpression("tei.uid")
+              .selectExpression("te.uid")
               .build(),
           AnalyticsTableColumn.builder()
               .name("startdate")
@@ -115,7 +115,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       DataApprovalLevelService dataApprovalLevelService,
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
@@ -130,7 +130,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
         idObjectManager,
         organisationUnitService,
         categoryService,
-        systemSettingManager,
+        settingsProvider,
         dataApprovalLevelService,
         resourceTableService,
         tableHookService,
@@ -178,7 +178,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     Program program = partition.getMasterTable().getProgram();
 
     if (program.getProgramType() == WITHOUT_REGISTRATION) {
-      return; // Builds an empty table, but it may be joined in queries.
+      return; // Builds an empty table which may be joined in queries
     }
 
     String sql = getInputSql(program);
@@ -224,9 +224,24 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     }
   }
 
+  /**
+   * Returns a SQL select query. For the from clause, for tracked entities in this program in
+   * programownershiphistory, get one row for each programownershiphistory row and then get a final
+   * row from the trackedentityprogramowner table to show the final owner.
+   *
+   * <p>The start date values are dummy so that all the history table rows will be ordered first and
+   * the tracked entity owner table row will come last.
+   *
+   * <p>The start date in the analytics table will be a far past date for the first row for each
+   * tracked entity, or the previous row's end date plus one day in subsequent rows for that tracked
+   * entity.
+   *
+   * <p>Rows in programownershiphistory that don't have organisationunitid will be filtered out.
+   *
+   * @param program the {@link Program}.
+   * @return a SQL select query.
+   */
   private String getInputSql(Program program) {
-    // SELECT clause
-
     StringBuilder sb = new StringBuilder("select ");
 
     for (AnalyticsTableColumn col : getColumns()) {
@@ -235,21 +250,6 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
     sb.deleteCharAt(sb.length() - 1); // Remove the final ','.
 
-    // FROM clause
-
-    // For TEIs in this program that are in programownershiphistory, get
-    // one row for each programownershiphistory row and then get a final
-    // row from the trackedentityprogramowner table to show the final owner.
-    //
-    // The start date values are dummy so that all the history table rows
-    // will be ordered first and the tei owner table row will come last.
-    //
-    // (The start date in the analytics table will be a far past date for
-    // the first row for each TEI, or the previous row's end date plus one
-    // day in subsequent rows for that TEI.)
-    //
-    // Rows in programownershiphistory that don't have organisationunitid
-    // will be filtered out.
     sb.append(
         replaceQualify(
             """
@@ -259,29 +259,22 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
             where h.programid=${programId} \
             and h.organisationunitid is not null \
             union \
-            select o.trackedentityid, '${teiOwnTableId}' as startdate, null as enddate, o.organisationunitid \
+            select o.trackedentityid, '${trackedEntityOwnTableId}' as startdate, null as enddate, o.organisationunitid \
             from ${trackedentityprogramowner} o \
             where o.programid=${programId} \
             and exists (\
             select 1 from ${programownershiphistory} p \
             where o.trackedentityid = p.trackedentityid \
-            and p.programid=${programId} \
-            and p.organisationunitid is not null)) a \
-            inner join ${trackedentity} tei on a.trackedentityid = tei.trackedentityid \
+            and p.programid=${programId} and p.organisationunitid is not null)) a \
+            inner join ${trackedentity} te on a.trackedentityid = te.trackedentityid \
             inner join ${organisationunit} ou on a.organisationunitid = ou.organisationunitid \
             left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid \
             left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid \
-            order by tei.uid, a.startdate, a.enddate""",
-            List.of(
-                "programownershiphistory",
-                "trackedentityprogramowner",
-                "trackedentity",
-                "organisationunit"),
+            order by te.uid, a.startdate, a.enddate""",
             Map.of(
                 "historyTableId", HISTORY_TABLE_ID,
-                "teiOwnTableId", TEI_OWN_TABLE_ID,
-                "programId", String.valueOf(program.getId()),
-                "TEI_OWN_TABLE_ID", TEI_OWN_TABLE_ID)));
+                "trackedEntityOwnTableId", TRACKED_ENTITY_OWN_TABLE_ID,
+                "programId", String.valueOf(program.getId()))));
     return sb.toString();
   }
 

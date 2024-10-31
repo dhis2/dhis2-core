@@ -29,7 +29,7 @@ package org.hisp.dhis.query;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
 
@@ -42,7 +42,7 @@ import org.hisp.dhis.query.planner.DefaultQueryPlanner;
 import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.descriptors.OrganisationUnitSchemaDescriptor;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,11 +66,11 @@ class DefaultQueryServiceTest {
 
   @Mock private SchemaService schemaService;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsService settingsService;
 
   @BeforeEach
   public void setUp() {
-    QueryPlanner queryPlanner = new DefaultQueryPlanner(schemaService, systemSettingManager);
+    QueryPlanner queryPlanner = new DefaultQueryPlanner(schemaService, settingsService);
     subject =
         new DefaultQueryService(
             queryParser, queryPlanner, criteriaQueryEngine, inMemoryQueryEngine);

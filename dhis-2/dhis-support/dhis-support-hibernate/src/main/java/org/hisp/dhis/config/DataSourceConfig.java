@@ -49,10 +49,8 @@ import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
 import org.hisp.dhis.datasource.model.PoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -65,28 +63,23 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 @RequiredArgsConstructor
 public class DataSourceConfig {
 
-  private final DhisConfigurationProvider config;
-
-  @Bean("namedParameterJdbcTemplate")
   @Primary
-  @DependsOn("dataSource")
-  public NamedParameterJdbcTemplate namedParameterJdbcTemplate(
-      @Qualifier("dataSource") DataSource dataSource) {
+  @Bean
+  public NamedParameterJdbcTemplate namedParameterJdbcTemplate(DataSource dataSource) {
     return new NamedParameterJdbcTemplate(dataSource);
   }
 
-  @Bean("jdbcTemplate")
-  @DependsOn("dataSource")
   @Primary
-  public JdbcTemplate jdbcTemplate(@Qualifier("dataSource") DataSource dataSource) {
+  @Bean
+  public JdbcTemplate jdbcTemplate(DataSource dataSource) {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     jdbcTemplate.setFetchSize(1000);
     return jdbcTemplate;
   }
 
-  @Bean("readOnlyJdbcTemplate")
-  @DependsOn("dataSource")
-  public JdbcTemplate readOnlyJdbcTemplate(@Qualifier("dataSource") DataSource dataSource) {
+  @Bean
+  public JdbcTemplate readOnlyJdbcTemplate(
+      DhisConfigurationProvider config, DataSource dataSource) {
     ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config);
 
     JdbcTemplate jdbcTemplate =
@@ -96,13 +89,18 @@ public class DataSourceConfig {
     return jdbcTemplate;
   }
 
-  static DataSource createActualDataSource(DhisConfigurationProvider dhisConfig) {
-    String jdbcUrl = dhisConfig.getProperty(ConfigurationKey.CONNECTION_URL);
-    String username = dhisConfig.getProperty(ConfigurationKey.CONNECTION_USERNAME);
-    String dbPoolType = dhisConfig.getProperty(ConfigurationKey.DB_POOL_TYPE);
+  @Primary
+  @Bean("actualDataSource")
+  public DataSource dataSource(DhisConfigurationProvider config) {
+    return createLoggingDataSource(config, actualDataSource(config));
+  }
 
-    PoolConfig poolConfig =
-        PoolConfig.builder().dhisConfig(dhisConfig).dbPoolType(dbPoolType).build();
+  private DataSource actualDataSource(DhisConfigurationProvider config) {
+    String jdbcUrl = config.getProperty(ConfigurationKey.CONNECTION_URL);
+    String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
+    String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
+
+    PoolConfig poolConfig = PoolConfig.builder().dhisConfig(config).dbPoolType(dbPoolType).build();
 
     try {
       return DatabasePoolUtils.createDbPool(poolConfig);
@@ -166,18 +164,6 @@ public class DataSourceConfig {
     }
 
     return builder.build();
-  }
-
-  @Bean("dataSource")
-  @DependsOn("actualDataSource")
-  @Primary
-  public DataSource dataSource(@Qualifier("actualDataSource") DataSource actualDataSource) {
-    return createLoggingDataSource(config, actualDataSource);
-  }
-
-  @Bean("actualDataSource")
-  public DataSource actualDataSource() {
-    return createActualDataSource(config);
   }
 
   private static void executeAfterMethod(MethodExecutionContext executionContext) {

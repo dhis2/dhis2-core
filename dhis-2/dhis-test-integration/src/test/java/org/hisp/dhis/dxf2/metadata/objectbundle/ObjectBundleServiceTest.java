@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.StreamSupport;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -69,22 +70,25 @@ import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.validation.ValidationRule;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class ObjectBundleServiceTest extends TransactionalIntegrationTest {
+@Slf4j
+@Transactional
+class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ObjectBundleService objectBundleService;
 
@@ -94,12 +98,9 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private RenderService _renderService;
 
-  @Autowired private UserService _userService;
-
-  @Override
-  protected void setUpTest() throws Exception {
+  @BeforeEach
+  void setUp() {
     renderService = _renderService;
-    userService = _userService;
   }
 
   @Test
@@ -400,7 +401,7 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest {
     assertEquals(2, dataSet.getDataSetElements().size());
     assertEquals(PeriodType.getPeriodTypeByName("Monthly"), dataSet.getPeriodType());
     assertNotNull(user);
-    assertEquals("admin", user.getUsername());
+    assertEquals("metadataadmin", user.getUsername());
     assertFalse(user.getUserRoles().isEmpty());
     assertFalse(user.getOrganisationUnits().isEmpty());
     assertEquals("PdWlltZnVZe", user.getOrganisationUnit().getUid());
@@ -848,6 +849,8 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest {
     params.setObjects(metadata);
     bundle = objectBundleService.create(params);
     validate = objectBundleValidationService.validate(bundle);
+
+    validate.forEachErrorReport(errorReport -> log.error("Error report:" + errorReport));
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
     List<DataSet> dataSets = manager.getAll(DataSet.class);

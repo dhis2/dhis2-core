@@ -54,13 +54,16 @@ import org.hisp.dhis.eventreport.EventReportService;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class DashboardServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class DashboardServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DashboardService dashboardService;
 
   @Autowired private VisualizationService visualizationService;
@@ -97,8 +100,8 @@ class DashboardServiceTest extends TransactionalIntegrationTest {
 
   private Document dcA;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     vzA = createVisualization("A");
     vzB = createVisualization("B");
     Program program = createProgram('Y', null, null);
@@ -205,16 +208,6 @@ class DashboardServiceTest extends TransactionalIntegrationTest {
       assertNull(
           dashboardService.getDashboardItem(item.getUid()), "DashboardItem should not exist");
     }
-  }
-
-  @Test
-  void testAddItemContent() {
-    dashboardService.saveDashboard(dbA);
-    dashboardService.saveDashboard(dbB);
-    DashboardItem itemA =
-        dashboardService.addItemContent(dbA.getUid(), VISUALIZATION, vzA.getUid());
-    assertNotNull(itemA);
-    assertNotNull(itemA.getUid());
   }
 
   @Test

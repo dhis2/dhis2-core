@@ -29,43 +29,49 @@ package org.hisp.dhis.analytics.common.processing;
 
 import static org.apache.commons.lang3.StringUtils.countMatches;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.feedback.ErrorCode.E4014;
 import static org.hisp.dhis.feedback.ErrorCode.E7139;
+import static org.hisp.dhis.feedback.ErrorCode.E7222;
 
-import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
-import org.hisp.dhis.analytics.common.CommonQueryRequest;
+import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.springframework.stereotype.Component;
 
-/** Component responsible for generic validations on top of a {@link CommonQueryRequest} object. */
+/**
+ * Component responsible for generic validations on top of a {@link CommonRequestParams} object. It
+ * must act only on top of raw incoming requests params.
+ */
 @Component
-public class CommonQueryRequestValidator implements Validator<CommonQueryRequest> {
+public class CommonQueryRequestValidator implements Validator<CommonRequestParams> {
   /**
-   * Runs a validation on the given query request object {@link CommonQueryRequest}, preventing
+   * Runs a validation on the given query request object {@link CommonRequestParams}, preventing
    * basic syntax and consistency issues.
    *
-   * @param commonQueryRequest the {@link CommonQueryRequest}.
+   * @param commonRequestParams the {@link CommonRequestParams}.
    * @throws IllegalQueryException is some invalid state is found.
    */
   @Override
-  public void validate(CommonQueryRequest commonQueryRequest) {
-
-    for (String programUid : commonQueryRequest.getProgram()) {
+  public void validate(CommonRequestParams commonRequestParams) {
+    for (String programUid : commonRequestParams.getProgram()) {
       if (!isValidUid(programUid)) {
         throw new IllegalQueryException(new ErrorMessage(E4014, programUid, "program"));
       }
     }
 
-    validateEnrollmentDate(commonQueryRequest.getEnrollmentDate());
-    validateEventDate(commonQueryRequest.getEventDate());
+    validateEnrollmentDate(commonRequestParams.getEnrollmentDate());
+    validateEventDate(commonRequestParams.getEventDate());
 
-    if (commonQueryRequest.hasProgramStatus() && commonQueryRequest.hasEnrollmentStatus()) {
+    if (commonRequestParams.hasProgramStatus() && commonRequestParams.hasEnrollmentStatus()) {
       throw new IllegalQueryException(new ErrorMessage(E7139));
     }
+
+    checkAllowedDimensions(commonRequestParams.getAllDimensions());
   }
 
   /**
@@ -74,7 +80,7 @@ public class CommonQueryRequestValidator implements Validator<CommonQueryRequest
    * @param dates the list of dates to validate.
    * @param validator the validator to use.
    */
-  private void validateDates(List<String> dates, Consumer<String> validator) {
+  private void validateDates(Set<String> dates, Consumer<String> validator) {
     CollectionUtils.emptyIfNull(dates).forEach(validator);
   }
 
@@ -83,7 +89,7 @@ public class CommonQueryRequestValidator implements Validator<CommonQueryRequest
    *
    * @param eventDates the list of event dates to validate.
    */
-  private void validateEventDate(List<String> eventDates) {
+  private void validateEventDate(Set<String> eventDates) {
     validateDates(eventDates, this::validateEventDate);
   }
 
@@ -108,7 +114,7 @@ public class CommonQueryRequestValidator implements Validator<CommonQueryRequest
    *
    * @param enrollmentDates the list of event dates to validate.
    */
-  private void validateEnrollmentDate(List<String> enrollmentDates) {
+  private void validateEnrollmentDate(Set<String> enrollmentDates) {
     validateDates(enrollmentDates, this::validateEnrollmentDate);
   }
 
@@ -126,5 +132,25 @@ public class CommonQueryRequestValidator implements Validator<CommonQueryRequest
         throw new IllegalQueryException(new ErrorMessage(E4014, enrollmentDate, "enrollmentDate"));
       }
     }
+  }
+
+  /**
+   * Looks for invalid or unsupported queries/filters/dimensions.
+   *
+   * @param dimensions the collection of dimensions to check.
+   * @throws IllegalQueryException if some invalid scenario is found.
+   */
+  private void checkAllowedDimensions(Set<String> dimensions) {
+    dimensions.forEach(
+        dim -> {
+          // The "pe" dimension is not supported for TE queries.
+          if (containsPe(dim)) {
+            throwIllegalQueryEx(E7222, dim);
+          }
+        });
+  }
+
+  private boolean containsPe(String dimension) {
+    return dimension.contains("pe:");
   }
 }

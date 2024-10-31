@@ -36,22 +36,25 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.entity.GzipDecompressingEntity;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.client5.http.classic.methods.HttpDelete;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.entity.GzipDecompressingEntity;
+import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.hc.core5.http.message.StatusLine;
+import org.apache.hc.core5.util.Timeout;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 
 /**
  * This class has the utility methods to invoke REST endpoints for various HTTP methods.
@@ -60,6 +63,7 @@ import org.springframework.http.HttpHeaders;
  */
 @Slf4j
 public class HttpUtils {
+
   private static final String CONTENT_TYPE_ZIP = "application/gzip";
 
   /**
@@ -76,10 +80,10 @@ public class HttpUtils {
       int timeout,
       boolean processResponse)
       throws Exception {
-    CloseableHttpClient httpClient = HttpClients.createDefault();
-
     RequestConfig requestConfig =
-        RequestConfig.custom().setConnectTimeout(timeout).setSocketTimeout(timeout).build();
+        RequestConfig.custom().setConnectTimeout(Timeout.ofMilliseconds(timeout)).build();
+    CloseableHttpClient httpClient =
+        HttpClientUtils.createCloseableHttpClient(Timeout.ofMilliseconds(timeout));
 
     DhisHttpResponse dhisHttpResponse;
 
@@ -103,7 +107,7 @@ public class HttpUtils {
         dhisHttpResponse = processResponse(requestURL, username, response);
       } else {
         dhisHttpResponse =
-            new DhisHttpResponse(response, null, response.getStatusLine().getStatusCode());
+            new DhisHttpResponse(response, null, new StatusLine(response).getStatusCode());
       }
     } catch (Exception e) {
       log.error("Exception occurred in the httpGET call with username " + username, e);
@@ -127,15 +131,16 @@ public class HttpUtils {
       String contentType,
       int timeout)
       throws Exception {
-    CloseableHttpClient httpClient = HttpClients.createDefault();
+    CloseableHttpClient httpClient =
+        HttpClientUtils.createCloseableHttpClient(Timeout.ofMilliseconds(timeout));
 
     RequestConfig requestConfig =
-        RequestConfig.custom().setConnectTimeout(timeout).setSocketTimeout(timeout).build();
+        RequestConfig.custom().setConnectTimeout(Timeout.ofMilliseconds(timeout)).build();
 
-    List<NameValuePair> pairs = new ArrayList<NameValuePair>();
+    List<BasicNameValuePair> pairs = new ArrayList<>();
     DhisHttpResponse dhisHttpResponse;
 
-    try {
+    try (httpClient) {
       HttpPost httpPost = new HttpPost(requestURL);
       httpPost.setConfig(requestConfig);
 
@@ -147,9 +152,9 @@ public class HttpUtils {
             pairs.add(new BasicNameValuePair(parameter.getKey(), parameter.getValue()));
           }
         }
-        httpPost.setEntity(new UrlEncodedFormEntity(pairs, "UTF-8"));
-      } else if (body instanceof String) {
-        httpPost.setEntity(new StringEntity((String) body));
+        httpPost.setEntity(new UrlEncodedFormEntity(pairs, StandardCharsets.UTF_8));
+      } else if (body instanceof String bodyString) {
+        httpPost.setEntity(new StringEntity(bodyString));
       }
 
       if (!StringUtils.isNotEmpty(contentType)) {
@@ -189,10 +194,11 @@ public class HttpUtils {
       Map<String, String> headers,
       int timeout)
       throws Exception {
-    CloseableHttpClient httpClient = HttpClients.createDefault();
+    CloseableHttpClient httpClient =
+        HttpClientUtils.createCloseableHttpClient(Timeout.ofMilliseconds(timeout));
 
     RequestConfig requestConfig =
-        RequestConfig.custom().setConnectTimeout(timeout).setSocketTimeout(timeout).build();
+        RequestConfig.custom().setConnectTimeout(Timeout.ofMilliseconds(timeout)).build();
 
     DhisHttpResponse dhisHttpResponse = null;
 
@@ -225,6 +231,28 @@ public class HttpUtils {
   }
 
   /**
+   * Method to resolve the HttpStatus from the HttpStatusCode.
+   *
+   * @param httpStatusCode
+   * @return HttpStatus or INTERNAL_SERVER_ERROR if not found.
+   */
+  public static HttpStatus resolve(HttpStatusCode httpStatusCode) {
+    HttpStatus httpStatus = HttpUtils.resolve(httpStatusCode.value());
+    return httpStatus != null ? httpStatus : HttpStatus.INTERNAL_SERVER_ERROR;
+  }
+
+  /**
+   * Method to resolve the HttpStatus from the Integer HttpStatus Code.
+   *
+   * @param httpStatusCode
+   * @return HttpStatus or INTERNAL_SERVER_ERROR if not found.
+   */
+  public static HttpStatus resolve(Integer httpStatusCode) {
+    HttpStatus httpStatus = HttpStatus.resolve(httpStatusCode);
+    return httpStatus != null ? httpStatus : HttpStatus.INTERNAL_SERVER_ERROR;
+  }
+
+  /**
    * Processes the HttpResponse to create a DHisHttpResponse object.
    *
    * @throws IOException </pre>
@@ -235,20 +263,21 @@ public class HttpUtils {
     String output;
     int statusCode;
     if (response != null) {
-      HttpEntity responseEntity = response.getEntity();
+      ClassicHttpResponse classicHttpResponse = (ClassicHttpResponse) response;
+      HttpEntity responseEntity = classicHttpResponse.getEntity();
 
       if (responseEntity != null && responseEntity.getContent() != null) {
-        Header contentType = response.getEntity().getContentType();
+        org.apache.hc.core5.http.Header contentType = response.getHeader(HttpHeaders.CONTENT_TYPE);
 
         if (contentType != null && checkIfGzipContentType(contentType)) {
           GzipDecompressingEntity gzipDecompressingEntity =
-              new GzipDecompressingEntity(response.getEntity());
+              new GzipDecompressingEntity(classicHttpResponse.getEntity());
           InputStream content = gzipDecompressingEntity.getContent();
           output = IOUtils.toString(content, StandardCharsets.UTF_8);
         } else {
-          output = EntityUtils.toString(response.getEntity());
+          output = EntityUtils.toString(classicHttpResponse.getEntity());
         }
-        statusCode = response.getStatusLine().getStatusCode();
+        statusCode = new StatusLine(response).getStatusCode();
       } else {
         throw new Exception(
             "No content found in the response received from http POST call to "

@@ -27,11 +27,15 @@
  */
 package org.hisp.dhis.auth;
 
+import static org.hisp.dhis.common.network.PortUtil.findAvailablePort;
 import static org.hisp.dhis.system.StartupEventPublisher.SERVER_STARTED_LATCH;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -39,7 +43,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.system.util.HttpHeadersBuilder;
-import org.hisp.dhis.web.jetty.Main;
+import org.hisp.dhis.test.IntegrationTest;
 import org.hisp.dhis.webapi.controller.security.LoginRequest;
 import org.hisp.dhis.webapi.controller.security.LoginResponse;
 import org.junit.jupiter.api.BeforeAll;
@@ -50,6 +54,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -58,8 +66,11 @@ import org.testcontainers.utility.DockerImageName;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Disabled(
+    "fails to build in CI with Connections could not be acquired from the underlying database!")
 @Slf4j
-@Disabled
+@IntegrationTest
+@ActiveProfiles(profiles = {"test-postgres"})
 class AuthTest {
   private static final String POSTGRES_POSTGIS_VERSION = "13-3.4-alpine";
   private static final DockerImageName POSTGIS_IMAGE_NAME =
@@ -68,9 +79,11 @@ class AuthTest {
   private static final String POSTGRES_USERNAME = "dhis";
   private static final String POSTGRES_PASSWORD = "dhis";
   private static PostgreSQLContainer<?> POSTGRES_CONTAINER;
+  private static int availablePort;
 
   @BeforeAll
   static void setup() throws Exception {
+    availablePort = findAvailablePort();
 
     POSTGRES_CONTAINER =
         new PostgreSQLContainer<>(POSTGIS_IMAGE_NAME.withTag(POSTGRES_POSTGIS_VERSION))
@@ -98,7 +111,8 @@ class AuthTest {
         new Thread(
             () -> {
               try {
-                Main.main(null);
+                System.setProperty("server.port", Integer.toString(availablePort));
+                org.hisp.dhis.web.tomcat.Main.main(null);
               } catch (InterruptedException ignored) {
               } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -116,15 +130,15 @@ class AuthTest {
     log.info("JDBC URL: " + jdbcUrl);
     String multiLineString =
         """
-            connection.dialect = org.hibernate.dialect.PostgreSQLDialect
-            connection.driver_class = org.postgresql.Driver
-            connection.url = %s
-            connection.username = dhis
-            connection.password = dhis
-            # Database schema behavior, can be validate, update, create, create-drop
-            connection.schema = update
-            system.audit.enabled = false
-            """
+        connection.dialect = org.hibernate.dialect.PostgreSQLDialect
+        connection.driver_class = org.postgresql.Driver
+        connection.url = %s
+        connection.username = dhis
+        connection.password = dhis
+        # Database schema behavior, can be validate, update, create, create-drop
+        connection.schema = update
+        system.audit.enabled = false
+        """
             .formatted(jdbcUrl);
     try {
       String tmpDir = System.getProperty("java.io.tmpdir");
@@ -138,6 +152,8 @@ class AuthTest {
 
   @Test
   void testLogin() {
+    String port = Integer.toString(availablePort);
+
     RestTemplate restTemplate = new RestTemplate();
 
     HttpHeadersBuilder headersBuilder = new HttpHeadersBuilder().withContentTypeJson();
@@ -148,7 +164,7 @@ class AuthTest {
 
     ResponseEntity<LoginResponse> loginResponse =
         restTemplate.postForEntity(
-            "http://localhost:9090/api/auth/login", requestEntity, LoginResponse.class);
+            "http://localhost:" + port + "/api/auth/login", requestEntity, LoginResponse.class);
 
     assertNotNull(loginResponse);
     assertEquals(HttpStatus.OK, loginResponse.getStatusCode());
@@ -173,7 +189,7 @@ class AuthTest {
 
     ResponseEntity<JsonNode> getResponse =
         restTemplate.exchange(
-            "http://localhost:9090/api/me", HttpMethod.GET, getEntity, JsonNode.class);
+            "http://localhost:" + port + "/api/me", HttpMethod.GET, getEntity, JsonNode.class);
 
     assertEquals(HttpStatus.OK, getResponse.getStatusCode());
 
@@ -183,6 +199,8 @@ class AuthTest {
 
   @Test
   void testLoginFailure() {
+    String port = Integer.toString(availablePort);
+
     RestTemplate restTemplate = new RestTemplate();
 
     HttpHeadersBuilder headersBuilder = new HttpHeadersBuilder().withContentTypeJson();
@@ -193,7 +211,7 @@ class AuthTest {
 
     try {
       restTemplate.postForEntity(
-          "http://localhost:9090/api/auth/login", requestEntity, LoginResponse.class);
+          "http://localhost:" + port + "/api/auth/login", requestEntity, LoginResponse.class);
     } catch (HttpClientErrorException e) {
       assertEquals(HttpStatus.UNAUTHORIZED, e.getStatusCode());
     }
@@ -209,11 +227,47 @@ class AuthTest {
     testRedirectUrl("/api/users");
   }
 
+  @Test
+  void testRedirectToResource() {
+    testRedirectUrl("/api/users/resource.js", "/dhis-web-dashboard/");
+  }
+
+  @Test
+  void testRedirectToHtmlResource() {
+    testRedirectUrl("/api/users/resource.html", "/api/users/resource.html");
+  }
+
+  @Test
+  void testRedirectToSlashEnding() {
+    testRedirectUrl("/api/users/", "/api/users/");
+  }
+
+  @Test
+  void testRedirectToResourceWorker() {
+    testRedirectUrl("/dhis-web-dashboard/service-worker.js", "/dhis-web-dashboard/");
+  }
+
+  @Test
+  void testRedirectToCssResourceWorker() {
+    testRedirectUrl("/dhis-web-dashboard/static/css/main.4536e618.css", "/dhis-web-dashboard/");
+  }
+
+  @Test
+  void testRedirectMissingEndingSlash() {
+    testRedirectWhenLoggedIn("/dhis-web-dashboard/", "/dhis-web-dashboard/");
+  }
+
   private static void testRedirectUrl(String url) {
+    testRedirectUrl(url, url);
+  }
+
+  private static void testRedirectUrl(String url, String redirectUrl) {
+    String port = Integer.toString(availablePort);
+
     RestTemplate restTemplate = new RestTemplate();
 
     ResponseEntity<LoginResponse> firstResponse =
-        restTemplate.postForEntity("http://localhost:9090" + url, null, LoginResponse.class);
+        restTemplate.postForEntity("http://localhost:" + port + url, null, LoginResponse.class);
     HttpHeaders headersFirstResponse = firstResponse.getHeaders();
     String firstCookie = headersFirstResponse.get(HttpHeaders.SET_COOKIE).get(0);
 
@@ -225,7 +279,7 @@ class AuthTest {
 
     ResponseEntity<LoginResponse> loginResponse =
         restTemplate.postForEntity(
-            "http://localhost:9090/api/auth/login", requestEntity, LoginResponse.class);
+            "http://localhost:" + port + "/api/auth/login", requestEntity, LoginResponse.class);
 
     assertNotNull(loginResponse);
     assertEquals(HttpStatus.OK, loginResponse.getStatusCode());
@@ -233,6 +287,59 @@ class AuthTest {
     assertNotNull(body);
     assertEquals(LoginResponse.STATUS.SUCCESS, body.getLoginStatus());
 
-    assertEquals(url, body.getRedirectUrl());
+    assertEquals(redirectUrl, body.getRedirectUrl());
+  }
+
+  private static void testRedirectWhenLoggedIn(String url, String redirectUrl) {
+    String port = Integer.toString(availablePort);
+
+    // Create a custom ClientHttpRequestFactory that disables redirects
+    ClientHttpRequestFactory requestFactory =
+        new SimpleClientHttpRequestFactory() {
+          @Override
+          protected void prepareConnection(HttpURLConnection connection, String httpMethod)
+              throws IOException {
+            super.prepareConnection(connection, httpMethod);
+            connection.setInstanceFollowRedirects(false); // Disable redirects
+          }
+        };
+
+    RestTemplate restTemplate = new RestTemplate(requestFactory);
+    restTemplate
+        .getMessageConverters()
+        .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+
+    ResponseEntity<LoginResponse> firstResponse =
+        restTemplate.postForEntity("http://localhost:" + port + url, null, LoginResponse.class);
+    HttpHeaders headersFirstResponse = firstResponse.getHeaders();
+    String firstCookie = headersFirstResponse.get(HttpHeaders.SET_COOKIE).get(0);
+
+    HttpHeaders getHeaders = new HttpHeaders();
+    getHeaders.set("Cookie", firstCookie);
+    LoginRequest loginRequest =
+        LoginRequest.builder().username("admin").password("district").build();
+    HttpEntity<LoginRequest> requestEntity = new HttpEntity<>(loginRequest, getHeaders);
+
+    ResponseEntity<LoginResponse> loginResponse =
+        restTemplate.postForEntity(
+            "http://localhost:" + port + "/api/auth/login", requestEntity, LoginResponse.class);
+    HttpHeaders loginHeaders = loginResponse.getHeaders();
+    String loggedInCookie = loginHeaders.get(HttpHeaders.SET_COOKIE).get(0);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("Cookie", loggedInCookie);
+    HttpEntity<String> entity = new HttpEntity<>(headers);
+    ResponseEntity<String> redirResp =
+        restTemplate.exchange(
+            "http://localhost:" + port + "/dhis-web-dashboard",
+            HttpMethod.GET,
+            entity,
+            String.class);
+
+    HttpHeaders respHeaders = redirResp.getHeaders();
+    List<String> location = respHeaders.get("Location");
+    assertNotNull(location);
+    assertEquals(1, location.size());
+    assertEquals("/dhis-web-dashboard/", location.get(0));
   }
 }

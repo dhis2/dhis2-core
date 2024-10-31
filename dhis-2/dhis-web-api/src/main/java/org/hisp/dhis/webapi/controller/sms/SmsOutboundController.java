@@ -35,21 +35,31 @@ import static org.hisp.dhis.security.Authorities.F_MOBILE_SENDSMS;
 import static org.hisp.dhis.security.Authorities.F_MOBILE_SETTINGS;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -63,20 +73,34 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/sms/outbound")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@OpenApi.Document(classifiers = {"team:tracker", "purpose:data"})
 public class SmsOutboundController extends AbstractCrudController<OutboundSms> {
-  private final MessageSender smsSender;
+  private final MessageSender smsMessageSender;
 
   private final RenderService renderService;
 
   private final OutboundSmsService outboundSmsService;
 
   public SmsOutboundController(
-      @Qualifier("smsMessageSender") MessageSender smsSender,
+      MessageSender smsMessageSender,
       RenderService renderService,
       OutboundSmsService outboundSmsService) {
-    this.smsSender = smsSender;
+    this.smsMessageSender = smsMessageSender;
     this.renderService = renderService;
     this.outboundSmsService = outboundSmsService;
+  }
+
+  @Override
+  @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
+  @GetMapping
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<OutboundSms>> getObjectList(
+      @RequestParam Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      @CurrentUser UserDetails currentUser)
+      throws ForbiddenException, BadRequestException {
+    return getObjectList(
+        rpParameters, orderParams, response, currentUser, !rpParameters.containsKey("query"), null);
   }
 
   // -------------------------------------------------------------------------
@@ -95,7 +119,7 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms> {
       return conflict("Message must be specified");
     }
 
-    OutboundMessageResponse status = smsSender.sendMessage(null, message, recipient);
+    OutboundMessageResponse status = smsMessageSender.sendMessage(null, message, recipient);
 
     if (status.isOk()) {
       return ok("SMS sent");
@@ -110,7 +134,7 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms> {
     OutboundSms sms = renderService.fromJson(request.getInputStream(), OutboundSms.class);
 
     OutboundMessageResponse status =
-        smsSender.sendMessage(null, sms.getMessage(), sms.getRecipients());
+        smsMessageSender.sendMessage(null, sms.getMessage(), sms.getRecipients());
 
     if (status.isOk()) {
       return ok("SMS sent");

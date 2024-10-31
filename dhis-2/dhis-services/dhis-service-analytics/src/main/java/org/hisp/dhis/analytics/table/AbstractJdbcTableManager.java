@@ -80,8 +80,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
@@ -120,13 +120,15 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected static final String PREFIX_ORGUNITNAMELEVEL = "namelevel";
 
+  public static final String OU_NAME_HIERARCHY_COLUMN_NAME = "ounamehierarchy";
+
   protected final IdentifiableObjectManager idObjectManager;
 
   protected final OrganisationUnitService organisationUnitService;
 
   protected final CategoryService categoryService;
 
-  protected final SystemSettingManager systemSettingManager;
+  protected final SystemSettingsProvider settingsProvider;
 
   protected final DataApprovalLevelService dataApprovalLevelService;
 
@@ -155,12 +157,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   /**
-   * Encapsulates the SQL logic to get the correct date column based on the event(program stage
-   * instance) status. If new statuses need to be loaded into the analytics events tables, they have
-   * to be supported/added into this logic.
+   * Encapsulates the SQL logic to get the correct date column based on the event status. If new
+   * statuses need to be loaded into the analytics events tables, they have to be supported/added
+   * into this logic.
    */
   protected final String eventDateExpression =
-      "CASE WHEN 'SCHEDULE' = psi.status THEN psi.scheduleddate ELSE psi.occurreddate END";
+      "CASE WHEN 'SCHEDULE' = ev.status THEN ev.scheduleddate ELSE ev.occurreddate END";
 
   // -------------------------------------------------------------------------
   // Implementation
@@ -383,15 +385,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   protected AnalyticsTable getLatestAnalyticsTable(
       AnalyticsTableUpdateParams params, List<AnalyticsTableColumn> columns) {
-    Date lastFullTableUpdate =
-        systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE);
-    Date lastLatestPartitionUpdate =
-        systemSettingManager.getDateSetting(
-            SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE);
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    Date lastFullTableUpdate = settings.getLastSuccessfulAnalyticsTablesUpdate();
+    Date lastLatestPartitionUpdate = settings.getLastSuccessfulLatestAnalyticsPartitionUpdate();
     Date lastAnyTableUpdate = DateUtils.getLatest(lastLatestPartitionUpdate, lastFullTableUpdate);
 
-    Assert.notNull(
-        lastFullTableUpdate,
+    Assert.isTrue(
+        lastFullTableUpdate.getTime() > 0L,
         "A full analytics table update must be run prior to a latest partition update");
 
     Logged logged = analyticsTableSettings.getTableLogged();
@@ -446,9 +446,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   protected List<AnalyticsTableColumn> filterDimensionColumns(List<AnalyticsTableColumn> columns) {
     Date lastResourceTableUpdate =
-        systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE);
+        settingsProvider.getCurrentSettings().getLastSuccessfulResourceTablesUpdate();
 
-    if (lastResourceTableUpdate == null) {
+    if (lastResourceTableUpdate.getTime() == 0L) {
       return columns;
     }
 
@@ -512,7 +512,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                 .collect(Collectors.joining(","))
             + ") as ounamehierarchy";
     return AnalyticsTableColumn.builder()
-        .name("ounamehierarchy")
+        .name(OU_NAME_HIERARCHY_COLUMN_NAME)
         .dataType(TEXT)
         .collation(Collation.C)
         .selectExpression(columnExpression)
@@ -704,18 +704,33 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   /**
-   * Replaces variables in the given template string with the given variables to qualify and the
-   * given map of variable keys and values.
+   * Qualifies variables in the given template string using the variable name as table name.
    *
    * @param template the template string.
-   * @param qualifyVariables the list of variables to qualify.
-   * @param variables the map of variables and values.
-   * @return a resolved string.
+   * @return a string with qualified table names.
    */
-  protected String replaceQualify(
-      String template, List<String> qualifyVariables, Map<String, String> variables) {
+  protected String qualifyVariables(String template) {
+    return replaceQualify(template, Map.of());
+  }
+
+  /**
+   * Replaces variables in the given template string.
+   *
+   * <p>Variables which are present in the given template and in the given map of variables are
+   * replaced with the corresponding map value.
+   *
+   * <p>Variables which are present in the given template but not present in the given map of
+   * variables will be qualified using <code>qualify(String)</code>.
+   *
+   * @param template the template string.
+   * @param variables the map of variable names and values.
+   * @return a string with replaced variables.
+   */
+  protected String replaceQualify(String template, Map<String, String> variables) {
     Map<String, String> map = new HashMap<>(variables);
-    qualifyVariables.forEach(v -> map.put(v, qualify(v)));
+    Set<String> variableNames = TextUtils.getVariableNames(template);
+    variableNames.forEach(name -> map.putIfAbsent(name, qualify(name)));
+
     return TextUtils.replace(template, map);
   }
 

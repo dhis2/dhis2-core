@@ -33,6 +33,7 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -48,7 +50,9 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobProgress.Progress;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MimeType;
 
 /**
  * @author Jan Bernitt
@@ -62,6 +66,8 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
   private final JobConfigurationStore jobConfigurationStore;
   private final JobRunner jobRunner;
   private final ObjectMapper jsonMapper;
+  private final JobCreationHelper jobCreationHelper;
+  private final JobConfigurationService jobConfigurationService;
 
   @Override
   @Transactional
@@ -103,11 +109,44 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
   }
 
   @Override
+  @NonTransactional
+  public void createThenExecute(JobConfiguration config, MimeType contentType, InputStream content)
+      throws ConflictException, NotFoundException {
+    String jobId = jobConfigurationService.createInTransaction(config, contentType, content);
+    runInTransaction(jobId);
+  }
+
+  @Override
+  @NonTransactional
+  public void createThenExecute(JobConfiguration config)
+      throws ConflictException, NotFoundException {
+    String jobId = jobConfigurationService.createInTransaction(config);
+    runInTransaction(jobId);
+  }
+
+  @Override
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void runInTransaction(String jobId) throws NotFoundException, ConflictException {
+    if (!jobRunner.isScheduling()) {
+      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+      if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
+      // run "execute now" request directly when scheduling is not active (tests)
+      jobRunner.runDueJob(job);
+    } else {
+      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+      if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
+      if (job.getJobType().isUsingContinuousExecution()) {
+        jobRunner.runIfDue(job);
+      }
+    }
+  }
+
+  @Override
   @Transactional
   public void revertNow(@Nonnull UID jobId)
       throws ConflictException, NotFoundException, ForbiddenException {
     UserDetails currentUser = getCurrentUserDetails();
-    if (currentUser == null || !currentUser.isAuthorized(F_PERFORM_MAINTENANCE))
+    if (!currentUser.isAuthorized(F_PERFORM_MAINTENANCE))
       throw new ForbiddenException(JobConfiguration.class, jobId.getValue());
     if (!jobConfigurationStore.tryRevertNow(jobId.getValue())) {
       JobConfiguration job = jobConfigurationStore.getByUid(jobId.getValue());
@@ -145,8 +184,7 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
     Progress progress = mapToProgress(json);
     if (progress == null) return null;
     UserDetails user = getCurrentUserDetails();
-    if (user == null || !(user.isSuper() || user.isAuthorized(F_JOB_LOG_READ)))
-      return progress.withoutErrors();
+    if (!(user.isSuper() || user.isAuthorized(F_JOB_LOG_READ))) return progress.withoutErrors();
     return progress;
   }
 

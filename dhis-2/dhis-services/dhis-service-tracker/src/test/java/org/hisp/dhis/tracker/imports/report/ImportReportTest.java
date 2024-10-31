@@ -33,8 +33,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
-import org.hisp.dhis.random.BeanRandomizer;
+import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.tracker.TrackerType;
 import org.junit.jupiter.api.Test;
 
@@ -56,7 +55,7 @@ class ImportReportTest {
     PersistenceReport persistenceReport = new PersistenceReport(trackerTypeReportMap);
     // Create validation report with 3 objects
     ValidationReport validationReport = ValidationReport.emptyReport();
-    validationReport.addErrors(rnd.objects(Error.class, 3).collect(Collectors.toList()));
+    validationReport.addErrors(rnd.objects(Error.class, 3).toList());
     // Create payload map
     Map<TrackerType, Integer> originalPayload = new HashMap<>();
     originalPayload.put(TrackerType.TRACKED_ENTITY, 10);

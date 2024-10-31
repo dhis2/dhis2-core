@@ -41,7 +41,6 @@ import java.util.Date;
 import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -66,16 +65,16 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-class DataValueSetServiceExportTest extends IntegrationTestBase {
+class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryService categoryService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
@@ -94,8 +93,6 @@ class DataValueSetServiceExportTest extends IntegrationTestBase {
 
   @Autowired private PeriodService periodService;
 
-  @Autowired private UserService _userService;
-
   @Autowired private ObjectMapper jsonMapper;
 
   private DataElement deA;
@@ -111,14 +108,6 @@ class DataValueSetServiceExportTest extends IntegrationTestBase {
   private CategoryOptionCombo cocB;
 
   private Attribute atA;
-
-  private AttributeValue avA;
-
-  private AttributeValue avB;
-
-  private AttributeValue avC;
-
-  private AttributeValue avD;
 
   private DataSet dsA;
 
@@ -142,9 +131,8 @@ class DataValueSetServiceExportTest extends IntegrationTestBase {
 
   private String peBUid;
 
-  @Override
-  public void setUpTest() {
-    userService = _userService;
+  @BeforeEach
+  void setUp() {
     peA =
         createPeriod(
             PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY),
@@ -194,14 +182,10 @@ class DataValueSetServiceExportTest extends IntegrationTestBase {
     organisationUnitService.addOrganisationUnit(ouC);
     ogA = createOrganisationUnitGroup('A');
     idObjectManager.save(ogA);
-    avA = new AttributeValue("AttributeValueA", atA);
-    avB = new AttributeValue("AttributeValueB", atA);
-    avC = new AttributeValue("AttributeValueC", atA);
-    avD = new AttributeValue("AttributeValueD", atA);
-    attributeService.addAttributeValue(deA, avA);
-    attributeService.addAttributeValue(ouA, avB);
-    attributeService.addAttributeValue(cocA, avC);
-    attributeService.addAttributeValue(cocB, avD);
+    attributeService.addAttributeValue(deA, atA.getUid(), "AttributeValueA");
+    attributeService.addAttributeValue(ouA, atA.getUid(), "AttributeValueB");
+    attributeService.addAttributeValue(cocA, atA.getUid(), "AttributeValueC");
+    attributeService.addAttributeValue(cocB, atA.getUid(), "AttributeValueD");
     // Data values
     dataValueService.addDataValue(new DataValue(deA, peA, ouA, cocA, cocA, "1"));
     dataValueService.addDataValue(new DataValue(deA, peA, ouA, cocB, cocB, "1"));
@@ -454,8 +438,8 @@ class DataValueSetServiceExportTest extends IntegrationTestBase {
     assertEquals(2, dvs.getDataValues().size());
     for (org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues()) {
       assertNotNull(dv);
-      assertEquals(avA.getValue(), dv.getDataElement());
-      assertEquals(avB.getValue(), dv.getOrgUnit());
+      assertEquals("AttributeValueA", dv.getDataElement());
+      assertEquals("AttributeValueB", dv.getOrgUnit());
     }
   }
 

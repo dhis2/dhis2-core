@@ -37,8 +37,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -51,7 +51,7 @@ import org.springframework.data.redis.core.RedisTemplate;
  * @author David Mackessy
  */
 @ExtendWith(MockitoExtension.class)
-class RedisNotifierTest extends DhisConvenienceTest {
+class RedisNotifierTest extends TestBase {
 
   @Mock private RedisTemplate<String, String> redisTemplate;
 

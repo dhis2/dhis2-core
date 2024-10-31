@@ -34,6 +34,9 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLI
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Root;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -41,20 +44,21 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
@@ -63,9 +67,8 @@ import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStore;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
@@ -76,6 +79,8 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,9 +88,9 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Halvdan Hoem Grelland
  */
 @Slf4j
-@RequiredArgsConstructor
 @Service("org.hisp.dhis.program.notification.ProgramNotificationService")
-public class DefaultProgramNotificationService implements ProgramNotificationService {
+public class DefaultProgramNotificationService extends HibernateGenericStore<Event>
+    implements ProgramNotificationService {
   private static final Predicate<NotificationInstanceWithTemplate> IS_SCHEDULED_BY_PROGRAM_RULE =
       (iwt) ->
           Objects.nonNull(iwt.getProgramNotificationInstance())
@@ -93,31 +98,50 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
               && iwt.getProgramNotificationInstance().getScheduledAt() != null
               && DateUtils.isToday(iwt.getProgramNotificationInstance().getScheduledAt());
 
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
+  private static final Set<NotificationTrigger> SCHEDULED_EVENT_TRIGGERS =
+      Sets.intersection(
+          NotificationTrigger.getAllApplicableToEvent(),
+          NotificationTrigger.getAllScheduledTriggers());
 
-  @Nonnull private final ProgramMessageService programMessageService;
+  private static final Set<NotificationTrigger> SCHEDULED_ENROLLMENT_TRIGGERS =
+      Sets.intersection(
+          NotificationTrigger.getAllApplicableToEnrollment(),
+          NotificationTrigger.getAllScheduledTriggers());
 
-  @Nonnull private final MessageService messageService;
+  private final ProgramMessageService programMessageService;
 
-  @Nonnull private final EnrollmentStore enrollmentStore;
+  private final MessageService messageService;
 
-  @Nonnull private final EventStore eventStore;
+  private final IdentifiableObjectManager manager;
 
-  @Nonnull private final IdentifiableObjectManager identifiableObjectManager;
+  private final NotificationMessageRenderer<Enrollment> programNotificationRenderer;
 
-  @Nonnull private final NotificationMessageRenderer<Enrollment> programNotificationRenderer;
+  private final NotificationMessageRenderer<Event> programStageNotificationRenderer;
 
-  @Nonnull private final NotificationMessageRenderer<Event> programStageNotificationRenderer;
+  private final ProgramNotificationTemplateService notificationTemplateService;
 
-  @Nonnull private final ProgramNotificationTemplateService notificationTemplateService;
+  private final NotificationTemplateMapper notificationTemplateMapper;
 
-  @Nonnull private final NotificationTemplateMapper notificationTemplateMapper;
-
-  // -------------------------------------------------------------------------
-  // ProgramStageNotificationService implementation
-  // -------------------------------------------------------------------------
+  public DefaultProgramNotificationService(
+      ProgramMessageService programMessageService,
+      MessageService messageService,
+      IdentifiableObjectManager manager,
+      NotificationMessageRenderer<Enrollment> programNotificationRenderer,
+      NotificationMessageRenderer<Event> programStageNotificationRenderer,
+      ProgramNotificationTemplateService notificationTemplateService,
+      NotificationTemplateMapper notificationTemplateMapper,
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, Event.class, false);
+    this.programMessageService = programMessageService;
+    this.messageService = messageService;
+    this.manager = manager;
+    this.programNotificationRenderer = programNotificationRenderer;
+    this.programStageNotificationRenderer = programStageNotificationRenderer;
+    this.notificationTemplateService = notificationTemplateService;
+    this.notificationTemplateMapper = notificationTemplateMapper;
+  }
 
   @Override
   @Transactional
@@ -151,7 +175,7 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
         progress.runStage(
             List.of(),
             () ->
-                identifiableObjectManager.getAll(ProgramNotificationInstance.class).stream()
+                manager.getAll(ProgramNotificationInstance.class).stream()
                     .map(this::withTemplate)
                     .filter(this::hasTemplate)
                     .filter(IS_SCHEDULED_BY_PROGRAM_RULE)
@@ -222,9 +246,8 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
   private boolean hasTemplate(NotificationInstanceWithTemplate instanceWithTemplate) {
     if (Objects.isNull(instanceWithTemplate.getProgramNotificationTemplate())) {
       log.warn(
-          "Cannot process scheduled notification with id: "
-              + instanceWithTemplate.getProgramNotificationInstance().getId()
-              + " since it has no associated templates");
+          "Cannot process scheduled notification with id: {} since it has no associated templates",
+          instanceWithTemplate.getProgramNotificationInstance().getId());
       return false;
     }
     return true;
@@ -265,19 +288,21 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
   @Override
   @Transactional
   public void sendEventCompletionNotifications(long eventId) {
-    sendEventNotifications(eventStore.get(eventId), NotificationTrigger.COMPLETION);
+    sendEventNotifications(manager.get(Event.class, eventId));
   }
 
   @Override
   @Transactional
   public void sendEnrollmentCompletionNotifications(long enrollment) {
-    sendEnrollmentNotifications(enrollmentStore.get(enrollment), NotificationTrigger.COMPLETION);
+    sendEnrollmentNotifications(
+        manager.get(Enrollment.class, enrollment), NotificationTrigger.COMPLETION);
   }
 
   @Override
   @Transactional
   public void sendEnrollmentNotifications(long enrollment) {
-    sendEnrollmentNotifications(enrollmentStore.get(enrollment), NotificationTrigger.ENROLLMENT);
+    sendEnrollmentNotifications(
+        manager.get(Enrollment.class, enrollment), NotificationTrigger.ENROLLMENT);
   }
 
   @Override
@@ -297,15 +322,56 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
     sendAll(messageBatch);
   }
 
-  // -------------------------------------------------------------------------
-  // Supportive methods
-  // -------------------------------------------------------------------------
+  @Override
+  public List<Event> getWithScheduledNotifications(
+      ProgramNotificationTemplate template, Date notificationDate) {
+    if (notificationDate == null
+        || !SCHEDULED_EVENT_TRIGGERS.contains(template.getNotificationTrigger())) {
+      return List.of();
+    }
+
+    if (template.getRelativeScheduledDays() == null) {
+      return List.of();
+    }
+
+    Date targetDate =
+        org.apache.commons.lang3.time.DateUtils.addDays(
+            notificationDate, template.getRelativeScheduledDays() * -1);
+
+    String hql =
+        "select distinct ev from Event as ev "
+            + "inner join ev.programStage as ps "
+            + "where :notificationTemplate in elements(ps.notificationTemplates) "
+            + "and ev.scheduledDate is not null "
+            + "and ev.occurredDate is null "
+            + "and ev.status != :skippedEventStatus "
+            + "and cast(:targetDate as date) = ev.scheduledDate "
+            + "and ev.deleted is false";
+
+    return getQuery(hql)
+        .setParameter("notificationTemplate", template)
+        .setParameter("skippedEventStatus", EventStatus.SKIPPED)
+        .setParameter("targetDate", targetDate)
+        .list();
+  }
+
+  @Override
+  protected void preProcessPredicates(
+      CriteriaBuilder builder,
+      List<Function<Root<Event>, jakarta.persistence.criteria.Predicate>> predicates) {
+    predicates.add(root -> builder.equal(root.get("deleted"), false));
+  }
+
+  @Override
+  protected Event postProcessObject(Event event) {
+    return (event == null || event.isDeleted()) ? null : event;
+  }
 
   private MessageBatch createScheduledMessageBatchForDay(
       ProgramNotificationTemplate template, Date day) {
-    List<Event> events = eventStore.getWithScheduledNotifications(template, day);
+    List<Event> events = getWithScheduledNotifications(template, day);
 
-    List<Enrollment> enrollments = enrollmentStore.getWithScheduledNotifications(template, day);
+    List<Enrollment> enrollments = getEnrollmentsWithScheduledNotifications(template, day);
 
     MessageBatch eventBatch = createEventMessageBatch(template, events);
     MessageBatch psBatch = createEnrollmentMessageBatch(template, enrollments);
@@ -313,18 +379,65 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
     return new MessageBatch(eventBatch, psBatch);
   }
 
+  @Override
+  public List<Enrollment> getEnrollmentsWithScheduledNotifications(
+      ProgramNotificationTemplate template, Date notificationDate) {
+    if (notificationDate == null
+        || !SCHEDULED_ENROLLMENT_TRIGGERS.contains(template.getNotificationTrigger())) {
+      return Lists.newArrayList();
+    }
+
+    String dateProperty = toDateProperty(template.getNotificationTrigger());
+
+    if (dateProperty == null) {
+      return Lists.newArrayList();
+    }
+
+    Date targetDate =
+        org.apache.commons.lang3.time.DateUtils.addDays(
+            notificationDate, template.getRelativeScheduledDays() * -1);
+
+    String hql =
+        "select distinct en from Enrollment as en "
+            + "inner join en.program as p "
+            + "where :notificationTemplate in elements(p.notificationTemplates) "
+            + "and en."
+            + dateProperty
+            + " is not null "
+            + "and en.status = :activeEnrollmentStatus "
+            + "and cast(:targetDate as date) = en."
+            + dateProperty;
+
+    return getSession()
+        .createQuery(hql, Enrollment.class)
+        .setParameter("notificationTemplate", template)
+        .setParameter("activeEnrollmentStatus", EnrollmentStatus.ACTIVE)
+        .setParameter("targetDate", targetDate)
+        .list();
+  }
+
+  private String toDateProperty(NotificationTrigger trigger) {
+    if (trigger == NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE) {
+      return "enrollmentDate";
+    } else if (trigger == NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE) {
+      return "occurredDate";
+    }
+
+    return null;
+  }
+
   private List<ProgramNotificationTemplate> getScheduledTemplates() {
-    return identifiableObjectManager.getAll(ProgramNotificationTemplate.class).stream()
+    return manager.getAll(ProgramNotificationTemplate.class).stream()
         .filter(n -> n.getNotificationTrigger().isScheduled())
         .collect(toList());
   }
 
-  private void sendEventNotifications(Event event, NotificationTrigger trigger) {
+  private void sendEventNotifications(Event event) {
     if (event == null) {
       return;
     }
 
-    Set<ProgramNotificationTemplate> templates = resolveTemplates(event, trigger);
+    Set<ProgramNotificationTemplate> templates = resolveTemplates(event);
 
     if (templates.isEmpty()) {
       return;
@@ -490,7 +603,7 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
           event.getEventDataValues().stream()
               .filter(dv -> template.getRecipientDataElement().getUid().equals(dv.getDataElement()))
               .map(EventDataValue::getValue)
-              .collect(toList());
+              .toList();
 
       if (template.getDeliveryChannels().contains(DeliveryChannel.SMS)) {
         recipients.getPhoneNumbers().addAll(recipientList);
@@ -530,7 +643,7 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
                           .getUid()
                           .equals(av.getAttribute().getUid()))
               .map(TrackedEntityAttributeValue::getPlainValue)
-              .collect(toList());
+              .toList();
 
       if (template.getDeliveryChannels().contains(DeliveryChannel.SMS)) {
         recipients.getPhoneNumbers().addAll(recipientList);
@@ -549,10 +662,9 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
         .collect(Collectors.toSet());
   }
 
-  private Set<ProgramNotificationTemplate> resolveTemplates(
-      Event event, final NotificationTrigger trigger) {
+  private Set<ProgramNotificationTemplate> resolveTemplates(Event event) {
     return event.getProgramStage().getNotificationTemplates().stream()
-        .filter(t -> t.getNotificationTrigger() == trigger)
+        .filter(t -> t.getNotificationTrigger() == NotificationTrigger.COMPLETION)
         .collect(Collectors.toSet());
   }
 

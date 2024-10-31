@@ -29,178 +29,309 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.util.stream.Collectors.toSet;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.UncheckedIOException;
+import java.lang.ref.SoftReference;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Response.Status;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@OpenApi.Document(domain = OpenApi.class)
+@Maturity.Beta
+@OpenApi.Document(entity = OpenApi.class)
 @RestController
 @RequestMapping("/api")
 @AllArgsConstructor
 public class OpenApiController {
+
   private static final String APPLICATION_X_YAML = "application/x-yaml";
 
   private final ApplicationContext context;
+
+  private static SoftReference<Api> fullApi;
+  private static SoftReference<String> fullHtml;
+
+  private static synchronized void updateFullHtml(String html) {
+    fullHtml = new SoftReference<>(html);
+  }
+
+  private static synchronized void updateFullApi(Api api) {
+    fullApi = new SoftReference<>(api);
+  }
+
+  /**
+   * As long as the server is the same the response will be for the same request, so we just create
+   * a constant that will have another value after a restart.
+   */
+  private static final String E_TAG = "v" + System.currentTimeMillis();
+
+  @Data
+  @OpenApi.Shared
+  public static class OpenApiScopeParams {
+    @OpenApi.Description(
+        "When given only operations in controllers matching the scope are considered")
+    Set<String> scope = Set.of();
+
+    @OpenApi.Ignore
+    boolean isCachable() {
+      return scope.isEmpty();
+    }
+  }
+
+  @Data
+  @OpenApi.Shared
+  public static class OpenApiGenerationParams {
+    @OpenApi.Description(
+        """
+      Regenerate the response even if a cached response is available.
+      Mainly used during development to see effects of hot-swap code changes.""")
+    boolean skipCache = false;
+
+    @OpenApi.Description(
+        """
+      Shared schema names must be unique.
+      To ensure this either a unique name is picked (`false`) or the generation fails (`true`)""")
+    boolean failOnNameClash = false;
+
+    @OpenApi.Description(
+        """
+      Declarations can be logically inconsistent; for example a parameter that is both required and has a default value.
+      Either this is ignored and only logs a warning (`false`) or the generation fails (`true`)""")
+    boolean failOnInconsistency = false;
+
+    @OpenApi.Description(
+        """
+      Annotations that narrow the rendered type to one of the super-types of the type declared will be ignored
+      and as a consequence types occur fully expanded (with all their properties).
+      Note that this does not affect types that are re-defined as a different type using annotations.""")
+    @Maturity.Beta
+    @OpenApi.Since(42)
+    boolean expandedRefs = false;
+
+    @OpenApi.Ignore
+    boolean isCachable() {
+      return !skipCache && !expandedRefs;
+    }
+  }
+
+  /*
+   * HTML
+   */
+
+  @OpenApi.Since(42)
+  @OpenApi.Description(
+      """
+    The HTML to browse (view) the DHIS2 API specification based on OpenAPI JSON
+    either in its entirety or scoped to the path(s) or domain(s) requested.""")
+  @OpenApi.Response(status = Status.OK, value = String.class)
+  @GetMapping(
+      value = {"/openapi.html", "/openapi/openapi.html"},
+      produces = TEXT_HTML_VALUE)
+  public void getOpenApiHtml(
+      OpenApiGenerationParams generation,
+      OpenApiScopeParams scope,
+      OpenApiRenderer.OpenApiRenderingParams rendering,
+      HttpServletRequest request,
+      HttpServletResponse response) {
+    if (notModified(request, response, generation)) return;
+
+    boolean cached = scope.isCachable() && generation.isCachable();
+    if (cached && fullHtml != null) {
+      String fullHtml = OpenApiController.fullHtml.get();
+      if (fullHtml != null) {
+        getWriter(response, TEXT_HTML_VALUE).get().write(fullHtml);
+        return;
+      }
+    }
+
+    StringWriter json = new StringWriter();
+    writeDocument(
+        request, generation, scope, () -> new PrintWriter(json), OpenApiGenerator::generateJson);
+
+    String html = OpenApiRenderer.render(json.toString(), rendering);
+    if (cached) updateFullHtml(html);
+    getWriter(response, TEXT_HTML_VALUE).get().write(html);
+  }
+
+  @OpenApi.Description(
+      """
+    The HTML to browse (view) the DHIS2 API specification based on OpenAPI JSON for the path""")
+  @OpenApi.Response(String.class)
+  @GetMapping(value = "/{path}/openapi.html", produces = TEXT_HTML_VALUE)
+  public void getPathOpenApiHtml(
+      @PathVariable String path,
+      OpenApiGenerationParams generation,
+      OpenApiRenderer.OpenApiRenderingParams rendering,
+      HttpServletRequest request,
+      HttpServletResponse response) {
+    if (notModified(request, response, generation)) return;
+
+    StringWriter json = new StringWriter();
+    OpenApiScopeParams scope = new OpenApiScopeParams();
+    scope.setScope(Set.of("path./api/" + path));
+    writeDocument(
+        request, generation, scope, () -> new PrintWriter(json), OpenApiGenerator::generateJson);
+
+    getWriter(response, TEXT_HTML_VALUE)
+        .get()
+        .write(OpenApiRenderer.render(json.toString(), rendering));
+  }
 
   /*
    * YAML
    */
 
-  @GetMapping(value = "/openapi.yaml", produces = APPLICATION_X_YAML)
-  public void getFullOpenApiYaml(
-      @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
-      @RequestParam(required = false, defaultValue = "false") boolean failOnInconsistency,
-      HttpServletRequest request,
-      HttpServletResponse response) {
-    writeDocument(
-        request,
-        response,
-        Set.of(),
-        Set.of(),
-        failOnNameClash,
-        failOnInconsistency,
-        APPLICATION_X_YAML,
-        OpenApiGenerator::generateYaml);
-  }
-
+  @OpenApi.Response(String.class)
   @GetMapping(value = "/{path}/openapi.yaml", produces = APPLICATION_X_YAML)
   public void getPathOpenApiYaml(
       @PathVariable String path,
-      @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
-      @RequestParam(required = false, defaultValue = "false") boolean failOnInconsistency,
+      OpenApiGenerationParams generation,
       HttpServletRequest request,
       HttpServletResponse response) {
+    if (notModified(request, response, generation)) return;
+
+    OpenApiScopeParams scope = new OpenApiScopeParams();
+    scope.setScope(Set.of("path./api/" + path));
     writeDocument(
-        request,
-        response,
-        Set.of("/" + path),
-        Set.of(),
-        failOnNameClash,
-        failOnInconsistency,
-        APPLICATION_X_YAML,
-        OpenApiGenerator::generateYaml);
+        request, generation, scope, getYamlWriter(response), OpenApiGenerator::generateYaml);
   }
 
-  @GetMapping(value = "/openapi/openapi.yaml", produces = APPLICATION_X_YAML)
+  @OpenApi.Response(String.class)
+  @GetMapping(
+      value = {"/openapi.yaml", "/openapi/openapi.yaml"},
+      produces = APPLICATION_X_YAML)
   public void getOpenApiYaml(
-      @RequestParam(required = false) Set<String> path,
-      @RequestParam(required = false) Set<String> domain,
-      @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
-      @RequestParam(required = false, defaultValue = "false") boolean failOnInconsistency,
+      OpenApiGenerationParams generation,
+      OpenApiScopeParams scope,
       HttpServletRequest request,
       HttpServletResponse response) {
+    if (notModified(request, response, generation)) return;
+
     writeDocument(
-        request,
-        response,
-        path,
-        domain,
-        failOnNameClash,
-        failOnInconsistency,
-        APPLICATION_X_YAML,
-        OpenApiGenerator::generateYaml);
+        request, generation, scope, getYamlWriter(response), OpenApiGenerator::generateYaml);
   }
 
   /*
    * JSON
    */
 
-  @GetMapping(value = "/openapi.json", produces = APPLICATION_JSON_VALUE)
-  public void getFullOpenApiJson(
-      @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
-      @RequestParam(required = false, defaultValue = "false") boolean failOnInconsistency,
-      HttpServletRequest request,
-      HttpServletResponse response) {
-    writeDocument(
-        request,
-        response,
-        Set.of(),
-        Set.of(),
-        failOnNameClash,
-        failOnInconsistency,
-        APPLICATION_JSON_VALUE,
-        OpenApiGenerator::generateJson);
-  }
-
+  @OpenApi.Response(OpenApiObject.class)
   @GetMapping(value = "/{path}/openapi.json", produces = APPLICATION_JSON_VALUE)
   public void getPathOpenApiJson(
       @PathVariable String path,
-      @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
-      @RequestParam(required = false, defaultValue = "false") boolean failOnInconsistency,
+      OpenApiGenerationParams generation,
       HttpServletRequest request,
       HttpServletResponse response) {
+    if (notModified(request, response, generation)) return;
+
+    OpenApiScopeParams scope = new OpenApiScopeParams();
+    scope.setScope(Set.of("path./api/" + path));
     writeDocument(
-        request,
-        response,
-        Set.of("/" + path),
-        Set.of(),
-        failOnNameClash,
-        failOnInconsistency,
-        APPLICATION_JSON_VALUE,
-        OpenApiGenerator::generateJson);
+        request, generation, scope, getJsonWriter(response), OpenApiGenerator::generateJson);
   }
 
-  @GetMapping(value = "/openapi/openapi.json", produces = APPLICATION_JSON_VALUE)
+  @OpenApi.Response(JsonObject.class)
+  @GetMapping(
+      value = {"/openapi.json", "/openapi/openapi.json"},
+      produces = APPLICATION_JSON_VALUE)
   public void getOpenApiJson(
-      @RequestParam(required = false) Set<String> path,
-      @RequestParam(required = false) Set<String> domain,
-      @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
-      @RequestParam(required = false, defaultValue = "false") boolean failOnInconsistency,
+      OpenApiGenerationParams generation,
+      OpenApiScopeParams scope,
       HttpServletRequest request,
       HttpServletResponse response) {
+    if (notModified(request, response, generation)) return;
+
     writeDocument(
-        request,
-        response,
-        path,
-        domain,
-        failOnNameClash,
-        failOnInconsistency,
-        APPLICATION_JSON_VALUE,
-        OpenApiGenerator::generateJson);
+        request, generation, scope, getJsonWriter(response), OpenApiGenerator::generateJson);
+  }
+
+  private Supplier<PrintWriter> getYamlWriter(HttpServletResponse response) {
+    return getWriter(response, APPLICATION_X_YAML);
+  }
+
+  private Supplier<PrintWriter> getJsonWriter(HttpServletResponse response) {
+    return getWriter(response, APPLICATION_JSON_VALUE);
+  }
+
+  private Supplier<PrintWriter> getWriter(HttpServletResponse response, String contentType) {
+    return () -> {
+      response.setContentType(contentType);
+      response.setHeader("ETag", E_TAG);
+      try {
+        return response.getWriter();
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
+      }
+    };
   }
 
   private void writeDocument(
       HttpServletRequest request,
-      HttpServletResponse response,
-      @CheckForNull Set<String> paths,
-      @CheckForNull Set<String> domains,
-      boolean failOnNameClash,
-      boolean failOnInconsistency,
-      String contentType,
+      OpenApiGenerationParams params,
+      OpenApiScopeParams scope,
+      Supplier<PrintWriter> getWriter,
       BiFunction<Api, String, String> writer) {
+
+    Api api = getApiCached(params, scope);
+
+    getWriter.get().write(writer.apply(api, getServerUrl(request)));
+  }
+
+  @Nonnull
+  private Api getApiCached(OpenApiGenerationParams generation, OpenApiScopeParams scope) {
+    if (scope.isCachable() && generation.isCachable()) {
+      Api api = fullApi == null ? null : fullApi.get();
+      if (api == null) {
+        api = getApiUncached(generation, scope);
+        updateFullApi(api);
+      }
+      return api;
+    }
+    return getApiUncached(generation, scope);
+  }
+
+  @Nonnull
+  private Api getApiUncached(OpenApiGenerationParams generation, OpenApiScopeParams scope) {
+    Map<String, Set<String>> filters = new HashMap<>();
+    for (String s : scope.scope) {
+      String key = s.substring(0, s.indexOf('.'));
+      String value = s.substring(s.indexOf('.') + 1);
+      filters.computeIfAbsent(key, k -> new HashSet<>()).add(value);
+    }
     Api api =
         ApiExtractor.extractApi(
-            new ApiExtractor.Scope(
-                getAllControllerClasses(),
-                paths == null ? Set.of() : paths,
-                domains == null ? Set.of() : domains));
-
+            new ApiExtractor.Configuration(
+                new ApiExtractor.Scope(getAllControllerClasses(), filters),
+                generation.expandedRefs));
     ApiIntegrator.integrateApi(
         api,
         ApiIntegrator.Configuration.builder()
-            .failOnNameClash(failOnNameClash)
-            .failOnInconsistency(failOnInconsistency)
+            .failOnNameClash(generation.failOnNameClash)
+            .failOnInconsistency(generation.failOnInconsistency)
             .build());
-    response.setContentType(contentType);
-    try {
-      response.getWriter().write(writer.apply(api, getServerUrl(request)));
-    } catch (IOException ex) {
-      throw new UncheckedIOException(ex);
-    }
+    return api;
   }
 
   private Set<Class<?>> getAllControllerClasses() {
@@ -239,5 +370,18 @@ public class OpenApiController {
     String root =
         apiStart < 0 ? url.substring(0, url.indexOf("/", 10)) : url.substring(0, apiStart);
     return root + "/" + servletPath;
+  }
+
+  private static boolean notModified(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      OpenApiGenerationParams generation) {
+    String etag = request.getHeader("If-None-Match");
+    if (generation.isSkipCache()) return false;
+    if (E_TAG.equals(etag)) {
+      response.setStatus(304);
+      return true;
+    }
+    return false;
   }
 }

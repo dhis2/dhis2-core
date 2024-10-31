@@ -28,15 +28,16 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
-import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeToDefaultIconSize;
+import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeAvatarToDefaultSize;
+import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeIconToDefaultSize;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.validateCustomIconFile;
 
 import com.google.common.base.MoreObjects;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -80,6 +81,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class FileResourceController extends AbstractFullReadOnlyController<FileResource> {
   private final FileResourceService fileResourceService;
 
@@ -141,10 +143,12 @@ public class FileResourceController extends AbstractFullReadOnlyController<FileR
     }
 
     response.setContentType(fileResource.getContentType());
+
     response.setHeader(
         HttpHeaders.CONTENT_LENGTH,
         String.valueOf(fileResourceService.getFileResourceContentLength(fileResource)));
     response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName());
+
     HeaderUtils.setSecurityHeaders(
         response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
 
@@ -166,10 +170,26 @@ public class FileResourceController extends AbstractFullReadOnlyController<FileR
       @RequestParam(defaultValue = "DATA_VALUE") FileResourceDomain domain,
       @RequestParam(required = false) String uid)
       throws IOException, ConflictException {
+
+    FileResourceUtils.validateFileSize(
+        file, Long.parseLong(dhisConfig.getProperty(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES)));
+
     FileResource fileResource;
     if (domain.equals(FileResourceDomain.ICON)) {
       validateCustomIconFile(file);
-      fileResource = fileResourceUtils.saveFileResource(uid, resizeToDefaultIconSize(file), domain);
+      fileResource = fileResourceUtils.saveFileResource(uid, resizeIconToDefaultSize(file), domain);
+
+    } else if (domain.equals(FileResourceDomain.USER_AVATAR)) {
+      fileResourceUtils.validateUserAvatar(file);
+      fileResource =
+          fileResourceUtils.saveFileResource(uid, resizeAvatarToDefaultSize(file), domain);
+
+    } else if (domain.equals(FileResourceDomain.ORG_UNIT)) {
+      fileResourceUtils.validateOrgUnitImage(file);
+      fileResource =
+          fileResourceUtils.saveFileResource(
+              uid, fileResourceUtils.resizeOrgToDefaultSize(file), domain);
+
     } else {
       fileResource = fileResourceUtils.saveFileResource(uid, file, domain);
     }

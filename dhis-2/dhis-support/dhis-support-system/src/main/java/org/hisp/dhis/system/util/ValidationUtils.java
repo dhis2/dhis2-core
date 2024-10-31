@@ -75,6 +75,11 @@ import org.hisp.dhis.render.type.ValueTypeRenderingType;
  * @author Lars Helge Overland
  */
 public class ValidationUtils {
+  // Note that a data integrity check replicates this pattern in a slightly different way.
+  // If this pattern is changed, the data integrity check should be updated as well.
+  // See
+  // dhis-service-administration/src/main/resources/data-integrity-checks/users/users_with_invalid_usernames.yaml
+  // for details.
   private static final Pattern USERNAME_PATTERN =
       Pattern.compile("^(?=.{4,255}$)(?![-_.@])(?!.*[-_.@]{2})[-_.@a-zA-Z0-9]+(?<![-_.@])$");
 
@@ -507,41 +512,25 @@ public class ValidationUtils {
     }
 
     // Value type checks
-    switch (valueType) {
-      case LETTER:
-        return !isValidLetter(value) ? "value_not_valid_letter" : null;
-      case NUMBER:
-        return !isNumeric(value) ? "value_not_numeric" : null;
-      case UNIT_INTERVAL:
-        return !isUnitInterval(value) ? "value_not_unit_interval" : null;
-      case PERCENTAGE:
-        return !isPercentage(value) ? "value_not_percentage" : null;
-      case INTEGER:
-        return !isInteger(value) ? "value_not_integer" : null;
-      case INTEGER_POSITIVE:
-        return !isPositiveInteger(value) ? "value_not_positive_integer" : null;
-      case INTEGER_NEGATIVE:
-        return !isNegativeInteger(value) ? "value_not_negative_integer" : null;
-      case INTEGER_ZERO_OR_POSITIVE:
-        return !isZeroOrPositiveInteger(value) ? "value_not_zero_or_positive_integer" : null;
-      case BOOLEAN:
-        return !isBool(value.toLowerCase()) ? "value_not_bool" : null;
-      case TRUE_ONLY:
-        return !TRUE.equalsIgnoreCase(value) ? "value_not_true_only" : null;
-      case DATE:
-        return !dateIsValid(value) ? "value_not_valid_date" : null;
-      case DATETIME:
-        return !dateTimeIsValid(value) ? "value_not_valid_datetime" : null;
-      case COORDINATE:
-        return !isCoordinate(value) ? "value_not_coordinate" : null;
-      case URL:
-        return !urlIsValid(value) ? "value_not_url" : null;
-      case FILE_RESOURCE:
-      case IMAGE:
-        return !isValidUid(value) ? "value_not_valid_file_resource_uid" : null;
-      default:
-        return null;
-    }
+    return switch (valueType) {
+      case LETTER -> !isValidLetter(value) ? "value_not_valid_letter" : null;
+      case NUMBER -> !isNumeric(value) ? "value_not_numeric" : null;
+      case UNIT_INTERVAL -> !isUnitInterval(value) ? "value_not_unit_interval" : null;
+      case PERCENTAGE -> !isPercentage(value) ? "value_not_percentage" : null;
+      case INTEGER -> !isInteger(value) ? "value_not_integer" : null;
+      case INTEGER_POSITIVE -> !isPositiveInteger(value) ? "value_not_positive_integer" : null;
+      case INTEGER_NEGATIVE -> !isNegativeInteger(value) ? "value_not_negative_integer" : null;
+      case INTEGER_ZERO_OR_POSITIVE ->
+          !isZeroOrPositiveInteger(value) ? "value_not_zero_or_positive_integer" : null;
+      case BOOLEAN -> !isBool(value.toLowerCase()) ? "value_not_bool" : null;
+      case TRUE_ONLY -> !TRUE.equalsIgnoreCase(value) ? "value_not_true_only" : null;
+      case DATE -> !dateIsValid(value) ? "value_not_valid_date" : null;
+      case DATETIME -> !dateTimeIsValid(value) ? "value_not_valid_datetime" : null;
+      case COORDINATE -> !isCoordinate(value) ? "value_not_coordinate" : null;
+      case URL -> !urlIsValid(value) ? "value_not_url" : null;
+      case FILE_RESOURCE, IMAGE -> !isValidUid(value) ? "value_not_valid_file_resource_uid" : null;
+      default -> null;
+    };
   }
 
   /**

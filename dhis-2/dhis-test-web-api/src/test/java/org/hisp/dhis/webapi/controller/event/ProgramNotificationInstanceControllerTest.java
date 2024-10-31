@@ -27,45 +27,39 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.security.Authorities.ALL;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.google.common.collect.Sets;
 import java.util.List;
-import org.hisp.dhis.common.IdentifiableObjectManager;
+import java.util.Set;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
-import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private ProgramNotificationInstanceService programNotificationInstanceService;
-
-  @Autowired private EnrollmentService enrollmentService;
-
-  @Autowired private EventService eventService;
-
-  @Autowired private TrackedEntityService trackedEntityService;
-
-  @Autowired private IdentifiableObjectManager idObjectManager;
 
   private Enrollment enrollment;
 
@@ -77,19 +71,25 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
 
   private ProgramNotificationInstance eventNotification;
 
+  private User user;
+
   @BeforeEach
   void setUp() {
-    OrganisationUnit ouA = createOrganisationUnit('A');
-    idObjectManager.save(ouA);
+    OrganisationUnit orgUnit = createOrganisationUnit('A');
+    manager.save(orgUnit);
 
-    Program prA = createProgram('A', Sets.newHashSet(), ouA);
-    idObjectManager.save(prA);
+    user = createAndAddUser("tester", orgUnit, ALL.name());
+    user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
+    this.userService.updateUser(user);
+
+    Program prA = createProgram('A', Set.of(), orgUnit);
+    manager.save(prA);
     ProgramStage psA = createProgramStage('A', prA);
-    idObjectManager.save(psA);
-    TrackedEntity trackedEntityA = createTrackedEntity('A', ouA);
-    trackedEntityService.addTrackedEntity(trackedEntityA);
-    enrollment = createEnrollment(prA, trackedEntityA, ouA);
-    enrollmentService.addEnrollment(enrollment);
+    manager.save(psA);
+    TrackedEntity trackedEntityA = createTrackedEntity('A', orgUnit);
+    manager.save(trackedEntityA);
+    enrollment = createEnrollment(prA, trackedEntityA, orgUnit);
+    manager.save(enrollment);
 
     enrollmentNotification1 = new ProgramNotificationInstance();
     enrollmentNotification1.setName("enrollment A notification 1");
@@ -101,12 +101,15 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
     enrollmentNotification2.setEnrollment(enrollment);
     programNotificationInstanceService.save(enrollmentNotification2);
 
-    event = createEvent(psA, enrollment, ouA);
-    eventService.addEvent(event);
+    event = createEvent(psA, enrollment, orgUnit);
+    manager.save(event);
     eventNotification = new ProgramNotificationInstance();
     eventNotification.setName("event A notification");
     eventNotification.setEvent(event);
     programNotificationInstanceService.save(eventNotification);
+    manager.flush();
+
+    switchContextToUser(user);
   }
 
   @Test

@@ -29,10 +29,11 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.utils.Assertions.assertContains;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams.FALSE;
 import static org.hisp.dhis.webapi.controller.tracker.export.FieldsParamMapper.FIELD_RELATIONSHIPS;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -55,6 +56,8 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -68,11 +71,10 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
-import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -93,15 +95,15 @@ import org.mockito.quality.Strictness;
 @ExtendWith(MockitoExtension.class)
 class EventRequestParamsMapperTest {
 
-  private static final String DE_1_UID = "OBzmpRP6YUh";
+  private static final UID DE_1_UID = UID.of("OBzmpRP6YUh");
 
-  private static final String DE_2_UID = "KSd4PejqBf9";
+  private static final UID DE_2_UID = UID.of("KSd4PejqBf9");
 
-  private static final String TEA_1_UID = "TvjwTPToKHO";
+  private static final UID TEA_1_UID = UID.of("TvjwTPToKHO");
 
-  private static final String TEA_2_UID = "cy2oRh2sNr6";
+  private static final UID TEA_2_UID = UID.of("cy2oRh2sNr6");
 
-  private static final String PROGRAM_UID = "PlZSBEN7iZd";
+  private static final UID PROGRAM_UID = UID.of("PlZSBEN7iZd");
 
   @Mock private UserService userService;
 
@@ -128,14 +130,14 @@ class EventRequestParamsMapperTest {
   private OrganisationUnit orgUnit;
 
   @BeforeEach
-  public void setUp() {
+  public void setUp() throws ForbiddenException, NotFoundException, BadRequestException {
     User user = new User();
 
-    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+    when(userService.getUserByUsername(null)).thenReturn(user);
 
     program = new Program();
-    program.setUid(PROGRAM_UID);
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    program.setUid(PROGRAM_UID.getValue());
+    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
     when(aclService.canDataRead(user, program)).thenReturn(true);
 
     ProgramStage programStage = new ProgramStage();
@@ -148,20 +150,21 @@ class EventRequestParamsMapperTest {
     when(organisationUnitService.isInUserHierarchy(user, orgUnit)).thenReturn(true);
 
     TrackedEntity trackedEntity = new TrackedEntity();
-    when(trackedEntityService.getTrackedEntity("qnR1RK4cTIZ")).thenReturn(trackedEntity);
+    when(trackedEntityService.getTrackedEntity(UID.of("qnR1RK4cTIZ"), null, FALSE))
+        .thenReturn(trackedEntity);
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
-    tea1.setUid(TEA_1_UID);
+    tea1.setUid(TEA_1_UID.getValue());
     TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
-    tea2.setUid(TEA_2_UID);
+    tea2.setUid(TEA_2_UID.getValue());
     when(attributeService.getAllTrackedEntityAttributes()).thenReturn(List.of(tea1, tea2));
-    when(attributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
+    when(attributeService.getTrackedEntityAttribute(TEA_1_UID.getValue())).thenReturn(tea1);
 
     DataElement de1 = new DataElement();
-    de1.setUid(DE_1_UID);
-    when(dataElementService.getDataElement(DE_1_UID)).thenReturn(de1);
+    de1.setUid(DE_1_UID.getValue());
+    when(dataElementService.getDataElement(DE_1_UID.getValue())).thenReturn(de1);
     DataElement de2 = new DataElement();
-    de2.setUid(DE_2_UID);
-    when(dataElementService.getDataElement(DE_2_UID)).thenReturn(de2);
+    de2.setUid(DE_2_UID.getValue());
+    when(dataElementService.getDataElement(DE_2_UID.getValue())).thenReturn(de2);
   }
 
   @Test
@@ -179,11 +182,11 @@ class EventRequestParamsMapperTest {
   @Test
   void testMappingProgram() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
-    eventRequestParams.setProgram(UID.of(PROGRAM_UID));
+    eventRequestParams.setProgram(PROGRAM_UID);
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    assertEquals(program.getUid(), params.getProgramUid());
+    assertEquals(UID.of(program), params.getProgram());
   }
 
   @Test
@@ -229,7 +232,7 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    assertEquals(orgUnit.getUid(), params.getOrgUnitUid());
+    assertEquals(UID.of(orgUnit), params.getOrgUnit());
   }
 
   @Test
@@ -239,7 +242,7 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    assertEquals("qnR1RK4cTIZ", params.getTrackedEntityUid());
+    assertEquals(UID.of("qnR1RK4cTIZ"), params.getTrackedEntity());
   }
 
   @Test
@@ -355,7 +358,7 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    assertEquals(Set.of("NQnuK2kLm6e"), params.getEnrollments());
+    assertEquals(Set.of(UID.of("NQnuK2kLm6e")), params.getEnrollments());
   }
 
   @Test
@@ -365,17 +368,17 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    assertEquals(Set.of("XKrcfuM4Hcw", "M4pNmLabtXl"), params.getEvents());
+    assertEquals(UID.of("XKrcfuM4Hcw", "M4pNmLabtXl"), params.getEvents());
   }
 
   @Test
   void testMappingEvents() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
-    eventRequestParams.setEvents(Set.of(UID.of("XKrcfuM4Hcw"), UID.of("M4pNmLabtXl")));
+    eventRequestParams.setEvents(UID.of("XKrcfuM4Hcw", "M4pNmLabtXl"));
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    assertEquals(Set.of("XKrcfuM4Hcw", "M4pNmLabtXl"), params.getEvents());
+    assertEquals(UID.of("XKrcfuM4Hcw", "M4pNmLabtXl"), params.getEvents());
   }
 
   @Test
@@ -395,19 +398,19 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    assertContainsOnly(Set.of("IsdLBTOBzMi", "l5ab8q5skbB"), params.getAssignedUsers());
+    assertContainsOnly(UID.of("IsdLBTOBzMi", "l5ab8q5skbB"), params.getAssignedUsers());
     assertEquals(AssignedUserSelectionMode.PROVIDED, params.getAssignedUserMode());
   }
 
   @Test
   void testMappingAssignedUsers() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
-    eventRequestParams.setAssignedUsers(Set.of(UID.of("IsdLBTOBzMi"), UID.of("l5ab8q5skbB")));
+    eventRequestParams.setAssignedUsers(UID.of("IsdLBTOBzMi", "l5ab8q5skbB"));
     eventRequestParams.setAssignedUserMode(AssignedUserSelectionMode.PROVIDED);
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    assertContainsOnly(Set.of("IsdLBTOBzMi", "l5ab8q5skbB"), params.getAssignedUsers());
+    assertContainsOnly(UID.of("IsdLBTOBzMi", "l5ab8q5skbB"), params.getAssignedUsers());
     assertEquals(AssignedUserSelectionMode.PROVIDED, params.getAssignedUserMode());
   }
 
@@ -430,9 +433,9 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    Map<String, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
+    Map<UID, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
     assertNotNull(dataElementFilters);
-    Map<String, List<QueryFilter>> expected =
+    Map<UID, List<QueryFilter>> expected =
         Map.of(
             DE_1_UID,
             List.of(new QueryFilter(QueryOperator.EQ, "2")),
@@ -448,9 +451,9 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    Map<String, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
+    Map<UID, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
     assertNotNull(dataElementFilters);
-    Map<String, List<QueryFilter>> expected =
+    Map<UID, List<QueryFilter>> expected =
         Map.of(
             DE_1_UID,
             List.of(
@@ -464,7 +467,7 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    Map<String, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
+    Map<UID, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
 
     assertNotNull(dataElementFilters);
     assertTrue(dataElementFilters.isEmpty());
@@ -477,9 +480,9 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    Map<String, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
+    Map<UID, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
     assertNotNull(attributeFilters);
-    Map<String, List<QueryFilter>> expected =
+    Map<UID, List<QueryFilter>> expected =
         Map.of(
             TEA_1_UID,
             List.of(new QueryFilter(QueryOperator.EQ, "2")),
@@ -495,9 +498,9 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    Map<String, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
+    Map<UID, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
     assertNotNull(attributeFilters);
-    Map<String, List<QueryFilter>> expected =
+    Map<UID, List<QueryFilter>> expected =
         Map.of(
             TEA_1_UID,
             List.of(
@@ -508,13 +511,13 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldMapAttributeFiltersWhenOnlyGivenUID() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
-    eventRequestParams.setFilterAttributes(TEA_1_UID);
+    eventRequestParams.setFilterAttributes(TEA_1_UID.getValue());
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    Map<String, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
+    Map<UID, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
     assertNotNull(attributeFilters);
-    Map<String, List<QueryFilter>> expected = Map.of(TEA_1_UID, List.of());
+    Map<UID, List<QueryFilter>> expected = Map.of(TEA_1_UID, List.of());
     assertEquals(expected, attributeFilters);
   }
 
@@ -524,7 +527,7 @@ class EventRequestParamsMapperTest {
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    Map<String, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
+    Map<UID, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
 
     assertNotNull(attributeFilters);
     assertTrue(attributeFilters.isEmpty());

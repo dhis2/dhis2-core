@@ -27,15 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.json.domain.JsonDataElement;
-import org.hisp.dhis.webapi.json.domain.JsonOption;
-import org.hisp.dhis.webapi.json.domain.JsonOptionSet;
+import org.hisp.dhis.test.webapi.json.domain.JsonDataElement;
+import org.hisp.dhis.test.webapi.json.domain.JsonOption;
+import org.hisp.dhis.test.webapi.json.domain.JsonOptionSet;
 import org.junit.jupiter.api.Test;
 
 /**

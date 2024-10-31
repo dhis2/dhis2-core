@@ -46,9 +46,10 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +57,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-class CompleteDataSetRegistrationBatchHandlerTest extends IntegrationTestBase {
+class CompleteDataSetRegistrationBatchHandlerTest extends PostgresIntegrationTestBase {
 
   @Autowired private BatchHandlerFactory batchHandlerFactory;
 
@@ -98,11 +99,8 @@ class CompleteDataSetRegistrationBatchHandlerTest extends IntegrationTestBase {
 
   private final String lastUpdatedBy = "johndoe";
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     batchHandler =
         batchHandlerFactory.createBatchHandler(CompleteDataSetRegistrationBatchHandler.class);
     periodTypeA = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY);
@@ -164,12 +162,6 @@ class CompleteDataSetRegistrationBatchHandlerTest extends IntegrationTestBase {
     batchHandler.init();
   }
 
-  @Override
-  public void tearDownTest() {}
-
-  // -------------------------------------------------------------------------
-  // Tests
-  // -------------------------------------------------------------------------
   @Test
   void testAddObject() {
     batchHandler.addObject(regA);

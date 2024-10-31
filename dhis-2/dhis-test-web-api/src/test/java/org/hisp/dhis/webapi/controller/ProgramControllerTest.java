@@ -28,40 +28,43 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.feedback.ErrorCode.E1005;
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.hisp.dhis.webapi.utils.TestUtils.getMatchingGroupFromPattern;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.hisp.dhis.test.webapi.TestUtils.getMatchingGroupFromPattern;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.file.Path;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
+import org.hisp.dhis.test.webapi.json.domain.JsonObjectReport;
+import org.hisp.dhis.test.webapi.json.domain.JsonProgram;
+import org.hisp.dhis.test.webapi.json.domain.JsonProgramIndicator;
+import org.hisp.dhis.test.webapi.json.domain.JsonProgramRuleVariable;
+import org.hisp.dhis.test.webapi.json.domain.JsonProgramSection;
+import org.hisp.dhis.test.webapi.json.domain.JsonProgramStage;
+import org.hisp.dhis.test.webapi.json.domain.JsonProgramTrackedEntityAttribute;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
-import org.hisp.dhis.webapi.json.domain.JsonObjectReport;
-import org.hisp.dhis.webapi.json.domain.JsonProgram;
-import org.hisp.dhis.webapi.json.domain.JsonProgramIndicator;
-import org.hisp.dhis.webapi.json.domain.JsonProgramRuleVariable;
-import org.hisp.dhis.webapi.json.domain.JsonProgramSection;
-import org.hisp.dhis.webapi.json.domain.JsonProgramStage;
-import org.hisp.dhis.webapi.json.domain.JsonProgramTrackedEntityAttribute;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author David Mackessy
  */
-class ProgramControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class ProgramControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private ObjectMapper jsonMapper;
 
@@ -84,7 +87,7 @@ class ProgramControllerTest extends DhisControllerConvenienceTest {
     POST("/trackedEntityAttributes", jsonMapper.writeValueAsString(tea2))
         .content(HttpStatus.CREATED);
 
-    POST("/metadata", Body("program/create_program.json")).content(HttpStatus.OK);
+    POST("/metadata", Path.of("program/create_program.json")).content(HttpStatus.OK);
   }
 
   @Test

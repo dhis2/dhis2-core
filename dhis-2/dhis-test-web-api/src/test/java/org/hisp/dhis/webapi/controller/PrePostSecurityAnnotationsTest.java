@@ -30,27 +30,28 @@ package org.hisp.dhis.webapi.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.test.webapi.WebSpringTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpSession;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class PrePostSecurityAnnotationsTest extends DhisWebSpringTest {
+class PrePostSecurityAnnotationsTest extends WebSpringTestBase {
 
   @Test
   void authorityAllCanAccessApps() throws Exception {
-    MockHttpSession session = getSession("ALL");
+    MockHttpSession session = getMockHttpSession();
     mvc.perform(put("/api/apps").session(session)).andExpect(status().isNoContent());
   }
 
   @Test
   void authorityNoAuthorityCantAccessApps() throws Exception {
-    User noAuthUser = createAndAddUser("A", null, "NO_AUTHORITY");
+    User noAuthUser = createAndAddUser("A", (OrganisationUnit) null, "NO_AUTHORITY");
     injectSecurityContextUser(noAuthUser);
-    MockHttpSession session = getSession("NO_AUTHORITY");
+    MockHttpSession session = getMockHttpSession();
     mvc.perform(put("/api/apps").session(session)).andExpect(status().isForbidden());
   }
 }

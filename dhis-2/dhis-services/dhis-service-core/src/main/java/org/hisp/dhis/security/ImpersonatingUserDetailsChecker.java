@@ -38,11 +38,10 @@ import org.springframework.security.authentication.InsufficientAuthenticationExc
 public class ImpersonatingUserDetailsChecker extends AccountStatusUserDetailsChecker {
   @Override
   public void check(org.springframework.security.core.userdetails.UserDetails userToImpersonate) {
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    if (currentUser == null) {
+    if (!CurrentUserUtil.hasCurrentUser()) {
       throw new InsufficientAuthenticationException("User is not authenticated");
     }
-
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     if (currentUser.getUsername().equals(userToImpersonate.getUsername())) {
       throw new InsufficientAuthenticationException("User can not impersonate itself");
     }

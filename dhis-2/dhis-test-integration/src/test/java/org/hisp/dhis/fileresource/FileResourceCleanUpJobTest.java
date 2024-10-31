@@ -50,11 +50,9 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,11 +70,11 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class FileResourceCleanUpJobTest extends IntegrationTestBase {
+class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
 
   private FileResourceCleanUpJob cleanUpJob;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService settingsService;
 
   @Autowired private FileResourceService fileResourceService;
 
@@ -95,8 +93,6 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
 
   @Autowired private ExternalFileResourceService externalFileResourceService;
 
-  @Autowired private UserService _userService;
-
   @Mock private FileResourceContentStore fileResourceContentStore;
 
   private DataValue dataValueA;
@@ -109,11 +105,8 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
 
   @BeforeEach
   public void init() {
-    userService = _userService;
-
     cleanUpJob =
-        new FileResourceCleanUpJob(
-            fileResourceService, systemSettingManager, fileResourceContentStore);
+        new FileResourceCleanUpJob(fileResourceService, settingsService, fileResourceContentStore);
 
     period = createPeriod(PeriodType.getPeriodTypeByName("Monthly"), new Date(), new Date());
     periodService.addPeriod(period);
@@ -123,8 +116,7 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
   void testNoRetention() {
     when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(true);
 
-    systemSettingManager.saveSystemSetting(
-        SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.NONE);
+    settingsService.put("keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE);
 
     content = "filecontentA".getBytes();
     dataValueA = createFileResourceDataValue('A', content);
@@ -141,8 +133,8 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
   void testRetention() {
     when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(true);
 
-    systemSettingManager.saveSystemSetting(
-        SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.THREE_MONTHS);
+    settingsService.put(
+        "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.THREE_MONTHS);
 
     content = "filecontentA".getBytes(StandardCharsets.UTF_8);
     dataValueA = createFileResourceDataValue('A', content);
@@ -176,8 +168,7 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
   void testOrphan() {
     when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(false);
 
-    systemSettingManager.saveSystemSetting(
-        SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.NONE);
+    settingsService.put("keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE);
 
     content = "filecontentA".getBytes(StandardCharsets.UTF_8);
     FileResource fileResourceA = createFileResource('A', content);
@@ -212,8 +203,8 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
   @Disabled
   @Test
   void testFalsePositive() {
-    systemSettingManager.saveSystemSetting(
-        SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.THREE_MONTHS);
+    settingsService.put(
+        "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.THREE_MONTHS);
 
     content = "externalA".getBytes();
     ExternalFileResource ex = createExternal('A', content);
@@ -233,8 +224,8 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
   @Disabled
   @Test
   void testFailedUpload() {
-    systemSettingManager.saveSystemSetting(
-        SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.THREE_MONTHS);
+    settingsService.put(
+        "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.THREE_MONTHS);
 
     content = "externalA".getBytes();
     ExternalFileResource ex = createExternal('A', content);

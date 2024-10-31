@@ -71,7 +71,7 @@ import org.hisp.dhis.resourcetable.table.OrganisationUnitGroupSetResourceTable;
 import org.hisp.dhis.resourcetable.table.OrganisationUnitStructureResourceTable;
 import org.hisp.dhis.resourcetable.table.PeriodResourceTable;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewService;
 import org.springframework.stereotype.Service;
@@ -192,7 +192,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   /**
    * This method validates if any of the year in the given list is within the offset defined in
    * system settings. The constant where the offset is defined can be seen at {@link
-   * SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET}.
+   * SystemSettings#getAnalyticsPeriodYearsOffset()}.
    *
    * <p>Based on the current year YYYY and the defined offset X. This method allows a range of X
    * years in the past and X years in the future. Including also the current year YYYY. So, for

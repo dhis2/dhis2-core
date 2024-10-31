@@ -36,13 +36,11 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.supplier.ClassBasedSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.PreheatSupplier;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,8 +59,6 @@ import org.springframework.context.ApplicationContext;
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class DefaultTrackerPreheatServiceTest {
-  @Mock private IdentifiableObjectManager manager;
-
   @Mock private ClassBasedSupplier classBasedSupplier;
 
   @Mock private ApplicationContext applicationContext;
@@ -83,11 +79,9 @@ class DefaultTrackerPreheatServiceTest {
   @BeforeEach
   public void setUp() {
     preheatService =
-        new DefaultTrackerPreheatService(
-            manager, List.of(ClassBasedSupplier.class.getSimpleName()));
+        new DefaultTrackerPreheatService(List.of(ClassBasedSupplier.class.getSimpleName()));
 
     preheatService.setApplicationContext(applicationContext);
-    when(manager.get(User.class, getUser().getUid())).thenReturn(getUser());
   }
 
   @Test
@@ -97,7 +91,7 @@ class DefaultTrackerPreheatServiceTest {
 
     doCallRealMethod().when(classBasedSupplier).add(any(), any());
 
-    preheatService.preheat(preheatParams, idSchemeParams, getUser());
+    preheatService.preheat(preheatParams, idSchemeParams);
 
     verify(applicationContext).getBean(bean.getValue(), preheatSupplierClassCaptor.getValue());
     verify(classBasedSupplier).add(any(), any());
@@ -109,7 +103,7 @@ class DefaultTrackerPreheatServiceTest {
     when(applicationContext.getBean(bean.capture(), preheatSupplierClassCaptor.capture()))
         .thenThrow(new BeanCreationException("e"));
 
-    preheatService.preheat(preheatParams, idSchemeParams, getUser());
+    preheatService.preheat(preheatParams, idSchemeParams);
 
     verify(applicationContext).getBean(bean.getValue(), preheatSupplierClassCaptor.getValue());
     verify(classBasedSupplier, times(0)).add(any(), any());
@@ -122,15 +116,9 @@ class DefaultTrackerPreheatServiceTest {
         .thenReturn(classBasedSupplier);
     doThrow(new RuntimeException("e")).when(classBasedSupplier).add(any(), any());
 
-    preheatService.preheat(preheatParams, idSchemeParams, getUser());
+    preheatService.preheat(preheatParams, idSchemeParams);
 
     verify(applicationContext).getBean(bean.getValue(), preheatSupplierClassCaptor.getValue());
     verify(classBasedSupplier).add(any(), any());
-  }
-
-  private User getUser() {
-    User user = new User();
-    user.setUid("user1234");
-    return user;
   }
 }

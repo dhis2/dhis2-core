@@ -33,6 +33,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.dxf2.webmessage.responses.SoftwareUpdateResponse;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.system.SystemUpdateNotificationService;
 import org.hisp.dhis.webapi.controller.Server;
@@ -47,7 +48,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Document(domain = Server.class)
+@OpenApi.Document(
+    entity = Server.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping("/api/systemUpdates")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -72,6 +75,7 @@ public class SystemUpdateNotifyController {
     service.sendMessageForEachVersion(newerVersions, JobProgress.noop());
 
     WebMessage ok = WebMessageUtils.ok();
+
     ok.setResponse(new SoftwareUpdateResponse(newerVersions));
     return ok;
   }

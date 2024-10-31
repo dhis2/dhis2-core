@@ -33,17 +33,18 @@ import static org.hisp.dhis.feedback.ErrorCode.E4002;
 import static org.hisp.dhis.visualization.OutlierAnalysis.MAX_RESULTS_MAX_VALUE;
 import static org.hisp.dhis.visualization.OutlierAnalysis.MAX_RESULTS_MIN_VALUE;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.expressiondimensionitem.ExpressionDimensionItemService;
@@ -61,6 +62,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequestMapping("/api/visualizations")
+@OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
 public class VisualizationController extends AbstractCrudController<Visualization> {
   private final LegendSetService legendSetService;
 

@@ -31,11 +31,11 @@ import static org.hisp.dhis.tracker.imports.programrule.IssueType.ERROR;
 
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.programrule.api.ValidationEffect;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.programrule.IssueType;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.imports.programrule.engine.ValidationEffect;
 import org.hisp.dhis.tracker.imports.programrule.executor.ValidationExecutor;
 
 /** This executor shows errors calculated by Rule Engine. @Author Enrico Colasante */

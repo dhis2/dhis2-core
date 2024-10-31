@@ -45,6 +45,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
@@ -61,9 +62,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -71,15 +70,15 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -89,13 +88,11 @@ import org.springframework.test.util.ReflectionTestUtils;
  *
  * @author Jim Grace
  */
-class EventPredictionServiceTest extends IntegrationTestBase {
+class EventPredictionServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private PredictorService predictorService;
 
   @Autowired private PredictionService predictionService;
-
-  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private TrackedEntityAttributeService entityAttributeService;
 
@@ -103,13 +100,9 @@ class EventPredictionServiceTest extends IntegrationTestBase {
 
   @Autowired private ProgramService programService;
 
-  @Autowired private EnrollmentService enrollmentService;
-
   @Autowired private ProgramStageService programStageService;
 
   @Autowired private ProgramIndicatorService programIndicatorService;
-
-  @Autowired private EventService eventService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -123,7 +116,7 @@ class EventPredictionServiceTest extends IntegrationTestBase {
 
   @Autowired private CategoryManager categoryManager;
 
-  @Autowired private UserService _userService;
+  @Autowired private IdentifiableObjectManager manager;
 
   private CategoryOptionCombo defaultCombo;
 
@@ -153,10 +146,8 @@ class EventPredictionServiceTest extends IntegrationTestBase {
 
   private Predictor predictorT;
 
-  @Override
-  public void setUpTest() {
-    this.userService = _userService;
-
+  @BeforeEach
+  void setUp() {
     final String DATA_ELEMENT_A_UID = "DataElemenA";
     final String DATA_ELEMENT_D_UID = "DataElemenD";
     final String DATA_ELEMENT_I_UID = "DataElemenI";
@@ -226,13 +217,13 @@ class EventPredictionServiceTest extends IntegrationTestBase {
     entityAttribute.setUid(TRACKED_ENTITY_ATTRIBUTE_UID);
     entityAttributeService.addTrackedEntityAttribute(entityAttribute);
     TrackedEntity trackedEntity = createTrackedEntity('A', orgUnitA, entityAttribute);
-    trackedEntityService.addTrackedEntity(trackedEntity);
+    manager.save(trackedEntity);
     TrackedEntityAttributeValue trackedEntityAttributeValue =
         new TrackedEntityAttributeValue(entityAttribute, trackedEntity);
     trackedEntityAttributeValue.setValue("123");
     entityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValue);
     trackedEntity.setTrackedEntityAttributeValues(Sets.newHashSet(trackedEntityAttributeValue));
-    trackedEntityService.updateTrackedEntity(trackedEntity);
+    manager.update(trackedEntity);
     Program program = createProgram('A', null, Sets.newHashSet(entityAttribute), orgUnitASet, null);
     program.setUid(PROGRAM_UID);
     programService.addProgram(program);
@@ -253,20 +244,21 @@ class EventPredictionServiceTest extends IntegrationTestBase {
     program.getProgramIndicators().add(programIndicatorA);
     program.getProgramIndicators().add(programIndicatorB);
     programService.updateProgram(program);
-    Enrollment enrollment =
-        enrollmentService.enrollTrackedEntity(
-            trackedEntity, program, dateMar20, dateMar20, orgUnitA);
-    enrollmentService.addEnrollment(enrollment);
-    Event stageInstanceA =
-        eventService.createEvent(enrollment, stageA, dateMar20, dateMar20, orgUnitA);
-    Event stageInstanceB =
-        eventService.createEvent(enrollment, stageA, dateApr10, dateApr10, orgUnitA);
-    stageInstanceA.setOccurredDate(dateMar20);
-    stageInstanceB.setOccurredDate(dateApr10);
-    stageInstanceA.setAttributeOptionCombo(defaultCombo);
-    stageInstanceB.setAttributeOptionCombo(defaultCombo);
-    eventService.addEvent(stageInstanceA);
-    eventService.addEvent(stageInstanceB);
+
+    Enrollment enrollment = createEnrollment(program, trackedEntity, orgUnitA);
+    enrollment.setEnrollmentDate(dateMar20);
+    enrollment.setOccurredDate(dateMar20);
+    manager.save(enrollment);
+    trackedEntity.getEnrollments().add(enrollment);
+    manager.update(trackedEntity);
+
+    Event eventA = createEvent(stageA, enrollment, orgUnitA);
+    eventA.setOccurredDate(dateMar20);
+    manager.save(eventA);
+    Event eventB = createEvent(stageA, enrollment, orgUnitA);
+    eventB.setOccurredDate(dateApr10);
+    eventB.setAttributeOptionCombo(defaultCombo);
+    manager.save(eventB);
     categoryManager.addAndPruneAllOptionCombos();
     Expression expressionA = new Expression(EXPRESSION_A, "ProgramTrackedEntityAttribute");
     Expression expressionD = new Expression(EXPRESSION_D, "ProgramDataElement");
@@ -349,14 +341,11 @@ class EventPredictionServiceTest extends IntegrationTestBase {
         createDataValue(dataElementE, periodMay, orgUnitA, defaultCombo, defaultCombo, "300"));
   }
 
-  @Override
-  public void tearDownTest() {
+  @AfterEach
+  void tearDown() {
     ReflectionTestUtils.setField(predictionService, "analyticsService", analyticsService);
   }
 
-  // -------------------------------------------------------------------------
-  // Local convenience methods
-  // -------------------------------------------------------------------------
   /**
    * Make a data grid for MockAnalyticsService to return.
    *

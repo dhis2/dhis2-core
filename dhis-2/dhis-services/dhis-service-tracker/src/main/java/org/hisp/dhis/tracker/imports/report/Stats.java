@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.tracker.imports.report;
 
-import static org.hisp.dhis.common.OpenApi.Shared.Pattern.TRACKER;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,7 +37,7 @@ import org.hisp.dhis.common.OpenApi;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Shared(pattern = TRACKER)
+@OpenApi.Shared(name = "TrackerStats")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -32,10 +32,9 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
-import org.hisp.dhis.random.BeanRandomizer;
+import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.cache.DefaultPreheatCacheService;
@@ -67,7 +66,7 @@ class PeriodTypeSupplierTest {
 
   @Test
   void verifySupplier() {
-    final List<Period> periods = rnd.objects(Period.class, 20).collect(Collectors.toList());
+    final List<Period> periods = rnd.objects(Period.class, 20).toList();
     when(periodStore.getAll()).thenReturn(periods);
 
     final TrackerObjects params = TrackerObjects.builder().build();

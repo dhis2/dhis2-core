@@ -1,0 +1,2 @@
+Name,UID,Code,Short name,Description,Form name,Domain type,Value type,Aggregation type
+ANC 1st visit_m,fbfJHSPpUQD,DE_359596,ANC 1st visit_m,,ANC 1st visit,AGGREGATE,NUMBER,SUM

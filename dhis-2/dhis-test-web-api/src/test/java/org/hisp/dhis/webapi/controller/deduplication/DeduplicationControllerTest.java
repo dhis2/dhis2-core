@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.deduplication;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -38,22 +38,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.deduplication.DeduplicationStatus;
-import org.hisp.dhis.deduplication.PotentialDuplicate;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
+import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author luca@dhis2.org
  */
-class DeduplicationControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
   private static final String ENDPOINT = "/" + "potentialDuplicates/";
 
   @Autowired private IdentifiableObjectManager dbmsManager;
@@ -61,6 +65,7 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
   @Autowired private ObjectMapper objectMapper;
 
   private OrganisationUnit orgUnit;
+  private TrackedEntityType trackedEntityType;
   private TrackedEntity origin;
   private TrackedEntity duplicate1;
   private PotentialDuplicate potentialDuplicate1;
@@ -71,26 +76,32 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
     orgUnit = createOrganisationUnit(CodeGenerator.generateUid());
     dbmsManager.save(orgUnit);
 
+    trackedEntityType = createTrackedEntityType('A');
+    dbmsManager.save(trackedEntityType);
+
     origin = createTrackedEntity(orgUnit);
+    origin.setTrackedEntityType(trackedEntityType);
     duplicate1 = createTrackedEntity(orgUnit);
+    duplicate1.setTrackedEntityType(trackedEntityType);
     TrackedEntity duplicate2 = createTrackedEntity(orgUnit);
 
     dbmsManager.save(origin);
     dbmsManager.save(duplicate1);
     dbmsManager.save(duplicate2);
 
-    potentialDuplicate1 = new PotentialDuplicate(origin.getUid(), duplicate1.getUid());
+    potentialDuplicate1 = new PotentialDuplicate(UID.of(origin), UID.of(duplicate1));
     save(potentialDuplicate1);
-    potentialDuplicate2 = new PotentialDuplicate(origin.getUid(), duplicate2.getUid());
+    potentialDuplicate2 = new PotentialDuplicate(UID.of(origin), UID.of(duplicate2));
     save(potentialDuplicate2);
   }
 
   @Test
   void shouldPostPotentialDuplicateWhenTrackedEntitiesExist() throws Exception {
-    TrackedEntity te = createTrackedEntity(orgUnit);
-    dbmsManager.save(te);
+    TrackedEntity trackedEntity = createTrackedEntity(orgUnit);
+    trackedEntity.setTrackedEntityType(trackedEntityType);
+    dbmsManager.save(trackedEntity);
     PotentialDuplicate potentialDuplicate =
-        new PotentialDuplicate(te.getUid(), duplicate1.getUid());
+        new PotentialDuplicate(UID.of(trackedEntity), UID.of(duplicate1));
 
     assertStatus(
         HttpStatus.OK, POST(ENDPOINT, objectMapper.writeValueAsString(potentialDuplicate)));
@@ -236,7 +247,7 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void shouldThrowPostPotentialDuplicateWhenMissingDuplicateTeiInPayload() throws Exception {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(origin.getUid(), null);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(UID.of(origin), null);
     assertStatus(
         HttpStatus.BAD_REQUEST,
         POST(ENDPOINT, objectMapper.writeValueAsString(potentialDuplicate)));
@@ -244,7 +255,7 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void shouldThrowPostPotentialDuplicateWhenMissingOriginTeiInPayload() throws Exception {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(null, duplicate1.getUid());
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(null, UID.of(duplicate1));
     assertStatus(
         HttpStatus.BAD_REQUEST,
         POST(ENDPOINT, objectMapper.writeValueAsString(potentialDuplicate)));
@@ -253,7 +264,7 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
   @Test
   void shouldThrowBadRequestWhenPutPotentialDuplicateAlreadyMerged() {
     PotentialDuplicate potentialDuplicate =
-        new PotentialDuplicate(origin.getUid(), duplicate1.getUid());
+        new PotentialDuplicate(UID.of(origin), UID.of(duplicate1));
     potentialDuplicate.setStatus(DeduplicationStatus.MERGED);
     save(potentialDuplicate);
 
@@ -301,11 +312,11 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void shouldThrowNotFoundWhenPotentialDuplicateDoNotExists() {
-    assertStatus(HttpStatus.NOT_FOUND, GET(ENDPOINT + "uid"));
+    assertStatus(HttpStatus.NOT_FOUND, GET(ENDPOINT + UID.generate()));
   }
 
   private PotentialDuplicate potentialDuplicate(String original, String duplicate) {
-    return save(new PotentialDuplicate(original, duplicate));
+    return save(new PotentialDuplicate(UID.of(original), UID.of(duplicate)));
   }
 
   private PotentialDuplicate save(PotentialDuplicate potentialDuplicate) {

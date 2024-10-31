@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker;
 
+import static org.hisp.dhis.common.CodeGenerator.generateUid;
 import static org.hisp.dhis.tracker.imports.TrackerIdScheme.ATTRIBUTE;
 import static org.hisp.dhis.tracker.imports.TrackerIdScheme.CODE;
 import static org.hisp.dhis.tracker.imports.TrackerIdScheme.NAME;
@@ -34,10 +35,8 @@ import static org.hisp.dhis.tracker.imports.TrackerIdScheme.UID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import java.util.Set;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.common.CodeGenerator;
+import java.util.Map;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
@@ -124,10 +123,9 @@ class TrackerIdSchemeParamTest {
 
     TrackerIdSchemeParam param = TrackerIdSchemeParam.ofAttribute("z3Z4TD3oBCP");
     Program program = new Program();
-    Attribute att = new Attribute("z3Z4TD3oBCP");
     program.setAttributeValues(
-        Set.of(
-            new AttributeValue(att, "sunshine"), attributeValue("grass"), attributeValue("rocks")));
+        AttributeValues.of(
+            Map.of("z3Z4TD3oBCP", "sunshine", generateUid(), "grass", generateUid(), "rocks")));
 
     MetadataIdentifier id = param.toMetadataIdentifier(program);
 
@@ -146,13 +144,5 @@ class TrackerIdSchemeParamTest {
     assertEquals(ATTRIBUTE, id.getIdScheme());
     assertEquals("z3Z4TD3oBCP", id.getIdentifier());
     assertNull(id.getAttributeValue());
-  }
-
-  private AttributeValue attributeValue(String value) {
-    return attributeValue(CodeGenerator.generateUid(), value);
-  }
-
-  private AttributeValue attributeValue(String uid, String value) {
-    return new AttributeValue(new Attribute(uid), value);
   }
 }

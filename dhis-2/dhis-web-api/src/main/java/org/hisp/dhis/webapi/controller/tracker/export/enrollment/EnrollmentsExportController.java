@@ -61,7 +61,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @OpenApi.EntityType(Enrollment.class)
-@OpenApi.Document(domain = org.hisp.dhis.program.Enrollment.class)
+@OpenApi.Document(
+    entity = org.hisp.dhis.program.Enrollment.class,
+    classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping("/api/tracker/enrollments")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -101,7 +103,7 @@ class EnrollmentsExportController {
       // from a browser
       )
   ResponseEntity<Page<ObjectNode>> getEnrollments(EnrollmentRequestParams requestParams)
-      throws BadRequestException, ForbiddenException {
+      throws BadRequestException, ForbiddenException, NotFoundException {
     validatePaginationParameters(requestParams);
     EnrollmentOperationParams operationParams = paramsMapper.map(requestParams);
 
@@ -142,8 +144,7 @@ class EnrollmentsExportController {
       throws NotFoundException, ForbiddenException {
     EnrollmentParams enrollmentParams = fieldsMapper.map(fields);
     Enrollment enrollment =
-        ENROLLMENT_MAPPER.from(
-            enrollmentService.getEnrollment(uid.getValue(), enrollmentParams, false));
+        ENROLLMENT_MAPPER.from(enrollmentService.getEnrollment(uid, enrollmentParams, false));
     return ResponseEntity.ok(fieldFilterService.toObjectNode(enrollment, fields));
   }
 }

@@ -27,19 +27,25 @@
  */
 package org.hisp.dhis.dxf2.sync;
 
+import static java.util.Map.entry;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import java.util.Map;
+import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-class SyncUtilsTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class SyncUtilsTest extends PostgresIntegrationTestBase {
 
   private static final String USERNAME = "user";
 
@@ -47,15 +53,19 @@ class SyncUtilsTest extends SingleSetupIntegrationTestBase {
 
   private static final String URL = "https://localhost:8080";
 
-  @Autowired SystemSettingManager systemSettingManager;
+  @Autowired SystemSettingsService settingsService;
 
   @Test
-  void getRemoteInstanceTest() {
-    systemSettingManager.saveSystemSetting(SettingKey.REMOTE_INSTANCE_USERNAME, USERNAME);
-    systemSettingManager.saveSystemSetting(SettingKey.REMOTE_INSTANCE_PASSWORD, PASSWORD);
-    systemSettingManager.saveSystemSetting(SettingKey.REMOTE_INSTANCE_URL, URL);
+  void getRemoteInstanceTest() throws Exception {
+    settingsService.putAll(
+        Map.ofEntries(
+            entry("keyRemoteInstanceUsername", USERNAME),
+            entry("keyRemoteInstancePassword", PASSWORD),
+            entry("keyRemoteInstanceUrl", URL)));
+    settingsService.clearCurrentSettings();
     SystemInstance systemInstance =
-        SyncUtils.getRemoteInstance(systemSettingManager, SyncEndpoint.DATA_VALUE_SETS);
+        SyncUtils.getRemoteInstance(
+            settingsService.getCurrentSettings(), SyncEndpoint.DATA_VALUE_SETS);
     assertThat(systemInstance.getUsername(), is(USERNAME));
     assertThat(systemInstance.getPassword(), is(PASSWORD));
     assertThat(systemInstance.getUrl(), is(URL + SyncEndpoint.DATA_VALUE_SETS.getPath()));

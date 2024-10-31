@@ -100,6 +100,16 @@ public enum ErrorCode {
   E1542("Target indicator cannot be a source indicator"),
   E1543("{0} indicator does not exist: `{1}`"),
 
+  /* DataElement merge */
+  E1550("At least one source data element must be specified"),
+  E1551("Target data element must be specified"),
+  E1552("Target data element cannot be a source data element"),
+  E1553("{0} data element does not exist: `{1}`"),
+  E1554("All source ValueTypes must match target ValueType: `{0}`. Other ValueTypes found: `{1}`"),
+  E1555(
+      "All source DataElementDomains must match target DataElementDomain: `{0}`. Other DataElementDomains found: `{1}`"),
+  E1556("dataMergeStrategy field must be specified. With value `DISCARD` or `LAST_UPDATED`"),
+
   /* Data */
   E2000("Query parameters cannot be null"),
   E2001("At least one data element, data set or data element group must be specified"),
@@ -206,6 +216,7 @@ public enum ErrorCode {
   E3032("User `{0}` does not have access to user role"),
   E3040("Could not resolve JwsAlgorithm from the JWK. Can not write a valid JWKSet"),
   E3041("User `{0}` is not allowed to change a user having the ALL authority"),
+  E3042("Too many failed disable attempts. Please try again later"),
 
   /* Metadata Validation */
   E4000("Missing required property `{0}`"),
@@ -380,6 +391,9 @@ public enum ErrorCode {
   E6304("Aggregate data exchange target API must be specified when target type is EXTERNAL"),
   E6305(
       "Aggregate data exchange target API must specify either access token or username and password"),
+
+  /*Analytics table hook*/
+  E6400("Analytics table hook `{0}` is a duplicate of `{1}`"),
 
   /* Scheduling */
   E7000("Job of same type already scheduled with cron expression: `{0}`"),

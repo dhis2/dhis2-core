@@ -100,8 +100,6 @@ import static org.hisp.dhis.commons.util.DebugUtils.getStackTrace;
 import static org.hisp.dhis.commons.util.SystemUtils.getCpuCores;
 import static org.hisp.dhis.dataelement.DataElementOperand.TotalType.values;
 import static org.hisp.dhis.period.PeriodType.getPeriodTypeFromIsoString;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
-import static org.hisp.dhis.setting.SettingKey.DATABASE_SERVER_CPUS;
 import static org.hisp.dhis.system.grid.GridUtils.getGridIndexByDimensionItem;
 import static org.hisp.dhis.system.util.MathUtils.getWithin;
 import static org.hisp.dhis.system.util.MathUtils.isZero;
@@ -129,8 +127,8 @@ import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
-import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.EventAggregateService;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
 import org.hisp.dhis.analytics.resolver.ExpressionResolvers;
 import org.hisp.dhis.analytics.util.PeriodOffsetUtils;
@@ -154,7 +152,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -171,7 +169,7 @@ public class DataHandler {
 
   private static final int PERCENT = 100;
 
-  private final EventAnalyticsService eventAnalyticsService;
+  private final EventAggregateService eventAggregatedService;
 
   private final RawAnalyticsManager rawAnalyticsManager;
 
@@ -181,7 +179,7 @@ public class DataHandler {
 
   private final QueryPlanner queryPlanner;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final AnalyticsManager analyticsManager;
 
@@ -428,7 +426,7 @@ public class DataHandler {
               .withSkipMeta(true)
               .build();
 
-      Grid eventGrid = eventAnalyticsService.getAggregatedEventData(eventQueryParams);
+      Grid eventGrid = eventAggregatedService.getAggregatedData(eventQueryParams);
 
       grid.addRows(eventGrid);
 
@@ -484,7 +482,7 @@ public class DataHandler {
    */
   @Transactional(readOnly = true)
   public void addDataElementOperandValues(DataQueryParams params, Grid grid) {
-    if (!params.getDataElementOperands().isEmpty() && !params.isSkipData()) {
+    if (!params.getAllDataElementOperands().isEmpty() && !params.isSkipData()) {
       DataQueryParams dataSourceParams =
           newBuilder(params).retainDataDimension(DATA_ELEMENT_OPERAND).build();
 
@@ -795,7 +793,7 @@ public class DataHandler {
    * @param totalType the operand {@link TotalType}.
    */
   private void addDataElementOperandValues(DataQueryParams params, Grid grid, TotalType totalType) {
-    List<DataElementOperand> operands = asTypedList(params.getDataElementOperands());
+    List<DataElementOperand> operands = asTypedList(params.getAllDataElementOperands());
     operands =
         operands.stream()
             .filter(o -> totalType.equals(o.getTotalType()))
@@ -805,32 +803,7 @@ public class DataHandler {
       return;
     }
 
-    List<DimensionalItemObject> dataElements = newArrayList(getDataElements(operands));
-    List<DimensionalItemObject> categoryOptionCombos =
-        newArrayList(getCategoryOptionCombos(operands));
-    List<DimensionalItemObject> attributeOptionCombos =
-        newArrayList(getAttributeOptionCombos(operands));
-
-    // TODO Check if data was dim or filter
-
-    DataQueryParams.Builder builder =
-        newBuilder(params)
-            .removeDimension(DATA_X_DIM_ID)
-            .addDimension(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, dataElements));
-
-    if (totalType.isCategoryOptionCombo()) {
-      builder.addDimension(
-          new BaseDimensionalObject(
-              CATEGORYOPTIONCOMBO_DIM_ID, CATEGORY_OPTION_COMBO, categoryOptionCombos));
-    }
-
-    if (totalType.isAttributeOptionCombo()) {
-      builder.addDimension(
-          new BaseDimensionalObject(
-              ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTE_OPTION_COMBO, attributeOptionCombos));
-    }
-
-    DataQueryParams operandParams = builder.build();
+    DataQueryParams operandParams = getOperandDataQueryParams(params, operands, totalType);
 
     Map<String, Object> aggregatedDataMap = getAggregatedDataValueMapObjectTyped(operandParams);
 
@@ -844,6 +817,228 @@ public class DataHandler {
       if (params.isIncludeNumDen()) {
         grid.addNullValues(NUMERATOR_DENOMINATOR_PROPERTIES_COUNT);
       }
+    }
+  }
+
+  /**
+   * Delivers a DataQueryParams instance for DataElementOperands. The dimension and filter operands
+   * are added to the query parameters.
+   *
+   * @param params the {@link DataQueryParams}.
+   * @param operands the collection of {@link DataElementOperand}.
+   * @param totalType the {@link TotalType}.
+   * @return mapped DataQueryParams
+   */
+  private DataQueryParams getOperandDataQueryParams(
+      DataQueryParams params, List<DataElementOperand> operands, TotalType totalType) {
+
+    List<DimensionalItemObject> dataElements = newArrayList(getDataElements(operands));
+    List<DimensionalItemObject> categoryOptionCombos =
+        newArrayList(getCategoryOptionCombos(operands));
+    List<DimensionalItemObject> attributeOptionCombos =
+        newArrayList(getAttributeOptionCombos(operands));
+
+    DataQueryParams.Builder builder = newBuilder(params).removeDimension(DATA_X_DIM_ID);
+
+    addDataElementDimensionToDataQueryParamBuilder(builder, params, dataElements);
+    addDataElementFilterToDataQueryParamBuilder(builder, params, dataElements);
+
+    if (totalType.isCategoryOptionCombo()) {
+      addCategoryOptionComboDimensionToDataQueryParamBuilder(builder, params, categoryOptionCombos);
+      addCategoryOptionComboFilterToDataQueryParamBuilder(builder, params, categoryOptionCombos);
+    }
+
+    if (totalType.isAttributeOptionCombo()) {
+      addAttributeOptionComboDimensionToDataQueryParamBuilder(
+          builder, params, attributeOptionCombos);
+      addAttributeOptionComboFilterToDataQueryParamBuilder(builder, params, attributeOptionCombos);
+    }
+
+    return builder.build();
+  }
+
+  /**
+   * Add CategoryOptionCombo dimension to DataQueryParam builder.
+   *
+   * @param builder the {@link DataQueryParams.Builder}.
+   * @param params the {@link DataQueryParams}.
+   * @param categoryOptionCombos the collection of the {@link DimensionalItemObject}.
+   */
+  private void addCategoryOptionComboDimensionToDataQueryParamBuilder(
+      DataQueryParams.Builder builder,
+      DataQueryParams params,
+      List<DimensionalItemObject> categoryOptionCombos) {
+    List<DimensionalItemObject> dimensionCategoryOptionCombos =
+        categoryOptionCombos.stream()
+            .filter(
+                coc ->
+                    params.getDataElementOperands().stream()
+                        .filter(deo -> ((DataElementOperand) deo).getCategoryOptionCombo() != null)
+                        .anyMatch(
+                            deo ->
+                                ((DataElementOperand) deo)
+                                    .getCategoryOptionCombo()
+                                    .getUid()
+                                    .equals(coc.getUid())))
+            .toList();
+
+    if (!dimensionCategoryOptionCombos.isEmpty()) {
+      builder.addDimension(
+          new BaseDimensionalObject(
+              CATEGORYOPTIONCOMBO_DIM_ID, CATEGORY_OPTION_COMBO, dimensionCategoryOptionCombos));
+    }
+  }
+
+  /**
+   * Add CategoryOptionCombo filter to DataQueryParam builder.
+   *
+   * @param builder the {@link DataQueryParams.Builder}.
+   * @param params the {@link DataQueryParams}.
+   * @param categoryOptionCombos the collection of the {@link DimensionalItemObject}.
+   */
+  private void addCategoryOptionComboFilterToDataQueryParamBuilder(
+      DataQueryParams.Builder builder,
+      DataQueryParams params,
+      List<DimensionalItemObject> categoryOptionCombos) {
+    List<DimensionalItemObject> filterCategoryOptionCombos =
+        categoryOptionCombos.stream()
+            .filter(
+                coc ->
+                    params.getFilterDataElementOperands().stream()
+                        .filter(deo -> ((DataElementOperand) deo).getCategoryOptionCombo() != null)
+                        .anyMatch(
+                            deo ->
+                                ((DataElementOperand) deo)
+                                    .getCategoryOptionCombo()
+                                    .getUid()
+                                    .equals(coc.getUid())))
+            .toList();
+
+    if (!filterCategoryOptionCombos.isEmpty()) {
+      builder.addFilter(
+          new BaseDimensionalObject(
+              CATEGORYOPTIONCOMBO_DIM_ID, CATEGORY_OPTION_COMBO, filterCategoryOptionCombos));
+    }
+  }
+
+  /**
+   * Add AttributeOptionCombo dimension to DataQueryParam builder.
+   *
+   * @param builder the {@link DataQueryParams.Builder}.
+   * @param params the {@link DataQueryParams}.
+   * @param attributeOptionCombos the collection of the {@link DimensionalItemObject}.
+   */
+  private void addAttributeOptionComboDimensionToDataQueryParamBuilder(
+      DataQueryParams.Builder builder,
+      DataQueryParams params,
+      List<DimensionalItemObject> attributeOptionCombos) {
+    List<DimensionalItemObject> dimensionAttributeOptionCombos =
+        attributeOptionCombos.stream()
+            .filter(
+                aoc ->
+                    params.getDataElementOperands().stream()
+                        .filter(deo -> ((DataElementOperand) deo).getAttributeOptionCombo() != null)
+                        .anyMatch(
+                            deo ->
+                                ((DataElementOperand) deo)
+                                    .getAttributeOptionCombo()
+                                    .getUid()
+                                    .equals(aoc.getUid())))
+            .toList();
+
+    if (!dimensionAttributeOptionCombos.isEmpty()) {
+      builder.addDimension(
+          new BaseDimensionalObject(
+              ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTE_OPTION_COMBO, dimensionAttributeOptionCombos));
+    }
+  }
+
+  /**
+   * Add AttributeOptionCombo filter to DataQueryParam builder.
+   *
+   * @param builder the {@link DataQueryParams.Builder}.
+   * @param params the {@link DataQueryParams}.
+   * @param attributeOptionCombos the collection of the {@link DimensionalItemObject}.
+   */
+  private void addAttributeOptionComboFilterToDataQueryParamBuilder(
+      DataQueryParams.Builder builder,
+      DataQueryParams params,
+      List<DimensionalItemObject> attributeOptionCombos) {
+    List<DimensionalItemObject> filterAttributeOptionCombos =
+        attributeOptionCombos.stream()
+            .filter(
+                aoc ->
+                    params.getFilterDataElementOperands().stream()
+                        .filter(deo -> ((DataElementOperand) deo).getAttributeOptionCombo() != null)
+                        .anyMatch(
+                            deo ->
+                                ((DataElementOperand) deo)
+                                    .getAttributeOptionCombo()
+                                    .getUid()
+                                    .equals(aoc.getUid())))
+            .toList();
+
+    if (!filterAttributeOptionCombos.isEmpty()) {
+      builder.addFilter(
+          new BaseDimensionalObject(
+              ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTE_OPTION_COMBO, filterAttributeOptionCombos));
+    }
+  }
+
+  /**
+   * Add DataElement dimension to DataQueryParam builder.
+   *
+   * @param builder the {@link DataQueryParams.Builder}.
+   * @param params the {@link DataQueryParams}.
+   * @param dataElements the collection of the {@link DimensionalItemObject}.
+   */
+  private void addDataElementDimensionToDataQueryParamBuilder(
+      DataQueryParams.Builder builder,
+      DataQueryParams params,
+      List<DimensionalItemObject> dataElements) {
+
+    List<DimensionalItemObject> dimensionDataElements =
+        dataElements.stream()
+            .filter(
+                de ->
+                    params.getDataElementOperands().stream()
+                        .anyMatch(
+                            deo ->
+                                ((DataElementOperand) deo)
+                                    .getDataElement()
+                                    .getUid()
+                                    .equals(de.getUid())))
+            .toList();
+    if (!dimensionDataElements.isEmpty()) {
+      builder.addDimension(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, dimensionDataElements));
+    }
+  }
+
+  /**
+   * Add DataElement filter to DataQueryParam builder.
+   *
+   * @param builder the {@link DataQueryParams.Builder}.
+   * @param params the {@link DataQueryParams}.
+   * @param dataElements the collection of the {@link DimensionalItemObject}.
+   */
+  private void addDataElementFilterToDataQueryParamBuilder(
+      DataQueryParams.Builder builder,
+      DataQueryParams params,
+      List<DimensionalItemObject> dataElements) {
+    List<DimensionalItemObject> filterDataElements =
+        dataElements.stream()
+            .filter(
+                de ->
+                    params.getFilterDataElementOperands().stream()
+                        .anyMatch(
+                            deo ->
+                                ((DataElementOperand) deo)
+                                    .getDataElement()
+                                    .getUid()
+                                    .equals(de.getUid())))
+            .toList();
+    if (!filterDataElements.isEmpty()) {
+      builder.addFilter(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, filterDataElements));
     }
   }
 
@@ -1224,7 +1419,7 @@ public class DataHandler {
     int optimalQueries = getWithin(getProcessNo(), 1, MAX_QUERIES);
 
     int maxLimit =
-        params.isIgnoreLimit() ? 0 : systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT);
+        params.isIgnoreLimit() ? 0 : settingsProvider.getCurrentSettings().getAnalyticsMaxLimit();
 
     Timer timer = new Timer().start().disablePrint();
 
@@ -1301,9 +1496,8 @@ public class DataHandler {
    * @return the number of available cores.
    */
   private int getProcessNo() {
-    Integer cores = systemSettingManager.getIntegerSetting(DATABASE_SERVER_CPUS);
-
-    return (cores == null || cores == 0) ? getCpuCores() : cores;
+    int cores = settingsProvider.getCurrentSettings().getDatabaseServerCpus();
+    return cores == 0 ? getCpuCores() : cores;
   }
 
   /**

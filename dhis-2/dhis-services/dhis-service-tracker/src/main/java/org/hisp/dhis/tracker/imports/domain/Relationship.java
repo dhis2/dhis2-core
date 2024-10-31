@@ -46,19 +46,9 @@ import org.hisp.dhis.tracker.TrackerType;
 public class Relationship implements TrackerDto, Serializable {
   @JsonProperty private String relationship;
 
-  @JsonProperty private String relationshipName;
-
   @JsonProperty private MetadataIdentifier relationshipType;
 
-  @JsonProperty private Instant createdAt;
-
   @JsonProperty private Instant createdAtClient;
-
-  @JsonProperty private Instant updatedAt;
-
-  @JsonProperty private boolean bidirectional;
-
-  @JsonProperty private boolean deleted;
 
   @JsonProperty private RelationshipItem from;
 

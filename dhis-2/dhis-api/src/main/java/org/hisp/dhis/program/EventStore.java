@@ -27,56 +27,13 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 
 /**
  * @author Abyot Asalefew
  */
 public interface EventStore extends IdentifiableObjectStore<Event> {
 
-  /**
-   * Get the number of events updates since the given Date.
-   *
-   * @param time the time.
-   * @return the number of events.
-   */
-  long getEventCountLastUpdatedAfter(Date time);
-
-  /**
-   * Checks for the existence of an event by UID. The deleted events are not taken into account.
-   *
-   * @param uid event UID to check for
-   * @return true/false depending on result
-   */
-  boolean exists(String uid);
-
-  /**
-   * Checks for the existence of an event by UID. It takes into account also the deleted events.
-   *
-   * @param uid event UID to check for
-   * @return true/false depending on result
-   */
-  boolean existsIncludingDeleted(String uid);
-
-  /**
-   * Fetches Event matching the given list of UIDs
-   *
-   * @param uids a List of UID
-   * @return a List containing the Event matching the given parameters list
-   */
-  List<Event> getIncludingDeleted(List<String> uids);
-
-  /**
-   * Get all events which have notifications with the given. ProgramNotificationTemplate scheduled
-   * on the given date.
-   *
-   * @param template the template.
-   * @param notificationDate the Date for which the notification is scheduled.
-   * @return a list of Event.
-   */
-  List<Event> getWithScheduledNotifications(
-      ProgramNotificationTemplate template, Date notificationDate);
+  List<Event> getAllWithEventDataValuesRootKeysContainingAnyOf(List<String> searchStrings);
 }

@@ -31,14 +31,15 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.errorReports;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -64,7 +65,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(domain = Server.class)
+@OpenApi.Document(
+    entity = Server.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @RestController
 @RequestMapping("/api/schemas")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -81,6 +84,12 @@ public class SchemaController {
   @Qualifier("jsonMapper")
   private final ObjectMapper objectMapper;
 
+  @OpenApi.Response(
+      status = OpenApi.Response.Status.OK,
+      object = {
+        @OpenApi.Property(name = "pager", value = Pager.class),
+        @OpenApi.Property(name = "schemas", value = Schema[].class)
+      })
   @GetMapping
   public ResponseEntity<JsonRoot> getSchemas(
       @RequestParam(defaultValue = "*") List<String> fields) {
@@ -93,6 +102,7 @@ public class SchemaController {
     return ResponseEntity.ok(JsonRoot.of("schemas", objectNodes));
   }
 
+  @OpenApi.Response(Schema.class)
   @GetMapping("/{type}")
   public ResponseEntity<ObjectNode> getSchema(
       @PathVariable String type, @RequestParam(defaultValue = "*") List<String> fields)

@@ -37,9 +37,9 @@ import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Date;
 import java.util.List;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -74,7 +74,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-@OpenApi.Document(domain = DataStatistics.class)
+@OpenApi.Document(
+    entity = DataStatistics.class,
+    classifiers = {"team:analytics", "purpose:analytics"})
 @Controller
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

@@ -35,10 +35,10 @@ import static org.hisp.dhis.common.ValueType.DATE;
 import static org.hisp.dhis.common.ValueType.INTEGER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.expression.Operator.equal_to;
-import static org.hisp.dhis.utils.Assertions.assertMapEquals;
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
+import static org.hisp.dhis.test.utils.Assertions.assertMapEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -87,20 +87,24 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.CsvUtils;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.hisp.dhis.visualization.Visualization;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests aggregation of data in analytics tables.
@@ -108,7 +112,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author Henning Haakonsen (original)
  * @author Jim Grace (break cases into individual tests)
  */
-class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class AnalyticsServiceTest extends PostgresIntegrationTestBase {
   private CategoryOptionCombo ocDef;
 
   private String ocDefUid;
@@ -215,7 +221,7 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService settingsService;
 
   private Date processStartTime;
 
@@ -245,8 +251,9 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   //
   // --------------------------------------------------------------------
 
-  @Override
-  public void setUpTest() throws IOException, InterruptedException {
+  @BeforeAll
+  void setUp() throws IOException {
+
     setUpMetadata();
     setUpDataValues();
     setUpValidation();
@@ -256,17 +263,13 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     Date tenSecondsFromNow =
         Date.from(LocalDateTime.now().plusSeconds(10).atZone(ZoneId.systemDefault()).toInstant());
 
-    assertNull(
-        systemSettingManager.getSystemSetting(
-            SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, Date.class));
-    assertNull(
-        systemSettingManager.getSystemSetting(
-            SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, Date.class));
+    SystemSettings settings = settingsService.getCurrentSettings();
+    assertEquals(new Date(0L), settings.getLastSuccessfulResourceTablesUpdate());
+    assertEquals(new Date(0L), settings.getLastSuccessfulAnalyticsTablesUpdate());
     processStartTime = new Date();
     // Generate analytics tables
     analyticsTableGenerator.generateAnalyticsTables(
-        AnalyticsTableUpdateParams.newBuilder().withStartTime(tenSecondsFromNow).build(),
-        JobProgress.noop());
+        AnalyticsTableUpdateParams.newBuilder().startTime(tenSecondsFromNow).build(), transitory());
   }
 
   private void setUpMetadata() {
@@ -560,12 +563,8 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         "Import of data set registrations failed, number of imports are wrong");
   }
 
-  // --------------------------------------------------------------------------
-  // Tear down from all tests
-  // --------------------------------------------------------------------------
-
-  @Override
-  public void tearDownTest() {
+  @AfterAll
+  void tearDown() {
     for (AnalyticsTableService service : analyticsTableServices) {
       service.dropTables();
     }
@@ -1578,19 +1577,17 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   @Test
   void resourceTablesTimestampUpdated() {
 
-    Date tableLastUpdated =
-        systemSettingManager.getSystemSetting(
-            SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, Date.class);
-    assertNotEquals(null, tableLastUpdated);
-    Date resourceTablesUpdated =
-        systemSettingManager.getSystemSetting(
-            SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, Date.class);
-    assertNotEquals(null, resourceTablesUpdated);
+    settingsService.clearCurrentSettings();
+    SystemSettings settings = settingsService.getCurrentSettings();
+    Date tableLastUpdated = settings.getLastSuccessfulAnalyticsTablesUpdate();
+    assertNotEquals(new Date(0L), tableLastUpdated);
+    Date resourceTablesUpdated = settings.getLastSuccessfulResourceTablesUpdate();
+    assertNotEquals(new Date(0L), resourceTablesUpdated);
     assertTrue(
-        tableLastUpdated.compareTo(processStartTime) > 0,
+        tableLastUpdated.after(processStartTime),
         String.format("%s > %s", tableLastUpdated, processStartTime));
     assertTrue(
-        resourceTablesUpdated.compareTo(processStartTime) > 0,
+        resourceTablesUpdated.after(processStartTime),
         String.format("%s > %s", resourceTablesUpdated, processStartTime));
   }
 }

@@ -43,20 +43,23 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.programstagefilter.DateFilterPeriod;
 import org.hisp.dhis.programstagefilter.DatePeriodType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
-class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class TrackedEntityFilterServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramService programService;
 
@@ -64,25 +67,17 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
-  @Autowired private UserService _userService;
-
   private Program programA;
 
   private Program programB;
 
   @BeforeEach
   void setup() {
-    userService = _userService;
-
-    preCreateInjectAdminUser();
-
-    String currentUsername = CurrentUserUtil.getCurrentUsername();
-    User currentUser = userService.getUserByUsername(currentUsername);
-    injectSecurityContextUser(currentUser);
+    injectAdminIntoSecurityContext();
   }
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     programA = createProgram('A', null, null);
     programB = createProgram('B', null, null);
     programService.addProgram(programA);
@@ -99,6 +94,24 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase {
     assertEquals(idB, trackedEntityFilterB.getId());
     assertEquals(trackedEntityFilterA, trackedEntityFilterService.get(idA));
     assertEquals(trackedEntityFilterB, trackedEntityFilterService.get(idB));
+  }
+
+  @Test
+  void testAddFilterWithAndWithoutFollowUp() {
+    TrackedEntityFilter filterWithOutFollowUp = createTrackedEntityFilter('A', programA);
+    TrackedEntityFilter filterWithFollowUp = createTrackedEntityFilter('B', programB);
+    filterWithFollowUp.getEntityQueryCriteria().setFollowUp(true);
+    long idA = trackedEntityFilterService.add(filterWithOutFollowUp);
+    long idB = trackedEntityFilterService.add(filterWithFollowUp);
+
+    TrackedEntityFilter fetchedA = trackedEntityFilterService.get(idA);
+    TrackedEntityFilter fetchedB = trackedEntityFilterService.get(idB);
+
+    assertEquals(filterWithOutFollowUp, fetchedA);
+    assertNull(fetchedA.getEntityQueryCriteria().getFollowUp());
+
+    assertEquals(filterWithFollowUp, trackedEntityFilterService.get(idB));
+    assertTrue(fetchedB.getEntityQueryCriteria().getFollowUp());
   }
 
   @Test

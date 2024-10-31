@@ -29,15 +29,14 @@ package org.hisp.dhis.tracker.imports.validation.validator.event;
 
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.hisp.dhis.category.CategoryOption.DEFAULT_NAME;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1056;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1057;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
 import java.util.Date;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -45,15 +44,15 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.mock.MockI18nFormat;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.test.mock.MockI18nFormat;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,7 +63,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Jim Grace
  */
 @ExtendWith(MockitoExtension.class)
-class CategoryOptValidatorTest extends DhisConvenienceTest {
+class CategoryOptValidatorTest extends TestBase {
 
   @Mock private I18nManager i18nManager;
 
@@ -96,11 +95,11 @@ class CategoryOptValidatorTest extends DhisConvenienceTest {
 
   private Reporter reporter;
 
-  private final Date ONE_YEAR_BEFORE_EVENT = getDate(2020, 1, 1);
+  private static final Date ONE_YEAR_BEFORE_EVENT = getDate(2020, 1, 1);
 
-  private final Instant EVENT_INSTANT = getDate(2021, 1, 1).toInstant();
+  private static final Instant EVENT_INSTANT = getDate(2021, 1, 1).toInstant();
 
-  private final Date ONE_YEAR_AFTER_EVENT = getDate(2022, 1, 1);
+  private static final Date ONE_YEAR_AFTER_EVENT = getDate(2022, 1, 1);
 
   @BeforeEach
   public void setUp() {
@@ -132,9 +131,7 @@ class CategoryOptValidatorTest extends DhisConvenienceTest {
     event.setProgram(MetadataIdentifier.ofUid(program));
     event.setOccurredAt(EVENT_INSTANT);
 
-    User user = makeUser("A");
-
-    bundle = TrackerBundle.builder().user(user).preheat(preheat).build();
+    bundle = TrackerBundle.builder().preheat(preheat).build();
 
     when(preheat.getProgram(MetadataIdentifier.ofUid(program))).thenReturn(program);
     when(i18nManager.getI18nFormat()).thenReturn(I18N_FORMAT);

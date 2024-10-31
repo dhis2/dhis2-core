@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_ENROLLMENT_GEOMETRY;
+import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_EVENT_GEOMETRY;
+import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_TRACKED_ENTITY_GEOMETRY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -69,18 +72,24 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
 
   private Program prA;
 
@@ -124,8 +133,8 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private LegendSetService legendSetService;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     peA = PeriodType.getPeriodFromIsoString("201401");
     peB = PeriodType.getPeriodFromIsoString("201402");
     ouA = createOrganisationUnit('A');
@@ -181,7 +190,7 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase {
     assertEquals(1, params.getOrganisationUnits().size());
     assertEquals(1, params.getItems().size());
     assertEquals(2, params.getFilterPeriods().size());
-    assertEquals(List.of("psigeometry", "ougeometry"), params.getCoordinateFields());
+    assertEquals(List.of("eventgeometry", "ougeometry"), params.getCoordinateFields());
   }
 
   @Test
@@ -245,7 +254,7 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase {
     assertEquals(1, params.getFilterPeriods().size());
     assertEquals(deA, params.getValue());
     assertEquals(AnalyticsAggregationType.AVERAGE, params.getAggregationType());
-    assertEquals(List.of("psigeometry", "ougeometry"), params.getCoordinateFields());
+    assertEquals(List.of("eventgeometry", "ougeometry"), params.getCoordinateFields());
   }
 
   @Test
@@ -492,16 +501,51 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase {
   @Test
   void testGetCoordinateField() {
     assertEquals(
-        List.of("psigeometry"),
+        List.of("eventgeometry"),
         dataQueryService.getCoordinateFields(
             prA.getUid(), EventQueryParams.EVENT_COORDINATE_FIELD, null, false));
     assertEquals(
-        List.of("pigeometry"),
+        List.of("enrollmentgeometry"),
         dataQueryService.getCoordinateFields(
             prA.getUid(), EventQueryParams.ENROLLMENT_COORDINATE_FIELD, null, false));
     assertEquals(
-        List.of("psigeometry"),
-        dataQueryService.getCoordinateFields(prA.getUid(), null, "psigeometry", false));
+        List.of("eventgeometry"),
+        dataQueryService.getCoordinateFields(prA.getUid(), null, "eventgeometry", false));
+    assertEquals(
+        List.of(deC.getUid()),
+        dataQueryService.getCoordinateFields(prA.getUid(), deC.getUid(), null, false));
+  }
+
+  @Test
+  void testGetBackwardCompatibleCoordinateField() {
+    final String OLD_COL_NAME_EVENT_GEOMETRY = "psigeometry";
+    final String OLD_COL_NAME_ENROLLMENT_GEOMETRY = "pigeometry";
+    final String OLD_COL_NAME_TRACKED_ENTITY_GEOMETRY = "teigeometry";
+
+    assertEquals(
+        List.of(COL_NAME_EVENT_GEOMETRY),
+        dataQueryService.getCoordinateFields(
+            prA.getUid(), OLD_COL_NAME_EVENT_GEOMETRY, null, false));
+    assertEquals(
+        List.of(COL_NAME_ENROLLMENT_GEOMETRY),
+        dataQueryService.getCoordinateFields(
+            prA.getUid(), OLD_COL_NAME_ENROLLMENT_GEOMETRY, null, false));
+    assertEquals(
+        List.of(COL_NAME_TRACKED_ENTITY_GEOMETRY),
+        dataQueryService.getCoordinateFields(
+            prA.getUid(), OLD_COL_NAME_TRACKED_ENTITY_GEOMETRY, null, false));
+    assertEquals(
+        List.of(COL_NAME_EVENT_GEOMETRY),
+        dataQueryService.getCoordinateFields(
+            prA.getUid(), null, OLD_COL_NAME_EVENT_GEOMETRY, false));
+    assertEquals(
+        List.of(COL_NAME_ENROLLMENT_GEOMETRY),
+        dataQueryService.getCoordinateFields(
+            prA.getUid(), null, OLD_COL_NAME_ENROLLMENT_GEOMETRY, false));
+    assertEquals(
+        List.of(COL_NAME_TRACKED_ENTITY_GEOMETRY),
+        dataQueryService.getCoordinateFields(
+            prA.getUid(), null, OLD_COL_NAME_TRACKED_ENTITY_GEOMETRY, false));
     assertEquals(
         List.of(deC.getUid()),
         dataQueryService.getCoordinateFields(prA.getUid(), deC.getUid(), null, false));
@@ -528,7 +572,6 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase {
     // Then
     assertThrows(
         IllegalQueryException.class,
-        () ->
-            dataQueryService.getCoordinateFields(programUid, "teigeometry", "badfallback", false));
+        () -> dataQueryService.getCoordinateFields(programUid, "tegeometry", "badfallback", false));
   }
 }

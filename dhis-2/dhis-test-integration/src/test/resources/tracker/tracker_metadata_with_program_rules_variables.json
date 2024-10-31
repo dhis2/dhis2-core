@@ -17,10 +17,10 @@
       "featureType": "NONE",
       "minAttributesRequiredToSearch": 1,
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "userGroupAccesses": [],
       "attributeValues": [],
@@ -31,15 +31,15 @@
   ],
   "users": [
     {
-      "code": "admin",
+      "code": "tracker admin",
       "lastUpdated": "2019-01-28T11:04:32.097",
-      "id": "M5zQapPyTZI",
+      "id": "tTgjgobT1oS",
       "created": "2019-01-28T11:03:39.373",
-      "surname": "admin",
-      "firstName": "admin",
-      "name": "admin admin",
+      "surname": "tracker admin",
+      "firstName": "tracker admin",
+      "name": "tracker admin",
       "lastLogin": "2019-01-28T11:34:56.529",
-      "displayName": "admin admin",
+      "displayName": "tracker admin",
       "externalAuth": false,
       "externalAccess": false,
       "disabled": false,
@@ -48,9 +48,9 @@
       "invitation": false,
       "selfRegistered": false,
       "favorite": false,
-      "username": "admin",
+      "username": "trackeradmin",
       "userInfo": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "access": {
         "read": true,
@@ -67,7 +67,7 @@
       "userGroupAccesses": [],
       "userRoles": [
         {
-          "id": "yrB6vc5Ip3r"
+          "id": "nJ4Ml8ads4M"
         }
       ],
       "userAccesses": [],
@@ -96,10 +96,10 @@
       "featureType": "NONE",
       "openingDate": "2019-01-28T00:00:00.000",
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "attributeValues": [],
       "translations": []
@@ -132,10 +132,10 @@
         "id": "bjDvmb4bfuf"
       },
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "trackedEntityType": {
         "id": "nEenWmSyUEp"
@@ -192,13 +192,13 @@
   ],
   "userRoles": [
     {
-      "code": "Superuser",
+      "code": "tracker Superuser",
       "created": "2019-01-28T11:03:39.381",
       "lastUpdated": "2019-01-28T11:03:39.381",
-      "name": "Superuser",
-      "id": "yrB6vc5Ip3r",
+      "name": "tracker Superuser",
+      "id": "nJ4Ml8ads4M",
       "publicAccess": "--------",
-      "description": "Superuser",
+      "description": "tracker Superuser",
       "userGroupAccesses": [],
       "authorities": [
         "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
@@ -208,7 +208,6 @@
         "F_ORGANISATIONUNIT_MOVE",
         "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
         "F_PREDICTOR_RUN",
-        "F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION",
         "F_RUN_VALIDATION",
         "F_LOCALE_ADD",
         "F_REPLICATE_USER",
@@ -252,10 +251,10 @@
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "translations": [],
       "userGroupAccesses": [],
@@ -273,7 +272,7 @@
       "description": "test-program-rule",
       "condition": "true",
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "program": {
         "id": "BFcipDERJne"
@@ -333,7 +332,7 @@
       "templateUid": "FdIeUL4gyoB",
       "evaluationTime": "ALWAYS",
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "programRule": {
         "id": "lmgRJ5WF2x8"
@@ -367,7 +366,7 @@
         "manage": true
       },
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "favorites": [],
       "translations": [],
@@ -398,7 +397,7 @@
         "manage": true
       },
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "favorites": [],
       "translations": [],

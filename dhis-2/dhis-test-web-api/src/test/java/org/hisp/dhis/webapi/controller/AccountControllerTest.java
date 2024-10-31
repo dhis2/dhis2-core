@@ -27,34 +27,51 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
+import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link AccountController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-class AccountControllerTest extends DhisControllerIntegrationTest {
-  @Autowired private SystemSettingManager systemSettingManager;
+@Transactional
+class AccountControllerTest extends PostgresControllerIntegrationTestBase {
+
+  @Autowired private SystemSettingsService settingsService;
+  @Autowired private MessageSender emailMessageSender;
+
+  @AfterEach
+  void afterEach() {
+    emailMessageSender.clearMessages();
+  }
 
   @Test
   void testRecoverAccount_NotEnabled() {
+    settingsService.put("keyAccountRecovery", false);
     User test = switchToNewUser("test");
-    switchToSuperuser();
+    switchToAdminUser();
     clearSecurityContext();
     assertWebMessage(
         "Conflict",
@@ -77,7 +94,7 @@ class AccountControllerTest extends DhisControllerIntegrationTest {
 
   @Test
   void testRecoverAccount_UsernameNotExist() {
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, Boolean.TRUE);
+    settingsService.put("keyAccountRecovery", true);
     clearSecurityContext();
     assertWebMessage(
         "Conflict",
@@ -89,27 +106,28 @@ class AccountControllerTest extends DhisControllerIntegrationTest {
 
   @Test
   void testRecoverAccount_NotValidEmail() {
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, Boolean.TRUE);
+    settingsService.put("keyAccountRecovery", true);
     clearSecurityContext();
     assertWebMessage(
         "Conflict",
         409,
         "ERROR",
         "User account does not have a valid email address",
-        POST("/account/recovery?username=" + superUser.getUsername()).content(HttpStatus.CONFLICT));
+        POST("/account/recovery?username=" + getAdminUser().getUsername())
+            .content(HttpStatus.CONFLICT));
   }
 
   @Test
   void testRecoverAccount_OK() {
     switchToNewUser("test");
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, Boolean.TRUE);
+    settingsService.put("keyAccountRecovery", true);
     clearSecurityContext();
     POST("/account/recovery?username=test").content(HttpStatus.OK);
   }
 
   @Test
   void testCreateAccount() {
-    systemSettingManager.saveSystemSetting(SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.TRUE);
+    settingsService.put("keySelfRegistrationNoRecaptcha", true);
     assertWebMessage(
         "Bad Request",
         400,
@@ -200,6 +218,9 @@ class AccountControllerTest extends DhisControllerIntegrationTest {
 
   @Test
   void testGetLinkedAccounts() {
+    createUserWithAuth("usera");
+    createUserWithAuth("userb");
+
     String openId = "email@provider.com";
     List<User> allUsers = userService.getAllUsers();
     for (User user : allUsers) {
@@ -209,7 +230,123 @@ class AccountControllerTest extends DhisControllerIntegrationTest {
 
     JsonMixed response = GET("/account/linkedAccounts").content(HttpStatus.OK);
     JsonList<JsonObject> users = response.getList("users", JsonObject.class);
-    assertEquals(2, users.size());
+    assertEquals(3, users.size());
+  }
+
+  @Test
+  void testVerifyEmailWithTokenTwice() {
+    User user = switchToNewUser("kent");
+
+    String emailAddress = user.getEmail();
+    assertStatus(HttpStatus.CREATED, POST("/account/sendEmailVerification"));
+    OutboundMessage emailMessage = assertMessageSendTo(emailAddress);
+    String token = extractTokenFromEmailText(emailMessage.getText());
+    assertNotNull(token);
+
+    assertStatus(HttpStatus.OK, GET("/account/verifyEmail?token=" + token));
+    user = userService.getUser(user.getId());
+    assertTrue(userService.isEmailVerified(user));
+
+    assertStatus(HttpStatus.CONFLICT, GET("/account/verifyEmail?token=" + token));
+  }
+
+  @Test
+  void testSendEmailVerification() {
+    User user = switchToNewUser("clark");
+
+    String emailAddress = user.getEmail();
+    assertStatus(HttpStatus.CREATED, POST("/account/sendEmailVerification"));
+    OutboundMessage emailMessage = assertMessageSendTo(emailAddress);
+    String token = extractTokenFromEmailText(emailMessage.getText());
+    assertNotNull(token);
+
+    user = userService.getUser(user.getId());
+    assertFalse(userService.isEmailVerified(user));
+  }
+
+  @Test
+  void testVerifyEmailWithToken() {
+    User user = switchToNewUser("lex");
+
+    String emailAddress = user.getEmail();
+    assertStatus(HttpStatus.CREATED, POST("/account/sendEmailVerification"));
+    OutboundMessage emailMessage = assertMessageSendTo(emailAddress);
+    String token = extractTokenFromEmailText(emailMessage.getText());
+    assertValidEmailVerificationToken(token);
+
+    assertStatus(HttpStatus.OK, GET("/account/verifyEmail?token=" + token));
+    user = userService.getUser(user.getId());
+    assertTrue(userService.isEmailVerified(user));
+  }
+
+  @Test
+  void testVerifyWithBadToken() {
+    switchToNewUser("zod");
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Verification token is invalid",
+        GET("/account/verifyEmail?token=eviltoken").content(HttpStatus.CONFLICT));
+  }
+
+  @Test
+  void testSendEmailWithoutEmail() {
+    User user = switchToNewUser("metallo");
+    user.setEmail(null);
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Email is not set",
+        POST("/account/sendEmailVerification").content(HttpStatus.CONFLICT));
+  }
+
+  @Test
+  void testSendEmailIsAlreadyVerifiedBySameUser() {
+    User user = switchToNewUser("brainiac");
+    user.setVerifiedEmail(user.getEmail());
+    userService.updateUser(user);
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Email is already verified",
+        POST("/account/sendEmailVerification").content(HttpStatus.CONFLICT));
+  }
+
+  @Test
+  void testSendEmailIsAlreadyVerifiedByAnotherUser() {
+    User user = switchToNewUser("doomsday");
+
+    user.setVerifiedEmail(user.getEmail());
+    userService.updateUser(user);
+
+    User anotherUser = switchToNewUser("ultraman");
+    anotherUser.setEmail(user.getEmail());
+
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Email is already in use by another account",
+        POST("/account/sendEmailVerification").content(HttpStatus.CONFLICT));
+  }
+
+  private void assertValidEmailVerificationToken(String token) {
+    User user = userService.getUserByVerificationToken(token);
+    assertNotNull(user);
+  }
+
+  private OutboundMessage assertMessageSendTo(String email) {
+    List<OutboundMessage> messagesByEmail = emailMessageSender.getMessagesByEmail(email);
+    assertFalse(messagesByEmail.isEmpty());
+    return messagesByEmail.get(0);
+  }
+
+  private String extractTokenFromEmailText(String message) {
+    int tokenPos = message.indexOf("?token=");
+    return message.substring(tokenPos + 7, message.indexOf('\n', tokenPos)).trim();
   }
 
   private static void assertMessage(String key, String value, String message, JsonMixed response) {

@@ -29,11 +29,12 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ConflictException;
@@ -65,6 +66,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Slf4j
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
+@OpenApi.Document(classifiers = {"team:platform", "purpose:support"})
 public class PushAnalysisController extends AbstractCrudController<PushAnalysis> {
 
   private final PushAnalysisService pushAnalysisService;
@@ -108,6 +110,6 @@ public class PushAnalysisController extends AbstractCrudController<PushAnalysis>
     config.setJobParameters(new PushAnalysisJobParameters(uid));
     config.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
 
-    jobSchedulerService.executeNow(jobConfigurationService.create(config));
+    jobSchedulerService.createThenExecute(config);
   }
 }

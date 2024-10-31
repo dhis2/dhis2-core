@@ -95,6 +95,7 @@ public class DefaultCacheProvider implements CacheProvider {
     periodIdCache,
     userAccountRecoverAttempt,
     userFailedLoginAttempt,
+    twoFaDisableFailedAttempt,
     programOwner,
     programTempOwner,
     userIdCache,
@@ -295,6 +296,15 @@ public class DefaultCacheProvider implements CacheProvider {
   }
 
   @Override
+  public <V> Cache<V> createDisable2FAFailedAttemptCache(V defaultValue) {
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(Region.twoFaDisableFailedAttempt.name())
+            .expireAfterWrite(15, MINUTES)
+            .withDefaultValue(defaultValue));
+  }
+
+  @Override
   public <V> Cache<V> createProgramOwnerCache() {
     return registerCache(
         this.<V>newBuilder()
@@ -334,15 +344,6 @@ public class DefaultCacheProvider implements CacheProvider {
   }
 
   @Override
-  public <V> Cache<V> createUserSettingCache() {
-    return registerCache(
-        this.<V>newBuilder()
-            .forRegion(Region.userSetting.name())
-            .expireAfterWrite(12, TimeUnit.HOURS)
-            .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_10K))));
-  }
-
-  @Override
   public <V> Cache<V> createAttrOptionComboIdCache() {
     return registerCache(
         this.<V>newBuilder()
@@ -351,15 +352,6 @@ public class DefaultCacheProvider implements CacheProvider {
             .withInitialCapacity((int) getActualSize(SIZE_1K))
             .forceInMemory()
             .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_10K))));
-  }
-
-  @Override
-  public <V> Cache<V> createSystemSettingCache() {
-    return registerCache(
-        this.<V>newBuilder()
-            .forRegion(Region.systemSetting.name())
-            .expireAfterWrite(12, TimeUnit.HOURS)
-            .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_1K))));
   }
 
   /**

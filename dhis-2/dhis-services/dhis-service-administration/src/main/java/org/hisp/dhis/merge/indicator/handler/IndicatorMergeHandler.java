@@ -35,16 +35,11 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.collection.CollectionUtils;
-import org.hisp.dhis.dataentryform.DataEntryForm;
-import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
-import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.springframework.stereotype.Service;
@@ -59,8 +54,6 @@ import org.springframework.stereotype.Service;
 public class IndicatorMergeHandler {
 
   private final SectionStore sectionStore;
-  private final IndicatorService indicatorService;
-  private final DataEntryFormService dataEntryFormService;
   private final DimensionService dimensionService;
   private final VisualizationService visualizationService;
 
@@ -152,55 +145,5 @@ public class IndicatorMergeHandler {
           s.removeIndicators(sources);
           s.addIndicator(target);
         });
-  }
-
-  /**
-   * Replace all {@link Indicator} refs in the numerator and denominator fields
-   *
-   * @param sources to be replaced
-   * @param target to replace each source
-   */
-  public void handleIndicatorRefsInIndicator(List<Indicator> sources, Indicator target) {
-    for (Indicator source : sources) {
-      // numerators
-      List<Indicator> numeratorIndicators =
-          indicatorService.getIndicatorsWithNumeratorContaining(UID.of(source.getUid()));
-
-      numeratorIndicators.forEach(
-          i -> {
-            String existingNumerator = i.getNumerator();
-            i.setNumerator(existingNumerator.replace(source.getUid(), target.getUid()));
-          });
-
-      // denominators
-      List<Indicator> denominatorIndicators =
-          indicatorService.getIndicatorsWithDenominatorContaining(UID.of(source.getUid()));
-
-      denominatorIndicators.forEach(
-          i -> {
-            String existingDenominator = i.getDenominator();
-            i.setDenominator(existingDenominator.replace(source.getUid(), target.getUid()));
-          });
-    }
-  }
-
-  /**
-   * Replace all {@link Indicator} refs in the htmlCode fields
-   *
-   * @param sources to be replaced
-   * @param target to replace each source
-   */
-  public void handleIndicatorRefsInCustomForms(List<Indicator> sources, Indicator target) {
-    for (Indicator source : sources) {
-      List<DataEntryForm> forms =
-          dataEntryFormService.getDataEntryFormsWithHtmlContaining(source.getUid());
-
-      if (CollectionUtils.isNotEmpty(forms)) {
-        for (DataEntryForm dataEntryForm : forms) {
-          String existingHtml = dataEntryForm.getHtmlCode();
-          dataEntryForm.setHtmlCode(existingHtml.replace(source.getUid(), target.getUid()));
-        }
-      }
-    }
   }
 }

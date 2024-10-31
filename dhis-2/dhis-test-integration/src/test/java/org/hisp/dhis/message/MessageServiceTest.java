@@ -38,20 +38,23 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class MessageServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class MessageServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private MessageService messageService;
-
-  @Autowired private UserService _userService;
 
   private User sender;
 
@@ -61,12 +64,8 @@ class MessageServiceTest extends SingleSetupIntegrationTestBase {
 
   private Set<User> users;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() {
-    userService = _userService;
+  @BeforeAll
+  void setUp() {
     sender = makeUser("S");
     userA = makeUser("A");
     userB = makeUser("B");
@@ -151,12 +150,16 @@ class MessageServiceTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testSendFeedback() {
+    User adminUser = getAdminUser();
+    injectSecurityContextUser(adminUser);
+    User user = createUserWithAuth("feedback", "ALL");
+    injectSecurityContextUser(user);
     long id = messageService.sendTicketMessage("Subject", "Text", "Meta");
     MessageConversation conversation = messageService.getMessageConversation(id);
     assertNotNull(conversation);
     assertEquals("Subject", conversation.getSubject());
     assertEquals(1, conversation.getMessages().size());
-    assertTrue(conversation.getMessages().iterator().next().getText().equals("Text"));
+    assertEquals("Text", conversation.getMessages().iterator().next().getText());
   }
 
   @Test

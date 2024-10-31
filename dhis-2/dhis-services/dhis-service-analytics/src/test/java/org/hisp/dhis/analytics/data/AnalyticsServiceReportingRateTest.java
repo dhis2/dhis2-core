@@ -31,7 +31,8 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
+import static org.hisp.dhis.test.TestBase.createDataSet;
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -59,13 +60,20 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.user.SystemUser;
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Luciano Fiandesio
  */
 class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
+  @BeforeEach
+  public void setUp() {
+    injectSecurityContextNoSettings(new SystemUser());
+  }
+
   @Test
   void verifyReportingRatesValueWhenPeriodIsFilter() {
     int timeUnit = 10;

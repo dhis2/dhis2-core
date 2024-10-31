@@ -36,12 +36,12 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
@@ -63,7 +63,7 @@ import org.mockito.quality.Strictness;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class AssignAttributeExecutorTest extends DhisConvenienceTest {
+class AssignAttributeExecutorTest extends TestBase {
 
   private static final String TRACKED_ENTITY_ID = "TrackedEntityUid";
 
@@ -87,7 +87,8 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
 
   @Mock private TrackerPreheat preheat;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsProvider settingsProvider;
+  @Mock private SystemSettings settings;
 
   @BeforeEach
   void setUpTest() {
@@ -98,8 +99,8 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
     when(preheat.getTrackedEntityAttribute(attributeA.getUid())).thenReturn(attributeA);
     bundle = TrackerBundle.builder().build();
     bundle.setPreheat(preheat);
-    when(systemSettingManager.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
-        .thenReturn(Boolean.FALSE);
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(settings.getRuleEngineAssignOverwrite()).thenReturn(false);
   }
 
   @Test
@@ -113,7 +114,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
 
     AssignAttributeExecutor executor =
         new AssignAttributeExecutor(
-            systemSettingManager,
+            settingsProvider,
             RULE_UID,
             TE_ATTRIBUTE_NEW_VALUE,
             ATTRIBUTE_UID,
@@ -135,7 +136,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
 
     AssignAttributeExecutor executor =
         new AssignAttributeExecutor(
-            systemSettingManager,
+            settingsProvider,
             RULE_UID,
             TE_ATTRIBUTE_NEW_VALUE,
             ATTRIBUTE_UID,
@@ -160,7 +161,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
 
     AssignAttributeExecutor executor =
         new AssignAttributeExecutor(
-            systemSettingManager,
+            settingsProvider,
             RULE_UID,
             TE_ATTRIBUTE_NEW_VALUE,
             ATTRIBUTE_UID,
@@ -185,7 +186,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
 
     AssignAttributeExecutor executor =
         new AssignAttributeExecutor(
-            systemSettingManager,
+            settingsProvider,
             RULE_UID,
             TE_ATTRIBUTE_NEW_VALUE,
             ATTRIBUTE_UID,
@@ -206,8 +207,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
   @Test
   void
       shouldAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentInTeiAndCanBeOverwritten() {
-    when(systemSettingManager.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
-        .thenReturn(Boolean.TRUE);
+    when(settings.getRuleEngineAssignOverwrite()).thenReturn(true);
     Enrollment enrollmentWithAttributeNOTSet = getEnrollmentWithAttributeNOTSet();
     List<Enrollment> enrollments = List.of(enrollmentWithAttributeNOTSet);
     List<TrackedEntity> trackedEntities = List.of(getTrackedEntitiesWithAttributeSet());
@@ -216,7 +216,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
 
     AssignAttributeExecutor executor =
         new AssignAttributeExecutor(
-            systemSettingManager,
+            settingsProvider,
             RULE_UID,
             TE_ATTRIBUTE_NEW_VALUE,
             ATTRIBUTE_UID,
@@ -242,7 +242,7 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
 
     AssignAttributeExecutor executor =
         new AssignAttributeExecutor(
-            systemSettingManager,
+            settingsProvider,
             RULE_UID,
             TE_ATTRIBUTE_NEW_VALUE,
             ATTRIBUTE_UID,
@@ -262,12 +262,11 @@ class AssignAttributeExecutorTest extends DhisConvenienceTest {
     Enrollment enrollmentWithAttributeSet = getEnrollmentWithAttributeSet();
     List<Enrollment> enrollments = List.of(enrollmentWithAttributeSet);
     bundle.setEnrollments(enrollments);
-    when(systemSettingManager.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
-        .thenReturn(Boolean.TRUE);
+    when(settings.getRuleEngineAssignOverwrite()).thenReturn(true);
 
     AssignAttributeExecutor executor =
         new AssignAttributeExecutor(
-            systemSettingManager,
+            settingsProvider,
             RULE_UID,
             TE_ATTRIBUTE_NEW_VALUE,
             ATTRIBUTE_UID,

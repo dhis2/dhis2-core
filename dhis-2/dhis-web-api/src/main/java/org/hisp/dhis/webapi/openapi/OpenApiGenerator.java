@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
-import static java.lang.Boolean.parseBoolean;
-import static java.lang.Double.parseDouble;
-import static java.lang.Integer.parseInt;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.Comparator.comparing;
@@ -51,6 +48,8 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Maturity;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.webapi.openapi.Api.Schema.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -172,6 +171,12 @@ public class OpenApiGenerator extends JsonGenerator {
                       addStringMember("url", info.contactUrl);
                       addStringMember("email", info.contactEmail);
                     });
+                addObjectMember(
+                    "x-navigation",
+                    () ->
+                        ApiClassification.of(api.getContext())
+                            .getClassifiers()
+                            .forEach(this::addArrayMember));
               });
           addArrayMember(
               "tags",
@@ -216,23 +221,28 @@ public class OpenApiGenerator extends JsonGenerator {
   }
 
   private void generatePaths() {
-    api.getEndpoints().forEach(this::generatePath);
+    api.getEndpoints().forEach(this::generatePathItem);
   }
 
-  private void generatePath(String path, Map<RequestMethod, Api.Endpoint> endpoints) {
-    addObjectMember(path, () -> endpoints.forEach(this::generatePathMethod));
+  private void generatePathItem(String path, Map<RequestMethod, Api.Endpoint> endpoints) {
+    addObjectMember(path, () -> endpoints.forEach(this::generateOperation));
   }
 
-  private void generatePathMethod(RequestMethod method, Api.Endpoint endpoint) {
-    Set<String> tags = Set.of(endpoint.getGroup().tag());
+  private void generateOperation(RequestMethod method, Api.Endpoint endpoint) {
     addObjectMember(
         method.name().toLowerCase(),
         () -> {
           addTrueMember("deprecated", endpoint.getDeprecated());
           addStringMember("x-maturity", getMaturityTag(endpoint.getMaturity()));
+          addStringMember("x-since", getSinceVersion(endpoint.getSince()));
           addStringMultilineMember("description", endpoint.getDescription().orElse(NO_DESCRIPTION));
           addStringMember("operationId", getUniqueOperationId(endpoint));
-          addInlineArrayMember("tags", List.copyOf(tags));
+          addObjectMember(
+              "x-classifiers",
+              () -> endpoint.getIn().getClassifiers().forEach(this::addStringMember));
+          addStringMember("x-group", endpoint.getGroup());
+          addInlineArrayMember("x-auth", endpoint.getAuthorities());
+          addInlineArrayMember("tags", List.of()); // TODO add tag support again
           addArrayMember(
               "parameters", endpoint.getParameters().values(), this::generateParameterOrRef);
           if (endpoint.getRequestBody().isPresent()) {
@@ -274,7 +284,8 @@ public class OpenApiGenerator extends JsonGenerator {
           addTrueMember("required", parameter.isRequired());
           addTrueMember("deprecated", parameter.getDeprecated());
           addStringMember("x-maturity", getMaturityTag(parameter.getMaturity()));
-          String defaultValue = parameter.getDefaultValue().orElse(null);
+          addStringMember("x-since", getSinceVersion(parameter.getSince()));
+          JsonValue defaultValue = parameter.getDefaultValue().orElse(null);
           addObjectMember(
               "schema", () -> generateSchemaOrRef(parameter.getType(), IN, defaultValue));
         });
@@ -282,6 +293,11 @@ public class OpenApiGenerator extends JsonGenerator {
 
   private static String getMaturityTag(Maturity.Classification maturity) {
     return maturity == null ? null : maturity.name().toLowerCase();
+  }
+
+  private String getSinceVersion(OpenApi.Since since) {
+    if (since == null) return null;
+    return "2." + since.value();
   }
 
   private void generateRequestBody(Api.RequestBody requestBody) {
@@ -356,7 +372,11 @@ public class OpenApiGenerator extends JsonGenerator {
             schema -> {
               String name = schema.getSharedName().getValue();
               addObjectMember(
-                  name, () -> generateSchema(schema, schema.getDirection().orElse(OUT)));
+                  name,
+                  () -> {
+                    addStringMember("x-kind", schema.getKind().getValue());
+                    generateSchema(schema, schema.getDirection().orElse(OUT));
+                  });
             });
   }
 
@@ -364,15 +384,14 @@ public class OpenApiGenerator extends JsonGenerator {
     generateSchemaOrRef(schema, direction, null);
   }
 
-  private void generateSchemaOrRef(Api.Schema schema, Direction direction, String defaultValue) {
+  private void generateSchemaOrRef(Api.Schema schema, Direction direction, JsonValue defaultValue) {
     if (schema == null) return;
     if (direction == IN) schema = schema.getInput().orElse(schema);
     if (schema.getSharedName().isPresent()) {
       String name = schema.getSharedName().getValue();
       pathSchemaRefs.add(name);
       addStringMember("$ref", "#/components/schemas/" + name);
-      if (defaultValue != null && schema.getType() == Api.Schema.Type.ENUM)
-        addDefaultMember(schema.getRawType(), defaultValue, "string");
+      if (schema.getType() == Api.Schema.Type.ENUM) addRawMember("default", defaultValue);
     } else {
       generateSchema(schema, direction, defaultValue);
     }
@@ -382,22 +401,12 @@ public class OpenApiGenerator extends JsonGenerator {
     generateSchema(schema, direction, null);
   }
 
-  private void generateSchema(Api.Schema schema, Direction direction, String defaultValue) {
+  private void generateSchema(Api.Schema schema, Direction direction, JsonValue defaultValue) {
     if (direction == IN) schema = schema.getInput().orElse(schema);
     Class<?> type = schema.getRawType();
     DirectType directType = DirectType.of(type);
     if (directType != null) {
-      Class<?> source = directType.source();
-      Collection<DirectType.SimpleType> oneOf = directType.oneOf().values();
-      if (oneOf.size() == 1) {
-        generateSimpleTypeSchema(source, oneOf.iterator().next(), defaultValue);
-      } else {
-        addArrayMember(
-            "oneOf",
-            () ->
-                oneOf.forEach(
-                    t -> addObjectMember(null, () -> generateSimpleTypeSchema(source, t, null))));
-      }
+      generateDirectTypeSchema(defaultValue, directType);
       return;
     }
     Api.Schema.Type schemaType = schema.getType();
@@ -405,71 +414,34 @@ public class OpenApiGenerator extends JsonGenerator {
       generateUidSchema(schema);
       return;
     }
-    if (schemaType == Api.Schema.Type.UNSUPPORTED) {
-      addStringMultilineMember(
-          "description",
-          "The exact type is unknown.  \n(Java type was: `"
-              + schema.getSource().getTypeName()
-              + "`)");
+    if (schemaType == Api.Schema.Type.ANY) {
       return;
     }
     if (schemaType == Api.Schema.Type.ONE_OF) {
-      addArrayMember(
-          "oneOf",
-          schema.getProperties(),
-          property ->
-              addObjectMember(null, () -> generateSchemaOrRef(property.getType(), direction)));
+      generateOneOfSchema(schema, direction);
       return;
     }
     if (schemaType == Api.Schema.Type.ENUM) {
       addStringMember("type", "string");
-      if (defaultValue != null) addStringMember("default", defaultValue);
+      addRawMember("default", defaultValue);
       addInlineArrayMember("enum", schema.getValues());
       return;
     }
     if (type.isEnum()) {
       addStringMember("type", "string");
-      if (defaultValue != null) addStringMember("default", defaultValue);
+      addRawMember("default", defaultValue);
       addInlineArrayMember(
           "enum", stream(type.getEnumConstants()).map(e -> ((Enum<?>) e).name()).toList());
       return;
     }
     if (type.isArray() || schemaType == Api.Schema.Type.ARRAY) {
-      Api.Schema elements =
-          schema.getProperties().isEmpty()
-              ? api.getSchemas().get(type.getComponentType())
-              : schema.getElementType();
-      addStringMember("type", "array");
-      addObjectMember("items", () -> generateSchemaOrRef(elements, direction));
+      generateArrayTypeSchema(schema, direction, type);
       return;
     }
-    // best guess: it is an object type
-    addStringMember("type", "object");
     if (!schema.getProperties().isEmpty()) {
-      if (Map.class.isAssignableFrom(type)) {
-        Api.Property key = schema.getProperties().get(0);
-        Api.Property value = schema.getProperties().get(1);
-        addObjectMember(
-            "additionalProperties", () -> generateSchemaOrRef(value.getType(), direction));
-        if (key.getType().getRawType() != String.class)
-          addStringMultilineMember(
-              "description", "keys are " + schema.getProperties().get(0).getType().getRawType());
-        return;
-      }
-      if (!schema.getRequiredProperties().isEmpty())
-        addInlineArrayMember("required", schema.getRequiredProperties());
-      addObjectMember(
-          "properties",
-          schema.getProperties(),
-          property ->
-              addObjectMember(
-                  property.getName(),
-                  () -> {
-                    generateSchemaOrRef(property.getType(), direction);
-                    addStringMember(
-                        "description", property.getDescription().orElse(NO_DESCRIPTION));
-                  }));
+      generateObjectTypeSchema(schema, direction);
     } else {
+      addStringMember("type", "any");
       addStringMultilineMember(
           "description", "The actual type is unknown.  \n(Java type was: `" + type + "`)");
       if (type != Object.class) {
@@ -478,8 +450,63 @@ public class OpenApiGenerator extends JsonGenerator {
     }
   }
 
-  private void generateSimpleTypeSchema(
-      Class<?> source, DirectType.SimpleType simpleType, String defaultValue) {
+  private void generateOneOfSchema(Api.Schema schema, Direction direction) {
+    addArrayMember(
+        "oneOf",
+        schema.getProperties(),
+        property ->
+            addObjectMember(null, () -> generateSchemaOrRef(property.getType(), direction)));
+  }
+
+  private void generateObjectTypeSchema(Api.Schema schema, Direction direction) {
+    addStringMember("type", "object");
+    if (schema.isMap()) {
+      Api.Property key = schema.getProperties().get(0);
+      Api.Property value = schema.getProperties().get(1);
+      addObjectMember(
+          "additionalProperties", () -> generateSchemaOrRef(value.getType(), direction));
+      if (key.getType().getRawType() != String.class)
+        addStringMultilineMember(
+            "description", "keys are " + schema.getProperties().get(0).getType().getRawType());
+      return;
+    }
+    if (!schema.getRequiredProperties().isEmpty())
+      addInlineArrayMember("required", schema.getRequiredProperties());
+    addObjectMember(
+        "properties",
+        schema.getProperties(),
+        property ->
+            addObjectMember(
+                property.getName(),
+                () -> {
+                  generateSchemaOrRef(property.getType(), direction);
+                  addTrueMember("readOnly", property.getAccess() == OpenApi.Access.READ);
+                  addStringMember("description", property.getDescription().orElse(NO_DESCRIPTION));
+                  addStringMember("x-since", getSinceVersion(property.getSince()));
+                }));
+  }
+
+  private void generateArrayTypeSchema(Api.Schema schema, Direction direction, Class<?> type) {
+    Api.Schema elements =
+        schema.getProperties().isEmpty()
+            ? api.getSchemas().get(type.getComponentType())
+            : schema.getElementType();
+    addStringMember("type", "array");
+    addObjectMember("items", () -> generateSchemaOrRef(elements, direction));
+  }
+
+  private void generateDirectTypeSchema(JsonValue defaultValue, DirectType directType) {
+    Collection<DirectType.SimpleType> oneOf = directType.oneOf().values();
+    if (oneOf.size() == 1) {
+      generateSimpleTypeSchema(oneOf.iterator().next(), defaultValue);
+    } else {
+      addArrayMember(
+          "oneOf",
+          () -> oneOf.forEach(t -> addObjectMember(null, () -> generateSimpleTypeSchema(t, null))));
+    }
+  }
+
+  private void generateSimpleTypeSchema(DirectType.SimpleType simpleType, JsonValue defaultValue) {
     String type = simpleType.type();
     addStringMember("type", type);
     if ("array".equals(type)) {
@@ -489,30 +516,18 @@ public class OpenApiGenerator extends JsonGenerator {
     addNumberMember("minLength", simpleType.minLength());
     addNumberMember("maxLength", simpleType.maxLength());
     addStringMember("pattern", simpleType.pattern());
-    addDefaultMember(source, defaultValue, type);
-    if (!simpleType.enums().isEmpty()) {
+    addRawMember("default", defaultValue);
+    boolean isEnum = !simpleType.enums().isEmpty();
+    if (isEnum) {
       addInlineArrayMember("enum", simpleType.enums());
     }
-    addStringMultilineMember("description", simpleType.description());
-  }
 
-  private void addDefaultMember(Class<?> source, String defaultValue, String type) {
-    if (defaultValue != null) {
-      switch (type) {
-        case "string" -> addStringMember("default", defaultValue);
-        case "integer" -> addNumberMember("default", parseInt(defaultValue));
-        case "number" -> addNumberMember("default", parseDouble(defaultValue));
-        case "boolean" -> addBooleanMember("default", parseBoolean(defaultValue));
-        default ->
-            log.warn(
-                "Unsupported default value provided for type %s of %s: %s"
-                    .formatted(type, source.getSimpleName(), defaultValue));
-      }
-    }
+    addStringMultilineMember("description", simpleType.description());
   }
 
   private void generateUidSchema(Api.Schema schema) {
     addStringMember("type", "string");
+    addStringMember("x-kind", "uid");
     addStringMember("format", "uid");
     addStringMember("pattern", "^[0-9a-zA-Z]{11}$");
     addNumberMember("minLength", 11);
