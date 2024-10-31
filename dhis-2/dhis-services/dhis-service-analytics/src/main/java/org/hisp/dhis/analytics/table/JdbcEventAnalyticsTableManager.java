@@ -592,11 +592,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   private List<AnalyticsTableColumn> getColumnsFromOrgUnitTrackedEntityAttribute(
       TrackedEntityAttribute attribute, String dataClause) {
-    List<AnalyticsTableColumn> columns = new ArrayList<>();
+    final List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+    final String fromClause =
+        qualifyVariables("from ${organisationunit} ou where ou.uid = (select value");
 
     if (isSpatialSupport()) {
-      String fromType =
-          qualifyVariables("ou.geometry from ${organisationunit} ou where ou.uid = (select value");
+      String fromType = "ou.geometry " + fromClause;
       String geoSql = selectForInsert(attribute, fromType, dataClause);
       columns.add(
           AnalyticsTableColumn.builder()
@@ -608,8 +610,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               .build());
     }
 
-    String fromTypeSql =
-        qualifyVariables("ou.name from ${organisationunit} ou where ou.uid = (select value");
+    String fromTypeSql = "ou.name " + fromClause;
     String ouNameSql = selectForInsert(attribute, fromTypeSql, dataClause);
 
     columns.add(
@@ -626,14 +627,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   private List<AnalyticsTableColumn> getColumnFromOrgUnitDataElement(
       DataElement dataElement, String dataClause) {
-    List<AnalyticsTableColumn> columns = new ArrayList<>();
+    final List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
+    final String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
+    final String fromClause =
+        qualifyVariables("from ${organisationunit} ou where ou.uid = (select " + columnName);
 
     if (isSpatialSupport()) {
-      String fromType =
-          qualifyVariables(
-              "ou.geometry from ${organisationunit} ou where ou.uid = (select " + columnName);
+      String fromType = "ou.geometry " + fromClause;
       String geoSql = selectForInsert(dataElement, fromType, dataClause);
 
       columns.add(
@@ -646,9 +647,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               .build());
     }
 
-    String fromTypeSql =
-        qualifyVariables(
-            "ou.name from ${organisationunit} ou where ou.uid = (select " + columnName);
+    String fromTypeSql = "ou.name " + fromClause;
     String ouNameSql = selectForInsert(dataElement, fromTypeSql, dataClause);
 
     columns.add(
