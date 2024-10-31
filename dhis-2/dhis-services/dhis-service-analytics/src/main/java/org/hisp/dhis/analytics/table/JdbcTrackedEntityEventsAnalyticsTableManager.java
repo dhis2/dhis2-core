@@ -324,7 +324,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params, TrackedEntityType tet) {
     StringBuilder sql = new StringBuilder();
     sql.append(
-        replace(
+        replaceQualify(
             """
             select temp.supportedyear from \
             (select distinct extract(year from ${eventDateExpression}) as supportedyear \
