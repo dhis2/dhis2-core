@@ -680,20 +680,19 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet(
       DataElement dataElement, String select, String dataClause) {
     String query =
-        qualifyVariables(
-            """
+        """
         (select l.uid from ${maplegend} l
         inner join ${event} on l.startvalue <= ${select}
         and l.endvalue > ${select}
         and l.maplegendsetid=${legendSetId}
-        and eventid=ev.eventid ${dataClause}) as ${column}""");
+        and eventid=ev.eventid ${dataClause}) as ${column}""";
 
     return dataElement.getLegendSets().stream()
         .map(
             ls -> {
               String column = dataElement.getUid() + PartitionUtils.SEP + ls.getUid();
               String sql =
-                  replace(
+                  replaceQualify(
                       query,
                       Map.of(
                           "select", select,

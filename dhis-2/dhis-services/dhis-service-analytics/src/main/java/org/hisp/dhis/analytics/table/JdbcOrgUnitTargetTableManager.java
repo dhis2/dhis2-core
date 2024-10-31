@@ -135,7 +135,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
-    String sql = replace("insert into ${tableName} (", Map.of("tableName", tableName));
+    String sql = replace("insert into ${tableName} (", Map.of("tableName", quote(tableName)));
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
