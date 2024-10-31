@@ -702,18 +702,23 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   /**
-   * Replaces variables in the given template string with the given variables to qualify and the
-   * given map of variable keys and values.
+   * Replaces variables in the given template string.
+   *
+   * <p>Variables which are present in the given template and in the given map of variables are
+   * replaced with the corresponding map value.
+   *
+   * <p>Variables which are present in the given template but not present in the given map of
+   * variables will be qualified using <code>qualify(String)</code>.
    *
    * @param template the template string.
-   * @param qualifyVariables the list of variables to qualify.
-   * @param variables the map of variables and values.
-   * @return a resolved string.
+   * @param variables the map of variable names and values.
+   * @return a string with replaced variables.
    */
-  protected String replaceQualify(
-      String template, List<String> qualifyVariables, Map<String, String> variables) {
+  protected String replaceQualify(String template, Map<String, String> variables) {
     Map<String, String> map = new HashMap<>(variables);
-    qualifyVariables.forEach(v -> map.put(v, qualify(v)));
+    Set<String> variableNames = TextUtils.getVariableNames(template);
+    variableNames.forEach(name -> map.putIfAbsent(name, qualify(name)));
+
     return TextUtils.replace(template, map);
   }
 

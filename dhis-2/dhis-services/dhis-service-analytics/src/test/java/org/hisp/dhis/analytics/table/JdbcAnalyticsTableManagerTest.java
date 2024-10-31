@@ -44,7 +44,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
-import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
@@ -85,6 +84,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @ExtendWith(MockitoExtension.class)
 class JdbcAnalyticsTableManagerTest {
   @Mock private SystemSettingsProvider settingsProvider;
+
   @Mock private SystemSettings settings;
 
   @Mock private JdbcTemplate jdbcTemplate;
@@ -95,7 +95,7 @@ class JdbcAnalyticsTableManagerTest {
 
   @Spy private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  private AnalyticsTableManager subject;
+  private JdbcAnalyticsTableManager subject;
 
   @BeforeEach
   public void setUp() {
@@ -116,6 +116,32 @@ class JdbcAnalyticsTableManagerTest {
             analyticsTableSettings,
             periodDataProvider,
             sqlBuilder);
+  }
+
+  @Test
+  void testReplaceQualify() {
+    String template =
+        """
+      from ${datavalue} dv \
+      inner join ${dataelement} de on dv.dataelementid = de.dataelementid \
+      inner join ${period} pe on pe \
+      where de.valuetype in (${value_type}) \
+      and de.aggregationtype in (${agg_type});""";
+
+    Map<String, String> variables =
+        Map.of(
+            "value_type", "'INTEGER','NUMERIC'",
+            "agg_type", "'SUM','AVERAGE'");
+
+    String expected =
+        """
+      from "datavalue" dv \
+      inner join "dataelement" de on dv.dataelementid = de.dataelementid \
+      inner join "period" pe on pe \
+      where de.valuetype in ('INTEGER','NUMERIC') \
+      and de.aggregationtype in ('SUM','AVERAGE');""";
+
+    assertEquals(expected, subject.replaceQualify(template, variables));
   }
 
   @Test
