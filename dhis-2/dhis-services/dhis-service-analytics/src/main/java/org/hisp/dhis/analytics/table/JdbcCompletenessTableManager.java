@@ -146,15 +146,15 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
   @Override
   public boolean hasUpdatedLatestData(Date startDate, Date endDate) {
-    String sql = 
-        replaceQualify(
-        """
+    String sql =
+        replace(
+            """
         select cdr.datasetid \
         from ${completedatasetregistration} cdr \
         where cdr.lastupdated >= '${startDate}' \
         and cdr.lastupdated < '${endDate}' \
         limit 1;""",
-        Map.of("startDate", toLongDate(startDate), "endDate", toLongDate(endDate)));
+            Map.of("startDate", toLongDate(startDate), "endDate", toLongDate(endDate)));
 
     return !jdbcTemplate.queryForList(sql).isEmpty();
   }
