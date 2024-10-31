@@ -226,9 +226,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             from ${datavalue} dv \
             where dv.lastupdated >= '${startDate}' and dv.lastupdated < '${endDate}' \
             limit 1;""",
-            Map.of(
-                "startDate", toLongDate(startDate),
-                "endDate", toLongDate(endDate)));
+            Map.of("startDate", toLongDate(startDate), "endDate", toLongDate(endDate)));
     return !jdbcTemplate.queryForList(sql).isEmpty();
   }
 
