@@ -1,8 +1,8 @@
 -- DHIS2-18117: migrate tracker event change logs from trackedentitydatavalueaudit to eventchangelogs
 
+-- Create new table and add constraints
 create sequence if not exists eventchangelog_sequence;
 
--- Create new table and add constraints
 create table if not exists eventchangelog (
     eventchangelogid int8 not null DEFAULT nextval('eventchangelog_sequence'),
     eventid int8 not null,
@@ -16,16 +16,11 @@ create table if not exists eventchangelog (
     constraint eventchangelog_pkey primary key (eventchangelogid)
 );
 
-select setval('eventchangelog_sequence', max(eventchangelogid)) from eventchangelog;
-
-/*create sequence if not exists eventchangelog_sequence;
-select setval('eventchangelog_sequence', max(eventchangelogid)) FROM eventchangelog;*/
-
-create index index_eventchangelog_programstageinstanceid on eventchangelog using btree (eventid);
+create index if not exists index_eventchangelog_programstageinstanceid on eventchangelog using btree (eventid);
 alter table eventchangelog add constraint fk_eventchangelog_dataelementid foreign key (dataelementid) references dataelement(dataelementid);
 alter table eventchangelog add constraint fk_eventchangelog_eventid foreign key (eventid) references "event"(eventid);
 
--- Migrate data into new table
+-- Migrate data from trackedentitydatavalueaudit to eventchangelog
 insert into eventchangelog (eventchangelogid, eventid, dataelementid, currentvalue, previousvalue, created, createdby, changelogtype)
 select
     cl.trackedentitydatavalueauditid,
@@ -52,4 +47,14 @@ from
               join event e using (eventid)
               join dataelement d using (dataelementid)
      order by t.trackedentitydatavalueauditid) cl
-where cl.audittype in ('CREATE', 'UPDATE', 'DELETE');
+where cl.audittype in ('CREATE', 'UPDATE', 'DELETE')
+and not exists (
+    select 1 from eventchangelog ecl where ecl.eventchangelogid = cl.trackedentitydatavalueauditid
+);
+
+-- Set sequence to highest value
+select setval('eventchangelog_sequence', max(eventchangelogid)) from eventchangelog;
+
+-- Delete the migrated data from the old table, keeping the unmigrated data.
+delete from trackedentitydatavalueaudit
+where trackedentitydatavalueauditid in (select eventchangelogid from eventchangelog);

@@ -104,12 +104,6 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
             importParams, fromJson("tracker/event_and_enrollment.json")));
   }
 
-  @BeforeEach
-  void setUpUser() {
-    importUser = userService.getUser("tTgjgobT1oS");
-    injectSecurityContextUser(importUser);
-  }
-
   @Test
   void shouldFailWhenEventDoesNotExist() {
     assertThrows(
