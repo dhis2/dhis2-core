@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
+import java.util.Map;
+
 /**
  * @param classifications all classifications available
  * @param full the entire API with no filters
@@ -36,5 +38,27 @@ public record ApiStatistics(ApiClassifications classifications, Api full, Api pa
 
   ApiStatistics(Api full, Api partial) {
     this(ApiClassifications.of(full.getScope().controllers()), full, partial);
+  }
+
+  record Ratio(int count, int total, int percentage) {
+    Ratio(int count, int total) {
+      this(count, total, 100 * count / total);
+    }
+  }
+
+  Map<String, Ratio> compute() {
+    return Map.of(
+        "operations",
+        new Ratio(operations(partial), operations(full)),
+        "schemas",
+        new Ratio(schemas(partial), schemas(full)));
+  }
+
+  private static int operations(Api in) {
+    return in.getEndpoints().values().stream().mapToInt(Map::size).sum();
+  }
+
+  private static int schemas(Api in) {
+    return in.getComponents().getSchemas().size();
   }
 }

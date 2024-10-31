@@ -112,7 +112,7 @@ public class OpenApiRenderer {
     font-size: 16px;
     text-rendering: optimizespeed;
   }
-  h1 { margin: 0.5rem; color: rgb(33, 41, 52); font-size: 110%; text-align: left; }
+  nav h1 { margin: 0.5rem; color: rgb(33, 41, 52); font-size: 110%; text-align: left; }
   h2 { display: inline; font-size: 110%; font-weight: normal; text-transform: capitalize; }
   h3 { font-size: 105%; display: inline-block; text-transform: capitalize; font-weight: normal; min-width: 21rem; margin: 0; }
 
@@ -131,7 +131,6 @@ public class OpenApiRenderer {
   pre, code { font-family: "Noto Sans Mono", "Liberation Mono", monospace; }
   code + b { padding: 0 0.5em; }
 
-  dl { margin-left: 1rem; }
   dt { font-weight: bold; margin-top: 0.5em; }
   dd { display: inline-block; }
 
@@ -178,11 +177,14 @@ public class OpenApiRenderer {
   #scope label { text-transform: capitalize; }
   #scope input { margin-left: 0.5em; }
 
-  body > section { margin-left: var(--width-nav); padding-top: 1em; position: relative; }
+  body > section { margin-left: var(--width-nav); position: relative; }
+  body > section > header { margin-left: 1rem; }
+  body > section > header > h1 { margin-top: 0; padding-top: 1em; }
   body > section > details { margin-top: 10px; }
   body > section > details > summary { padding: 0.5em 1em; }
   body > section h2:before { content: '⛁'; margin-right: 0.5rem; color: dimgray; }
   body > section .kind h2:before { content: '⎐';  }
+  body > section + section { padding-top: 2em; }
 
   body > section details {
     margin-left: 2rem;
@@ -779,23 +781,49 @@ public class OpenApiRenderer {
           Map<String, Set<String>> filters = api.getScope().filters();
           String title = filters.isEmpty() ? "DHIS2 Full API (Single Page)" : "DHIS2 Partial API";
           appendTag(
-              "h1",
+              "header",
               () -> {
-                appendRaw("[");
-                appendA("setLocationSearch('scope', '')", "Home");
-                appendRaw("] ");
-                appendRaw(title);
-                appendRaw(" [");
-                appendA("setLocationPathnameFile('openapi.json')", "JSON");
-                appendRaw("] [");
-                appendA("setLocationPathnameFile('openapi.yaml')", "YAML");
-                appendRaw("] ");
-                appendA("setLocationSearch('source', 'true')", "+ &#128435;");
+                appendTag(
+                    "h1",
+                    () -> {
+                      if (!filters.isEmpty()) {
+                        appendRaw("[");
+                        appendA(
+                            "setLocationSearch('scope', '')",
+                            "Full",
+                            "View full API as single page document");
+                        appendRaw("] ");
+                      }
+                      appendRaw(title);
+                      appendRaw(" [");
+                      appendA(
+                          "setLocationPathnameFile('openapi.json')",
+                          "JSON",
+                          "View this document as JSON source");
+                      appendRaw("] [");
+                      appendA(
+                          "setLocationPathnameFile('openapi.yaml')",
+                          "YAML",
+                          "View this document as YAML source");
+                      appendRaw("] ");
+                      appendA(
+                          "setLocationSearch('source', 'true')",
+                          "+ &#128435;",
+                          "Add JSON source to this document");
+                    });
+
+                stats.compute().forEach(this::renderPageStats);
+                if (!filters.isEmpty())
+                  appendTag("dl", () -> filters.forEach(this::renderPageHeaderSelection));
               });
-          if (!filters.isEmpty()) {
-            appendTag("dl", () -> filters.forEach(this::renderPageHeaderSelection));
-          }
         });
+  }
+
+  private void renderPageStats(String name, ApiStatistics.Ratio ratio) {
+    appendRaw(name + ": ");
+    appendTag("b", ratio.count() + "");
+    int p = ratio.percentage();
+    appendRaw("/%d (%s%%) &nbsp; ".formatted(ratio.total(), p < 1 ? "<1" : p));
   }
 
   private void renderPageHeaderSelection(String name, Set<String> values) {
@@ -804,9 +832,15 @@ public class OpenApiRenderer {
   }
 
   private void renderPageHeaderSelectionItems(String name, String value) {
-    appendA("setLocationSearch('scope', '%s.%s')".formatted(name, value), value);
+    appendA(
+        "setLocationSearch('scope', '%s.%s')".formatted(name, value),
+        value,
+        "View a document containing only this scope");
     appendRaw(" ");
-    appendA("removeLocationSearch('scope', '%s.%s')".formatted(name, value), "[-]");
+    appendA(
+        "removeLocationSearch('scope', '%s.%s')".formatted(name, value),
+        "[-]",
+        "Remove this scope from this document");
   }
 
   private void renderPathOperations() {
@@ -1449,8 +1483,8 @@ public class OpenApiRenderer {
     appendTag("a", Map.of("href", href, "target", target, "title", title), text);
   }
 
-  private void appendA(String onclick, String text) {
-    appendTag("a", Map.of("onclick", onclick), text);
+  private void appendA(String onclick, String text, String title) {
+    appendTag("a", Map.of("onclick", onclick, "title", title), text);
   }
 
   private void appendSpan(String text) {
