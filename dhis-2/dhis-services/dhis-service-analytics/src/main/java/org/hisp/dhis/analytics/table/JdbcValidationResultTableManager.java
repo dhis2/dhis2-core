@@ -185,12 +185,12 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     sql = sql.replace("organisationunitid", "sourceid");
 
     sql +=
-        replace(
+        replaceQualify(
             """
-            from validationresult vrs
-            inner join period pe on vrs.periodid=pe.periodid
+            from ${validationresult} vrs
+            inner join ${period} pe on vrs.periodid=pe.periodid
             inner join analytics_rs_periodstructure ps on vrs.periodid=ps.periodid
-            inner join validationrule vr on vr.validationruleid=vrs.validationruleid
+            inner join ${validationrule} vr on vr.validationruleid=vrs.validationruleid
             inner join analytics_rs_organisationunitgroupsetstructure ougs on vrs.organisationunitid=ougs.organisationunitid
             and (cast(${peStartDateMonth} as date)=ougs.startdate or ougs.startdate is null)
             left join analytics_rs_orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid
@@ -198,12 +198,9 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
             where vrs.created < '${startTime}'
             and vrs.created is not null ${partitionClause}""",
             Map.of(
-                "peStartDateMonth",
-                sqlBuilder.dateTrunc("month", "ps.startdate"),
-                "startTime",
-                toLongDate(params.getStartTime()),
-                "partitionClause",
-                partitionClause));
+                "peStartDateMonth", sqlBuilder.dateTrunc("month", "ps.startdate"),
+                "startTime", toLongDate(params.getStartTime()),
+                "partitionClause", partitionClause));
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
@@ -216,11 +213,11 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
                 "and pe.startdate >= '${fromDate}'",
                 Map.of("fromDate", DateUtils.toMediumDate(params.getFromDate())));
     String sql =
-        replace(
+        replaceQualify(
             """
             select distinct(extract(year from pe.startdate))
-            from validationresult vrs
-            inner join period pe on vrs.periodid=pe.periodid
+            from ${validationresult} vrs
+            inner join ${period} pe on vrs.periodid=pe.periodid
             where pe.startdate is not null
             and vrs.created < '${startTime}'
             ${fromDateClause}""",
