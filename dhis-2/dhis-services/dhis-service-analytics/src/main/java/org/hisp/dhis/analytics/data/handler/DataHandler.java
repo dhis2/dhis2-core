@@ -122,6 +122,7 @@ import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataQueryParams.Builder;
 import org.hisp.dhis.analytics.DimensionItem;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
@@ -134,6 +135,7 @@ import org.hisp.dhis.analytics.resolver.ExpressionResolvers;
 import org.hisp.dhis.analytics.util.PeriodOffsetUtils;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionItemObjectValue;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -780,7 +782,7 @@ public class DataHandler {
    */
   private Map<String, Double> getAggregatedCompletenessTargetMap(DataQueryParams params) {
     List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers = newArrayList();
-    queryGroupers.add(q -> queryPlanner.groupByStartEndDateRestriction(q));
+    queryGroupers.add(queryPlanner::groupByStartEndDateRestriction);
 
     return getDoubleMap(getAggregatedValueMap(params, COMPLETENESS_TARGET, queryGroupers));
   }
@@ -842,70 +844,102 @@ public class DataHandler {
 
     DataQueryParams.Builder builder = newBuilder(params).removeDimension(DATA_X_DIM_ID);
 
-    List<DimensionalItemObject> dataElementInDataElementOperands =
-        getDataElementInDataElementOperands(dataElementOperands, dataElements);
-
     // Data elements.
-    if (!dataElementInDataElementOperands.isEmpty()) {
-      builder.addDimension(
-          new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, dataElementInDataElementOperands));
-    }
-
-    List<DimensionalItemObject> filterDataElements =
-        getDataElementInDataElementOperands(filterDataElementOperands, dataElements);
-
-    if (!filterDataElements.isEmpty()) {
-      builder.addFilter(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, filterDataElements));
-    }
+    handleDataElementOperands(
+        getDataElementInDataElementOperands(dataElementOperands, dataElements),
+        getDataElementInDataElementOperands(filterDataElementOperands, dataElements),
+        builder,
+        DATA_X_DIM_ID,
+        DATA_X);
 
     // Category option combos.
     if (totalType.isCategoryOptionCombo()) {
-      List<DimensionalItemObject> combosInDataElementOperands =
-          getCategoryOptionCombosInDataElementOperands(dataElementOperands, categoryOptionCombos);
-
-      if (!combosInDataElementOperands.isEmpty()) {
-        builder.addDimension(
-            new BaseDimensionalObject(
-                CATEGORYOPTIONCOMBO_DIM_ID, CATEGORY_OPTION_COMBO, combosInDataElementOperands));
-      }
-
-      List<DimensionalItemObject> filterCategoryOptionCombos =
+      handleDataElementOperands(
+          getCategoryOptionCombosInDataElementOperands(dataElementOperands, categoryOptionCombos),
           getCategoryOptionCombosInDataElementOperands(
-              filterDataElementOperands, categoryOptionCombos);
-
-      if (!filterCategoryOptionCombos.isEmpty()) {
-        builder.addFilter(
-            new BaseDimensionalObject(
-                CATEGORYOPTIONCOMBO_DIM_ID, CATEGORY_OPTION_COMBO, filterCategoryOptionCombos));
-      }
+              filterDataElementOperands, categoryOptionCombos),
+          builder,
+          CATEGORYOPTIONCOMBO_DIM_ID,
+          CATEGORY_OPTION_COMBO);
     }
 
     // Attribute option combos.
     if (totalType.isAttributeOptionCombo()) {
-      List<DimensionalItemObject> optionCombosInDataElementOperands =
+      handleDataElementOperands(
           getAttributeOptionComboDimensionInDataElementOperands(
-              dataElementOperands, attributeOptionCombos);
-
-      if (!optionCombosInDataElementOperands.isEmpty()) {
-        builder.addDimension(
-            new BaseDimensionalObject(
-                ATTRIBUTEOPTIONCOMBO_DIM_ID,
-                ATTRIBUTE_OPTION_COMBO,
-                optionCombosInDataElementOperands));
-      }
-
-      List<DimensionalItemObject> filterAttributeOptionCombos =
+              dataElementOperands, attributeOptionCombos),
           getAttributeOptionComboDimensionInDataElementOperands(
-              filterDataElementOperands, attributeOptionCombos);
-
-      if (!filterAttributeOptionCombos.isEmpty()) {
-        builder.addFilter(
-            new BaseDimensionalObject(
-                ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTE_OPTION_COMBO, filterAttributeOptionCombos));
-      }
+              filterDataElementOperands, attributeOptionCombos),
+          builder,
+          ATTRIBUTEOPTIONCOMBO_DIM_ID,
+          ATTRIBUTE_OPTION_COMBO);
     }
 
     return builder.build();
+  }
+
+  /**
+   * Decides if data element operands should or not be added to the "builder" reference, based on
+   * the given arguments. Note that the "builder" object might have his state changed.
+   *
+   * @param dataElementOperands the list of data element operands ({@link DimensionalItemObject}).
+   * @param filterDataElementOperands the list of filter data element operands ({@link
+   *     DimensionalItemObject}).
+   * @param builder the current {@link Builder}.
+   * @param dimensionUid the dimension uid.
+   * @param dimensionType the {@link DimensionType}.
+   */
+  private void handleDataElementOperands(
+      List<DimensionalItemObject> dataElementOperands,
+      List<DimensionalItemObject> filterDataElementOperands,
+      Builder builder,
+      String dimensionUid,
+      DimensionType dimensionType) {
+
+    addDimensionToBuilder(dataElementOperands, builder, dimensionUid, dimensionType);
+    addFilterToBuilder(filterDataElementOperands, builder, dimensionUid, dimensionType);
+  }
+
+  /**
+   * Adds the given list "dimensionalItemObjects" to the filter of the "builder", if the list is not
+   * empty. Note that the "builder" object might have his state changed.
+   *
+   * @param dimensionalItemObjects the list of data element operands ({@link
+   *     DimensionalItemObject}).
+   * @param builder the current {@link Builder}.
+   * @param dimensionUid the dimension uid.
+   * @param dimensionType the {@link DimensionType}.
+   */
+  private static void addFilterToBuilder(
+      List<DimensionalItemObject> dimensionalItemObjects,
+      Builder builder,
+      String dimensionUid,
+      DimensionType dimensionType) {
+    if (!dimensionalItemObjects.isEmpty()) {
+      builder.addFilter(
+          new BaseDimensionalObject(dimensionUid, dimensionType, dimensionalItemObjects));
+    }
+  }
+
+  /**
+   * Adds the given list "dimensionalItemObjects" to the dimension of the "builder", if the list is
+   * not empty. Note that the "builder" object might have his state changed.
+   *
+   * @param dimensionalItemObjects the list of data element operands ({@link
+   *     DimensionalItemObject}).
+   * @param builder the current {@link Builder}.
+   * @param dimensionUid the dimension uid.
+   * @param dimensionType the {@link DimensionType}.
+   */
+  private static void addDimensionToBuilder(
+      List<DimensionalItemObject> dimensionalItemObjects,
+      Builder builder,
+      String dimensionUid,
+      DimensionType dimensionType) {
+    if (!dimensionalItemObjects.isEmpty()) {
+      builder.addDimension(
+          new BaseDimensionalObject(dimensionUid, dimensionType, dimensionalItemObjects));
+    }
   }
 
   /**
@@ -1074,10 +1108,10 @@ public class DataHandler {
     Double indicatorRoundedValue =
         getRoundedValue(params, indicator.getDecimals(), value.getValue()).doubleValue();
 
-    return !params.getMeasureCriteria().entrySet().stream()
-        .anyMatch(
+    return params.getMeasureCriteria().entrySet().stream()
+        .allMatch(
             measureValue ->
-                !measureValue
+                measureValue
                     .getKey()
                     .measureIsValid(indicatorRoundedValue, measureValue.getValue()));
   }
