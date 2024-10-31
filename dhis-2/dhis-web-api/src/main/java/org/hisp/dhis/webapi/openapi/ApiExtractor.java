@@ -526,8 +526,8 @@ final class ApiExtractor {
           property -> {
             Api.Parameter parameter = extractParameter(endpoint, property);
             if (!parameter.getSource().isAnnotationPresent(OpenApi.Shared.Inline.class)) {
+              parameter.getSharedName().setValue(sharedName);
               if (addShared) {
-                parameter.getSharedName().setValue(sharedName);
                 sharedParameters
                     .computeIfAbsent(paramsObject, key -> new ArrayList<>())
                     .add(parameter);

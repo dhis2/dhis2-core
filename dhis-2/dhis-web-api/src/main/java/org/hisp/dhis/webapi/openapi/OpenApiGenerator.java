@@ -247,8 +247,8 @@ public class OpenApiGenerator extends JsonGenerator {
 
   private void generateSharedParameters() {
     Map<String, Api.Parameter> paramBySharedName = new TreeMap<>();
-    for (List<Api.Parameter> params : api.getComponents().getParameters().values())
-      params.forEach(p -> paramBySharedName.put(p.getFullName(), p));
+    for (List<Api.Parameter> objParams : api.getComponents().getParameters().values())
+      objParams.forEach(p -> paramBySharedName.put(p.getFullName(), p));
     // use map to sort parameter by name
     paramBySharedName.forEach(this::generateParameter);
   }

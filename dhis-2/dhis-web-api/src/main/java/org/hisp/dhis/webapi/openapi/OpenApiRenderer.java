@@ -777,8 +777,7 @@ public class OpenApiRenderer {
     appendTag(
         "section",
         () -> {
-          Api api = stats.partial();
-          Map<String, Set<String>> filters = api.getScope().filters();
+          Map<String, Set<String>> filters = stats.partial().getScope().filters();
           String title = filters.isEmpty() ? "DHIS2 Full API (Single Page)" : "DHIS2 Partial API";
           appendTag(
               "header",
