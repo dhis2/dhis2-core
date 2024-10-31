@@ -123,7 +123,7 @@ public class OpenApiRenderer {
   a[href^="#"] { text-decoration: none; }
   a[title="permalink"] { position: absolute;  right: 1em; display: inline-block; width: 24px; height: 24px;
     text-align: center; vertical-align: middle; border-radius: 50%; line-height: 24px; color: dimgray; margin-top: -0.125rem; }
-  a:not([href]) { color: blue; text-decoration: underline; cursor: pointer; }
+  a:not([href]) { color: blue; cursor: pointer; }
   #hotkeys a { color: black; display: block; margin-top: 2px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; font-size: 75%; }
   #hotkeys a:visited { color: black; }
 
@@ -658,11 +658,7 @@ public class OpenApiRenderer {
     renderMenuGroup(
         "scope",
         () -> appendRaw("Scope"),
-        () -> {
-          stats.classifications().classifiers().forEach(this::renderScopeMenuItem);
-          appendInputButton("Full API (single page)", "setLocationSearch('scope', '')");
-          appendInputButton("+ &#128435;", "setLocationSearch('source', 'true')");
-        });
+        () -> stats.classifications().classifiers().forEach(this::renderScopeMenuItem));
   }
 
   private void renderScopeMenuItem(String classifier, List<Classifier> classifiers) {
@@ -781,39 +777,36 @@ public class OpenApiRenderer {
         () -> {
           Api api = stats.partial();
           Map<String, Set<String>> filters = api.getScope().filters();
-          String title = filters.isEmpty() ? "DHIS2 Full API (Single Page) " : "DHIS2 Partial API ";
+          String title = filters.isEmpty() ? "DHIS2 Full API (Single Page)" : "DHIS2 Partial API";
           appendTag(
               "h1",
               () -> {
+                appendRaw("[");
+                appendA("setLocationSearch('scope', '')", "Home");
+                appendRaw("] ");
                 appendRaw(title);
-                appendA("setLocationPathnameFile('openapi.json')", "[JSON]");
-                appendRaw(" ");
-                appendA("setLocationPathnameFile('openapi.yaml')", "[YAML]");
+                appendRaw(" [");
+                appendA("setLocationPathnameFile('openapi.json')", "JSON");
+                appendRaw("] [");
+                appendA("setLocationPathnameFile('openapi.yaml')", "YAML");
+                appendRaw("] ");
+                appendA("setLocationSearch('source', 'true')", "+ &#128435;");
               });
           if (!filters.isEmpty()) {
-            appendTag(
-                "dl",
-                () ->
-                    filters.forEach(
-                        (k, v) -> {
-                          appendTag("dt", k + "s");
-                          v.forEach(
-                              c ->
-                                  appendTag(
-                                      "dd",
-                                      () -> {
-                                        appendA(
-                                            "setLocationSearch('scope', '%s.%s')".formatted(k, c),
-                                            c);
-                                        appendRaw(" ");
-                                        appendTag(
-                                            "removeLocationSearch('scope', '%s.%s')"
-                                                .formatted(k, c),
-                                            "[-]");
-                                      }));
-                        }));
+            appendTag("dl", () -> filters.forEach(this::renderPageHeaderSelection));
           }
         });
+  }
+
+  private void renderPageHeaderSelection(String name, Set<String> values) {
+    appendTag("dt", name + "s");
+    values.forEach(v -> appendTag("dd", () -> renderPageHeaderSelectionItems(name, v)));
+  }
+
+  private void renderPageHeaderSelectionItems(String name, String value) {
+    appendA("setLocationSearch('scope', '%s.%s')".formatted(name, value), value);
+    appendRaw(" ");
+    appendA("removeLocationSearch('scope', '%s.%s')".formatted(name, value), "[-]");
   }
 
   private void renderPathOperations() {
