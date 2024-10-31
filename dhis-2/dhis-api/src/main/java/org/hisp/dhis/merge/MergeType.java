@@ -37,5 +37,6 @@ public enum MergeType {
 
   INDICATOR_TYPE,
   INDICATOR,
-  DATA_ELEMENT
+  DATA_ELEMENT,
+  CATEGORY_OPTION,
 }
