@@ -150,7 +150,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
   private static final String TABLE_PREFIX = "analytics_event_";
 
-  private static final String FROM_CLAUSE = "from event where eventid=ev.eventid";
+  private static final String FROM_CLAUSE = "from \"event\" where eventid=ev.eventid";
 
   private static final String DATE_CLAUSE =
       "CASE WHEN 'SCHEDULE' = ev.status THEN ev.scheduleddate ELSE ev.occurreddate END";
@@ -424,7 +424,7 @@ class JdbcEventAnalyticsTableManagerTest {
             + FROM_CLAUSE
             + "  and eventdatavalues #>> '{%s,value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
     String aliasD7 =
-        "(select ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{%s, value}') || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}') from event where eventid=ev.eventid ) as \"%s\"";
+        "(select ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{%s, value}') || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}') from \"event\" where eventid=ev.eventid ) as \"%s\"";
     String aliasD5_geo =
         "(select ou.geometry from \"organisationunit\" ou where ou.uid = (select eventdatavalues #>> '{"
             + d5.getUid()
