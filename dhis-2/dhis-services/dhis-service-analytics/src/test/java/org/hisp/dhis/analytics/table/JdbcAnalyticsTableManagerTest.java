@@ -124,7 +124,7 @@ class JdbcAnalyticsTableManagerTest {
         """
       from ${datavalue} dv \
       inner join ${dataelement} de on dv.dataelementid = de.dataelementid \
-      inner join ${period} pe on pe \
+      inner join ${period} pe on dv.periodid = pe.periodid \
       where de.valuetype in (${value_type}) \
       and de.aggregationtype in (${agg_type});""";
 
@@ -137,11 +137,28 @@ class JdbcAnalyticsTableManagerTest {
         """
       from "datavalue" dv \
       inner join "dataelement" de on dv.dataelementid = de.dataelementid \
-      inner join "period" pe on pe \
+      inner join "period" pe on dv.periodid = pe.periodid \
       where de.valuetype in ('INTEGER','NUMERIC') \
       and de.aggregationtype in ('SUM','AVERAGE');""";
 
     assertEquals(expected, subject.replaceQualify(template, variables));
+  }
+
+  @Test
+  void testQualifyVariables() {
+    String template =
+        """
+      from ${datavalue} dv \
+      inner join ${dataelement} de on dv.dataelementid = de.dataelementid \
+      inner join ${period} pe on dv.periodid = pe.periodid;""";
+
+    String expected =
+        """
+      from "datavalue" dv \
+      inner join "dataelement" de on dv.dataelementid = de.dataelementid \
+      inner join "period" pe on dv.periodid = pe.periodid;""";
+
+    assertEquals(expected, subject.qualifyVariables(template));
   }
 
   @Test

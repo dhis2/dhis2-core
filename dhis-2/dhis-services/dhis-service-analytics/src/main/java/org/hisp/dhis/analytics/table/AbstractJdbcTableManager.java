@@ -702,6 +702,16 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   /**
+   * Qualifies variables in the given template string using the variable name as table name.
+   *
+   * @param template the template string.
+   * @return a string with qualified table names.
+   */
+  protected String qualifyVariables(String template) {
+    return replaceQualify(template, Map.of());
+  }
+
+  /**
    * Replaces variables in the given template string.
    *
    * <p>Variables which are present in the given template and in the given map of variables are
