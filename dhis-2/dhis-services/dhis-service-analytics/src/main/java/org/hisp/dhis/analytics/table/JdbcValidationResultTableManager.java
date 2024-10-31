@@ -198,12 +198,9 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
             where vrs.created < '${startTime}'
             and vrs.created is not null ${partitionClause}""",
             Map.of(
-                "peStartDateMonth",
-                sqlBuilder.dateTrunc("month", "ps.startdate"),
-                "startTime",
-                toLongDate(params.getStartTime()),
-                "partitionClause",
-                partitionClause));
+                "peStartDateMonth", sqlBuilder.dateTrunc("month", "ps.startdate"),
+                "startTime", toLongDate(params.getStartTime()),
+                "partitionClause", partitionClause));
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
@@ -216,11 +213,11 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
                 "and pe.startdate >= '${fromDate}'",
                 Map.of("fromDate", DateUtils.toMediumDate(params.getFromDate())));
     String sql =
-        replace(
+        replaceQualify(
             """
             select distinct(extract(year from pe.startdate))
-            from validationresult vrs
-            inner join period pe on vrs.periodid=pe.periodid
+            from ${validationresult} vrs
+            inner join ${period} pe on vrs.periodid=pe.periodid
             where pe.startdate is not null
             and vrs.created < '${startTime}'
             ${fromDateClause}""",

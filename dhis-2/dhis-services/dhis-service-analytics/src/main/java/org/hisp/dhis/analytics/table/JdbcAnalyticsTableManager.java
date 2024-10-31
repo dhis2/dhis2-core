@@ -253,7 +253,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             inner join ${categoryoptioncombo} ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid \
             where dv.lastupdated >= '${startDate}'and dv.lastupdated < '${endDate}');""",
             Map.of(
-                "tableName", quote(getAnalyticsTableType().getTableName()),
+                "tableName", qualify(getAnalyticsTableType().getTableName()),
                 "startDate", toLongDate(partition.getStartDate()),
                 "endDate", toLongDate(partition.getEndDate())));
 
