@@ -598,7 +598,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void whatDoYouThinkSonar() throws ConflictException {
     DataElement de = dataElement(ValueType.FILE_RESOURCE);
-    assertNotNull(de);
+    assertNotNull(de); //
   }
 
   @Test
