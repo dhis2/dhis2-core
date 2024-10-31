@@ -32,7 +32,6 @@ import static java.lang.String.valueOf;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_32;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
@@ -282,7 +281,7 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
 
     removeLastComma(sql)
         .append(
-            replace(
+            replaceQualify(
                 """
                 \sfrom ${enrollment} en \
                 inner join ${trackedentity} te on en.trackedentityid = te.trackedentityid \
