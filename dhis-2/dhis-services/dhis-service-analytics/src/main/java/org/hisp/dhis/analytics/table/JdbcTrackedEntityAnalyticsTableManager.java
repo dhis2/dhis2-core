@@ -511,10 +511,10 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
             replaceQualify(
                 """
                 \s from ${trackedentity} te \
-                left join ${organisationunit} ou on te.organisationunitid = ou.organisationunitid \
-                left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
-                left join analytics_rs_organisationunitgroupsetstructure ougs on te.organisationunitid = ougs.organisationunitid \
-                and (cast(${trackedEntityCreatedMonth} as date) = ougs.startdate \
+                left join ${organisationunit} ou on te.organisationunitid=ou.organisationunitid \
+                left join analytics_rs_orgunitstructure ous on ous.organisationunitid=ou.organisationunitid \
+                left join analytics_rs_organisationunitgroupsetstructure ougs on te.organisationunitid=ougs.organisationunitid \
+                and (cast(${trackedEntityCreatedMonth} as date)=ougs.startdate \
                 or ougs.startdate is null)""",
                 Map.of("trackedEntityCreatedMonth", sqlBuilder.dateTrunc("month", "te.created"))));
 
@@ -525,7 +525,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
                 sql.append(
                     replaceQualify(
                         """
-                    \s left join trackedentityattributevalue "${teaUid}" on "${teaUid}".trackedentityid = te.trackedentityid \
+                    \s left join ${trackedentityattributevalue} "${teaUid}" on "${teaUid}".trackedentityid=te.trackedentityid \
                     and "${teaUid}".trackedentityattributeid = ${teaId}""",
                         Map.of(
                             "teaUid", tea.getUid(),
