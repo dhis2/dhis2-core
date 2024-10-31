@@ -521,14 +521,17 @@ final class ApiExtractor {
     String sharedName = getSharedName(paramsObject, shared, null);
     if (sharedName != null) {
       Map<Class<?>, List<Api.Parameter>> sharedParameters = api.getComponents().getParameters();
+      boolean addShared = !sharedParameters.containsKey(paramsObject);
       properties.forEach(
           property -> {
             Api.Parameter parameter = extractParameter(endpoint, property);
             if (!parameter.getSource().isAnnotationPresent(OpenApi.Shared.Inline.class)) {
-              parameter.getSharedName().setValue(sharedName);
-              sharedParameters
-                  .computeIfAbsent(paramsObject, key -> new ArrayList<>())
-                  .add(parameter);
+              if (addShared) {
+                parameter.getSharedName().setValue(sharedName);
+                sharedParameters
+                    .computeIfAbsent(paramsObject, key -> new ArrayList<>())
+                    .add(parameter);
+              }
             }
             endpoint.getParameters().putIfAbsent(parameter.getName(), parameter);
           });

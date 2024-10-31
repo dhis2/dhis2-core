@@ -819,8 +819,8 @@ public class OpenApiRenderer {
         });
   }
 
-  private void renderPageStats(String name, ApiStatistics.Ratio ratio) {
-    appendRaw(name + ": ");
+  private void renderPageStats(ApiStatistics.Ratio ratio) {
+    appendRaw(ratio.name() + ": ");
     appendTag("b", ratio.count() + "");
     int p = ratio.percentage();
     appendRaw("/%d (%s%%) &nbsp; ".formatted(ratio.total(), p < 1 ? "<1" : p));

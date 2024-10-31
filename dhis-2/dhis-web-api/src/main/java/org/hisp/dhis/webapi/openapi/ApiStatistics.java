@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -40,18 +41,17 @@ public record ApiStatistics(ApiClassifications classifications, Api full, Api pa
     this(ApiClassifications.of(full.getScope().controllers()), full, partial);
   }
 
-  record Ratio(int count, int total, int percentage) {
-    Ratio(int count, int total) {
-      this(count, total, 100 * count / total);
+  record Ratio(String name, int count, int total, int percentage) {
+    Ratio(String name, int count, int total) {
+      this(name, count, total, 100 * count / total);
     }
   }
 
-  Map<String, Ratio> compute() {
-    return Map.of(
-        "operations",
-        new Ratio(operations(partial), operations(full)),
-        "schemas",
-        new Ratio(schemas(partial), schemas(full)));
+  List<Ratio> compute() {
+    return List.of(
+        new Ratio("operations", operations(partial), operations(full)),
+        new Ratio("schemas", schemas(partial), schemas(full)),
+        new Ratio("parameters", parameters(partial), parameters(full)));
   }
 
   private static int operations(Api in) {
@@ -60,5 +60,9 @@ public record ApiStatistics(ApiClassifications classifications, Api full, Api pa
 
   private static int schemas(Api in) {
     return in.getComponents().getSchemas().size();
+  }
+
+  private static int parameters(Api in) {
+    return in.getComponents().getParameters().values().stream().mapToInt(List::size).sum();
   }
 }
