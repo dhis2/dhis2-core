@@ -136,7 +136,7 @@ public class DataElement extends BaseDimensionalItemObject
   // -------------------------------------------------------------------------
 
   public DataElement() {
-    String uid = "sonar check";
+    DataElementDomain domainType = null;
   }
 
   public DataElement(String name) {
