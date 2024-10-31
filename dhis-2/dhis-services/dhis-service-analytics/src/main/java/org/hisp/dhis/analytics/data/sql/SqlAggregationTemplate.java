@@ -25,34 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.data.sql;
 
-/**
- * Filter operators for measures.
- *
- * @author Lars Helge Overland
- */
-public enum MeasureFilter {
-  EQ,
-  GT,
-  GE,
-  LT,
-  LE;
+public enum SqlAggregationTemplate {
+  AVERAGE_PERIOD_SUM("sum(daysxvalue) / %d"),
+  NUMERIC_AVERAGE("avg(%s)"),
+  BOOLEAN_AVERAGE("sum(daysxvalue) / sum(daysno) * 100"),
+  SIMPLE_AGGREGATION("%s(%s)"),
+  DEFAULT_SUM("sum(%s)");
 
-  /**
-   * Tests whether the measureFilter is valid for x and y as the values for comparison.
-   *
-   * @param x The first double value to be compared.
-   * @param y The second double value to be compared.
-   * @return true if the constraint/filter is valid when x is compared with y.
-   */
-  public boolean measureIsValid(Double x, Double y) {
-    return switch (this) {
-      case EQ -> Double.compare(x, y) == 0;
-      case GT -> Double.compare(x, y) > 0;
-      case GE -> Double.compare(x, y) >= 0;
-      case LT -> Double.compare(x, y) < 0;
-      case LE -> Double.compare(x, y) <= 0;
-    };
+  private final String template;
+
+  SqlAggregationTemplate(String template) {
+    this.template = template;
+  }
+
+  public String format(Object... args) {
+    return String.format(template, args);
   }
 }

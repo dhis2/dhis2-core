@@ -25,34 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.data.sql;
 
-/**
- * Filter operators for measures.
- *
- * @author Lars Helge Overland
- */
-public enum MeasureFilter {
-  EQ,
-  GT,
-  GE,
-  LT,
-  LE;
+import static java.lang.String.join;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.db.sql.SqlBuilder;
+
+@RequiredArgsConstructor
+public class DimensionsUtils {
+
+  private final SqlBuilder sqlBuilder;
 
   /**
-   * Tests whether the measureFilter is valid for x and y as the values for comparison.
+   * Generates a comma-delimited string with the dimension names of the given dimensions where each
+   * dimension name is quoted. Dimensions which are considered fixed will be excluded.
    *
-   * @param x The first double value to be compared.
-   * @param y The second double value to be compared.
-   * @return true if the constraint/filter is valid when x is compared with y.
+   * @param dimensions the collection of {@link DimensionalObject}.
+   * @return a comma-delimited string of quoted dimension names.
    */
-  public boolean measureIsValid(Double x, Double y) {
-    return switch (this) {
-      case EQ -> Double.compare(x, y) == 0;
-      case GT -> Double.compare(x, y) > 0;
-      case GE -> Double.compare(x, y) >= 0;
-      case LT -> Double.compare(x, y) < 0;
-      case LE -> Double.compare(x, y) <= 0;
-    };
+  public String getCommaDelimitedQuotedDimensionColumns(Collection<DimensionalObject> dimensions) {
+    return join(",", getQuotedDimensionColumns(dimensions));
+  }
+
+  /**
+   * Generates a list of the dimension names of the given dimensions where each dimension name is
+   * quoted. Dimensions which are considered fixed will be excluded.
+   *
+   * @param dimensions the collection of {@link DimensionalObject}.
+   * @return a list of quoted dimension names.
+   */
+  public List<String> getQuotedDimensionColumns(Collection<DimensionalObject> dimensions) {
+    return dimensions.stream()
+        .filter(d -> !d.isFixed())
+        .map(DimensionalObject::getDimensionName)
+        .map(sqlBuilder::quoteAx)
+        .collect(Collectors.toList());
   }
 }

@@ -25,34 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.data.sql;
 
-/**
- * Filter operators for measures.
- *
- * @author Lars Helge Overland
- */
-public enum MeasureFilter {
-  EQ,
-  GT,
-  GE,
-  LT,
-  LE;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.db.sql.SqlBuilder;
+import org.springframework.stereotype.Component;
 
-  /**
-   * Tests whether the measureFilter is valid for x and y as the values for comparison.
-   *
-   * @param x The first double value to be compared.
-   * @param y The second double value to be compared.
-   * @return true if the constraint/filter is valid when x is compared with y.
-   */
-  public boolean measureIsValid(Double x, Double y) {
-    return switch (this) {
-      case EQ -> Double.compare(x, y) == 0;
-      case GT -> Double.compare(x, y) > 0;
-      case GE -> Double.compare(x, y) >= 0;
-      case LT -> Double.compare(x, y) < 0;
-      case LE -> Double.compare(x, y) <= 0;
-    };
+@Slf4j
+@RequiredArgsConstructor
+@Component
+public class DorisAnalyticsQueryBuilder implements AnalyticsQueryBuilder {
+
+  private final SqlBuilder sqlBuilder;
+
+  @Override
+  public String buildSelectClause(DataQueryParams params) {
+    return "";
+  }
+
+  @Override
+  public String buildFromClause(DataQueryParams params, AnalyticsTableType tableType) {
+    return "";
+  }
+
+  @Override
+  public String buildWhereClause(DataQueryParams params, AnalyticsTableType tableType) {
+    return "";
+  }
+
+  @Override
+  public String buildGroupByClause(DataQueryParams params) {
+    return "";
   }
 }

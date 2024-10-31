@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.data.sql.from.strategy;
 
-/**
- * Filter operators for measures.
- *
- * @author Lars Helge Overland
- */
-public enum MeasureFilter {
-  EQ,
-  GT,
-  GE,
-  LT,
-  LE;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 
-  /**
-   * Tests whether the measureFilter is valid for x and y as the values for comparison.
-   *
-   * @param x The first double value to be compared.
-   * @param y The second double value to be compared.
-   * @return true if the constraint/filter is valid when x is compared with y.
-   */
-  public boolean measureIsValid(Double x, Double y) {
-    return switch (this) {
-      case EQ -> Double.compare(x, y) == 0;
-      case GT -> Double.compare(x, y) > 0;
-      case GE -> Double.compare(x, y) >= 0;
-      case LT -> Double.compare(x, y) < 0;
-      case LE -> Double.compare(x, y) <= 0;
-    };
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.data.sql.WhereClauseBuilder;
+import org.hisp.dhis.analytics.data.sql.from.ColumnBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
+
+/** Strategy for building min/max value subqueries */
+public class MinMaxValueStrategy extends BaseSubqueryStrategy {
+  private final ColumnBuilder columnBuilder;
+  private final WhereClauseBuilder whereClauseBuilder;
+
+  public MinMaxValueStrategy(
+      DataQueryParams params,
+      SqlBuilder sqlBuilder,
+      ColumnBuilder columnBuilder,
+      AnalyticsTableType tableType) {
+    super(params, sqlBuilder);
+    this.columnBuilder = columnBuilder;
+    this.whereClauseBuilder = new WhereClauseBuilder(params, sqlBuilder, tableType);
+  }
+
+  @Override
+  public String buildSubquery() {
+    String dimensionColumns = columnBuilder.getMinMaxDimensionColumns();
+    String valueColumns = columnBuilder.getMinMaxValueColumns();
+    String fromSourceClause = getFromSourceClause() + " as " + ANALYTICS_TBL_ALIAS;
+    String whereClause = whereClauseBuilder.build();
+
+    return String.format(
+        "(select %s, %s from %s %s group by %s)",
+        dimensionColumns, valueColumns, fromSourceClause, whereClause, dimensionColumns);
   }
 }

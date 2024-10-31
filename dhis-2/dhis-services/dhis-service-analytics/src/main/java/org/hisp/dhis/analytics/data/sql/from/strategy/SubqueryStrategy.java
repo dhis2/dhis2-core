@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.data.sql.from.strategy;
 
-/**
- * Filter operators for measures.
- *
- * @author Lars Helge Overland
- */
-public enum MeasureFilter {
-  EQ,
-  GT,
-  GE,
-  LT,
-  LE;
-
-  /**
-   * Tests whether the measureFilter is valid for x and y as the values for comparison.
-   *
-   * @param x The first double value to be compared.
-   * @param y The second double value to be compared.
-   * @return true if the constraint/filter is valid when x is compared with y.
-   */
-  public boolean measureIsValid(Double x, Double y) {
-    return switch (this) {
-      case EQ -> Double.compare(x, y) == 0;
-      case GT -> Double.compare(x, y) > 0;
-      case GE -> Double.compare(x, y) >= 0;
-      case LT -> Double.compare(x, y) < 0;
-      case LE -> Double.compare(x, y) <= 0;
-    };
-  }
+/** Strategy interface for building different types of subqueries */
+public interface SubqueryStrategy {
+  String buildSubquery();
 }

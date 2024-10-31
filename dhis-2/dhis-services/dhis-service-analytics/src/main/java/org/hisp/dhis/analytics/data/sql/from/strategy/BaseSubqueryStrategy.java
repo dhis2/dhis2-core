@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.data.sql.from.strategy;
 
-/**
- * Filter operators for measures.
- *
- * @author Lars Helge Overland
- */
-public enum MeasureFilter {
-  EQ,
-  GT,
-  GE,
-  LT,
-  LE;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.table.util.PartitionUtils;
+import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.sql.SqlBuilder;
 
-  /**
-   * Tests whether the measureFilter is valid for x and y as the values for comparison.
-   *
-   * @param x The first double value to be compared.
-   * @param y The second double value to be compared.
-   * @return true if the constraint/filter is valid when x is compared with y.
-   */
-  public boolean measureIsValid(Double x, Double y) {
-    return switch (this) {
-      case EQ -> Double.compare(x, y) == 0;
-      case GT -> Double.compare(x, y) > 0;
-      case GE -> Double.compare(x, y) >= 0;
-      case LT -> Double.compare(x, y) < 0;
-      case LE -> Double.compare(x, y) <= 0;
-    };
+@RequiredArgsConstructor
+public abstract class BaseSubqueryStrategy implements SubqueryStrategy {
+
+  protected final DataQueryParams params;
+  protected final SqlBuilder sqlBuilder;
+
+  protected String getFromSourceClause() {
+    if (!params.isSkipPartitioning() && params.hasPartitions()) {
+      return params.getPartitions().hasOne()
+          ? PartitionUtils.getPartitionName(params.getTableName(), params.getPartitions().getAny())
+          : getUnionPartitionSourceClause();
+    }
+    return params.getTableName();
+  }
+
+  private String getUnionPartitionSourceClause() {
+    String sql = "(";
+    for (Integer partition : params.getPartitions().getPartitions()) {
+      String partitionName = PartitionUtils.getPartitionName(params.getTableName(), partition);
+      sql += "select ap.* from " + partitionName + " as ap union all ";
+    }
+    return TextUtils.removeLast(sql, "union all") + ")";
   }
 }
