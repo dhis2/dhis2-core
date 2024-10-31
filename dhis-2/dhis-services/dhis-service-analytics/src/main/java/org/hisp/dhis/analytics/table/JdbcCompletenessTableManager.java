@@ -261,10 +261,10 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
         "concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',acs.categoryoptioncombouid) as id ";
     String diffInSeconds = sqlBuilder.differenceInSeconds("cdr.date", "ps.enddate");
     String timelyDateDiff = diffInSeconds + " / (" + SECONDS_PER_DAY + ")";
+
     String timelyAlias = "((" + timelyDateDiff + ") <= ds.timelydays) as timely";
 
-    List<AnalyticsTableColumn> columns = new ArrayList<>();
-    columns.addAll(FIXED_COLS);
+    List<AnalyticsTableColumn> columns = new ArrayList<>(FIXED_COLS);
     columns.add(
         AnalyticsTableColumn.builder()
             .name("id")

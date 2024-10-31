@@ -27,14 +27,22 @@
  */
 package org.hisp.dhis.db.sql;
 
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.TablePartition;
 import org.hisp.dhis.db.model.constraint.Nullable;
+import org.hisp.dhis.db.sql.functions.DorisDateDiff;
 
 @RequiredArgsConstructor
 public class DorisSqlBuilder extends AbstractSqlBuilder {
@@ -233,8 +241,38 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
     if (table.hasPartitions()) {
       String partitions = toCommaSeparated(table.getPartitions(), this::toPartitionString);
+      sql.append("partition by range(year) ("); // Make configurable
+      // TODO this can fail if the partition values are not integers!!!
+      List<TablePartition> partitions =
+          table.getPartitions().stream()
+              .sorted(Comparator.comparingInt(p -> Integer.parseInt(p.getValue().toString())))
+              .toList();
 
       sql.append("partition by range(year) (").append(partitions).append(") "); // Make configurable
+      for (TablePartition partition : table.getPartitions()) {
+        sql.append("partition ")
+            .append(quote(partition.getName()))
+            .append(" values less than(\"")
+            .append(partition.getValue()) // Set last partition to max value
+            .append("\"),");
+      }
+
+      removeLastComma(sql).append(") ");
+      for (int i = 0; i < partitions.size(); i++) {
+        TablePartition partition = partitions.get(i);
+        sql.append("partition ").append(quote(partition.getName())).append(" values less than(");
+
+        // If it's the last partition, use MAXVALUE
+        if (i == partitions.size() - 1) {
+          sql.append("MAXVALUE");
+        } else {
+          sql.append("\"").append(partition.getValue()).append("\"");
+        }
+
+        sql.append("),");
+      }
+
+      removeLastComma(sql).append(") ");
     }
 
     // Distribution
@@ -251,7 +289,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     // Properties
 
     sql.append("properties (\"replication_num\" = \"1\")");
-
     return sql.append(";").toString();
   }
 
@@ -355,7 +392,58 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public SqlFunction getDateDiffInDays(String date1, String date2) {
+    return new DorisDateDiff(date1, date2);
+  }
+
+  @Override
+  public String fixQuote(String column) {
+    // Handle null or empty cases
+    if (column == null || column.trim().isEmpty()) {
+      return "";
+    }
+
+    // Trim the entire input first
+    column = column.trim();
+
+    // Handle cases with alias (multiple dots)
+    if (column.contains(".")) {
+      int lastDotIndex = column.lastIndexOf(".");
+      String prefix = column.substring(0, lastDotIndex + 1); // Include the dot
+      String columnName = column.substring(lastDotIndex + 1);
+
+      // Quote the column part, preserve only internal spaces
+      return prefix.trim() + quoteIdentifier(columnName.trim());
+    }
+
+    // Simple column name case
+    return quoteIdentifier(column.trim());
+  }
+
+  @Override
   public String regexpMatch(String pattern) {
     return "REGEXP " + pattern;
+  }
+
+  @Override
+  public Database getDatabase() {
+    return Database.DORIS;
+  }
+
+  private boolean isProperlyQuoted(String identifier) {
+    return identifier.startsWith("`")
+        && identifier.endsWith("`")
+        &&
+        // Make sure it's not just a single word with quotes
+        (identifier.length() > 2)
+        &&
+        // Check for proper escape of internal backticks
+        !identifier.substring(1, identifier.length() - 1).contains("`");
+  }
+
+  private String quoteIdentifier(String identifier) {
+    // Remove any existing quotes (both backticks and double quotes)
+    identifier = identifier.replaceAll("[`\"]", "");
+    return "`" + identifier + "`";
   }
 }

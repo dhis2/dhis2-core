@@ -32,7 +32,6 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.analytics.event.data.JdbcEventAnalyticsManager.OPEN_IN;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.ArrayList;
@@ -51,6 +50,7 @@ import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.jdbc.PostgreSqlStatementBuilder;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.period.Period;
@@ -58,8 +58,13 @@ import org.hisp.dhis.period.PeriodType;
 
 /** Provides methods targeting the generation of SQL statements for periods and time fields. */
 public abstract class TimeFieldSqlRenderer {
+  protected final SqlBuilder sqlBuilder;
 
   protected final StatementBuilder statementBuilder = new PostgreSqlStatementBuilder();
+
+  public TimeFieldSqlRenderer(SqlBuilder sqlBuilder) {
+    this.sqlBuilder = sqlBuilder;
+  }
 
   /**
    * Generates a SQL statement for periods or time field based on the given params.
@@ -311,7 +316,7 @@ public abstract class TimeFieldSqlRenderer {
 
   private String toSqlCondition(String alias, Entry<PeriodType, List<Period>> entry) {
     String columnName = entry.getKey().getName().toLowerCase();
-    return quote(alias, columnName)
+    return sqlBuilder.quote(alias, columnName)
         + OPEN_IN
         + getQuotedCommaDelimitedString(getUids(entry.getValue()))
         + ") ";

@@ -431,6 +431,59 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
+  void testFixQuote() {
+
+    // Test null and empty cases
+    assertEquals("", sqlBuilder.fixQuote(null));
+    assertEquals("", sqlBuilder.fixQuote(""));
+    assertEquals("", sqlBuilder.fixQuote("   "));
+
+    // Test simple column names
+    assertEquals("\"column_name\"", sqlBuilder.fixQuote("column_name"));
+
+    // Test already quoted columns
+    assertEquals("\"column_name\"", sqlBuilder.fixQuote("\"column_name\""));
+
+    // Test with alias
+    assertEquals("alias.\"column_name\"", sqlBuilder.fixQuote("alias.column_name"));
+
+    // Test with alias and already quoted columns
+    assertEquals("alias.\"column_name\"", sqlBuilder.fixQuote("alias.\"column_name\""));
+
+    // Test with spaces
+    assertEquals("\"column name\"", sqlBuilder.fixQuote("column name"));
+    assertEquals("alias.\"column name\"", sqlBuilder.fixQuote("alias.column name"));
+    assertEquals("alias.\"column name\"", sqlBuilder.fixQuote("alias.\"column name\""));
+
+    // Test with trailing/leading spaces
+    assertEquals("\"column_name\"", sqlBuilder.fixQuote("  column_name  "));
+    assertEquals("alias.\"column_name\"", sqlBuilder.fixQuote("  alias.column_name  "));
+  }
+
+  @Test
+  public void testFixQuoteSpecialCases() {
+    // Test with special characters
+    assertEquals("\"column$name\"", sqlBuilder.fixQuote("column$name"));
+    assertEquals("\"column-name\"", sqlBuilder.fixQuote("column-name"));
+    assertEquals("\"column#name\"", sqlBuilder.fixQuote("column#name"));
+
+    // Test with numbers
+    assertEquals("\"column123\"", sqlBuilder.fixQuote("column123"));
+    assertEquals("\"123column\"", sqlBuilder.fixQuote("123column"));
+
+    // Test with mixed case
+    assertEquals("\"ColumnName\"", sqlBuilder.fixQuote("ColumnName"));
+    assertEquals("\"camelCase\"", sqlBuilder.fixQuote("camelCase"));
+    assertEquals("Alias.\"columnName\"", sqlBuilder.fixQuote("Alias.columnName"));
+  }
+
+  @Test
+  public void testFixQuoteEdgeCases() {
+    // Test with multiple dots
+    assertEquals("schema.table.\"column\"", sqlBuilder.fixQuote("schema.table.column"));
+  }
+
+  @Test
   void testRegexpMatch() {
     assertEquals("~* test", sqlBuilder.regexpMatch("test"));
     assertEquals("~* ", sqlBuilder.regexpMatch(""));

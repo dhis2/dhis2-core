@@ -28,6 +28,7 @@
 package org.hisp.dhis.db.sql;
 
 import java.util.Collection;
+import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 
@@ -188,13 +189,13 @@ public interface SqlBuilder {
 
   /**
    * @param relation the relation to quote, e.g. a column name.
-   * @return an aliased and double quoted relation.
+   * @return an aliased and double-quoted relation.
    */
   String quote(String alias, String relation);
 
   /**
    * @param relation the relation to quote.
-   * @return an "ax" aliased and double quoted relation.
+   * @return an "ax" aliased and double-quoted relation.
    */
   String quoteAx(String relation);
 
@@ -212,7 +213,7 @@ public interface SqlBuilder {
 
   /**
    * @param items the items to join.
-   * @return a string representing the comma delimited and single quoted item values.
+   * @return a string representing the comma-delimited and single quoted item values.
    */
   String singleQuotedCommaDelimited(Collection<String> items);
 
@@ -368,4 +369,46 @@ public interface SqlBuilder {
    * @return The complete regexp matching clause for the current database
    */
   String regexpMatch(String pattern);
+
+  /**
+   * Returns a SQL function that calculates the difference in days between two dates.
+   *
+   * @param date1 the first date
+   * @param date2 the second date
+   * @return the SQL function
+   */
+  SqlFunction getDateDiffInDays(String date1, String date2);
+
+  /**
+   * Properly quotes identifiers (column names) according to the specific SQL dialect rules. For
+   * PostgreSQL, double quotes (") are used. For Doris/MySQL, backticks (`) are used.
+   *
+   * <p>This method is meant to be used for quoting column names in SQL queries, in cases where the
+   * system is already quoting identifiers, but the quoting takes place where SqlBuilder is not
+   * available. (for instance, in the static methods of utility classes).
+   *
+   * <p>The method handles various input formats: - Simple column names: "column_name" or
+   * column_name - Qualified names: "schema"."table"."column" or schema.table.column - Aliased
+   * columns: alias.column_name or alias."column_name"
+   *
+   * @param column The identifier to be quoted. Can be: - null or empty string (returns empty
+   *     string) - a simple column name (e.g., "column_name" or column_name) - a qualified name
+   *     (e.g., "schema"."table"."column" or schema.table.column) - an aliased column (e.g.,
+   *     alias.column_name or alias."column_name")
+   * @return The properly quoted identifier according to the SQL dialect. - For PostgreSQL: Returns
+   *     the identifier wrapped in double quotes (") - For Doris/MySQL: Returns the identifier
+   *     wrapped in backticks (`) - Returns empty string if input is null or empty - Preserves
+   *     existing correct quoting - Preserves intentional spaces around dots in qualified names
+   *     <p>Examples for PostgreSQL: - fixQuote("column_name") → "column_name" -
+   *     fixQuote("alias.column_name") → alias."column_name" - fixQuote("schema.table.column") →
+   *     schema.table."column" - fixQuote("\"column_name\"") → "column_name" - fixQuote("alias .
+   *     column_name") → alias . "column_name"
+   *     <p>Examples for MySQL/Doris: - fixQuote("column_name") → `column_name` -
+   *     fixQuote("alias.column_name") → alias.`column_name` - fixQuote("schema.table.column") →
+   *     schema.table.`column` - fixQuote("`column_name`") → `column_name` - fixQuote("alias .
+   *     column_name") → alias . `column_name`
+   */
+  String fixQuote(String column);
+
+  Database getDatabase();
 }

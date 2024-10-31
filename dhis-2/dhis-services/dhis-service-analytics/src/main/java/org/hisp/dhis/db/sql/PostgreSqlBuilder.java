@@ -31,10 +31,12 @@ import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
+import org.hisp.dhis.db.sql.functions.PostgresDateDiff;
 
 /**
  * Implementation of {@link SqlBuilder} for PostgreSQL.
@@ -354,5 +356,66 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String regexpMatch(String pattern) {
     return "~* " + pattern;
+  }
+
+  @Override
+  public SqlFunction getDateDiffInDays(String date1, String date2) {
+    return new PostgresDateDiff(date1, date2);
+  }
+
+  @Override
+  public String fixQuote(String column) {
+    // Handle null or empty cases
+    if (column == null || column.trim().isEmpty()) {
+      return "";
+    }
+
+    // Trim the entire input first
+    column = column.trim();
+
+    // If it's already properly quoted, return as is
+    if (isProperlyQuoted(column)) {
+      return column;
+    }
+
+    // Handle cases with alias (multiple dots)
+    if (column.contains(".")) {
+      int lastDotIndex = column.lastIndexOf(".");
+      String prefix = column.substring(0, lastDotIndex + 1); // Include the dot
+      String columnName = column.substring(lastDotIndex + 1);
+
+      // If the column part is already quoted
+      if (isProperlyQuoted(columnName.trim())) {
+        return prefix.trim() + columnName.trim();
+      }
+
+      // Quote the column part, preserve only internal spaces
+      return prefix.trim() + quoteIdentifier(columnName.trim());
+    }
+
+    // Simple column name case
+    return quoteIdentifier(column.trim());
+  }
+
+  @Override
+  public Database getDatabase() {
+    return Database.POSTGRESQL;
+  }
+
+  private boolean isProperlyQuoted(String identifier) {
+    return identifier.startsWith("\"")
+        && identifier.endsWith("\"")
+        &&
+        // Make sure it's not just a single word with quotes
+        (identifier.length() > 2)
+        &&
+        // Check for proper escape of internal quotes
+        !identifier.substring(1, identifier.length() - 1).contains("\"");
+  }
+
+  private String quoteIdentifier(String identifier) {
+    // Remove any existing quotes first
+    identifier = identifier.replaceAll("\"", "");
+    return "\"" + identifier + "\"";
   }
 }
