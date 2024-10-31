@@ -405,7 +405,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 "latestDataYear", String.valueOf(latestDataYear),
                 "exportableEventStatues", String.join(",", EXPORTABLE_EVENT_STATUSES)));
 
-    populateTableInternal(partition, fromClause.toString());
+    populateTableInternal(partition, fromClause);
   }
 
   /**
@@ -683,13 +683,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet(
       DataElement dataElement, String select, String dataClause) {
     String query =
-        qualifyVariables(
-            """
+        """
         (select l.uid from ${maplegend} l
         inner join ${event} on l.startvalue <= ${select}
         and l.endvalue > ${select}
         and l.maplegendsetid=${legendSetId}
-        and eventid=ev.eventid ${dataClause}) as ${column}""");
+        and eventid=ev.eventid ${dataClause}) as ${column}""";
 
     return dataElement.getLegendSets().stream()
         .map(
