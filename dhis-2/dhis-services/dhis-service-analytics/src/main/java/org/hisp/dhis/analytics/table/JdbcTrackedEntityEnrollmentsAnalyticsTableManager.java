@@ -284,15 +284,14 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
         .append(
             replace(
                 """
-                \sfrom enrollment en \
-                inner join trackedentity te on en.trackedentityid = te.trackedentityid \
-                and te.deleted = false \
-                and te.trackedentitytypeid =${trackedEntityTypeId} \
+                \sfrom ${enrollment} en \
+                inner join ${trackedentity} te on en.trackedentityid = te.trackedentityid \
+                and te.deleted = false and te.trackedentitytypeid =${trackedEntityTypeId} \
                 and te.lastupdated < '${startTime}' \
-                left join program p on p.programid = en.programid \
-                left join organisationunit ou on en.organisationunitid = ou.organisationunitid \
+                left join ${program} p on p.programid = en.programid \
+                left join ${organisationunit} ou on en.organisationunitid = ou.organisationunitid \
                 left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
-                where exists ( select 1 from event ev where ev.deleted = false \
+                where exists (select 1 from event ev where ev.deleted = false \
                 and ev.enrollmentid = en.enrollmentid \
                 and ev.status in (${statuses})) \
                 and en.occurreddate is not null \
