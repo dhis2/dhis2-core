@@ -36,6 +36,7 @@ import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNo
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
@@ -592,6 +593,12 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
     GET("/tracker/events/{eventUid}/dataValues/{dataElementUid}/file", event.getUid(), de.getUid())
         .error(HttpStatus.CONFLICT);
+  }
+
+  @Test
+  void whatDoYouThinkSonar() throws ConflictException {
+    DataElement de = dataElement(ValueType.FILE_RESOURCE);
+    assertNotNull(de);
   }
 
   @Test
