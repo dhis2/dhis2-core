@@ -40,11 +40,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nonnull;
-import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 import org.hisp.dhis.common.OpenApi;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RestController;
@@ -54,32 +49,24 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Jan Bernitt
  * @since 2.42
+ * @param controllers All controllers considered in the classification. This is the basis of the
+ *     analysis and therefore also the key or identity of a classification.
+ * @param classifiers All possible values for each type of classifier
  */
-@ToString
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public final class ApiClassification {
+public record ApiClassifications(
+    Set<Class<?>> controllers, Map<String, List<Classifier>> classifiers) {
 
   public record Classifier(String value, int percentage) {}
 
-  /**
-   * All controllers considered in the classification. This is the basis of the analysis and
-   * therefore also the key or identity of a classification.
-   */
-  @EqualsAndHashCode.Include private final Set<Class<?>> controllers;
+  private static final Map<Set<Class<?>>, ApiClassifications> CACHE = new ConcurrentHashMap<>();
 
-  /** All possible values for each type of classifier */
-  @Getter private final Map<String, List<Classifier>> classifiers;
-
-  private static final Map<Set<Class<?>>, ApiClassification> CACHE = new ConcurrentHashMap<>();
-
-  static ApiClassification of(Set<Class<?>> controllers) {
-    return CACHE.computeIfAbsent(controllers, ApiClassification::create);
+  static ApiClassifications of(Set<Class<?>> controllers) {
+    return CACHE.computeIfAbsent(controllers, ApiClassifications::ofInternal);
   }
 
-  private static ApiClassification create(Set<Class<?>> controllers) {
+  private static ApiClassifications ofInternal(Set<Class<?>> controllers) {
     Map<String, Set<String>> classifiers = collectAllClassifiers(controllers);
-    return new ApiClassification(controllers, sortedByValueCount(controllers, classifiers));
+    return new ApiClassifications(controllers, sortedByValueCount(controllers, classifiers));
   }
 
   @Nonnull

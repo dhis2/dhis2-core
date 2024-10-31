@@ -114,7 +114,7 @@ public class OpenApiTool implements ToolProvider {
     String filename = args[args.length - 1];
 
     Api.Scope scope =
-        new Api.Scope(controllers, filters, ApiClassification.matches(controllers, filters));
+        new Api.Scope(controllers, filters, ApiClassifications.matches(controllers, filters));
     if (!group) {
       return generateDocument(filename, out, err, scope);
     }
@@ -176,7 +176,7 @@ public class OpenApiTool implements ToolProvider {
                   new Api.Scope(
                       classes,
                       scope.filters(),
-                      ApiClassification.matches(classes, scope.filters()))));
+                      ApiClassifications.matches(classes, scope.filters()))));
         });
     return errorCode;
   }

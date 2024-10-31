@@ -27,10 +27,14 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
-import lombok.Value;
+/**
+ * @param classifications all classifications available
+ * @param full the entire API with no filters
+ * @param partial the API currently shown
+ */
+public record ApiStatistics(ApiClassifications classifications, Api full, Api partial) {
 
-@Value
-public class ApiStatistics {
-
-  ApiClassification classifications;
+  ApiStatistics(Api full, Api partial) {
+    this(ApiClassifications.of(full.getScope().controllers()), full, partial);
+  }
 }

@@ -242,10 +242,9 @@ public class OpenApiController {
         cacheKey,
         () -> {
           String json = generateCached(Language.JSON, scoping, generation);
-          Api inScope = extractCached(scoping, generation);
-          Api fullScope = extractCached(new OpenApiScopingParams(), new OpenApiGenerationParams());
-          ApiStatistics stats =
-              new ApiStatistics(ApiClassification.of(fullScope.getScope().controllers()));
+          Api partial = extractCached(scoping, generation);
+          Api full = extractCached(new OpenApiScopingParams(), new OpenApiGenerationParams());
+          ApiStatistics stats = new ApiStatistics(full, partial);
           return renderHTML(json, rendering, stats);
         });
   }
@@ -264,23 +263,26 @@ public class OpenApiController {
   }
 
   @Nonnull
-  private Api extractCached(OpenApiScopingParams scope, OpenApiGenerationParams params) {
+  private Api extractCached(OpenApiScopingParams scoping, OpenApiGenerationParams generation) {
     String apiCacheKey =
-        params.isSkipCache() ? null : scope.getCacheKey() + params.getApiCacheKey();
-    return API_CACHE.get(apiCacheKey, () -> computeApi(scope, params));
+        generation.isSkipCache() ? null : scoping.getCacheKey() + generation.getApiCacheKey();
+    return API_CACHE.get(apiCacheKey, () -> extractUncached(scoping, generation));
   }
 
   @Nonnull
-  private Api computeApi(OpenApiScopingParams scoping, OpenApiGenerationParams generation) {
+  private Api extractUncached(OpenApiScopingParams scoping, OpenApiGenerationParams generation) {
     Map<String, Set<String>> filters = new HashMap<>();
     for (String s : scoping.scope) {
-      String key = s.substring(0, s.indexOf('.'));
-      String value = s.substring(s.indexOf('.') + 1);
-      filters.computeIfAbsent(key, k -> new HashSet<>()).add(value);
+      int split = s.indexOf('.');
+      if (split > 0) {
+        String key = s.substring(0, split);
+        String value = s.substring(split + 1);
+        filters.computeIfAbsent(key, k -> new HashSet<>()).add(value);
+      }
     }
     Set<Class<?>> controllers = getAllControllerClasses();
     Api.Scope scope =
-        new Api.Scope(controllers, filters, ApiClassification.matches(controllers, filters));
+        new Api.Scope(controllers, filters, ApiClassifications.matches(controllers, filters));
     Api api =
         ApiExtractor.extractApi(scope, new ApiExtractor.Configuration(generation.expandedRefs));
     ApiIntegrator.integrateApi(
