@@ -25,49 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.sql;
+package org.hisp.dhis.common;
 
-import java.util.Objects;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
-import org.hisp.dhis.db.model.Database;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.stereotype.Service;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/** Provider of {@link SqlBuilder} implementations. */
-@Service
-public class SqlBuilderProvider {
-  private final SqlBuilder sqlBuilder;
+import java.util.Set;
+import java.util.regex.Pattern;
+import org.junit.jupiter.api.Test;
 
-  public SqlBuilderProvider(AnalyticsTableSettings config) {
-    Objects.requireNonNull(config);
-    this.sqlBuilder = getSqlBuilder(config);
+/**
+ * @author Lars Helge Overland
+ */
+class RegexUtilsTest {
+  @Test
+  void testGetMatchesWithGroup() {
+    assertEquals(
+        Set.of("animal", "target"),
+        RegexUtils.getMatches(
+            Pattern.compile("\\$\\{([^}]+)\\}"), "The ${animal} jumped over the ${target}.", 1));
   }
 
-  /**
-   * Returns a {@link SqlBuilder} implementation based on the system configuration.
-   *
-   * @return a {@link SqlBuilder}.
-   */
-  public SqlBuilder getSqlBuilder() {
-    return sqlBuilder;
+  @Test
+  void testGetMatchesWithNullInput() {
+    assertEquals(Set.of(), RegexUtils.getMatches(Pattern.compile("\\$\\{([^}]+)\\}"), null, 1));
   }
 
-  /**
-   * Returns the appropriate {@link SqlBuilder} implementation based on the system configuration.
-   *
-   * @param config the {@link DhisConfigurationProvider}.
-   * @return a {@link SqlBuilder}.
-   */
-  private SqlBuilder getSqlBuilder(AnalyticsTableSettings config) {
-    Database database = config.getAnalyticsDatabase();
-    String catalog = config.getAnalyticsDatabaseCatalog();
-    String driverFilename = config.getAnalyticsDatabaseDriverFilename();
-
-    Objects.requireNonNull(database);
-
-    return switch (database) {
-      case DORIS -> new DorisSqlBuilder(catalog, driverFilename);
-      default -> new PostgreSqlBuilder();
-    };
+  @Test
+  void testGetMatchesWithNullGroup() {
+    assertEquals(
+        Set.of("${animal}", "${target}"),
+        RegexUtils.getMatches(
+            Pattern.compile("\\$\\{([^}]+)\\}"), "The ${animal} jumped over the ${target}.", null));
   }
 }

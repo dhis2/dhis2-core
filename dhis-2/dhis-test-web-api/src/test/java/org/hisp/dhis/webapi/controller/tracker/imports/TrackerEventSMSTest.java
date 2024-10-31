@@ -497,12 +497,16 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     switchContextToUser(user1);
 
     JsonWebMessage response =
-        POST("/sms/inbound", format("""
+        POST(
+                "/sms/inbound",
+                format(
+                    """
 {
 "text": "%s",
 "originator": "%s"
 }
-""", text, originator))
+""",
+                    text, originator))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
 
@@ -564,12 +568,16 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     switchContextToUser(user1);
 
     JsonWebMessage response =
-        POST("/sms/inbound", format("""
+        POST(
+                "/sms/inbound",
+                format(
+                    """
 {
 "text": "%s",
 "originator": "%s"
 }
-""", text, originator))
+""",
+                    text, originator))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
 
@@ -626,12 +634,14 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     JsonWebMessage response =
         POST(
                 "/sms/inbound",
-                format("""
+                format(
+                    """
 {
 "text": "visit a=hello",
 "originator": "%s"
 }
-""", originator))
+""",
+                    originator))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
 
@@ -691,12 +701,14 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     JsonWebMessage response =
         POST(
                 "/sms/inbound",
-                format("""
+                format(
+                    """
 {
 "text": "birth a=hello",
 "originator": "%s"
 }
-""", originator))
+""",
+                    originator))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
 
@@ -775,12 +787,14 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     JsonWebMessage response =
         POST(
                 "/sms/inbound",
-                format("""
+                format(
+                    """
 {
 "text": "birth a=hello",
 "originator": "%s"
 }
-""", originator))
+""",
+                    originator))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
 
