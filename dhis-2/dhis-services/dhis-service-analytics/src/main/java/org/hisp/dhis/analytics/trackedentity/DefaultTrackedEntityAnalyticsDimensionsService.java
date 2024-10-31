@@ -71,7 +71,7 @@ class DefaultTrackedEntityAnalyticsDimensionsService
         programs = programService.getPrograms(programUids).stream();
       }
 
-      // Dimensions by programs defined on the given tracked entity type.
+      // Dimensions by programs defined on the given tracked entity type
       return programs
           .filter(program -> isDefinedOnTrackedEntityType(program, trackedEntityTypeId))
           .map(
