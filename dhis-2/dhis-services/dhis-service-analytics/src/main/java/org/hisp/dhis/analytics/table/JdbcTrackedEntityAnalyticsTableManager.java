@@ -34,7 +34,6 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
-import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.BOOLEAN;
@@ -506,7 +505,6 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
     TrackedEntityType trackedEntityType = partition.getMasterTable().getTrackedEntityType();
 
     removeLastComma(sql)
-        .append(SPACE)
         .append(
             replaceQualify(
                 """
@@ -530,7 +528,6 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
                         Map.of(
                             "teaUid", tea.getUid(),
                             "teaId", String.valueOf(tea.getId())))));
-    sql.append(SPACE);
     sql.append(
         replace(
             """
