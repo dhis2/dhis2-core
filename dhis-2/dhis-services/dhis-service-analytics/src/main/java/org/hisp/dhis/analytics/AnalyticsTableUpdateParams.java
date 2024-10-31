@@ -27,21 +27,21 @@
  */
 package org.hisp.dhis.analytics;
 
-import com.google.common.base.MoreObjects;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import lombok.Builder;
-import lombok.Getter;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.util.DateUtils;
+import com.google.common.base.MoreObjects;
+import lombok.Builder;
+import lombok.Getter;
 
 /**
  * Class representing parameters for the analytics table generation process.
@@ -81,13 +81,27 @@ public class AnalyticsTableUpdateParams {
   /** Current date, only used for testing */
   private final Date today;
 
-  /** free key-value map for extra parameters. */
+  /** Map of arbitrary extra parameters. */
   @Builder.Default private final Map<String, Object> extraParameters = new HashMap<>();
 
+  /**
+   * Adds an extra parameter.
+   * 
+   * @param prefix the parameter key prefix.
+   * @param key the parameter key.
+   * @param value the parameter value.
+   */
   public void addExtraParam(String prefix, String key, Object value) {
     extraParameters.put(prefix + key, value);
   }
 
+  /**
+   * Retrieves the extra parameter with the given key.
+   * 
+   * @param prefix the parameter key prefix.
+   * @param key the parameter key.
+   * @return a parameter object.
+   */
   public Object getExtraParam(String prefix, String key) {
     return extraParameters.get(prefix + key);
   }
