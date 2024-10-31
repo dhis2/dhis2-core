@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -266,5 +267,17 @@ class TextUtilsTest {
   void testEmptyIfTrue() {
     assertEquals("", TextUtils.emptyIfTrue("foo", true));
     assertEquals("foo", TextUtils.emptyIfTrue("foo", false));
+  }
+
+  @Test
+  void testGetVariableNames() {
+    assertEquals(
+        Set.of("animal", "target"),
+        TextUtils.getVariableNames("The ${animal} jumped over the ${target}."));
+  }
+
+  @Test
+  void testGetVariableNamesWithNullInput() {
+    assertEquals(Set.of(), TextUtils.getVariableNames(null));
   }
 }

@@ -81,6 +81,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class FileResourceController extends AbstractFullReadOnlyController<FileResource> {
   private final FileResourceService fileResourceService;
 

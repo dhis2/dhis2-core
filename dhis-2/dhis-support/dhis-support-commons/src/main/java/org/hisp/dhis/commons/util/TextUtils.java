@@ -37,9 +37,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
+import org.hisp.dhis.common.RegexUtils;
 import org.slf4j.helpers.MessageFormatter;
 
 /**
@@ -67,6 +69,8 @@ public class TextUtils {
   private static final String OPTION_SEP = ";";
 
   private static final Character DOUBLE_QUOTE = '\"';
+
+  private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\$\\{([^}]+)\\}");
 
   /**
    * Remove all non-alphanumeric characters within string
@@ -653,5 +657,16 @@ public class TextUtils {
    */
   public static String format(String pattern, Object... arguments) {
     return MessageFormatter.arrayFormat(pattern, arguments).getMessage();
+  }
+
+  /**
+   * Returns the names of the variables in the given input. The definition of a variable is <code>
+   * ${variableName}</code>.
+   *
+   * @param input the input potentially containing variables.
+   * @return a set of variable names.
+   */
+  public static Set<String> getVariableNames(String input) {
+    return RegexUtils.getMatches(VARIABLE_PATTERN, input, 1);
   }
 }

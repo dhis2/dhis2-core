@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.table;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
-import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
@@ -132,7 +131,9 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           + columnName
           + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
     } else if (valueType.isOrganisationUnit()) {
-      return "ou.uid from organisationunit ou where ou.uid = (select " + columnName;
+      return replaceQualify(
+          "ou.uid from ${organisationunit} ou where ou.uid = (select ${columnName}",
+          Map.of("columnName", columnName));
     } else {
       return columnName;
     }
@@ -186,9 +187,9 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
       String sql =
-          replace(
+          replaceQualify(
               """
-              (select ${select} from trackedentityattributevalue \
+              (select ${select} from ${trackedentityattributevalue} \
               where trackedentityid=en.trackedentityid \
               and trackedentityattributeid=${attributeId}\
               ${dataClause})${closingParentheses} as ${attributeUid}""",
@@ -239,9 +240,9 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    */
   protected String selectForInsert(
       TrackedEntityAttribute attribute, String fromType, String dataClause) {
-    return replace(
+    return replaceQualify(
         """
-            (select ${fromType} from trackedentityattributevalue \
+            (select ${fromType} from ${trackedentityattributevalue} \
             where trackedentityid=en.trackedentityid \
             and trackedentityattributeid=${attributeId}\
             ${dataClause})\

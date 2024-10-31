@@ -30,6 +30,7 @@ package org.hisp.dhis.common;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
@@ -39,8 +40,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.hisp.dhis.user.SystemUser;
-import org.hisp.dhis.user.UserDetails;
 
 /**
  * UID represents an alphanumeric string of 11 characters starting with a letter.
@@ -69,6 +68,7 @@ public final class UID implements Serializable {
   }
 
   @Override
+  @JsonValue
   public String toString() {
     return value;
   }
@@ -80,14 +80,6 @@ public final class UID implements Serializable {
   @JsonCreator
   public static UID of(@Nonnull String value) {
     return new UID(value);
-  }
-
-  public static UID of(@Nonnull UserDetails currentUser) {
-    // TODO:(DHIS2-18296) Refactor SystemUser to use a valid uid
-    if (currentUser instanceof SystemUser) {
-      return new UID("systemUser1");
-    }
-    return new UID(currentUser.getUid());
   }
 
   public static UID of(@CheckForNull UidObject object) {

@@ -214,7 +214,7 @@ public class OpenApiTool implements ToolProvider {
     if (controller.isAnnotationPresent(OpenApi.Document.class)) {
       OpenApi.Document doc = controller.getAnnotation(OpenApi.Document.class);
       if (!doc.name().isEmpty()) return doc.name();
-      if (doc.domain() != OpenApi.EntityType.class) return getTypeName(doc.domain());
+      if (doc.entity() != OpenApi.EntityType.class) return getTypeName(doc.entity());
     }
     return getTypeName(OpenApiAnnotations.getEntityType(controller));
   }

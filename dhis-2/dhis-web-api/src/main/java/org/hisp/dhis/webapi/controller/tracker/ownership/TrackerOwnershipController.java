@@ -59,7 +59,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-@OpenApi.Document(domain = Program.class)
+@OpenApi.Document(
+    entity = Program.class,
+    classifiers = {"team:tracker", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/tracker/ownership")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

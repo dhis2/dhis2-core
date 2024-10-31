@@ -36,6 +36,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.util.Date;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.expression.ExpressionService;
@@ -64,6 +65,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @Slf4j
 @RequestMapping("/api/predictors")
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class PredictorController extends AbstractCrudController<Predictor> {
   @Autowired private PredictorService predictorService;
 

@@ -110,7 +110,7 @@ class DeduplicationHelperTest extends TestBase {
   @BeforeEach
   public void setUp() throws ForbiddenException, NotFoundException {
     Set<UID> relationshipUids = UID.of(CodeGenerator.generateUid(), CodeGenerator.generateUid());
-    List<String> attributeUids = List.of(CodeGenerator.generateUid(), CodeGenerator.generateUid());
+    Set<UID> attributeUids = UID.of(CodeGenerator.generateUid(), CodeGenerator.generateUid());
     Set<UID> enrollmentUids = UID.of(CodeGenerator.generateUid(), CodeGenerator.generateUid());
 
     organisationUnitA = createOrganisationUnit('A');
@@ -123,9 +123,9 @@ class DeduplicationHelperTest extends TestBase {
     enrollment = createEnrollment(createProgram('A'), getTrackedEntityA(), organisationUnitA);
     mergeObject =
         MergeObject.builder()
-            .relationships(UID.toValueList(relationshipUids))
+            .relationships(relationshipUids)
             .trackedEntityAttributes(attributeUids)
-            .enrollments(UID.toValueList(enrollmentUids))
+            .enrollments(enrollmentUids)
             .build();
     user = makeUser("A", Lists.newArrayList("F_TRACKED_ENTITY_MERGE"));
 
@@ -327,7 +327,7 @@ class DeduplicationHelperTest extends TestBase {
 
     actualMergeObject
         .getTrackedEntityAttributes()
-        .forEach(a -> assertEquals(duplicateAttribute.getUid(), a));
+        .forEach(a -> assertEquals(UID.of(duplicateAttribute), a));
   }
 
   @Test
@@ -358,9 +358,7 @@ class DeduplicationHelperTest extends TestBase {
 
     assertFalse(actualMergeObject.getRelationships().isEmpty());
 
-    actualMergeObject
-        .getRelationships()
-        .forEach(r -> assertEquals(anotherRelationship.getUid(), r));
+    actualMergeObject.getRelationships().forEach(r -> assertEquals(UID.of(anotherRelationship), r));
 
     Relationship baseRelationship = getRelationship();
 
@@ -394,7 +392,7 @@ class DeduplicationHelperTest extends TestBase {
 
     MergeObject generatedMergeObject = deduplicationHelper.generateMergeObject(original, duplicate);
 
-    assertEquals("enrollmentB", generatedMergeObject.getEnrollments().get(0));
+    assertEquals(UID.of("enrollmentB"), generatedMergeObject.getEnrollments().iterator().next());
   }
 
   @Test

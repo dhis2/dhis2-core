@@ -48,6 +48,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -174,17 +175,14 @@ class EventExporterTest extends TrackerTest {
 
   @Test
   void shouldReturnEventsWithNotes() throws ForbiddenException, BadRequestException {
+    Event pTzf9KYMk72 = get(Event.class, "pTzf9KYMk72");
     EventOperationParams params =
         operationParamsBuilder.events(Set.of(UID.of("pTzf9KYMk72"))).build();
 
     List<Event> events = eventService.getEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), uids(events));
-    List<Note> notes = events.get(0).getNotes();
-    assertContainsOnly(List.of("SGuCABkhpgn", "DRKO4xUVrpr"), uids(notes));
-    assertAll(
-        () -> assertNote(importUser, "comment value", notes.get(0)),
-        () -> assertNote(importUser, "comment value", notes.get(1)));
+    assertNotes(pTzf9KYMk72.getNotes(), events.get(0).getNotes());
   }
 
   @Test
@@ -1061,9 +1059,45 @@ class EventExporterTest extends TrackerTest {
     assertContainsOnly(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
-  private void assertNote(User expectedLastUpdatedBy, String expectedNote, Note actual) {
-    assertEquals(expectedNote, actual.getNoteText());
-    assertEquals(expectedLastUpdatedBy, actual.getLastUpdatedBy());
+  private static void assertNotes(List<Note> expected, List<Note> actual) {
+    assertContainsOnly(expected, actual);
+    Map<String, Note> expectedNotes =
+        expected.stream().collect(Collectors.toMap(Note::getUid, Function.identity()));
+    Map<String, Note> actualNotes =
+        actual.stream().collect(Collectors.toMap(Note::getUid, Function.identity()));
+    List<Executable> assertions =
+        expectedNotes.entrySet().stream()
+            .map(
+                entry ->
+                    (Executable)
+                        () -> {
+                          Note expectedNote = entry.getValue();
+                          Note actualNote = actualNotes.get(entry.getKey());
+                          assertAll(
+                              "note assertions " + expectedNote.getUid(),
+                              () ->
+                                  assertEquals(
+                                      expectedNote.getNoteText(),
+                                      actualNote.getNoteText(),
+                                      "noteText"),
+                              () ->
+                                  assertEquals(
+                                      expectedNote.getCreator(),
+                                      actualNote.getCreator(),
+                                      "creator"),
+                              () ->
+                                  assertEquals(
+                                      expectedNote.getCreated(),
+                                      actualNote.getCreated(),
+                                      "created"),
+                              () ->
+                                  assertEquals(
+                                      expectedNote.getLastUpdated(),
+                                      actualNote.getLastUpdated(),
+                                      "lastUpdated"));
+                        })
+            .toList();
+    assertAll("note assertions", assertions);
   }
 
   private DataElement dataElement(UID uid) {

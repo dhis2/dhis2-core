@@ -89,6 +89,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @Controller
 @RequestMapping("/api/organisationUnits")
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class OrganisationUnitController extends AbstractCrudController<OrganisationUnit> {
   @Autowired private OrganisationUnitService organisationUnitService;
 

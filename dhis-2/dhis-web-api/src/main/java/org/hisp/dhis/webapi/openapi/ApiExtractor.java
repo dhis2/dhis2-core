@@ -109,7 +109,7 @@ import org.springframework.web.servlet.view.RedirectView;
 final class ApiExtractor {
   /**
    * The included classes can be filtered based on REST API resource path or {@link
-   * OpenApi.Document#domain()} present on the controller class level. Method level path and tags
+   * OpenApi.Document#entity()} present on the controller class level. Method level path and tags
    * will not be considered for this filter.
    *
    * @param controllers controllers all potential controllers

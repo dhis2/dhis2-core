@@ -48,7 +48,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(domain = SystemSetting.class)
+@OpenApi.Document(
+    entity = SystemSetting.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequiredArgsConstructor
 public class IndexController {

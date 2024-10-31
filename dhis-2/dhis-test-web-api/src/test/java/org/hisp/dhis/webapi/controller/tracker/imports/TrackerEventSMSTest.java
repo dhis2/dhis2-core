@@ -112,9 +112,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.function.Executable;
-import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -365,7 +363,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
   @Test
   void shouldFailDeletingNonExistingEvent() throws SmsCompressionException {
     UID uid = UID.generate();
-    assertThrows(NotFoundException.class, () -> eventService.getEvent(uid));
 
     DeleteSmsSubmission submission = new DeleteSmsSubmission();
     int submissionId = 3;
@@ -377,6 +374,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     String originator = user1.getPhoneNumber();
 
     switchContextToUser(user1);
+    assertThrows(
+        NotFoundException.class, () -> eventService.getEvent(uid), "event should not exist");
 
     JsonWebMessage response =
         POST(
@@ -498,12 +497,16 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     switchContextToUser(user1);
 
     JsonWebMessage response =
-        POST("/sms/inbound", format("""
+        POST(
+                "/sms/inbound",
+                format(
+                    """
 {
 "text": "%s",
 "originator": "%s"
 }
-""", text, originator))
+""",
+                    text, originator))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
 
@@ -565,12 +568,16 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     switchContextToUser(user1);
 
     JsonWebMessage response =
-        POST("/sms/inbound", format("""
+        POST(
+                "/sms/inbound",
+                format(
+                    """
 {
 "text": "%s",
 "originator": "%s"
 }
-""", text, originator))
+""",
+                    text, originator))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
 
@@ -627,12 +634,14 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     JsonWebMessage response =
         POST(
                 "/sms/inbound",
-                format("""
+                format(
+                    """
 {
 "text": "visit a=hello",
 "originator": "%s"
 }
-""", originator))
+""",
+                    originator))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
 
@@ -692,12 +701,14 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     JsonWebMessage response =
         POST(
                 "/sms/inbound",
-                format("""
+                format(
+                    """
 {
 "text": "birth a=hello",
 "originator": "%s"
 }
-""", originator))
+""",
+                    originator))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
 
@@ -776,12 +787,14 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     JsonWebMessage response =
         POST(
                 "/sms/inbound",
-                format("""
+                format(
+                    """
 {
 "text": "birth a=hello",
 "originator": "%s"
 }
-""", originator))
+""",
+                    originator))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
 
@@ -891,10 +904,21 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
   }
 
   private static void assertGeometry(GeoPoint expected, Geometry actual) {
-    assertEquals(
-        new GeometryFactory()
-            .createPoint(new Coordinate(expected.getLongitude(), expected.getLatitude())),
-        actual);
+    assertAll(
+        "assert geometry",
+        () -> assertEquals("Point", actual.getGeometryType()),
+        () ->
+            assertEquals(
+                expected.getLongitude(),
+                actual.getCoordinate().x,
+                0.000000000000001d,
+                "mismatch in longitude"),
+        () ->
+            assertEquals(
+                expected.getLatitude(),
+                actual.getCoordinate().y,
+                0.000000000000001d,
+                "mismatch in latitude"));
   }
 
   private static void assertDataValues(Set<EventDataValue> expected, Set<EventDataValue> actual) {
