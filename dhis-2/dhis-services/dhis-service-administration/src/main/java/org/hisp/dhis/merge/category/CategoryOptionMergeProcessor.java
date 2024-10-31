@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.merge.category;
 
-import java.util.Collection;
-import java.util.List;
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.GenericDimensionalObjectStore;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.merge.MergeProcessor;
+import org.hisp.dhis.merge.MergeService;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Lars Helge Overland
+ * Implementation of {@link MergeProcessor} that currently only uses its default method.
+ *
+ * @author david mackessy
  */
-public interface CategoryStore extends GenericDimensionalObjectStore<Category> {
-  List<Category> getCategoriesByDimensionType(DataDimensionType dataDimensionType);
+@Component
+@RequiredArgsConstructor
+public class CategoryOptionMergeProcessor implements MergeProcessor {
 
-  List<Category> getCategories(DataDimensionType dataDimensionType, boolean dataDimension);
+  /**
+   * Spring injects the correct service based on the variable name (when there are multiple
+   * implementations to choose from). So The {@link CategoryOptionMergeService} gets injected here.
+   */
+  private final MergeService categoryOptionMergeService;
 
-  List<Category> getCategoriesNoAcl(DataDimensionType dataDimensionType, boolean dataDimension);
-
-  List<Category> getCategoriesByCategoryOption(Collection<String> categoryOptions);
+  @Override
+  public MergeService getMergeService() {
+    return categoryOptionMergeService;
+  }
 }
