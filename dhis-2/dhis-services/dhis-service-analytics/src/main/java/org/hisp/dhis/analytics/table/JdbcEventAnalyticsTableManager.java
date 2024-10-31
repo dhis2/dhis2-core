@@ -595,11 +595,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     if (isSpatialSupport()) {
-      String geoSql =
-          selectForInsert(
-              attribute,
-              "ou.geometry from organisationunit ou where ou.uid = (select value",
-              dataClause);
+      String fromType =
+          qualifyVariables("ou.geometry from ${organisationunit} ou where ou.uid = (select value");
+      String geoSql = selectForInsert(attribute, fromType, dataClause);
       columns.add(
           AnalyticsTableColumn.builder()
               .name((attribute.getUid() + OU_GEOMETRY_COL_SUFFIX))
@@ -610,7 +608,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               .build());
     }
 
-    String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
+    String fromTypeSql =
+        qualifyVariables("ou.name from ${organisationunit} ou where ou.uid = (select value");
     String ouNameSql = selectForInsert(attribute, fromTypeSql, dataClause);
 
     columns.add(
@@ -632,11 +631,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
 
     if (isSpatialSupport()) {
-      String geoSql =
-          selectForInsert(
-              dataElement,
-              "ou.geometry from organisationunit ou where ou.uid = (select " + columnName,
-              dataClause);
+      String fromType =
+          qualifyVariables(
+              "ou.geometry from ${organisationunit} ou where ou.uid = (select " + columnName);
+      String geoSql = selectForInsert(dataElement, fromType, dataClause);
 
       columns.add(
           AnalyticsTableColumn.builder()
@@ -648,7 +646,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               .build());
     }
 
-    String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select " + columnName;
+    String fromTypeSql =
+        qualifyVariables(
+            "ou.name from ${organisationunit} ou where ou.uid = (select " + columnName);
     String ouNameSql = selectForInsert(dataElement, fromTypeSql, dataClause);
 
     columns.add(
