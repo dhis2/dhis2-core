@@ -60,15 +60,13 @@ class RuleActionEventMapper {
   public Map<Event, List<RuleActionExecutor<Event>>> mapRuleEffects(
       Map<UID, List<ValidationEffect>> eventValidationEffects, TrackerBundle bundle) {
     return eventValidationEffects.keySet().stream()
-        .filter(e -> bundle.findEventByUid(e.getValue()).isPresent())
+        .filter(e -> bundle.findEventByUid(e).isPresent())
         .collect(
             Collectors.toMap(
-                e -> bundle.findEventByUid(e.getValue()).get(),
+                e -> bundle.findEventByUid(e).get(),
                 e ->
                     mapRuleEffects(
-                        bundle.findEventByUid(e.getValue()).get(),
-                        eventValidationEffects.get(e),
-                        bundle)));
+                        bundle.findEventByUid(e).get(), eventValidationEffects.get(e), bundle)));
   }
 
   private List<RuleActionExecutor<Event>> mapRuleEffects(

@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.event.EventStatus;
@@ -215,7 +216,7 @@ public class ValidationUtils {
         || bundle.findEnrollmentByUid(enrollmentUid).isPresent();
   }
 
-  public static boolean eventExist(TrackerBundle bundle, String eventUid) {
+  public static boolean eventExist(TrackerBundle bundle, UID eventUid) {
     return bundle.getPreheat().getEvent(eventUid) != null
         || bundle.findEventByUid(eventUid).isPresent();
   }

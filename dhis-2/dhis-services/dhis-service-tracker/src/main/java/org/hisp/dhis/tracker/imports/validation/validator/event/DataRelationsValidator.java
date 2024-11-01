@@ -42,7 +42,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -94,7 +93,7 @@ class DataRelationsValidator implements Validator<Event> {
       return;
     }
 
-    if (StringUtils.isEmpty(event.getEnrollment())) {
+    if (event.getEnrollment() == null) {
       reporter.addError(event, E1033, event.getEvent());
     } else {
       Program enrollmentProgram = getEnrollmentProgramFromEvent(bundle, event);
@@ -322,12 +321,13 @@ class DataRelationsValidator implements Validator<Event> {
   }
 
   private Program getEnrollmentProgramFromEvent(TrackerBundle bundle, Event event) {
-    Enrollment preheatEnrollment = bundle.getPreheat().getEnrollment(event.getEnrollment());
+    Enrollment preheatEnrollment =
+        bundle.getPreheat().getEnrollment(event.getEnrollment().getValue());
     if (preheatEnrollment != null) {
       return preheatEnrollment.getProgram();
     } else {
       final Optional<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollment =
-          bundle.findEnrollmentByUid(event.getEnrollment());
+          bundle.findEnrollmentByUid(event.getEnrollment().getValue());
       if (enrollment.isPresent()) {
         return bundle.getPreheat().getProgram(enrollment.get().getProgram());
       }
@@ -346,12 +346,17 @@ class DataRelationsValidator implements Validator<Event> {
    * @return whether the enrollment of the event has an existing tracked entity
    */
   private boolean enrollmentFromEventHasTrackedEntity(TrackerBundle bundle, Event event) {
-    Enrollment enrollment = bundle.getPreheat().getEnrollment(event.getEnrollment());
+    // TODO: Check logic here
+    if (event.getEnrollment() == null) {
+      return true;
+    }
+
+    Enrollment enrollment = bundle.getPreheat().getEnrollment(event.getEnrollment().getValue());
 
     if (enrollment == null) {
       return !Objects.isNull(
           bundle
-              .findEnrollmentByUid(event.getEnrollment())
+              .findEnrollmentByUid(event.getEnrollment().getValue())
               .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getTrackedEntity)
               .orElse(null));
     }

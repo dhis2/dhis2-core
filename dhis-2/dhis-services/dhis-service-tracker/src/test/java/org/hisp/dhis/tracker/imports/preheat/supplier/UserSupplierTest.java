@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -124,7 +125,7 @@ class UserSupplierTest extends TestBase {
   }
 
   private Event event(User user) {
-    return Event.builder().event(CodeGenerator.generateUid()).assignedUser(user).build();
+    return Event.builder().event(UID.generate()).assignedUser(user).build();
   }
 
   private User user() {

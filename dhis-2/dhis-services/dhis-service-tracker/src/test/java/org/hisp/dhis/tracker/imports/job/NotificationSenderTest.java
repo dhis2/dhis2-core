@@ -58,7 +58,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class NotificationSenderTest {
   private static final UID TEMPLATE_UID = UID.of("h4w96yEMlzO");
   private static final String ENROLLMENT_UID = "enrollmentUid";
-  private static final String EVENT_UID = "eventUid";
+  private static final UID EVENT_UID = UID.generate();
 
   @Mock private ProgramNotificationTemplateService programNotificationTemplateService;
 
@@ -347,7 +347,7 @@ class NotificationSenderTest {
     Program program = new Program();
     program.setProgramType(ProgramType.WITH_REGISTRATION);
     Event event = new Event();
-    event.setUid(EVENT_UID);
+    event.setUid(EVENT_UID.getValue());
     event.setEnrollment(enrollment());
     return event;
   }
@@ -356,7 +356,7 @@ class NotificationSenderTest {
     Program program = new Program();
     program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     Event event = new Event();
-    event.setUid(EVENT_UID);
+    event.setUid(EVENT_UID.getValue());
     event.setEnrollment(enrollment(program));
     return event;
   }

@@ -108,7 +108,7 @@ public class StrategyPreProcessor implements BundlePreProcessor {
     for (Relationship relationship : bundle.getRelationships()) {
       TrackerImportStrategy importStrategy = bundle.getImportStrategy();
       org.hisp.dhis.relationship.Relationship existingRelationship =
-          bundle.getPreheat().getRelationship(relationship.getUid());
+          bundle.getPreheat().getRelationship(relationship.getStringUid());
 
       if (importStrategy.isCreateAndUpdate()) {
         if (existingRelationship == null) {

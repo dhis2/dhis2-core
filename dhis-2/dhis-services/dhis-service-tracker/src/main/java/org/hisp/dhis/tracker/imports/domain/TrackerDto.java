@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.domain;
 
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerType;
 
 /**
@@ -34,7 +35,11 @@ import org.hisp.dhis.tracker.TrackerType;
  */
 public interface TrackerDto {
 
-  String getUid();
+  UID getUid();
+
+  // Temporary method to make it possible to transition one entity at a time
+  @Deprecated(forRemoval = true)
+  String getStringUid();
 
   TrackerType getTrackerType();
 }
