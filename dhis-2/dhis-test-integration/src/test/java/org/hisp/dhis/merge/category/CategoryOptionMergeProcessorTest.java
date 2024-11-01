@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.merge.category;
 
+import static io.hypersistence.utils.jdbc.validator.SQLStatementCountValidator.assertDeleteCount;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.hypersistence.utils.jdbc.validator.SQLStatementCountValidator;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.analytics.CategoryDimensionStore;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -48,11 +51,13 @@ import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.test.config.QueryCountDataSourceProxy;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -66,6 +71,7 @@ import org.springframework.transaction.annotation.Transactional;
  * CategoryOption
  */
 @Transactional
+@ContextConfiguration(classes = {QueryCountDataSourceProxy.class})
 class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
@@ -237,6 +243,29 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     assertEquals(5, targetCocs.size(), "Expect 5 entries with target category option refs");
     assertEquals(9, allCategoryOptions.size(), "Expect 9 category options present");
     assertTrue(allCategoryOptions.containsAll(List.of(coTarget3A, coSource1A, coSource2B)));
+  }
+
+  @Test
+  @DisplayName("Expect the correct number of SQL delete queries when merging")
+  void catOptMergeQueryTest() throws ConflictException {
+    // given
+    CategoryCombo cc1 = createCategoryCombo('1', cat1);
+    CategoryCombo cc2 = createCategoryCombo('2', cat3);
+    manager.save(List.of(cc1, cc2));
+
+    categoryService.updateOptionCombos(cc1);
+    categoryService.updateOptionCombos(cc2);
+
+    // when
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setSources(Set.of(UID.of(coSource1A)));
+    mergeParams.setDeleteSources(true);
+
+    SQLStatementCountValidator.reset();
+    mergeProcessor.processMerge(mergeParams);
+
+    // then
+    assertDeleteCount(1);
   }
 
   @Test
