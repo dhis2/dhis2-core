@@ -285,7 +285,7 @@ public interface PeriodService {
   /**
    * Returns a PeriodType with the given {@link PeriodTypeEnum} value.
    *
-   * @param name the name of the PeriodType to return.
+   * @param periodType the {@link PeriodTypeEnum}.
    * @return the PeriodType with the given name, or null if no match.
    */
   default PeriodType getPeriodType(PeriodTypeEnum periodType) {
