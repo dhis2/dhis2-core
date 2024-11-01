@@ -66,7 +66,7 @@ class SectionStoreTest extends PostgresIntegrationTestBase {
     createSectionAndSave(deZ, 'd');
 
     // when
-    List<Section> sections = sectionStore.getByDataElement(List.of(deW, deX, deY));
+    List<Section> sections = sectionStore.getSectionsByDataElement(List.of(deW, deX, deY));
 
     // then
     assertEquals(3, sections.size());

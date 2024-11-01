@@ -45,7 +45,6 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.cache.OutliersCache;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettingsService;
@@ -64,8 +63,6 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
   private final ResourceTableService resourceTableService;
 
   private final SystemSettingsService settingsService;
-
-  private final AnalyticsTableSettings settings;
 
   private final AnalyticsCache analyticsCache;
 
@@ -96,11 +93,6 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
     if (!params.isSkipResourceTables() && !params.isLatestUpdate()) {
       generateResourceTablesInternal(progress);
-
-      if (settings.isAnalyticsDatabaseConfigured()) {
-        log.info("Replicating resource tables in analytics database");
-        resourceTableService.replicateAnalyticsResourceTables();
-      }
     }
 
     Set<AnalyticsTableType> skipTypes = emptyIfNull(params.getSkipTableTypes());

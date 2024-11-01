@@ -204,7 +204,7 @@ public class MetadataDataElementMergeHandler {
    *     Section}
    */
   public void handleSection(List<DataElement> sources, DataElement target) {
-    List<Section> sections = sectionStore.getByDataElement(sources);
+    List<Section> sections = sectionStore.getSectionsByDataElement(sources);
     sources.forEach(
         source -> {
           sections.forEach(s -> s.getDataElements().remove(source));
