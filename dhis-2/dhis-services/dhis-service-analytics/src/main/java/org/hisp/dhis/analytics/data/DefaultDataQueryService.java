@@ -318,7 +318,7 @@ public class DefaultDataQueryService implements DataQueryService {
   private List<OrganisationUnit> getOrganisationUnitsGrantedForAnalyticsData(User currentUser) {
     Set<OrganisationUnit> organisationUnits = currentUser.getDataViewOrganisationUnits();
     if (organisationUnits != null && !organisationUnits.isEmpty()) {
-      return currentUser.getDataViewOrganisationUnits().stream().sorted().toList();
+      return organisationUnits.stream().sorted().toList();
     } else {
       // If the user has no analytics permissions for any organizational unit,
       // apply their data capture permissions instead.
