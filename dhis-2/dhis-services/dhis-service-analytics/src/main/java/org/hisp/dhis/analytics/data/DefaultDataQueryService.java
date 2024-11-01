@@ -64,7 +64,6 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -312,8 +311,7 @@ public class DefaultDataQueryService implements DataQueryService {
   }
 
   /**
-   * Retrieve the list of organizational units
-   * to which the current user has access rights.
+   * Retrieve the list of organizational units to which the current user has access rights.
    *
    * @param currentUser {@link User}
    */
@@ -327,6 +325,7 @@ public class DefaultDataQueryService implements DataQueryService {
       return currentUser.getOrganisationUnits().stream().sorted().toList();
     }
   }
+
   private List<DimensionalObject> getDimensionalObjects(DataQueryRequest request) {
     List<DimensionalObject> list = new ArrayList<>();
     DataQueryParams params =
