@@ -312,7 +312,8 @@ public class DefaultDataQueryService implements DataQueryService {
   }
 
   /**
-   * Retrieve the list of organizational units to which the current user has access rights.
+   * Retrieve the list of organizational units
+   * to which the current user has access rights.
    *
    * @param currentUser {@link User}
    */
