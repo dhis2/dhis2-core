@@ -63,6 +63,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -296,7 +298,7 @@ public class DefaultDataQueryService implements DataQueryService {
           units.addAll(currentUser.getOrganisationUnits().stream().sorted().toList());
           break;
         case DATA_OUTPUT:
-          units.addAll(currentUser.getDataViewOrganisationUnits().stream().sorted().toList());
+          units.addAll(getOrganisationUnitsGrantedForAnalyticsData(currentUser));
           break;
         case TEI_SEARCH:
           units.addAll(currentUser.getTeiSearchOrganisationUnits().stream().sorted().toList());
@@ -309,6 +311,21 @@ public class DefaultDataQueryService implements DataQueryService {
     return units;
   }
 
+  /**
+   * Retrieve the list of organizational units to which the current user has access rights.
+   *
+   * @param currentUser {@link User}
+   */
+  private List<OrganisationUnit> getOrganisationUnitsGrantedForAnalyticsData(User currentUser) {
+    Set<OrganisationUnit> organisationUnits = currentUser.getDataViewOrganisationUnits();
+    if (organisationUnits != null && !organisationUnits.isEmpty()) {
+      return currentUser.getDataViewOrganisationUnits().stream().sorted().toList();
+    } else {
+      // If the user has no analytics permissions for any organizational unit,
+      // apply their data capture permissions instead.
+      return currentUser.getOrganisationUnits().stream().sorted().toList();
+    }
+  }
   private List<DimensionalObject> getDimensionalObjects(DataQueryRequest request) {
     List<DimensionalObject> list = new ArrayList<>();
     DataQueryParams params =
