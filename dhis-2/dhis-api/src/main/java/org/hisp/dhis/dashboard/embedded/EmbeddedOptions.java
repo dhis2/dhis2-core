@@ -44,11 +44,14 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EmbeddedOptions implements Serializable {
+  /** Hide tab. Applies to Superset. */
+  @JsonProperty private boolean hideTab;
+
   /** Hide the chart controls. Applies to Superset. */
   @JsonProperty private boolean hideChartControls;
 
-  /** Expand the filters panel. Applies to Superset. */
-  @JsonProperty private boolean expandFilters;
+  /** Filter options. Applies to Superset. */
+  @JsonProperty private FilterOptions filters;
 
   /** Show the filters panel. Applies to Superset. */
   @JsonProperty private boolean showFilters;

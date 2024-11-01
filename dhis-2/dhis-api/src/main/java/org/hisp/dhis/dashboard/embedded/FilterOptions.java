@@ -28,7 +28,6 @@
 package org.hisp.dhis.dashboard.embedded;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,13 +37,10 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class EmbeddedDashboard implements Serializable {
-  /** Provider of embedded dashboards. */
-  @JsonProperty private EmbeddedProvider provider;
+public class FilterOptions {
+  /** Whether filter sidebar should be accessible when opening the dashboard. */
+  @JsonProperty private boolean visible;
 
-  /** Identifier for embedded dashboard. */
-  @JsonProperty private String id;
-
-  /** Customization options for embedded dashboard. */
-  @JsonProperty private EmbeddedOptions options;
+  /** Whether filter sidebar should be expanded when opening the dashboard. */
+  @JsonProperty private boolean expanded;
 }
