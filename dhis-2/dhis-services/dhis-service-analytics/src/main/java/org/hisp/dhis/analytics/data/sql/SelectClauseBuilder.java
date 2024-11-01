@@ -30,6 +30,8 @@ package org.hisp.dhis.analytics.data.sql;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.db.sql.SqlBuilder;
 
+import static org.hisp.dhis.common.DimensionalObject.VALUE_COLUMN_NAME;
+
 public class SelectClauseBuilder implements SqlClauseBuilder {
 
   private final DataQueryParams params;
@@ -45,7 +47,7 @@ public class SelectClauseBuilder implements SqlClauseBuilder {
     var dimensions =
         dimensionsUtils.getCommaDelimitedQuotedDimensionColumns(params.getDimensions());
     var valueClause =
-        params.isAggregation() ? buildAggregateValueClause(params) : params.getValueColumn();
+        params.isAggregation() ? buildAggregateValueClause(params) : params.getValueColumn() + " as value";
     return String.format("select %s, %s", dimensions, valueClause);
   }
 
