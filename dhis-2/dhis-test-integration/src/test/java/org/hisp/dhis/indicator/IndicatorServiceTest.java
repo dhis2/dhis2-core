@@ -281,4 +281,22 @@ class IndicatorServiceTest extends PostgresIntegrationTestBase {
     assertEquals(numeratorTranslated, indicatorA.getDisplayNumeratorDescription());
     assertEquals(denominatorTranslated, indicatorA.getDisplayDenominatorDescription());
   }
+
+  @Test
+  void testRemoveIndicator() {
+    IndicatorType type = new IndicatorType("IndicatorType", 100, false);
+    indicatorService.addIndicatorType(type);
+    Indicator indicatorA = createIndicator('A', type);
+    Indicator indicatorB = createIndicator('B', type);
+    long idA = indicatorService.addIndicator(indicatorA);
+    long idB = indicatorService.addIndicator(indicatorB);
+    assertNotNull(indicatorService.getIndicator(idA));
+    assertNotNull(indicatorService.getIndicator(idB));
+    indicatorService.deleteIndicator(indicatorB);
+    assertNotNull(indicatorService.getIndicator(idA));
+    assertNull(indicatorService.getIndicator(idB));
+    indicatorService.deleteIndicator(indicatorA);
+    assertNull(indicatorService.getIndicator(idA));
+    assertNull(indicatorService.getIndicator(idB));
+  }
 }
