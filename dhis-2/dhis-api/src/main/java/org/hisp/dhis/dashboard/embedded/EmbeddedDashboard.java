@@ -34,6 +34,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/** Encapsulates metadata for an embedded and externally provided dashboard. */
 @Getter
 @Setter
 @NoArgsConstructor
