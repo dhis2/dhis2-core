@@ -29,7 +29,6 @@ package org.hisp.dhis.dashboard;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.IntStream.range;
-import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.dashboard.DashboardItemType.EVENT_REPORT;
@@ -49,6 +48,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.embedded.EmbeddedDashboard;
 import org.hisp.dhis.dashboard.embedded.EmbeddedOptions;
 import org.hisp.dhis.dashboard.embedded.EmbeddedProvider;
+import org.hisp.dhis.dashboard.embedded.FilterOptions;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
 import org.hisp.dhis.eventchart.EventChart;
@@ -168,7 +168,9 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
     dbC.getItems().add(diF);
     dbC.setEmbedded(
         new EmbeddedDashboard(
-            EmbeddedProvider.SUPERSET, UUID_A, new EmbeddedOptions(true, true, true)));
+            EmbeddedProvider.SUPERSET,
+            UUID_A,
+            new EmbeddedOptions(true, true, new FilterOptions(true, true), true)));
   }
 
   @Test
@@ -268,7 +270,7 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
         .forEach(
             i -> {
               Visualization visualization = createVisualization('A');
-              visualization.setName(randomAlphabetic(5));
+              visualization.setName("Visualization" + i);
               visualizationService.save(visualization);
             });
 
@@ -276,18 +278,18 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
         .forEach(
             i -> {
               EventVisualization eventVisualization = createEventVisualization("A", prA);
-              eventVisualization.setName(randomAlphabetic(5));
+              eventVisualization.setName("EventVisualization" + i);
               eventVisualizationService.save(eventVisualization);
             });
 
     // Non Line List event visualization should be ignored when we search for EVENT_VISUALIZATION:
     EventVisualization eventVisualization = createEventVisualization("A", prA);
-    eventVisualization.setName(randomAlphabetic(5));
+    eventVisualization.setName("EventVisualizationA");
     eventVisualization.setType(COLUMN);
     eventVisualizationService.save(eventVisualization);
 
-    range(1, 30).forEach(i -> eventChartService.saveEventChart(createEventChart(prA)));
-    range(1, 20).forEach(i -> eventReportService.saveEventReport(createEventReport(prA)));
+    range(1, 30).forEach(i -> eventChartService.saveEventChart(createEventChart(prA, i)));
+    range(1, 20).forEach(i -> eventReportService.saveEventReport(createEventReport(prA, i)));
 
     DashboardSearchResult result = dashboardService.search(Set.of(VISUALIZATION));
     assertThat(result.getVisualizationCount(), is(25));
@@ -326,15 +328,15 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
     return eventVisualization;
   }
 
-  private EventChart createEventChart(Program program) {
-    EventChart eventChart = new EventChart(randomAlphabetic(5));
+  private EventChart createEventChart(Program program, int i) {
+    EventChart eventChart = new EventChart("EventChart" + i);
     eventChart.setProgram(program);
     eventChart.setType(COLUMN);
     return eventChart;
   }
 
-  private EventReport createEventReport(Program program) {
-    EventReport eventReport = new EventReport(randomAlphabetic(5));
+  private EventReport createEventReport(Program program, int i) {
+    EventReport eventReport = new EventReport("EventReport" + i);
     eventReport.setProgram(program);
     eventReport.setType(PIVOT_TABLE);
     return eventReport;
