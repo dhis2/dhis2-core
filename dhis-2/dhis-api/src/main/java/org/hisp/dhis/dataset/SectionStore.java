@@ -61,7 +61,7 @@ public interface SectionStore extends IdentifiableObjectStore<Section> {
   /**
    * Retrieves sections associated with the given data elements.
    *
-   * @param indicators the list of {@link DataElement}.
+   * @param dataElements the list of {@link DataElement}.
    * @return a list of {@link Section}.
    */
   List<Section> getSectionsByDataElement(Collection<DataElement> dataElements);
