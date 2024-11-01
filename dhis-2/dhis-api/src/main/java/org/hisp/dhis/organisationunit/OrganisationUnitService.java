@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.program.Program;
@@ -486,4 +487,12 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
    * @return
    */
   List<String> getSearchOrganisationUnitsUidsByUser(String username);
+
+  /**
+   * Returns all OrganisationUnits with refs to any of the CategoryOptions passed in.
+   *
+   * @param categoryOptions refs to search for.
+   * @return OrganisationUnits with refs to any of the CategoryOptions passed in
+   */
+  List<OrganisationUnit> getByCategoryOption(Collection<UID> categoryOptions);
 }

@@ -42,8 +42,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.programrule.api.NotificationEffect;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.FlushMode;
@@ -55,8 +53,9 @@ import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -65,10 +64,8 @@ import org.hisp.dhis.user.User;
 @Builder
 @AllArgsConstructor
 public class TrackerBundle {
-  /** User to use for import job. */
-  private User user;
-
-  private UserInfoSnapshot userInfo;
+  /** User making the import */
+  private UserDetails user;
 
   /** Should import be imported or just validated. */
   @Builder.Default private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
@@ -109,13 +106,11 @@ public class TrackerBundle {
   /** Relationships to import. */
   @Builder.Default private List<Relationship> relationships = new ArrayList<>();
 
-  /** Notification effects for enrollments. */
-  @Builder.Default
-  private Map<UID, List<NotificationEffect>> enrollmentNotificationEffects = new HashMap<>();
+  /** Notifications for enrollments. */
+  @Builder.Default private Map<UID, List<Notification>> enrollmentNotifications = new HashMap<>();
 
-  /** Notification effects for events. */
-  @Builder.Default
-  private Map<UID, List<NotificationEffect>> eventNotificationEffects = new HashMap<>();
+  /** Notifications for events. */
+  @Builder.Default private Map<UID, List<Notification>> eventNotifications = new HashMap<>();
 
   /** Rule action executors for enrollments. */
   @Builder.Default
@@ -142,11 +137,6 @@ public class TrackerBundle {
     return resolvedStrategyMap;
   }
 
-  @JsonProperty
-  public String getUsername() {
-    return User.username(user);
-  }
-
   @Builder.Default @JsonIgnore private Set<String> updatedTrackedEntities = new HashSet<>();
 
   public Optional<TrackedEntity> findTrackedEntityByUid(String uid) {
@@ -169,12 +159,12 @@ public class TrackerBundle {
     return entities.stream().filter(e -> Objects.equals(e.getUid(), uid)).findFirst();
   }
 
-  public Map<UID, List<NotificationEffect>> getEnrollmentRuleEffects() {
-    return Map.copyOf(enrollmentNotificationEffects);
+  public Map<UID, List<Notification>> getEnrollmentNotifications() {
+    return Map.copyOf(enrollmentNotifications);
   }
 
-  public Map<UID, List<NotificationEffect>> getEventRuleEffects() {
-    return Map.copyOf(eventNotificationEffects);
+  public Map<UID, List<Notification>> getEventNotifications() {
+    return Map.copyOf(eventNotifications);
   }
 
   public TrackerImportStrategy setStrategy(TrackerDto dto, TrackerImportStrategy strategy) {

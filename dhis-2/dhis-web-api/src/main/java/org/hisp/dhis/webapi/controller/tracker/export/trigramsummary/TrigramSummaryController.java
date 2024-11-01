@@ -45,7 +45,7 @@ import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeTableManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.stereotype.Controller;
@@ -59,7 +59,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
  *
  * @author Ameen Mohamed
  */
-@OpenApi.Document(domain = TrackedEntityAttribute.class)
+@OpenApi.Document(
+    entity = TrackedEntityAttribute.class,
+    classifiers = {"team:tracker", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/trigramSummary")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

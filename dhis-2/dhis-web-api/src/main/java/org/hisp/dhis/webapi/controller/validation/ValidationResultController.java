@@ -32,15 +32,15 @@ import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.validation.ValidationResult;
@@ -61,7 +61,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Stian Sandvold
  */
-@OpenApi.Document(domain = ValidationResult.class)
+@OpenApi.Document(entity = ValidationResult.class)
 @RestController
 @RequestMapping("/api/validationResults")
 @ApiVersion({DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
@@ -87,7 +87,7 @@ public class ValidationResultController {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.ALL.getFields());
+      fields.addAll(FieldPreset.ALL.getFields());
     }
 
     List<ValidationResult> validationResults = validationResultService.getValidationResults(query);

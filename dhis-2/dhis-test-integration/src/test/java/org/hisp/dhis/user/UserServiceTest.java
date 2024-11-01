@@ -31,9 +31,8 @@ import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toSet;
-import static org.hisp.dhis.setting.SettingKey.CAN_GRANT_OWN_USER_ROLES;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -55,34 +54,43 @@ import java.util.Set;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.security.PasswordManager;
+import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Lars Helge Overland
  */
-class UserServiceTest extends SingleSetupIntegrationTestBase {
-
-  @Autowired private UserService _userService;
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private UserGroupService userGroupService;
 
-  @Autowired private UserSettingService userSettingService;
+  @Autowired private UserSettingsService userSettingsService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService settingsService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
-  @Autowired private DataElementService dataElementService;
+  @Autowired private PasswordManager passwordManager;
+
+  @Autowired private TransactionTemplate transactionTemplate;
+
   private OrganisationUnit unitA;
 
   private OrganisationUnit unitB;
@@ -99,11 +107,8 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
 
   private UserRole roleC;
 
-  private User adminUser;
-
-  @Override
-  public void setUpTest() throws Exception {
-    super.userService = _userService;
+  @BeforeAll
+  void setUp() {
     unitA = createOrganisationUnit('A');
     unitB = createOrganisationUnit('B');
     unitC = createOrganisationUnit('C', unitA);
@@ -130,11 +135,8 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @BeforeEach
-  final void setup() throws Exception {
-    String adminUsername = this.adminUsername;
-    User adminUser = userService.getUserByUsername(adminUsername);
-    injectSecurityContextUser(adminUser);
-    this.adminUser = adminUser;
+  final void setup() {
+    injectAdminIntoSecurityContext();
   }
 
   private UserQueryParams getDefaultParams() {
@@ -335,7 +337,8 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testManagedGroups() {
-    systemSettingManager.saveSystemSetting(CAN_GRANT_OWN_USER_ROLES, true);
+    settingsService.put("keyCanGrantOwnUserAuthorityGroups", true);
+    settingsService.clearCurrentSettings();
     // TODO find way to override in parameters
     User userA = addUser("A");
     User userB = addUser("B");
@@ -379,7 +382,8 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testGetByPhoneNumber() {
-    systemSettingManager.saveSystemSetting(CAN_GRANT_OWN_USER_ROLES, true);
+    settingsService.put("keyCanGrantOwnUserAuthorityGroups", true);
+    settingsService.clearCurrentSettings();
     addUser("A", user -> user.setPhoneNumber("73647271"));
     User userB = addUser("B", user -> user.setPhoneNumber("23452134"));
     addUser("C", user -> user.setPhoneNumber("14543232"));
@@ -445,17 +449,20 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
             });
     UserQueryParams params = getDefaultParams().addOrganisationUnit(unitA);
     List<User> allUsersA = userService.getUsers(params, singletonList("email:idesc"));
-    assertEquals(allUsersA, asList(this.adminUser, userA, userB, userC));
+    assertEquals(asList(getAdminUser(), userA, userB, userC), allUsersA);
 
     List<User> allUsersB = userService.getUsers(params, null);
-    assertEquals(allUsersB, asList(userB, userC, this.adminUser, userA));
+    assertEquals(asList(userB, userC, getAdminUser(), userA), allUsersB);
 
     List<User> allUserC = userService.getUsers(params, singletonList("firstName:asc"));
-    assertEquals(allUserC, asList(this.adminUser, userA, userC, userB));
+    assertEquals(asList(userA, getAdminUser(), userC, userB), allUserC);
   }
 
   @Test
   void testGetManagedGroupsLessAuthoritiesDisjointRoles() {
+    settingsService.put("keyCanGrantOwnUserAuthorityGroups", false);
+    settingsService.clearCurrentSettings();
+
     User userA = addUser("A", roleA);
     User userB = addUser("B", roleB, roleC);
     User userC = addUser("C", roleA, roleC);
@@ -476,7 +483,9 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
     userGroupService.addUserGroup(userGroup2);
     UserQueryParams params =
         new UserQueryParams().setCanManage(true).setAuthSubset(true).setUser(userA);
-    assertContainsOnly(List.of(userD, userF), userService.getUsers(params));
+    assertContainsOnly(
+        List.of(userD.getUsername(), userF.getUsername()),
+        userService.getUsers(params).stream().map(User::getUsername).toList());
     assertEquals(2, userService.getUserCount(params));
     params.setUser(userB);
     assertIsEmpty(userService.getUsers(params));
@@ -488,14 +497,14 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testGetManagedGroupsSearch() {
-    User userA = addUser("A");
-    addUser("B");
+    addUser("A");
+    User userB = addUser("B");
     addUser("C");
     addUser("D");
     addUser("E");
     addUser("F");
-    UserQueryParams params = getDefaultParams().setQuery("rstnameA");
-    assertContainsOnly(List.of(userA), userService.getUsers(params));
+    UserQueryParams params = getDefaultParams().setQuery("rstnameB");
+    assertContainsOnly(List.of(userB), userService.getUsers(params));
     assertEquals(1, userService.getUserCount(params));
   }
 
@@ -587,7 +596,7 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
     assertEquals(1, userService.disableUsersInactiveSince(twoMonthsAgo));
     // being a super-user is the simplest way to filter purely on the set
     // parameters
-    createAndInjectAdminUser();
+    injectAdminIntoSecurityContext();
     UserQueryParams params = getDefaultParams().setDisabled(true);
     List<User> users = userService.getUsers(params);
     assertEquals(
@@ -603,7 +612,8 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
     Date threeMonthAgo = Date.from(now.minusMonths(3).toInstant());
     Date fourMonthAgo = Date.from(now.minusMonths(4).toInstant());
     Date twentyTwoDaysAgo = Date.from(now.minusDays(22).toInstant());
-    User userA = addUser("A", User::setLastLogin, threeMonthAgo);
+
+    addUser("A", User::setLastLogin, threeMonthAgo);
     addUser(
         "B",
         credentials -> {
@@ -612,15 +622,10 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
         });
     addUser("C", User::setLastLogin, twentyTwoDaysAgo);
     addUser("D");
-    userSettingService.saveUserSetting(UserSettingKey.UI_LOCALE, Locale.CANADA, userA);
-    // the point of setting this setting is to see that the query does not
-    // get confused by other setting existing for the same user
-    userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, Locale.FRANCE, userA);
 
     Map<String, Optional<Locale>> users =
         userService.findNotifiableUsersWithLastLoginBetween(threeMonthAgo, twoMonthsAgo);
     assertEquals(Set.of("emaila"), users.keySet());
-    assertEquals(Locale.CANADA, users.values().iterator().next().orElse(null));
     assertEquals(
         Set.of("emaila"),
         userService.findNotifiableUsersWithLastLoginBetween(fourMonthAgo, oneMonthsAgo).keySet());
@@ -632,19 +637,18 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testDisableTwoFaWithAdminUser() {
+  void testDisableTwoFaWithAdminUser() throws ForbiddenException {
     User userToModify = createAndAddUser("A");
     userService.generateTwoFactorOtpSecretForApproval(userToModify);
     userService.updateUser(userToModify);
 
-    User admin = createAndAddAdminUser("ALL");
     List<ErrorReport> errors = new ArrayList<>();
-    userService.privilegedTwoFactorDisable(admin, userToModify.getUid(), errors::add);
+    userService.privilegedTwoFactorDisable(getAdminUser(), userToModify.getUid(), errors::add);
     assertTrue(errors.isEmpty());
   }
 
   @Test
-  void testDisableTwoFaWithManageUser() {
+  void testDisableTwoFaWithManageUser() throws ForbiddenException {
     User userToModify = createAndAddUser("A");
     userService.generateTwoFactorOtpSecretForApproval(userToModify);
 
@@ -671,5 +675,20 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
   @Test
   void testGetDisplayNameNull() {
     assertNull(userService.getDisplayName("notExist"));
+  }
+
+  @Test
+  void testBCryptedPasswordOnInputError() {
+    User user = new User();
+    user.setUsername("test");
+    user.setPassword("password");
+    userService.addUser(user);
+
+    String encodedPassword = passwordManager.encode("password");
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> userService.encodeAndSetPassword(user, encodedPassword),
+        "Raw password look like BCrypt encoded password, this is most certainly a bug");
   }
 }

@@ -37,11 +37,11 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.programrule.api.ValidationEffect;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.programrule.engine.ValidationEffect;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.event.AssignDataValueExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.event.RuleEngineErrorExecutor;
@@ -55,7 +55,7 @@ import org.springframework.stereotype.Service;
 @Service("org.hisp.dhis.tracker.imports.programrule.RuleActionEventMapper")
 @RequiredArgsConstructor
 class RuleActionEventMapper {
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   public Map<Event, List<RuleActionExecutor<Event>>> mapRuleEffects(
       Map<UID, List<ValidationEffect>> eventValidationEffects, TrackerBundle bundle) {
@@ -88,7 +88,7 @@ class RuleActionEventMapper {
     return switch (validationEffect.type()) {
       case ASSIGN ->
           new AssignDataValueExecutor(
-              systemSettingManager,
+              settingsProvider,
               validationEffect.rule(),
               validationEffect.data(),
               validationEffect.field(),

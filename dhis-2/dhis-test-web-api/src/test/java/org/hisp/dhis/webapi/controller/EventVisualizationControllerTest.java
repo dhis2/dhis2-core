@@ -35,11 +35,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.dataelement.DataElementDomain.TRACKER;
 import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE;
-import static org.hisp.dhis.web.HttpStatus.BAD_REQUEST;
-import static org.hisp.dhis.web.HttpStatus.CONFLICT;
-import static org.hisp.dhis.web.HttpStatus.CREATED;
-import static org.hisp.dhis.web.HttpStatus.OK;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
+import static org.hisp.dhis.http.HttpStatus.CONFLICT;
+import static org.hisp.dhis.http.HttpStatus.CREATED;
+import static org.hisp.dhis.http.HttpStatus.OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -57,20 +57,22 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonError;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Controller tests for {@link org.hisp.dhis.webapi.controller.event.EventVisualizationController}.
  *
  * @author maikel arabori
  */
-class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
   @Autowired private ObjectMapper jsonMapper;
 
   @Autowired private IdentifiableObjectManager manager;
@@ -659,7 +661,9 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
     assertThat(response.get("legacy").node().value(), is(equalTo(false)));
     assertThat(
         response.get("trackedEntityType").node().value().toString(),
-        is(equalTo("""
+        is(
+            equalTo(
+                """
 {"id":"nEenWmSyUEp"}""")));
 
     JsonNode simpleDimensionNode0 = response.get("simpleDimensions").node().element(0);
@@ -668,7 +672,9 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
     assertThat(simpleDimensionNode0.get("program").value().toString(), is(equalTo("deabcdefghP")));
     assertThat(
         simpleDimensionNode0.get("values").value().toString(),
-        is(equalTo("""
+        is(
+            equalTo(
+                """
 ["2023-07-21_2023-08-01","2023-01-21_2023-02-01"]""")));
     assertThat(simpleDimensionNode0.get("parent").value().toString(), is(equalTo("COLUMN")));
 
@@ -695,13 +701,17 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
 
     assertThat(
         response.get("filterDimensions").node().value().toString(),
-        is(equalTo("""
+        is(
+            equalTo(
+                """
 ["deabcdefghP.deabcdefghS.ou","deabcdefghE"]""")));
 
     JsonNode dataElementDimensionsNode0 = response.get("dataElementDimensions").node().element(0);
     assertThat(
         dataElementDimensionsNode0.get("dataElement").value().toString(),
-        is(equalTo("""
+        is(
+            equalTo(
+                """
 {"id":"deabcdefghC"}""")));
     assertThat(
         dataElementDimensionsNode0.get("filter").value().toString(), is(equalTo("IN:Female")));
@@ -709,18 +719,24 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
     JsonNode dataElementDimensionsNode1 = response.get("dataElementDimensions").node().element(1);
     assertThat(
         dataElementDimensionsNode1.get("dataElement").value().toString(),
-        is(equalTo("""
+        is(
+            equalTo(
+                """
 {"id":"deabcdefghE"}""")));
     assertFalse(dataElementDimensionsNode1.isMember("filter"));
 
     assertThat(
         response.get("programIndicatorDimensions").node().value().toString(),
-        is(equalTo("""
+        is(
+            equalTo(
+                """
 [{"programIndicator":{"id":"deabcdefghB"}}]""")));
 
     assertThat(
         response.get("organisationUnits").node().value().toString(),
-        is(equalTo("""
+        is(
+            equalTo(
+                """
 [{"id":"ImspTQPwCqd"}]""")));
 
     JsonNode repetitionsNode0 = response.get("repetitions").node().element(0);
@@ -740,7 +756,10 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
     JsonNode columnsNode0 = response.get("columns").node().element(0);
     assertThat(columnsNode0.get("items").value().toString(), is(equalTo("[]")));
     assertThat(
-        columnsNode0.get("program").value().toString(), is(equalTo("""
+        columnsNode0.get("program").value().toString(),
+        is(
+            equalTo(
+                """
 {"id":"deabcdefghP"}""")));
     assertThat(columnsNode0.get("dimension").value().toString(), is(equalTo("deabcdefghB")));
 
@@ -752,17 +771,24 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
     JsonNode columnsNode2 = response.get("columns").node().element(2);
     assertThat(
         columnsNode2.get("items").value().toString(),
-        is(equalTo("""
+        is(
+            equalTo(
+                """
 [{"id":"2023-07-21_2023-08-01"},{"id":"2023-01-21_2023-02-01"}]""")));
     assertThat(
-        columnsNode2.get("program").value().toString(), is(equalTo("""
+        columnsNode2.get("program").value().toString(),
+        is(
+            equalTo(
+                """
 {"id":"deabcdefghP"}""")));
     assertThat(columnsNode2.get("dimension").value().toString(), is(equalTo("eventDate")));
 
     JsonNode columnsNode3 = response.get("columns").node().element(3);
     assertThat(
         columnsNode3.get("items").value().toString(),
-        is(equalTo("""
+        is(
+            equalTo(
+                """
 [{"id":"2021-01-21_2021-02-01"}]""")));
     assertThat(columnsNode3.get("dimension").value().toString(), is(equalTo("created")));
 
@@ -775,7 +801,9 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
         is(equalTo("ImspTQPwCqd")));
     assertThat(
         filtersNode0.get("programStage").value().toString(),
-        is(equalTo("""
+        is(
+            equalTo(
+                """
 {"id":"deabcdefghS"}""")));
     assertThat(filtersNode0.get("dimension").value().toString(), is(equalTo("ou")));
     assertThat(

@@ -42,6 +42,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,8 +53,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -65,6 +65,8 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -75,7 +77,6 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
@@ -114,6 +115,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @Controller
 @RequestMapping("/api/dataSets")
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class DataSetController extends AbstractCrudController<DataSet> {
   public static final String DSD_TRANSFORM = "/templates/metadata2dsd.xsl";
 
@@ -204,13 +206,16 @@ public class DataSetController extends AbstractCrudController<DataSet> {
     dataSetService.updateDataSet(dataSet);
   }
 
+  @OpenApi.Response(
+      status = OpenApi.Response.Status.OK,
+      object = {
+        @OpenApi.Property(name = "pager", value = Pager.class),
+        @OpenApi.Property(name = "categoryCombos", value = CategoryCombo[].class)
+      })
   @GetMapping("/{uid}/categoryCombos")
   public ResponseEntity<JsonRoot> getCategoryCombinations(
-      @PathVariable("uid") String uid,
-      @RequestParam(defaultValue = "*") List<FieldPath> fields,
-      TranslateParams translateParams)
+      @PathVariable("uid") String uid, @RequestParam(defaultValue = "*") List<FieldPath> fields)
       throws Exception {
-    setTranslationParams(translateParams);
     DataSet dataSet = manager.get(DataSet.class, uid);
 
     if (dataSet == null) {
@@ -239,11 +244,8 @@ public class DataSetController extends AbstractCrudController<DataSet> {
           String dataElementIdScheme,
       @RequestParam(value = "period", defaultValue = "", required = false) String period,
       @RequestParam(value = "orgUnit", defaultValue = "", required = false) List<String> orgUnits,
-      @RequestParam(value = "comment", defaultValue = "true", required = false) boolean comment,
-      TranslateParams translateParams,
-      HttpServletResponse response)
+      @RequestParam(value = "comment", defaultValue = "true", required = false) boolean comment)
       throws NotFoundException {
-    setTranslationParams(translateParams);
 
     Period pe = periodService.getPeriod(period);
 
@@ -259,10 +261,8 @@ public class DataSetController extends AbstractCrudController<DataSet> {
       @RequestParam(value = "ou", required = false) String orgUnit,
       @RequestParam(value = "pe", required = false) String period,
       @RequestParam(value = "categoryOptions", required = false) String categoryOptions,
-      @RequestParam(required = false) boolean metaData,
-      TranslateParams translateParams)
-      throws IOException, NotFoundException {
-    setTranslationParams(translateParams);
+      @RequestParam(required = false) boolean metaData)
+      throws NotFoundException {
 
     OrganisationUnit ou = manager.get(OrganisationUnit.class, orgUnit);
 
@@ -284,10 +284,8 @@ public class DataSetController extends AbstractCrudController<DataSet> {
       @RequestParam(value = "pe", required = false) String period,
       @RequestParam(value = "catOpts", required = false) String categoryOptions,
       @RequestParam(required = false) boolean metaData,
-      TranslateParams translateParams,
       HttpServletResponse response)
       throws IOException, NotFoundException {
-    setTranslationParams(translateParams);
 
     OrganisationUnit ou = manager.get(OrganisationUnit.class, orgUnit);
 

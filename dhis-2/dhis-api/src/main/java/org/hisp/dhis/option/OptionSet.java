@@ -169,7 +169,7 @@ public class OptionSet extends BaseIdentifiableObject implements VersionedObject
   public Map<String, String> getOptionCodePropertyMap(IdScheme idScheme) {
     return options.stream()
         .filter(Objects::nonNull)
-        .collect(Collectors.toMap(Option::getCode, o -> o.getPropertyValue(idScheme)));
+        .collect(Collectors.toMap(Option::getCode, o -> o.getDisplayPropertyValue(idScheme)));
   }
 
   // -------------------------------------------------------------------------

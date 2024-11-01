@@ -27,34 +27,32 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -63,13 +61,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
+class RelationshipOperationParamsMapperTest extends TestBase {
 
-  private static final String TE_UID = "OBzmpRP6YUh";
+  private static final UID TE_UID = UID.of("OBzmpRP6YUh");
 
-  private static final String EN_UID = "KSd4PejqBf9";
+  private static final UID EN_UID = UID.of("KSd4PejqBf9");
 
-  private static final String EV_UID = "TvjwTPToKHO";
+  private static final UID EV_UID = UID.of("TvjwTPToKHO");
 
   @Mock private TrackedEntityService trackedEntityService;
 
@@ -79,8 +77,6 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
 
   @Mock private TrackerAccessManager accessManager;
 
-  @Mock private UserService userService;
-
   @InjectMocks private RelationshipOperationParamsMapper mapper;
 
   private TrackedEntity trackedEntity;
@@ -89,8 +85,6 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
 
   private Event event;
 
-  private UserDetails user;
-
   @BeforeEach
   public void setUp() {
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
@@ -98,120 +92,56 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
     ProgramStage programStage = createProgramStage('A', program);
 
     trackedEntity = createTrackedEntity(organisationUnit);
-    trackedEntity.setUid(TE_UID);
+    trackedEntity.setUid(TE_UID.getValue());
     enrollment = createEnrollment(program, trackedEntity, organisationUnit);
-    enrollment.setUid(EN_UID);
+    enrollment.setUid(EN_UID.getValue());
     event = createEvent(programStage, enrollment, organisationUnit);
-    event.setUid(EV_UID);
-
-    User u = new User();
-    u.setUsername("admin");
-
-    user = UserDetails.fromUser(u);
-    injectSecurityContext(user);
+    event.setUid(EV_UID.getValue());
   }
 
   @Test
   void shouldMapTrackedEntityWhenATrackedEntityIsPassed()
-      throws NotFoundException, ForbiddenException {
+      throws NotFoundException, ForbiddenException, BadRequestException {
     when(trackedEntityService.getTrackedEntity(TE_UID)).thenReturn(trackedEntity);
-    when(accessManager.canRead(user, trackedEntity)).thenReturn(List.of());
     RelationshipOperationParams params =
         RelationshipOperationParams.builder().type(TRACKED_ENTITY).identifier(TE_UID).build();
 
     RelationshipQueryParams queryParams = mapper.map(params);
 
     assertInstanceOf(TrackedEntity.class, queryParams.getEntity());
-    assertEquals(TE_UID, queryParams.getEntity().getUid());
+    assertEquals(TE_UID.getValue(), queryParams.getEntity().getUid());
   }
 
   @Test
-  void shouldThrowWhenTrackedEntityIsNotFound() {
-    when(trackedEntityService.getTrackedEntity(TE_UID)).thenReturn(null);
-    RelationshipOperationParams params =
-        RelationshipOperationParams.builder().type(TRACKED_ENTITY).identifier(TE_UID).build();
-
-    assertThrows(NotFoundException.class, () -> mapper.map(params));
-  }
-
-  @Test
-  void shouldThrowWhenUserHasNoAccessToTrackedEntity() {
-    when(trackedEntityService.getTrackedEntity(TE_UID)).thenReturn(trackedEntity);
-    when(accessManager.canRead(user, trackedEntity)).thenReturn(List.of("error"));
-    RelationshipOperationParams params =
-        RelationshipOperationParams.builder().type(TRACKED_ENTITY).identifier(TE_UID).build();
-
-    assertThrows(ForbiddenException.class, () -> mapper.map(params));
-  }
-
-  @Test
-  void shouldMapEnrollmentWhenAEnrollmentIsPassed() throws NotFoundException, ForbiddenException {
+  void shouldMapEnrollmentWhenAEnrollmentIsPassed()
+      throws NotFoundException, ForbiddenException, BadRequestException {
     when(enrollmentService.getEnrollment(EN_UID)).thenReturn(enrollment);
-    when(accessManager.canRead(user, enrollment, false)).thenReturn(List.of());
     RelationshipOperationParams params =
         RelationshipOperationParams.builder().type(ENROLLMENT).identifier(EN_UID).build();
 
     RelationshipQueryParams queryParams = mapper.map(params);
 
     assertInstanceOf(Enrollment.class, queryParams.getEntity());
-    assertEquals(EN_UID, queryParams.getEntity().getUid());
+    assertEquals(EN_UID.getValue(), queryParams.getEntity().getUid());
   }
 
   @Test
-  void shouldThrowWhenEnrollmentIsNotFound() {
-    when(enrollmentService.getEnrollment(EN_UID)).thenReturn(null);
-    RelationshipOperationParams params =
-        RelationshipOperationParams.builder().type(ENROLLMENT).identifier(EN_UID).build();
-
-    assertThrows(NotFoundException.class, () -> mapper.map(params));
-  }
-
-  @Test
-  void shouldThrowWhenUserHasNoAccessToEnrollment() {
-    when(enrollmentService.getEnrollment(EN_UID)).thenReturn(enrollment);
-    when(accessManager.canRead(user, enrollment, false)).thenReturn(List.of("error"));
-    RelationshipOperationParams params =
-        RelationshipOperationParams.builder().type(ENROLLMENT).identifier(EN_UID).build();
-
-    assertThrows(ForbiddenException.class, () -> mapper.map(params));
-  }
-
-  @Test
-  void shouldMapEventWhenAEventIsPassed() throws NotFoundException, ForbiddenException {
+  void shouldMapEventWhenAEventIsPassed()
+      throws NotFoundException, ForbiddenException, BadRequestException {
     when(eventService.getEvent(EV_UID)).thenReturn(event);
-    when(accessManager.canRead(user, event, false)).thenReturn(List.of());
     RelationshipOperationParams params =
         RelationshipOperationParams.builder().type(EVENT).identifier(EV_UID).build();
 
     RelationshipQueryParams queryParams = mapper.map(params);
 
     assertInstanceOf(Event.class, queryParams.getEntity());
-    assertEquals(EV_UID, queryParams.getEntity().getUid());
+    assertEquals(EV_UID.getValue(), queryParams.getEntity().getUid());
   }
 
   @Test
-  void shouldThrowWhenEventIsNotFound() {
-    when(eventService.getEvent(EV_UID)).thenReturn(null);
-    RelationshipOperationParams params =
-        RelationshipOperationParams.builder().type(EVENT).identifier(EV_UID).build();
-
-    assertThrows(NotFoundException.class, () -> mapper.map(params));
-  }
-
-  @Test
-  void shouldThrowWhenUserHasNoAccessToEvent() {
-    when(eventService.getEvent(EV_UID)).thenReturn(event);
-    when(accessManager.canRead(user, event, false)).thenReturn(List.of("error"));
-    RelationshipOperationParams params =
-        RelationshipOperationParams.builder().type(EVENT).identifier(EV_UID).build();
-
-    assertThrows(ForbiddenException.class, () -> mapper.map(params));
-  }
-
-  @Test
-  void shouldMapOrderInGivenOrder() throws ForbiddenException, NotFoundException {
+  void shouldMapOrderInGivenOrder()
+      throws ForbiddenException, NotFoundException, BadRequestException {
     when(trackedEntityService.getTrackedEntity(TE_UID)).thenReturn(trackedEntity);
-    when(accessManager.canRead(user, trackedEntity)).thenReturn(List.of());
 
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder()
@@ -227,9 +157,8 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
 
   @Test
   void shouldMapNullOrderingParamsWhenNoOrderingParamsAreSpecified()
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
     when(trackedEntityService.getTrackedEntity(TE_UID)).thenReturn(trackedEntity);
-    when(accessManager.canRead(user, trackedEntity)).thenReturn(List.of());
 
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder().type(TRACKED_ENTITY).identifier(TE_UID).build();

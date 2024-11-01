@@ -52,10 +52,6 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-program-rule</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-administration</artifactId>
     </dependency>
     <dependency>
@@ -165,7 +161,6 @@
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-node</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-core</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-validation</ignoredUnusedDeclaredDependency>
-            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-program-rule</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-administration</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-dxf2</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-field-filtering</ignoredUnusedDeclaredDependency>
@@ -201,7 +196,7 @@
             <goals>
               <goal>report-aggregate</goal>
             </goals>
-            <phase>verify</phase>
+            <phase>test</phase>
           </execution>
         </executions>
       </plugin>

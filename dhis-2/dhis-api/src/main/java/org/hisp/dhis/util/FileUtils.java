@@ -48,9 +48,8 @@ public class FileUtils {
    * @return the file's contents
    * @throws IOException if read fails for any reason
    */
-  public static String getResourceFileAsString(String fileName) throws IOException {
-    ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-    try (InputStream is = classLoader.getResourceAsStream(fileName)) {
+  public static String getResourceFileAsString(Class<?> klass, String fileName) throws IOException {
+    try (InputStream is = klass.getResourceAsStream(fileName)) {
       if (is == null) return null;
 
       try (InputStreamReader isr = new InputStreamReader(is);

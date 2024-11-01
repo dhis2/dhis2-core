@@ -31,9 +31,9 @@ import static com.google.common.collect.Sets.newHashSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -42,26 +42,28 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataapproval.hibernate.HibernateDataApprovalStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * DataApprovalStore tests that no longer work in the H2 database but must be done in the PostgreSQL
@@ -69,8 +71,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
  *
  * @author Jim Grace
  */
-// @ExtendWith(MockitoExtension.class)
-class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
+@Transactional
+class DataApprovalStoreIntegrationTest extends PostgresIntegrationTestBase {
 
   private HibernateDataApprovalStore dataApprovalStore;
 
@@ -98,12 +100,11 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
   @Autowired private CacheProvider cacheProvider;
 
-  @Autowired private SystemSettingManager systemSettingManager;
-  @Autowired private UserService _userService;
+  @Autowired private SystemSettingsService settingsService;
 
-  // -------------------------------------------------------------------------
-  // Supporting data
-  // -------------------------------------------------------------------------
+  @Autowired private DbmsManager dbmsManager;
+
+  @Autowired private TransactionTemplate transactionTemplate;
 
   private DataApprovalLevel level1;
 
@@ -141,14 +142,8 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
   private List<DataApprovalLevel> userApprovalLevels;
 
-  // -------------------------------------------------------------------------
-  // Set up/tear down
-  // -------------------------------------------------------------------------
-
-  @Override
-  public void setUpTest() throws Exception {
-    this.userService = _userService;
-
+  @BeforeEach
+  void setUp() {
     dataApprovalStore =
         new HibernateDataApprovalStore(
             entityManager,
@@ -158,8 +153,8 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
             periodService,
             periodStore,
             categoryService,
-            systemSettingManager,
-            _userService);
+            settingsService,
+            userService);
 
     // ---------------------------------------------------------------------
     // Add supporting data
@@ -171,23 +166,11 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
     userApprovalLevels = List.of(level1);
 
-    PeriodType periodType = PeriodType.getPeriodTypeByName("Monthly");
-
-    workflowA = new DataApprovalWorkflow("workflowA1", periodType, newHashSet(level1));
-
-    dataApprovalService.addWorkflow(workflowA);
-
     sourceA = createOrganisationUnit('A');
 
     sourceA.setHierarchyLevel(1);
 
     organisationUnitService.addOrganisationUnit(sourceA);
-
-    dataSetA = createDataSet('A', new MonthlyPeriodType(), categoryComboA);
-    dataSetA.assignWorkflow(workflowA);
-    dataSetA.addOrganisationUnit(sourceA);
-
-    dataSetService.addDataSet(dataSetA);
 
     periodJan = createPeriod("202001");
     periodFeb = createPeriod("202002");
@@ -252,6 +235,19 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
     categoryComboA.getOptionCombos().add(categoryOptionCombo);
 
     categoryService.updateCategoryCombo(categoryComboA);
+
+    PeriodType periodType = PeriodType.getPeriodTypeByName("Monthly");
+
+    workflowA =
+        new DataApprovalWorkflow("workflowA1", periodType, categoryComboA, newHashSet(level1));
+
+    dataApprovalService.addWorkflow(workflowA);
+
+    dataSetA = createDataSet('A', periodType, categoryComboA);
+    dataSetA.assignWorkflow(workflowA);
+    dataSetA.addOrganisationUnit(sourceA);
+
+    dataSetService.addDataSet(dataSetA);
 
     dbmsManager.flushSession();
     dbmsManager.clearSession();
@@ -339,7 +335,7 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
           clearSecurityContext();
 
           hibernateService.flushSession();
-          injectSecurityContextUser(getAdminUser());
+          injectAdminIntoSecurityContext();
 
           categoryService.updateCategoryOption(categoryOptionA);
           categoryService.updateCategoryOption(categoryOptionB);
@@ -377,8 +373,7 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest {
 
     dataSetA.setOpenPeriodsAfterCoEndDate(1);
 
-    clearSecurityContext();
-    reLoginAdminUser();
+    injectAdminIntoSecurityContext();
     dataSetService.updateDataSet(dataSetA);
 
     injectSecurityContextUser(userA);

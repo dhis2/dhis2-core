@@ -53,7 +53,7 @@ import org.hisp.dhis.merge.MergeProcessor;
 import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -62,7 +62,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author david mackessy
  */
-class IndicatorMergeProcessorTest extends IntegrationTestBase {
+class IndicatorMergeProcessorTest extends PostgresIntegrationTestBase {
   @Autowired private MergeProcessor indicatorMergeProcessor;
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private ConfigurationService configService;
@@ -143,7 +143,7 @@ class IndicatorMergeProcessorTest extends IntegrationTestBase {
 
     // given merge params with an invalid source indicator
     MergeParams params = new MergeParams();
-    params.setSources(Set.of(UID.of(validSource1.getUid()), UID.of("Uid00000011")));
+    params.setSources(UID.of(validSource1.getUid(), "Uid00000011"));
     params.setTarget(UID.of(validTarget.getUid()));
     params.setMergeType(MergeType.INDICATOR);
 
@@ -219,7 +219,7 @@ class IndicatorMergeProcessorTest extends IntegrationTestBase {
 
     // given merge params with a target indicator and source indicators
     MergeParams params = new MergeParams();
-    params.setSources(Set.of(UID.of(validSource1.getUid()), UID.of(validSource2.getUid())));
+    params.setSources(UID.of(validSource1.getUid(), validSource2.getUid()));
     params.setTarget(UID.of(validTarget.getUid()));
     params.setDeleteSources(true);
     params.setMergeType(MergeType.INDICATOR);

@@ -47,20 +47,22 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
+import org.hisp.dhis.outlierdetection.OutlierDetectionRequest.Builder;
 import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
 import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.outlierdetection.parser.OutlierDetectionQueryParser;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-class OutlierDetectionServiceMinMaxTest extends IntegrationTestBase {
+class OutlierDetectionServiceMinMaxTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
@@ -88,8 +90,8 @@ class OutlierDetectionServiceMinMaxTest extends IntegrationTestBase {
 
   private CategoryOptionCombo coc;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     MonthlyPeriodType pt = new MonthlyPeriodType();
     m01 = pt.createPeriod("202001");
     m02 = pt.createPeriod("202002");
@@ -164,7 +166,7 @@ class OutlierDetectionServiceMinMaxTest extends IntegrationTestBase {
         new DataValue(deB, m11, ouA, coc, coc, "11"),
         new DataValue(deB, m12, ouA, coc, coc, "87"));
     OutlierDetectionRequest request =
-        new OutlierDetectionRequest.Builder()
+        new Builder()
             .withDataElements(Lists.newArrayList(deA, deB))
             .withStartEndDate(getDate(2020, 1, 1), getDate(2021, 1, 1))
             .withOrgUnits(Lists.newArrayList(ouA))
@@ -184,7 +186,7 @@ class OutlierDetectionServiceMinMaxTest extends IntegrationTestBase {
         new DataValue(deB, m03, ouA, coc, coc, "45"),
         new DataValue(deB, m04, ouA, coc, coc, "62"));
     OutlierDetectionRequest request =
-        new OutlierDetectionRequest.Builder()
+        new Builder()
             .withDataElements(Lists.newArrayList(deA, deB))
             .withStartEndDate(getDate(2020, 1, 1), getDate(2021, 1, 1))
             .withOrgUnits(Lists.newArrayList(ouA))

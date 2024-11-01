@@ -30,15 +30,16 @@ package org.hisp.dhis.common;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.hisp.dhis.user.UserDetails;
 
 /**
  * UID represents an alphanumeric string of 11 characters starting with a letter.
@@ -67,8 +68,13 @@ public final class UID implements Serializable {
   }
 
   @Override
+  @JsonValue
   public String toString() {
     return value;
+  }
+
+  public static UID generate() {
+    return new UID(CodeGenerator.generateUid());
   }
 
   @JsonCreator
@@ -76,12 +82,20 @@ public final class UID implements Serializable {
     return new UID(value);
   }
 
-  public static UID of(@Nonnull UserDetails currentUser) {
-    return new UID(currentUser.getUid());
-  }
-
   public static UID of(@CheckForNull UidObject object) {
     return object == null ? null : new UID(object.getUid());
+  }
+
+  public static Set<UID> of(@Nonnull String... values) {
+    return Stream.of(values).map(UID::of).collect(toUnmodifiableSet());
+  }
+
+  public static Set<UID> of(@Nonnull Collection<String> values) {
+    return values.stream().map(UID::of).collect(toUnmodifiableSet());
+  }
+
+  public static Set<UID> of(@Nonnull UidObject... objects) {
+    return Stream.of(objects).map(obj -> UID.of(obj.getUid())).collect(toUnmodifiableSet());
   }
 
   public static Set<String> toValueSet(Collection<UID> uids) {
@@ -90,5 +104,10 @@ public final class UID implements Serializable {
 
   public static List<String> toValueList(Collection<UID> uids) {
     return uids.stream().map(UID::getValue).toList();
+  }
+
+  public static <T extends BaseIdentifiableObject> Set<String> toUidValueSet(
+      @Nonnull Collection<T> elements) {
+    return elements.stream().map(BaseIdentifiableObject::getUid).collect(toUnmodifiableSet());
   }
 }

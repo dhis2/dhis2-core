@@ -27,20 +27,22 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Order;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Subquery;
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.SortDirection;
@@ -53,6 +55,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -132,6 +135,22 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         () -> countRelationships(event, queryParams));
   }
 
+  @Override
+  public List<Relationship> getUidsByRelationshipKeys(List<String> relationshipKeyList) {
+    if (CollectionUtils.isEmpty(relationshipKeyList)) {
+      return Collections.emptyList();
+    }
+
+    @Language("hql")
+    String hql =
+        """
+            from Relationship r
+            where r.deleted = false and (r.key in (:keys)
+            or (r.invertedKey in (:keys) and r.relationshipType.bidirectional = true))
+            """;
+    return getQuery(hql, Relationship.class).setParameter("keys", relationshipKeyList).list();
+  }
+
   /**
    * Query to extract relationships with the order by clause and pagination if required
    *
@@ -144,7 +163,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
       T entity, RelationshipQueryParams queryParams, PageParams pageParams) {
     CriteriaQuery<Relationship> criteriaQuery = criteriaQuery(entity, queryParams);
 
-    TypedQuery<Relationship> query = getSession().createQuery(criteriaQuery);
+    TypedQuery<Relationship> query = entityManager.createQuery(criteriaQuery);
 
     if (pageParams != null) {
       query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
@@ -175,7 +194,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         whereConditionPredicates(
             entity, builder, criteriaQuery, root, queryParams.isIncludeDeleted()));
 
-    return getSession().createQuery(criteriaQuery).getSingleResult().longValue();
+    return entityManager.createQuery(criteriaQuery).getSingleResult().longValue();
   }
 
   private <T extends SoftDeletableObject> CriteriaQuery<Relationship> criteriaQuery(

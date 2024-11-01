@@ -29,13 +29,17 @@ package org.hisp.dhis.predictor.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import jakarta.persistence.EntityManager;
+import java.util.Collection;
+import java.util.List;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -77,5 +81,48 @@ public class HibernatePredictorStore extends HibernateIdentifiableObjectStore<Pr
     predictor.setPeriodType(periodService.reloadPeriodType(predictor.getPeriodType()));
 
     super.update(predictor);
+  }
+
+  @Override
+  public List<Predictor> getAllByDataElement(Collection<DataElement> dataElements) {
+    return getQuery(
+            """
+            from Predictor p
+            where p.output in :dataElements
+            """)
+        .setParameter("dataElements", dataElements)
+        .list();
+  }
+
+  @Override
+  public List<Predictor> getAllWithGeneratorContainingDataElement(
+      @Nonnull List<String> dataElementUids) {
+    String multiLike = SqlUtils.likeAny("e.expression", dataElementUids);
+
+    return getQuery(
+            """
+            select p from Predictor p
+            join p.generator as e
+            where %s
+            group by p
+            """
+                .formatted(multiLike))
+        .getResultList();
+  }
+
+  @Override
+  public List<Predictor> getAllWithSampleSkipTestContainingDataElement(
+      @Nonnull List<String> dataElementUids) {
+    String multiLike = SqlUtils.likeAny("e.expression", dataElementUids);
+
+    return getQuery(
+            """
+            select p from Predictor p
+            join p.sampleSkipTest as e
+            where %s
+            group by p
+            """
+                .formatted(multiLike))
+        .getResultList();
   }
 }

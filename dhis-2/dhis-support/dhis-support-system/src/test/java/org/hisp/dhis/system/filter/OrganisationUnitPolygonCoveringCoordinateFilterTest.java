@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import org.geotools.geojson.geom.GeometryJSON;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.utils.TestResourceUtils;
+import org.hisp.dhis.test.utils.TestResourceUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Geometry;

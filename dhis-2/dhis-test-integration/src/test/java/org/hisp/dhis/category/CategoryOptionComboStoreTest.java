@@ -30,22 +30,31 @@ package org.hisp.dhis.category;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class CategoryOptionComboStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryOptionComboStore categoryOptionComboStore;
 
   @Autowired private CategoryService categoryService;
@@ -76,11 +85,8 @@ class CategoryOptionComboStoreTest extends SingleSetupIntegrationTestBase {
 
   private DataElement dataElementA;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() throws Exception {
+  @BeforeAll
+  void setUp() {
     categoryOptionA = new CategoryOption("Male");
     categoryOptionB = new CategoryOption("Female");
     categoryOptionC = new CategoryOption("0-20");
@@ -285,5 +291,43 @@ class CategoryOptionComboStoreTest extends SingleSetupIntegrationTestBase {
             catOptionGroup.getUid(), dataElementA.getUid());
     assertNotNull(result);
     assertEquals(categoryComboA.getOptionCombos(), Sets.newHashSet(result));
+  }
+
+  @Test
+  @DisplayName("Retrieving CategoryOptionCombos by CategoryOptions returns the expected objects")
+  void getCatOptCombosByCatOptionsTest() {
+    CategoryOption co1 = createCategoryOption('1');
+    CategoryOption co2 = createCategoryOption('2');
+    CategoryOption co3 = createCategoryOption('3');
+    CategoryOption co4 = createCategoryOption('4');
+    categoryService.addCategoryOption(co1);
+    categoryService.addCategoryOption(co2);
+    categoryService.addCategoryOption(co3);
+    categoryService.addCategoryOption(co4);
+
+    Category c1 = createCategory('1', co1, co2);
+    Category c2 = createCategory('2', co3, co4);
+    categoryService.addCategory(c1);
+    categoryService.addCategory(c2);
+
+    CategoryCombo categoryCombo = createCategoryCombo('Z', c1, c2);
+    categoryService.addCategoryCombo(categoryCombo);
+    categoryService.updateOptionCombos(categoryCombo);
+
+    List<CategoryOptionCombo> cocsByCategoryOption =
+        categoryOptionComboStore.getCategoryOptionCombosByCategoryOption(
+            List.of(co1.getUid(), co2.getUid(), co3.getUid()));
+
+    assertEquals(4, cocsByCategoryOption.size(), "4 CategoryOptionCombos should be present");
+    List<String> cos =
+        cocsByCategoryOption.stream()
+            .flatMap(coc -> coc.getCategoryOptions().stream())
+            .map(BaseIdentifiableObject::getUid)
+            .toList();
+
+    assertEquals(8, cos.size(), "8 CategoryOptions should be present");
+    assertTrue(
+        cos.containsAll(List.of(co1.getUid(), co2.getUid(), co3.getUid())),
+        "Retrieved CategoryOption UIDs should have expected UIDs");
   }
 }

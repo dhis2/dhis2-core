@@ -29,10 +29,10 @@ package org.hisp.dhis.dataintegrity.hibernate;
 
 import static java.util.stream.Collectors.toUnmodifiableList;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.Date;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataintegrity.DataIntegrityCheck;
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails;

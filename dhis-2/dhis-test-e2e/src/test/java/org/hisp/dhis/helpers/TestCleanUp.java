@@ -35,11 +35,11 @@ import java.util.List;
 import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.hisp.dhis.TestRunStorage;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.MaintenanceActions;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.TestRunStorage;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.MaintenanceActions;
+import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>

@@ -33,27 +33,29 @@ import static org.hisp.dhis.tracker.TrackerType.RELATIONSHIP;
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertReportEntities;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.web.WebClient;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonImportReport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests {@link ImportReport} behavior through {@link TrackerImportController} using (mocked) REST
  * requests
  */
-class TrackerImportReportTest extends DhisControllerConvenienceTest {
+@Transactional
+class TrackerImportReportTest extends H2ControllerIntegrationTestBase {
 
   private static final String ORG_UNIT_UID = "PSeMWi7rBgb";
 
@@ -104,7 +106,7 @@ class TrackerImportReportTest extends DhisControllerConvenienceTest {
                     + "&validationMode=SKIP"
                     + "&atomicMode=OBJECT"
                     + "&skipRuleEngine=true",
-                WebClient.Body("tracker/" + fileName))
+                Path.of("tracker/" + fileName))
             .content(HttpStatus.OK)
             .as(JsonImportReport.class);
 

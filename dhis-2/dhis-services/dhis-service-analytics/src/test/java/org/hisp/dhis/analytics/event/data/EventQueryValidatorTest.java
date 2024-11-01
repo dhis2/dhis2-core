@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OrgUnitField;
@@ -53,8 +52,9 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.test.TestBase;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -69,7 +69,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Lars Helge Overland
  */
 @ExtendWith(MockitoExtension.class)
-class EventQueryValidatorTest extends DhisConvenienceTest {
+class EventQueryValidatorTest extends TestBase {
   private Program prA;
 
   private Program prB;
@@ -88,7 +88,8 @@ class EventQueryValidatorTest extends DhisConvenienceTest {
 
   private OptionSet osA;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsProvider settingsProvider;
+  @Mock private SystemSettings settings;
 
   @Mock private QueryValidator queryValidator;
 
@@ -135,7 +136,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest {
             .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
             .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
             .withOrganisationUnits(List.of(ouA))
-            .withTimeField(TimeField.INCIDENT_DATE.name())
+            .withTimeField(TimeField.OCCURRED_DATE.name())
             .build();
 
     eventQueryValidator.validate(params);
@@ -389,7 +390,8 @@ class EventQueryValidatorTest extends DhisConvenienceTest {
 
   @Test
   void validateErrorMaxLimit() {
-    when(systemSettingManager.getIntSetting(SettingKey.ANALYTICS_MAX_LIMIT)).thenReturn(100);
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(settings.getAnalyticsMaxLimit()).thenReturn(100);
 
     EventQueryParams params =
         new EventQueryParams.Builder()

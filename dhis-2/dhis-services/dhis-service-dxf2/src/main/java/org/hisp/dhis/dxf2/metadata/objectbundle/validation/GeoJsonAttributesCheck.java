@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
-import static java.util.Collections.emptyList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
@@ -54,7 +53,6 @@ import org.geojson.MultiPolygon;
 import org.geojson.Point;
 import org.geojson.Polygon;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -74,7 +72,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class GeoJsonAttributesCheck implements ObjectValidationCheck {
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Override
   public <T extends IdentifiableObject> void check(
@@ -122,15 +120,17 @@ public class GeoJsonAttributesCheck implements ObjectValidationCheck {
   private List<ErrorReport> checkGeoJsonAttributes(
       IdentifiableObject object, Set<String> attributes) {
     if (object == null) {
-      return emptyList();
+      return List.of();
     }
 
     List<ErrorReport> errorReports = new ArrayList<>();
-    object.getAttributeValues().stream()
-        .filter(attributeValue -> attributes.contains(attributeValue.getAttribute().getUid()))
+    object
+        .getAttributeValues()
         .forEach(
-            attributeValue ->
-                validateGeoJsonValue(attributeValue, error -> errorReports.add(error)));
+            (attributeId, value) -> {
+              if (attributes.contains(attributeId))
+                validateGeoJsonValue(attributeId, value, errorReports::add);
+            });
 
     return errorReports;
   }
@@ -140,20 +140,20 @@ public class GeoJsonAttributesCheck implements ObjectValidationCheck {
    *
    * <p>If Jackson throws error then create new ErrorReport with ErrorCode.E6004
    *
-   * @param attributeValue {@link AttributeValue} for validating.
+   * @param attributeId the ID of the attribute being checked
+   * @param attributeValue the validated value for the attribute with the provided ID
    * @param addError ErrorReport consumer.
    */
-  private void validateGeoJsonValue(AttributeValue attributeValue, Consumer<ErrorReport> addError) {
+  private void validateGeoJsonValue(
+      String attributeId, String attributeValue, Consumer<ErrorReport> addError) {
     try {
       validateGeoJsonObject(
-          objectMapper.readValue(attributeValue.getValue(), GeoJsonObject.class),
-          attributeValue.getAttribute().getUid(),
-          addError);
+          objectMapper.readValue(attributeValue, GeoJsonObject.class), attributeId, addError);
     } catch (JsonProcessingException e) {
       log.error(DebugUtils.getStackTrace(e));
       addError.accept(
-          new ErrorReport(Attribute.class, ErrorCode.E6004, attributeValue.getAttribute().getUid())
-              .setMainId(attributeValue.getAttribute().getUid())
+          new ErrorReport(Attribute.class, ErrorCode.E6004, attributeValue)
+              .setMainId(attributeValue)
               .setErrorProperty("value"));
     }
   }
@@ -162,7 +162,7 @@ public class GeoJsonAttributesCheck implements ObjectValidationCheck {
    * Validate given GeoJsonObject using {@link ValidatingGeoJsonVisitor}
    *
    * @param geoJsonObject the {@link GeoJsonObject} to be validated.
-   * @param attributeId The {@link Attribute} ID of the current {@link AttributeValue}
+   * @param attributeId The {@link Attribute} ID of the GeoJSON target attribute
    * @param addError {@link Consumer} for adding the {@link ErrorReport} if any.
    */
   private void validateGeoJsonObject(
@@ -178,7 +178,7 @@ public class GeoJsonAttributesCheck implements ObjectValidationCheck {
   }
 
   /** Contains validator for each GeoJson Object type. */
-  class ValidatingGeoJsonVisitor implements GeoJsonObjectVisitor<Optional<ErrorCode>> {
+  static class ValidatingGeoJsonVisitor implements GeoJsonObjectVisitor<Optional<ErrorCode>> {
     @Override
     public Optional<ErrorCode> visit(GeometryCollection geometryCollection) {
       return of(ErrorCode.E6005);

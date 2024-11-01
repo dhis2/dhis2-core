@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
+import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -74,8 +75,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.DateUtils;
@@ -164,7 +165,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       DataApprovalLevelService dataApprovalLevelService,
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
@@ -178,7 +179,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         idObjectManager,
         organisationUnitService,
         categoryService,
-        systemSettingManager,
+        settingsProvider,
         dataApprovalLevelService,
         resourceTableService,
         tableHookService,
@@ -219,10 +220,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   @Override
   public boolean hasUpdatedLatestData(Date startDate, Date endDate) {
     String sql =
-        replace(
+        replaceQualify(
             """
             select dv.dataelementid \
-            from datavalue dv \
+            from ${datavalue} dv \
             where dv.lastupdated >= '${startDate}' and dv.lastupdated < '${endDate}' \
             limit 1;""",
             Map.of("startDate", toLongDate(startDate), "endDate", toLongDate(endDate)));
@@ -240,20 +241,20 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   public void removeUpdatedData(List<AnalyticsTable> tables) {
     AnalyticsTablePartition partition = getLatestTablePartition(tables);
     String sql =
-        replace(
+        replaceQualify(
             """
             delete from ${tableName} ax \
             where ax.id in ( \
             select concat(de.uid,'-',ps.iso,'-',ou.uid,'-',co.uid,'-',ao.uid) as id \
-            from datavalue dv \
-            inner join dataelement de on dv.dataelementid=de.dataelementid \
+            from ${datavalue} dv \
+            inner join ${dataelement} de on dv.dataelementid=de.dataelementid \
             inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
-            inner join organisationunit ou on dv.sourceid=ou.organisationunitid \
-            inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid \
-            inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid \
+            inner join ${organisationunit} ou on dv.sourceid=ou.organisationunitid \
+            inner join ${categoryoptioncombo} co on dv.categoryoptioncomboid=co.categoryoptioncomboid \
+            inner join ${categoryoptioncombo} ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid \
             where dv.lastupdated >= '${startDate}'and dv.lastupdated < '${endDate}');""",
             Map.of(
-                "tableName", quote(getAnalyticsTableType().getTableName()),
+                "tableName", qualify(getAnalyticsTableType().getTableName()),
                 "startDate", toLongDate(partition.getStartDate()),
                 "endDate", toLongDate(partition.getEndDate())));
 
@@ -269,11 +270,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
   @Override
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    boolean skipDataTypeValidation =
-        systemSettingManager.getBoolSetting(
-            SettingKey.SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT);
-    boolean includeZeroValues =
-        systemSettingManager.getBoolSetting(SettingKey.INCLUDE_ZERO_VALUES_IN_ANALYTICS);
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    boolean skipDataTypeValidation = settings.getSkipDataTypeValidationInAnalyticsTableExport();
+    boolean includeZeroValues = settings.getIncludeZeroValuesInAnalytics();
 
     String doubleDataType = sqlBuilder.dataTypeDouble();
     String numericClause =
@@ -337,8 +336,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     String tableName = partition.getName();
     String valTypes = quotedCommaDelimitedString(ObjectUtils.asStringList(valueTypes));
     boolean respectStartEndDates =
-        systemSettingManager.getBoolSetting(
-            SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT);
+        settingsProvider
+            .getCurrentSettings()
+            .getRespectMetaDataStartEndDatesInAnalyticsTableExport();
     String approvalSelectExpression = getApprovalSelectExpression(partition.getYear());
     String approvalClause = getApprovalJoinClause(partition.getYear());
     String partitionClause = getPartitionClause(partition);
@@ -360,7 +360,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     }
 
     sql.append(
-        replace(
+        replaceQualify(
             """
             ${approvalSelectExpression} \
             as approvallevel, \
@@ -368,9 +368,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             ps.daysno as daysno, \
             ${valueExpression} as value, \
             ${textValueExpression} as textvalue \
-            from datavalue dv \
+            from ${datavalue} dv \
             inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
-            inner join analytics_rs_dataelementstructure des on dv.dataelementid = des.dataelementid \
+            inner join analytics_rs_dataelementstructure des on dv.dataelementid=des.dataelementid \
             inner join analytics_rs_dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid \
             inner join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
             inner join analytics_rs_organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid \
@@ -482,7 +482,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         format("and dv.lastupdated >= '{}' ", toLongDate(partition.getStartDate()));
     String partitionFilter = format("and ps.year = {} ", partition.getYear());
 
-    return partition.isLatestPartition() ? latestFilter : partitionFilter;
+    return partition.isLatestPartition()
+        ? latestFilter
+        : emptyIfTrue(partitionFilter, sqlBuilder.supportsDeclarativePartitioning());
   }
 
   private List<AnalyticsTableColumn> getColumns(AnalyticsTableUpdateParams params) {
@@ -662,11 +664,11 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params) {
     StringBuilder sql =
         new StringBuilder(
-            replace(
+            replaceQualify(
                 """
                 select distinct(extract(year from pe.startdate)) \
-                from datavalue dv \
-                inner join period pe on dv.periodid=pe.periodid \
+                from ${datavalue} dv \
+                inner join ${period} pe on dv.periodid=pe.periodid \
                 where pe.startdate is not null \
                 and dv.lastupdated < '${startTime}'\s""",
                 Map.of("startTime", toLongDate(params.getStartTime()))));
@@ -694,8 +696,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       sql.append(column + " = null,");
     }
 
-    sql.deleteCharAt(sql.length() - ",".length());
-    sql.append(" ");
+    sql.deleteCharAt(sql.length() - ",".length()).append(" ");
     sql.append(
         """
         where oulevel > ${aggregationLevel} \
@@ -720,10 +721,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    * @param year the year of the data partition.
    */
   private boolean isApprovalEnabled(Integer year) {
-    boolean setting = systemSettingManager.hideUnapprovedDataInAnalytics();
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    boolean setting = settings.isHideUnapprovedDataInAnalytics();
     boolean levels = !dataApprovalLevelService.getAllDataApprovalLevels().isEmpty();
-    Integer maxYears =
-        systemSettingManager.getIntegerSetting(SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD);
+    int maxYears = settings.getIgnoreAnalyticsApprovalYearThreshold();
 
     log.debug(
         "Hide approval setting: {}, approval levels exists: {}, max years threshold: {}",
@@ -793,7 +794,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         // Table "t2" is the complement of the t1 table. It contains all values belong to the
         // specific median (see t1).
         // To "group by" criteria is added the time dimension (periodid). This part of the query has
-        // to be verified (maybe add TEI to aggregation criteria).
+        // to be verified (maybe add TE to aggregation criteria).
         + "(select dv1.dataelementid as dataelementid, "
         + "dv1.sourceid as sourceid, "
         + "dv1.categoryoptioncomboid  as categoryoptioncomboid, "

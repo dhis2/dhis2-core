@@ -33,9 +33,9 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
 
 import org.hisp.dhis.AnalyticsApiTest;
-import org.hisp.dhis.actions.analytics.AnalyticsEventActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEventActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.Test;
 
 public class EventAggregateTest extends AnalyticsApiTest {

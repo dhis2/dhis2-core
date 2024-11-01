@@ -35,7 +35,7 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilderProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -50,57 +50,57 @@ public class ServiceConfig {
     return provider.getSqlBuilder();
   }
 
-  @Bean("org.hisp.dhis.analytics.TeiAnalyticsTableService")
-  public AnalyticsTableService teiAnalyticsTableManager(
-      @Qualifier("org.hisp.dhis.analytics.TeiAnalyticsTableManager")
+  @Bean("org.hisp.dhis.analytics.TrackedEntityAnalyticsTableService")
+  public AnalyticsTableService trackedEntityAnalyticsTableManager(
+      @Qualifier("org.hisp.dhis.analytics.TrackedEntityAnalyticsTableManager")
           AnalyticsTableManager tableManager,
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager,
+        settingsProvider,
         sqlBuilder);
   }
 
-  @Bean("org.hisp.dhis.analytics.TeiEventsAnalyticsTableService")
-  public AnalyticsTableService teiEventsAnalyticsTableManager(
-      @Qualifier("org.hisp.dhis.analytics.TeiEventsAnalyticsTableManager")
+  @Bean("org.hisp.dhis.analytics.TrackedEntityEventsAnalyticsTableService")
+  public AnalyticsTableService trackedEntityEventsAnalyticsTableManager(
+      @Qualifier("org.hisp.dhis.analytics.TrackedEntityEventsAnalyticsTableManager")
           AnalyticsTableManager tableManager,
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager,
+        settingsProvider,
         sqlBuilder);
   }
 
-  @Bean("org.hisp.dhis.analytics.TeiEnrollmentsAnalyticsTableService")
-  public AnalyticsTableService teiEnrollmentsAnalyticsTableManager(
-      @Qualifier("org.hisp.dhis.analytics.TeiEnrollmentsAnalyticsTableManager")
+  @Bean("org.hisp.dhis.analytics.TrackedEntityEnrollmentsAnalyticsTableService")
+  public AnalyticsTableService trackedEntityEnrollmentsAnalyticsTableManager(
+      @Qualifier("org.hisp.dhis.analytics.TrackedEntityEnrollmentsAnalyticsTableManager")
           AnalyticsTableManager tableManager,
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager,
+        settingsProvider,
         sqlBuilder);
   }
 
@@ -111,14 +111,14 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager,
+        settingsProvider,
         sqlBuilder);
   }
 
@@ -129,14 +129,14 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager,
+        settingsProvider,
         sqlBuilder);
   }
 
@@ -147,14 +147,14 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager,
+        settingsProvider,
         sqlBuilder);
   }
 
@@ -165,14 +165,14 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager,
+        settingsProvider,
         sqlBuilder);
   }
 
@@ -183,14 +183,14 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager,
+        settingsProvider,
         sqlBuilder);
   }
 
@@ -201,14 +201,14 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager,
+        settingsProvider,
         sqlBuilder);
   }
 
@@ -219,14 +219,14 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager,
+        settingsProvider,
         sqlBuilder);
   }
 
@@ -237,14 +237,14 @@ public class ServiceConfig {
       OrganisationUnitService organisationUnitService,
       DataElementService dataElementService,
       ResourceTableService resourceTableService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       SqlBuilder sqlBuilder) {
     return new DefaultAnalyticsTableService(
         tableManager,
         organisationUnitService,
         dataElementService,
         resourceTableService,
-        systemSettingManager,
+        settingsProvider,
         sqlBuilder);
   }
 }

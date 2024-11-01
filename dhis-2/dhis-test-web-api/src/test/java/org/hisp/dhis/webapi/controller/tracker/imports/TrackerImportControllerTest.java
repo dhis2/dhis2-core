@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+
+import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportController} using
@@ -37,7 +40,8 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class TrackerImportControllerTest extends DhisControllerIntegrationTest {
+@Transactional
+class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void shouldSucceedWhenAllValidParametersArePassed() {
     assertWebMessage(

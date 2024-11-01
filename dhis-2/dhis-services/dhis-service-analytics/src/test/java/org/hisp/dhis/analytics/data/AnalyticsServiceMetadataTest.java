@@ -32,10 +32,11 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
 import static org.hisp.dhis.period.RelativePeriodEnum.THIS_QUARTER;
+import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -64,6 +65,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
+import org.hisp.dhis.user.SystemUser;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -74,6 +76,7 @@ import org.junit.jupiter.api.Test;
 class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest {
   @BeforeEach
   public void setUp() {
+    injectSecurityContextNoSettings(new SystemUser());
     Map<String, Object> aggregatedValues = new HashMap<>();
     when(analyticsManager.getAggregatedDataValues(
             any(DataQueryParams.class), eq(AnalyticsTableType.DATA_VALUE), eq(0)))

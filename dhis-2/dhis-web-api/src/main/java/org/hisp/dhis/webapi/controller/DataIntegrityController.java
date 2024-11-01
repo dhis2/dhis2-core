@@ -72,7 +72,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
-@OpenApi.Document(domain = DataIntegrityCheck.class)
+@OpenApi.Document(
+    entity = DataIntegrityCheck.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping("/api/dataIntegrity")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -111,7 +113,7 @@ public class DataIntegrityController {
             : new DataIntegrityJobParameters(type, checks);
     config.setJobParameters(parameters);
 
-    jobSchedulerService.executeNow(jobConfigurationService.create(config));
+    jobSchedulerService.createThenExecute(config);
 
     return jobConfigurationReport(config);
   }

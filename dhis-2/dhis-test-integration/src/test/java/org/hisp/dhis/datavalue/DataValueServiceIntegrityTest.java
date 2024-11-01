@@ -43,12 +43,18 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /** Tests the {@link DataValueService} API methods that are related to data integrity checks. */
-class DataValueServiceIntegrityTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class DataValueServiceIntegrityTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryService categoryService;
 
   @Autowired private DataValueService dataValueService;
@@ -75,8 +81,8 @@ class DataValueServiceIntegrityTest extends SingleSetupIntegrationTestBase {
 
   private CategoryOptionCombo categoryOptionComboAC;
 
-  @Override
-  protected void setUpTest() {
+  @BeforeAll
+  void setUp() {
     deA = createDataElement('A');
     dataElementService.addDataElement(deA);
 

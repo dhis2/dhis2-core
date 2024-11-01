@@ -35,21 +35,21 @@ jobs:
           username: ${{ secrets.DHIS2_BOT_DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DHIS2_BOT_DOCKER_HUB_PASSWORD }}
 
-      - name: Build war
-        run: |
-          mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true --update-snapshots -f dhis-2/pom.xml -pl -dhis-test-integration,-dhis-test-coverage,-dhis-web-server
-
       - name: Build container image
         run: |
           if [ "$DOCKERHUB_PUSH" = "true" ]; then
             # build and publish multi-arch images using Jib. Image is used for api tests in
             # this workflow and can be pulled from Dockerhub by devs to run locally, ...
-            mvn clean install -DactiveProfile=PjibBuild --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f dhis-2/dhis-web-server/pom.xml jib:build -PjibBuild \
-                -Djib.to.image=$CORE_IMAGE_NAME -Djib.container.labels=DHIS2_BUILD_REVISION=${{github.event.pull_request.head.sha}},DHIS2_BUILD_BRANCH=${{github.head_ref}}
+            mvn clean verify --threads 2C --batch-mode --no-transfer-progress \
+              -DskipTests --update-snapshots --file dhis-2/pom.xml \
+              --projects dhis-web-server --also-make --activate-profiles jibBuild \
+              -Djib.to.image=$CORE_IMAGE_NAME -Djib.container.labels=DHIS2_BUILD_REVISION=${{github.event.pull_request.head.sha}},DHIS2_BUILD_BRANCH=${{github.head_ref}}
           else
             # only build image for running api tests in this workflow i.e. master, 2.39, ...
-            mvn clean install -PjibDockerBuild -DactiveProfile=jibDockerBuild --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f ./dhis-2/dhis-web-server/pom.xml \
-                -Djib.to.image=$CORE_IMAGE_NAME
+            mvn clean verify --threads 2C --batch-mode --no-transfer-progress \
+              -DskipTests --update-snapshots --file dhis-2/pom.xml \
+              --projects dhis-web-server --also-make --activate-profiles jibDockerBuild \
+              -Djib.to.image=$CORE_IMAGE_NAME
           fi
 
       - name: Run tests
@@ -67,7 +67,7 @@ jobs:
         if: failure()
         with:
           name: "tomcat_logs"
-          path: '~/logs.txt'
+          path: "~/logs.txt"
 
   send-slack-message:
     runs-on: ubuntu-latest
@@ -76,11 +76,11 @@ jobs:
       contains(needs.*.result, 'failure') &&
       github.ref == 'refs/heads/master'
 
-    needs: [ api-test ]
+    needs: [api-test]
     steps:
       - uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_BACKEND_WEBHOOK }}
-          SLACK_CHANNEL: 'team-backend'
+          SLACK_CHANNEL: "team-backend"
           SLACK_MESSAGE: "Latest e2e test run on master failed and needs investigation :detective-duck:. \n Commit message: ${{ github.event.head_commit.message }}"
-          SLACK_COLOR: '#ff0000'
+          SLACK_COLOR: "#ff0000"

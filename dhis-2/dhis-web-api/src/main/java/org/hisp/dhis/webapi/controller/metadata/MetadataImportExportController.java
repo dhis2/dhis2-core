@@ -34,12 +34,11 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -47,7 +46,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.StreamUtils;
-import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.csv.CsvImportClass;
 import org.hisp.dhis.dxf2.csv.CsvImportOptions;
 import org.hisp.dhis.dxf2.csv.CsvImportService;
@@ -80,8 +78,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.http.ResponseEntity;
@@ -97,7 +94,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(domain = Metadata.class)
+@OpenApi.Document(
+    entity = Metadata.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/metadata")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -112,7 +111,7 @@ public class MetadataImportExportController {
   private final GmlImportService gmlImportService;
   private final MetadataExportService metadataExportService;
   private final UserService userService;
-  private final UserSettingService userSettingService;
+  private final UserSettingsService userSettingsService;
   private final JobConfigurationService jobConfigurationService;
   private final JobSchedulerService jobSchedulerService;
   private final ObjectMapper jsonMapper;
@@ -135,7 +134,7 @@ public class MetadataImportExportController {
     ImportReport importReport =
         metadataImportService.importMetadata(params, new MetadataObjects(objects));
 
-    return importReport(importReport).withPlainResponseBefore(DhisApiVersion.V38);
+    return importReport(importReport);
   }
 
   @PostMapping(value = "", consumes = "application/csv")
@@ -168,7 +167,7 @@ public class MetadataImportExportController {
             params,
             new MetadataObjects().addMetadata(schemaService.getMetadataSchemas(), metadata));
 
-    return importReport(report).withPlainResponseBefore(DhisApiVersion.V38);
+    return importReport(report);
   }
 
   @PostMapping(value = "/gml", consumes = APPLICATION_XML_VALUE)
@@ -182,7 +181,7 @@ public class MetadataImportExportController {
     }
     ImportReport importReport =
         gmlImportService.importGml(request.getInputStream(), params, JobProgress.noop());
-    return importReport(importReport).withPlainResponseBefore(DhisApiVersion.V38);
+    return importReport(importReport);
   }
 
   @GetMapping("/csvImportClasses")
@@ -191,13 +190,7 @@ public class MetadataImportExportController {
   }
 
   @GetMapping
-  public ResponseEntity<MetadataExportParams> getMetadata(
-      @RequestParam(required = false, defaultValue = "false") boolean translate,
-      @RequestParam(required = false) String locale,
-      @RequestParam(defaultValue = "false") boolean download) {
-    if (translate) {
-      setTranslationParams(new TranslateParams(true, locale));
-    }
+  public ResponseEntity<MetadataExportParams> getMetadata() {
 
     MetadataExportParams params =
         metadataExportService.getParamsFromMap(contextService.getParameterValuesMap());
@@ -267,20 +260,7 @@ public class MetadataImportExportController {
 
     config.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
     config.setJobParameters(params);
-    jobSchedulerService.executeNow(
-        jobConfigurationService.create(config, contentType, request.getInputStream()));
+    jobSchedulerService.createThenExecute(config, contentType, request.getInputStream());
     return jobConfigurationReport(config);
-  }
-
-  private void setTranslationParams(TranslateParams translateParams) {
-    Locale dbLocale = getLocaleWithDefault(translateParams);
-    CurrentUserUtil.setUserSetting(UserSettingKey.DB_LOCALE, dbLocale);
-  }
-
-  private Locale getLocaleWithDefault(TranslateParams translateParams) {
-    return translateParams.isTranslate()
-        ? translateParams.getLocaleWithDefault(
-            (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE))
-        : null;
   }
 }

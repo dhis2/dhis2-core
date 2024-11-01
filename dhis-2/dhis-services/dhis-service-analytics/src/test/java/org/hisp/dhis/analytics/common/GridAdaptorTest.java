@@ -53,8 +53,7 @@ import java.util.List;
 import java.util.Optional;
 import javax.sql.rowset.RowSetMetaDataImpl;
 import org.apache.commons.collections4.MapUtils;
-import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.analytics.common.params.CommonParams;
+import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
@@ -63,12 +62,14 @@ import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.jsonextractor.SqlRowSetJsonExtractorDelegator;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.junit.jupiter.api.BeforeEach;
@@ -84,7 +85,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  * @author maikel arabori
  */
 @ExtendWith(MockitoExtension.class)
-class GridAdaptorTest extends DhisConvenienceTest {
+class GridAdaptorTest extends TestBase {
   private GridAdaptor gridAdaptor;
 
   private HeaderParamsHandler headerParamsHandler;
@@ -112,10 +113,10 @@ class GridAdaptorTest extends DhisConvenienceTest {
     metaData.setColumnName(1, "anyFakeCol-1");
     metaData.setColumnName(2, "oucode");
 
-    TeiQueryParams teiQueryParams =
-        TeiQueryParams.builder()
-            .trackedEntityType(stubTrackedEntityType())
-            .commonParams(stubCommonParams())
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .commonParsed(stubCommonParsedParams())
+            .commonRaw(new CommonRequestParams())
             .build();
 
     List<Field> fields = List.of(ofUnquoted("ev", null, "oucode"));
@@ -130,7 +131,7 @@ class GridAdaptorTest extends DhisConvenienceTest {
 
     // When
     Grid grid =
-        gridAdaptor.createGrid(Optional.of(mockSqlResult), anyCount, teiQueryParams, fields, null);
+        gridAdaptor.createGrid(Optional.of(mockSqlResult), anyCount, contextParams, fields, null);
 
     // Then
     assertNotNull(grid, "Should not be null: grid");
@@ -150,10 +151,14 @@ class GridAdaptorTest extends DhisConvenienceTest {
     metaData.setColumnName(1, "anyFakeCol-1");
     metaData.setColumnName(2, "anyFakeCol-2");
 
-    TeiQueryParams teiQueryParams =
-        TeiQueryParams.builder()
-            .trackedEntityType(stubTrackedEntityType())
-            .commonParams(stubCommonParams())
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .commonParsed(stubCommonParsedParams())
+            .commonRaw(new CommonRequestParams())
+            .typedParsed(
+                TrackedEntityQueryParams.builder()
+                    .trackedEntityType(stubTrackedEntityType())
+                    .build())
             .build();
 
     List<Field> fields = emptyList();
@@ -168,7 +173,7 @@ class GridAdaptorTest extends DhisConvenienceTest {
 
     // When
     Grid grid =
-        gridAdaptor.createGrid(Optional.of(mockSqlResult), anyCount, teiQueryParams, fields, null);
+        gridAdaptor.createGrid(Optional.of(mockSqlResult), anyCount, contextParams, fields, null);
 
     // Then
     assertNotNull(grid, "Should not be null: grid");
@@ -183,10 +188,14 @@ class GridAdaptorTest extends DhisConvenienceTest {
     // Given
     Optional<SqlQueryResult> emptySqlResult = Optional.empty();
 
-    TeiQueryParams teiQueryParams =
-        TeiQueryParams.builder()
-            .trackedEntityType(stubTrackedEntityType())
-            .commonParams(stubCommonParams())
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .commonParsed(stubCommonParsedParams())
+            .commonRaw(new CommonRequestParams())
+            .typedParsed(
+                TrackedEntityQueryParams.builder()
+                    .trackedEntityType(stubTrackedEntityType())
+                    .build())
             .build();
 
     List<Field> fields = List.of(ofUnquoted("ev", null, "oucode"));
@@ -194,7 +203,7 @@ class GridAdaptorTest extends DhisConvenienceTest {
     long anyCount = 0;
 
     // When
-    Grid grid = gridAdaptor.createGrid(emptySqlResult, anyCount, teiQueryParams, fields, null);
+    Grid grid = gridAdaptor.createGrid(emptySqlResult, anyCount, contextParams, fields, null);
 
     // Then
     assertTrue(isNotEmpty(grid.getHeaders()));
@@ -203,21 +212,21 @@ class GridAdaptorTest extends DhisConvenienceTest {
   }
 
   @Test
-  void testCreateGridWithNullTeiQueryParams() {
+  void testCreateGridWithNullTrackedEntityQueryParams() {
     // Given
     Optional<SqlQueryResult> anySqlResult = Optional.empty();
-    TeiQueryParams nullTeiQueryParams = null;
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> nullContextParams = null;
     long anyCount = 0;
 
     // When
     IllegalArgumentException ex =
         assertThrows(
             IllegalArgumentException.class,
-            () -> gridAdaptor.createGrid(anySqlResult, anyCount, nullTeiQueryParams, null, null),
+            () -> gridAdaptor.createGrid(anySqlResult, anyCount, nullContextParams, null, null),
             "Expected exception not thrown: createGrid()");
 
     // Then
-    assertTrue(ex.getMessage().contains("The 'teiQueryParams' must not be null"));
+    assertTrue(ex.getMessage().contains("The 'contextParams' must not be null"));
   }
 
   private TrackedEntityType stubTrackedEntityType() {
@@ -236,12 +245,10 @@ class GridAdaptorTest extends DhisConvenienceTest {
     return trackedEntityType;
   }
 
-  private CommonParams stubCommonParams() {
-    List<DimensionIdentifier<DimensionParam>> dimIdentifiers = getDimensionIdentifiers();
-
-    return CommonParams.builder()
+  private CommonParsedParams stubCommonParsedParams() {
+    return CommonParsedParams.builder()
         .programs(List.of(createProgram('A')))
-        .dimensionIdentifiers(dimIdentifiers)
+        .dimensionIdentifiers(getDimensionIdentifiers())
         .build();
   }
 

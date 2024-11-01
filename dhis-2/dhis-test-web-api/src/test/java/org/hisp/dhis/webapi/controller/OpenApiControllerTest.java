@@ -27,11 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.utils.Assertions.assertGreaterOrEqual;
-import static org.hisp.dhis.utils.Assertions.assertLessOrEqual;
+import static org.hisp.dhis.http.HttpClientAdapter.Accept;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertGreaterOrEqual;
+import static org.hisp.dhis.test.utils.Assertions.assertLessOrEqual;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
@@ -40,11 +44,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.openapitools.codegen.DefaultGenerator;
 import org.openapitools.codegen.config.CodegenConfigurator;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.openapi.OpenApiController} with Mock MVC tests.
@@ -54,7 +60,8 @@ import org.openapitools.codegen.config.CodegenConfigurator;
  *
  * @author Jan Bernitt
  */
-class OpenApiControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetOpenApiDocumentJson() {
     JsonObject doc =
@@ -74,7 +81,7 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testGetOpenApiDocument_PathFilter() {
-    JsonObject doc = GET("/openapi/openapi.json?path=/api/users").content();
+    JsonObject doc = GET("/openapi/openapi.json?scope=path./api/users").content();
     assertTrue(doc.isObject());
     assertTrue(
         doc.getObject("paths")
@@ -84,12 +91,12 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest {
                 "/api/users/invites",
                 "/api/users/sharing"));
     assertLessOrEqual(26, doc.getObject("paths").size());
-    assertLessOrEqual(60, doc.getObject("components.schemas").size());
+    assertLessOrEqual(100, doc.getObject("components.schemas").size());
   }
 
   @Test
   void testGetOpenApiDocument_DomainFilter() {
-    JsonObject doc = GET("/openapi/openapi.json?domain=User").content();
+    JsonObject doc = GET("/openapi/openapi.json?scope=entity.User").content();
     assertTrue(doc.isObject());
     assertTrue(
         doc.getObject("paths")
@@ -99,13 +106,21 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest {
                 "/api/users/invites",
                 "/api/users/sharing"));
     assertLessOrEqual(151, doc.getObject("paths").size());
-    assertLessOrEqual(80, doc.getObject("components.schemas").size());
+    assertLessOrEqual(120, doc.getObject("components.schemas").size());
+  }
+
+  @Test
+  void testGetOpenApiDocumentHtml_DomainFilter() {
+    String html =
+        GET("/openapi/openapi.html?scope=entity.DataElement", Accept(TEXT_HTML_VALUE))
+            .content(TEXT_HTML_VALUE);
+    assertContains("#DataElement", html);
   }
 
   @Test
   void testGetOpenApiDocument_DefaultValue() {
     // defaults in parameter objects (from Property analysis)
-    JsonObject users = GET("/openapi/openapi.json?path=/api/users").content();
+    JsonObject users = GET("/openapi/openapi.json?scope=path./api/users").content();
     JsonObject sharedParams = users.getObject("components.parameters");
     assertEquals(50, sharedParams.getNumber("{GistParams.pageSize}.schema.default").integer());
     assertEquals(
@@ -113,7 +128,7 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest {
     assertTrue(sharedParams.getBoolean("{GistParams.translate}.schema.default").booleanValue());
 
     // defaults in individual parameters (from endpoint method parameter analysis)
-    JsonObject fileResources = GET("/openapi/openapi.json?path=/api/fileResources").content();
+    JsonObject fileResources = GET("/openapi/openapi.json?scope=path./api/fileResources").content();
     JsonObject domain =
         fileResources
             .get("paths./api/fileResources/.post.parameters")
@@ -124,7 +139,7 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest {
             .orElse(JsonMixed.of("{}"));
     assertEquals("DATA_VALUE", domain.getString("schema.default").string());
 
-    JsonObject audits = GET("/openapi/openapi.json?path=/api/audits").content();
+    JsonObject audits = GET("/openapi/openapi.json?scope=path./api/audits").content();
     JsonObject pageSize =
         audits
             .getArray("paths./api/audits/trackedEntityAttributeValue.get.parameters")
@@ -134,6 +149,28 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest {
             .findFirst()
             .orElse(JsonMixed.of("{}"));
     assertEquals(50, pageSize.getNumber("schema.default").integer());
+  }
+
+  @Test
+  void testGetOpenApiDocument_ReadOnly() {
+    JsonObject doc = GET("/openapi/openapi.json?scope=entity.JobConfiguration").content();
+    JsonObject jobConfiguration = doc.getObject("components.schemas.JobConfiguration");
+    JsonObject jobConfigurationParams = doc.getObject("components.schemas.JobConfigurationParams");
+    assertTrue(jobConfiguration.isObject());
+    assertTrue(jobConfigurationParams.isObject());
+    assertTrue(
+        jobConfiguration.getObject("properties").size()
+            > jobConfigurationParams.getObject("properties").size());
+    assertTrue(
+        jobConfiguration
+            .node()
+            .find(JsonNodeType.BOOLEAN, n -> n.getPath().toString().endsWith("readOnly"))
+            .isPresent());
+    assertFalse(
+        jobConfigurationParams
+            .node()
+            .find(JsonNodeType.BOOLEAN, n -> n.getPath().toString().endsWith("readOnly"))
+            .isPresent());
   }
 
   @Test

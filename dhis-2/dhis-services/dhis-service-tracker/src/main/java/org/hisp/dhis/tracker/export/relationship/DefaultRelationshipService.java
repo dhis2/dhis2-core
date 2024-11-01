@@ -30,7 +30,10 @@ package org.hisp.dhis.tracker.export.relationship;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
@@ -39,7 +42,7 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -57,8 +60,8 @@ public class DefaultRelationshipService implements RelationshipService {
   private final RelationshipOperationParamsMapper mapper;
 
   @Override
-  public List<Relationship> getRelationships(RelationshipOperationParams params)
-      throws ForbiddenException, NotFoundException {
+  public List<Relationship> getRelationships(@Nonnull RelationshipOperationParams params)
+      throws ForbiddenException, NotFoundException, BadRequestException {
     RelationshipQueryParams queryParams = mapper.map(params);
 
     return getRelationships(queryParams);
@@ -66,16 +69,17 @@ public class DefaultRelationshipService implements RelationshipService {
 
   @Override
   public Page<Relationship> getRelationships(
-      RelationshipOperationParams params, PageParams pageParams)
-      throws ForbiddenException, NotFoundException {
+      @Nonnull RelationshipOperationParams params, @Nonnull PageParams pageParams)
+      throws ForbiddenException, NotFoundException, BadRequestException {
     RelationshipQueryParams queryParams = mapper.map(params);
 
     return getRelationships(queryParams, pageParams);
   }
 
   @Override
-  public Relationship getRelationship(String uid) throws ForbiddenException, NotFoundException {
-    Relationship relationship = relationshipStore.getByUid(uid);
+  public Relationship getRelationship(@Nonnull UID uid)
+      throws ForbiddenException, NotFoundException {
+    Relationship relationship = relationshipStore.getByUid(uid.getValue());
 
     if (relationship == null) {
       throw new NotFoundException(Relationship.class, uid);
@@ -88,6 +92,16 @@ public class DefaultRelationshipService implements RelationshipService {
     }
 
     return map(relationship);
+  }
+
+  @Override
+  public List<Relationship> getRelationships(@Nonnull Set<UID> uids)
+      throws ForbiddenException, NotFoundException {
+    List<Relationship> relationships = new ArrayList<>();
+    for (UID uid : uids) {
+      relationships.add(getRelationship(uid));
+    }
+    return relationships;
   }
 
   private List<Relationship> getRelationshipsByTrackedEntity(
@@ -157,7 +171,6 @@ public class DefaultRelationshipService implements RelationshipService {
   }
 
   private List<Relationship> getRelationships(RelationshipQueryParams queryParams) {
-
     if (queryParams.getEntity() instanceof TrackedEntity te) {
       return getRelationshipsByTrackedEntity(te, queryParams);
     }
@@ -170,7 +183,7 @@ public class DefaultRelationshipService implements RelationshipService {
       return getRelationshipsByEvent(ev, queryParams);
     }
 
-    throw new IllegalArgumentException("Unkown type");
+    throw new IllegalArgumentException("Unknown type");
   }
 
   private Page<Relationship> getRelationships(
@@ -188,7 +201,7 @@ public class DefaultRelationshipService implements RelationshipService {
       return getRelationshipsByEvent(ev, queryParams, pageParams);
     }
 
-    throw new IllegalArgumentException("Unkown type");
+    throw new IllegalArgumentException("Unknown type");
   }
 
   private List<String> accessErrors(UserDetails user, Relationship relationship) {

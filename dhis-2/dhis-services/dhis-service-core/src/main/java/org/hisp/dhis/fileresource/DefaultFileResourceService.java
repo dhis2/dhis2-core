@@ -29,6 +29,7 @@ package org.hisp.dhis.fileresource;
 
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
+import jakarta.persistence.EntityManager;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,7 +43,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -205,6 +205,8 @@ public class DefaultFileResourceService implements FileResourceService {
   @Override
   @Transactional
   public String asyncSaveFileResource(FileResource fileResource, byte[] bytes) {
+    validateFileResource(fileResource);
+
     fileResource.setStorageStatus(FileResourceStorageStatus.PENDING);
     fileResourceStore.save(fileResource);
     entityManager.flush();
@@ -220,6 +222,8 @@ public class DefaultFileResourceService implements FileResourceService {
   @Transactional
   public String syncSaveFileResource(FileResource fileResource, byte[] bytes)
       throws ConflictException {
+    validateFileResource(fileResource);
+
     fileResource.setContentLength(bytes.length);
     try {
       fileResource.setContentMd5(ByteSource.wrap(bytes).hash(Hashing.md5()).toString());

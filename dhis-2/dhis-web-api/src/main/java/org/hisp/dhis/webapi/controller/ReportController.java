@@ -32,13 +32,13 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Date;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.j2ee.servlets.BaseHttpServlet;
-import net.sf.jasperreports.j2ee.servlets.ImageServlet;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -51,6 +51,7 @@ import org.hisp.dhis.report.ReportService;
 import org.hisp.dhis.report.ReportType;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.system.util.CodecUtils;
+import org.hisp.dhis.webapi.servlet.ImageServlet;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +71,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @Controller
 @RequestMapping("/api/reports")
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class ReportController extends AbstractCrudController<Report> {
   @Autowired public ReportService reportService;
 

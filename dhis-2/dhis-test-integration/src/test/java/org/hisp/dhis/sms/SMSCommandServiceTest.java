@@ -56,18 +56,20 @@ import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.SMSSpecialCharacter;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.parse.ParserType;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /** Created by zubair@dhis2.org on 20.10.17. */
-class SMSCommandServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class SMSCommandServiceTest extends PostgresIntegrationTestBase {
 
   public static final String WRONG_FORMAT_MESSAGE = "Wrong command format";
 
@@ -191,10 +193,8 @@ class SMSCommandServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private UserGroupService userGroupService;
 
-  @Autowired private UserService userService;
-
-  @Override
-  protected void setUpTest() throws Exception {
+  @BeforeEach
+  void setUp() {
     createKeyValueCommands();
     createAlertParserCommand();
     createTeCommand();

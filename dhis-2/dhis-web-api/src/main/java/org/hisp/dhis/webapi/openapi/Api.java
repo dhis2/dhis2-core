@@ -44,10 +44,12 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -55,10 +57,14 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
+import lombok.With;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Access;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.period.Period;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -75,7 +81,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
  * @author Jan Bernitt
  */
 @Value
+@Slf4j
 public class Api {
+
   /**
    * Can be used in {@link OpenApi.Param#value()} to point not to the type to use but the generator
    * to use.
@@ -88,12 +96,20 @@ public class Api {
   }
 
   /**
-   * A "virtual" property name enumeration type. It creates an OpenAPI {@code enum} string schema
-   * containing all valid property names for the target type. The target type is either the actual
-   * type substitute for the {@link OpenApi.EntityType} or the first argument type.
+   * The included classes can be filtered based on REST API resource path or {@link
+   * OpenApi.Document#entity()} present on the controller class level. Method level path and tags
+   * will not be considered for this filter.
+   *
+   * @param controllers controllers all potential controllers
+   * @param filters the scope filter used (empty includes all)
+   * @param matches those classes in {@link #controllers} that are included in the filter
    */
-  @NoArgsConstructor
-  public static final class PropertyNames {}
+  record Scope(
+      @Nonnull Set<Class<?>> controllers,
+      @Nonnull Map<String, Set<String>> filters,
+      @Nonnull Set<Class<?>> matches) {}
+
+  Scope scope;
 
   /** Can be set to enable debug mode */
   Maybe<Boolean> debug = new Maybe<>(false);
@@ -126,16 +142,6 @@ public class Api {
    */
   Map<Class<?>, Map<Class<?>, Schema>> generatorSchemas =
       new ConcurrentSkipListMap<>(comparing(Class::getName));
-
-  /**
-   * @return all {@link OpenApi.Document.Group}s used in the {@link Api}
-   */
-  Set<OpenApi.Document.Group> getUsedGroups() {
-    Set<OpenApi.Document.Group> used = EnumSet.noneOf(OpenApi.Document.Group.class);
-    controllers.forEach(
-        controller -> controller.endpoints.forEach(endpoint -> used.add(endpoint.getGroup())));
-    return used;
-  }
 
   @Data
   @NoArgsConstructor
@@ -201,6 +207,7 @@ public class Api {
     @ToString.Exclude @EqualsAndHashCode.Include Class<?> entityType;
 
     String name;
+    Map<String, String> classifiers = new TreeMap<>();
     List<String> paths = new ArrayList<>();
     List<Endpoint> endpoints = new ArrayList<>();
   }
@@ -214,8 +221,11 @@ public class Api {
     @ToString.Exclude Class<?> entityType;
 
     @EqualsAndHashCode.Include String name;
-    OpenApi.Document.Group group;
+    @CheckForNull String group;
+
     Maybe<String> description = new Maybe<>();
+    List<String> authorities = new ArrayList<>(0);
+
     Boolean deprecated;
     @CheckForNull Maturity.Classification maturity;
 
@@ -240,6 +250,10 @@ public class Api {
 
     String getEntityTypeName() {
       return entityType == null ? "?" : entityType.getSimpleName();
+    }
+
+    OpenApi.Since getSince() {
+      return source == null ? null : source.getAnnotation(OpenApi.Since.class);
     }
   }
 
@@ -279,12 +293,13 @@ public class Api {
     @CheckForNull Maturity.Classification maturity;
 
     /**
-     * The default value in its string form.
+     * The default value as JSON.
      *
      * <p>Note that oddly enough the OpenAPI spec does not have a default value for parameters but
-     * instead uses a default value for the parameter {@link #type}.
+     * instead uses a default value for the parameter {@link #type}. This value is therefore passed
+     * on during JSON generation.
      */
-    Maybe<String> defaultValue = new Maybe<>();
+    Maybe<JsonValue> defaultValue = new Maybe<>();
 
     Maybe<String> description = new Maybe<>();
 
@@ -314,6 +329,10 @@ public class Api {
      */
     String getFullName() {
       return isShared() ? sharedName.getValue() + "." + name : name;
+    }
+
+    OpenApi.Since getSince() {
+      return source.getAnnotation(OpenApi.Since.class);
     }
   }
 
@@ -353,9 +372,14 @@ public class Api {
   @EqualsAndHashCode(onlyExplicitlyIncluded = true)
   @AllArgsConstructor(access = AccessLevel.PRIVATE)
   static class Property {
+
+    @CheckForNull @ToString.Exclude AnnotatedElement source;
+
     @EqualsAndHashCode.Include String name;
 
     Boolean required;
+
+    @Nonnull Access access;
 
     /**
      * OBS! This cannot be included in {@link #toString()} because it might be a circular with the
@@ -376,12 +400,33 @@ public class Api {
      */
     @ToString.Exclude Maybe<Schema> originalType = new Maybe<>();
 
-    public Property(String name, Boolean required, Schema type) {
-      this(name, required, type, new Maybe<>());
+    OpenApi.Since getSince() {
+      return source == null ? null : source.getAnnotation(OpenApi.Since.class);
+    }
+
+    public Property(
+        @CheckForNull AnnotatedElement source, String name, Boolean required, Schema type) {
+      this(source, name, required, Access.DEFAULT, type, new Maybe<>());
     }
 
     Property withType(Schema type) {
-      return type == this.type ? this : new Property(name, required, type, description);
+      return type == this.type
+          ? this
+          : new Property(source, name, required, access, type, description);
+    }
+
+    Property withAccess(Access access) {
+      return access == this.access
+          ? this
+          : new Property(source, name, required, access, type, description);
+    }
+
+    boolean isInput() {
+      return access != Access.READ;
+    }
+
+    boolean isOutput() {
+      return access != Access.WRITE;
     }
   }
 
@@ -390,12 +435,13 @@ public class Api {
   @EqualsAndHashCode(onlyExplicitlyIncluded = true)
   public static class Schema {
 
-    public static Schema ofUnsupported(java.lang.reflect.Type source) {
-      return new Schema(Type.UNSUPPORTED, source, Object.class, null);
+    public static Schema ofAny(java.lang.reflect.Type source) {
+      if (source != Object.class) log.warn("OpenAPI failed to analyse the type: " + source);
+      return new Schema(Type.ANY, source, Object.class, null).asSingleton();
     }
 
     public static Schema ofUID(Class<?> of) {
-      return new Schema(Type.UID, of, of, null);
+      return new Schema(Type.UID, of, of, null).asSingleton();
     }
 
     public static Schema ofOneOf(List<Class<?>> types, Function<Class<?>, Schema> toSchema) {
@@ -406,14 +452,14 @@ public class Api {
       types.forEach(
           type ->
               oneOf.addProperty(
-                  new Property(oneOf.properties.size() + "", null, toSchema.apply(type))));
-      return oneOf;
+                  new Property(null, oneOf.properties.size() + "", null, toSchema.apply(type))));
+      return oneOf.sealed();
     }
 
     public static Schema ofEnum(Class<?> source, Class<?> of, List<String> values) {
       Schema schema = new Schema(Type.ENUM, source, of, null);
       schema.getValues().addAll(values);
-      return schema;
+      return schema.asSingleton();
     }
 
     public static Schema ofObject(Class<?> type) {
@@ -433,7 +479,7 @@ public class Api {
     }
 
     public static Schema ofSimple(Class<?> type) {
-      return new Schema(Type.SIMPLE, type, type, null);
+      return new Schema(Type.SIMPLE, type, type, null).asSingleton();
     }
 
     @SuppressWarnings("unchecked")
@@ -448,7 +494,7 @@ public class Api {
     public enum Type {
       // Note that schemas are generated in the order of types given here
       // each type group being sorted alphabetically by shared name
-      UNSUPPORTED,
+      ANY,
       SIMPLE,
       ARRAY,
       OBJECT,
@@ -463,10 +509,15 @@ public class Api {
 
     @ToString.Exclude @EqualsAndHashCode.Include Class<?> rawType;
 
+    /** Which UID type is used to refer to objects of this schema */
     @CheckForNull @ToString.Exclude Class<? extends IdentifiableObject> identifyAs;
 
     /** Is empty for primitive types */
     @EqualsAndHashCode.Include List<Property> properties = new ArrayList<>();
+
+    /** Marks this schema as a candidate for JVM wide singleton instance for the {@link #source} */
+    @With(AccessLevel.PRIVATE)
+    AtomicBoolean singleton = new AtomicBoolean(false);
 
     /** Enum values in case this is an enum schema. */
     List<String> values = new ArrayList<>();
@@ -497,6 +548,9 @@ public class Api {
      */
     Maybe<Schema> input = new Maybe<>();
 
+    /** A shared schema gets a kind from {@link OpenApi.Kind} if available */
+    Maybe<String> kind = new Maybe<>();
+
     public boolean isShared() {
       return sharedName.isPresent();
     }
@@ -505,12 +559,23 @@ public class Api {
       return !direction.isPresent();
     }
 
+    public boolean isSingleton() {
+      return singleton.get();
+    }
+
     /**
      * True for object schemas that have an identifier that can reference to a persisted object
      * value.
      */
     public boolean isIdentifiable() {
       return identifyAs != null;
+    }
+
+    public boolean isMap() {
+      return type == Type.OBJECT
+          && properties.size() == 2
+          && properties.get(0).name.equals("_keys")
+          && properties.get(1).name.equals("_values");
     }
 
     Set<String> getRequiredProperties() {
@@ -525,6 +590,8 @@ public class Api {
     }
 
     Api.Schema addProperty(Property property) {
+      if (isSingleton())
+        throw new IllegalStateException("Cannot change a schema once it is marked as singleton");
       properties.add(property);
       Schema schema = property.getType();
       if (!direction.isPresent()
@@ -541,12 +608,28 @@ public class Api {
     }
 
     Api.Schema withElements(Schema componentType) {
-      return addProperty(new Property("components", true, componentType));
+      return addProperty(new Property(null, "components", true, componentType));
     }
 
     Api.Schema withEntries(Schema keyType, Schema valueType) {
-      return addProperty(new Api.Property("keys", true, keyType))
-          .addProperty(new Api.Property("values", true, valueType));
+      return addProperty(new Api.Property(null, "_keys", true, keyType))
+          .addProperty(new Api.Property(null, "_values", true, valueType));
+    }
+
+    private Api.Schema asSingleton() {
+      if (source == rawType) singleton.set(true);
+      return this;
+    }
+
+    /**
+     * Called for arrays and objects once all properties have been added to them and the schema
+     * declaration is complete. All other schema types can and implicitly do make this evaluation at
+     * construction time.
+     *
+     * @return this type in a finalised state
+     */
+    Api.Schema sealed() {
+      return properties.stream().allMatch(p -> p.type.isSingleton()) ? asSingleton() : this;
     }
   }
 }

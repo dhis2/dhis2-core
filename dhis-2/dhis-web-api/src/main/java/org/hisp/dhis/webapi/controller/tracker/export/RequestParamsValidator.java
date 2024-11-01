@@ -35,6 +35,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -46,7 +47,6 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -278,9 +278,8 @@ public class RequestParamsValidator {
    *
    * @return filters by UIDs
    */
-  public static Map<String, List<QueryFilter>> parseFilters(String input)
-      throws BadRequestException {
-    Map<String, List<QueryFilter>> result = new HashMap<>();
+  public static Map<UID, List<QueryFilter>> parseFilters(String input) throws BadRequestException {
+    Map<UID, List<QueryFilter>> result = new HashMap<>();
     if (StringUtils.isBlank(input)) {
       return result;
     }
@@ -298,17 +297,17 @@ public class RequestParamsValidator {
    *
    * @throws BadRequestException filter is neither multiple nor single operator:value format
    */
-  private static void parseSanitizedFilters(Map<String, List<QueryFilter>> result, String input)
+  private static void parseSanitizedFilters(Map<UID, List<QueryFilter>> result, String input)
       throws BadRequestException {
     int uidIndex = input.indexOf(DIMENSION_NAME_SEP) + 1;
 
     if (uidIndex == 0 || input.length() == uidIndex) {
-      String uid = input.replace(DIMENSION_NAME_SEP, "");
+      UID uid = UID.of(input.replace(DIMENSION_NAME_SEP, ""));
       result.putIfAbsent(uid, new ArrayList<>());
       return;
     }
 
-    String uid = input.substring(0, uidIndex - 1);
+    UID uid = UID.of(input.substring(0, uidIndex - 1));
     result.putIfAbsent(uid, new ArrayList<>());
 
     String[] filters = FILTER_ITEM_SPLIT.split(input.substring(uidIndex));

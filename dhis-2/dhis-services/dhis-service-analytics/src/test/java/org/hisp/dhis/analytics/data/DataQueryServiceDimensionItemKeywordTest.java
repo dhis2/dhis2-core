@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
@@ -68,11 +69,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -117,9 +119,9 @@ class DataQueryServiceDimensionItemKeywordTest {
 
   @Mock private AnalyticsSecurityManager securityManager;
 
-  @Mock private UserSettingService userSettingService;
+  @Mock private UserSettingsService userSettingsService;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsService settingsService;
 
   @Mock private AclService aclService;
 
@@ -129,22 +131,23 @@ class DataQueryServiceDimensionItemKeywordTest {
 
   @BeforeEach
   public void setUp() {
+    lenient().when(settingsService.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
+
     dimensionalObjectProducer =
         new DimensionalObjectProducer(
             idObjectManager,
             organisationUnitService,
-            systemSettingManager,
+            settingsService,
             i18nManager,
             dimensionService,
             aclService);
     target =
-        new DefaultDataQueryService(
-            dimensionalObjectProducer, idObjectManager, securityManager, userSettingService);
+        new DefaultDataQueryService(dimensionalObjectProducer, idObjectManager, securityManager);
 
     rb = new RequestBuilder();
 
-    Mockito.lenient().when(i18nManager.getI18n()).thenReturn(i18n);
-    Mockito.lenient().when(i18n.getString("LAST_12_MONTHS")).thenReturn("Last 12 months");
+    lenient().when(i18nManager.getI18n()).thenReturn(i18n);
+    lenient().when(i18n.getString("LAST_12_MONTHS")).thenReturn("Last 12 months");
 
     rootOu = new OrganisationUnit("Sierra Leone");
     rootOu.setUid(CodeGenerator.generateUid());

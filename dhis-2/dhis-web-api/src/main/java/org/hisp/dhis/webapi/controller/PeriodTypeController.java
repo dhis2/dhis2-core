@@ -34,6 +34,8 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Response.Status;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
@@ -50,7 +52,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(domain = Period.class)
+@OpenApi.Document(
+    entity = Period.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @RestController
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequestMapping("/api/periodTypes")
@@ -58,6 +62,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class PeriodTypeController {
   private final FieldFilterService fieldFilterService;
 
+  @OpenApi.Response(
+      status = Status.OK,
+      object = {
+        @OpenApi.Property(name = "pager", value = Pager.class),
+        @OpenApi.Property(name = "periodTypes", value = PeriodType[].class)
+      })
   @GetMapping
   public ResponseEntity<JsonRoot> getPeriodTypes(
       @RequestParam(defaultValue = "*") List<String> fields) {

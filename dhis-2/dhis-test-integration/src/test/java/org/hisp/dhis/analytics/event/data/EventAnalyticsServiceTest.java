@@ -61,7 +61,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -76,8 +75,6 @@ import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.OrgUnitField;
-import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
-import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -109,7 +106,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -119,18 +115,24 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests event and enrollment analytics services.
@@ -138,10 +140,15 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Henning Haakonsen
  * @author Jim Grace (nearly complete rewrite)
  */
-class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
-  @Autowired private EventAnalyticsService eventTarget;
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+@Order(1) // must run before other tests in analytics package (for some unknown reason)
+class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
+  @Autowired private EventQueryService eventQueryTarget;
 
-  @Autowired private EnrollmentAnalyticsService enrollmentTarget;
+  @Autowired private EventAggregateService eventAggregateService;
+
+  @Autowired private EnrollmentQueryService enrollmentQueryTarget;
 
   @Autowired private List<AnalyticsTableService> analyticsTableServices;
 
@@ -155,19 +162,17 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private AnalyticsTableGenerator analyticsTableGenerator;
 
-  @Autowired private EnrollmentService enrollmentService;
-
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
-  @Autowired private IdentifiableObjectManager idObjectManager;
+  @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private ProgramOwnershipHistoryService programOwnershipHistoryService;
 
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
-  @Autowired private UserService _userService;
-
   @Autowired private CategoryService categoryService;
+
+  @Autowired private SystemSettingsService settingsService;
 
   private OrganisationUnit ouA;
 
@@ -239,29 +244,8 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
   private User userA;
 
-  // -------------------------------------------------------------------------
-  // Setup
-  // -------------------------------------------------------------------------
-
-  @Override
-  public void tearDownTest() {
-    for (AnalyticsTableService service : analyticsTableServices) {
-      service.dropTables();
-    }
-  }
-
-  @BeforeEach
-  public void beforeEach() {
-    // Reset the security context for each test.
-    clearSecurityContext();
-
-    reLoginAdminUser();
-  }
-
-  @Override
-  public void setUpTest() throws IOException, InterruptedException, ConflictException {
-    userService = _userService;
-
+  @BeforeAll
+  void setUp() throws ConflictException {
     // Organisation Units
     //
     // A -> B -> D,E,F,G
@@ -284,20 +268,20 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     ouM = createOrganisationUnit('M', ouC);
     ouN = createOrganisationUnit('N', ouC);
 
-    idObjectManager.save(ouA);
-    idObjectManager.save(ouB);
-    idObjectManager.save(ouC);
-    idObjectManager.save(ouD);
-    idObjectManager.save(ouE);
-    idObjectManager.save(ouF);
-    idObjectManager.save(ouG);
-    idObjectManager.save(ouH);
-    idObjectManager.save(ouI);
-    idObjectManager.save(ouJ);
-    idObjectManager.save(ouK);
-    idObjectManager.save(ouL);
-    idObjectManager.save(ouM);
-    idObjectManager.save(ouN);
+    manager.save(ouA);
+    manager.save(ouB);
+    manager.save(ouC);
+    manager.save(ouD);
+    manager.save(ouE);
+    manager.save(ouF);
+    manager.save(ouG);
+    manager.save(ouH);
+    manager.save(ouI);
+    manager.save(ouJ);
+    manager.save(ouK);
+    manager.save(ouL);
+    manager.save(ouM);
+    manager.save(ouN);
 
     level3Ous = organisationUnitService.getOrganisationUnitsAtLevel(3);
 
@@ -308,9 +292,9 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     ou2.getSharing().setPublicAccess("--------");
     OrganisationUnitLevel ou3 = new OrganisationUnitLevel(3, "Ou Level 3");
     ou3.getSharing().setPublicAccess("--------");
-    idObjectManager.save(ou1);
-    idObjectManager.save(ou2);
-    idObjectManager.save(ou3);
+    manager.save(ou1);
+    manager.save(ou2);
+    manager.save(ou3);
 
     // Category Options
     coA = createCategoryOption('A');
@@ -393,47 +377,47 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     psA.setUid("progrStageA");
     psA.addDataElement(deA, 1);
     psA.addDataElement(deU, 2);
-    idObjectManager.save(psA);
+    manager.save(psA);
 
     ProgramStage psB = createProgramStage('B', 0);
     psB.setUid("progrStageB");
     psB.addDataElement(deA, 1);
     psB.addDataElement(deB, 2);
     psB.addDataElement(deM, 3);
-    idObjectManager.save(psB);
+    manager.save(psB);
 
     // Programs
     programA = createProgram('A');
     programA.getProgramStages().add(psA);
     programA.getOrganisationUnits().addAll(level3Ous);
     programA.setUid("programA123");
-    idObjectManager.save(programA);
+    manager.save(programA);
 
     programB = createProgram('B');
     programB.getProgramStages().add(psB);
     programB.getOrganisationUnits().addAll(level3Ous);
     programB.setUid("programB123");
     programB.setCategoryCombo(ccA);
-    idObjectManager.save(programB);
+    manager.save(programB);
 
     // Tracked Entity Attributes
     atU = createTrackedEntityAttribute('U', ORGANISATION_UNIT);
     atU.setUid("teaAttribuU");
-    idObjectManager.save(atU);
+    manager.save(atU);
 
     ProgramTrackedEntityAttribute pTea = createProgramTrackedEntityAttribute(programA, atU);
     programA.getProgramAttributes().add(pTea);
-    idObjectManager.update(programA);
+    manager.update(programA);
 
     // Tracked Entity Types
     TrackedEntityType trackedEntityType = createTrackedEntityType('A');
-    idObjectManager.save(trackedEntityType);
+    manager.save(trackedEntityType);
 
     // Tracked Entity Instances (Registrations)
     TrackedEntity teiA = createTrackedEntity(ouD);
     teiA.setUid("trackEntInA");
     teiA.setTrackedEntityType(trackedEntityType);
-    idObjectManager.save(teiA);
+    manager.save(teiA);
 
     // Tracked Entity Attribute Values
     TrackedEntityAttributeValue atv = createTrackedEntityAttributeValue('A', teiA, atU);
@@ -441,15 +425,19 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     attributeValueService.addTrackedEntityAttributeValue(atv);
 
     // Enrollments (Enrollments)
-    Enrollment piA = enrollmentService.enrollTrackedEntity(teiA, programA, jan1, jan1, ouE);
-    piA.setEnrollmentDate(jan1);
-    piA.setOccurredDate(jan1);
-    enrollmentService.addEnrollment(piA);
+    Enrollment enrollmentA = createEnrollment(programA, teiA, ouE);
+    enrollmentA.setEnrollmentDate(jan1);
+    enrollmentA.setOccurredDate(jan1);
+    manager.save(enrollmentA);
+    teiA.getEnrollments().add(enrollmentA);
+    manager.update(teiA);
 
-    Enrollment piB = enrollmentService.enrollTrackedEntity(teiA, programB, jan1, jan1, ouE);
-    piB.setEnrollmentDate(jan1);
-    piB.setOccurredDate(jan1);
-    enrollmentService.addEnrollment(piB);
+    Enrollment enrollmentB = createEnrollment(programB, teiA, ouE);
+    enrollmentB.setEnrollmentDate(jan1);
+    enrollmentB.setOccurredDate(jan1);
+    manager.save(enrollmentB);
+    teiA.getEnrollments().add(enrollmentB);
+    manager.update(teiA);
 
     // Change programA / teiA ownership through time:
     // Jan 1 (enrollment) - Jan 15: ouE
@@ -457,13 +445,13 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     // Feb 15 - Feb 15 Noon: ouE
     // Feb 15 Noon - Mar 15: ouG
     // Mar 15 - present: ouH
-    addProgramOwnershipHistory(programA, teiA, ouE, piA.getEnrollmentDate(), jan15);
+    addProgramOwnershipHistory(programA, teiA, ouE, enrollmentA.getEnrollmentDate(), jan15);
     addProgramOwnershipHistory(programA, teiA, ouF, jan15, feb15);
     addProgramOwnershipHistory(programA, teiA, ouE, feb15, feb15Noon);
     addProgramOwnershipHistory(programA, teiA, ouG, feb15Noon, mar15);
     trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner(teiA, programA, ouH);
 
-    Event eventA1 = createEvent(psA, piA, ouI);
+    Event eventA1 = createEvent(psA, enrollmentA, ouI);
     eventA1.setScheduledDate(jan15);
     eventA1.setOccurredDate(jan15);
     eventA1.setUid("event0000A1");
@@ -472,7 +460,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
             new EventDataValue(deA.getUid(), "1"), new EventDataValue(deU.getUid(), ouL.getUid())));
     eventA1.setAttributeOptionCombo(cocDefault);
 
-    Event eventA2 = createEvent(psA, piA, ouJ);
+    Event eventA2 = createEvent(psA, enrollmentA, ouJ);
     eventA2.setScheduledDate(feb15);
     eventA2.setOccurredDate(feb15);
     eventA2.setUid("event0000A2");
@@ -481,7 +469,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
             new EventDataValue(deA.getUid(), "2"), new EventDataValue(deU.getUid(), ouM.getUid())));
     eventA2.setAttributeOptionCombo(cocDefault);
 
-    Event eventA3 = createEvent(psA, piA, ouK);
+    Event eventA3 = createEvent(psA, enrollmentA, ouK);
     eventA3.setScheduledDate(mar15);
     eventA3.setOccurredDate(mar15);
     eventA3.setUid("event0000A3");
@@ -490,7 +478,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
             new EventDataValue(deA.getUid(), "4"), new EventDataValue(deU.getUid(), ouN.getUid())));
     eventA3.setAttributeOptionCombo(cocDefault);
 
-    Event eventB1 = createEvent(psB, piB, ouI);
+    Event eventB1 = createEvent(psB, enrollmentB, ouI);
     eventB1.setScheduledDate(jan1);
     eventB1.setOccurredDate(jan1);
     eventB1.setUid("event0000B1");
@@ -498,7 +486,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "10"), new EventDataValue(deB.getUid(), "A")));
     eventB1.setAttributeOptionCombo(cocDefault);
 
-    Event eventB2 = createEvent(psB, piB, ouI);
+    Event eventB2 = createEvent(psB, enrollmentB, ouI);
     eventB2.setScheduledDate(jan20);
     eventB2.setOccurredDate(jan20);
     eventB2.setUid("event0000B2");
@@ -506,7 +494,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "20"), new EventDataValue(deB.getUid(), "B")));
     eventB2.setAttributeOptionCombo(cocDefault);
 
-    Event eventB3 = createEvent(psB, piB, ouJ);
+    Event eventB3 = createEvent(psB, enrollmentB, ouJ);
     eventB3.setScheduledDate(jan1);
     eventB3.setOccurredDate(jan1);
     eventB3.setUid("event0000B3");
@@ -514,7 +502,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "30"), new EventDataValue(deB.getUid(), "C")));
     eventB3.setAttributeOptionCombo(cocDefault);
 
-    Event eventB4 = createEvent(psB, piB, ouJ);
+    Event eventB4 = createEvent(psB, enrollmentB, ouJ);
     eventB4.setScheduledDate(jan20);
     eventB4.setOccurredDate(jan20);
     eventB4.setUid("event0000B4");
@@ -522,7 +510,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "40"), new EventDataValue(deB.getUid(), "D")));
     eventB4.setAttributeOptionCombo(cocDefault);
 
-    Event eventB5 = createEvent(psB, piB, ouI);
+    Event eventB5 = createEvent(psB, enrollmentB, ouI);
     eventB5.setScheduledDate(feb15);
     eventB5.setOccurredDate(feb15);
     eventB5.setUid("event0000B5");
@@ -530,7 +518,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "50"), new EventDataValue(deB.getUid(), "E")));
     eventB5.setAttributeOptionCombo(cocDefault);
 
-    Event eventB6 = createEvent(psB, piB, ouI);
+    Event eventB6 = createEvent(psB, enrollmentB, ouI);
     eventB6.setScheduledDate(feb15Noon);
     eventB6.setOccurredDate(feb15Noon);
     eventB6.setUid("event0000B6");
@@ -538,7 +526,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "60"), new EventDataValue(deB.getUid(), "F")));
     eventB6.setAttributeOptionCombo(cocDefault);
 
-    Event eventB7 = createEvent(psB, piB, ouJ);
+    Event eventB7 = createEvent(psB, enrollmentB, ouJ);
     eventB7.setScheduledDate(feb15);
     eventB7.setOccurredDate(feb15);
     eventB7.setUid("event0000B7");
@@ -546,7 +534,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "70"), new EventDataValue(deB.getUid(), "G")));
     eventB7.setAttributeOptionCombo(cocDefault);
 
-    Event eventB8 = createEvent(psB, piB, ouJ);
+    Event eventB8 = createEvent(psB, enrollmentB, ouJ);
     eventB8.setScheduledDate(feb15Noon);
     eventB8.setOccurredDate(feb15Noon);
     eventB8.setUid("event0000B8");
@@ -554,15 +542,15 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "80"), new EventDataValue(deB.getUid(), "H")));
     eventB8.setAttributeOptionCombo(cocDefault);
 
-    Event eventM1 = createEvent(psB, piB, ouI);
+    Event eventM1 = createEvent(psB, enrollmentB, ouI);
     eventM1.setScheduledDate(jan15);
     eventM1.setOccurredDate(jan15);
     eventM1.setUid("event0000M1");
     eventM1.setEventDataValues(Set.of(new EventDataValue(deM.getUid(), "abc,def,ghi,jkl")));
     eventM1.setAttributeOptionCombo(cocDefault);
-    idObjectManager.save(eventA2);
+    manager.save(eventA2);
 
-    idObjectManager.save(
+    manager.save(
         List.of(
             eventA1, eventA2, eventA3, eventB1, eventB2, eventB3, eventB4, eventB5, eventB6,
             eventB7, eventB8, eventM1));
@@ -573,7 +561,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     userService.addUser(userA);
     enableDataSharing(userA, programA, AccessStringHelper.DATA_READ_WRITE);
     enableDataSharing(userA, programB, AccessStringHelper.DATA_READ_WRITE);
-    idObjectManager.update(userA);
+    manager.update(userA);
 
     // Wait for one second. This is needed because last updated time for
     // the data we just created is stored to milliseconds, hh:mm:ss.SSS.
@@ -588,17 +576,29 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
     // Generate resource tables and analytics tables
     analyticsTableGenerator.generateAnalyticsTables(
-        AnalyticsTableUpdateParams.newBuilder().withStartTime(oneSecondFromNow).build(),
+        AnalyticsTableUpdateParams.newBuilder().startTime(oneSecondFromNow).build(),
         JobProgress.noop());
+  }
+
+  @BeforeEach
+  public void beforeEach() {
+    injectAdminIntoSecurityContext();
   }
 
   /** Adds a program ownership history entry. */
   private void addProgramOwnershipHistory(
-      Program program, TrackedEntity tei, OrganisationUnit ou, Date startDate, Date endDate) {
+      Program program, TrackedEntity te, OrganisationUnit ou, Date startDate, Date endDate) {
     ProgramOwnershipHistory poh =
-        new ProgramOwnershipHistory(program, tei, ou, startDate, endDate, "admin");
+        new ProgramOwnershipHistory(program, te, ou, startDate, endDate, "admin");
 
     programOwnershipHistoryService.addProgramOwnershipHistory(poh);
+  }
+
+  @AfterAll
+  public void tearDown() {
+    for (AnalyticsTableService service : analyticsTableServices) {
+      service.dropTables();
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -635,12 +635,12 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
             .build();
 
     // Then
-    assertDoesNotThrow(() -> eventTarget.getAggregatedEventData(events_2017_params));
+    assertDoesNotThrow(() -> eventAggregateService.getAggregatedData(events_2017_params));
   }
 
   @Test
   void testDimensionRestrictionWhenUserCannotReadCategoryOptions() {
-    reLoginAdminUser();
+    injectAdminIntoSecurityContext();
 
     // Given
     // The category options are not readable by the user
@@ -677,7 +677,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     Throwable exception =
         assertThrows(
             IllegalQueryException.class,
-            () -> eventTarget.getAggregatedEventData(events_2017_params));
+            () -> eventAggregateService.getAggregatedData(events_2017_params));
 
     assertThat(
         exception.getMessage(),
@@ -689,13 +689,14 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   void testEnrollmentWithCategoryDimensionRestriction() {
     injectSecurityContextUser(userA);
     EventQueryParams params = getEnrollmentQueryBuilderA().build();
-    Grid grid = enrollmentTarget.getEnrollments(params);
+    Grid grid = enrollmentQueryTarget.getEnrollments(params);
 
     assertGridContains(
         // Headers
         List.of("enrollmentdate", "ou", "tei", "teaAttribuU"),
         // Grid
-        List.of(List.of("2017-01-01 00:00:00.0", "ouabcdefghE", "trackEntInA", "ouabcdefghF")),
+        List.of(
+            List.of("2017-01-01 00:00:00.0", "ouabcdefghE", "trackEntInA", "OrganisationUnitF")),
         grid);
   }
 
@@ -708,7 +709,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     EventQueryParams params =
         getAggregatedQueryBuilderA().withOrgUnitField(new OrgUnitField("REGISTRATION")).build();
 
-    Grid grid = eventTarget.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
 
     assertGridContains(
         // Headers
@@ -726,7 +727,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     EventQueryParams params =
         getAggregatedQueryBuilderA().withOrgUnitField(new OrgUnitField("ENROLLMENT")).build();
 
-    Grid grid = eventTarget.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
 
     assertGridContains(
         // Headers
@@ -744,7 +745,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     EventQueryParams params =
         getAggregatedQueryBuilderA().withOrgUnitField(new OrgUnitField("OWNER_AT_START")).build();
 
-    Grid grid = eventTarget.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
 
     assertGridContains(
         // Headers
@@ -762,7 +763,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     EventQueryParams params =
         getAggregatedQueryBuilderA().withOrgUnitField(new OrgUnitField("OWNER_AT_END")).build();
 
-    Grid grid = eventTarget.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
 
     assertGridContains(
         // Headers
@@ -779,7 +780,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   void testGetAggregatedEventDataWithDefaultEventOrgUnit() {
     EventQueryParams params = getAggregatedQueryBuilderA().build();
 
-    Grid grid = eventTarget.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
 
     assertGridContains(
         // Headers
@@ -797,7 +798,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     EventQueryParams params =
         getAggregatedQueryBuilderA().withOrgUnitField(new OrgUnitField(deU.getUid())).build();
 
-    Grid grid = eventTarget.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
 
     assertGridContains(
         // Headers
@@ -819,7 +820,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     EventQueryParams params =
         getEventQueryBuilderA().withOrgUnitField(new OrgUnitField("REGISTRATION")).build();
 
-    Grid grid = eventTarget.getEvents(params);
+    Grid grid = eventQueryTarget.getEvents(params);
 
     assertGridContains(
         // Headers
@@ -837,7 +838,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     EventQueryParams params =
         getEventQueryBuilderA().withOrgUnitField(new OrgUnitField("ENROLLMENT")).build();
 
-    Grid grid = eventTarget.getEvents(params);
+    Grid grid = eventQueryTarget.getEvents(params);
 
     assertGridContains(
         // Headers
@@ -855,7 +856,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     EventQueryParams params =
         getEventQueryBuilderA().withOrgUnitField(new OrgUnitField("OWNER_AT_START")).build();
 
-    Grid grid = eventTarget.getEvents(params);
+    Grid grid = eventQueryTarget.getEvents(params);
 
     // Note that owner at start does not change with each event because
     // there is no monthly aggregation.
@@ -875,7 +876,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     EventQueryParams params =
         getEventQueryBuilderA().withOrgUnitField(new OrgUnitField("OWNER_AT_END")).build();
 
-    Grid grid = eventTarget.getEvents(params);
+    Grid grid = eventQueryTarget.getEvents(params);
 
     // Note that owner at end does not change with each event because
     // there is no monthly aggregation.
@@ -894,7 +895,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   void testGetEventsWithDefaultEventOrgUnit() {
     EventQueryParams params = getEventQueryBuilderA().build();
 
-    Grid grid = eventTarget.getEvents(params);
+    Grid grid = eventQueryTarget.getEvents(params);
 
     assertGridContains(
         // Headers
@@ -912,7 +913,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     EventQueryParams params =
         getEventQueryBuilderA().withOrgUnitField(new OrgUnitField(deU.getUid())).build();
 
-    Grid grid = eventTarget.getEvents(params);
+    Grid grid = eventQueryTarget.getEvents(params);
 
     assertGridContains(
         // Headers
@@ -934,13 +935,14 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     EventQueryParams params =
         getEnrollmentQueryBuilderA().withOrgUnitField(new OrgUnitField("REGISTRATION")).build();
 
-    Grid grid = enrollmentTarget.getEnrollments(params);
+    Grid grid = enrollmentQueryTarget.getEnrollments(params);
 
     assertGridContains(
         // Headers
         List.of("enrollmentdate", "ou", "tei", "teaAttribuU"),
         // Grid
-        List.of(List.of("2017-01-01 00:00:00.0", "ouabcdefghD", "trackEntInA", "ouabcdefghF")),
+        List.of(
+            List.of("2017-01-01 00:00:00.0", "ouabcdefghD", "trackEntInA", "OrganisationUnitF")),
         grid);
   }
 
@@ -949,14 +951,15 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     EventQueryParams params =
         getEnrollmentQueryBuilderA().withOrgUnitField(new OrgUnitField("ENROLLMENT")).build();
 
-    Grid grid = enrollmentTarget.getEnrollments(params);
+    Grid grid = enrollmentQueryTarget.getEnrollments(params);
 
     assertGridContains(
         // Headers
         List.of("enrollmentdate", "ou", "ouname", "teaAttribuU"),
         // Grid
         List.of(
-            List.of("2017-01-01 00:00:00.0", "ouabcdefghE", "OrganisationUnitE", "ouabcdefghF")),
+            List.of(
+                "2017-01-01 00:00:00.0", "ouabcdefghE", "OrganisationUnitE", "OrganisationUnitF")),
         grid);
   }
 
@@ -965,7 +968,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     EventQueryParams params =
         getEnrollmentQueryBuilderA().withOrgUnitField(new OrgUnitField("OWNER_AT_START")).build();
 
-    Grid grid = enrollmentTarget.getEnrollments(params);
+    Grid grid = enrollmentQueryTarget.getEnrollments(params);
 
     assertGridContains(
         // Headers
@@ -973,7 +976,10 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         // Grid
         List.of(
             List.of(
-                "2017-01-01 00:00:00.0", "ouabcdefghE", "OrganisationUnitCodeE", "ouabcdefghF")),
+                "2017-01-01 00:00:00.0",
+                "ouabcdefghE",
+                "OrganisationUnitCodeE",
+                "OrganisationUnitF")),
         grid);
   }
 
@@ -982,13 +988,14 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     EventQueryParams params =
         getEnrollmentQueryBuilderA().withOrgUnitField(new OrgUnitField("OWNER_AT_END")).build();
 
-    Grid grid = enrollmentTarget.getEnrollments(params);
+    Grid grid = enrollmentQueryTarget.getEnrollments(params);
 
     assertGridContains(
         // Headers
         List.of("enrollmentdate", "ou", "tei", "teaAttribuU"),
         // Grid
-        List.of(List.of("2017-01-01 00:00:00.0", "ouabcdefghH", "trackEntInA", "ouabcdefghF")),
+        List.of(
+            List.of("2017-01-01 00:00:00.0", "ouabcdefghH", "trackEntInA", "OrganisationUnitF")),
         grid);
   }
 
@@ -996,13 +1003,14 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   void testGetEnrollmentsWithDefaultEnrollmentOrgUnit() {
     EventQueryParams params = getEnrollmentQueryBuilderA().build();
 
-    Grid grid = enrollmentTarget.getEnrollments(params);
+    Grid grid = enrollmentQueryTarget.getEnrollments(params);
 
     assertGridContains(
         // Headers
         List.of("enrollmentdate", "ou", "tei", "teaAttribuU"),
         // Grid
-        List.of(List.of("2017-01-01 00:00:00.0", "ouabcdefghE", "trackEntInA", "ouabcdefghF")),
+        List.of(
+            List.of("2017-01-01 00:00:00.0", "ouabcdefghE", "trackEntInA", "OrganisationUnitF")),
         grid);
   }
 
@@ -1011,13 +1019,14 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     EventQueryParams params =
         getEnrollmentQueryBuilderA().withOrgUnitField(new OrgUnitField(atU.getUid())).build();
 
-    Grid grid = enrollmentTarget.getEnrollments(params);
+    Grid grid = enrollmentQueryTarget.getEnrollments(params);
 
     assertGridContains(
         // Headers
         List.of("enrollmentdate", "ou", "tei", "teaAttribuU"),
         // Grid
-        List.of(List.of("2017-01-01 00:00:00.0", "ouabcdefghF", "trackEntInA", "ouabcdefghF")),
+        List.of(
+            List.of("2017-01-01 00:00:00.0", "ouabcdefghF", "trackEntInA", "OrganisationUnitF")),
         grid);
   }
 
@@ -1038,7 +1047,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
             .withOrganisationUnits(level3Ous)
             .build();
 
-    Grid grid = eventTarget.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
 
     assertGridContains(
         // Headers
@@ -1064,7 +1073,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
             .withOrganisationUnits(level3Ous)
             .build();
 
-    Grid grid = eventTarget.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
 
     assertGridContains(
         // Headers
@@ -1090,7 +1099,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
             .withOrganisationUnits(level3Ous)
             .build();
 
-    Grid grid = eventTarget.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
 
     assertGridContains(
         // Headers
@@ -1121,7 +1130,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
             .withOrganisationUnits(level3Ous)
             .build();
 
-    Grid grid = eventTarget.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
 
     assertGridContains(
         // Headers
@@ -1152,7 +1161,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
             .withOrganisationUnits(level3Ous)
             .build();
 
-    Grid grid = eventTarget.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
 
     assertGridContains(
         // Headers
@@ -1379,7 +1388,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         .withOutputType(EventOutputType.EVENT)
         .withDisplayProperty(DisplayProperty.SHORTNAME)
         .withEndpointItem(RequestTypeAware.EndpointItem.EVENT)
-        .withCoordinateFields(List.of("psigeometry"));
+        .withCoordinateFields(List.of("eventgeometry"));
   }
 
   /** Params builder A for getting aggregated grids. */
@@ -1436,7 +1445,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
             .withOrganisationUnits(List.of(ouA, ouI, ouJ))
             .build();
 
-    return eventTarget.getAggregatedEventData(params);
+    return eventAggregateService.getAggregatedData(params);
   }
 
   /** Creates program indicator for program A with orgUnitField. */

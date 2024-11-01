@@ -27,16 +27,23 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import static org.hisp.dhis.analytics.OutputFormat.ANALYTICS;
 import static org.springframework.util.Assert.notNull;
 
 import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
+import org.hisp.dhis.analytics.common.params.CommonParamsDelegator;
+import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.processing.HeaderParamsHandler;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
 import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.common.scheme.SchemeInfo;
+import org.hisp.dhis.analytics.common.scheme.SchemeInfo.Data;
+import org.hisp.dhis.analytics.common.scheme.SchemeInfo.Settings;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -62,7 +69,8 @@ public class GridAdaptor {
    * Grid} will have empty rows.
    *
    * @param sqlQueryResult the optional of {@link SqlQueryResult}.
-   * @param teiQueryParams the {@link TeiQueryParams}.
+   * @param rowsCount the total of rows found.
+   * @param contextParams the {@link ContextParams}.
    * @return the {@link Grid} object.
    * @throws IllegalArgumentException if headers is null/empty or contain at least one null element,
    *     or if the queryResult is null.
@@ -70,27 +78,57 @@ public class GridAdaptor {
   public Grid createGrid(
       Optional<SqlQueryResult> sqlQueryResult,
       long rowsCount,
-      TeiQueryParams teiQueryParams,
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams,
       List<Field> fields,
       User user) {
+    notNull(contextParams, "The 'contextParams' must not be null");
 
-    notNull(teiQueryParams, "The 'teiQueryParams' must not be null");
-
-    TeiListGrid grid = new TeiListGrid(teiQueryParams);
+    TrackedEntityListGrid grid = new TrackedEntityListGrid(contextParams);
 
     // Adding headers.
-    headerParamsHandler.handle(grid, teiQueryParams, fields);
+    headerParamsHandler.handle(grid, contextParams, fields);
 
     // Adding rows.
     sqlQueryResult.ifPresent(queryResult -> grid.addNamedRows(queryResult.result()));
 
     // Adding metadata info.
-    metadataParamsHandler.handle(grid, teiQueryParams.getCommonParams(), user, rowsCount);
+    metadataParamsHandler.handle(grid, contextParams, user, rowsCount);
 
-    schemeIdResponseMapper.applyCustomIdScheme(teiQueryParams.getCommonParams(), grid);
-    schemeIdResponseMapper.applyOptionAndLegendSetMapping(
-        grid, teiQueryParams.getCommonParams().getDataIdScheme());
+    CommonRequestParams requestParams = contextParams.getCommonRaw();
+    CommonParsedParams parsedParams = contextParams.getCommonParsed();
+
+    if (!requestParams.isSkipMeta()) {
+      schemeIdResponseMapper.applyCustomIdScheme(
+          new SchemeInfo(schemeSettings(requestParams), schemeData(parsedParams)), grid);
+    }
+
+    schemeIdResponseMapper.applyOptionAndLegendSetMapping(requestParams.getDataIdScheme(), grid);
 
     return grid;
+  }
+
+  private Data schemeData(CommonParsedParams parsedParams) {
+    CommonParamsDelegator delegator = parsedParams.delegate();
+
+    return Data.builder()
+        .dataElements(delegator.getAllDataElements())
+        .dimensionalItemObjects(delegator.getAllDimensionalItemObjects())
+        .dataElementOperands(null)
+        .options(delegator.getItemsOptions())
+        .organizationUnits(delegator.getOrgUnitsInDimensionOrFilterItems())
+        .programs(parsedParams.getPrograms())
+        .programStages(delegator.getProgramStages())
+        .build();
+  }
+
+  private Settings schemeSettings(CommonRequestParams requestParams) {
+    return Settings.builder()
+        .dataIdScheme(requestParams.getDataIdScheme())
+        .outputDataElementIdScheme(requestParams.getOutputDataElementIdScheme())
+        .outputDataItemIdScheme(requestParams.getOutputDataItemIdScheme())
+        .outputIdScheme(requestParams.getOutputIdScheme())
+        .outputOrgUnitIdScheme(requestParams.getOutputOrgUnitIdScheme())
+        .outputFormat(ANALYTICS)
+        .build();
   }
 }

@@ -27,20 +27,20 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.json.domain.JsonOption;
-import org.hisp.dhis.webapi.json.domain.JsonOptionSet;
+import org.hisp.dhis.test.webapi.json.domain.JsonOption;
+import org.hisp.dhis.test.webapi.json.domain.JsonOptionSet;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

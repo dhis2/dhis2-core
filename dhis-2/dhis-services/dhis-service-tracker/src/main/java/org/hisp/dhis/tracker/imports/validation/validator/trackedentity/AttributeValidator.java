@@ -27,28 +27,20 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.trackedentity;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1006;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1009;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1076;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1084;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1090;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.getTrackedEntityAttributes;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateOptionSet;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
@@ -57,7 +49,6 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.hisp.dhis.tracker.imports.validation.service.attribute.TrackedAttributeValidationService;
-import org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors;
 import org.springframework.stereotype.Component;
 
 /**
@@ -94,29 +85,26 @@ class AttributeValidator
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity,
       TrackedEntityType trackedEntityType) {
-    if (trackedEntityType != null) {
-      Set<MetadataIdentifier> trackedEntityAttributes =
-          trackedEntity.getAttributes().stream()
-              .map(Attribute::getAttribute)
-              .collect(Collectors.toSet());
 
-      TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
-      trackedEntityType.getTrackedEntityTypeAttributes().stream()
-          .filter(
-              trackedEntityTypeAttribute ->
-                  Boolean.TRUE.equals(trackedEntityTypeAttribute.isMandatory()))
-          .map(TrackedEntityTypeAttribute::getTrackedEntityAttribute)
-          .map(idSchemes::toMetadataIdentifier)
-          .filter(mandatoryAttribute -> !trackedEntityAttributes.contains(mandatoryAttribute))
-          .forEach(
-              attribute ->
-                  reporter.addError(
-                      trackedEntity,
-                      E1090,
-                      attribute,
-                      trackedEntityType.getUid(),
-                      trackedEntity.getTrackedEntity()));
-    }
+    Set<MetadataIdentifier> trackedEntityAttributes =
+        getTrackedEntityAttributes(bundle, trackedEntity.getTrackedEntity());
+
+    TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
+    trackedEntityType.getTrackedEntityTypeAttributes().stream()
+        .filter(
+            trackedEntityTypeAttribute ->
+                Boolean.TRUE.equals(trackedEntityTypeAttribute.isMandatory()))
+        .map(TrackedEntityTypeAttribute::getTrackedEntityAttribute)
+        .map(idSchemes::toMetadataIdentifier)
+        .filter(mandatoryAttribute -> !trackedEntityAttributes.contains(mandatoryAttribute))
+        .forEach(
+            attribute ->
+                reporter.addError(
+                    trackedEntity,
+                    E1090,
+                    attribute,
+                    trackedEntityType.getUid(),
+                    trackedEntity.getTrackedEntity()));
   }
 
   protected void validateAttributes(
@@ -126,18 +114,7 @@ class AttributeValidator
       TrackedEntity te,
       OrganisationUnit orgUnit,
       TrackedEntityType trackedEntityType) {
-    checkNotNull(trackedEntity, TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL);
-    checkNotNull(trackedEntityType, TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL);
-
     TrackerPreheat preheat = bundle.getPreheat();
-    Map<MetadataIdentifier, TrackedEntityAttributeValue> valueMap = new HashMap<>();
-    if (te != null) {
-      TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
-      valueMap =
-          te.getTrackedEntityAttributeValues().stream()
-              .collect(
-                  Collectors.toMap(v -> idSchemes.toMetadataIdentifier(v.getAttribute()), v -> v));
-    }
 
     for (Attribute attribute : trackedEntity.getAttributes()) {
       TrackedEntityAttribute tea = preheat.getTrackedEntityAttribute(attribute.getAttribute());
@@ -174,55 +151,11 @@ class AttributeValidator
       }
 
       validateAttributeValue(reporter, trackedEntity, tea, attribute.getValue());
-      validateAttrValueType(reporter, preheat, trackedEntity, attribute, tea);
+      validateAttrValueType(reporter, bundle, trackedEntity, attribute, tea);
       validateOptionSet(reporter, trackedEntity, tea, attribute.getValue());
 
       validateAttributeUniqueness(
           reporter, preheat, trackedEntity, attribute.getValue(), tea, te, orgUnit);
-
-      validateFileNotAlreadyAssigned(reporter, bundle, trackedEntity, attribute, valueMap);
-    }
-  }
-
-  protected void validateFileNotAlreadyAssigned(
-      Reporter reporter,
-      TrackerBundle bundle,
-      org.hisp.dhis.tracker.imports.domain.TrackedEntity te,
-      Attribute attr,
-      Map<MetadataIdentifier, TrackedEntityAttributeValue> valueMap) {
-    checkNotNull(attr, ATTRIBUTE_CANT_BE_NULL);
-
-    boolean attrIsFile = attr.getValueType() != null && attr.getValueType().isFile();
-    if (!attrIsFile) {
-      return;
-    }
-
-    TrackedEntityAttributeValue trackedEntityAttributeValue = valueMap.get(attr.getAttribute());
-
-    // Todo: how can this be possible? is this acceptable?
-    if (trackedEntityAttributeValue != null
-        && !trackedEntityAttributeValue.getAttribute().getValueType().isFile()) {
-      return;
-    }
-
-    FileResource fileResource = bundle.getPreheat().get(FileResource.class, attr.getValue());
-
-    reporter.addErrorIfNull(fileResource, te, E1084, attr.getValue());
-
-    if (bundle.getStrategy(te).isCreate()) {
-      reporter.addErrorIf(
-          () -> fileResource != null && fileResource.isAssigned(), te, E1009, attr.getValue());
-    }
-
-    if (bundle.getStrategy(te).isUpdate()) {
-      reporter.addErrorIf(
-          () ->
-              fileResource != null
-                  && fileResource.getFileResourceOwner() != null
-                  && !fileResource.getFileResourceOwner().equals(te.getUid()),
-          te,
-          E1009,
-          attr.getValue());
     }
   }
 }

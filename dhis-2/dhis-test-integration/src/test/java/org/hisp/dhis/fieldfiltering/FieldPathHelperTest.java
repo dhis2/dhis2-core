@@ -28,6 +28,7 @@
 package org.hisp.dhis.fieldfiltering;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -36,23 +37,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class FieldPathHelperTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class FieldPathHelperTest extends PostgresIntegrationTestBase {
   @Autowired private FieldPathHelper helper;
 
   @Test
   void testApplySimplePreset() {
     Map<String, FieldPath> fieldMapPath = new HashMap<>();
 
-    FieldPath owner = new FieldPath(FieldPreset.SIMPLE, List.of(), false, true);
+    FieldPath owner = new FieldPath(FieldPreset.SIMPLE.getName(), List.of(), false, true);
 
     helper.applyPresets(List.of(owner), fieldMapPath, DataElement.class);
 
@@ -75,7 +81,7 @@ class FieldPathHelperTest extends SingleSetupIntegrationTestBase {
   void testApplyIdentifiablePreset() {
     Map<String, FieldPath> fieldMapPath = new HashMap<>();
 
-    FieldPath owner = new FieldPath(FieldPreset.IDENTIFIABLE, List.of(), false, true);
+    FieldPath owner = new FieldPath(FieldPreset.IDENTIFIABLE.getName(), List.of(), false, true);
 
     helper.applyPresets(List.of(owner), fieldMapPath, DataElement.class);
 
@@ -119,12 +125,44 @@ class FieldPathHelperTest extends SingleSetupIntegrationTestBase {
 
     // then only matching exclusions should have been applied
     // and fields starting with 'user' should still be present
-    assertEquals(58, result.size()); // all user properties
+    assertEquals(57, result.size()); // all user properties
     assertTrue(
         result.stream()
             .map(FieldPath::getName)
             .toList()
             .containsAll(List.of("username", "userRoles")));
+  }
+
+  @Test
+  @DisplayName("nameable field filter for DataElement returns expected fields")
+  void nameableFieldFilterTest() {
+    // given
+    FieldPath fieldPath = new FieldPath(FieldPreset.NAMEABLE.getName(), List.of());
+    Map<String, FieldPath> fieldPathMap = new HashMap<>();
+
+    // when
+    helper.applyPresets(List.of(fieldPath), fieldPathMap, DataElement.class);
+
+    // then
+    assertEquals(7, fieldPathMap.size());
+    assertTrue(
+        FieldPreset.NAMEABLE
+            .getFields()
+            .containsAll(fieldPathMap.values().stream().map(FieldPath::getName).toList()));
+  }
+
+  @Test
+  @DisplayName("persisted field filter for DataElement returns fields")
+  void persistedFieldFilterTest() {
+    // given
+    FieldPath fieldPath = new FieldPath(FieldPreset.PERSISTED.getName(), List.of());
+    Map<String, FieldPath> fieldPathMap = new HashMap<>();
+
+    // when
+    helper.applyPresets(List.of(fieldPath), fieldPathMap, DataElement.class);
+
+    // then
+    assertFalse(fieldPathMap.isEmpty());
   }
 
   private void assertPropertyExists(String propertyName, Map<String, FieldPath> fieldMapPath) {

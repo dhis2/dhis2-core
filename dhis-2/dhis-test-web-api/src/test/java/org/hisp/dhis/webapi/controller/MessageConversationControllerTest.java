@@ -27,18 +27,32 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static com.google.common.collect.Sets.newHashSet;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.configuration.Configuration;
+import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link MessageConversationController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-class MessageConversationControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class MessageConversationControllerTest extends H2ControllerIntegrationTestBase {
+
+  @Autowired private ConfigurationService configurationService;
+  @Autowired private IdentifiableObjectManager manager;
 
   @Test
   void testPostJsonObject() {
@@ -49,7 +63,7 @@ class MessageConversationControllerTest extends DhisControllerConvenienceTest {
         "Message conversation created",
         POST(
                 "/messageConversations/",
-                "{'subject':'Subject','text':'Text','users':[{'id':'" + getSuperuserUid() + "'}]}")
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}")
             .content(HttpStatus.CREATED));
   }
 
@@ -71,9 +85,7 @@ class MessageConversationControllerTest extends DhisControllerConvenienceTest {
             HttpStatus.CREATED,
             POST(
                 "/messageConversations/",
-                "{'subject':'Subject','text':'Text','users':[{'id':'"
-                    + getSuperuserUid()
-                    + "'}]}"));
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
     assertWebMessage(
         "OK", 200, "OK", null, DELETE("/messageConversations/" + uid).content(HttpStatus.OK));
   }
@@ -85,9 +97,7 @@ class MessageConversationControllerTest extends DhisControllerConvenienceTest {
             HttpStatus.CREATED,
             POST(
                 "/messageConversations/",
-                "{'subject':'Subject','text':'Text','users':[{'id':'"
-                    + getSuperuserUid()
-                    + "'}]}"));
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
     assertWebMessage(
         "Created",
         201,
@@ -113,9 +123,7 @@ class MessageConversationControllerTest extends DhisControllerConvenienceTest {
             HttpStatus.CREATED,
             POST(
                 "/messageConversations/",
-                "{'subject':'Subject','text':'Text','users':[{'id':'"
-                    + getSuperuserUid()
-                    + "'}]}"));
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
     assertWebMessage(
         "Conflict",
         409,
@@ -134,5 +142,290 @@ class MessageConversationControllerTest extends DhisControllerConvenienceTest {
         "Feedback created",
         POST("/messageConversations/feedback?subject=test", "The message")
             .content(HttpStatus.CREATED));
+  }
+
+  @Test
+  @DisplayName("Change feedback message when in the recipient group")
+  void testChangeFeedbackMessage() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED, POST("/messageConversations/feedback?subject=test", "The message"));
+
+    User ringo = createUserWithAuth("ringo");
+    UserGroup ugA = createUserGroup('A', newHashSet(ringo));
+    manager.save(ugA);
+    Configuration config = configurationService.getConfiguration();
+    config.setFeedbackRecipients(ugA);
+    configurationService.setConfiguration(config);
+
+    switchContextToUser(ringo);
+
+    POST("/messageConversations/read?user=%s".formatted(ringo.getUid()), "['%s']".formatted(uid))
+        .content(HttpStatus.OK);
+  }
+
+  @Test
+  @DisplayName("Change feedback message when not in the recipient group")
+  void testChangeFeedbackMessageWithoutPermission() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED, POST("/messageConversations/feedback?subject=test", "The message"));
+
+    User ringo = switchToNewUser("ringo");
+
+    POST("/messageConversations/read?user=%s".formatted(ringo.getUid()), "['%s']".formatted(uid))
+        .content(HttpStatus.FORBIDDEN);
+  }
+
+  @Test
+  @DisplayName("Post message to conversation without permission")
+  void testPostToConversationWithoutPermission() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/messageConversations/",
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
+
+    switchToNewUser("ringo");
+
+    assertWebMessage(
+        "Forbidden",
+        403,
+        "ERROR",
+        "Not authorized to send messages to this conversation.",
+        POST("/messageConversations/%s".formatted(uid), "{'text':'text'}")
+            .content(HttpStatus.FORBIDDEN));
+  }
+
+  @Test
+  @DisplayName("Add recipient without permission")
+  void testAddRecipientWithoutPermission() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/messageConversations/",
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
+
+    User ringo = switchToNewUser("ringo");
+
+    assertWebMessage(
+        "Forbidden",
+        403,
+        "ERROR",
+        "Not authorized to change recipients in this conversation.",
+        POST(
+                "/messageConversations/%s/recipients".formatted(uid),
+                "{'users':[{'id':'%s'}],'userGroups':[],'organisationUnits':[]}"
+                    .formatted(ringo.getUid()))
+            .content(HttpStatus.FORBIDDEN));
+  }
+
+  @Test
+  @DisplayName("Change priority without permission")
+  void testChangePriorityWithoutPermission() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/messageConversations/",
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
+
+    User ringo = switchToNewUser("ringo");
+
+    assertWebMessage(
+        "Forbidden",
+        403,
+        "ERROR",
+        "Not authorized to change priority in this conversation.",
+        POST(
+                "/messageConversations/%s/priority?messageConversationPriority=HIGH".formatted(uid),
+                "{'users':[{'id':'%s'}],'userGroups':[],'organisationUnits':[]}"
+                    .formatted(ringo.getUid()))
+            .content(HttpStatus.FORBIDDEN));
+  }
+
+  @Test
+  @DisplayName("Change status without permission")
+  void testChangeStatusWithoutPermission() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/messageConversations/",
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
+
+    User ringo = switchToNewUser("ringo");
+
+    assertWebMessage(
+        "Forbidden",
+        403,
+        "ERROR",
+        "Not authorized to change status in this conversation.",
+        POST(
+                "/messageConversations/%s/status?messageConversationStatus=SOLVED".formatted(uid),
+                "{'users':[{'id':'%s'}],'userGroups':[],'organisationUnits':[]}"
+                    .formatted(ringo.getUid()))
+            .content(HttpStatus.FORBIDDEN));
+  }
+
+  @Test
+  @DisplayName("Assign user without permission")
+  void testAssignUsersWithoutPermission() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/messageConversations/",
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
+
+    User ringo = switchToNewUser("ringo");
+
+    assertWebMessage(
+        "Forbidden",
+        403,
+        "ERROR",
+        "Not authorized to assign a user to this conversation.",
+        POST(
+                "/messageConversations/%s/assign?userId=%s".formatted(uid, ringo.getUid()),
+                "{'users':[{'id':'%s'}],'userGroups':[],'organisationUnits':[]}"
+                    .formatted(ringo.getUid()))
+            .content(HttpStatus.FORBIDDEN));
+  }
+
+  @Test
+  @DisplayName("Delete assigned user without permission")
+  void testDeleteAssignUsersWithoutPermission() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/messageConversations/",
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
+
+    User ringo = switchToNewUser("ringo");
+
+    assertWebMessage(
+        "Forbidden",
+        403,
+        "ERROR",
+        "Not authorized to remove the assigned user to this conversation.",
+        DELETE(
+                "/messageConversations/%s/assign".formatted(uid),
+                "{'users':[{'id':'%s'}],'userGroups':[],'organisationUnits':[]}"
+                    .formatted(ringo.getUid()))
+            .content(HttpStatus.FORBIDDEN));
+  }
+
+  @Test
+  @DisplayName("Change followup without permission")
+  void testChangeFollowupWithoutPermission() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/messageConversations/",
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
+
+    User ringo = switchToNewUser("ringo");
+
+    assertWebMessage(
+        "Forbidden",
+        403,
+        "ERROR",
+        "Not authorized to change followups in this conversation.",
+        POST(
+                "/messageConversations/followup?userUid=%s".formatted(ringo.getUid()),
+                "['%s']".formatted(uid))
+            .content(HttpStatus.FORBIDDEN));
+  }
+
+  @Test
+  @DisplayName("Change unfollowup without permission")
+  void testChangeUnFollowupWithoutPermission() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/messageConversations/",
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
+
+    User ringo = switchToNewUser("ringo");
+
+    assertWebMessage(
+        "Forbidden",
+        403,
+        "ERROR",
+        "Not authorized to change unfollowups in this conversation.",
+        POST(
+                "/messageConversations/unfollowup?userUid=%s".formatted(ringo.getUid()),
+                "['%s']".formatted(uid))
+            .content(HttpStatus.FORBIDDEN));
+  }
+
+  @Test
+  @DisplayName("Remove user from conversation without permission")
+  void testRemoveUserWithoutPermission() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/messageConversations/",
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
+
+    switchToNewUser("ringo");
+
+    assertWebMessage(
+        "Forbidden",
+        403,
+        "ERROR",
+        "Not authorized to remove assigned users to this conversation.",
+        DELETE("/messageConversations/%s/%s".formatted(uid, getAdminUid()))
+            .content(HttpStatus.FORBIDDEN));
+  }
+
+  @Test
+  @DisplayName("Remove user from conversation without permission")
+  void testRemoveUsersBatchWithoutPermission() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/messageConversations/",
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
+
+    switchToNewUser("ringo");
+
+    assertWebMessage(
+        "Forbidden",
+        403,
+        "ERROR",
+        "Not authorized to remove assigned users to this conversation.",
+        DELETE("/messageConversations?mc=%s&user=%s".formatted(uid, getAdminUid()))
+            .content(HttpStatus.FORBIDDEN));
+  }
+
+  @Test
+  @DisplayName("Change read status without permission")
+  void testChangeReadStatusWithoutPermission() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/messageConversations/",
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
+
+    User ringo = switchToNewUser("ringo");
+
+    assertWebMessage(
+        "Forbidden",
+        403,
+        "ERROR",
+        "Not authorized to change read property of this conversation.",
+        POST(
+                "/messageConversations/read?user=%s".formatted(ringo.getUid()),
+                "['%s']".formatted(uid))
+            .content(HttpStatus.FORBIDDEN));
   }
 }

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
+import static org.hisp.dhis.test.TestBase.createPeriod;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

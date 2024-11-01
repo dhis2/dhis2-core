@@ -34,9 +34,9 @@ import static org.hisp.dhis.security.Authorities.F_MINMAX_DATAELEMENT_ADD;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Objects;
-import javax.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -47,11 +47,11 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementQueryParams;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.QueryParserException;
@@ -70,7 +70,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@OpenApi.Document(domain = DataElement.class)
+@OpenApi.Document(
+    entity = DataElement.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/minMaxDataElements")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -98,7 +100,7 @@ public class MinMaxDataElementController {
     query.setFilters(filters);
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.ALL.getFields());
+      fields.addAll(FieldPreset.ALL.getFields());
     }
 
     List<MinMaxDataElement> minMaxDataElements = minMaxService.getMinMaxDataElements(query);

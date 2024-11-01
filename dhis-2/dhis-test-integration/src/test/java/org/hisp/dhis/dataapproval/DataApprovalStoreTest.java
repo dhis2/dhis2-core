@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Date;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -40,16 +41,21 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jim Grace
  */
-class DataApprovalStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class DataApprovalStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataApprovalStore dataApprovalStore;
 
@@ -60,8 +66,6 @@ class DataApprovalStoreTest extends SingleSetupIntegrationTestBase {
   @Autowired private PeriodService periodService;
 
   @Autowired private CategoryService categoryService;
-
-  @Autowired private UserService userService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -96,22 +100,26 @@ class DataApprovalStoreTest extends SingleSetupIntegrationTestBase {
 
   private CategoryOptionCombo categoryOptionCombo;
 
-  // -------------------------------------------------------------------------
-  // Set up/tear down
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() throws Exception {
+  @BeforeAll
+  void setUp() {
     // ---------------------------------------------------------------------
     // Add supporting data
     // ---------------------------------------------------------------------
+    CategoryCombo categoryCombo = categoryService.getDefaultCategoryCombo();
+    categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
     level1 = new DataApprovalLevel("01", 1, null);
     level2 = new DataApprovalLevel("02", 2, null);
     dataApprovalLevelService.addDataApprovalLevel(level1);
     dataApprovalLevelService.addDataApprovalLevel(level2);
     PeriodType periodType = PeriodType.getPeriodTypeByName("Monthly");
-    workflowA1 = new DataApprovalWorkflow("workflowA1", periodType, newHashSet(level1));
-    workflowA12 = new DataApprovalWorkflow("workflowA12", periodType, newHashSet(level1, level2));
-    workflowB12 = new DataApprovalWorkflow("workflowB12", periodType, newHashSet(level1, level2));
+    workflowA1 =
+        new DataApprovalWorkflow("workflowA1", periodType, categoryCombo, newHashSet(level1));
+    workflowA12 =
+        new DataApprovalWorkflow(
+            "workflowA12", periodType, categoryCombo, newHashSet(level1, level2));
+    workflowB12 =
+        new DataApprovalWorkflow(
+            "workflowB12", periodType, categoryCombo, newHashSet(level1, level2));
     dataApprovalService.addWorkflow(workflowA1);
     dataApprovalService.addWorkflow(workflowA12);
     dataApprovalService.addWorkflow(workflowB12);
@@ -131,7 +139,6 @@ class DataApprovalStoreTest extends SingleSetupIntegrationTestBase {
     userB = makeUser("B");
     userService.addUser(userA);
     userService.addUser(userB);
-    categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
   }
 
   // -------------------------------------------------------------------------

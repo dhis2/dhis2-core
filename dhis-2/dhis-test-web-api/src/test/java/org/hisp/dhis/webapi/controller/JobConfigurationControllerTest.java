@@ -28,8 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -42,6 +42,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonBuilder.JsonObjectBuilder;
 import org.hisp.dhis.jsontree.JsonNode;
@@ -49,10 +50,10 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingType;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonJobConfiguration;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonJobConfiguration;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.scheduling.JobConfigurationController}. Since
@@ -61,7 +62,8 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class JobConfigurationControllerTest extends H2ControllerIntegrationTestBase {
 
   private static final String UID1 = "asdflksadfjlkj";
   private static final String UID2 = "kajshdfkjahsdkfhj";
@@ -73,20 +75,20 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
         """
       {"name":"test","jobType":"CONTINUOUS_ANALYTICS_TABLE","delay":"1",
       "jobParameters":{"fullUpdateHourOfDay":"1","lastYears":"2",
-        "skipTableTypes":["DATA_VALUE","COMPLETENESS","COMPLETENESS_TARGET","ORG_UNIT_TARGET","EVENT","ENROLLMENT","VALIDATION_RESULT"]}}""";
+        "skipTableTypes":["DATA_VALUE","COMPLETENESS","COMPLETENESS_TARGET","ORG_UNIT_TARGET","VALIDATION_RESULT","EVENT","ENROLLMENT"]}}""";
     String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json));
     JsonObject parameters = assertJobConfigurationExists(jobId, "CONTINUOUS_ANALYTICS_TABLE");
     assertEquals(1, parameters.getNumber("fullUpdateHourOfDay").intValue());
     assertEquals(2, parameters.getNumber("lastYears").intValue());
     assertContainsOnly(
         List.of(
-            "ENROLLMENT",
-            "VALIDATION_RESULT",
             "DATA_VALUE",
             "COMPLETENESS",
-            "EVENT",
+            "COMPLETENESS_TARGET",
             "ORG_UNIT_TARGET",
-            "COMPLETENESS_TARGET"),
+            "VALIDATION_RESULT",
+            "EVENT",
+            "ENROLLMENT"),
         parameters.getArray("skipTableTypes").stringValues());
   }
 
@@ -219,10 +221,10 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
                     "COMPLETENESS",
                     "COMPLETENESS_TARGET",
                     "ORG_UNIT_TARGET",
+                    "VALIDATION_RESULT",
                     "EVENT",
                     "ENROLLMENT",
                     "OWNERSHIP",
-                    "VALIDATION_RESULT",
                     "TRACKED_ENTITY_INSTANCE_EVENTS",
                     "TRACKED_ENTITY_INSTANCE_ENROLLMENTS",
                     "TRACKED_ENTITY_INSTANCE"),
@@ -243,10 +245,10 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
             "COMPLETENESS",
             "COMPLETENESS_TARGET",
             "ORG_UNIT_TARGET",
+            "VALIDATION_RESULT",
             "EVENT",
             "ENROLLMENT",
             "OWNERSHIP",
-            "VALIDATION_RESULT",
             "TRACKED_ENTITY_INSTANCE_EVENTS",
             "TRACKED_ENTITY_INSTANCE_ENROLLMENTS",
             "TRACKED_ENTITY_INSTANCE"),
@@ -464,7 +466,7 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
     String jobId = config.getId();
     switchToNewUser("no-auth");
     assertStatus(HttpStatus.FORBIDDEN, POST("/jobConfigurations/" + jobId + "/revert"));
-    switchToSuperuser();
+    switchToAdminUser();
     assertStatus(HttpStatus.CONFLICT, POST("/jobConfigurations/" + jobId + "/revert"));
   }
 

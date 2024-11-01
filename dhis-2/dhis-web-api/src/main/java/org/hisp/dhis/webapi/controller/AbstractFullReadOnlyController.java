@@ -38,6 +38,8 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema.Builder;
 import com.fasterxml.jackson.dataformat.csv.CsvWriteException;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -45,28 +47,24 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.Value;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.PropertyNames;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.common.OrderParams;
-import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -74,7 +72,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
-import org.hisp.dhis.node.Preset;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
@@ -86,12 +84,9 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.openapi.Api.PropertyNames;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -113,8 +108,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
  *
  * @author Jan Bernitt
  */
+@Maturity.Stable
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@OpenApi.Document(group = OpenApi.Document.Group.QUERY)
+@OpenApi.Document(group = OpenApi.Document.GROUP_QUERY)
 public abstract class AbstractFullReadOnlyController<T extends IdentifiableObject>
     extends AbstractGistReadOnlyController<T> {
   protected static final String DEFAULTS = "INCLUDE";
@@ -123,7 +119,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
   @Autowired protected IdentifiableObjectManager manager;
 
-  @Autowired protected UserSettingService userSettingService;
+  @Autowired protected UserSettingsService userSettingsService;
 
   @Autowired protected ContextService contextService;
 
@@ -206,7 +202,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.defaultPreset().getFields());
+      fields.addAll(FieldPreset.defaultPreset().getFields());
     }
 
     WebOptions options = new WebOptions(rpParameters);
@@ -247,7 +243,10 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     return ResponseEntity.ok(
         new StreamingJsonRoot<>(
-            pager, getSchema().getCollectionName(), FieldFilterParams.of(entities, fields)));
+            pager,
+            getSchema().getCollectionName(),
+            FieldFilterParams.of(entities, fields),
+            Defaults.valueOf(options.get("defaults", DEFAULTS)).isExclude()));
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
@@ -275,7 +274,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     WebMetadata metadata = new WebMetadata();
 
     if (fields.isEmpty() || fields.contains("*") || fields.contains(":all")) {
-      fields.addAll(Preset.defaultPreset().getFields());
+      fields.addAll(FieldPreset.defaultPreset().getFields());
     }
 
     // only support metadata
@@ -395,9 +394,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
   }
 
   private static Object getAttributeValue(Object obj, String attrId) {
-    if (obj instanceof BaseIdentifiableObject) {
-      AttributeValue attr = ((BaseIdentifiableObject) obj).getAttributeValue(attrId);
-      return attr == null ? null : attr.getValue();
+    if (obj instanceof IdentifiableObject identifiableObject) {
+      return identifiableObject.getAttributeValues().get(attrId);
     }
     return null;
   }
@@ -406,7 +404,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
   @OpenApi.Param(name = "filter", value = String[].class)
   @OpenApi.Params(WebOptions.class)
   @OpenApi.Response(OpenApi.EntityType.class)
-  @GetMapping("/{uid}")
+  @GetMapping("/{uid:[a-zA-Z0-9]{11}}")
   @SuppressWarnings("unchecked")
   public @ResponseBody ResponseEntity<?> getObject(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
@@ -448,29 +446,24 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     List<T> entities = (List<T>) queryService.query(query);
 
     handleLinksAndAccess(entities, fields, true);
-    handleAttributeValues(entities, fields);
 
     entities.forEach(e -> postProcessResponseEntity(e, options, rpParameters));
 
     return ResponseEntity.ok(
-        new StreamingJsonRoot<>(null, null, FieldFilterParams.of(entities, fields)));
+        new StreamingJsonRoot<>(
+            null, null, FieldFilterParams.of(entities, fields), query.getDefaults().isExclude()));
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
   @OpenApi.Params(WebOptions.class)
-  @GetMapping("/{uid}/{property}")
+  @GetMapping("/{uid:[a-zA-Z0-9]{11}}/{property}")
   public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
       @OpenApi.Param(PropertyNames.class) @PathVariable("property") String pvProperty,
       @RequestParam Map<String, String> rpParameters,
-      TranslateParams translateParams,
       @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
-
-    if (!"translations".equals(pvProperty)) {
-      setTranslationParams(translateParams);
-    }
 
     if (!aclService.canRead(currentUser, getEntityClass())) {
       throw new ForbiddenException(
@@ -523,7 +516,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     List<T> entities = (List<T>) queryService.query(query);
 
     handleLinksAndAccess(entities, fields, true);
-    handleAttributeValues(entities, fields);
 
     entities.forEach(e -> postProcessResponseEntity(entity, options, parameters));
 
@@ -555,7 +547,9 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
     query.setObjects(objects);
 
-    if (options.getOptions().containsKey("query")) {
+    // Note: objects being null means no query had been running whereas empty means a query did run
+    // with no result
+    if (objects == null && options.getOptions().containsKey("query")) {
       return getEntityListPostProcess(
           options,
           Lists.newArrayList(manager.filter(getEntityClass(), options.getOptions().get("query"))));
@@ -595,15 +589,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
   private void handleLinksAndAccess(List<T> entityList, List<String> fields, boolean deep) {
     if (hasHref(fields)) {
       linkService.generateLinks(entityList, deep);
-    }
-  }
-
-  private void handleAttributeValues(List<T> entityList, List<String> fields) {
-    List<String> hasAttributeValues =
-        fields.stream().filter(field -> field.contains("attributeValues")).collect(toList());
-
-    if (!hasAttributeValues.isEmpty()) {
-      attributeService.generateAttributes(entityList);
     }
   }
 
@@ -665,18 +650,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
   // --------------------------------------------------------------------------
   // Helpers
   // --------------------------------------------------------------------------
-
-  protected final void setTranslationParams(TranslateParams translateParams) {
-    Locale dbLocale = getLocaleWithDefault(translateParams);
-    CurrentUserUtil.setUserSetting(UserSettingKey.DB_LOCALE, dbLocale);
-  }
-
-  private Locale getLocaleWithDefault(TranslateParams translateParams) {
-    return translateParams.isTranslate()
-        ? translateParams.getLocaleWithDefault(
-            (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE))
-        : null;
-  }
 
   protected final Pagination getPaginationData(WebOptions options) {
     return PaginationUtils.getPaginationData(options);

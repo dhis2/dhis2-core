@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import javax.xml.xpath.XPathExpressionException;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -47,15 +46,22 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author bobj
  */
-class DefaultExportServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class DefaultExportServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataElementService dataElementService;
 
@@ -89,20 +95,16 @@ class DefaultExportServiceTest extends SingleSetupIntegrationTestBase {
 
   private Period peB;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     deA = createDataElement('A');
     deB = createDataElement('B');
     deC = createDataElement('C');
-    dsA = DhisConvenienceTest.createDataSet('A', new MonthlyPeriodType());
-    ouA = DhisConvenienceTest.createOrganisationUnit('A');
-    ouB = DhisConvenienceTest.createOrganisationUnit('B');
-    peA =
-        DhisConvenienceTest.createPeriod(
-            DhisConvenienceTest.getDate(2012, 1, 1), DhisConvenienceTest.getDate(2012, 1, 31));
-    peB =
-        DhisConvenienceTest.createPeriod(
-            DhisConvenienceTest.getDate(2012, 2, 1), DhisConvenienceTest.getDate(2012, 2, 29));
+    dsA = TestBase.createDataSet('A', new MonthlyPeriodType());
+    ouA = TestBase.createOrganisationUnit('A');
+    ouB = TestBase.createOrganisationUnit('B');
+    peA = TestBase.createPeriod(TestBase.getDate(2012, 1, 1), TestBase.getDate(2012, 1, 31));
+    peB = TestBase.createPeriod(TestBase.getDate(2012, 2, 1), TestBase.getDate(2012, 2, 29));
     deA.setUid("f7n9E0hX8qk");
     deB.setUid("Ix2HsbDMLea");
     deC.setUid("eY5ehpbEsB7");

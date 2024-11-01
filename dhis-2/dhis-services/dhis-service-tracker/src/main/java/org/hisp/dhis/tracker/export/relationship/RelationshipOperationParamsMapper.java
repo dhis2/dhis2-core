@@ -27,20 +27,15 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
-import java.util.List;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,19 +50,16 @@ class RelationshipOperationParamsMapper {
   private final TrackedEntityService trackedEntityService;
   private final EnrollmentService enrollmentService;
   private final EventService eventService;
-  private final TrackerAccessManager accessManager;
 
   @Transactional(readOnly = true)
-  public RelationshipQueryParams map(RelationshipOperationParams params)
-      throws NotFoundException, ForbiddenException {
-
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+  public RelationshipQueryParams map(@Nonnull RelationshipOperationParams params)
+      throws NotFoundException, ForbiddenException, BadRequestException {
 
     IdentifiableObject entity =
         switch (params.getType()) {
-          case TRACKED_ENTITY -> validateTrackedEntity(currentUser, params.getIdentifier());
-          case ENROLLMENT -> validateEnrollment(currentUser, params.getIdentifier());
-          case EVENT -> validateEvent(currentUser, params.getIdentifier());
+          case TRACKED_ENTITY -> trackedEntityService.getTrackedEntity(params.getIdentifier());
+          case ENROLLMENT -> enrollmentService.getEnrollment(params.getIdentifier());
+          case EVENT -> eventService.getEvent(params.getIdentifier());
           case RELATIONSHIP -> throw new IllegalArgumentException("Unsupported type");
         };
 
@@ -76,50 +68,5 @@ class RelationshipOperationParamsMapper {
         .order(params.getOrder())
         .includeDeleted(params.isIncludeDeleted())
         .build();
-  }
-
-  private TrackedEntity validateTrackedEntity(UserDetails user, String uid)
-      throws NotFoundException, ForbiddenException {
-    TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(uid);
-    if (trackedEntity == null) {
-      throw new NotFoundException(TrackedEntity.class, uid);
-    }
-
-    List<String> errors = accessManager.canRead(user, trackedEntity);
-    if (!errors.isEmpty()) {
-      throw new ForbiddenException(TrackedEntity.class, uid);
-    }
-
-    return trackedEntity;
-  }
-
-  private Enrollment validateEnrollment(UserDetails user, String uid)
-      throws NotFoundException, ForbiddenException {
-    Enrollment enrollment = enrollmentService.getEnrollment(uid);
-    if (enrollment == null) {
-      throw new NotFoundException(Enrollment.class, uid);
-    }
-
-    List<String> errors = accessManager.canRead(user, enrollment, false);
-    if (!errors.isEmpty()) {
-      throw new ForbiddenException(Enrollment.class, uid);
-    }
-
-    return enrollment;
-  }
-
-  private Event validateEvent(UserDetails user, String uid)
-      throws NotFoundException, ForbiddenException {
-    Event event = eventService.getEvent(uid);
-    if (event == null) {
-      throw new NotFoundException(Event.class, uid);
-    }
-
-    List<String> errors = accessManager.canRead(user, event, false);
-    if (!errors.isEmpty()) {
-      throw new ForbiddenException(Event.class, uid);
-    }
-
-    return event;
   }
 }

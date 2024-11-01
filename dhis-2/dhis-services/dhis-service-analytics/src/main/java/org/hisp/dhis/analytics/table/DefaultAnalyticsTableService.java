@@ -52,8 +52,8 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.Clock;
 
 /**
@@ -70,7 +70,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
 
   private final ResourceTableService resourceTableService;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final SqlBuilder sqlBuilder;
 
@@ -148,13 +148,14 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     tableUpdates += applyAggregationLevels(tableType, partitions, progress);
     clock.logTime("Applied aggregation levels");
 
-    List<Index> indexes = getIndexes(partitions);
-    int indexSize = indexes.size();
-
-    progress.startingStage(
-        "Creating " + indexSize + " indexes " + tableType, indexSize, SKIP_ITEM_OUTLIER);
-    createIndexes(indexes, progress);
-    clock.logTime("Created indexes");
+    if (sqlBuilder.requiresIndexesForAnalytics()) {
+      List<Index> indexes = getIndexes(partitions);
+      int indexSize = indexes.size();
+      progress.startingStage(
+          "Creating " + indexSize + " indexes " + tableType, indexSize, SKIP_ITEM_OUTLIER);
+      createIndexes(indexes, progress);
+      clock.logTime("Created indexes");
+    }
 
     if (tableUpdates > 0 && sqlBuilder.supportsVacuum()) {
       progress.startingStage("Vacuuming tables " + tableType, partitions.size());
@@ -162,9 +163,11 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       clock.logTime("Tables vacuumed");
     }
 
-    progress.startingStage("Analyzing analytics tables " + tableType, partitions.size());
-    analyzeTables(partitions, progress);
-    clock.logTime("Analyzed tables");
+    if (sqlBuilder.supportsAnalyze()) {
+      progress.startingStage("Analyzing analytics tables " + tableType, partitions.size());
+      analyzeTables(partitions, progress);
+      clock.logTime("Analyzed tables");
+    }
 
     if (params.isLatestUpdate()) {
       progress.startingStage("Removing updated and deleted data " + tableType, SKIP_STAGE);
@@ -364,23 +367,13 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
    * @return the number of parallel jobs to use for processing analytics tables.
    */
   int getParallelJobs() {
-    Integer parallelJobs =
-        systemSettingManager.getIntegerSetting(SettingKey.PARALLEL_JOBS_IN_ANALYTICS_TABLE_EXPORT);
-    Integer databaseCpus = systemSettingManager.getIntegerSetting(SettingKey.DATABASE_SERVER_CPUS);
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    int parallelJobs = settings.getParallelJobsInAnalyticsTableExport();
+    if (parallelJobs > 0) return parallelJobs;
+    int databaseCpus = settings.getDatabaseServerCpus();
+    if (databaseCpus > 0) return databaseCpus;
     int serverCpus = SystemUtils.getCpuCores();
-
-    if (parallelJobs != null && parallelJobs > 0) {
-      return parallelJobs;
-    }
-
-    if (databaseCpus != null && databaseCpus > 0) {
-      return databaseCpus;
-    }
-
-    if (serverCpus > 2) {
-      return serverCpus - 1;
-    }
-
+    if (serverCpus > 2) return serverCpus - 1;
     return serverCpus;
   }
 }

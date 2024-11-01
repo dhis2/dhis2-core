@@ -29,9 +29,7 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Arrays.copyOfRange;
 import static java.util.Arrays.stream;
-import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.webapi.openapi.ApiDescriptions.toMarkdown;
@@ -56,6 +54,7 @@ import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,20 +67,20 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.OpenApi.Document.Group;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.jsontree.Json;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMap;
+import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.system.util.HttpUtils;
 import org.hisp.dhis.webapi.openapi.Api.Parameter.In;
-import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -93,8 +92,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
 
 /**
  * Given a set of controller {@link Class}es this creates a {@link Api} model that describes all
@@ -105,64 +104,9 @@ import org.springframework.web.servlet.ModelAndView;
  *
  * @author Jan Bernitt
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class ApiExtractor {
-  /**
-   * The included classes can be filtered based on REST API resource path or {@link
-   * OpenApi.Document#domain()} present on the controller class level. Method level path and tags
-   * will not be considered for this filter.
-   *
-   * @param controllers controllers all potential controllers
-   * @param paths filter based on resource path (empty includes all)
-   * @param domains filter based on {@link OpenApi.Document#domain()} (empty includes all)
-   */
-  record Scope(
-      @Nonnull Set<Class<?>> controllers,
-      @Nonnull Set<String> paths,
-      @Nonnull Set<String> domains) {
 
-    boolean includes(Class<?> controller) {
-      if (!isControllerType(controller)) return false;
-      if (!controllers.contains(controller)) return false;
-      if (paths.isEmpty() && domains.isEmpty()) return true;
-      if (!paths.isEmpty() && paths(controller).noneMatch(paths::contains)) return false;
-      Class<?> domain = domain(controller);
-      return domains.isEmpty()
-          || domains.contains(domain.getName())
-          || domains.contains(domain.getSimpleName());
-    }
-
-    private static boolean isControllerType(Class<?> source) {
-      return (source.isAnnotationPresent(RestController.class)
-              || source.isAnnotationPresent(Controller.class))
-          && !source.isAnnotationPresent(OpenApi.Ignore.class);
-    }
-
-    private static Stream<String> paths(Class<?> controller) {
-      RequestMapping a = controller.getAnnotation(RequestMapping.class);
-      return a == null
-          ? Stream.empty()
-          : stream(firstNonEmpty(a.value(), a.path()))
-              .flatMap(path -> Stream.of(path, normalisePath(path)));
-    }
-
-    @Nonnull
-    private static String normalisePath(@Nonnull String path) {
-      return path.startsWith("/api/") ? path.substring(4) : path;
-    }
-
-    private static Class<?> domain(Class<?> controller) {
-      OpenApi.Document doc = controller.getAnnotation(OpenApi.Document.class);
-      Class<?> domain = OpenApi.EntityType.class;
-      if (doc != null) {
-        domain = doc.domain();
-      }
-      if (domain == OpenApi.EntityType.class) {
-        domain = OpenApiAnnotations.getEntityType(controller);
-      }
-      return domain == null ? Object.class : domain;
-    }
-  }
+  record Configuration(boolean ignoreTypeAs) {}
 
   private static final Map<Class<?>, Api.SchemaGenerator> GENERATORS = new ConcurrentHashMap<>();
 
@@ -172,7 +116,7 @@ final class ApiExtractor {
 
   static {
     register(UID.class, SchemaGenerators.UID);
-    register(Api.PropertyNames.class, SchemaGenerators.PROPERTY_NAMES);
+    register(OpenApi.PropertyNames.class, SchemaGenerators.PROPERTY_NAMES);
   }
 
   /**
@@ -187,15 +131,25 @@ final class ApiExtractor {
    *
    * @return the {@link Api} for all controllers matching both of the filters
    */
-  public static Api extractApi(Scope scope) {
-    Api api = new Api();
-    scope.controllers.stream()
-        .filter(scope::includes)
-        .forEach(source -> api.getControllers().add(extractController(api, source)));
-    return api;
+  public static Api extractApi(Api.Scope scope, Configuration config) {
+    ApiExtractor tool = new ApiExtractor(scope, config);
+    tool.extractApi();
+    return tool.api;
   }
 
-  private static Api.Controller extractController(Api api, Class<?> source) {
+  private final Configuration config;
+  private final Api api;
+
+  private ApiExtractor(Api.Scope scope, Configuration config) {
+    this.config = config;
+    this.api = new Api(scope);
+  }
+
+  private void extractApi() {
+    api.getScope().matches().forEach(source -> api.getControllers().add(extractController(source)));
+  }
+
+  private Api.Controller extractController(Class<?> source) {
     String name =
         getAnnotated(
             source,
@@ -205,6 +159,9 @@ final class ApiExtractor {
             () -> source.getSimpleName().replace("Controller", ""));
     Class<?> entityClass = OpenApiAnnotations.getEntityType(source);
     Api.Controller controller = new Api.Controller(api, source, entityClass, name);
+    Map<String, String> classifiers = controller.getClassifiers();
+    classifiers.putAll(OpenApiAnnotations.getClassifiers(source));
+
     whenAnnotated(
         source, RequestMapping.class, a -> controller.getPaths().addAll(List.of(a.value())));
 
@@ -224,7 +181,7 @@ final class ApiExtractor {
         : Stream.concat(stream(source.getDeclaredMethods()), methodsIn(source.getSuperclass()));
   }
 
-  private static Api.Endpoint extractEndpoint(Api.Controller controller, EndpointMapping mapping) {
+  private Api.Endpoint extractEndpoint(Api.Controller controller, EndpointMapping mapping) {
     Method source = mapping.source();
     String name = mapping.name().isEmpty() ? source.getName() : mapping.name();
     Class<?> entityType = OpenApiAnnotations.getEntityType(source, controller.getSource());
@@ -248,7 +205,7 @@ final class ApiExtractor {
 
     Boolean deprecated = source.isAnnotationPresent(Deprecated.class) ? Boolean.TRUE : null;
 
-    Group group = getEndpointGroup(source);
+    String group = getEndpointGroup(source);
 
     Maturity.Classification maturity = getMaturity(source);
 
@@ -256,6 +213,7 @@ final class ApiExtractor {
         new Api.Endpoint(controller, source, entityType, name, group, deprecated, maturity);
 
     endpoint.getDescription().setIfAbsent(extractDescription(source));
+    extractEndpointAuthorities(endpoint);
 
     mapping.path().stream()
         .map(path -> path.endsWith("/") ? path.substring(0, path.length() - 1) : path)
@@ -271,6 +229,15 @@ final class ApiExtractor {
     return endpoint;
   }
 
+  private static void extractEndpointAuthorities(Api.Endpoint endpoint) {
+    Method source = endpoint.getSource();
+    if (source.isAnnotationPresent(RequiresAuthority.class)) {
+      Stream.of(source.getAnnotation(RequiresAuthority.class).anyOf())
+          .map(Enum::name)
+          .forEach(auth -> endpoint.getAuthorities().add(auth));
+    }
+  }
+
   @CheckForNull
   private static Maturity.Classification getMaturity(AnnotatedElement source) {
     if (source.isAnnotationPresent(Maturity.class))
@@ -284,18 +251,16 @@ final class ApiExtractor {
     return null;
   }
 
-  private static Group getEndpointGroup(Method source) {
-    Group group = Group.DEFAULT;
-    if (source.getDeclaringClass().isAnnotationPresent(OpenApi.Document.class))
-      group = source.getDeclaringClass().getAnnotation(OpenApi.Document.class).group();
-    if (source.isAnnotationPresent(OpenApi.Document.class)) {
-      Group overlay = source.getAnnotation(OpenApi.Document.class).group();
-      if (overlay != Group.DEFAULT) group = overlay;
-    }
-    return group == Group.DEFAULT ? Group.MISC : group;
+  @CheckForNull
+  private static String getEndpointGroup(Method source) {
+    OpenApi.Document doc = source.getAnnotation(OpenApi.Document.class);
+    if (doc != null && !doc.group().isEmpty()) return doc.group();
+    doc = source.getDeclaringClass().getAnnotation(OpenApi.Document.class);
+    if (doc != null && !doc.group().isEmpty()) return doc.group();
+    return null;
   }
 
-  private static Map<HttpStatus, Api.Response> extractResponses(
+  private Map<HttpStatus, Api.Response> extractResponses(
       Api.Endpoint endpoint, EndpointMapping mapping, Set<MediaType> consumes) {
     Method source = mapping.source();
     Set<MediaType> produces =
@@ -311,12 +276,14 @@ final class ApiExtractor {
     }
 
     HttpStatus signatureStatus =
-        getAnnotated(
-            source,
-            ResponseStatus.class,
-            a -> firstNonEqual(HttpStatus.INTERNAL_SERVER_ERROR, a.value(), a.code()),
-            s -> s != HttpStatus.INTERNAL_SERVER_ERROR,
-            () -> HttpStatus.OK);
+        source.getReturnType() == RedirectView.class
+            ? HttpStatus.FOUND
+            : getAnnotated(
+                source,
+                ResponseStatus.class,
+                a -> firstNonEqual(HttpStatus.INTERNAL_SERVER_ERROR, a.value(), a.code()),
+                s -> s != HttpStatus.INTERNAL_SERVER_ERROR,
+                () -> HttpStatus.OK);
 
     Map<HttpStatus, Api.Response> res = new LinkedHashMap<>();
     // response(s) declared via annotation(s)
@@ -342,18 +309,21 @@ final class ApiExtractor {
   }
 
   @Nonnull
-  private static Api.Response newSuccessResponse(
+  private Api.Response newSuccessResponse(
       Api.Endpoint endpoint, Method source, HttpStatus status, Set<MediaType> produces) {
     Class<?> type = source.getReturnType();
     Api.Response response = new Api.Response(status);
-    if (type != void.class && type != Void.class && type != ModelAndView.class) {
-      response.add(produces, extractResponseSchema(endpoint, source.getGenericReturnType()));
+    if (type != void.class
+        && type != Void.class
+        && type != ModelAndView.class
+        && type != RedirectView.class) {
+      response.add(produces, extractSchema(endpoint, source.getGenericReturnType()));
+      response.getDescription().setIfAbsent(extractDescription(source.getAnnotatedReturnType()));
     }
-    response.getDescription().setIfAbsent(extractDescription(source.getAnnotatedReturnType()));
     return response;
   }
 
-  private static Map<HttpStatus, Api.Response> newAdditionalResponse(
+  private Map<HttpStatus, Api.Response> newAdditionalResponse(
       Api.Endpoint endpoint,
       Method source,
       OpenApi.Response response,
@@ -364,7 +334,7 @@ final class ApiExtractor {
   }
 
   @Nonnull
-  private static Map<HttpStatus, Api.Response> newErrorResponse(
+  private Map<HttpStatus, Api.Response> newErrorResponse(
       Api.Endpoint endpoint,
       AnnotatedType source,
       OpenApi.Response response,
@@ -402,7 +372,7 @@ final class ApiExtractor {
         : text0 + placeholder + text1;
   }
 
-  private static Map<HttpStatus, Api.Response> extractResponses(
+  private Map<HttpStatus, Api.Response> extractResponses(
       Api.Endpoint endpoint,
       OpenApi.Response response,
       Set<MediaType> defaultProduces,
@@ -411,7 +381,7 @@ final class ApiExtractor {
     List<HttpStatus> statuses =
         response.status().length == 0
             ? defaultStatuses
-            : stream(response.status()).map(s -> HttpStatus.resolve(s.getCode())).toList();
+            : stream(response.status()).map(s -> HttpUtils.resolve(s.getCode())).toList();
     Set<Api.Header> headers =
         stream(response.headers())
             .map(
@@ -419,25 +389,24 @@ final class ApiExtractor {
                     new Api.Header(
                         header.name(),
                         header.description(),
-                        extractParamSchema(endpoint, null, response.value())))
+                        extractSchema(endpoint, null, header.type())))
             .collect(toSet());
     Set<MediaType> produces =
         response.mediaTypes().length == 0
             ? defaultProduces
             : stream(response.mediaTypes()).map(MediaType::valueOf).collect(toUnmodifiableSet());
-    return statuses.stream()
-        .collect(
-            toMap(
-                identity(),
-                status ->
-                    new Api.Response(status)
-                        .add(
-                            produces,
-                            extractResponseSchema(endpoint, defaultResponseType, response.value()))
-                        .add(headers)));
+    Map<HttpStatus, Api.Response> byStatus = new EnumMap<>(HttpStatus.class);
+    for (HttpStatus status : statuses) {
+      Api.Schema schema =
+          response.object().length > 0
+              ? extractObjectSchema(endpoint, response.object(), response.value())
+              : extractSchema(endpoint, defaultResponseType, response.value());
+      byStatus.put(status, new Api.Response(status).add(headers).add(produces, schema));
+    }
+    return byStatus;
   }
 
-  private static void extractParameters(Api.Endpoint endpoint, Set<MediaType> consumes) {
+  private void extractParameters(Api.Endpoint endpoint, Set<MediaType> consumes) {
     Method source = endpoint.getSource();
     // request parameter(s) declared via annotation(s)
     getAnnotations(source, OpenApi.Param.class).forEach(p -> extractParam(endpoint, p, consumes));
@@ -452,7 +421,7 @@ final class ApiExtractor {
       if (p.isAnnotationPresent(OpenApi.Param.class)) {
         OpenApi.Param a = p.getAnnotation(OpenApi.Param.class);
         ParameterDetails details = getParameterDetails(a, p);
-        Api.Schema type = extractParamSchema(endpoint, p.getParameterizedType(), a.value());
+        Api.Schema type = extractSchema(endpoint, p.getParameterizedType(), a.value());
         if (details.in != Api.Parameter.In.BODY) {
           parameters.computeIfAbsent(
               details.name(), key -> newGenericParameter(p, key, details, type));
@@ -471,13 +440,13 @@ final class ApiExtractor {
         RequestParam a = p.getAnnotation(RequestParam.class);
         String name = firstNonEmpty(a.name(), a.value(), p.getName());
         parameters.computeIfAbsent(
-            name, key -> newQueryParameter(endpoint, p, key, getParameterDetails(a)));
+            name, key -> newQueryParameter(endpoint, p, key, getParameterDetails(a, p)));
       } else if (p.isAnnotationPresent(RequestBody.class)) {
         RequestBody a = p.getAnnotation(RequestBody.class);
         Api.RequestBody requestBody =
             endpoint.getRequestBody().init(() -> new Api.RequestBody(p, a.required()));
         requestBody.getDescription().setIfAbsent(extractDescription(p, p.getType()));
-        Api.Schema type = extractParamSchema(endpoint, p.getParameterizedType());
+        Api.Schema type = extractSchema(endpoint, p.getParameterizedType());
         consumes.forEach(mediaType -> requestBody.getConsumes().putIfAbsent(mediaType, type));
       } else if (isParams(p)) {
         extractParams(endpoint, p.getType());
@@ -499,9 +468,9 @@ final class ApiExtractor {
   }
 
   @Nonnull
-  private static Api.Parameter newPathParameter(
+  private Api.Parameter newPathParameter(
       Api.Endpoint endpoint, Parameter source, String name, ParameterDetails details) {
-    Api.Schema type = extractInputSchema(endpoint, source.getParameterizedType());
+    Api.Schema type = extractTypeSchema(endpoint, source.getParameterizedType());
     boolean deprecated = source.isAnnotationPresent(Deprecated.class);
     Maturity.Classification maturity = getMaturity(source);
     Api.Parameter res =
@@ -511,9 +480,9 @@ final class ApiExtractor {
   }
 
   @Nonnull
-  private static Api.Parameter newQueryParameter(
+  private Api.Parameter newQueryParameter(
       Api.Endpoint endpoint, Parameter source, String name, ParameterDetails details) {
-    Api.Schema type = extractInputSchema(endpoint, source.getParameterizedType());
+    Api.Schema type = extractTypeSchema(endpoint, source.getParameterizedType());
     boolean deprecated = source.isAnnotationPresent(Deprecated.class);
     Maturity.Classification maturity = getMaturity(source);
     Api.Parameter res =
@@ -523,46 +492,48 @@ final class ApiExtractor {
     return res;
   }
 
-  private static void extractParam(
-      Api.Endpoint endpoint, OpenApi.Param param, Set<MediaType> consumes) {
+  private void extractParam(Api.Endpoint endpoint, OpenApi.Param param, Set<MediaType> consumes) {
     String name = param.name();
-    Api.Schema type = extractParamSchema(endpoint, null, param.value());
-    Api.Schema wrapped =
-        param.asProperty().isEmpty()
-            ? type
-            : Api.Schema.ofObject(Object.class)
-                .addProperty(new Api.Property(param.asProperty(), true, type));
+    Api.Schema type =
+        param.object().length == 0
+            ? extractSchema(endpoint, null, param.value())
+            : extractObjectSchema(endpoint, param.object(), param.value());
     boolean required = param.required();
     if (name.isEmpty()) {
       Api.RequestBody requestBody = new Api.RequestBody(endpoint.getSource(), required);
-      consumes.forEach(mediaType -> requestBody.getConsumes().put(mediaType, wrapped));
+      consumes.forEach(mediaType -> requestBody.getConsumes().put(mediaType, type));
       endpoint.getRequestBody().setValue(requestBody);
       return;
     }
     boolean deprecated = param.deprecated();
     Api.Parameter parameter =
-        new Api.Parameter(
-            endpoint.getSource(), name, In.QUERY, required, wrapped, deprecated, null);
+        new Api.Parameter(endpoint.getSource(), name, In.QUERY, required, type, deprecated, null);
     endpoint.getParameters().put(name, parameter);
   }
 
-  private static void extractParams(Api.Endpoint endpoint, OpenApi.Params params) {
+  private void extractParams(Api.Endpoint endpoint, OpenApi.Params params) {
     extractParams(endpoint, params.value());
   }
 
-  private static void extractParams(Api.Endpoint endpoint, Class<?> paramsObject) {
+  private void extractParams(Api.Endpoint endpoint, Class<?> paramsObject) {
     Collection<Property> properties = getProperties(paramsObject);
     OpenApi.Shared shared = paramsObject.getAnnotation(OpenApi.Shared.class);
     String sharedName = getSharedName(paramsObject, shared, null);
     if (sharedName != null) {
-      Api api = endpoint.getIn().getIn();
       Map<Class<?>, List<Api.Parameter>> sharedParameters = api.getComponents().getParameters();
+      boolean addShared = !sharedParameters.containsKey(paramsObject);
       properties.forEach(
           property -> {
             Api.Parameter parameter = extractParameter(endpoint, property);
-            parameter.getSharedName().setValue(sharedName);
-            sharedParameters.computeIfAbsent(paramsObject, e -> new ArrayList<>()).add(parameter);
-            endpoint.getParameters().put(parameter.getName(), parameter);
+            if (!parameter.getSource().isAnnotationPresent(OpenApi.Shared.Inline.class)) {
+              parameter.getSharedName().setValue(sharedName);
+              if (addShared) {
+                sharedParameters
+                    .computeIfAbsent(paramsObject, key -> new ArrayList<>())
+                    .add(parameter);
+              }
+            }
+            endpoint.getParameters().putIfAbsent(parameter.getName(), parameter);
           });
     } else {
       properties.forEach(
@@ -581,54 +552,49 @@ final class ApiExtractor {
     if (shared == null) return defaultName;
     if (!shared.value()) return null;
     if (!shared.name().isEmpty()) return shared.name();
-    if (shared.pattern() != OpenApi.Shared.Pattern.DEFAULT)
-      return String.format(shared.pattern().getTemplate(), type.getSimpleName());
     return type.getSimpleName();
   }
 
-  private static Api.Parameter extractParameter(Api.Endpoint endpoint, Property property) {
-    AnnotatedElement source = (AnnotatedElement) property.getSource();
+  private Api.Parameter extractParameter(Api.Endpoint endpoint, Property property) {
+    AnnotatedElement source = property.getSource();
     Type type = property.getType();
     OpenApi.Property annotated = source.getAnnotation(OpenApi.Property.class);
     Api.Schema schema =
         type instanceof Class && isGeneratorType((Class<?>) type) && annotated != null
             ? extractGeneratorSchema(endpoint, type, annotated.value())
-            : extractInputSchema(endpoint, getSubstitutedType(endpoint, property, source));
+            : extractTypeSchema(endpoint, getSubstitutedType(endpoint, property, source));
     boolean deprecated = source.isAnnotationPresent(Deprecated.class);
     Maturity.Classification maturity = getMaturity(source);
     Api.Parameter param =
         new Api.Parameter(
             source, property.getName(), In.QUERY, false, schema, deprecated, maturity);
-    Object defaultValue = property.getDefaultValue();
-    if (defaultValue != null) param.getDefaultValue().setValue(defaultValue.toString());
+    JsonValue defaultValue = property.getDefaultValue();
+    if (defaultValue != null) param.getDefaultValue().setValue(defaultValue);
     param
         .getDescription()
         .setValue(extractDescription(source, type instanceof Class<?> c ? c : null));
     return param;
   }
 
-  private static Api.Schema extractParamSchema(
-      Api.Endpoint endpoint, Type source, Class<?>... oneOf) {
-    if (oneOf.length == 0 && source != null) {
-      return extractInputSchema(endpoint, source);
-    }
-    if (isGeneratorType(oneOf[0])) {
-      return extractGeneratorSchema(endpoint, source, oneOf);
-    }
+  private Api.Schema extractSchema(Api.Endpoint endpoint, Type source, Class<?>... oneOf) {
+    if (oneOf.length == 0 && source != null) return extractTypeSchema(endpoint, source);
+    if (isGeneratorType(oneOf[0])) return extractGeneratorSchema(endpoint, source, oneOf);
     return Api.Schema.ofOneOf(
-        List.of(oneOf), type -> extractInputSchema(endpoint, getSubstitutedType(endpoint, type)));
+        List.of(oneOf), type -> extractTypeSchema(endpoint, getSubstitutedType(endpoint, type)));
   }
 
-  private static Api.Schema extractResponseSchema(
-      Api.Endpoint endpoint, Type source, Class<?>... oneOf) {
-    if (oneOf.length == 0 && source != null) {
-      return extractOutputSchema(endpoint, source);
+  private Api.Schema extractObjectSchema(
+      Api.Endpoint endpoint, OpenApi.Property[] properties, Class<?>... oneOf) {
+    Api.Schema obj =
+        oneOf.length == 0
+            ? Api.Schema.ofObject(Object.class)
+            : extractSchema(endpoint, null, oneOf);
+    for (OpenApi.Property p : properties) {
+      obj.addProperty(
+          new Api.Property(null, p.name(), p.required(), extractSchema(endpoint, null, p.value()))
+              .withAccess(p.access()));
     }
-    if (isGeneratorType(oneOf[0])) {
-      return extractGeneratorSchema(endpoint, source, oneOf);
-    }
-    return Api.Schema.ofOneOf(
-        List.of(oneOf), type -> extractOutputSchema(endpoint, getSubstitutedType(endpoint, type)));
+    return obj.sealed();
   }
 
   private static boolean isGeneratorType(Class<?> type) {
@@ -656,7 +622,7 @@ final class ApiExtractor {
       Api.Schema shared = genTypes.putIfAbsent(ofType, schema);
       if (shared != null) schema = shared; // this makes sure the same instance is reused
     }
-    return type == genType ? schema : Api.Schema.ofArray(type, type).withElements(schema);
+    return type == genType ? schema : Api.Schema.ofArray(type, type).withElements(schema).sealed();
   }
 
   private static String getGeneratorTypeSharedName(Class<?> genType, Api.Schema schema) {
@@ -669,14 +635,6 @@ final class ApiExtractor {
       case ENUM -> sharedBaseName + genType.getSimpleName();
       default -> sharedBaseName;
     };
-  }
-
-  private static Api.Schema extractInputSchema(Api.Endpoint endpoint, Type source) {
-    return extractTypeSchema(endpoint, source);
-  }
-
-  private static Api.Schema extractOutputSchema(Api.Endpoint endpoint, Type source) {
-    return extractTypeSchema(endpoint, source);
   }
 
   /**
@@ -698,8 +656,9 @@ final class ApiExtractor {
    *
    * @return a schema describing a complex "record-like" or "bean" object
    */
-  private static Api.Schema extractClassSchema(Api.Endpoint endpoint, Class<?> type) {
-    Api api = endpoint.getIn().getIn();
+  private Api.Schema extractClassSchema(Api.Endpoint endpoint, Class<?> type) {
+    // TODO aren't class types constant, hence can be cached in a static map?
+    // unless they depend on the endpoint, which is the case if they use a generator type
     Api.Schema s = api.getSchemas().get(type);
     if (s != null) {
       return s;
@@ -720,7 +679,7 @@ final class ApiExtractor {
       Api.Schema schema = Api.Schema.ofArray(type);
       // eventually this will resolve the simple element type
       schema.withElements(extractClassSchema(endpoint, type.getComponentType()));
-      return schema;
+      return schema.sealed();
     }
     if (type.isEnum()) {
       List<String> values =
@@ -740,24 +699,36 @@ final class ApiExtractor {
     // the schemas map so recursive types do resolve (unless they are inlined)
     for (Property p : properties) {
       Function<Api.Schema, Api.Property> toProperty =
-          t -> new Api.Property(getPropertyName(endpoint, p), p.getRequired(), t);
-      schema.addProperty(extractObjectProperty(endpoint, p, toProperty));
+          t ->
+              new Api.Property(p.getSource(), getPropertyName(endpoint, p), p.getRequired(), t)
+                  .withAccess(p.getAccess());
+      Api.Property property = extractObjectProperty(endpoint, p, toProperty);
+      property.getDescription().setValue(extractDescription(p.getSource()));
+      schema.addProperty(property);
     }
-    return schema;
+    return schema.sealed();
   }
 
-  private static Api.Property extractObjectProperty(
+  private Api.Property extractObjectProperty(
       Api.Endpoint endpoint, Property property, Function<Api.Schema, Api.Property> toProperty) {
-    AnnotatedElement member = (AnnotatedElement) property.getSource();
-    if (member.isAnnotationPresent(JsonSubTypes.class)) {
-      return toProperty.apply(extractSubTypeSchema(endpoint, member));
+    AnnotatedElement source = property.getSource();
+    if (source.isAnnotationPresent(JsonSubTypes.class)) {
+      return toProperty.apply(extractSubTypeSchema(endpoint, source));
     }
-    Type type = getSubstitutedType(endpoint, property, member);
-    OpenApi.Property annotated = member.getAnnotation(OpenApi.Property.class);
-    if (type instanceof Class && isGeneratorType((Class<?>) type) && annotated != null) {
-      return toProperty.apply(extractGeneratorSchema(endpoint, type, annotated.value()));
+    Type type = getSubstitutedType(endpoint, property, source);
+    OpenApi.Property annotated = source.getAnnotation(OpenApi.Property.class);
+    if (annotated != null) {
+      if (type instanceof Class && isGeneratorType((Class<?>) type)) {
+        return toProperty.apply(extractGeneratorSchema(endpoint, type, annotated.value()));
+      }
+      if (annotated.value().length > 1) { // oneOf type
+        return toProperty.apply(extractSchema(endpoint, type, annotated.value()));
+      }
     }
-    JsonSerialize serialize = member.getAnnotation(JsonSerialize.class);
+    if (config.ignoreTypeAs) {
+      return toProperty.apply(extractTypeSchema(endpoint, type));
+    }
+    JsonSerialize serialize = source.getAnnotation(JsonSerialize.class);
     if (serialize != null && serialize.as() != Void.class) {
       Class<?> as = serialize.as();
       Api.Property res = toProperty.apply(extractClassSchema(endpoint, as));
@@ -771,14 +742,15 @@ final class ApiExtractor {
       Api.Property res =
           toProperty.apply(
               Api.Schema.ofArray(type, (Class<?>) pt.getRawType())
-                  .withElements(extractClassSchema(endpoint, contentAs)));
+                  .withElements(extractClassSchema(endpoint, contentAs))
+                  .sealed());
       res.getOriginalType().setValue(extractTypeSchema(endpoint, type));
       return res;
     }
     return toProperty.apply(extractTypeSchema(endpoint, type));
   }
 
-  private static Api.Schema extractSubTypeSchema(Api.Endpoint endpoint, AnnotatedElement baseType) {
+  private Api.Schema extractSubTypeSchema(Api.Endpoint endpoint, AnnotatedElement baseType) {
     List<Class<?>> types =
         Stream.of(baseType.getAnnotation(JsonSubTypes.class).value())
             .map(JsonSubTypes.Type::value)
@@ -786,7 +758,7 @@ final class ApiExtractor {
     return Api.Schema.ofOneOf(types, subType -> extractClassSchema(endpoint, subType));
   }
 
-  private static Api.Schema extractTypeSchema(Api.Endpoint endpoint, Type source) {
+  private Api.Schema extractTypeSchema(Api.Endpoint endpoint, Type source) {
     if (source instanceof Class<?> type) {
       return extractClassSchema(endpoint, type);
     }
@@ -797,32 +769,42 @@ final class ApiExtractor {
       }
       Type typeArg0 = pt.getActualTypeArguments()[0];
       if (Collection.class.isAssignableFrom(rawType) && rawType.isInterface()
-          || rawType == Iterable.class) {
+          || rawType == Iterable.class
+          || rawType == Stream.class
+          || rawType == JsonList.class) {
         if (typeArg0 instanceof Class<?>)
           return extractTypeSchema(endpoint, Array.newInstance((Class<?>) typeArg0, 0).getClass());
         return Api.Schema.ofArray(source, rawType)
-            .withElements(extractTypeSchema(endpoint, typeArg0));
+            .withElements(extractTypeSchema(endpoint, typeArg0))
+            .sealed();
       }
       if (Map.class.isAssignableFrom(rawType) && rawType.isInterface()) {
         return Api.Schema.ofObject(source, rawType)
             .withEntries(
                 extractTypeSchema(endpoint, typeArg0),
-                extractTypeSchema(endpoint, pt.getActualTypeArguments()[1]));
+                extractTypeSchema(endpoint, pt.getActualTypeArguments()[1]))
+            .sealed();
+      }
+      if (JsonMap.class.isAssignableFrom(rawType)) {
+        return Api.Schema.ofObject(source, rawType)
+            .withEntries(
+                extractTypeSchema(endpoint, String.class), extractTypeSchema(endpoint, typeArg0))
+            .sealed();
       }
       if (rawType == ResponseEntity.class) {
         // just unpack, presents of ResponseEntity is hidden
         return extractTypeSchema(endpoint, typeArg0);
       }
-      return Api.Schema.ofUnsupported(source);
+      return Api.Schema.ofAny(source);
     }
     if (source instanceof WildcardType wt) {
       if (wt.getLowerBounds().length == 0
           && Arrays.equals(wt.getUpperBounds(), new Type[] {Object.class}))
-        return Api.Schema.ofUnsupported(wt);
+        return Api.Schema.ofAny(wt);
       // simplification: <? extends X> => <X>
       return extractTypeSchema(endpoint, wt.getUpperBounds()[0]);
     }
-    return Api.Schema.ofUnsupported(source);
+    return Api.Schema.ofAny(source);
   }
 
   /*
@@ -831,7 +813,7 @@ final class ApiExtractor {
 
   private static String getPropertyName(Api.Endpoint endpoint, Property property) {
     return "path$".equals(property.getName())
-        ? endpoint.getIn().getPaths().get(0).replace("/", "")
+        ? endpoint.getIn().getPaths().get(0).replace("/api/", "").replace("/", "")
         : property.getName();
   }
 
@@ -856,9 +838,6 @@ final class ApiExtractor {
     }
     if (type == OpenApi.EntityType[].class && endpoint.getEntityType() != null) {
       return Array.newInstance(endpoint.getEntityType(), 0).getClass();
-    }
-    if (type == WebMessageResponse.class) {
-      return WebMessage.class;
     }
     return type;
   }
@@ -963,7 +942,7 @@ final class ApiExtractor {
     if (source.isAnnotationPresent(PathVariable.class))
       return getParameterDetails(source.getAnnotation(PathVariable.class));
     if (source.isAnnotationPresent(RequestParam.class))
-      return getParameterDetails(source.getAnnotation(RequestParam.class));
+      return getParameterDetails(source.getAnnotation(RequestParam.class), source);
     if (source.isAnnotationPresent(RequestBody.class))
       return getParameterDetails(source.getAnnotation(RequestBody.class));
     return null;
@@ -975,8 +954,9 @@ final class ApiExtractor {
     String name = firstNonEmpty(a.name(), details == null ? "" : details.name(), source.getName());
     Api.Parameter.In in = details == null ? Api.Parameter.In.QUERY : details.in();
     boolean required = details == null ? a.required() : details.required();
-    String fallbackDefaultValue = details != null ? details.defaultValue() : null;
-    String defaultValue = !a.defaultValue().isEmpty() ? a.defaultValue() : fallbackDefaultValue;
+    JsonValue fallbackDefaultValue = details != null ? details.defaultValue() : null;
+    JsonValue defaultValue =
+        !a.defaultValue().isEmpty() ? JsonValue.of(a.defaultValue()) : fallbackDefaultValue;
     return new ParameterDetails(in, name, required, defaultValue);
   }
 
@@ -991,10 +971,14 @@ final class ApiExtractor {
   }
 
   @Nonnull
-  private static ParameterDetails getParameterDetails(RequestParam a) {
+  private static ParameterDetails getParameterDetails(RequestParam a, Parameter p) {
     boolean hasDefault = !a.defaultValue().equals("\n\t\t\n\t\t\n\ue000\ue001\ue002\n\t\t\t\t\n");
     boolean required = a.required() && !hasDefault;
-    String defaultValue = hasDefault ? a.defaultValue() : null;
+    String javaDefaultValue = hasDefault ? a.defaultValue() : null;
+    Class<?> type = p.getType();
+    JsonValue defaultValue = Json.of(javaDefaultValue);
+    if ((type.isPrimitive() || type == Boolean.class || Number.class.isAssignableFrom(type))
+        && type != char.class) defaultValue = JsonValue.of(javaDefaultValue);
     return new ParameterDetails(
         In.QUERY, firstNonEmpty(a.name(), a.value()), required, defaultValue);
   }
@@ -1064,5 +1048,5 @@ final class ApiExtractor {
   }
 
   record ParameterDetails(
-      Api.Parameter.In in, String name, boolean required, String defaultValue) {}
+      Api.Parameter.In in, String name, boolean required, JsonValue defaultValue) {}
 }

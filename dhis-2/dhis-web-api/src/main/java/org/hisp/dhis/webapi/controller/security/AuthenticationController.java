@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -38,14 +38,13 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationEnrolmentException;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.security.LoginResponse.STATUS;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AccountExpiredException;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -53,6 +52,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.security.authentication.event.InteractiveAuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -87,7 +87,9 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Document(domain = User.class)
+@OpenApi.Document(
+    entity = User.class,
+    classifiers = {"team:platform", "purpose:support"})
 @RestController
 @RequestMapping("/api/auth")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -97,10 +99,12 @@ public class AuthenticationController {
   @Autowired private AuthenticationManager authenticationManager;
 
   @Autowired private DhisConfigurationProvider dhisConfig;
-  @Autowired private SystemSettingManager settingManager;
+  @Autowired private SystemSettingsProvider settingsProvider;
   @Autowired private RequestCache requestCache;
   @Autowired private SessionRegistry sessionRegistry;
   @Autowired private UserService userService;
+
+  @Autowired protected ApplicationEventPublisher eventPublisher;
 
   private SessionAuthenticationStrategy sessionStrategy = new NullAuthenticatedSessionStrategy();
 
@@ -144,6 +148,12 @@ public class AuthenticationController {
       saveContext(request, response, authenticationResult);
 
       String redirectUrl = getRedirectUrl(request, response);
+
+      if (this.eventPublisher != null) {
+        this.eventPublisher.publishEvent(
+            new InteractiveAuthenticationSuccessEvent(authenticationResult, this.getClass()));
+      }
+
       return LoginResponse.builder().loginStatus(STATUS.SUCCESS).redirectUrl(redirectUrl).build();
 
     } catch (TwoFactorAuthenticationException e) {
@@ -163,9 +173,6 @@ public class AuthenticationController {
   }
 
   private void validateRequest(LoginRequest loginRequest) {
-    if (!ValidationUtils.usernameIsValid(loginRequest.getUsername())) {
-      throw new BadCredentialsException("Bad credentials");
-    }
     User user = userService.getUserByUsername(loginRequest.getUsername());
     if (user == null) {
       throw new BadCredentialsException("Bad credentials");
@@ -207,7 +214,7 @@ public class AuthenticationController {
 
   private String getRedirectUrl(HttpServletRequest request, HttpServletResponse response) {
     String redirectUrl =
-        request.getContextPath() + "/" + settingManager.getStringSetting(SettingKey.START_MODULE);
+        request.getContextPath() + "/" + settingsProvider.getCurrentSettings().getStartModule();
 
     if (!redirectUrl.endsWith("/")) {
       redirectUrl += "/";
@@ -216,17 +223,21 @@ public class AuthenticationController {
     SavedRequest savedRequest = requestCache.getRequest(request, null);
     if (savedRequest != null) {
       DefaultSavedRequest defaultSavedRequest = (DefaultSavedRequest) savedRequest;
-
-      if (defaultSavedRequest.getQueryString() != null) {
-        redirectUrl =
-            defaultSavedRequest.getRequestURI() + "?" + defaultSavedRequest.getQueryString();
-      } else {
-        redirectUrl = defaultSavedRequest.getRequestURI();
+      if (!filterSavedRequest(defaultSavedRequest)) {
+        if (defaultSavedRequest.getQueryString() != null) {
+          redirectUrl =
+              defaultSavedRequest.getRequestURI() + "?" + defaultSavedRequest.getQueryString();
+        } else {
+          redirectUrl = defaultSavedRequest.getRequestURI();
+        }
       }
-
       this.requestCache.removeRequest(request, response);
     }
-
     return redirectUrl;
+  }
+
+  private boolean filterSavedRequest(DefaultSavedRequest savedRequest) {
+    String requestURI = savedRequest.getRequestURI();
+    return !requestURI.endsWith(".html") && !requestURI.endsWith("/") && requestURI.contains(".");
   }
 }

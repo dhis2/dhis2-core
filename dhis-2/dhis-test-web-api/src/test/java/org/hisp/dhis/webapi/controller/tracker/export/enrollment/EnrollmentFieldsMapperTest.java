@@ -32,14 +32,16 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.stream.Stream;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class EnrollmentFieldsMapperTest extends DhisControllerConvenienceTest {
+@Transactional
+class EnrollmentFieldsMapperTest extends H2ControllerIntegrationTestBase {
   @Autowired EnrollmentFieldsParamMapper mapper;
 
   static Stream<Arguments> getEnrollmentParamsMultipleCases() {

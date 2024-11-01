@@ -39,7 +39,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.hisp.dhis.analytics.common.params.CommonParams;
+import org.hisp.dhis.analytics.common.params.CommonParamsDelegator;
+import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.data.handler.MetadataHandler;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionType;
@@ -67,21 +68,20 @@ public class MetadataDimensionsHandler {
    * Handles all required logic/rules in order to return a map of metadata item identifiers.
    *
    * @param grid the {@link Grid}.
-   * @param commonParams the {@link CommonParams}.
+   * @param commonParsed the {@link CommonParsedParams}.
    * @return the map of {@link MetadataItem}.
    */
-  Map<String, List<String>> handle(Grid grid, CommonParams commonParams) {
-    List<QueryItem> items = commonParams.delegate().getAllItems();
-
+  Map<String, List<String>> handle(Grid grid, CommonParsedParams commonParsed) {
+    CommonParamsDelegator delegator = commonParsed.delegate();
+    List<QueryItem> items = delegator.getAllItems();
     List<DimensionalObject> allDimensionalObjects =
-        commonParams.delegate().getAllDimensionalObjects().stream()
-            // we're adding periods separately so we need to filter them out
+        delegator.getAllDimensionalObjects().stream()
+            // We're adding periods separately, so we need to filter them out.
             .filter(MetadataDimensionsHandler::isNotPeriod)
             .toList();
-
     List<DimensionalItemObject> periodDimensionOrFilterItems =
-        commonParams.delegate().getPeriodDimensionOrFilterItems();
-    List<QueryItem> itemFilters = commonParams.delegate().getItemsAsFilters();
+        delegator.getPeriodDimensionOrFilterItems();
+    List<QueryItem> itemFilters = delegator.getItemsAsFilters();
 
     Map<String, List<String>> dimensionItems = new HashMap<>();
     dimensionItems.put(PERIOD_DIM_ID, getDistinctPeriodUids(periodDimensionOrFilterItems));

@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -59,30 +60,35 @@ import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
-import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.setting.ThreadUserSettings;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.visualization.Visualization;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-class TranslationServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class TranslationServiceTest extends PostgresIntegrationTestBase {
   @Autowired private UserService injectUserService;
 
   @Autowired private IdentifiableObjectManager manager;
 
   private Locale locale;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     this.userService = injectUserService;
     createUserAndInjectSecurityContext(true);
     locale = Locale.FRENCH;
-    CurrentUserUtil.setUserSetting(UserSettingKey.DB_LOCALE, locale);
+    ThreadUserSettings.put(Map.of("keyDbLocale", locale.toString()));
   }
 
   @Test

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.DELETE;
@@ -34,13 +36,10 @@ import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.UPDATE;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1011;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1012;
 import static org.hisp.dhis.tracker.imports.validation.validator.Seq.seq;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
@@ -268,6 +267,6 @@ class SeqTest {
   }
 
   private List<String> actualErrorMessages() {
-    return reporter.getErrors().stream().map(Error::getMessage).collect(Collectors.toList());
+    return reporter.getErrors().stream().map(Error::getMessage).toList();
   }
 }

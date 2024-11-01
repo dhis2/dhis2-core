@@ -35,11 +35,11 @@ import static org.hamcrest.Matchers.not;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.metadata.OptionActions;
-import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
-import org.hisp.dhis.utils.DataGenerator;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.metadata.OptionActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

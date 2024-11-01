@@ -27,14 +27,11 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors;
 import org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils;
 
 /**
@@ -44,7 +41,6 @@ class GeoValidator implements Validator<Event> {
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
     ProgramStage programStage = bundle.getPreheat().getProgramStage(event.getProgramStage());
-    checkNotNull(programStage, TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL);
 
     if (event.getGeometry() != null) {
       ValidationUtils.validateGeometry(

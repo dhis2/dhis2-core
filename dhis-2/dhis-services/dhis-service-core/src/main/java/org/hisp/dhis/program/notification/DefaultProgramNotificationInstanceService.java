@@ -29,9 +29,6 @@ package org.hisp.dhis.program.notification;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.program.EnrollmentService;
-import org.hisp.dhis.program.EventService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,10 +41,6 @@ public class DefaultProgramNotificationInstanceService
     implements ProgramNotificationInstanceService {
   private final ProgramNotificationInstanceStore notificationInstanceStore;
 
-  private final EnrollmentService enrollmentService;
-
-  private final EventService eventService;
-
   @Override
   @Transactional(readOnly = true)
   public List<ProgramNotificationInstance> getProgramNotificationInstances(
@@ -59,24 +52,6 @@ public class DefaultProgramNotificationInstanceService
   @Override
   public Long countProgramNotificationInstances(ProgramNotificationInstanceParam params) {
     return notificationInstanceStore.countProgramNotificationInstances(params);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public void validateQueryParameters(ProgramNotificationInstanceParam params) {
-    if (params.hasEnrollment()) {
-      if (!enrollmentService.enrollmentExists(params.getEnrollment().getUid())) {
-        throw new IllegalQueryException(
-            String.format("Enrollment %s does not exist", params.getEnrollment().getUid()));
-      }
-    }
-
-    if (params.hasEvent()) {
-      if (!eventService.eventExists(params.getEvent().getUid())) {
-        throw new IllegalQueryException(
-            String.format("Event %s does not exist", params.getEvent().getUid()));
-      }
-    }
   }
 
   @Override

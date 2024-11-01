@@ -30,39 +30,32 @@ package org.hisp.dhis.merge.orgunit.handler;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class TrackerOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
 
-  @Autowired private TrackedEntityService trackedEntityService;
-
-  @Autowired private EnrollmentService piService;
-
-  @Autowired private EventService eventService;
-
-  @Autowired private IdentifiableObjectManager idObjectManager;
+  @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackerOrgUnitMergeHandler mergeHandler;
-
-  @PersistenceContext private EntityManager entityManager;
 
   private ProgramStage psA;
 
@@ -92,36 +85,36 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
 
   private Event eventC;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     prA = createProgram('A', Sets.newHashSet(), ouA);
-    idObjectManager.save(prA);
+    manager.save(prA);
     psA = createProgramStage('A', prA);
-    idObjectManager.save(psA);
+    manager.save(psA);
     ouA = createOrganisationUnit('A');
     ouB = createOrganisationUnit('B');
     ouC = createOrganisationUnit('C');
-    idObjectManager.save(ouA);
-    idObjectManager.save(ouB);
-    idObjectManager.save(ouC);
+    manager.save(ouA);
+    manager.save(ouB);
+    manager.save(ouC);
     trackedEntityA = createTrackedEntity('A', ouA);
     trackedEntityB = createTrackedEntity('B', ouB);
     trackedEntityC = createTrackedEntity('C', ouC);
-    trackedEntityService.addTrackedEntity(trackedEntityA);
-    trackedEntityService.addTrackedEntity(trackedEntityB);
-    trackedEntityService.addTrackedEntity(trackedEntityC);
+    manager.save(trackedEntityA);
+    manager.save(trackedEntityB);
+    manager.save(trackedEntityC);
     enrollmentA = createEnrollment(prA, trackedEntityA, ouA);
     enrollmentB = createEnrollment(prA, trackedEntityB, ouB);
     enrollmentC = createEnrollment(prA, trackedEntityC, ouA);
-    piService.addEnrollment(enrollmentA);
-    piService.addEnrollment(enrollmentB);
-    piService.addEnrollment(enrollmentC);
-    eventA = new Event(enrollmentA, psA, ouA);
-    eventB = new Event(enrollmentB, psA, ouB);
-    eventC = new Event(enrollmentC, psA, ouA);
-    eventService.addEvent(eventA);
-    eventService.addEvent(eventB);
-    eventService.addEvent(eventC);
+    manager.save(enrollmentA);
+    manager.save(enrollmentB);
+    manager.save(enrollmentC);
+    eventA = createEvent(psA, enrollmentA, ouA);
+    eventB = createEvent(psA, enrollmentB, ouB);
+    eventC = createEvent(psA, enrollmentC, ouA);
+    manager.save(eventA);
+    manager.save(eventB);
+    manager.save(eventC);
   }
 
   @Test

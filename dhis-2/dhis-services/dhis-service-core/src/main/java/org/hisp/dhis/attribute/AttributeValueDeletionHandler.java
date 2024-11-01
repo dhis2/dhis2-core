@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.attribute;
 
-import static java.util.Collections.singletonList;
-
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
@@ -49,7 +49,7 @@ public class AttributeValueDeletionHandler extends DeletionHandler {
   private DeletionVeto allowDeleteAttribute(Attribute attribute) {
     for (Class<? extends IdentifiableObject> supportedClass : attribute.getSupportedClasses()) {
       if (identifiableObjectManager.countAllValuesByAttributes(
-              supportedClass, singletonList(attribute))
+              supportedClass, List.of(UID.of(attribute)))
           > 0) {
         return new DeletionVeto(supportedClass, Attribute.class);
       }

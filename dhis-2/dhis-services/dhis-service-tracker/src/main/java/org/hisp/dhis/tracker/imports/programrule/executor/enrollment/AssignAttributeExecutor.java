@@ -35,8 +35,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
@@ -53,7 +52,7 @@ import org.hisp.dhis.tracker.imports.validation.ValidationCode;
  */
 @RequiredArgsConstructor
 public class AssignAttributeExecutor implements RuleActionExecutor<Enrollment> {
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final UID ruleUid;
 
@@ -65,8 +64,7 @@ public class AssignAttributeExecutor implements RuleActionExecutor<Enrollment> {
 
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Enrollment enrollment) {
-    Boolean canOverwrite =
-        systemSettingManager.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE);
+    Boolean canOverwrite = settingsProvider.getCurrentSettings().getRuleEngineAssignOverwrite();
     TrackedEntityAttribute attribute =
         bundle.getPreheat().getTrackedEntityAttribute(attributeUid.getValue());
 
@@ -77,10 +75,14 @@ public class AssignAttributeExecutor implements RuleActionExecutor<Enrollment> {
         || Boolean.TRUE.equals(canOverwrite)
         || isEqual(value, payloadAttribute.get().getValue(), attribute.getValueType())) {
       addOrOverwriteAttribute(enrollment, bundle);
-      return Optional.of(warning(ruleUid, ValidationCode.E1310, attributeUid.getValue(), value));
+      return Optional.of(
+          warning(
+              ruleUid,
+              ValidationCode.E1310,
+              attributeUid.getValue(),
+              enrollment.getTrackedEntity()));
     }
-    return Optional.of(
-        error(ruleUid, ValidationCode.E1309, attributeUid.getValue(), enrollment.getEnrollment()));
+    return Optional.of(error(ruleUid, ValidationCode.E1309, attributeUid.getValue(), value));
   }
 
   private void addOrOverwriteAttribute(Enrollment enrollment, TrackerBundle bundle) {

@@ -29,21 +29,24 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.nio.file.Path;
 import java.util.stream.Stream;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.web.WebClient;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author david mackessy
  */
-class DataSetMetadataControllerTest extends DhisControllerIntegrationTest {
+@Transactional
+class DataSetMetadataControllerTest extends PostgresControllerIntegrationTestBase {
 
   @ParameterizedTest
   @MethodSource("defaultCatComboData")
@@ -56,7 +59,7 @@ class DataSetMetadataControllerTest extends DhisControllerIntegrationTest {
       String catComboSizeCondition,
       String defaultCatComboCondition) {
     // given
-    POST("/metadata", WebClient.Body(testData)).content(HttpStatus.OK);
+    POST("/metadata", Path.of(testData)).content(HttpStatus.OK);
 
     // when the data entry metadata is retrieved
     JsonArray categoryCombos = GET("/dataEntry/metadata").content().getArray("categoryCombos");
@@ -68,6 +71,37 @@ class DataSetMetadataControllerTest extends DhisControllerIntegrationTest {
             .filter(cc -> cc.getString("name").string().equals("default"))
             .count();
     assertEquals(expectedDefaultCatComboCount, count, defaultCatComboCondition);
+  }
+
+  @Test
+  @DisplayName("Dataset display options are correctly saved and retrieved")
+  void getDatasetMetadataDisplayOptionsTest() {
+    String expectedDisplayOptions = "{\"aDisplay\": \"option\"}";
+    String dataSetsBody =
+        """
+            {
+              "dataSets": [
+                {
+                  "name": "hellobrenda",
+                  "shortName": "hellobrenda",
+                  "periodType": "Daily",
+                  "displayOptions": "{\\"aDisplay\\": \\"option\\"}"
+                }
+              ]
+            }
+        """;
+
+    // given
+    POST("/metadata", dataSetsBody).content(HttpStatus.OK);
+
+    // when the data entry metadata is retrieves
+    JsonObject dataEntryMetadata = GET("/dataEntry/metadata").content();
+    JsonArray dataSets = dataEntryMetadata.getArray("dataSets");
+    String actualDisplayOptions = dataSets.getObject(0).getString("displayOptions").string();
+
+    // then
+    assertEquals(1, dataSets.size());
+    assertEquals(expectedDisplayOptions, actualDisplayOptions);
   }
 
   private static Stream<Arguments> defaultCatComboData() {

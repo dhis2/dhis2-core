@@ -82,7 +82,7 @@ public class StreamingJsonRootMessageConverter
 
   @Override
   protected boolean supports(Class<?> clazz) {
-    return StreamingJsonRoot.class.equals(clazz);
+    return StreamingJsonRoot.class == clazz;
   }
 
   @Override
@@ -150,14 +150,16 @@ public class StreamingJsonRootMessageConverter
       throws IOException {
     try (JsonGenerator generator = jsonMapper.getFactory().createGenerator(outputStream)) {
       if (jsonRoot.getPager() == null && jsonRoot.getWrapperName() == null) {
-        fieldFilterService.toObjectNodesStream(jsonRoot.getParams(), generator);
+        fieldFilterService.toObjectNodesStream(
+            jsonRoot.getParams(), jsonRoot.isExcludeDefaults(), generator);
       } else {
         generator.writeStartObject();
         if (jsonRoot.getPager() != null) {
           generator.writeObjectField("pager", jsonRoot.getPager());
         }
         generator.writeArrayFieldStart(jsonRoot.getWrapperName());
-        fieldFilterService.toObjectNodesStream(jsonRoot.getParams(), generator);
+        fieldFilterService.toObjectNodesStream(
+            jsonRoot.getParams(), jsonRoot.isExcludeDefaults(), generator);
         generator.writeEndArray();
         generator.writeEndObject();
       }

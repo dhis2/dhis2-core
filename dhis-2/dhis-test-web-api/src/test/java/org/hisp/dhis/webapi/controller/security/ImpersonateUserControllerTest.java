@@ -29,20 +29,46 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Properties;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.test.config.H2DhisConfigurationProvider;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonImpersonateUserResponse;
+import org.hisp.dhis.test.webapi.json.domain.JsonUser;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.ImpersonateUserControllerBaseTest;
-import org.hisp.dhis.webapi.json.domain.JsonImpersonateUserResponse;
-import org.hisp.dhis.webapi.json.domain.JsonUser;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.hisp.dhis.webapi.controller.security.ImpersonateUserControllerTest.DhisConfig;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@ActiveProfiles({"test-h2", "impersonate-user-test"})
-class ImpersonateUserControllerTest extends ImpersonateUserControllerBaseTest {
+@ContextConfiguration(
+    classes = {
+      DhisConfig.class,
+    })
+@ActiveProfiles("impersonate-user-test")
+@Transactional
+class ImpersonateUserControllerTest extends H2ControllerIntegrationTestBase {
+
+  static class DhisConfig {
+    @Bean
+    public DhisConfigurationProvider dhisConfigurationProvider() {
+      H2DhisConfigurationProvider provider = new H2DhisConfigurationProvider();
+
+      Properties properties = new Properties();
+      properties.put(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED.getKey(), "true");
+      provider.addProperties(properties);
+
+      return provider;
+    }
+  }
 
   @Test
   void testImpersonateUserOKAsRoot() {

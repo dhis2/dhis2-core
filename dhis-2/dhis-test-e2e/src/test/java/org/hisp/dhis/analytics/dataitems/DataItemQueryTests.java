@@ -39,10 +39,10 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.dataitem.DataItemActions;
-import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.Constants;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.dataitem.DataItemActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -110,7 +110,7 @@ public class DataItemQueryTests extends ApiTest {
     // Then
     response.validate().statusCode(is(OK));
     response.validate().body("pager", isA(Object.class));
-    response.validate().body("dataItems", is(not(empty())));
+    response.validate().body("datrollbavkaItems", is(not(empty())));
     response.validate().body("dataItems.code", hasItem("AAAAAAA-1234"));
   }
 

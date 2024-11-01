@@ -30,8 +30,8 @@ package org.hisp.dhis.validation;
 import static java.util.Arrays.asList;
 import static org.hisp.dhis.expression.Operator.equal_to;
 import static org.hisp.dhis.expression.Operator.greater_than;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -42,15 +42,17 @@ import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class ValidationRuleStoreTest extends TransactionalIntegrationTest {
+@Transactional
+class ValidationRuleStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private ValidationRuleStore validationRuleStore;
 

@@ -29,8 +29,10 @@ package org.hisp.dhis.analytics.data;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+import java.util.Map;
 import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryGroups;
@@ -47,12 +49,13 @@ import org.hisp.dhis.analytics.data.handler.DataHandler;
 import org.hisp.dhis.analytics.data.handler.HeaderHandler;
 import org.hisp.dhis.analytics.data.handler.MetadataHandler;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
-import org.hisp.dhis.analytics.event.EventAnalyticsService;
+import org.hisp.dhis.analytics.event.data.EventAggregateService;
 import org.hisp.dhis.analytics.resolver.ExpressionResolvers;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -80,9 +83,9 @@ abstract class AnalyticsServiceBaseTest {
 
   @Mock private OrganisationUnitService organisationUnitService;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsProvider settingsProvider;
 
-  @Mock protected EventAnalyticsService eventAnalyticsService;
+  @Mock protected EventAggregateService eventAggregatedService;
 
   @Mock private DataQueryService dataQueryService;
 
@@ -111,12 +114,12 @@ abstract class AnalyticsServiceBaseTest {
         new MetadataHandler(dataQueryService, schemeIdResponseMapper, userService);
     DataHandler dataHandler =
         new DataHandler(
-            eventAnalyticsService,
+            eventAggregatedService,
             rawAnalyticsManager,
             resolvers,
             expressionService,
             queryPlanner,
-            systemSettingManager,
+            settingsProvider,
             analyticsManager,
             organisationUnitService,
             executionPlanStore);
@@ -125,6 +128,7 @@ abstract class AnalyticsServiceBaseTest {
     target.feedHandlers();
 
     when(analyticsCacheSettings.fixedExpirationTimeOrDefault()).thenReturn(0L);
+    lenient().when(settingsProvider.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
   }
 
   void initMock(DataQueryParams params) {

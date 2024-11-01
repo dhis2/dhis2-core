@@ -47,16 +47,22 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class DataValueAuditBatchHandlerTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class DataValueAuditBatchHandlerTest extends PostgresIntegrationTestBase {
 
   @Autowired private BatchHandlerFactory batchHandlerFactory;
 
@@ -100,12 +106,8 @@ class DataValueAuditBatchHandlerTest extends SingleSetupIntegrationTestBase {
 
   private String storedBy = "johndoe";
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() {
-
+  @BeforeAll
+  void setUp() {
     dataElementA = createDataElement('A');
     dataElementService.addDataElement(dataElementA);
     categoryOptionComboA = categoryService.getDefaultCategoryOptionCombo();
@@ -132,12 +134,6 @@ class DataValueAuditBatchHandlerTest extends SingleSetupIntegrationTestBase {
     auditD = new DataValueAudit(dataValueB, "22", storedBy, ChangeLogType.UPDATE);
   }
 
-  @Override
-  public void tearDownTest() {}
-
-  // -------------------------------------------------------------------------
-  // Tests
-  // -------------------------------------------------------------------------
   @Test
   void testAddObject() {
     BatchHandler<DataValueAudit> batchHandler;

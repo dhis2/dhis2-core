@@ -30,15 +30,27 @@ package org.hisp.dhis.programrule;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class ProgramRuleActionStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class ProgramRuleActionStoreTest extends PostgresIntegrationTestBase {
 
   private ProgramRule programRuleA;
 
@@ -54,8 +66,10 @@ class ProgramRuleActionStoreTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private ProgramService programService;
 
-  @Override
-  public void setUpTest() {
+  @Autowired private ProgramNotificationTemplateService programNotificationTemplateService;
+
+  @BeforeAll
+  void setUp() {
     programA = createProgram('A', null, null);
     programRuleA = createProgramRule('A', programA);
     dataElementA = createDataElement('A');
@@ -154,25 +168,19 @@ class ProgramRuleActionStoreTest extends SingleSetupIntegrationTestBase {
             "$placeofliving",
             null,
             null);
-    ProgramRuleAction actionC =
-        new ProgramRuleAction(
-            "ActionC",
-            programRuleA,
-            ProgramRuleActionType.HIDESECTION,
-            null,
-            null,
-            null,
-            null,
-            null,
-            "con",
-            "Hello",
-            "$placeofliving",
-            null,
-            null);
-    actionA.setTemplateUid("templateuid");
+
+    ProgramNotificationTemplate pnt =
+        createProgramNotificationTemplate(
+            "test123",
+            3,
+            NotificationTrigger.PROGRAM_RULE,
+            ProgramNotificationRecipient.USER_GROUP);
+
+    programNotificationTemplateService.save(pnt);
+
+    actionA.setNotificationTemplate(pnt);
     actionStore.save(actionA);
     actionStore.save(actionB);
-    actionStore.save(actionC);
     assertEquals(1, actionStore.getProgramActionsWithNoNotification().size());
     assertTrue(actionStore.getProgramActionsWithNoNotification().contains(actionB));
   }
@@ -213,5 +221,45 @@ class ProgramRuleActionStoreTest extends SingleSetupIntegrationTestBase {
     actionStore.save(actionB);
     assertEquals(1, actionStore.getProgramActionsWithNoDataObject().size());
     assertTrue(actionStore.getProgramActionsWithNoDataObject().contains(actionB));
+  }
+
+  @Test
+  @DisplayName("retrieving Program Rule Actions by data element returns expected entries")
+  void getProgramRuleVariablesByDataElementTest() {
+    // given
+    DataElement deX = createDataElementAndSave('x');
+    DataElement deY = createDataElementAndSave('y');
+    DataElement deZ = createDataElementAndSave('z');
+
+    ProgramRuleAction pra1 = createProgramRuleAction('a');
+    pra1.setDataElement(deX);
+    ProgramRuleAction pra2 = createProgramRuleAction('b');
+    pra2.setDataElement(deY);
+    ProgramRuleAction pra3 = createProgramRuleAction('c');
+    pra3.setDataElement(deZ);
+    ProgramRuleAction pra4 = createProgramRuleAction('d');
+
+    actionStore.save(pra1);
+    actionStore.save(pra2);
+    actionStore.save(pra3);
+    actionStore.save(pra4);
+
+    // when
+    List<ProgramRuleAction> programRuleActions =
+        actionStore.getByDataElement(List.of(deX, deY, deZ));
+
+    // then
+    assertEquals(3, programRuleActions.size());
+    assertTrue(
+        programRuleActions.stream()
+            .map(ProgramRuleAction::getDataElement)
+            .toList()
+            .containsAll(List.of(deX, deY, deZ)));
+  }
+
+  private DataElement createDataElementAndSave(char c) {
+    DataElement de = createDataElement(c);
+    dataElementService.addDataElement(de);
+    return de;
   }
 }

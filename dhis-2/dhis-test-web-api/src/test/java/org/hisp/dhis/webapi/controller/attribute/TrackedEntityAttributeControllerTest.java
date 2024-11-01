@@ -27,22 +27,24 @@
  */
 package org.hisp.dhis.webapi.controller.attribute;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 
 import org.hisp.dhis.common.Objects;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.TestUtils;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternParser;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.utils.TestUtils;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Luca Cambi
  */
-class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class TrackedEntityAttributeControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void shouldGenerateRandomValuesOrgUnitCodeAndRandom() throws Exception {
 

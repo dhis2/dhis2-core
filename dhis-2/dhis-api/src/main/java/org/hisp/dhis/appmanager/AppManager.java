@@ -48,6 +48,7 @@ public interface AppManager {
       Set.of(
           // Javascript apps
           "aggregate-data-entry",
+          "approval",
           "app-management",
           "cache-cleaner",
           "capture",
@@ -70,7 +71,6 @@ public interface AppManager {
           "scheduler",
           "settings",
           "sms-configuration",
-          "tracker-capture",
           "translations",
           "usage-analytics",
           "user",
@@ -147,9 +147,9 @@ public interface AppManager {
    *
    * @param file the app file.
    * @param fileName the name of the app file.
-   * @return outcome of the installation
+   * @return the installed app instance
    */
-  AppStatus installApp(File file, String fileName);
+  App installApp(File file, String fileName);
 
   /**
    * Installs an app from the AppHub with the given ID.
@@ -157,7 +157,7 @@ public interface AppManager {
    * @param appHubId A unqiue ID for a specific app version
    * @return outcome of the installation
    */
-  AppStatus installApp(UUID appHubId);
+  App installApp(UUID appHubId);
 
   /**
    * Indicates whether the app with the given name exist.
@@ -209,6 +209,8 @@ public interface AppManager {
    * @return true if the status was changed in this method.
    */
   boolean markAppToDelete(App app);
+
+  int getUriContentLength(Resource resource);
 
   // -------------------------------------------------------------------------
   // Static methods for manipulating a collection of apps

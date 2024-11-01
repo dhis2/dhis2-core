@@ -34,6 +34,7 @@ import static org.hisp.dhis.security.Authorities.F_ACCEPT_DATA_LOWER_LEVELS;
 import static org.hisp.dhis.security.Authorities.F_APPROVE_DATA;
 import static org.hisp.dhis.security.Authorities.F_APPROVE_DATA_LOWER_LEVELS;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -43,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -61,13 +61,12 @@ import org.hisp.dhis.dataapproval.DataApprovalStatus;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -103,7 +102,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  *
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = DataValue.class)
+@OpenApi.Document(
+    entity = DataApprovalWorkflow.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/dataApprovals")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -236,6 +237,7 @@ public class DataApprovalController {
         .collect(toList());
   }
 
+  @OpenApi.Response(DataApprovalStateResponse[].class)
   @GetMapping(value = STATUS_PATH, produces = ContextUtils.CONTENT_TYPE_JSON)
   public @ResponseBody RootNode getApproval(
       @OpenApi.Param({UID[].class, DataSet.class}) @RequestParam Set<String> ds,
@@ -249,7 +251,7 @@ public class DataApprovalController {
     List<String> fields = new ArrayList<>(contextService.getParameterValues("fields"));
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.ALL.getFields());
+      fields.addAll(FieldPreset.ALL.getFields());
       List<String> defaults = new ArrayList<>();
       defaults.add(
           "period[id,name,code],organisationUnit[id,name,created,lastUpdated],dataSet[code,name,created,lastUpdated,id]");

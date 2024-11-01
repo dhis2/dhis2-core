@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
+import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
@@ -61,7 +62,7 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -102,7 +103,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       DataApprovalLevelService dataApprovalLevelService,
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
@@ -116,7 +117,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
         idObjectManager,
         organisationUnitService,
         categoryService,
-        systemSettingManager,
+        settingsProvider,
         dataApprovalLevelService,
         resourceTableService,
         tableHookService,
@@ -185,12 +186,12 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     sql = sql.replace("organisationunitid", "sourceid");
 
     sql +=
-        replace(
+        replaceQualify(
             """
-            from validationresult vrs
-            inner join period pe on vrs.periodid=pe.periodid
+            from ${validationresult} vrs
+            inner join ${period} pe on vrs.periodid=pe.periodid
             inner join analytics_rs_periodstructure ps on vrs.periodid=ps.periodid
-            inner join validationrule vr on vr.validationruleid=vrs.validationruleid
+            inner join ${validationrule} vr on vr.validationruleid=vrs.validationruleid
             inner join analytics_rs_organisationunitgroupsetstructure ougs on vrs.organisationunitid=ougs.organisationunitid
             and (cast(${peStartDateMonth} as date)=ougs.startdate or ougs.startdate is null)
             left join analytics_rs_orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid
@@ -198,12 +199,9 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
             where vrs.created < '${startTime}'
             and vrs.created is not null ${partitionClause}""",
             Map.of(
-                "peStartDateMonth",
-                sqlBuilder.dateTrunc("month", "ps.startdate"),
-                "startTime",
-                toLongDate(params.getStartTime()),
-                "partitionClause",
-                partitionClause));
+                "peStartDateMonth", sqlBuilder.dateTrunc("month", "ps.startdate"),
+                "startTime", toLongDate(params.getStartTime()),
+                "partitionClause", partitionClause));
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
@@ -216,11 +214,11 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
                 "and pe.startdate >= '${fromDate}'",
                 Map.of("fromDate", DateUtils.toMediumDate(params.getFromDate())));
     String sql =
-        replace(
+        replaceQualify(
             """
             select distinct(extract(year from pe.startdate))
-            from validationresult vrs
-            inner join period pe on vrs.periodid=pe.periodid
+            from ${validationresult} vrs
+            inner join ${period} pe on vrs.periodid=pe.periodid
             where pe.startdate is not null
             and vrs.created < '${startTime}'
             ${fromDateClause}""",
@@ -237,7 +235,8 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
    * @return a partition SQL clause.
    */
   private String getPartitionClause(AnalyticsTablePartition partition) {
-    return format("and ps.year = {} ", partition.getYear());
+    String partitionFilter = format("and ps.year = {} ", partition.getYear());
+    return emptyIfTrue(partitionFilter, sqlBuilder.supportsDeclarativePartitioning());
   }
 
   private List<AnalyticsTableColumn> getColumns() {

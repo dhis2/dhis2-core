@@ -36,12 +36,12 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -62,6 +62,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  */
 @Controller
 @RequestMapping("/api/dataElementGroups")
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class DataElementGroupController extends AbstractCrudController<DataElementGroup> {
   @Autowired private CategoryService dataElementCategoryService;
 
@@ -69,13 +70,9 @@ public class DataElementGroupController extends AbstractCrudController<DataEleme
 
   @GetMapping("/{uid}/operands")
   public String getOperands(
-      @PathVariable("uid") String uid,
-      @RequestParam Map<String, String> parameters,
-      Model model,
-      TranslateParams translateParams)
+      @PathVariable("uid") String uid, @RequestParam Map<String, String> parameters, Model model)
       throws NotFoundException {
     WebOptions options = new WebOptions(parameters);
-    setTranslationParams(translateParams);
 
     WebMetadata metadata = new WebMetadata();
     List<DataElementOperand> dataElementOperands =
@@ -104,11 +101,9 @@ public class DataElementGroupController extends AbstractCrudController<DataEleme
       @PathVariable("uid") String uid,
       @PathVariable("q") String q,
       @RequestParam Map<String, String> parameters,
-      TranslateParams translateParams,
       Model model)
       throws NotFoundException {
     WebOptions options = new WebOptions(parameters);
-    setTranslationParams(translateParams);
 
     WebMetadata metadata = new WebMetadata();
     List<DataElementOperand> dataElementOperands = Lists.newArrayList();

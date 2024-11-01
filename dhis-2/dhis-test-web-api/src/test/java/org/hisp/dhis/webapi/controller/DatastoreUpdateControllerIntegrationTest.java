@@ -27,18 +27,20 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.HttpStatus.NOT_FOUND;
-import static org.hisp.dhis.web.HttpStatus.OK;
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpClientAdapter.Body;
+import static org.hisp.dhis.http.HttpStatus.NOT_FOUND;
+import static org.hisp.dhis.http.HttpStatus.OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the different scenarios for updating a datastore value.
@@ -48,10 +50,11 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class DatastoreUpdateControllerIntegrationTest extends DhisControllerIntegrationTest {
+@Transactional
+class DatastoreUpdateControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
 
-  @Override
-  protected void beforeEach() {
+  @BeforeEach
+  void setUp() {
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     currentUserDetails.setId(0L);
     clearSecurityContext();

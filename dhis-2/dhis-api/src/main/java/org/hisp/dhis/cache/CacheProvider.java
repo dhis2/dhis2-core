@@ -65,6 +65,8 @@ public interface CacheProvider {
 
   <V> Cache<V> createUserFailedLoginAttemptCache(V defaultValue);
 
+  <V> Cache<V> createDisable2FAFailedAttemptCache(V defaultValue);
+
   <V> Cache<V> createUserAccountRecoverAttemptCache(V defaultValue);
 
   <V> Cache<V> createProgramOwnerCache();
@@ -75,11 +77,7 @@ public interface CacheProvider {
 
   <V> Cache<V> createCurrentUserGroupInfoCache();
 
-  <V> Cache<V> createUserSettingCache();
-
   <V> Cache<V> createAttrOptionComboIdCache();
-
-  <V> Cache<V> createSystemSettingCache();
 
   <V> Cache<V> createGoogleAccessTokenCache();
 

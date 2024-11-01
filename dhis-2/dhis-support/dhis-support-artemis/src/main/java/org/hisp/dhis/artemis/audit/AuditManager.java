@@ -39,6 +39,7 @@ import org.hisp.dhis.artemis.AuditProducerConfiguration;
 import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditAttributes;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -152,6 +153,9 @@ public class AuditManager {
 
     if (value instanceof IdentifiableObject) {
       return ((IdentifiableObject) value).getUid();
+    }
+    if (value instanceof AttributeValues attrs) {
+      return attrs.toObjectJson();
     }
 
     if (value instanceof RelationshipItem) {

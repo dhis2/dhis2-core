@@ -38,11 +38,11 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.List;
 import java.util.stream.Stream;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -52,7 +52,7 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DashboardCheckTest extends DhisConvenienceTest {
+class DashboardCheckTest extends TestBase {
   @InjectMocks private DashboardCheck dashboardCheck;
 
   @ParameterizedTest

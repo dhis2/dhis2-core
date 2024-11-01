@@ -34,6 +34,19 @@ import org.hisp.dhis.analytics.generator.Generator;
  * "/analytics/events/aggregate/{program}?" endpoint.
  */
 public class EnrollmentAggregatedGenerator implements Generator {
+  private String[] scenarios = new String[] {};
+
+  public EnrollmentAggregatedGenerator() {}
+
+  public EnrollmentAggregatedGenerator(String... scenarios) {
+    this.scenarios = scenarios;
+  }
+
+  @Override
+  public String[] getScenarios() {
+    return scenarios;
+  }
+
   @Override
   public int getMaxTestsPerClass() {
     return 4;
@@ -47,6 +60,11 @@ public class EnrollmentAggregatedGenerator implements Generator {
   @Override
   public String getClassNamePrefix() {
     return "EnrollmentsAggregate";
+  }
+
+  @Override
+  public String getScenarioFile() {
+    return "enroll-aggregated.json";
   }
 
   @Override

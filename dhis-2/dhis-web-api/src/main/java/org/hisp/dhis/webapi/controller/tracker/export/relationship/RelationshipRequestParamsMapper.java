@@ -95,10 +95,9 @@ class RelationshipRequestParamsMapper {
                     relationshipRequestParams.getEvent()))
             .identifier(
                 ObjectUtils.firstNonNull(
-                        trackedEntity,
-                        relationshipRequestParams.getEnrollment(),
-                        relationshipRequestParams.getEvent())
-                    .getValue());
+                    trackedEntity,
+                    relationshipRequestParams.getEnrollment(),
+                    relationshipRequestParams.getEvent()));
 
     mapOrderParam(builder, relationshipRequestParams.getOrder());
 

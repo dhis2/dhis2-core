@@ -55,18 +55,18 @@ import org.hisp.dhis.program.AnalyticsType;
  * <li>{@link OrgUnitFieldType#ATTRIBUTE} use an event attribute or data element
  * of type orgUnit. OrgUnit structure tables are joined to the attribute or data
  * element column.</li>
- * <li>{@link OrgUnitFieldType#REGISTRATION} use the TEI registration orgUnit.
+ * <li>{@link OrgUnitFieldType#REGISTRATION} use the TE registration orgUnit.
  * OrgUnit structure tables are joined to the analytics table registrationou
  * column.</li>
  * <li>{@link OrgUnitFieldType#ENROLLMENT use the program instance enrollment
  * orgUnit. OrgUnit structure columns are included in the analytics table for
  * enrollment queries. For event queries, orgUnit structure tables are joined to
  * the enrolmentou column.</li>
- * <li>{@link OrgUnitFieldType#OWNER_AT_START} use the TEI owner at the start of
+ * <li>{@link OrgUnitFieldType#OWNER_AT_START} use the TE owner at the start of
  * reporting period. OrgUnit columns are coalesced from the ownership analytics
  * table when present, and from the enrollment orgUnit when not (the ou column
  * for enrollment queries, or the enrollmentou column for event queries.)</li>
- * <li>{@link OrgUnitFieldType#OWNER_AT_END} use the TEI owner at the end of
+ * <li>{@link OrgUnitFieldType#OWNER_AT_END} use the TE owner at the end of
  * reporting period. OrgUnit columns are coalesced from the ownership analytics
  * table when present, and from the enrollment orgUnit when not (the ou column
  * for enrollment queries, or the enrollmentou column for event queries.)</li>

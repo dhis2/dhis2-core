@@ -37,16 +37,21 @@ import java.util.HashMap;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
+import org.springframework.transaction.annotation.Transactional;
 
-class UserRoleTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class UserRoleTest extends PostgresIntegrationTestBase {
 
   @Autowired
   @Qualifier("org.hisp.dhis.user.UserRoleStore")

@@ -35,6 +35,7 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfile;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileData;
@@ -51,7 +52,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-@OpenApi.Document(domain = OrganisationUnit.class)
+@OpenApi.Document(
+    entity = OrganisationUnit.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @RestController
 @AllArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -62,20 +65,22 @@ public class OrganisationUnitProfileController {
   @RequiresAuthority(anyOf = F_ORG_UNIT_PROFILE_ADD)
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
-  public void saveProfile(@RequestBody OrgUnitProfile profile) throws BadRequestException {
+  public void saveProfile(@RequestBody OrgUnitProfile profile)
+      throws BadRequestException, ForbiddenException {
     validateAndThrowErrors(() -> orgUnitProfileService.validateOrgUnitProfile(profile));
 
     orgUnitProfileService.saveOrgUnitProfile(profile);
   }
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
-  public OrgUnitProfile getProfile() {
+  public OrgUnitProfile getProfile() throws ForbiddenException {
     return orgUnitProfileService.getOrgUnitProfile();
   }
 
   @GetMapping(value = "/{uid}/data", produces = APPLICATION_JSON_VALUE)
   public OrgUnitProfileData getProfileData(
-      @PathVariable String uid, @RequestParam(required = false) String period) {
+      @PathVariable String uid, @RequestParam(required = false) String period)
+      throws ForbiddenException {
     return orgUnitProfileService.getOrgUnitProfileData(uid, period);
   }
 }

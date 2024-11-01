@@ -34,42 +34,31 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
-import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author viet@dhis2.org
  */
-class ProgramSectionServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class ProgramSectionServiceTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
-
-  @Autowired private UserService _userService;
 
   @Autowired private AclService aclService;
 
   @Autowired private CategoryService _categoryService;
 
-  //  @Override
-  //  public void setUpTest() {
-  //    userService = _userService;
-  //    categoryService = _categoryService;
-  //  }
-
   @BeforeEach
   final void setup() throws Exception {
-    userService = _userService;
     categoryService = _categoryService;
-
-    preCreateInjectAdminUser();
-
-    String currentUsername = CurrentUserUtil.getCurrentUsername();
-    User currentUser = userService.getUserByUsername(currentUsername);
-    injectSecurityContextUser(currentUser);
+    injectAdminIntoSecurityContext();
   }
 
   @Test

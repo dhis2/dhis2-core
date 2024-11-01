@@ -73,6 +73,7 @@ import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.eventvisualization.EventVisualization;
+import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.indicator.Indicator;
@@ -299,7 +300,8 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
         String plural = schemaService.getDynamicSchema(klass).getPlural();
         generator.writeArrayFieldStart(plural);
-        fieldFilterService.toObjectNodesStream(fieldFilterParams, generator);
+        fieldFilterService.toObjectNodesStream(
+            fieldFilterParams, params.getDefaults().isExclude(), generator);
         generator.writeEndArray();
       }
 
@@ -438,6 +440,11 @@ public class DefaultMetadataExportService implements MetadataExportService {
     if (parameters.containsKey("skipSharing")) {
       params.setSkipSharing(Boolean.parseBoolean(parameters.get("skipSharing").get(0)));
       parameters.remove("skipSharing");
+    }
+
+    if (parameters.containsKey("defaults")) {
+      params.setDefaults(Defaults.valueOf(parameters.get("defaults").get(0)));
+      parameters.remove("defaults");
     }
 
     for (String parameterKey : parameters.keySet()) {
@@ -1115,13 +1122,10 @@ public class DefaultMetadataExportService implements MetadataExportService {
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       IdentifiableObject identifiableObject) {
     if (identifiableObject == null) return metadata;
-    identifiableObject
-        .getAttributeValues()
-        .forEach(
-            av ->
-                metadata.putValue(
-                    Attribute.class, attributeService.getAttribute(av.getAttribute().getUid())));
-
+    if (identifiableObject.getAttributeValues().isEmpty()) return metadata;
+    List<Attribute> attributes =
+        attributeService.getAttributesByIds(identifiableObject.getAttributeValues().keys());
+    metadata.putValues(Attribute.class, attributes);
     return metadata;
   }
 

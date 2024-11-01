@@ -29,24 +29,20 @@ package org.hisp.dhis.webapi.controller.security;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
 import java.util.Set;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.security.LoginConfigResponse;
-import org.hisp.dhis.security.LoginConfigResponse.LoginConfigResponseBuilder;
 import org.hisp.dhis.security.LoginOidcProvider;
-import org.hisp.dhis.security.LoginPageLayout;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.setting.SystemSettingsTranslationService;
 import org.hisp.dhis.system.SystemService;
-import org.hisp.dhis.webapi.controller.Server;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,111 +52,52 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Document(domain = Server.class)
+@OpenApi.Document(
+    entity = User.class,
+    classifiers = {"team:platform", "purpose:support"})
 @RestController
 @RequestMapping("/api/loginConfig")
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class LoginConfigController {
 
-  private final SystemSettingManager manager;
+  private final SystemSettingsService settingsService;
+  private final SystemSettingsTranslationService settingsTranslationService;
   private final ConfigurationService configurationService;
   private final SystemService systemService;
   private final DhisOidcProviderRepository oidcProviderRepository;
 
-  @Getter
-  private enum KEYS {
-    APPLICATION_TITLE(),
-    APPLICATION_INTRO(),
-    APPLICATION_NOTIFICATION(),
-    APPLICATION_FOOTER(),
-    APPLICATION_RIGHT_FOOTER(),
-    FLAG(),
-    CUSTOM_LOGIN_PAGE_LOGO("/api/staticContent/logo_front.png"),
-    UI_LOCALE(),
-    LOGIN_POPUP(),
-    SELF_REGISTRATION_NO_RECAPTCHA(),
-    USE_CUSTOM_LOGO_FRONT(),
-    ACCOUNT_RECOVERY(),
-    RECAPTCHA_SITE(),
-
-    /** The layout to be used for displaying LoginPage. Value is the enum {@link LoginPageLayout} */
-    LOGIN_PAGE_LAYOUT(LoginPageLayout.DEFAULT.name()),
-
-    /**
-     * The HTML string which is used for displaying LoginPage if selected {@link LoginPageLayout} is
-     * CUSTOM.
-     */
-    LOGIN_PAGE_TEMPLATE();
-    ;
-
-    private final String defaultValue;
-
-    KEYS() {
-      this.defaultValue = null;
-    }
-
-    KEYS(String defaultValue) {
-      this.defaultValue = defaultValue;
-    }
-  }
-
-  private String getTranslatableString(KEYS key, String locale) {
-    Optional<String> translated =
-        manager.getSystemSettingTranslation(SettingKey.valueOf(key.name()), locale);
-
-    return translated.orElseGet(() -> manager.getStringSetting(SettingKey.valueOf(key.name())));
+  private String getTranslatableString(String key, String locale) {
+    return settingsTranslationService
+        .getSystemSettingTranslation(key, locale)
+        .orElseGet(() -> settingsService.getCurrentSettings().asString(key, ""));
   }
 
   @GetMapping()
   public LoginConfigResponse getConfig(
-      @RequestParam(required = false, defaultValue = "en") String locale) {
-    LoginConfigResponseBuilder builder = LoginConfigResponse.builder();
-
-    builder.applicationTitle(getTranslatableString(KEYS.APPLICATION_TITLE, locale));
-    builder.applicationDescription(getTranslatableString(KEYS.APPLICATION_INTRO, locale));
-    builder.applicationNotification(getTranslatableString(KEYS.APPLICATION_NOTIFICATION, locale));
-    builder.applicationLeftSideFooter(getTranslatableString(KEYS.APPLICATION_FOOTER, locale));
-    builder.applicationRightSideFooter(
-        getTranslatableString(KEYS.APPLICATION_RIGHT_FOOTER, locale));
-    builder.loginPopup(getTranslatableString(KEYS.LOGIN_POPUP, locale));
-
-    builder.countryFlag(manager.getStringSetting(SettingKey.valueOf(KEYS.FLAG.name())));
-
-    builder.uiLocale(
-        manager
-            .getSystemSetting(SettingKey.valueOf(KEYS.UI_LOCALE.name()), Locale.class)
-            .getLanguage());
-
-    builder.loginPageLogo(
-        manager.getBoolSetting(SettingKey.valueOf(KEYS.USE_CUSTOM_LOGO_FRONT.name()))
-            ? KEYS.CUSTOM_LOGIN_PAGE_LOGO.defaultValue
-            : null);
-
-    builder.selfRegistrationNoRecaptcha(
-        manager.getBoolSetting(SettingKey.valueOf(KEYS.SELF_REGISTRATION_NO_RECAPTCHA.name())));
-    builder.allowAccountRecovery(
-        manager.getBoolSetting(SettingKey.valueOf(KEYS.ACCOUNT_RECOVERY.name())));
-    builder.useCustomLogoFront(
-        manager.getBoolSetting(SettingKey.valueOf(KEYS.USE_CUSTOM_LOGO_FRONT.name())));
-
-    builder.emailConfigured(manager.emailConfigured());
-
-    builder.selfRegistrationEnabled(
-        configurationService.getConfiguration().selfRegistrationAllowed());
-
-    builder.apiVersion(systemService.getSystemInfo().getVersion());
-    builder.recaptchaSite(manager.getStringSetting(SettingKey.valueOf(KEYS.RECAPTCHA_SITE.name())));
-
-    builder.loginPageLayout(
-        manager.getStringSetting(SettingKey.valueOf(KEYS.LOGIN_PAGE_LAYOUT.name())));
-
-    builder.loginPageTemplate(
-        manager.getStringSetting(SettingKey.valueOf(KEYS.LOGIN_PAGE_TEMPLATE.name())));
-
-    builder.oidcProviders(getRegisteredOidcProviders());
-
-    return builder.build();
+      @RequestParam(required = false, defaultValue = "en") String locale, SystemSettings settings) {
+    return LoginConfigResponse.builder()
+        .applicationTitle(getTranslatableString("applicationTitle", locale))
+        .applicationDescription(getTranslatableString("keyApplicationIntro", locale))
+        .applicationNotification(getTranslatableString("keyApplicationNotification", locale))
+        .applicationLeftSideFooter(getTranslatableString("keyApplicationFooter", locale))
+        .applicationRightSideFooter(getTranslatableString("keyApplicationRightFooter", locale))
+        .loginPopup(getTranslatableString("loginPopup", locale))
+        .countryFlag(settings.getFlag())
+        .uiLocale(settings.getUiLocale().getLanguage())
+        .loginPageLogo(
+            settings.getUseCustomLogoFront() ? "/api/staticContent/logo_front.png" : null)
+        .selfRegistrationNoRecaptcha(settings.getSelfRegistrationNoRecaptcha())
+        .allowAccountRecovery(settings.getAccountRecoveryEnabled())
+        .useCustomLogoFront(settings.getUseCustomLogoFront())
+        .emailConfigured(settings.isEmailConfigured())
+        .selfRegistrationEnabled(configurationService.getConfiguration().selfRegistrationAllowed())
+        .apiVersion(systemService.getSystemInfo().getVersion())
+        .recaptchaSite(settings.getRecaptchaSite())
+        .loginPageLayout(settings.getLoginPageLayout().name())
+        .loginPageTemplate(settings.getLoginPageTemplate())
+        .oidcProviders(getRegisteredOidcProviders())
+        .build();
   }
 
   private List<LoginOidcProvider> getRegisteredOidcProviders() {

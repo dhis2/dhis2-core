@@ -27,43 +27,30 @@
  */
 package org.hisp.dhis.dbms;
 
-import java.util.ArrayList;
-import java.util.List;
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
-@Component
 @Slf4j
+@Component
+@RequiredArgsConstructor
 public class HibernateDbmsManager implements DbmsManager {
   // -------------------------------------------------------------------------
   // Dependencies
   // -------------------------------------------------------------------------
 
-  private JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-  public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
-    this.jdbcTemplate = jdbcTemplate;
-  }
+  private final EntityManager entityManager;
 
-  private EntityManager entityManager;
-
-  public void setEntityManager(EntityManager entityManager) {
-    this.entityManager = entityManager;
-  }
-
-  private HibernateCacheManager cacheManager;
-
-  public void setCacheManager(HibernateCacheManager cacheManager) {
-    this.cacheManager = cacheManager;
-  }
+  private final HibernateCacheManager cacheManager;
 
   // -------------------------------------------------------------------------
   // DbmsManager implementation
@@ -79,8 +66,8 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("constant");
     emptyTable("sqlview");
 
-    emptyTable("smscodes");
     emptyTable("smscommandcodes");
+    emptyTable("smscodes");
     emptyTable("smscommands");
     emptyTable("incomingsms");
 
@@ -329,8 +316,6 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("usersetting");
     emptyTable("fileresource");
     emptyTable("jobconfiguration");
-    // userinfo should be last, since many tables has a foreign key to it
-    emptyTable("userinfo");
     emptyTable("route");
 
     dropTable("analytics_rs_orgunitstructure");
@@ -353,6 +338,9 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("audit");
     emptyTable("eventhook");
     emptyTable("dataentryform");
+
+    // userinfo should be last, since many tables has a foreign key to it
+    emptyTable("userinfo");
 
     log.debug("Cleared database contents");
 
@@ -381,48 +369,6 @@ public class HibernateDbmsManager implements DbmsManager {
     } catch (BadSqlGrammarException ex) {
       log.debug("Table " + table + " does not exist");
     }
-  }
-
-  @Override
-  public boolean tableExists(String tableName) {
-    final String sql =
-        "select table_name from information_schema.tables "
-            + "where table_name = '"
-            + tableName
-            + "' "
-            + "and table_type = 'BASE TABLE'";
-
-    List<Object> tables = jdbcTemplate.queryForList(sql, Object.class);
-
-    return tables != null && tables.size() > 0;
-  }
-
-  @Override
-  public List<List<Object>> getTableContent(String table) {
-    List<List<Object>> tableContent = new ArrayList<>();
-
-    SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet("select * from " + table);
-    int cols = sqlRowSet.getMetaData().getColumnCount() + 1;
-
-    List<Object> headers = new ArrayList<>();
-
-    for (int i = 1; i < cols; i++) {
-      headers.add(sqlRowSet.getMetaData().getColumnName(i));
-    }
-
-    tableContent.add(headers);
-
-    while (sqlRowSet.next()) {
-      List<Object> row = new ArrayList<>();
-
-      for (int i = 1; i < cols; i++) {
-        row.add(sqlRowSet.getObject(i));
-      }
-
-      tableContent.add(row);
-    }
-
-    return tableContent;
   }
 
   // -------------------------------------------------------------------------

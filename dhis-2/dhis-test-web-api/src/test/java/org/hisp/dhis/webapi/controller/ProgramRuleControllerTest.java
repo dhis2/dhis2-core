@@ -27,16 +27,18 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
-import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
+import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.event.ProgramRuleController} using (mocked) REST
@@ -44,7 +46,8 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class ProgramRuleControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class ProgramRuleControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testValidateCondition() {
@@ -65,12 +68,11 @@ class ProgramRuleControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testValidateCondition_NoSuchProgram() {
-    assertWebMessage(
-        "OK",
-        200,
-        "ERROR",
-        "Expression is not valid",
-        POST("/programRules/condition/description?programId=xyz", "1 != 1").content(HttpStatus.OK));
+    assertEquals(
+        "Program is specified but does not exist: abcdefghijk",
+        POST("/programRules/condition/description?programId=abcdefghijk", "1 != 1")
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
   }
 
   @Test

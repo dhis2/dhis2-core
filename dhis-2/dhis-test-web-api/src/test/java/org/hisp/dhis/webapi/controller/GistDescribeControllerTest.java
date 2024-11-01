@@ -43,14 +43,14 @@ class GistDescribeControllerTest extends AbstractGistControllerTest {
 
   @Test
   void testDescribe_Object() {
-    JsonObject description = GET("/users/{uid}/gist?describe=true", getSuperuserUid()).content();
+    JsonObject description = GET("/users/{uid}/gist?describe=true", getAdminUid()).content();
     assertBaseDescription(description);
     assertFalse(description.getObject("hql").has("count"));
   }
 
   @Test
   void testDescribe_ObjectList() {
-    JsonObject description = GET("/users/gist?describe=true", getSuperuserUid()).content();
+    JsonObject description = GET("/users/gist?describe=true", getAdminUid()).content();
     assertBaseDescription(description);
     assertFalse(description.getObject("hql").has("count"));
   }
@@ -58,7 +58,7 @@ class GistDescribeControllerTest extends AbstractGistControllerTest {
   @Test
   void testDescribe_ObjectCollectionList() {
     JsonObject description =
-        GET("/users/{uid}/userGroups/gist?describe=true", getSuperuserUid()).content();
+        GET("/users/{uid}/userGroups/gist?describe=true", getAdminUid()).content();
     assertBaseDescription(description);
     assertFalse(description.getObject("hql").has("count"));
   }
@@ -66,7 +66,7 @@ class GistDescribeControllerTest extends AbstractGistControllerTest {
   @Test
   void testDescribe_Error_PlanningFailed() {
     JsonObject description =
-        GET("/users/{uid}/userGroups/gist?describe=true&filter=foo:eq:bar", getSuperuserUid())
+        GET("/users/{uid}/userGroups/gist?describe=true&filter=foo:eq:bar", getAdminUid())
             .content();
     assertTrue(description.has("error", "unplanned", "status"));
     assertTrue(description.getObject("error").has("type", "message"));
@@ -77,7 +77,7 @@ class GistDescribeControllerTest extends AbstractGistControllerTest {
   @Test
   void testDescribe_Error_ValidationFailed() {
     JsonObject description =
-        GET("/users/gist?describe=true&fields=password", getSuperuserUid()).content();
+        GET("/users/gist?describe=true&fields=password", getAdminUid()).content();
     assertTrue(description.has("error", "unplanned", "planned", "status"));
     assertTrue(description.getObject("error").has("type", "message"));
     assertTrue(description.getObject("unplanned").has("fields", "filters", "orders"));
@@ -89,8 +89,7 @@ class GistDescribeControllerTest extends AbstractGistControllerTest {
 
   @Test
   void testDescribe_Total() {
-    JsonObject description =
-        GET("/users/gist?describe=true&total=true", getSuperuserUid()).content();
+    JsonObject description = GET("/users/gist?describe=true&total=true", getAdminUid()).content();
     assertBaseDescription(description);
     assertTrue(description.getObject("hql").has("count"));
   }
@@ -98,7 +97,7 @@ class GistDescribeControllerTest extends AbstractGistControllerTest {
   @Test
   void testDescribe_FetchParameters() {
     JsonObject description =
-        GET("/users/gist?describe=true&filter=surname:startsWith:Jo", getSuperuserUid()).content();
+        GET("/users/gist?describe=true&filter=surname:startsWith:Jo", getAdminUid()).content();
     assertBaseDescription(description);
     JsonObject hql = description.getObject("hql");
     assertTrue(hql.has("parameters"));
@@ -112,14 +111,14 @@ class GistDescribeControllerTest extends AbstractGistControllerTest {
   @Test
   void testDescribe_Authorisation_Guest() {
     switchToGuestUser();
-    JsonObject description = GET("/users/{uid}/gist?describe=true", getSuperuserUid()).content();
+    JsonObject description = GET("/users/{uid}/gist?describe=true", getAdminUid()).content();
     assertFalse(description.has("hql"));
   }
 
   @Test
   void testDescribe_Authorisation_Admin() {
     switchToNewUser("guest", "Test_skipSharingCheck", "F_METADATA_EXPORT");
-    assertBaseDescription(GET("/users/{uid}/gist?describe=true", getSuperuserUid()).content());
+    assertBaseDescription(GET("/users/{uid}/gist?describe=true", getAdminUid()).content());
   }
 
   private void assertBaseDescription(JsonObject description) {

@@ -10,7 +10,7 @@
 
   <artifactId>dhis-service-core</artifactId>
   <packaging>jar</packaging>
-  <name>DHIS Core API Implementations</name>
+  <name>DHIS Services Core</name>
   <properties>
     <rootDir>../../</rootDir>
   </properties>
@@ -26,10 +26,6 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-schema</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-setting</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -67,13 +63,11 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-jdbc</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-artemis</artifactId>
-    </dependency>
-
     <!-- Other -->
-
+    <dependency>
+      <groupId>org.apache.httpcomponents.core5</groupId>
+      <artifactId>httpcore5</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.hisp.dhis.parser</groupId>
       <artifactId>dhis-antlr-expression-parser</artifactId>
@@ -116,12 +110,15 @@
     </dependency>
     <dependency>
       <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-core</artifactId>
+      <artifactId>hibernate-core-jakarta</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.vladmihalcea</groupId>
-      <artifactId>hibernate-types-52</artifactId>
-      <version>${hibernate-types.version}</version>
+      <groupId>io.hypersistence</groupId>
+      <artifactId>hypersistence-utils-hibernate-55</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.xml.bind</groupId>
+      <artifactId>jakarta.xml.bind-api</artifactId>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -136,16 +133,12 @@
       <artifactId>jackson-databind</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.persistence</groupId>
-      <artifactId>javax.persistence-api</artifactId>
+      <groupId>jakarta.persistence</groupId>
+      <artifactId>jakarta.persistence-api</artifactId>
     </dependency>
     <dependency>
       <groupId>commons-beanutils</groupId>
       <artifactId>commons-beanutils</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.locationtech.jts</groupId>
-      <artifactId>jts-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.jasypt</groupId>
@@ -200,8 +193,8 @@
       <artifactId>gson</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
+      <groupId>org.apache.httpcomponents.client5</groupId>
+      <artifactId>httpclient5</artifactId>
     </dependency>
 
     <!-- Apache JClouds -->
@@ -261,8 +254,8 @@
       <artifactId>aerogear-otp-java</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>

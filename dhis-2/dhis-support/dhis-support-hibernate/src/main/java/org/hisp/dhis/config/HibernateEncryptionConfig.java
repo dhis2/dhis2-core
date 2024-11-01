@@ -86,7 +86,7 @@ public class HibernateEncryptionConfig {
     return encryptor;
   }
 
-  @Bean("hibernateEncryptors")
+  @Bean
   public HibernateEncryptorRegistry hibernateEncryptors() {
     HibernateEncryptorRegistry registry = HibernateEncryptorRegistry.getInstance();
     registry.setEncryptors(Map.of(AES_128_STRING_ENCRYPTOR, aes128StringEncryptor()));

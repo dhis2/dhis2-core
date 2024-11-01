@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.programstageworkinglist;
 
-import static org.hisp.dhis.utils.Assertions.assertContains;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -36,18 +36,20 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.ProgramStageWorkingListController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.transaction.annotation.Transactional;
 
 /** Tests the {@link ProgramStageWorkingListController} using (mocked) REST requests. */
-class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class ProgramStageWorkingListControllerTest extends H2ControllerIntegrationTestBase {
 
   private String programId;
 

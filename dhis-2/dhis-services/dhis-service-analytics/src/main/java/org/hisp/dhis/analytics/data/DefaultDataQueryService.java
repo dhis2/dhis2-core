@@ -81,9 +81,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -99,8 +98,6 @@ public class DefaultDataQueryService implements DataQueryService {
 
   private final AnalyticsSecurityManager securityManager;
 
-  private final UserSettingService userSettingService;
-
   // -------------------------------------------------------------------------
   // DataQueryService implementation
   // -------------------------------------------------------------------------
@@ -112,7 +109,7 @@ public class DefaultDataQueryService implements DataQueryService {
 
     IdScheme inputIdScheme = firstNonNull(request.getInputIdScheme(), UID);
 
-    Locale locale = (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE);
+    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
 
     if (isNotEmpty(request.getDimension())) {
       params.addDimensions(getDimensionalObjects(request));
@@ -184,7 +181,7 @@ public class DefaultDataQueryService implements DataQueryService {
 
     Date date = object.getRelativePeriodDate();
 
-    Locale locale = (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE);
+    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
 
     String userOrgUnit =
         object.getRelativeOrganisationUnit() != null
@@ -296,19 +293,17 @@ public class DefaultDataQueryService implements DataQueryService {
     } else if (currentUser != null && params != null && params.getUserOrgUnitType() != null) {
       switch (params.getUserOrgUnitType()) {
         case DATA_CAPTURE:
-          units.addAll(currentUser.getOrganisationUnits().stream().sorted().collect(toList()));
+          units.addAll(currentUser.getOrganisationUnits().stream().sorted().toList());
           break;
         case DATA_OUTPUT:
-          units.addAll(
-              currentUser.getDataViewOrganisationUnits().stream().sorted().collect(toList()));
+          units.addAll(currentUser.getDataViewOrganisationUnits().stream().sorted().toList());
           break;
         case TEI_SEARCH:
-          units.addAll(
-              currentUser.getTeiSearchOrganisationUnits().stream().sorted().collect(toList()));
+          units.addAll(currentUser.getTeiSearchOrganisationUnits().stream().sorted().toList());
           break;
       }
     } else if (currentUser != null) {
-      units.addAll(currentUser.getOrganisationUnits().stream().sorted().collect(toList()));
+      units.addAll(currentUser.getOrganisationUnits().stream().sorted().toList());
     }
 
     return units;
@@ -316,7 +311,9 @@ public class DefaultDataQueryService implements DataQueryService {
 
   private List<DimensionalObject> getDimensionalObjects(DataQueryRequest request) {
     List<DimensionalObject> list = new ArrayList<>();
-    List<OrganisationUnit> userOrgUnits = getUserOrgUnits(null, request.getUserOrgUnit());
+    DataQueryParams params =
+        DataQueryParams.newBuilder().withUserOrgUnitType(request.getUserOrgUnitType()).build();
+    List<OrganisationUnit> userOrgUnits = getUserOrgUnits(params, request.getUserOrgUnit());
 
     if (request.getDimension() != null) {
       for (String param : request.getDimension()) {

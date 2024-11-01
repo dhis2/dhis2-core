@@ -41,12 +41,13 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -63,17 +64,19 @@ class TrackedEntityProgramAttributeFileResourceTest extends TrackerTest {
 
   @Autowired private FileResourceService fileResourceService;
 
-  @Autowired protected UserService _userService;
+  private User importUser;
 
-  @Override
-  protected void initTest() throws IOException {
-    userService = _userService;
+  @BeforeAll
+  void setUp() throws IOException {
     setUpMetadata("tracker/te_program_with_tea_fileresource_metadata.json");
-    injectAdminUser();
+
+    importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
   }
 
   @Test
   void testTrackedEntityProgramAttributeFileResourceValue() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().build();
     FileResource fileResource =
         new FileResource(
             "test.pdf",
@@ -87,8 +90,7 @@ class TrackedEntityProgramAttributeFileResourceTest extends TrackerTest {
     assertFalse(fileResource.isAssigned());
     ImportReport importReport =
         trackerImportService.importTracker(
-            new TrackerImportParams(),
-            fromJson("tracker/te_program_with_tea_fileresource_data.json"));
+            params, fromJson("tracker/te_program_with_tea_fileresource_data.json"));
     assertNoErrors(importReport);
 
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);

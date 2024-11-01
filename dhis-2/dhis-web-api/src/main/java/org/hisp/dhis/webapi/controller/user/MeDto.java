@@ -28,20 +28,24 @@
 package org.hisp.dhis.webapi.controller.user;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
+import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.attribute.AttributeValuesDeserializer;
+import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.apikey.ApiToken;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -56,7 +60,7 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 public class MeDto {
   public MeDto(
       User user,
-      Map<String, Serializable> settings,
+      UserSettings settings,
       List<String> programs,
       List<String> dataSets,
       List<ApiToken> patTokens) {
@@ -100,101 +104,108 @@ public class MeDto {
     this.programs = programs;
     this.dataSets = dataSets;
     this.patTokens = patTokens;
+
+    this.attributeValues = user.getAttributeValues();
   }
 
-  @JsonProperty() private String id;
+  @JsonProperty private String id;
 
-  @JsonProperty() private String username;
+  @JsonProperty private String username;
 
-  @JsonProperty() private String surname;
+  @JsonProperty private String surname;
 
-  @JsonProperty() private String firstName;
+  @JsonProperty private String firstName;
 
-  @JsonProperty() private String employer;
+  @JsonProperty private String employer;
 
-  @JsonProperty() private String languages;
+  @JsonProperty private String languages;
 
-  @JsonProperty() private String gender;
+  @JsonProperty private String gender;
 
-  @JsonProperty() private String jobTitle;
+  @JsonProperty private String jobTitle;
 
-  @JsonProperty() private FileResource avatar;
+  @JsonProperty private FileResource avatar;
 
-  @JsonProperty() private Date created;
+  @JsonProperty private Date created;
 
-  @JsonProperty() private Date lastUpdated;
+  @JsonProperty private Date lastUpdated;
 
   @OpenApi.Property(BaseIdentifiableObject[].class)
-  @JsonProperty()
+  @JsonProperty
   private Set<OrganisationUnit> dataViewOrganisationUnits;
 
-  @JsonProperty() protected Set<String> favorites;
+  @JsonProperty protected Set<String> favorites;
 
-  @JsonProperty() protected Sharing sharing;
+  @JsonProperty protected Sharing sharing;
 
-  @JsonProperty() private Set<UserGroupAccess> userGroupAccesses;
+  @JsonProperty private Set<UserGroupAccess> userGroupAccesses;
 
-  @JsonProperty() private Set<UserAccess> userAccesses;
+  @JsonProperty private Set<UserAccess> userAccesses;
 
   @OpenApi.Property(BaseIdentifiableObject[].class)
-  @JsonProperty()
+  @JsonProperty
   private Set<UserGroup> userGroups;
 
-  @JsonProperty() private Set<Translation> translations;
+  @JsonProperty private Set<Translation> translations;
 
   @OpenApi.Property(BaseIdentifiableObject[].class)
-  @JsonProperty()
+  @JsonProperty
   private Set<OrganisationUnit> teiSearchOrganisationUnits;
 
   @OpenApi.Property(BaseIdentifiableObject[].class)
-  @JsonProperty()
+  @JsonProperty
   private Set<OrganisationUnit> organisationUnits;
 
-  @JsonProperty() private Boolean externalAccess;
+  @JsonProperty private Boolean externalAccess;
 
-  @JsonProperty() private String displayName;
+  @JsonProperty private String displayName;
 
-  @JsonProperty() private Access access;
+  @JsonProperty private Access access;
 
-  @JsonProperty() private String name;
+  @JsonProperty private String name;
 
-  @JsonProperty() private String email;
+  @JsonProperty private String email;
 
-  @JsonProperty() private String phoneNumber;
+  @JsonProperty private String phoneNumber;
 
-  @JsonProperty() private String introduction;
+  @JsonProperty private String introduction;
 
-  @JsonProperty() private Date birthday;
+  @JsonProperty private Date birthday;
 
-  @JsonProperty() private String nationality;
+  @JsonProperty private String nationality;
 
-  @JsonProperty() private String education;
+  @JsonProperty private String education;
 
-  @JsonProperty() private String interests;
+  @JsonProperty private String interests;
 
-  @JsonProperty() private String whatsApp;
+  @JsonProperty private String whatsApp;
 
-  @JsonProperty() private String facebookMessenger;
+  @JsonProperty private String facebookMessenger;
 
-  @JsonProperty() private String skype;
+  @JsonProperty private String skype;
 
-  @JsonProperty() private String telegram;
+  @JsonProperty private String telegram;
 
-  @JsonProperty() private String twitter;
+  @JsonProperty private String twitter;
 
   @OpenApi.Property(BaseIdentifiableObject[].class)
   @JsonProperty
   private Set<UserRole> userRoles;
 
-  @JsonProperty() private Map<String, Serializable> settings;
+  @JsonProperty private UserSettings settings;
 
-  @JsonProperty() private List<String> programs;
+  @JsonProperty private List<String> programs;
 
-  @JsonProperty() private List<String> authorities;
+  @JsonProperty private List<String> authorities;
 
-  @JsonProperty() private List<String> dataSets;
+  @JsonProperty private List<String> dataSets;
 
-  @JsonProperty() private String impersonation;
+  @JsonProperty private String impersonation;
 
-  @JsonProperty() private List<ApiToken> patTokens;
+  @JsonProperty private List<ApiToken> patTokens;
+
+  @JsonProperty
+  @JsonDeserialize(using = AttributeValuesDeserializer.class)
+  @JsonSerialize(using = AttributeValuesSerializer.class)
+  private AttributeValues attributeValues;
 }

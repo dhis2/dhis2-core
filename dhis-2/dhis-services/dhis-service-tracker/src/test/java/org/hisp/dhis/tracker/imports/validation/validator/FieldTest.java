@@ -27,19 +27,18 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.UPDATE;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.imports.validation.validator.Field.field;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -177,6 +176,6 @@ class FieldTest {
   }
 
   private List<String> actualErrorMessages() {
-    return reporter.getErrors().stream().map(Error::getMessage).collect(Collectors.toList());
+    return reporter.getErrors().stream().map(Error::getMessage).toList();
   }
 }

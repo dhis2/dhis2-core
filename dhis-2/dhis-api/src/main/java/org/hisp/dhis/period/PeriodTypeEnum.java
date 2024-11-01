@@ -38,6 +38,7 @@ public enum PeriodTypeEnum {
   FINANCIAL_APRIL("FinancialApril"),
   FINANCIAL_JULY("FinancialJuly"),
   FINANCIAL_NOV("FinancialNov"),
+  FINANCIAL_SEP("FinancialSep"),
   FINANCIAL_OCT("FinancialOct"),
   MONTHLY("Monthly"),
   QUARTERLY("Quarterly"),

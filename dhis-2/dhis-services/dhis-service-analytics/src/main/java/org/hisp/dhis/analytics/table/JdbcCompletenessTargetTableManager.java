@@ -55,7 +55,7 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -106,7 +106,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       DataApprovalLevelService dataApprovalLevelService,
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
@@ -120,7 +120,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
         idObjectManager,
         organisationUnitService,
         categoryService,
-        systemSettingManager,
+        settingsProvider,
         dataApprovalLevelService,
         resourceTableService,
         tableHookService,
@@ -177,14 +177,15 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     sql = TextUtils.removeLastComma(sql) + " ";
 
     sql +=
-        """
+        qualifyVariables(
+            """
         from analytics_rs_datasetorganisationunitcategory doc
-        inner join dataset ds on doc.datasetid=ds.datasetid
-        inner join organisationunit ou on doc.organisationunitid=ou.organisationunitid
+        inner join ${dataset} ds on doc.datasetid=ds.datasetid
+        inner join ${organisationunit} ou on doc.organisationunitid=ou.organisationunitid
         left join analytics_rs_orgunitstructure ous on doc.organisationunitid=ous.organisationunitid
         left join analytics_rs_organisationunitgroupsetstructure ougs on doc.organisationunitid=ougs.organisationunitid
-        left join categoryoptioncombo ao on doc.attributeoptioncomboid=ao.categoryoptioncomboid
-        left join analytics_rs_categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid""";
+        left join ${categoryoptioncombo} ao on doc.attributeoptioncomboid=ao.categoryoptioncomboid
+        left join analytics_rs_categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid""");
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }

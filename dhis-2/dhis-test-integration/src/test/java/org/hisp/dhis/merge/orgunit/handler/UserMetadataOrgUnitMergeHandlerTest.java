@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.merge.orgunit.handler;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -35,16 +35,18 @@ import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class UserMetadataOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
-
-  @Autowired private UserService userService;
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class UserMetadataOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
