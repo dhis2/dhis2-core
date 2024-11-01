@@ -220,7 +220,7 @@
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
     <h2.version>2.3.232</h2.version>
-    <jakarta.persistence-api.version>3.1.0</jakarta.persistence-api.version>
+    <jakarta.persistence-api.version>3.2.0</jakarta.persistence-api.version>
 
     <!-- Maven plugin versions -->
     <maven-surefire-plugin.version>3.5.1</maven-surefire-plugin.version>
