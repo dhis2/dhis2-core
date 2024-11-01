@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Test;
 
 class DataIntegrityCategoryDimensionNoFavoritesControllerTest
     extends AbstractDataIntegrityIntegrationTest {
-  private final String check = "categories_dimensions_no_analysis";
+  private final String check = "categories_dimensions_no_visualizations";
 
   private String categoryOptionRed;
 
