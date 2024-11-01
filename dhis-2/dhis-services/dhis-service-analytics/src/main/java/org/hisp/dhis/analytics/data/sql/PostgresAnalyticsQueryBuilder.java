@@ -43,21 +43,21 @@ public class PostgresAnalyticsQueryBuilder implements AnalyticsQueryBuilder {
 
   @Override
   public String buildSelectClause(DataQueryParams params) {
-    return new SelectClauseBuilder(params, sqlBuilder).build();
+    return new SelectClauseBuilder(params, sqlBuilder).buildForPostgres();
   }
 
   @Override
   public String buildFromClause(DataQueryParams params, AnalyticsTableType tableType) {
-    return new FromClauseBuilder(params, sqlBuilder, tableType).build();
+    return new FromClauseBuilder(params, sqlBuilder, tableType).buildForPostgres();
   }
 
   @Override
   public String buildWhereClause(DataQueryParams params, AnalyticsTableType tableType) {
-    return new WhereClauseBuilder(params, sqlBuilder, tableType).build();
+    return new WhereClauseBuilder(params, sqlBuilder, tableType).buildForPostgres();
   }
 
   @Override
   public String buildGroupByClause(DataQueryParams params) {
-    return new GroupByClauseBuilder(params, sqlBuilder).build();
+    return new GroupByClauseBuilder(params, sqlBuilder).buildForPostgres();
   }
 }

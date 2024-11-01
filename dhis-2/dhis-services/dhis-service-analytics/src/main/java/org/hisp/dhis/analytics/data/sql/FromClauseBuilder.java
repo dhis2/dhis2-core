@@ -45,6 +45,6 @@ public class FromClauseBuilder implements SqlClauseBuilder {
 
   @Override
   public String buildForPostgres() {
-    return subqueryBuilder.buildSubquery();
+    return subqueryBuilder.buildForPostgres();
   }
 }

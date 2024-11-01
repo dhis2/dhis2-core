@@ -80,7 +80,7 @@ class SelectClauseBuilderTest extends TestBase {
     builder = new SelectClauseBuilder(params, sqlBuilder);
 
     // When
-    String result = builder.build();
+    String result = builder.buildForPostgres();
 
     var expected = invokeOld(params);
     // Then
@@ -100,7 +100,7 @@ class SelectClauseBuilderTest extends TestBase {
     builder = new SelectClauseBuilder(params, sqlBuilder);
 
     // When
-    String result = builder.build();
+    String result = builder.buildForPostgres();
     String expected = invokeOld(params);
     // Then
     assertEquals(expected, result);
@@ -120,7 +120,7 @@ class SelectClauseBuilderTest extends TestBase {
     builder = new SelectClauseBuilder(params, sqlBuilder);
 
     // When
-    String result = builder.build();
+    String result = builder.buildForPostgres();
 
     String expected = invokeOld(params);
     System.out.println("old: " + expected);
@@ -168,7 +168,7 @@ class SelectClauseBuilderTest extends TestBase {
     builder = new SelectClauseBuilder(params, sqlBuilder);
 
     // When
-    String result = builder.build();
+    String result = builder.buildForPostgres();
     String expected = invokeOld(params);
     // Then
     assertEquals(expected, result);

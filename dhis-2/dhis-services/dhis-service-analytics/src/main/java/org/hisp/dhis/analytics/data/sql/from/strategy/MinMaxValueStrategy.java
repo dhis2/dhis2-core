@@ -55,7 +55,7 @@ public class MinMaxValueStrategy extends BaseSubqueryStrategy {
     String dimensionColumns = columnBuilder.getMinMaxDimensionColumns();
     String valueColumns = columnBuilder.getMinMaxValueColumns();
     String fromSourceClause = getFromSourceClause() + " as " + ANALYTICS_TBL_ALIAS;
-    String whereClause = whereClauseBuilder.build();
+    String whereClause = whereClauseBuilder.build(sqlBuilder);
 
     return String.format(
         "(select %s, %s from %s %s group by %s)",
