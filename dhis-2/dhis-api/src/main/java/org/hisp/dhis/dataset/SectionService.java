@@ -27,73 +27,63 @@
  */
 package org.hisp.dhis.dataset;
 
+import java.util.Collection;
 import java.util.List;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.indicator.Indicator;
 
 public interface SectionService {
-  String ID = SectionService.class.getName();
-
   /**
-   * Adds a Section.
+   * Adds a {@link Section}.
    *
-   * @param section the Section to add.
+   * @param section the {@link Section} to add.
    * @return the generated identifier.
    */
   long addSection(Section section);
 
   /**
-   * Updates a Section.
+   * Updates a {@link Section}.
    *
-   * @param section the Section to update.
+   * @param section the {@link Section} to update.
    */
   void updateSection(Section section);
 
   /**
-   * Deletes a Section.
+   * Deletes a {@link Section}.
    *
-   * @param section the Section to delete.
+   * @param section the {@link Section} to delete.
    */
   void deleteSection(Section section);
 
   /**
-   * Retrieves the Section with the given identifier.
+   * Retrieves the {@link Section} with the given UID.
    *
-   * @param id the identifier of the Section to retrieve.
-   * @return the Section.
-   */
-  Section getSection(long id);
-
-  /**
-   * Retrieves the Section with the given identifier (uid).
-   *
-   * @param uid the identifier of the Section to retrieve.
-   * @return the Section.
+   * @param uid the identifier of the {@link Section} to retrieve.
+   * @return the {@link Section}.
    */
   Section getSection(String uid);
 
   /**
-   * Retrieves the Section with the given name.
+   * Retrieves sections associated with the data element with the given UID.
    *
-   * @param name the name of the Section to retrieve.
-   * @return the Section.
+   * @param uid the data element UID.
+   * @return a list of {@link Section}.
    */
-  Section getSectionByName(String name, Integer dataSetId);
+  List<Section> getSectionsByDataElement(String uid);
 
   /**
-   * Retrieves all Sections.
+   * Retrieves sections associated with the given data elements.
    *
-   * @return a Collection of Sections.
+   * @param indicators the list of {@link DataElement}.
+   * @return a list of {@link Section}.
    */
-  List<Section> getAllSections();
+  List<Section> getSectionsByDataElement(Collection<DataElement> dataElements);
 
   /**
-   * Retrieves all {@link Section}s referencing the provided {@link Indicator}s.
+   * Retrieves sections associated with the given indicators.
    *
-   * @return a Collection of {@link Section}s.
+   * @param indicators the list of {@link Indicator}.
+   * @return a list of {@link Section}.
    */
-  List<Section> getSectionsByIndicators(List<Indicator> indicators);
-
-  void removeIndicator(Section s, Indicator i);
-
-  void addIndicator(Section s, Indicator i);
+  List<Section> getSectionsByIndicators(Collection<Indicator> indicators);
 }

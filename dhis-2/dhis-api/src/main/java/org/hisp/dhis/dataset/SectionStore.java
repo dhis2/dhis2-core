@@ -34,10 +34,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.indicator.Indicator;
 
 public interface SectionStore extends IdentifiableObjectStore<Section> {
-  String ID = SectionStore.class.getName();
-
   /**
-   * Retrieves the {@link Section} with the given name and the given DataSet.
+   * Retrieves the Section with the given name and the given DataSet.
    *
    * @param name the name of the Section to retrieve.
    * @return the Section.
@@ -45,7 +43,7 @@ public interface SectionStore extends IdentifiableObjectStore<Section> {
   Section getSectionByName(String name, DataSet dataSet);
 
   /**
-   * Returns a list of {@link Section} for the given data element identifier.
+   * Retrieves sections associated with the data element with the given UID.
    *
    * @param uid the data element UID.
    * @return a list of {@link Section}.
@@ -53,11 +51,18 @@ public interface SectionStore extends IdentifiableObjectStore<Section> {
   List<Section> getSectionsByDataElement(String uid);
 
   /**
-   * Retrieves all {@link Section} referencing the provided {@link Indicator}s.
+   * Retrieves sections associated with the given indicators.
    *
-   * @return a Collection of {@link Section}s.
+   * @param indicators the list of {@link Indicator}.
+   * @return a list of {@link Section}.
    */
-  List<Section> getSectionsByIndicators(List<Indicator> indicators);
+  List<Section> getSectionsByIndicators(Collection<Indicator> indicators);
 
-  List<Section> getByDataElement(Collection<DataElement> dataElements);
+  /**
+   * Retrieves sections associated with the given data elements.
+   *
+   * @param indicators the list of {@link DataElement}.
+   * @return a list of {@link Section}.
+   */
+  List<Section> getSectionsByDataElement(Collection<DataElement> dataElements);
 }
