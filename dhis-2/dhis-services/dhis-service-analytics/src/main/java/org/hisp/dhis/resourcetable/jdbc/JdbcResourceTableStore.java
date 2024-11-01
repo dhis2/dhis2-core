@@ -132,7 +132,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
       List<Object[]> content = populateTableContent.get();
       log.debug("Populate table content rows: {}", content.size());
 
-      if (content.size() > 0) {
+      if (isNotEmpty(content)) {
         int columns = content.get(0).length;
         batchUpdate(columns, table.getName(), content);
       }
@@ -149,7 +149,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
         analyticsTableHookService.getByPhaseAndResourceTableType(
             AnalyticsTablePhase.RESOURCE_TABLE_POPULATED, tableType);
 
-    if (!hooks.isEmpty()) {
+    if (isNotEmpty(hooks)) {
       analyticsTableHookService.executeAnalyticsTableSqlHooks(hooks);
 
       log.info("Invoked resource table hooks: '{}'", hooks.size());
