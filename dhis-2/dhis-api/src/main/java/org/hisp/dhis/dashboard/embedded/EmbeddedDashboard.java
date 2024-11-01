@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dashboard;
+package org.hisp.dhis.dashboard.embedded;
 
-/**
- * Encapsulates type of dashboard item.
- *
- * @author Lars Helge Overland
- */
-public enum DashboardItemType {
-  VISUALIZATION,
-  EVENT_VISUALIZATION,
-  EVENT_CHART,
-  MAP,
-  EVENT_REPORT,
-  USERS,
-  REPORTS,
-  RESOURCES,
-  TEXT,
-  MESSAGES,
-  APP
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+/** Encapsulates metadata for an embedded and externally provided dashboard. */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class EmbeddedDashboard implements Serializable {
+  /** Provider of embedded dashboards. */
+  @JsonProperty private EmbeddedProvider provider;
+
+  /** Identifier for embedded dashboard. */
+  @JsonProperty private String id;
+
+  /** Customization options for embedded dashboard. */
+  @JsonProperty private EmbeddedOptions options;
 }
