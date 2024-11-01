@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.security;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -49,7 +48,6 @@ import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
@@ -74,22 +72,30 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class TwoFactorController {
-  private final UserService defaultUserService;
+  private final UserService userService;
 
-  /**
-   * @deprecated Use {@link #generateQRCode}.
-   */
-  @Deprecated(since = "2.39")
-  @GetMapping(value = "/qr", produces = APPLICATION_JSON_VALUE)
-  @ResponseStatus(HttpStatus.ACCEPTED)
+  @PostMapping(value = "/sendEmail2FA")
+  @ResponseStatus(HttpStatus.OK)
   @ResponseBody
-  public Map<String, String> getQrCode(@CurrentUser UserDetails currentUser)
+  public WebMessage generateEmail2FACode(@CurrentUser User currentUser, SystemSettings settings)
       throws WebMessageException {
     if (currentUser == null) {
       throw new WebMessageException(conflict(ErrorCode.E3027.getMessage(), ErrorCode.E3027));
     }
+    if (settings.getEmail2FAEnabled()) {
+      throw new WebMessageException(conflict(ErrorCode.E3045.getMessage(), ErrorCode.E3045));
+    }
+    if (currentUser.isTwoFactorEnabled()
+        && !UserService.hasTwoFactorSecretForApproval(currentUser)) {
+      throw new WebMessageException(conflict(ErrorCode.E3022.getMessage(), ErrorCode.E3022));
+    }
+    if (!userService.isEmailVerified(currentUser)) {
+      throw new WebMessageException(conflict(ErrorCode.E3043.getMessage(), ErrorCode.E3043));
+    }
 
-    return Map.of("url", "url");
+    userService.enrollEmail2FA(currentUser);
+
+    return ok("Email 2FA code was generated and sent successfully");
   }
 
   @OpenApi.Response(byte[].class)
@@ -101,20 +107,21 @@ public class TwoFactorController {
     if (currentUser == null) {
       throw new WebMessageException(conflict(ErrorCode.E3027.getMessage(), ErrorCode.E3027));
     }
-
+    if (settings.getTOTP2FAEnabled()) {
+      throw new WebMessageException(conflict(ErrorCode.E3044.getMessage(), ErrorCode.E3044));
+    }
     if (currentUser.isTwoFactorEnabled()
         && !UserService.hasTwoFactorSecretForApproval(currentUser)) {
       throw new WebMessageException(conflict(ErrorCode.E3022.getMessage(), ErrorCode.E3022));
     }
 
-    defaultUserService.generateTwoFactorOtpSecretForApproval(currentUser);
-
-    String appName = settings.getApplicationTitle();
+    userService.enrollTOTP2FA(currentUser);
 
     List<ErrorCode> errorCodes = new ArrayList<>();
 
     String qrContent =
-        TwoFactoryAuthenticationUtils.generateQrContent(appName, currentUser, errorCodes::add);
+        TwoFactoryAuthenticationUtils.generateQrContent(
+            settings.getApplicationTitle(), currentUser, errorCodes::add);
 
     if (!errorCodes.isEmpty()) {
       throw new WebMessageException(conflict(errorCodes.get(0).getMessage(), errorCodes.get(0)));
@@ -148,7 +155,7 @@ public class TwoFactorController {
    * @param currentUser This is the user that is currently logged in.
    */
   @PostMapping(
-      value = "/enabled",
+      value = {"/enabled", "/enable"},
       consumes = {"text/*", "application/*"})
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
@@ -166,7 +173,7 @@ public class TwoFactorController {
       return unauthorized(ErrorCode.E3023.getMessage());
     }
 
-    defaultUserService.enableTwoFa(currentUser, code);
+    userService.enableTwoFa(currentUser, code);
 
     return ok("Two factor authentication was enabled successfully");
   }
@@ -178,7 +185,7 @@ public class TwoFactorController {
    * @param currentUser This is the user that is currently logged in.
    */
   @PostMapping(
-      value = "/disabled",
+      value = {"/disabled", "/disable"},
       consumes = {"text/*", "application/*"})
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
@@ -191,16 +198,16 @@ public class TwoFactorController {
       throw new WebMessageException(conflict(ErrorCode.E3031.getMessage(), ErrorCode.E3031));
     }
 
-    if (defaultUserService.twoFaDisableIsLocked(currentUser.getUsername())) {
+    if (userService.twoFaDisableIsLocked(currentUser.getUsername())) {
       throw new WebMessageException(conflict(ErrorCode.E3042.getMessage(), ErrorCode.E3042));
     }
 
     if (!verifyCode(code, currentUser)) {
-      defaultUserService.registerFailed2FADisableAttempt(currentUser.getUsername());
+      userService.registerFailed2FADisableAttempt(currentUser.getUsername());
       return unauthorized(ErrorCode.E3023.getMessage());
     }
 
-    defaultUserService.disableTwoFa(currentUser, code);
+    userService.disableTwoFa(currentUser, code);
 
     return ok("Two factor authentication was disabled successfully");
   }
@@ -210,6 +217,6 @@ public class TwoFactorController {
       throw new BadCredentialsException(ErrorCode.E3025.getMessage());
     }
 
-    return TwoFactoryAuthenticationUtils.verify(code, currentUser.getSecret());
+    return TwoFactoryAuthenticationUtils.verifyTOTP(code, currentUser.getSecret());
   }
 }

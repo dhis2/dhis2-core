@@ -139,7 +139,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
 
     code = StringUtils.deleteWhitespace(code);
 
-    if (!TwoFactoryAuthenticationUtils.verify(code, user.getSecret())) {
+    if (!TwoFactoryAuthenticationUtils.verifyTOTP(code, user.getSecret())) {
       log.debug("Two-factor authentication failure for user: '{}'", user.getUsername());
 
       if (UserService.hasTwoFactorSecretForApproval(user)) {

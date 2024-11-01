@@ -123,6 +123,14 @@
 
     <property name="secret" type="text" not-null="false" />
 
+    <property name="twoFactorType" column="twofactortype" length="50" not-null="false"  >
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.security.twofa.TwoFactorType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
     <property name="externalAuth" column="externalauth" />
 
     <property name="openId" column="openid" type="text" />

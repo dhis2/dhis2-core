@@ -113,6 +113,23 @@ public class TwoFactoryAuthenticationUtils {
         "otpauth://totp/%s:%s?secret=%s&issuer=%s", app, user.getUsername(), secret, app);
   }
 
+  public static boolean verifyEmail2FACode(String code, String secret) {
+    if (Strings.isNullOrEmpty(secret)) {
+      throw new IllegalArgumentException("User must have a secret");
+    }
+
+    secret = removeApprovalPrefix(secret);
+    String[] codeAndTTL = secret.split("|");
+    secret = codeAndTTL[0];
+    long ttl = Long.parseLong(codeAndTTL[1]);
+
+    if (ttl < System.currentTimeMillis()) {
+      return false;
+    }
+
+    return code.equals(secret);
+  }
+
   /**
    * Verifies that the secret for the given user matches the given code.
    *
@@ -120,7 +137,7 @@ public class TwoFactoryAuthenticationUtils {
    * @param secret
    * @return true if the user secret matches the given code, false if not.
    */
-  public static boolean verify(String code, String secret) {
+  public static boolean verifyTOTP(String code, String secret) {
     if (Strings.isNullOrEmpty(secret)) {
       throw new IllegalArgumentException("User must have a secret");
     }

@@ -223,6 +223,9 @@ public enum ErrorCode {
   E3040("Could not resolve JwsAlgorithm from the JWK. Can not write a valid JWKSet"),
   E3041("User `{0}` is not allowed to change a user having the ALL authority"),
   E3042("Too many failed disable attempts. Please try again later"),
+  E3043("User has not a verified email, please verify your email first before you enable 2FA"),
+  E3044("TOTP two-factor authentication is not enabled"),
+  E3045("Email based two-factor authentication is not enabled"),
 
   /* Metadata Validation */
   E4000("Missing required property `{0}`"),

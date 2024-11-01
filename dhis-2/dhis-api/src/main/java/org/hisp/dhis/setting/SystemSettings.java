@@ -720,6 +720,14 @@ public non-sealed interface SystemSettings extends Settings {
     return asString("globalShellAppName", "global-app-shell");
   }
 
+  default boolean getEmail2FAEnabled() {
+    return asBoolean("email2FAEnabled", false);
+  }
+
+  default boolean getTOTP2FAEnabled() {
+    return asBoolean("totp2FAEnabled", true);
+  }
+
   /*
 
   Combinators based on several settings

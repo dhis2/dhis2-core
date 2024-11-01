@@ -639,7 +639,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testDisableTwoFaWithAdminUser() throws ForbiddenException {
     User userToModify = createAndAddUser("A");
-    userService.generateTwoFactorOtpSecretForApproval(userToModify);
+    userService.enrollTOTP2FA(userToModify);
     userService.updateUser(userToModify);
 
     List<ErrorReport> errors = new ArrayList<>();
@@ -650,7 +650,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testDisableTwoFaWithManageUser() throws ForbiddenException {
     User userToModify = createAndAddUser("A");
-    userService.generateTwoFactorOtpSecretForApproval(userToModify);
+    userService.enrollTOTP2FA(userToModify);
 
     UserGroup userGroupA = createUserGroup('A', Sets.newHashSet(userToModify));
     userGroupService.addUserGroup(userGroupA);

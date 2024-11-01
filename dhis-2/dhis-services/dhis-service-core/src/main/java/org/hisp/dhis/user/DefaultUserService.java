@@ -87,6 +87,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.filter.UserRoleCanIssueFilter;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -94,6 +95,7 @@ import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.jboss.aerogear.security.otp.api.Base32;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
@@ -111,6 +113,7 @@ import org.springframework.web.client.RestTemplate;
 @Service("org.hisp.dhis.user.UserService")
 public class DefaultUserService implements UserService {
   private static final long EMAIL_TOKEN_EXPIRY_MILLIS = 3600000;
+  private static final long TWOFA_EMAIL_CODE_EXPIRY_MILLIS = 3600000;
 
   private final UserStore userStore;
   private final UserGroupService userGroupService;
@@ -799,8 +802,19 @@ public class DefaultUserService implements UserService {
           "QR already approved, you must call /disable and then call /qr before you can enable");
     }
 
-    if (!TwoFactoryAuthenticationUtils.verify(code, user.getSecret())) {
-      throw new IllegalStateException("Invalid code");
+    TwoFactorType twoFactorType = user.getTwoFactorType();
+    if (twoFactorType == null) {
+      throw new IllegalStateException("Two factor type is not set");
+    }
+
+    if (twoFactorType == TwoFactorType.EMAIL) {
+      if (!TwoFactoryAuthenticationUtils.verifyEmail2FACode(code, user.getSecret())) {
+        throw new IllegalStateException("Invalid 2FA code");
+      }
+    } else if (twoFactorType == TwoFactorType.TOTP) {
+      if (!TwoFactoryAuthenticationUtils.verifyTOTP(code, user.getSecret())) {
+        throw new IllegalStateException("Invalid code");
+      }
     }
 
     approveTwoFactorSecret(user, CurrentUserUtil.getCurrentUserDetails());
@@ -834,7 +848,7 @@ public class DefaultUserService implements UserService {
       throw new IllegalStateException("Too many failed attempts, try again later");
     }
 
-    if (!TwoFactoryAuthenticationUtils.verify(code, user.getSecret())) {
+    if (!TwoFactoryAuthenticationUtils.verifyTOTP(code, user.getSecret())) {
       registerFailed2FADisableAttempt(user.getUsername());
       throw new IllegalStateException("Invalid code");
     }
@@ -983,10 +997,104 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional
-  public void generateTwoFactorOtpSecretForApproval(User user) {
+  public void enrollTOTP2FA(User user) {
+    if (user.isTwoFactorEnabled()) {
+      throw new IllegalStateException("User has 2FA enabled, disable first");
+    }
     String newSecret = TWO_FACTOR_CODE_APPROVAL_PREFIX + Base32.random();
     user.setSecret(newSecret);
+    user.setTwoFactorType(TwoFactorType.TOTP);
     updateUser(user);
+  }
+
+  @Override
+  @Transactional
+  public void enrollEmail2FA(User user) {
+    if (user.isTwoFactorEnabled()) {
+      throw new IllegalStateException("User has 2FA enabled, disable first");
+    }
+    if (!isEmailVerified(user)) {
+      throw new IllegalStateException("User email is not verified");
+    }
+
+    user.setTwoFactorType(TwoFactorType.EMAIL);
+
+    Email2FACode email2FACode = getEmail2FAForApprovalCode();
+    user.setSecret(email2FACode.encodedCode());
+
+    if (!sendEmail2FACode(user, email2FACode.code())) {
+      throw new IllegalStateException("Could not send 2FA code email");
+    }
+
+    updateUser(user);
+  }
+
+  @Override
+  @Transactional
+  public void sendEmail2FACode(User user) {
+    if (!user.isTwoFactorEnabled()) {
+      throw new IllegalStateException("User has not 2FA enabled, enable first");
+    }
+    if (!user.getTwoFactorType().equals(TwoFactorType.EMAIL)) {
+      throw new IllegalStateException("User has not email 2FA enabled");
+    }
+    if (!isEmailVerified(user)) {
+      throw new IllegalStateException("User email is not verified");
+    }
+
+    Email2FACode email2FACode = getEmail2FACode();
+    user.setSecret(email2FACode.encodedCode());
+
+    if (!sendEmail2FACode(user, email2FACode.code())) {
+      throw new IllegalStateException("Could not send 2FA code email");
+    }
+
+    updateUser(user);
+  }
+
+  private record Email2FACode(String code, String encodedCode) {}
+
+  private static @NotNull Email2FACode getEmail2FACode() {
+    String code = new String(CodeGenerator.generateSecureRandomCode(6));
+    String encodedCode = code + "|" + (System.currentTimeMillis() + TWOFA_EMAIL_CODE_EXPIRY_MILLIS);
+    return new Email2FACode(code, encodedCode);
+  }
+
+  private static @NotNull Email2FACode getEmail2FAForApprovalCode() {
+    String code = new String(CodeGenerator.generateSecureRandomCode(6));
+    String encodedCode =
+        TWO_FACTOR_CODE_APPROVAL_PREFIX
+            + code
+            + "|"
+            + (System.currentTimeMillis() + TWOFA_EMAIL_CODE_EXPIRY_MILLIS);
+    return new Email2FACode(code, encodedCode);
+  }
+
+  private boolean sendEmail2FACode(User user, String code) {
+    String applicationTitle = settingsProvider.getCurrentSettings().getApplicationTitle();
+    if (applicationTitle == null || applicationTitle.isEmpty()) {
+      applicationTitle = DEFAULT_APPLICATION_TITLE;
+    }
+
+    Map<String, Object> vars = new HashMap<>();
+    vars.put("applicationTitle", applicationTitle);
+    vars.put("code", code);
+    vars.put("username", user.getUsername());
+    vars.put("email", user.getEmail());
+
+    I18n i18n =
+        i18nManager.getI18n(
+            userSettingsService.getUserSettings(user.getUsername(), true).getUserUiLocale());
+    vars.put("i18n", i18n);
+
+    VelocityManager vm = new VelocityManager();
+    String messageBody = vm.render(vars, "twofa_email_body_template_" + "v1");
+    String messageSubject = i18n.getString("twofa_email_subject");
+
+    OutboundMessageResponse status =
+        emailMessageSender.sendMessage(messageSubject, messageBody, null, null, Set.of(user), true);
+
+    return status.getResponseObject() == EmailResponse.SENT;
   }
 
   @Override

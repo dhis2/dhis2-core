@@ -62,6 +62,7 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -95,6 +96,8 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
   /** Required. Automatically set in constructor */
   private String secret;
+
+  private TwoFactorType twoFactorType;
 
   /** Date when password was changed. */
   private Date passwordLastUpdated;
@@ -451,6 +454,16 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
   public void setSecret(String secret) {
     this.secret = secret;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public TwoFactorType getTwoFactorType() {
+    return twoFactorType;
+  }
+
+  public void setTwoFactorType(TwoFactorType twoFactorType) {
+    this.twoFactorType = twoFactorType;
   }
 
   @JsonProperty

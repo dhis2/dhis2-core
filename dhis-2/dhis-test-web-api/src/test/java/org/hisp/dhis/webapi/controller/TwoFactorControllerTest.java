@@ -57,7 +57,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     assertNull(getCurrentUser().getSecret());
 
     User user = userService.getUser(CurrentUserUtil.getCurrentUserDetails().getUid());
-    userService.generateTwoFactorOtpSecretForApproval(user);
+    userService.enrollTOTP2FA(user);
 
     user = userService.getUser(CurrentUserUtil.getCurrentUserDetails().getUid());
     assertNotNull(user.getSecret());
@@ -75,7 +75,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     User user = makeUser("X", List.of("TEST"));
     user.setEmail("valid.x@email.com");
     userService.addUser(user);
-    userService.generateTwoFactorOtpSecretForApproval(user);
+    userService.enrollTOTP2FA(user);
 
     switchToNewUser(user);
 
@@ -88,7 +88,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     User user = makeUser("X", List.of("TEST"));
     user.setEmail("valid.x@email.com");
     userService.addUser(user);
-    userService.generateTwoFactorOtpSecretForApproval(user);
+    userService.enrollTOTP2FA(user);
 
     switchToNewUser(user);
 
@@ -114,7 +114,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     newUser.setEmail("valid.y@email.com");
 
     userService.addUser(newUser);
-    userService.generateTwoFactorOtpSecretForApproval(newUser);
+    userService.enrollTOTP2FA(newUser);
     userService.approveTwoFactorSecret(newUser, new SystemUser());
 
     switchToNewUser(newUser);
@@ -138,7 +138,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     User user = makeUser("X", List.of("TEST"));
     user.setEmail("valid.x@email.com");
     userService.addUser(user);
-    userService.generateTwoFactorOtpSecretForApproval(user);
+    userService.enrollTOTP2FA(user);
 
     switchToNewUser(user);
 

@@ -530,7 +530,22 @@ public interface UserService {
    *
    * @param user The user object that is being updated.
    */
-  void generateTwoFactorOtpSecretForApproval(User user);
+  void enrollTOTP2FA(User user);
+
+  /**
+   * Generate a new two factor (EMAIL) code for the user, but prefix it with a special string so
+   * that we can tell the difference between a normal secret and an approval secret.
+   *
+   * @param user The user object that is being updated.
+   */
+  void enrollEmail2FA(User user);
+
+  /**
+   * Email the user with the 2FA code.
+   *
+   * @param user The user object that is being updated.
+   */
+  void sendEmail2FACode(User user);
 
   /**
    * If the user has an OTP secret that starts with the approval prefix, remove the prefix and
