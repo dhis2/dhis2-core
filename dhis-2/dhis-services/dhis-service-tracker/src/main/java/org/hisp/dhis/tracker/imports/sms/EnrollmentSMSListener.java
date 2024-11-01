@@ -31,6 +31,7 @@ import static org.hisp.dhis.tracker.imports.sms.SmsImportMapper.map;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -97,8 +98,8 @@ public class EnrollmentSMSListener extends CompressionSMSListener {
     try {
       trackedEntity =
           trackedEntityService.getTrackedEntity(
-              subm.getTrackedEntityInstance().getUid(),
-              subm.getTrackerProgram().getUid(),
+              UID.of(subm.getTrackedEntityInstance().getUid()),
+              UID.of(subm.getTrackerProgram().getUid()),
               TrackedEntityParams.FALSE.withIncludeAttributes(true));
     } catch (NotFoundException e) {
       // new TE will be created

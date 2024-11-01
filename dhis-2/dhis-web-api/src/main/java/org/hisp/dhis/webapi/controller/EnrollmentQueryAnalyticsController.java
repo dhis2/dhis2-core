@@ -69,8 +69,8 @@ import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.period.PeriodDataProvider;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
@@ -84,7 +84,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-@OpenApi.Document(domain = DataValue.class)
+@OpenApi.Document(
+    entity = Enrollment.class,
+    classifiers = {"team:analytics", "purpose:analytics"})
 @Controller
 @ApiVersion({DEFAULT, ALL})
 @RequestMapping("/api/analytics/enrollments/query")

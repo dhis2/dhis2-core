@@ -69,7 +69,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Stian Sandvold
  */
-@OpenApi.Document(domain = UserDatastoreEntry.class)
+@OpenApi.Document(
+    entity = UserDatastoreEntry.class,
+    classifiers = {"team:platform", "purpose:data"})
 @Controller
 @RequestMapping("/api/userDataStore")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

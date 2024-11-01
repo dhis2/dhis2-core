@@ -59,7 +59,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-@OpenApi.Document(domain = Program.class)
+@OpenApi.Document(
+    entity = Program.class,
+    classifiers = {"team:tracker", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/tracker/ownership")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -95,7 +97,7 @@ public class TrackerOwnershipController {
             "trackedEntityInstance", trackedEntityInstance, "trackedEntity", trackedEntity);
 
     trackerOwnershipAccessManager.transferOwnership(
-        trackedEntityService.getTrackedEntity(trackedEntityUid.getValue()),
+        trackedEntityService.getTrackedEntity(trackedEntityUid),
         programService.getProgram(program),
         organisationUnitService.getOrganisationUnit(ou));
     return ok("Ownership transferred");
@@ -115,7 +117,7 @@ public class TrackerOwnershipController {
 
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     trackerOwnershipAccessManager.grantTemporaryOwnership(
-        trackedEntityService.getTrackedEntity(trackedEntityUid.getValue()),
+        trackedEntityService.getTrackedEntity(trackedEntityUid),
         programService.getProgram(program),
         currentUser,
         reason);

@@ -59,7 +59,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @OpenApi.EntityType(org.hisp.dhis.relationship.Relationship.class)
-@OpenApi.Document(domain = org.hisp.dhis.relationship.Relationship.class)
+@OpenApi.Document(
+    entity = org.hisp.dhis.relationship.Relationship.class,
+    classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping(produces = APPLICATION_JSON_VALUE, value = "/api/tracker/relationships")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -138,8 +140,7 @@ class RelationshipsExportController {
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           List<FieldPath> fields)
       throws NotFoundException, ForbiddenException {
-    Relationship relationship =
-        RELATIONSHIP_MAPPER.from(relationshipService.getRelationship(uid.getValue()));
+    Relationship relationship = RELATIONSHIP_MAPPER.from(relationshipService.getRelationship(uid));
 
     return ResponseEntity.ok(fieldFilterService.toObjectNode(relationship, fields));
   }

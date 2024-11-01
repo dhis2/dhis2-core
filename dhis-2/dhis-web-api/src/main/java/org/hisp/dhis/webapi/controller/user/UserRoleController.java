@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.user;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -55,6 +56,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @Controller
 @RequestMapping("/api/userRoles")
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class UserRoleController extends AbstractCrudController<UserRole> {
   @Autowired private UserService userService;
 

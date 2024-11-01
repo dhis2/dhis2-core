@@ -39,6 +39,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetValuedMap;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.copy.CopyService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -73,6 +74,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequestMapping("/api/programs")
 @RequiredArgsConstructor
+@OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
 public class ProgramController extends AbstractCrudController<Program> {
   private final ProgramService programService;
 

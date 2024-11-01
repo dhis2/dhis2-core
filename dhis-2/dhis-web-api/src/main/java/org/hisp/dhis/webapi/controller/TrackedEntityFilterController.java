@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityFilter;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityFilterService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -42,6 +43,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/api/trackedEntityInstanceFilters")
 @ApiVersion(include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
+@OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
 public class TrackedEntityFilterController extends AbstractCrudController<TrackedEntityFilter> {
   private final TrackedEntityFilterService teiFilterService;
 

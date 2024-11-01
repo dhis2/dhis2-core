@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.reservedvalue.ReserveValueException;
 import org.hisp.dhis.reservedvalue.ReservedValue;
@@ -67,6 +68,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @Controller
 @RequestMapping("/api/trackedEntityAttributes")
+@OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
 public class TrackedEntityAttributeController
     extends AbstractCrudController<TrackedEntityAttribute> {
 

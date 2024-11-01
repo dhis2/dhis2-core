@@ -61,7 +61,6 @@ import org.hisp.dhis.dataapproval.DataApprovalStatus;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
@@ -103,7 +102,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  *
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = DataValue.class)
+@OpenApi.Document(
+    entity = DataApprovalWorkflow.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/dataApprovals")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

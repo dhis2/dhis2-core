@@ -727,7 +727,7 @@ public non-sealed interface SystemSettings extends Settings {
   */
 
   default boolean isEmailConfigured() {
-    return !getEmailHostName().isBlank() && getEmailUsername().isBlank();
+    return !getEmailHostName().isBlank() && !getEmailUsername().isBlank();
   }
 
   default boolean isHideUnapprovedDataInAnalytics() {

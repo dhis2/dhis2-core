@@ -55,7 +55,9 @@ import org.springframework.web.client.RestTemplate;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = Server.class)
+@OpenApi.Document(
+    entity = Server.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping("/api/synchronization")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
