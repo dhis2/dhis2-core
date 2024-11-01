@@ -25,7 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-name: categories_dimensions_no_analysis
+name: categories_dimensions_no_visualizations
 description: Categories which are enabled as a data dimension but which have no associated visualizations.
 section: Categories
 summary_sql: >-
@@ -75,6 +75,7 @@ introduction: >
   are enabled as a dimensions, this may lead to an increase 
   in the amount of time which is required to export the analytics tables.
   If the category is never used for any analytical purpose (map, chart, table, etc)
+  or to generate sub-totals in a data set report,
   then there is little point to enable it as a dimension.
 section_order: 17
 recommendation: >
