@@ -77,16 +77,6 @@ public class RelationshipPersister
   }
 
   @Override
-  protected void updateDataValues(
-      EntityManager entityManager,
-      TrackerPreheat preheat,
-      Relationship trackerDto,
-      org.hisp.dhis.relationship.Relationship hibernateEntity,
-      UserDetails user) {
-    // NOTHING TO DO
-  }
-
-  @Override
   protected void updatePreheat(
       TrackerPreheat preheat, org.hisp.dhis.relationship.Relationship convertedDto) {
     // NOTHING TO DO

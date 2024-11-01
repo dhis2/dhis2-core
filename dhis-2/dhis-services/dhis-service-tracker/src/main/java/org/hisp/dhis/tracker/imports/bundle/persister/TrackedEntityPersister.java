@@ -68,16 +68,6 @@ public class TrackedEntityPersister
   }
 
   @Override
-  protected void updateDataValues(
-      EntityManager entityManager,
-      TrackerPreheat preheat,
-      org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
-      TrackedEntity te,
-      UserDetails user) {
-    // DO NOTHING - TE HAVE NO DATA VALUES
-  }
-
-  @Override
   protected void updatePreheat(TrackerPreheat preheat, TrackedEntity dto) {
     preheat.putTrackedEntities(Collections.singletonList(dto));
   }

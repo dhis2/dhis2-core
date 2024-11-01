@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
@@ -54,7 +53,6 @@ import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
-import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -144,18 +142,14 @@ public class EventPersister
   protected void updateDataValues(
       EntityManager entityManager,
       TrackerPreheat preheat,
-      org.hisp.dhis.tracker.imports.domain.Event event,
       Event hibernateEntity,
       UserDetails user) {
-    handleDataValues(entityManager, preheat, event.getDataValues(), hibernateEntity, user);
+    handleDataValues(entityManager, preheat, hibernateEntity, user);
+    // handleEventProperties();
   }
 
   private void handleDataValues(
-      EntityManager entityManager,
-      TrackerPreheat preheat,
-      Set<DataValue> payloadDataValues,
-      Event event,
-      UserDetails user) {
+      EntityManager entityManager, TrackerPreheat preheat, Event event, UserDetails user) {
     Map<String, EventDataValue> dataValueDBMap =
         Optional.ofNullable(preheat.getEvent(event.getUid()))
             .map(
@@ -165,48 +159,50 @@ public class EventPersister
                             Collectors.toMap(EventDataValue::getDataElement, Function.identity())))
             .orElse(new HashMap<>());
 
-    payloadDataValues.forEach(
-        dataValue -> {
-          DataElement dataElement = preheat.getDataElement(dataValue.getDataElement());
-          EventDataValue dbDataValue = dataValueDBMap.get(dataElement.getUid());
+    event
+        .getEventDataValues()
+        .forEach(
+            dataValue -> {
+              DataElement dataElement = preheat.getDataElement(dataValue.getDataElement());
+              EventDataValue dbDataValue = dataValueDBMap.get(dataElement.getUid());
 
-          if (isNewDataValue(dbDataValue, dataValue)) {
-            logDataValueChange(
-                user.getUsername(),
-                dataElement,
-                "",
-                event,
-                dataValue.getValue(),
-                null,
-                ChangeLogType.CREATE);
-            saveDataValue(dataValue, event, dataElement, user, entityManager, preheat);
-          } else if (isUpdate(dbDataValue, dataValue)) {
-            logDataValueChange(
-                user.getUsername(),
-                dataElement,
-                "",
-                event,
-                dataValue.getValue(),
-                dbDataValue.getValue(),
-                ChangeLogType.UPDATE);
-            updateDataValue(
-                dbDataValue, dataValue, event, dataElement, user, entityManager, preheat);
-          } else if (isDeletion(dbDataValue, dataValue)) {
-            logDataValueChange(
-                user.getUsername(),
-                dataElement,
-                "",
-                event,
-                null,
-                dbDataValue.getValue(),
-                ChangeLogType.DELETE);
-            deleteDataValue(dbDataValue, event, dataElement, entityManager, preheat);
-          }
-        });
+              if (isNewDataValue(dbDataValue, dataValue)) {
+                logDataValueChange(
+                    user.getUsername(),
+                    dataElement,
+                    "",
+                    event,
+                    dataValue.getValue(),
+                    null,
+                    ChangeLogType.CREATE);
+                saveDataValue(dataValue, event, dataElement, user, entityManager, preheat);
+              } else if (isUpdate(dbDataValue, dataValue)) {
+                logDataValueChange(
+                    user.getUsername(),
+                    dataElement,
+                    "",
+                    event,
+                    dataValue.getValue(),
+                    dbDataValue.getValue(),
+                    ChangeLogType.UPDATE);
+                updateDataValue(
+                    dbDataValue, dataValue, event, dataElement, user, entityManager, preheat);
+              } else if (isDeletion(dbDataValue, dataValue)) {
+                logDataValueChange(
+                    user.getUsername(),
+                    dataElement,
+                    "",
+                    event,
+                    null,
+                    dbDataValue.getValue(),
+                    ChangeLogType.DELETE);
+                deleteDataValue(dbDataValue, event, dataElement, entityManager, preheat);
+              }
+            });
   }
 
   private void saveDataValue(
-      DataValue dv,
+      EventDataValue dv,
       Event event,
       DataElement dataElement,
       UserDetails user,
@@ -222,7 +218,7 @@ public class EventPersister
     eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
 
     eventDataValue.setValue(dv.getValue());
-    eventDataValue.setProvidedElsewhere(dv.isProvidedElsewhere());
+    eventDataValue.setProvidedElsewhere(dv.getProvidedElsewhere());
 
     if (dataElement.isFileType()) {
       assignFileResource(entityManager, preheat, event.getUid(), eventDataValue.getValue());
@@ -233,7 +229,7 @@ public class EventPersister
 
   private void updateDataValue(
       EventDataValue eventDataValue,
-      DataValue dv,
+      EventDataValue dv,
       Event event,
       DataElement dataElement,
       UserDetails user,
@@ -247,7 +243,7 @@ public class EventPersister
       assignFileResource(entityManager, preheat, event.getUid(), dv.getValue());
     }
 
-    eventDataValue.setProvidedElsewhere(dv.isProvidedElsewhere());
+    eventDataValue.setProvidedElsewhere(dv.getProvidedElsewhere());
     eventDataValue.setValue(dv.getValue());
   }
 
@@ -292,17 +288,19 @@ public class EventPersister
   }
 
   private boolean isNewDataValue(
-      @CheckForNull EventDataValue eventDataValue, @Nonnull DataValue dv) {
+      @CheckForNull EventDataValue eventDataValue, @Nonnull EventDataValue dv) {
     return eventDataValue == null && !StringUtils.isBlank(dv.getValue());
   }
 
-  private boolean isDeletion(@CheckForNull EventDataValue eventDataValue, @Nonnull DataValue dv) {
+  private boolean isDeletion(
+      @CheckForNull EventDataValue eventDataValue, @Nonnull EventDataValue dv) {
     return eventDataValue != null
         && StringUtils.isNotBlank(eventDataValue.getValue())
         && StringUtils.isBlank(dv.getValue());
   }
 
-  private boolean isUpdate(@CheckForNull EventDataValue eventDataValue, @Nonnull DataValue dv) {
+  private boolean isUpdate(
+      @CheckForNull EventDataValue eventDataValue, @Nonnull EventDataValue dv) {
     return eventDataValue != null
         && !StringUtils.isBlank(dv.getValue())
         && !StringUtils.equals(dv.getValue(), eventDataValue.getValue());
