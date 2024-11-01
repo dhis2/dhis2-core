@@ -36,7 +36,6 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.common.adapter.DeviceRenderTypeMapSerializer;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
 import org.hisp.dhis.render.type.ValueTypeRenderingObject;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -67,6 +66,8 @@ public class ProgramTrackedEntityAttribute extends BaseIdentifiableObject
   private DeviceRenderTypeMap<ValueTypeRenderingObject> renderType;
 
   private Boolean searchable = false;
+
+  private boolean skipIndividualAnalytics;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -260,9 +261,18 @@ public class ProgramTrackedEntityAttribute extends BaseIdentifiableObject
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @JsonSerialize(using = DeviceRenderTypeMapSerializer.class)
   public DeviceRenderTypeMap<ValueTypeRenderingObject> getRenderType() {
     return renderType;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isSkipIndividualAnalytics() {
+    return skipIndividualAnalytics;
+  }
+
+  public void setSkipIndividualAnalytics(boolean skipIndividualAnalytics) {
+    this.skipIndividualAnalytics = skipIndividualAnalytics;
   }
 
   public void setRenderType(DeviceRenderTypeMap<ValueTypeRenderingObject> renderType) {
@@ -295,5 +305,6 @@ public class ProgramTrackedEntityAttribute extends BaseIdentifiableObject
     copy.setSharing(original.getSharing());
     copy.setSortOrder(original.getSortOrder());
     copy.setTranslations(original.getTranslations());
+    copy.setSkipIndividualAnalytics(original.isSkipIndividualAnalytics());
   }
 }
