@@ -127,7 +127,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
+@OpenApi.Document(
+    group = OpenApi.Document.GROUP_MANAGE,
+    classifiers = {"team:platform", "purpose:metadata"})
 @Slf4j
 @Controller
 @RequestMapping("/api/users")

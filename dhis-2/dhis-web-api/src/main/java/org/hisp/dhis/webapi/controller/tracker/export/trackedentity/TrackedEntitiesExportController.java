@@ -86,7 +86,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @OpenApi.EntityType(TrackedEntity.class)
-@OpenApi.Document(domain = org.hisp.dhis.trackedentity.TrackedEntity.class)
+@OpenApi.Document(
+    entity = org.hisp.dhis.trackedentity.TrackedEntity.class,
+    classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping("/api/tracker/trackedEntities")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -270,8 +272,7 @@ class TrackedEntitiesExportController {
     TrackedEntityParams trackedEntityParams = fieldsMapper.map(fields);
     TrackedEntity trackedEntity =
         TRACKED_ENTITY_MAPPER.from(
-            trackedEntityService.getTrackedEntity(
-                uid.getValue(), program == null ? null : program.getValue(), trackedEntityParams));
+            trackedEntityService.getTrackedEntity(uid, program, trackedEntityParams));
 
     return ResponseEntity.ok(fieldFilterService.toObjectNode(trackedEntity, fields));
   }
@@ -280,10 +281,10 @@ class TrackedEntitiesExportController {
       value = "/{uid}",
       produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_TEXT_CSV})
   void getTrackedEntityByUidAsCsv(
-      @PathVariable String uid,
+      @PathVariable UID uid,
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader,
-      @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) String program)
+      @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program)
       throws IOException, ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityParams trackedEntityParams = fieldsMapper.map(CSV_FIELDS);
 

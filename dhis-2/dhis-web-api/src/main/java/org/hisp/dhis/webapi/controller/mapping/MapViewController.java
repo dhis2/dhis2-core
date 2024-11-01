@@ -34,6 +34,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import javax.imageio.ImageIO;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -62,6 +63,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  */
 @Controller
 @RequestMapping("/api/mapViews")
+@OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
 public class MapViewController extends AbstractCrudController<MapView> {
   @Autowired private MappingService mappingService;
 

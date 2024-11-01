@@ -45,6 +45,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -86,6 +87,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/sms/inbound")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
+@OpenApi.Document(classifiers = {"team:tracker", "purpose:data"})
 public class SmsInboundController extends AbstractCrudController<IncomingSms> {
   private final IncomingSmsService incomingSMSService;
 

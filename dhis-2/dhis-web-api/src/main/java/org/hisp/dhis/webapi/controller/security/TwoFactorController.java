@@ -66,7 +66,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Henning Håkonsen
  * @author Morten Svanaes
  */
-@OpenApi.Document(domain = User.class)
+@OpenApi.Document(
+    entity = User.class,
+    classifiers = {"team:platform", "purpose:support"})
 @RestController
 @RequestMapping("/api/2fa")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

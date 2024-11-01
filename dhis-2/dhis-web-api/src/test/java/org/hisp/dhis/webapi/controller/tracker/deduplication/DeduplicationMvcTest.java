@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.deduplication;
 
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
@@ -43,8 +44,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.List;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -59,6 +60,7 @@ import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateForbiddenException;
 import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -95,15 +97,16 @@ class DeduplicationMvcTest {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  private static final String original = CodeGenerator.generateUid();
+  private static final UID ORIGINAL = UID.generate();
 
-  private static final String duplicate = CodeGenerator.generateUid();
+  private static final UID DUPLICATE = UID.generate();
 
   @BeforeEach
   void setUp() {
+    injectSecurityContextNoSettings(new SystemUser());
     deduplicationMergeParams =
         DeduplicationMergeParams.builder()
-            .potentialDuplicate(new PotentialDuplicate(original, duplicate))
+            .potentialDuplicate(new PotentialDuplicate(ORIGINAL, DUPLICATE))
             .original(trackedEntityA)
             .duplicate(trackedEntityB)
             .mergeObject(MergeObject.builder().build())
@@ -119,10 +122,10 @@ class DeduplicationMvcTest {
     when(trackerAccessManager.canRead(any(), any(TrackedEntity.class)))
         .thenReturn(Collections.emptyList());
 
-    when(manager.get(TrackedEntity.class, original)).thenReturn(trackedEntityA);
-    when(manager.get(TrackedEntity.class, duplicate)).thenReturn(trackedEntityB);
+    when(manager.get(TrackedEntity.class, ORIGINAL.getValue())).thenReturn(trackedEntityA);
+    when(manager.get(TrackedEntity.class, DUPLICATE.getValue())).thenReturn(trackedEntityB);
 
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(ORIGINAL, DUPLICATE);
     mockMvc
         .perform(
             post(ENDPOINT)
@@ -139,9 +142,9 @@ class DeduplicationMvcTest {
     when(trackerAccessManager.canRead(any(), any(TrackedEntity.class)))
         .thenReturn(List.of("error"));
 
-    when(manager.get(TrackedEntity.class, original)).thenReturn(trackedEntityA);
+    when(manager.get(TrackedEntity.class, ORIGINAL.getValue())).thenReturn(trackedEntityA);
 
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(ORIGINAL, DUPLICATE);
     mockMvc
         .perform(
             post(ENDPOINT)
@@ -149,13 +152,13 @@ class DeduplicationMvcTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(
-            result -> assertTrue(result.getResolvedException() instanceof ForbiddenException));
+            result -> assertInstanceOf(ForbiddenException.class, result.getResolvedException()));
     verify(deduplicationService, times(0)).addPotentialDuplicate(any());
   }
 
   @Test
   void shouldThrowBadRequestExceptionWhenPostAndTeiDoNotExists() throws Exception {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, null);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(ORIGINAL, null);
     mockMvc
         .perform(
             post(ENDPOINT)
@@ -163,15 +166,15 @@ class DeduplicationMvcTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(
-            result -> assertTrue(result.getResolvedException() instanceof BadRequestException));
+            result -> assertInstanceOf(BadRequestException.class, result.getResolvedException()));
     verify(deduplicationService, times(0)).addPotentialDuplicate(any());
   }
 
   @Test
   void shouldThrowBadRequestExceptionWhenPutAndPotentialDuplicateIsAlreadyMerged()
       throws Exception {
-    String uid = "uid";
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
+    UID uid = UID.generate();
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(ORIGINAL, DUPLICATE);
     potentialDuplicate.setStatus(DeduplicationStatus.MERGED);
     when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
     mockMvc
@@ -182,14 +185,14 @@ class DeduplicationMvcTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(
-            result -> assertTrue(result.getResolvedException() instanceof BadRequestException));
+            result -> assertInstanceOf(BadRequestException.class, result.getResolvedException()));
     verify(deduplicationService).getPotentialDuplicateByUid(uid);
   }
 
   @Test
   void shouldThrowBadRequestExceptionWhenPutPotentialDuplicateToMergedStatus() throws Exception {
-    String uid = "uid";
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
+    UID uid = UID.generate();
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(ORIGINAL, DUPLICATE);
     when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
     mockMvc
         .perform(
@@ -199,14 +202,14 @@ class DeduplicationMvcTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(
-            result -> assertTrue(result.getResolvedException() instanceof BadRequestException));
+            result -> assertInstanceOf(BadRequestException.class, result.getResolvedException()));
     verify(deduplicationService).getPotentialDuplicateByUid(uid);
   }
 
   @Test
   void shouldUpdatePotentialDuplicateWhenPotentialDuplicateExists() throws Exception {
-    String uid = "uid";
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
+    UID uid = UID.generate();
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(ORIGINAL, DUPLICATE);
     when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
     mockMvc
         .perform(
@@ -227,8 +230,8 @@ class DeduplicationMvcTest {
 
   @Test
   void shouldGetPotentialDuplicateByIdWhenPotentialDuplicateExists() throws Exception {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
-    String uid = "uid";
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(ORIGINAL, DUPLICATE);
+    UID uid = UID.generate();
     when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
     mockMvc
         .perform(
@@ -243,7 +246,7 @@ class DeduplicationMvcTest {
 
   @Test
   void shouldThrowNotFoundExceptionWhenPotentialDuplicateNotExists() throws Exception {
-    String uid = "uid";
+    UID uid = UID.generate();
     when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(null);
     mockMvc
         .perform(
@@ -252,17 +255,17 @@ class DeduplicationMvcTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(
-            result -> assertTrue(result.getResolvedException() instanceof NotFoundException));
+            result -> assertInstanceOf(NotFoundException.class, result.getResolvedException()));
     verify(deduplicationService).getPotentialDuplicateByUid(uid);
   }
 
   @Test
   void shouldAutoMergePotentialDuplicateWhenUserHasAccessAndMergeIsOk() throws Exception {
-    when(manager.get(TrackedEntity.class, original)).thenReturn(trackedEntityA);
-    when(manager.get(TrackedEntity.class, duplicate)).thenReturn(trackedEntityB);
+    when(manager.get(TrackedEntity.class, ORIGINAL.getValue())).thenReturn(trackedEntityA);
+    when(manager.get(TrackedEntity.class, DUPLICATE.getValue())).thenReturn(trackedEntityB);
 
-    String uid = "uid";
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
+    UID uid = UID.generate();
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(ORIGINAL, DUPLICATE);
     when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
     MergeObject mergeObject = MergeObject.builder().build();
     mockMvc
@@ -279,11 +282,11 @@ class DeduplicationMvcTest {
 
   @Test
   void shouldManualMergePotentialDuplicateWhenUserHasAccessAndMergeIsOk() throws Exception {
-    when(manager.get(TrackedEntity.class, original)).thenReturn(trackedEntityA);
-    when(manager.get(TrackedEntity.class, duplicate)).thenReturn(trackedEntityB);
+    when(manager.get(TrackedEntity.class, ORIGINAL.getValue())).thenReturn(trackedEntityA);
+    when(manager.get(TrackedEntity.class, DUPLICATE.getValue())).thenReturn(trackedEntityB);
 
-    String uid = "uid";
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
+    UID uid = UID.generate();
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(ORIGINAL, DUPLICATE);
     when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
     MergeObject mergeObject = MergeObject.builder().build();
     mockMvc
@@ -300,11 +303,11 @@ class DeduplicationMvcTest {
 
   @Test
   void shouldThrowForbiddenExceptionWhenAutoMergingIsForbidden() throws Exception {
-    when(manager.get(TrackedEntity.class, original)).thenReturn(trackedEntityA);
-    when(manager.get(TrackedEntity.class, duplicate)).thenReturn(trackedEntityB);
+    when(manager.get(TrackedEntity.class, ORIGINAL.getValue())).thenReturn(trackedEntityA);
+    when(manager.get(TrackedEntity.class, DUPLICATE.getValue())).thenReturn(trackedEntityB);
 
-    String uid = "uid";
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
+    UID uid = UID.generate();
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(ORIGINAL, DUPLICATE);
     when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
     doThrow(new PotentialDuplicateForbiddenException("Forbidden"))
         .when(deduplicationService)
@@ -319,19 +322,19 @@ class DeduplicationMvcTest {
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(
             result ->
-                assertTrue(
-                    result.getResolvedException() instanceof PotentialDuplicateForbiddenException));
+                assertInstanceOf(
+                    PotentialDuplicateForbiddenException.class, result.getResolvedException()));
     verify(deduplicationService).autoMerge(deduplicationMergeParams);
     verify(deduplicationService, times(0)).manualMerge(deduplicationMergeParams);
   }
 
   @Test
   void shouldThrowConflictExceptionWhenAutoMergeHasConflicts() throws Exception {
-    when(manager.get(TrackedEntity.class, original)).thenReturn(trackedEntityA);
-    when(manager.get(TrackedEntity.class, duplicate)).thenReturn(trackedEntityB);
+    when(manager.get(TrackedEntity.class, ORIGINAL.getValue())).thenReturn(trackedEntityA);
+    when(manager.get(TrackedEntity.class, DUPLICATE.getValue())).thenReturn(trackedEntityB);
 
-    String uid = "uid";
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
+    UID uid = UID.generate();
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(ORIGINAL, DUPLICATE);
     when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
     doThrow(new PotentialDuplicateConflictException("Conflict"))
         .when(deduplicationService)
@@ -346,8 +349,8 @@ class DeduplicationMvcTest {
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(
             result ->
-                assertTrue(
-                    result.getResolvedException() instanceof PotentialDuplicateConflictException));
+                assertInstanceOf(
+                    PotentialDuplicateConflictException.class, result.getResolvedException()));
     verify(deduplicationService).autoMerge(deduplicationMergeParams);
     verify(deduplicationService, times(0)).manualMerge(deduplicationMergeParams);
   }
