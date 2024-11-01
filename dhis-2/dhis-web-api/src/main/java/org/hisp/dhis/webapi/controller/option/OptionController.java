@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.option;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.stereotype.Controller;
@@ -37,4 +38,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 @RequestMapping("/api/options")
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class OptionController extends AbstractCrudController<Option> {}

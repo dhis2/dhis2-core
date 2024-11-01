@@ -44,6 +44,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.Test;
 
 /** Unit tests for {@link SqlQueryHelper}. */
+@SuppressWarnings("unchecked")
 class SqlQueryHelperTest {
 
   @Test

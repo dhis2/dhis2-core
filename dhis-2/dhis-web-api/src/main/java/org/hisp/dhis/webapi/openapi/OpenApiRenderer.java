@@ -46,15 +46,14 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import javax.annotation.CheckForNull;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.webapi.openapi.ApiClassifications.Classifier;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.MediaTypeObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.OperationObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.ParameterObject;
@@ -71,22 +70,6 @@ import org.intellij.lang.annotations.Language;
  */
 @RequiredArgsConstructor
 public class OpenApiRenderer {
-
-  @Data
-  @OpenApi.Shared
-  public static class OpenApiRenderingParams {
-    boolean sortEndpointsByMethod = true; // make this a sortEndpointsBy=method,path,id thing?
-
-    @OpenApi.Description(
-        "Include the JSON source in the operations and schemas (for debug purposes)")
-    boolean source = false;
-
-    @OpenApi.Description(
-        """
-      Values of a shared enum with less than the limit values will show the first n values up to limit
-      directly where the type is used""")
-    int inlineEnumsLimit = 0;
-  }
 
   @Language("css")
   private static final String CSS =
@@ -129,7 +112,7 @@ public class OpenApiRenderer {
     font-size: 16px;
     text-rendering: optimizespeed;
   }
-  h1 { margin: 0.5rem; color: rgb(33, 41, 52); font-size: 110%; text-align: left; }
+  nav h1 { margin: 0.5rem; color: rgb(33, 41, 52); font-size: 110%; text-align: left; }
   h2 { display: inline; font-size: 110%; font-weight: normal; text-transform: capitalize; }
   h3 { font-size: 105%; display: inline-block; text-transform: capitalize; font-weight: normal; min-width: 21rem; margin: 0; }
 
@@ -140,12 +123,16 @@ public class OpenApiRenderer {
   a[href^="#"] { text-decoration: none; }
   a[title="permalink"] { position: absolute;  right: 1em; display: inline-block; width: 24px; height: 24px;
     text-align: center; vertical-align: middle; border-radius: 50%; line-height: 24px; color: dimgray; margin-top: -0.125rem; }
+  a:not([href]) { color: blue; cursor: pointer; }
   #hotkeys a { color: black; display: block; margin-top: 2px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; font-size: 75%; }
   #hotkeys a:visited { color: black; }
 
   pre { background-color: floralwhite; color: #222; margin-right: 2em; padding: 0.5rem; }
   pre, code { font-family: "Noto Sans Mono", "Liberation Mono", monospace; }
   code + b { padding: 0 0.5em; }
+
+  dt { font-weight: bold; margin-top: 0.5em; }
+  dd { display: inline-block; }
 
   kbd {
       background-color: #eee;
@@ -190,11 +177,14 @@ public class OpenApiRenderer {
   #scope label { text-transform: capitalize; }
   #scope input { margin-left: 0.5em; }
 
-  body > section { margin-left: var(--width-nav); padding-top: 65px; padding-bottom: 1em; position: relative; }
+  body > section { margin-left: var(--width-nav); position: relative; }
+  body > section > header { margin-left: 1rem; }
+  body > section > header > h1 { margin-top: 0; padding-top: 1em; }
   body > section > details { margin-top: 10px; }
   body > section > details > summary { padding: 0.5em 1em; }
   body > section h2:before { content: '⛁'; margin-right: 0.5rem; color: dimgray; }
   body > section .kind h2:before { content: '⎐';  }
+  body > section + section { padding-top: 2em; }
 
   body > section details {
     margin-left: 2rem;
@@ -448,7 +438,13 @@ public class OpenApiRenderer {
     }
   }
 
-  function addUrlParameter(name, value) {
+  function setLocationPathnameFile(name) {
+    const path = window.location.pathname;
+    const base = path.substring(0, path.lastIndexOf('/'))
+    window.location.pathname = base + '/'+name;
+  }
+
+  function setLocationSearch(name, value) {
     const searchParams = new URLSearchParams(window.location.search)
     if (value === '' || value == null) {
       searchParams.delete(name);
@@ -456,6 +452,12 @@ public class OpenApiRenderer {
       searchParams.set(name, value);
     }
     window.location.search = searchParams.toString()
+  }
+
+  function removeLocationSearch(name, value) {
+    const searchParams = new URLSearchParams(window.location.search)
+    searchParams.delete(name, value);
+    window.location.search = searchParams.toString();
   }
 
   function modifyLocationSearch(button) {
@@ -592,13 +594,15 @@ public class OpenApiRenderer {
   Rendering...
    */
 
-  public static String render(String json, OpenApiRenderingParams params) {
-    OpenApiRenderer html = new OpenApiRenderer(JsonValue.of(json).as(OpenApiObject.class), params);
-    return html.render();
+  public static String renderHTML(String json, OpenApiRenderingParams params, ApiStatistics stats) {
+    OpenApiRenderer renderer =
+        new OpenApiRenderer(JsonValue.of(json).as(OpenApiObject.class), params, stats);
+    return renderer.renderHTML();
   }
 
   private final OpenApiObject api;
   private final OpenApiRenderingParams params;
+  private final ApiStatistics stats;
   private final StringBuilder out = new StringBuilder();
 
   @Override
@@ -606,7 +610,7 @@ public class OpenApiRenderer {
     return out.toString();
   }
 
-  public String render() {
+  public String renderHTML() {
     renderDocument();
     return toString();
   }
@@ -630,39 +634,36 @@ public class OpenApiRenderer {
               Map.of("id", "body"),
               () -> {
                 renderPageMenu();
-                renderPaths();
+                renderPageHeader();
+                renderPathOperations();
                 renderComponentsSchemas();
               });
         });
-  }
-
-  private void renderPageHeader() {
-    appendTag("header", () -> appendTag("h1", api.info().title() + " " + api.info().version()));
   }
 
   private void renderPageMenu() {
     appendTag(
         "nav",
         () -> {
-          renderPageHeader();
-          renderScopeMenu();
-          renderDisplayMenu();
-          renderHotkeysMenu();
+          renderMenuHeader();
+          renderMenuScope();
+          renderMenuDisplay();
+          renderMenuHotkeys();
         });
   }
 
-  private void renderScopeMenu() {
+  private void renderMenuHeader() {
+    appendTag("header", () -> appendTag("h1", api.info().title() + " " + api.info().version()));
+  }
+
+  private void renderMenuScope() {
     renderMenuGroup(
         "scope",
         () -> appendRaw("Scope"),
-        () -> {
-          api.info().x_navigation().forEach(this::renderScopeMenuItem);
-          appendInputButton("Full API (single page)", "addUrlParameter('scope', '')");
-          appendInputButton("+ &#128435;", "addUrlParameter('source', 'true')");
-        });
+        () -> stats.classifications().classifiers().forEach(this::renderScopeMenuItem));
   }
 
-  private void renderScopeMenuItem(String classifier, JsonList<JsonString> values) {
+  private void renderScopeMenuItem(String classifier, List<Classifier> classifiers) {
     appendTag(
         "div",
         () -> {
@@ -672,18 +673,24 @@ public class OpenApiRenderer {
               Map.of("data-key", classifier),
               () -> {
                 appendTag("option", Map.of("value", ""), "(select and click go or +)");
-                values.forEach(v -> appendTag("option", Map.of("value", v.string()), v.string()));
+                classifiers.forEach(this::renderScopeMenuOption);
               });
           appendInputButton("go", "modifyLocationSearch(this)");
           appendInputButton("+", "modifyLocationSearch(this)");
         });
   }
 
-  private void renderHotkeysMenu() {
+  private void renderScopeMenuOption(Classifier c) {
+    int p = c.percentage();
+    appendTag(
+        "option", Map.of("value", c.value()), c.value() + (p < 1 ? "" : " (~%d%%)".formatted(p)));
+  }
+
+  private void renderMenuHotkeys() {
     renderMenuGroup("hotkeys", () -> appendRaw(" Hotkeys"), () -> {});
   }
 
-  private void renderDisplayMenu() {
+  private void renderMenuDisplay() {
     renderMenuGroup(
         null,
         () -> appendRaw("Display"),
@@ -766,29 +773,97 @@ public class OpenApiRenderer {
     appendTag("button", Map.of("onclick", js, "class", style), body);
   }
 
-  private void renderPaths() {
-    List<OperationsItem> packages = groupedOperations();
-    appendTag("section", () -> packages.forEach(this::renderPathPackage));
+  private void renderPageHeader() {
+    appendTag(
+        "section",
+        () -> {
+          Map<String, Set<String>> filters = stats.partial().getScope().filters();
+          String title = filters.isEmpty() ? "DHIS2 Full API (Single Page)" : "DHIS2 Partial API";
+          appendTag(
+              "header",
+              () -> {
+                appendTag(
+                    "h1",
+                    () -> {
+                      if (!filters.isEmpty()) {
+                        appendRaw("[");
+                        appendA(
+                            "setLocationSearch('scope', '')",
+                            "Full",
+                            "View full API as single page document");
+                        appendRaw("] ");
+                      }
+                      appendRaw(title);
+                      appendRaw(" [");
+                      appendA(
+                          "setLocationPathnameFile('openapi.json')",
+                          "JSON",
+                          "View this document as JSON source");
+                      appendRaw("] [");
+                      appendA(
+                          "setLocationPathnameFile('openapi.yaml')",
+                          "YAML",
+                          "View this document as YAML source");
+                      appendRaw("] ");
+                      appendA(
+                          "setLocationSearch('source', 'true')",
+                          "+ &#128435;",
+                          "Add JSON source to this document");
+                    });
+
+                stats.compute().forEach(this::renderPageStats);
+                if (!filters.isEmpty())
+                  appendTag("dl", () -> filters.forEach(this::renderPageHeaderSelection));
+              });
+        });
   }
 
-  private void renderPathPackage(OperationsItem pkg) {
-    String id = "-" + pkg.entity();
+  private void renderPageStats(ApiStatistics.Ratio ratio) {
+    appendRaw(ratio.name() + ": ");
+    appendTag("b", ratio.count() + "");
+    int p = ratio.percentage();
+    appendRaw("/%d (%s%%) &nbsp; ".formatted(ratio.total(), p < 1 ? "<1" : p));
+  }
+
+  private void renderPageHeaderSelection(String name, Set<String> values) {
+    appendTag("dt", name + "s");
+    values.forEach(v -> appendTag("dd", () -> renderPageHeaderSelectionItems(name, v)));
+  }
+
+  private void renderPageHeaderSelectionItems(String name, String value) {
+    appendA(
+        "setLocationSearch('scope', '%s.%s')".formatted(name, value),
+        value,
+        "View a document containing only this scope");
+    appendRaw(" ");
+    appendA(
+        "removeLocationSearch('scope', '%s.%s')".formatted(name, value),
+        "[-]",
+        "Remove this scope from this document");
+  }
+
+  private void renderPathOperations() {
+    appendTag("section", () -> groupedOperations().forEach(this::renderPathOperation));
+  }
+
+  private void renderPathOperation(OperationsItem op) {
+    String id = "-" + op.entity();
     appendDetails(
         id,
         false,
         "",
         () -> {
-          appendSummary(id, null, () -> renderPathPackageSummary(pkg));
-          pkg.groups().values().forEach(this::renderPathGroup);
+          appendSummary(id, null, () -> renderPathOperationSummary(op));
+          op.groups().values().forEach(this::renderPathGroup);
         });
   }
 
-  private void renderPathPackageSummary(OperationsItem pkg) {
+  private void renderPathOperationSummary(OperationsItem op) {
     appendTag(
         "h2",
         () -> {
-          appendRaw(toWords(pkg.entity()));
-          appendA("/api/openapi/openapi.html?scope=entity." + pkg.entity, true, "&#x1F5D7;");
+          appendRaw(toWords(op.entity()));
+          appendA("/api/openapi/openapi.html?scope=entity." + op.entity, true, "&#x1F5D7;");
         });
   }
 
@@ -1405,6 +1480,10 @@ public class OpenApiRenderer {
     String target = blank ? "_blank" : "";
     String title = "#".equals(text) ? "permalink" : "";
     appendTag("a", Map.of("href", href, "target", target, "title", title), text);
+  }
+
+  private void appendA(String onclick, String text, String title) {
+    appendTag("a", Map.of("onclick", onclick, "title", title), text);
   }
 
   private void appendSpan(String text) {

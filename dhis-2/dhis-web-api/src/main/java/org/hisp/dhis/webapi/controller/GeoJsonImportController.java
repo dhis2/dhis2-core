@@ -70,7 +70,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Jan Bernitt
  */
-@OpenApi.Document(domain = OrganisationUnit.class)
+@OpenApi.Document(
+    entity = OrganisationUnit.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @RequestMapping("/api/organisationUnits")
 @RestController
 @RequiredArgsConstructor

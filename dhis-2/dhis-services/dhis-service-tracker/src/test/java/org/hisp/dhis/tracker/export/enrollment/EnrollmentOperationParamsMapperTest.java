@@ -70,15 +70,15 @@ import org.mockito.quality.Strictness;
 @ExtendWith(MockitoExtension.class)
 class EnrollmentOperationParamsMapperTest {
 
-  private static final String ORG_UNIT_1_UID = "lW0T2U7gZUi";
+  private static final UID ORG_UNIT_1_UID = UID.generate();
 
-  private static final String ORG_UNIT_2_UID = "TK4KA0IIWqa";
+  private static final UID ORG_UNIT_2_UID = UID.generate();
 
-  private static final String PROGRAM_UID = "XhBYIraw7sv";
+  private static final UID PROGRAM_UID = UID.generate();
 
-  private static final String TRACKED_ENTITY_TYPE_UID = "Dp8baZYrLtr";
+  private static final UID TRACKED_ENTITY_TYPE_UID = UID.generate();
 
-  private static final String TRACKED_ENTITY_UID = "DGbr8GHG4li";
+  private static final UID TRACKED_ENTITY_UID = UID.generate();
 
   @Mock private UserService userService;
 
@@ -106,10 +106,10 @@ class EnrollmentOperationParamsMapperTest {
     testUser.setUsername("admin");
 
     orgUnit1 = new OrganisationUnit("orgUnit1");
-    orgUnit1.setUid(ORG_UNIT_1_UID);
+    orgUnit1.setUid(ORG_UNIT_1_UID.getValue());
     when(organisationUnitService.getOrganisationUnit(orgUnit1.getUid())).thenReturn(orgUnit1);
     orgUnit2 = new OrganisationUnit("orgUnit2");
-    orgUnit2.setUid(ORG_UNIT_2_UID);
+    orgUnit2.setUid(ORG_UNIT_2_UID.getValue());
     orgUnit2.setParent(orgUnit1);
     orgUnit1.setChildren(Set.of(orgUnit2));
     when(organisationUnitService.getOrganisationUnit(orgUnit2.getUid())).thenReturn(orgUnit2);
@@ -127,17 +127,17 @@ class EnrollmentOperationParamsMapperTest {
     user = UserDetails.fromUser(testUser);
 
     TrackedEntityType trackedEntityType = new TrackedEntityType();
-    trackedEntityType.setUid(TRACKED_ENTITY_TYPE_UID);
-    when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID))
+    trackedEntityType.setUid(TRACKED_ENTITY_TYPE_UID.getValue());
+    when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID.getValue()))
         .thenReturn(trackedEntityType);
 
     Program program = new Program();
-    program.setUid(PROGRAM_UID);
+    program.setUid(PROGRAM_UID.getValue());
     program.setTrackedEntityType(trackedEntityType);
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
 
     TrackedEntity trackedEntity = new TrackedEntity();
-    trackedEntity.setUid(TRACKED_ENTITY_UID);
+    trackedEntity.setUid(TRACKED_ENTITY_UID.getValue());
     trackedEntity.setTrackedEntityType(trackedEntityType);
 
     when(paramsValidator.validateTrackerProgram(PROGRAM_UID, user)).thenReturn(program);
@@ -227,10 +227,7 @@ class EnrollmentOperationParamsMapperTest {
       throws ForbiddenException, BadRequestException {
 
     EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder()
-            .orgUnits(Set.of(UID.of(orgUnit1)))
-            .orgUnitMode(CHILDREN)
-            .build();
+        EnrollmentOperationParams.builder().orgUnits(orgUnit1).orgUnitMode(CHILDREN).build();
 
     EnrollmentQueryParams params = mapper.map(operationParams, user);
 

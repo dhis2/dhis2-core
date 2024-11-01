@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -88,9 +89,9 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
     dbmsManager.save(duplicate1);
     dbmsManager.save(duplicate2);
 
-    potentialDuplicate1 = new PotentialDuplicate(origin.getUid(), duplicate1.getUid());
+    potentialDuplicate1 = new PotentialDuplicate(UID.of(origin), UID.of(duplicate1));
     save(potentialDuplicate1);
-    potentialDuplicate2 = new PotentialDuplicate(origin.getUid(), duplicate2.getUid());
+    potentialDuplicate2 = new PotentialDuplicate(UID.of(origin), UID.of(duplicate2));
     save(potentialDuplicate2);
   }
 
@@ -100,7 +101,7 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
     trackedEntity.setTrackedEntityType(trackedEntityType);
     dbmsManager.save(trackedEntity);
     PotentialDuplicate potentialDuplicate =
-        new PotentialDuplicate(trackedEntity.getUid(), duplicate1.getUid());
+        new PotentialDuplicate(UID.of(trackedEntity), UID.of(duplicate1));
 
     assertStatus(
         HttpStatus.OK, POST(ENDPOINT, objectMapper.writeValueAsString(potentialDuplicate)));
@@ -246,7 +247,7 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void shouldThrowPostPotentialDuplicateWhenMissingDuplicateTeiInPayload() throws Exception {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(origin.getUid(), null);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(UID.of(origin), null);
     assertStatus(
         HttpStatus.BAD_REQUEST,
         POST(ENDPOINT, objectMapper.writeValueAsString(potentialDuplicate)));
@@ -254,7 +255,7 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void shouldThrowPostPotentialDuplicateWhenMissingOriginTeiInPayload() throws Exception {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(null, duplicate1.getUid());
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(null, UID.of(duplicate1));
     assertStatus(
         HttpStatus.BAD_REQUEST,
         POST(ENDPOINT, objectMapper.writeValueAsString(potentialDuplicate)));
@@ -263,7 +264,7 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void shouldThrowBadRequestWhenPutPotentialDuplicateAlreadyMerged() {
     PotentialDuplicate potentialDuplicate =
-        new PotentialDuplicate(origin.getUid(), duplicate1.getUid());
+        new PotentialDuplicate(UID.of(origin), UID.of(duplicate1));
     potentialDuplicate.setStatus(DeduplicationStatus.MERGED);
     save(potentialDuplicate);
 
@@ -311,11 +312,11 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void shouldThrowNotFoundWhenPotentialDuplicateDoNotExists() {
-    assertStatus(HttpStatus.NOT_FOUND, GET(ENDPOINT + "uid"));
+    assertStatus(HttpStatus.NOT_FOUND, GET(ENDPOINT + UID.generate()));
   }
 
   private PotentialDuplicate potentialDuplicate(String original, String duplicate) {
-    return save(new PotentialDuplicate(original, duplicate));
+    return save(new PotentialDuplicate(UID.of(original), UID.of(duplicate)));
   }
 
   private PotentialDuplicate save(PotentialDuplicate potentialDuplicate) {

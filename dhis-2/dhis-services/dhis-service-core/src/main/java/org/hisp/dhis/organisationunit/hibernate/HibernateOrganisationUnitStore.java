@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
@@ -406,6 +407,20 @@ public class HibernateOrganisationUnitStore
   @Override
   public int updateAllOrganisationUnitsGeometryToNull() {
     return getQuery("update OrganisationUnit o set o.geometry = null").executeUpdate();
+  }
+
+  @Override
+  public List<OrganisationUnit> getByCategoryOption(@Nonnull Collection<String> categoryOptions) {
+    if (categoryOptions.isEmpty()) return List.of();
+    return getQuery(
+            """
+            select distinct ou from OrganisationUnit ou
+            join ou.categoryOptions co
+            where co.uid in :categoryOptions
+            """,
+            OrganisationUnit.class)
+        .setParameter("categoryOptions", categoryOptions)
+        .getResultList();
   }
 
   private String buildOrganisationUnitDistinctUidsSql(OrganisationUnitQueryParams params) {

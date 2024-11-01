@@ -35,6 +35,7 @@ import java.util.function.Supplier;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.webmessage.WebResponse;
 
 @Getter
@@ -61,6 +62,10 @@ public final class ForbiddenException extends Exception implements Error {
 
   public ForbiddenException(Class<?> type, String uid) {
     this("User has no access to " + type.getSimpleName() + ":" + uid);
+  }
+
+  public ForbiddenException(Class<?> type, UID uid) {
+    this(type, uid.getValue());
   }
 
   public ForbiddenException(ErrorCode code, Object... args) {

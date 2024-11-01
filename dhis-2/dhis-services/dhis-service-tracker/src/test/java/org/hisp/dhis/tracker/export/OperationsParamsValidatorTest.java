@@ -32,12 +32,14 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -52,7 +54,6 @@ import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -79,13 +80,13 @@ class OperationsParamsValidatorTest {
 
   private final OrganisationUnit orgUnit = new OrganisationUnit();
 
-  private static final String PROGRAM_UID = "PROGRAM_UID";
+  private static final UID PROGRAM_UID = UID.generate();
 
-  private static final String TRACKED_ENTITY_UID = "TRACKED_ENTITY_UID";
+  private static final UID TRACKED_ENTITY_UID = UID.generate();
 
-  private static final String TRACKED_ENTITY_TYPE_UID = "TRACKED_ENTITY_TYPE_UID";
+  private static final UID TRACKED_ENTITY_TYPE_UID = UID.generate();
 
-  private static final String ORG_UNIT_UID = "ORG_UNIT_UID";
+  private static final UID ORG_UNIT_UID = UID.generate();
 
   @Mock private ProgramService programService;
 
@@ -112,8 +113,7 @@ class OperationsParamsValidatorTest {
   @Test
   void shouldFailWhenOuModeCaptureAndUserHasNoOrgUnitsAssigned() {
     Exception exception =
-        Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(CAPTURE, program, user));
+        assertThrows(ForbiddenException.class, () -> validateOrgUnitMode(CAPTURE, program, user));
 
     assertEquals("User needs to be assigned data capture org units", exception.getMessage());
   }
@@ -126,8 +126,8 @@ class OperationsParamsValidatorTest {
       OrganisationUnitSelectionMode orgUnitMode) {
 
     Exception exception =
-        Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(orgUnitMode, program, user));
+        assertThrows(
+            ForbiddenException.class, () -> validateOrgUnitMode(orgUnitMode, program, user));
 
     assertEquals(
         "User needs to be assigned either search or data capture org units",
@@ -137,8 +137,7 @@ class OperationsParamsValidatorTest {
   @Test
   void shouldFailWhenOuModeAllAndNotSuperuser() {
     Exception exception =
-        Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(ALL, program, user));
+        assertThrows(ForbiddenException.class, () -> validateOrgUnitMode(ALL, program, user));
 
     assertEquals(
         "User is not authorized to query across all organisation units", exception.getMessage());
@@ -146,10 +145,10 @@ class OperationsParamsValidatorTest {
 
   @Test
   void shouldThrowBadRequestExceptionWhenProgramDoesNotExist() {
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(null);
+    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(null);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             BadRequestException.class,
             () -> paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
 
@@ -161,18 +160,18 @@ class OperationsParamsValidatorTest {
   @Test
   void shouldReturnProgramWhenUserHasAccessToProgram()
       throws ForbiddenException, BadRequestException {
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
     when(aclService.canDataRead(user, program)).thenReturn(true);
     assertEquals(program, paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
   }
 
   @Test
   void shouldThrowForbiddenExceptionWhenUserHasNoAccessToProgram() {
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
     when(aclService.canDataRead(user, program)).thenReturn(false);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             ForbiddenException.class,
             () -> paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
 
@@ -186,7 +185,7 @@ class OperationsParamsValidatorTest {
       throws ForbiddenException, BadRequestException {
     TrackedEntityType trackedEntityType = new TrackedEntityType("trackedEntityType", "");
     program.setTrackedEntityType(trackedEntityType);
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
@@ -195,15 +194,14 @@ class OperationsParamsValidatorTest {
 
   @Test
   void shouldThrowForbiddenExceptionWhenUserHasNoAccessToProgramTrackedEntityType() {
-
     TrackedEntityType trackedEntityType = new TrackedEntityType("trackedEntityType", "");
     program.setTrackedEntityType(trackedEntityType);
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(false);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             ForbiddenException.class,
             () -> paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
 
@@ -217,11 +215,11 @@ class OperationsParamsValidatorTest {
   @Test
   void shouldThrowBadRequestExceptionWhenRequestingTrackedEntitiesAndProgramIsNotATrackerProgram() {
     program.setProgramType(WITHOUT_REGISTRATION);
-    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
     when(aclService.canDataRead(user, program)).thenReturn(true);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             BadRequestException.class,
             () -> paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
 
@@ -233,17 +231,17 @@ class OperationsParamsValidatorTest {
   @Test
   void shouldReturnTrackedEntityWhenTrackedEntityUidExists()
       throws ForbiddenException, BadRequestException {
-    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID)).thenReturn(trackedEntity);
+    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue())).thenReturn(trackedEntity);
 
     assertEquals(trackedEntity, paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user));
   }
 
   @Test
   void shouldThrowBadRequestExceptionWhenTrackedEntityDoesNotExist() {
-    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID)).thenReturn(null);
+    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue())).thenReturn(null);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             BadRequestException.class,
             () -> paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user));
 
@@ -258,7 +256,7 @@ class OperationsParamsValidatorTest {
 
     TrackedEntityType trackedEntityType = new TrackedEntityType("trackedEntityType", "");
     trackedEntity.setTrackedEntityType(trackedEntityType);
-    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID)).thenReturn(trackedEntity);
+    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue())).thenReturn(trackedEntity);
     when(aclService.canDataRead(user, trackedEntity.getTrackedEntityType())).thenReturn(true);
 
     assertEquals(trackedEntity, paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user));
@@ -269,11 +267,11 @@ class OperationsParamsValidatorTest {
 
     TrackedEntityType trackedEntityType = new TrackedEntityType("trackedEntityType", "");
     trackedEntity.setTrackedEntityType(trackedEntityType);
-    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID)).thenReturn(trackedEntity);
+    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue())).thenReturn(trackedEntity);
     when(aclService.canDataRead(user, trackedEntity.getTrackedEntityType())).thenReturn(false);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             ForbiddenException.class,
             () -> paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user));
 
@@ -286,10 +284,11 @@ class OperationsParamsValidatorTest {
 
   @Test
   void shouldThrowBadRequestExceptionWhenTrackedEntityTypeDoesNotExist() {
-    when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID)).thenReturn(null);
+    when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID.getValue()))
+        .thenReturn(null);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             BadRequestException.class,
             () -> paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID, user));
 
@@ -303,7 +302,7 @@ class OperationsParamsValidatorTest {
   void shouldReturnTrackedEntityTypeWhenUserHasAccessToTrackedEntityType()
       throws ForbiddenException, BadRequestException {
 
-    when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID))
+    when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID.getValue()))
         .thenReturn(trackedEntityType);
     when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
 
@@ -314,12 +313,12 @@ class OperationsParamsValidatorTest {
 
   @Test
   void shouldThrowForbiddenExceptionWhenUserHasNoAccessToTrackedEntityType() {
-    when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID))
+    when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID.getValue()))
         .thenReturn(trackedEntityType);
     when(aclService.canDataRead(user, trackedEntityType)).thenReturn(false);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             ForbiddenException.class,
             () -> paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID, user));
 
@@ -332,10 +331,10 @@ class OperationsParamsValidatorTest {
 
   @Test
   void shouldThrowBadRequestExceptionWhenOrgUnitDoesNotExist() {
-    when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID)).thenReturn(null);
+    when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID.getValue())).thenReturn(null);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             BadRequestException.class,
             () -> paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID), user));
 
@@ -349,7 +348,7 @@ class OperationsParamsValidatorTest {
       throws ForbiddenException, BadRequestException {
     User userWithOrgUnits = new User();
     userWithOrgUnits.setOrganisationUnits(Set.of(orgUnit));
-    when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID)).thenReturn(orgUnit);
+    when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID.getValue())).thenReturn(orgUnit);
 
     assertEquals(
         Set.of(orgUnit),
@@ -359,10 +358,10 @@ class OperationsParamsValidatorTest {
 
   @Test
   void shouldThrowForbiddenExceptionWhenUserHasNoAccessToOrgUnit() {
-    when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID)).thenReturn(orgUnit);
+    when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID.getValue())).thenReturn(orgUnit);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             ForbiddenException.class,
             () -> paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID), user));
 
@@ -379,7 +378,7 @@ class OperationsParamsValidatorTest {
     UserRole userRole = new UserRole();
     userRole.setAuthorities(Sets.newHashSet("ALL"));
     userWithRoles.setUserRoles(Set.of(userRole));
-    when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID)).thenReturn(orgUnit);
+    when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID.getValue())).thenReturn(orgUnit);
 
     Set<OrganisationUnit> orgUnits =
         paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID), UserDetails.fromUser(userWithRoles));

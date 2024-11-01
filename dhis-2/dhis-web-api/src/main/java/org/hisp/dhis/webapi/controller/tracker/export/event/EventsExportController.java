@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeGzip;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeZip;
@@ -50,6 +49,7 @@ import java.io.IOException;
 import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Response.Status;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -85,6 +85,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @OpenApi.EntityType(Event.class)
+@OpenApi.Document(classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping("/api/tracker/events")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -305,7 +306,8 @@ class EventsExportController {
     validateUnsupportedParameter(
         request,
         "dimension",
-        "Request parameter 'dimension' is only supported for images by API /tracker/event/dataValues/{dataElement}/image");
+        "Request parameter 'dimension' is only supported for images by API"
+            + " /tracker/event/dataValues/{dataElement}/image");
 
     return fileResourceRequestHandler.handle(
         request, eventService.getFileResource(event, dataElement));

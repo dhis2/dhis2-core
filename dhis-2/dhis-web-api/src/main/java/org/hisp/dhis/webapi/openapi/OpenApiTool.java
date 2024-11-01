@@ -48,6 +48,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.openapi.JsonGenerator.Language;
 
 /**
  * A classic command line application to generate DHIS2 OpenAPI documents.
@@ -112,7 +113,8 @@ public class OpenApiTool implements ToolProvider {
     out.println("Generated Documents");
     String filename = args[args.length - 1];
 
-    ApiExtractor.Scope scope = new ApiExtractor.Scope(controllers, filters);
+    Api.Scope scope =
+        new Api.Scope(controllers, filters, ApiClassifications.matches(controllers, filters));
     if (!group) {
       return generateDocument(filename, out, err, scope);
     }
@@ -140,10 +142,10 @@ public class OpenApiTool implements ToolProvider {
   }
 
   private AtomicInteger generateDocumentsFromDocumentAnnotation(
-      String to, PrintWriter out, PrintWriter err, ApiExtractor.Scope scope) {
+      String to, PrintWriter out, PrintWriter err, Api.Scope scope) {
     Map<String, Set<Class<?>>> byDoc = new TreeMap<>();
-    scope.controllers().stream()
-        .filter(scope::includes)
+    scope
+        .matches()
         .forEach(
             cls -> byDoc.computeIfAbsent(getDocumentName(cls), key -> new HashSet<>()).add(cls));
     return generateDocumentsFromGroups(to, out, err, scope, byDoc);
@@ -153,7 +155,7 @@ public class OpenApiTool implements ToolProvider {
       String to,
       PrintWriter out,
       PrintWriter err,
-      ApiExtractor.Scope scope,
+      Api.Scope scope,
       Map<String, Set<Class<?>>> groups) {
 
     String dir =
@@ -168,15 +170,21 @@ public class OpenApiTool implements ToolProvider {
           String filename = dir + "/openapi-" + name + fileExtension;
           errorCode.addAndGet(
               generateDocument(
-                  filename, out, err, new ApiExtractor.Scope(classes, scope.filters())));
+                  filename,
+                  out,
+                  err,
+                  new Api.Scope(
+                      classes,
+                      scope.filters(),
+                      ApiClassifications.matches(classes, scope.filters()))));
         });
     return errorCode;
   }
 
   private Integer generateDocument(
-      String filename, PrintWriter out, PrintWriter err, ApiExtractor.Scope scope) {
+      String filename, PrintWriter out, PrintWriter err, Api.Scope scope) {
     try {
-      Api api = ApiExtractor.extractApi(new ApiExtractor.Configuration(scope, false));
+      Api api = ApiExtractor.extractApi(scope, new ApiExtractor.Configuration(false));
 
       ApiIntegrator.integrateApi(
           api, ApiIntegrator.Configuration.builder().failOnNameClash(true).build());
@@ -190,10 +198,9 @@ public class OpenApiTool implements ToolProvider {
               .replace(".json", "");
       OpenApiGenerator.Info info =
           OpenApiGenerator.Info.DEFAULT.toBuilder().title("DHIS2 API - " + title).build();
-      String doc =
-          filename.endsWith(".json")
-              ? OpenApiGenerator.generateJson(api, PRETTY_PRINT, info)
-              : OpenApiGenerator.generateYaml(api, PRETTY_PRINT, info);
+      OpenApiGenerationParams params = new OpenApiGenerationParams();
+      Language language = filename.endsWith(".json") ? Language.JSON : Language.YAML;
+      String doc = OpenApiGenerator.generate(language, api, PRETTY_PRINT, info, params);
       Path output = Files.writeString(file, doc);
       int controllers = api.getControllers().size();
       int endpoints = api.getControllers().stream().mapToInt(c -> c.getEndpoints().size()).sum();
@@ -214,7 +221,7 @@ public class OpenApiTool implements ToolProvider {
     if (controller.isAnnotationPresent(OpenApi.Document.class)) {
       OpenApi.Document doc = controller.getAnnotation(OpenApi.Document.class);
       if (!doc.name().isEmpty()) return doc.name();
-      if (doc.domain() != OpenApi.EntityType.class) return getTypeName(doc.domain());
+      if (doc.entity() != OpenApi.EntityType.class) return getTypeName(doc.entity());
     }
     return getTypeName(OpenApiAnnotations.getEntityType(controller));
   }

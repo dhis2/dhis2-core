@@ -469,7 +469,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       trackedEntity
           .append(whereAnd.whereAnd())
           .append("TE.uid IN (")
-          .append(encodeAndQuote(params.getTrackedEntityUids()))
+          .append(encodeAndQuote(UID.toValueSet(params.getTrackedEntities())))
           .append(") ");
     }
 

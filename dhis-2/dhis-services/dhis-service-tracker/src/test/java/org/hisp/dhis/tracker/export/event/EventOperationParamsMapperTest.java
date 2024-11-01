@@ -154,8 +154,7 @@ class EventOperationParamsMapperTest {
   void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToProgramStage() {
     ProgramStage programStage = new ProgramStage();
     programStage.setUid("PlZSBEN7iZd");
-    EventOperationParams eventOperationParams =
-        eventBuilder.programStage(UID.of(programStage)).build();
+    EventOperationParams eventOperationParams = eventBuilder.programStage(programStage).build();
 
     when(aclService.canDataRead(user, programStage)).thenReturn(false);
     when(programStageService.getProgramStage("PlZSBEN7iZd")).thenReturn(programStage);
@@ -252,9 +251,9 @@ class EventOperationParamsMapperTest {
         eventBuilder
             .attributeFilters(
                 Map.of(
-                    TEA_1_UID,
+                    UID.of(TEA_1_UID),
                     List.of(new QueryFilter(QueryOperator.EQ, "2")),
-                    TEA_2_UID,
+                    UID.of(TEA_2_UID),
                     List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
             .build();
 
@@ -273,11 +272,12 @@ class EventOperationParamsMapperTest {
 
   @Test
   void shouldFailWhenAttributeInGivenAttributeFilterDoesNotExist() {
-    String filterName = "filter";
+    UID filterName = UID.generate();
     EventOperationParams operationParams =
         eventBuilder.attributeFilters(Map.of(filterName, List.of())).build();
 
-    when(trackedEntityAttributeService.getTrackedEntityAttribute(filterName)).thenReturn(null);
+    when(trackedEntityAttributeService.getTrackedEntityAttribute(filterName.getValue()))
+        .thenReturn(null);
 
     Exception exception =
         assertThrows(BadRequestException.class, () -> mapper.map(operationParams, user));
@@ -364,9 +364,9 @@ class EventOperationParamsMapperTest {
         eventBuilder
             .dataElementFilters(
                 Map.of(
-                    DE_1_UID,
+                    UID.of(DE_1_UID),
                     List.of(new QueryFilter(QueryOperator.EQ, "2")),
-                    DE_2_UID,
+                    UID.of(DE_2_UID),
                     List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
             .build();
 
@@ -385,11 +385,11 @@ class EventOperationParamsMapperTest {
 
   @Test
   void shouldFailWhenDataElementInGivenDataElementFilterDoesNotExist() {
-    String filterName = "filter";
+    UID filterName = UID.generate();
     EventOperationParams operationParams =
         eventBuilder.dataElementFilters(Map.of(filterName, List.of())).build();
 
-    when(dataElementService.getDataElement(filterName)).thenReturn(null);
+    when(dataElementService.getDataElement(filterName.getValue())).thenReturn(null);
 
     Exception exception =
         assertThrows(BadRequestException.class, () -> mapper.map(operationParams, user));
@@ -437,8 +437,8 @@ class EventOperationParamsMapperTest {
 
     EventOperationParams operationParams =
         eventBuilder
-            .program(UID.of(program))
-            .orgUnit(UID.of(searchScopeChildOrgUnit))
+            .program(program)
+            .orgUnit(searchScopeChildOrgUnit)
             .orgUnitMode(orgUnitMode)
             .build();
 
@@ -471,11 +471,7 @@ class EventOperationParamsMapperTest {
         .thenReturn(searchScopeChildOrgUnit);
 
     EventOperationParams operationParams =
-        eventBuilder
-            .program(UID.of(program))
-            .orgUnit(UID.of(searchScopeChildOrgUnit))
-            .orgUnitMode(ALL)
-            .build();
+        eventBuilder.program(program).orgUnit(searchScopeChildOrgUnit).orgUnitMode(ALL).build();
 
     EventQueryParams queryParams = mapper.map(operationParams, UserDetails.fromUser(user));
     assertEquals(searchScopeChildOrgUnit, queryParams.getOrgUnit());
@@ -488,7 +484,7 @@ class EventOperationParamsMapperTest {
     OrganisationUnit orgUnit = createOrgUnit("name");
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
     EventOperationParams operationParams =
-        EventOperationParams.builder().orgUnit(UID.of(orgUnit)).orgUnitMode(orgUnitMode).build();
+        EventOperationParams.builder().orgUnit(orgUnit).orgUnitMode(orgUnitMode).build();
 
     ForbiddenException exception =
         assertThrows(

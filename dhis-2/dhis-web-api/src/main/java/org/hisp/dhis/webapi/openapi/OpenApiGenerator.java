@@ -71,6 +71,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
  */
 @Slf4j
 public class OpenApiGenerator extends JsonGenerator {
+
   @Value
   @Builder(toBuilder = true)
   public static class Info {
@@ -93,25 +94,8 @@ public class OpenApiGenerator extends JsonGenerator {
     String contactEmail;
   }
 
-  public static String generateJson(Api api, String serverUrl) {
-    return generateJson(
-        api, Format.PRETTY_PRINT, Info.DEFAULT.toBuilder().serverUrl(serverUrl).build());
-  }
-
-  public static String generateJson(Api api, Format format, Info info) {
-    return generate(api, format, Language.JSON, info);
-  }
-
-  public static String generateYaml(Api api, String serverUrl) {
-    return generateYaml(
-        api, Format.PRETTY_PRINT, Info.DEFAULT.toBuilder().serverUrl(serverUrl).build());
-  }
-
-  public static String generateYaml(Api api, Format format, Info info) {
-    return generate(api, format, Language.YAML, info);
-  }
-
-  private static String generate(Api api, Format format, Language language, Info info) {
+  public static String generate(
+      Language language, Api api, Format format, Info info, OpenApiGenerationParams params) {
     int endpoints = 0;
     for (Api.Controller c : api.getControllers()) endpoints += c.getEndpoints().size();
     int capacity = endpoints * 256 + api.getSchemas().size() * 512;
@@ -121,6 +105,7 @@ public class OpenApiGenerator extends JsonGenerator {
             language.getAdjustFormat().apply(format),
             language,
             info,
+            params,
             new StringBuilder(capacity));
     gen.generateDocument();
     return gen.toString();
@@ -134,6 +119,7 @@ public class OpenApiGenerator extends JsonGenerator {
 
   private final Api api;
   private final Info info;
+  private final OpenApiGenerationParams params;
   private final Map<String, List<Api.Endpoint>> endpointsByBaseOperationId = new HashMap<>();
 
   /**
@@ -143,10 +129,20 @@ public class OpenApiGenerator extends JsonGenerator {
   private final Set<String> pathSchemaRefs = new HashSet<>();
 
   private OpenApiGenerator(
-      Api api, Format format, Language language, Info info, StringBuilder out) {
+      Api api,
+      Format format,
+      Language language,
+      Info info,
+      OpenApiGenerationParams params,
+      StringBuilder out) {
     super(out, format, language);
     this.api = api;
     this.info = info;
+    this.params = params;
+  }
+
+  private boolean xProperties() {
+    return params.isIncludeXProperties();
   }
 
   private void generateDocument() {
@@ -171,12 +167,6 @@ public class OpenApiGenerator extends JsonGenerator {
                       addStringMember("url", info.contactUrl);
                       addStringMember("email", info.contactEmail);
                     });
-                addObjectMember(
-                    "x-navigation",
-                    () ->
-                        ApiClassification.of(api.getContext())
-                            .getClassifiers()
-                            .forEach(this::addArrayMember));
               });
           addArrayMember(
               "tags",
@@ -233,16 +223,18 @@ public class OpenApiGenerator extends JsonGenerator {
         method.name().toLowerCase(),
         () -> {
           addTrueMember("deprecated", endpoint.getDeprecated());
-          addStringMember("x-maturity", getMaturityTag(endpoint.getMaturity()));
-          addStringMember("x-since", getSinceVersion(endpoint.getSince()));
+          if (xProperties()) {
+            addStringMember("x-maturity", getMaturityTag(endpoint.getMaturity()));
+            addStringMember("x-since", getSinceVersion(endpoint.getSince()));
+            addStringMember("x-group", endpoint.getGroup());
+            addInlineArrayMember("x-auth", endpoint.getAuthorities());
+          }
           addStringMultilineMember("description", endpoint.getDescription().orElse(NO_DESCRIPTION));
           addStringMember("operationId", getUniqueOperationId(endpoint));
-          addObjectMember(
-              "x-classifiers",
-              () -> endpoint.getIn().getClassifiers().forEach(this::addStringMember));
-          addStringMember("x-group", endpoint.getGroup());
-          addInlineArrayMember("x-auth", endpoint.getAuthorities());
-          addInlineArrayMember("tags", List.of()); // TODO add tag support again
+          if (xProperties())
+            addObjectMember(
+                "x-classifiers",
+                () -> endpoint.getIn().getClassifiers().forEach(this::addStringMember));
           addArrayMember(
               "parameters", endpoint.getParameters().values(), this::generateParameterOrRef);
           if (endpoint.getRequestBody().isPresent()) {
@@ -255,8 +247,8 @@ public class OpenApiGenerator extends JsonGenerator {
 
   private void generateSharedParameters() {
     Map<String, Api.Parameter> paramBySharedName = new TreeMap<>();
-    for (List<Api.Parameter> params : api.getComponents().getParameters().values())
-      params.forEach(p -> paramBySharedName.put(p.getFullName(), p));
+    for (List<Api.Parameter> objParams : api.getComponents().getParameters().values())
+      objParams.forEach(p -> paramBySharedName.put(p.getFullName(), p));
     // use map to sort parameter by name
     paramBySharedName.forEach(this::generateParameter);
   }
@@ -283,8 +275,10 @@ public class OpenApiGenerator extends JsonGenerator {
               "description", parameter.getDescription().orElse(NO_DESCRIPTION));
           addTrueMember("required", parameter.isRequired());
           addTrueMember("deprecated", parameter.getDeprecated());
-          addStringMember("x-maturity", getMaturityTag(parameter.getMaturity()));
-          addStringMember("x-since", getSinceVersion(parameter.getSince()));
+          if (xProperties()) {
+            addStringMember("x-maturity", getMaturityTag(parameter.getMaturity()));
+            addStringMember("x-since", getSinceVersion(parameter.getSince()));
+          }
           JsonValue defaultValue = parameter.getDefaultValue().orElse(null);
           addObjectMember(
               "schema", () -> generateSchemaOrRef(parameter.getType(), IN, defaultValue));
@@ -374,7 +368,7 @@ public class OpenApiGenerator extends JsonGenerator {
               addObjectMember(
                   name,
                   () -> {
-                    addStringMember("x-kind", schema.getKind().getValue());
+                    if (xProperties()) addStringMember("x-kind", schema.getKind().getValue());
                     generateSchema(schema, schema.getDirection().orElse(OUT));
                   });
             });
@@ -482,7 +476,8 @@ public class OpenApiGenerator extends JsonGenerator {
                   generateSchemaOrRef(property.getType(), direction);
                   addTrueMember("readOnly", property.getAccess() == OpenApi.Access.READ);
                   addStringMember("description", property.getDescription().orElse(NO_DESCRIPTION));
-                  addStringMember("x-since", getSinceVersion(property.getSince()));
+                  if (xProperties())
+                    addStringMember("x-since", getSinceVersion(property.getSince()));
                 }));
   }
 
@@ -527,7 +522,7 @@ public class OpenApiGenerator extends JsonGenerator {
 
   private void generateUidSchema(Api.Schema schema) {
     addStringMember("type", "string");
-    addStringMember("x-kind", "uid");
+    if (xProperties()) addStringMember("x-kind", "uid");
     addStringMember("format", "uid");
     addStringMember("pattern", "^[0-9a-zA-Z]{11}$");
     addNumberMember("minLength", 11);

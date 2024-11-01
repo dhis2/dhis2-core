@@ -34,6 +34,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.user.CurrentUser;
@@ -49,6 +50,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 @RequestMapping("/api/identifiableObjects")
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class IdentifiableObjectController extends AbstractCrudController<IdentifiableObject> {
 
   @Nonnull

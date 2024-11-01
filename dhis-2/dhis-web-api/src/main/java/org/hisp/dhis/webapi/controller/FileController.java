@@ -59,7 +59,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = SystemSetting.class)
+@OpenApi.Document(
+    entity = SystemSetting.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping("/api/files")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

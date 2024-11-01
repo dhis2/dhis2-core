@@ -40,6 +40,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridResponse;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -71,6 +72,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping("/api/sqlViews")
 @RequiredArgsConstructor
+@OpenApi.Document(classifiers = {"team:platform", "purpose:support"})
 public class SqlViewController extends AbstractCrudController<SqlView> {
   private final SqlViewService sqlViewService;
 

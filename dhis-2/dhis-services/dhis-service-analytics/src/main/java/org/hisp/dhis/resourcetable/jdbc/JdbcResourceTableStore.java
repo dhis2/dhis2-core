@@ -162,7 +162,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
    * @param indexes the list of {@link Index} to create.
    */
   private void createIndexes(List<Index> indexes) {
-    if (isNotEmpty(indexes)) {
+    if (isNotEmpty(indexes) && sqlBuilder.requiresIndexesForAnalytics()) {
       for (Index index : indexes) {
         jdbcTemplate.execute(sqlBuilder.createIndex(index));
       }
