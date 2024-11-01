@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dashboard.embedded;
 
+import java.io.Serializable;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -37,7 +38,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class FilterOptions {
+public class FilterOptions implements Serializable {
   /** Whether filter sidebar should be accessible when opening the dashboard. */
   @JsonProperty private boolean visible;
 
