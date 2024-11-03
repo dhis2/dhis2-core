@@ -59,6 +59,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -94,10 +95,10 @@ import org.hisp.dhis.period.PeriodType;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
+import org.springframework.jdbc.InvalidResultSetAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -193,7 +194,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       if (params.analyzeOnly()) {
         withExceptionHandling(
             () -> executionPlanStore.addExecutionPlan(immutableParams.getExplainOrderId(), sql));
-        return new AsyncResult<>(Maps.newHashMap());
+        return CompletableFuture.completedFuture(Maps.newHashMap());
       }
 
       Map<String, Object> map;
@@ -207,12 +208,12 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
           throw ex;
         }
         log.warn(ERR_MSG_SILENT_FALLBACK, ex);
-        return new AsyncResult<>(Maps.newHashMap());
+        return CompletableFuture.completedFuture(Maps.newHashMap());
       }
 
       replaceDataPeriodsWithAggregationPeriods(map, params, dataPeriodAggregationPeriodMap);
 
-      return new AsyncResult<>(map);
+      return CompletableFuture.completedFuture(map);
     } catch (DataAccessResourceFailureException ex) {
       throw new QueryRuntimeException(ErrorCode.E7131);
     } catch (RuntimeException ex) {
@@ -352,7 +353,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       /* Reporting rates applies the measure criteria after the rates calculation phase. It cannot be done at this stage. */
       builder.append(getMeasureCriteriaSql(params));
     }
-
+    System.out.println(builder.toString());
     return builder.toString();
   }
 
@@ -989,9 +990,15 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       key.deleteCharAt(key.length() - 1);
 
       if (params.isDataType(TEXT)) {
-        String value = rowSet.getString(VALUE_ID);
+          String value = null;
+          try {
+              value = rowSet.getString(VALUE_ID);
+          } catch (InvalidResultSetAccessException e) {
+              System.out.println("ERROR:\n" + sql);
+              throw new RuntimeException(e);
+          }
 
-        map.put(key.toString(), value);
+          map.put(key.toString(), value);
       } else // NUMERIC
       {
         Double value = rowSet.getDouble(VALUE_ID);

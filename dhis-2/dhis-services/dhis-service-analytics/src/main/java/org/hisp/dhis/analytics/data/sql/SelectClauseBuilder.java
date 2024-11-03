@@ -47,7 +47,7 @@ public class SelectClauseBuilder implements SqlClauseBuilder {
     var dimensions =
         dimensionsUtils.getCommaDelimitedQuotedDimensionColumns(params.getDimensions());
     var valueClause =
-        params.isAggregation() ? buildAggregateValueClause(params) : params.getValueColumn() + " as value";
+        params.isAggregation() ? buildAggregateValueClause(params) : params.getValueColumn() + " as " + VALUE_COLUMN_NAME;
     return String.format("select %s, %s", dimensions, valueClause);
   }
 
