@@ -1065,7 +1065,7 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @Tag(UserWithDataViewOrgUnits_Tag)
+  @Tag(UserWithDataViewOrgUnitsTag)
   void testGetUserOrgUnitsWithGrantedForAnalyticsOrganisationUnits() {
     // given
     DataQueryParams dataQueryParams =
@@ -1082,7 +1082,7 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @Tag(UserWithoutDataViewOrgUnits_Tag)
+  @Tag(UserWithoutDataViewOrgUnitsTag)
   void testGetUserOrgUnitsWithDeniedForAnalyticsOrganisationUnits() {
     // given
     DataQueryParams dataQueryParams =
