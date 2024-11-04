@@ -183,8 +183,8 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
 
   private PeriodType monthly = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY);
 
-  private final String UserWithDataViewOrgUnits_Tag = "UserWithDataViewOrgUnits";
-  private final String UserWithoutDataViewOrgUnits_Tag = "UserWithoutDataViewOrgUnits";
+  private final String UserWithDataViewOrgUnitsTag = "UserWithDataViewOrgUnits";
+  private final String UserWithoutDataViewOrgUnitsTag = "UserWithoutDataViewOrgUnits";
 
   @Autowired private DataQueryService dataQueryService;
 
@@ -331,14 +331,14 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp(TestInfo testInfo) {
-    if (testInfo.getTags().contains(UserWithDataViewOrgUnits_Tag)
-        || testInfo.getTags().contains(UserWithoutDataViewOrgUnits_Tag)) {
+    if (testInfo.getTags().contains(UserWithDataViewOrgUnitsTag)
+        || testInfo.getTags().contains(UserWithoutDataViewOrgUnitsTag)) {
       UserRole role = createUserRole('X', "ALL");
       userService.addUserRole(role);
       User user = makeUser("X");
       user.addOrganisationUnit(ouA);
 
-      if (testInfo.getTags().contains(UserWithDataViewOrgUnits_Tag)) {
+      if (testInfo.getTags().contains(UserWithDataViewOrgUnitsTag)) {
         user.setDataViewOrganisationUnits(Set.of(ouB, ouC, ouD));
       } else {
         user.setDataViewOrganisationUnits(Set.of());
@@ -352,8 +352,8 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
 
   @AfterEach
   void tearDown(TestInfo testInfo) {
-    if (testInfo.getTags().contains(UserWithDataViewOrgUnits_Tag)
-        || testInfo.getTags().contains(UserWithoutDataViewOrgUnits_Tag)) {
+    if (testInfo.getTags().contains(UserWithDataViewOrgUnitsTag)
+        || testInfo.getTags().contains(UserWithoutDataViewOrgUnitsTag)) {
       injectSecurityContextUser(userService.getUser(BASE_USER_UID + "A"));
       User user = userService.getUser(BASE_USER_UID + "X");
       UserRole role = userService.getUserRole(BASE_UID + "X");
