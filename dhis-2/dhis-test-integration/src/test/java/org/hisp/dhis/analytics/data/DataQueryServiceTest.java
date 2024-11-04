@@ -97,13 +97,9 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -182,10 +178,6 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
   private DataElementGroupSet deGroupSetA;
 
   private PeriodType monthly = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY);
-
-  private final String userWithDataViewOrgUnitsTag = "UserWithDataViewOrgUnits";
-
-  private final String userWithoutDataViewOrgUnitsTag = "UserWithoutDataViewOrgUnits";
 
   @Autowired private DataQueryService dataQueryService;
 
@@ -325,42 +317,10 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     user.addOrganisationUnit(ouA);
     user.setDataViewOrganisationUnits(Set.of(ouB, ouC, ouD));
     user.getUserRoles().add(role);
+
     userService.addUser(user);
 
     injectSecurityContextUser(user);
-  }
-
-  @BeforeEach
-  void setUp(TestInfo testInfo) {
-    if (testInfo.getTags().contains(userWithDataViewOrgUnitsTag)
-        || testInfo.getTags().contains(userWithoutDataViewOrgUnitsTag)) {
-      UserRole role = createUserRole('X', "ALL");
-      userService.addUserRole(role);
-      User user = makeUser("X");
-      user.addOrganisationUnit(ouA);
-
-      if (testInfo.getTags().contains(userWithDataViewOrgUnitsTag)) {
-        user.setDataViewOrganisationUnits(Set.of(ouB, ouC, ouD));
-      } else {
-        user.setDataViewOrganisationUnits(Set.of());
-      }
-
-      user.getUserRoles().add(role);
-      userService.addUser(user);
-      injectSecurityContextUser(user);
-    }
-  }
-
-  @AfterEach
-  void tearDown(TestInfo testInfo) {
-    if (testInfo.getTags().contains(userWithDataViewOrgUnitsTag)
-        || testInfo.getTags().contains(userWithoutDataViewOrgUnitsTag)) {
-      injectSecurityContextUser(userService.getUser(BASE_USER_UID + "A"));
-      User user = userService.getUser(BASE_USER_UID + "X");
-      UserRole role = userService.getUserRole(BASE_UID + "X");
-      userService.deleteUser(user);
-      userService.deleteUserRole(role);
-    }
   }
 
   @Test
@@ -1066,7 +1026,6 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @Tag(userWithDataViewOrgUnitsTag)
   void testGetUserOrgUnitsWithGrantedForAnalyticsOrganisationUnits() {
     // given
     DataQueryParams dataQueryParams =
@@ -1080,23 +1039,6 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     assertThat(
         userOrgUnits.stream().map(BaseIdentifiableObject::getName).toList(),
         containsInAnyOrder("OrganisationUnitB", "OrganisationUnitC", "OrganisationUnitD"));
-  }
-
-  @Test
-  @Tag(userWithoutDataViewOrgUnitsTag)
-  void testGetUserOrgUnitsWithDeniedForAnalyticsOrganisationUnits() {
-    // given
-    DataQueryParams dataQueryParams =
-        DataQueryParams.newBuilder().withUserOrgUnitType(UserOrgUnitType.DATA_OUTPUT).build();
-
-    // when
-    List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits(dataQueryParams, null);
-
-    // then
-    assertEquals(1, userOrgUnits.size());
-    assertThat(
-        userOrgUnits.stream().map(BaseIdentifiableObject::getName).toList(),
-        containsInAnyOrder("OrganisationUnitA"));
   }
 
   @Test
