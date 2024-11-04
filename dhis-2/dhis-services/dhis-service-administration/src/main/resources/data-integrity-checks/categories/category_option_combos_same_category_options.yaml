@@ -1,0 +1,68 @@
+# Copyright (c) 2004-2024, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+  name: category_option_combos_same_category_options
+  description: Category option combos with the same category options
+  section: Categories
+  section_order: 6
+  summary_sql: >-
+      WITH duplicative_cocs  AS (
+      SELECT catoptions, COUNT(*) as count
+      FROM ( SELECT categoryoptioncomboid,
+      array_agg(categoryoptionid ORDER BY categoryoptionid) as catoptions
+      FROM categoryoptioncombos_categoryoptions group by categoryoptioncomboid) as foo
+      GROUP BY catoptions HAVING COUNT(*) > 1
+      )
+      SELECT COUNT(*) as value,
+       100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*)
+      FROM categoryoptioncombo),0 ) percent
+      FROM duplicative_cocs;
+  details_sql: >-
+      SELECT x.uid,'(' || b.rank || ') ' || x.name as name from categoryoptioncombo x
+      INNER JOIN (
+      SELECT categoryoptioncomboid, array_agg(categoryoptionid ORDER BY categoryoptionid) as catoptions
+      from categoryoptioncombos_categoryoptions GROUP BY categoryoptioncomboid
+      ) a on x.categoryoptioncomboid = a.categoryoptioncomboid
+      INNER JOIN (
+      SELECT catoptions, COUNT(*) as count, DENSE_RANK() OVER (ORDER BY catoptions) as rank
+      FROM ( SELECT categoryoptioncomboid,
+      array_agg(categoryoptionid ORDER BY categoryoptionid) as catoptions
+      FROM categoryoptioncombos_categoryoptions group by categoryoptioncomboid) as foo
+      GROUP BY catoptions HAVING COUNT(*) > 1
+      ) b on b.catoptions = a.catoptions
+      ORDER BY b.rank;
+  severity: WARNING
+  introduction: >
+    Category option combos with the exact same category options should be considered
+    to be merged. Category option combos with the exact same category options
+    may be easily confused by users in analysis. The details view will
+    provide a list of category option combos which have the exact same category options.
+    For each duplicated category option combo a number in parentheses such as (1) will
+    indicate which category option combos belong to duplicated groups.
+  details_id_type: categoryOptionCombos
+  recommendation: |
+    

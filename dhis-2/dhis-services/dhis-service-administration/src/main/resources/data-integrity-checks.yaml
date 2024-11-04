@@ -7,6 +7,7 @@ checks:
   - categories/categories_unique_category_combo.yaml
   - categories/category_combos_unused.yaml
   - categories/categories_same_category_options.yaml
+  - categories/category_option_combos_same_category_options.yaml
   - categories/category_option_combinations_cardinality.yaml
   - categories/categories_shared_category_options_in_combo.yaml
   - categories/category_option_combinations_disjoint.yaml
