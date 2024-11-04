@@ -53,6 +53,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -209,7 +210,7 @@ public class TrackerPreheat {
    * Internal map of all preheated events, mainly used for confirming existence for updates, and
    * used for object merging.
    */
-  @Getter private final Map<String, Event> events = new HashMap<>();
+  @Getter private final Map<UID, Event> events = new HashMap<>();
 
   /**
    * Internal map of all preheated relationships, mainly used for confirming existence for updates,
@@ -460,16 +461,16 @@ public class TrackerPreheat {
     enrollments.put(uid, enrollment);
   }
 
-  public Event getEvent(String uid) {
+  public Event getEvent(UID uid) {
     return events.get(uid);
   }
 
   public void putEvents(List<Event> events) {
-    events.forEach(event -> putEvent(event.getUid(), event));
+    events.forEach(this::putEvent);
   }
 
-  public void putEvent(String uid, Event event) {
-    events.put(uid, event);
+  public void putEvent(Event event) {
+    events.put(UID.of(event), event);
   }
 
   public void addNotes(Set<String> notes) {
@@ -490,7 +491,7 @@ public class TrackerPreheat {
 
   public Relationship getRelationship(
       org.hisp.dhis.tracker.imports.domain.Relationship relationship) {
-    return relationships.get(relationship.getUid());
+    return relationships.get(relationship.getStringUid());
   }
 
   public boolean isDuplicate(org.hisp.dhis.tracker.imports.domain.Relationship relationship) {
@@ -617,8 +618,7 @@ public class TrackerPreheat {
 
   public boolean hasProgramStageWithEvents(MetadataIdentifier programStage, String enrollmentUid) {
     ProgramStage ps = this.getProgramStage(programStage);
-    Enrollment enrollment = this.getEnrollment(enrollmentUid);
-    return this.programStageWithEvents.contains(Pair.of(ps.getUid(), enrollment.getUid()));
+    return this.programStageWithEvents.contains(Pair.of(ps.getUid(), enrollmentUid));
   }
 
   /** Checks if an entity exists in the DB. */
@@ -633,14 +633,14 @@ public class TrackerPreheat {
    * @param uid uid of entity to check
    * @return true if an entity of given type and UID exists in the DB
    */
-  public boolean exists(TrackerType type, String uid) {
+  public boolean exists(TrackerType type, UID uid) {
     Objects.requireNonNull(type);
 
     return switch (type) {
-      case TRACKED_ENTITY -> getTrackedEntity(uid) != null;
-      case ENROLLMENT -> getEnrollment(uid) != null;
+      case TRACKED_ENTITY -> getTrackedEntity(uid.getValue()) != null;
+      case ENROLLMENT -> getEnrollment(uid.getValue()) != null;
       case EVENT -> getEvent(uid) != null;
-      case RELATIONSHIP -> getRelationship(uid) != null;
+      case RELATIONSHIP -> getRelationship(uid.getValue()) != null;
     };
   }
 

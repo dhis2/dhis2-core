@@ -38,6 +38,7 @@ import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.event.CategoryOptionMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
+import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
@@ -49,6 +50,7 @@ import org.mapstruct.Mapping;
       CategoryOptionMapper.class,
       DataValueMapper.class,
       InstantMapper.class,
+      UIDMapper.class,
       NoteMapper.class,
       ProgramOwnerMapper.class,
       UserMapper.class,

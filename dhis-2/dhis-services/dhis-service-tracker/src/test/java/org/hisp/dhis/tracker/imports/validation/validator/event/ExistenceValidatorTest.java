@@ -35,6 +35,7 @@ import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidatio
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -52,11 +53,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class ExistenceValidatorTest {
-  private static final String SOFT_DELETED_EVENT_UID = "SoftDeletedEventId";
+  private static final UID SOFT_DELETED_EVENT_UID = UID.generate();
 
-  private static final String EVENT_UID = "EventId";
+  private static final UID EVENT_UID = UID.generate();
 
-  private static final String NOT_PRESENT_EVENT_UID = "NotPresentEventId";
+  private static final UID NOT_PRESENT_EVENT_UID = UID.generate();
 
   @Mock private TrackerBundle bundle;
 
@@ -150,14 +151,14 @@ class ExistenceValidatorTest {
 
   private Event getSoftDeletedEvent() {
     Event event = new Event();
-    event.setUid(SOFT_DELETED_EVENT_UID);
+    event.setUid(SOFT_DELETED_EVENT_UID.getValue());
     event.setDeleted(true);
     return event;
   }
 
   private Event getEvent() {
     Event event = new Event();
-    event.setUid(EVENT_UID);
+    event.setUid(EVENT_UID.getValue());
     event.setDeleted(false);
     return event;
   }

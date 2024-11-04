@@ -45,6 +45,7 @@ import org.mapstruct.Mapping;
       DataValueMapper.class,
       CategoryOptionMapper.class,
       InstantMapper.class,
+      //      UIDMapper.class,
       NoteMapper.class,
       RelationshipMapper.class,
       UserMapper.class

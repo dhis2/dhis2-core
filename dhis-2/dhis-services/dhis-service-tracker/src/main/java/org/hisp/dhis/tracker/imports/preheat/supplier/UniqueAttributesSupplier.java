@@ -221,7 +221,10 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
         .map(
             te ->
                 new UniqueAttributeValue(
-                    te.getUid(), attribute.getAttribute(), attribute.getValue(), te.getOrgUnit()))
+                    te.getStringUid(),
+                    attribute.getAttribute(),
+                    attribute.getValue(),
+                    te.getOrgUnit()))
         .toList();
   }
 
