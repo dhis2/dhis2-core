@@ -30,22 +30,19 @@ package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 import static java.util.Map.entry;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
-import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 @Mapper(uses = {RelationshipItemMapper.class, InstantMapper.class})
-public abstract class RelationshipMapper
-    implements ViewMapper<org.hisp.dhis.relationship.Relationship, Relationship> {
+public abstract class RelationshipMapper {
 
   /**
    * Relationships can be ordered by given fields which correspond to fields on {@link
@@ -61,23 +58,20 @@ public abstract class RelationshipMapper
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "createdAtClient", source = "createdAtClient")
   @Mapping(target = "updatedAt", source = "lastUpdated")
-  @Override
-  public abstract Relationship from(org.hisp.dhis.relationship.Relationship relationship);
+  public abstract Relationship map(org.hisp.dhis.relationship.Relationship relationship);
 
   /**
-   * Maps {@code Set}'s of {@link org.hisp.dhis.relationship.RelationshipItem}'s to {@link
+   * Maps a {@link org.hisp.dhis.relationship.RelationshipItem} to a {@link
    * org.hisp.dhis.relationship.Relationship} which is then mapped by {@link
-   * #from(org.hisp.dhis.relationship.Relationship)}.
+   * #map(org.hisp.dhis.relationship.Relationship)}.
    */
-  public Set<org.hisp.dhis.relationship.Relationship> map(
-      Set<org.hisp.dhis.relationship.RelationshipItem> relationshipItems) {
-    if (relationshipItems == null) {
-      return Set.of();
+  public org.hisp.dhis.relationship.Relationship map(
+      org.hisp.dhis.relationship.RelationshipItem relationshipItem) {
+    if (relationshipItem == null) {
+      return null;
     }
 
-    return relationshipItems.stream()
-        .map(org.hisp.dhis.relationship.RelationshipItem::getRelationship)
-        .collect(Collectors.toSet());
+    return relationshipItem.getRelationship();
   }
 
   @AfterMapping
