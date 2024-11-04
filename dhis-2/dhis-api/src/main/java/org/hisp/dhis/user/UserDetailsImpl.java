@@ -53,6 +53,7 @@ public class UserDetailsImpl implements UserDetails {
   private final String password;
   private final boolean externalAuth;
   private final boolean isTwoFactorEnabled;
+  private final String twoFactorType;
   private final boolean enabled;
   private final boolean accountNonExpired;
   private final boolean accountNonLocked;

@@ -43,11 +43,11 @@ import org.springframework.security.core.GrantedAuthority;
 public interface UserDetails
     extends org.springframework.security.core.userdetails.UserDetails, UidObject {
 
-  // TODO MAS: This is a workaround and usually indicated a design flaw, and that we should refactor
-  // to use UserDetails higher up in the layers.
-
   /**
    * Create UserDetails from User
+   *
+   * <p>TODO MAS: This is a workaround and usually indicated a design flaw, and that we should
+   * refactor // to use UserDetails higher up in the layers.
    *
    * @param user user to convert
    * @return UserDetails
@@ -118,6 +118,7 @@ public interface UserDetails
             .password(user.getPassword())
             .externalAuth(user.isExternalAuth())
             .isTwoFactorEnabled(user.isTwoFactorEnabled())
+            .twoFactorType(user.getTwoFactorType().name())
             .code(user.getCode())
             .firstName(user.getFirstName())
             .surname(user.getSurname())
@@ -242,6 +243,8 @@ public interface UserDetails
   boolean isExternalAuth();
 
   boolean isTwoFactorEnabled();
+
+  String getTwoFactorType();
 
   boolean hasAnyRestrictions(Collection<String> restrictions);
 

@@ -146,6 +146,20 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
     validateTOTP(secret);
   }
 
+  // test redirect to login page when not logged in, remember url before login...
+  private void validateTOTP(String secret) {
+    Totp totp = new Totp(secret);
+    String code = totp.now();
+    JsonLoginResponse ok2FaCodeResponse =
+        POST(
+                "/auth/login",
+                "{'username':'admin','password':'district','twoFactorCode':'%s'}".formatted(code))
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+    assertEquals("SUCCESS", ok2FaCodeResponse.getLoginStatus());
+    assertEquals("/dhis-web-dashboard/", ok2FaCodeResponse.getRedirectUrl());
+  }
+
   @Test
   void testLoginWithLockedUser() {
     settingsService.put("keyLockMultipleFailedLogins", true);
@@ -238,20 +252,5 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
     assertNotNull(actual);
     assertEquals("admin", actual.getUsername());
-  }
-
-  // test redirect to login page when not logged in, remember url befire login...
-
-  private void validateTOTP(String secret) {
-    Totp totp = new Totp(secret);
-    String code = totp.now();
-    JsonLoginResponse ok2FaCodeResponse =
-        POST(
-                "/auth/login",
-                "{'username':'admin','password':'district','twoFactorCode':'%s'}".formatted(code))
-            .content(HttpStatus.OK)
-            .as(JsonLoginResponse.class);
-    assertEquals("SUCCESS", ok2FaCodeResponse.getLoginStatus());
-    assertEquals("/dhis-web-dashboard/", ok2FaCodeResponse.getRedirectUrl());
   }
 }

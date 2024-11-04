@@ -224,4 +224,6 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   User getUserByVerificationToken(String token);
 
   User getUserByVerifiedEmail(String email);
+
+  String getUserSecret(String username);
 }

@@ -215,6 +215,11 @@ public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, Oidc
   }
 
   @Override
+  public String getTwoFactorType() {
+    return user.getTwoFactorType();
+  }
+
+  @Override
   public boolean hasAnyRestrictions(Collection<String> restrictions) {
     return user.hasAnyRestrictions(restrictions);
   }

@@ -1687,6 +1687,11 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  public String getUserSecret(String username) {
+    return userStore.getUserSecret(username);
+  }
+
+  @Override
   public boolean isEmailVerified(User user) {
     return user.getEmail().equals(user.getVerifiedEmail());
   }

@@ -83,6 +83,10 @@ public interface UserService {
     return user.getSecret().startsWith(TWO_FACTOR_CODE_APPROVAL_PREFIX);
   }
 
+  static boolean hasTwoFactorSecretForApproval(String secret) {
+    return secret.startsWith(TWO_FACTOR_CODE_APPROVAL_PREFIX);
+  }
+
   /**
    * Adds a User.
    *
@@ -906,4 +910,6 @@ public interface UserService {
   boolean isEmailVerified(User currentUser);
 
   User getUserByVerificationToken(String token);
+
+  String getUserSecret(String username);
 }

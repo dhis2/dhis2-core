@@ -185,6 +185,11 @@ public class SystemUser implements UserDetails {
   }
 
   @Override
+  public String getTwoFactorType() {
+    return "";
+  }
+
+  @Override
   public boolean hasAnyRestrictions(Collection<String> restrictions) {
     return false;
   }

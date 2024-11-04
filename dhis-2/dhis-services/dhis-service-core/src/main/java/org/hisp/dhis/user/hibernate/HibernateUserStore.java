@@ -642,4 +642,13 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     query.setParameter("email", email);
     return query.uniqueResult();
   }
+
+  @Override
+  public String getUserSecret(String username) {
+    Query<String> query =
+        getSession()
+            .createQuery("select u.secret from User u where u.username = :username", String.class);
+    query.setParameter("username", username);
+    return query.uniqueResult();
+  }
 }
