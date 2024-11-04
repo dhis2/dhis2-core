@@ -184,6 +184,7 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
   private PeriodType monthly = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY);
 
   private final String UserWithDataViewOrgUnitsTag = "UserWithDataViewOrgUnits";
+
   private final String UserWithoutDataViewOrgUnitsTag = "UserWithoutDataViewOrgUnits";
 
   @Autowired private DataQueryService dataQueryService;
