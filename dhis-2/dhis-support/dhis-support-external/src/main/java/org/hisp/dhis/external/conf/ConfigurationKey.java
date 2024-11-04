@@ -336,6 +336,7 @@ public enum ConfigurationKey {
   /** Datacenter location (not required). */
   FILESTORE_LOCATION("filestore.location", "", false),
 
+  /** URL where the S3 compatible API can be accessed (only for provider 's3') */
   FILESTORE_ENDPOINT("filestore.endpoint", "", false),
 
   /** Public identity / username. */
@@ -344,11 +345,13 @@ public enum ConfigurationKey {
   /** Secret key / password (sensitive). */
   FILESTORE_SECRET("filestore.secret", "", true),
 
+  /** The Google service account client id. */
   GOOGLE_SERVICE_ACCOUNT_CLIENT_ID("google.service.account.client.id", "", false),
 
+  /** Maximum number of retries (if any of the steps fail) for the metadata sync task. (default: 3) */
   META_DATA_SYNC_RETRY("metadata.sync.retry", "3", false),
 
-  /** Sets up {@see RetryTemplate} retry frequency. */
+  /** Sets up {@see RetryTemplate} retry frequency. (default: 30000) */
   META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC(
       "metadata.sync.retry.time.frequency.millisec", "30000", false),
 
@@ -373,7 +376,7 @@ public enum ConfigurationKey {
   /** Redis port to use for cache. (default: 6379) */
   REDIS_PORT("redis.port", "6379", false),
 
-  /** Redis password to use for cache. */
+  /** Redis password to use for cache. (sensitive) */
   REDIS_PASSWORD("redis.password", "", true),
 
   /** Use SSL for connecting to redis. (default: false) */
@@ -393,6 +396,7 @@ public enum ConfigurationKey {
    */
   FLYWAY_REPAIR_BEFORE_MIGRATION("flyway.repair_before_migration", Constants.OFF, false),
 
+  /** @TODO */
   PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT("tracker.temporary.ownership.timeout", "3", false),
 
   /** Use unlogged tables during analytics export. (default: ON) */
@@ -423,10 +427,10 @@ public enum ConfigurationKey {
   /** Artemis port to use for connection (only relevant for NATIVE mode). (default: 25672) */
   ARTEMIS_PORT("artemis.port", "25672"),
 
-  /** Artemis username to use for connection (only relevant for NATIVE mode). (default: guest) */
+  /** Artemis username to use for connection (only relevant for NATIVE mode). (default: guest) (sensitive) */
   ARTEMIS_USERNAME("artemis.username", "guest", true),
 
-  /** Artemis password to use for connection (only relevant for NATIVE mode). (default: guest) */
+  /** Artemis password to use for connection (only relevant for NATIVE mode). (default: guest) (sensitive) */
   ARTEMIS_PASSWORD("artemis.password", "guest", true),
 
   /**
@@ -550,21 +554,21 @@ public enum ConfigurationKey {
 
   /**
    * Google IdP specific parameters. Provider client ID: This is the identifier that the IdP
-   * assigned to your application.
+   * assigned to your application. (sensitive)
    */
   OIDC_PROVIDER_GOOGLE_CLIENT_ID("oidc.provider.google.client_id", "", true),
 
   /**
    * Google IdP specific parameters. Provider client secret: This value is a secret and should be
-   * kept secure.
+   * kept secure. (sensitive)
    */
   OIDC_PROVIDER_GOOGLE_CLIENT_SECRET("oidc.provider.google.client_secret", "", true),
 
-  /** Google IdP specific parameters. Mapping claim: *Optional. (default: email). */
+  /** Google IdP specific parameters. Mapping claim: *Optional. (default: email). (sensitive) */
   OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM("oidc.provider.google.mapping_claim", "email", true),
 
   /**
-   * Google IdP specific parameters. Redirect URL: DHIS 2 instance URL, do not end with a slash,
+   * Google IdP specific parameters. Redirect URL: DHIS 2 instance URL, do not end with a slash. (sensitive)
    * <br>
    * e.g. https://dhis2.org/demo.
    */
@@ -616,6 +620,7 @@ public enum ConfigurationKey {
   /** Database datasource pool type. Supported pool types are: c3p0 (default), hikari, unpooled */
   DB_POOL_TYPE("db.pool.type", "c3p0", false),
 
+  /** @TODO */
   ACTIVE_READ_REPLICAS("active.read.replicas", "0", false),
 
   /**
@@ -647,10 +652,10 @@ public enum ConfigurationKey {
   /** Redis based cache invalidation feature. Enable or disable. */
   REDIS_CACHE_INVALIDATION_ENABLED("redis.cache.invalidation.enabled", Constants.OFF, false),
 
-  /** Content Security Policy feature. Enable or disable the feature. */
+  /** Content Security Policy feature. Enable or disable the feature. (sensitive) */
   CSP_ENABLED("csp.enabled", Constants.ON, true),
 
-  /** CSP upgrade insecure connections. Enable or disable the feature. */
+  /** CSP upgrade insecure connections. Enable or disable the feature. (sensitive) */
   CSP_UPGRADE_INSECURE_ENABLED("csp.upgrade.insecure.enabled", Constants.OFF, true),
 
   /** CSP default header value/string. Enable or disable the feature. */
@@ -662,14 +667,20 @@ public enum ConfigurationKey {
   /** Linked accounts via OpenID mapping. Enable or disable the feature. */
   LINKED_ACCOUNTS_ENABLED("linked_accounts.enabled", Constants.OFF, false),
 
+  /** @TODO */
   LINKED_ACCOUNTS_RELOGIN_URL("linked_accounts.relogin_url", "", false),
+
+  /** User impersonation, also known as user switching. */
   SWITCH_USER_FEATURE_ENABLED("switch_user_feature.enabled", Constants.OFF, false),
+
+  /** The list of IP address from which you will be calling the user impersonation feature. */
   SWITCH_USER_ALLOW_LISTED_IPS(
       "switch_user_allow_listed_ips", "localhost,127.0.0.1,[0:0:0:0:0:0:0:1]", false),
 
+  /** Maximun size for files uploaded as fileResources. */
   MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false),
 
-  /** CSRF feature. Enable or disable the feature. */
+  /** CSRF feature. Enable or disable the feature. (sensitive) */
   CSRF_ENABLED("http.security.csrf.enabled", Constants.OFF, true);
 
   private final String key;
