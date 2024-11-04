@@ -68,6 +68,7 @@ import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -89,7 +90,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
-import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -109,6 +109,7 @@ import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
+import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -153,14 +154,17 @@ public class UserController extends AbstractCrudController<User> {
   // -------------------------------------------------------------------------
 
   @Override
-  @SuppressWarnings("unchecked")
-  protected List<User> getEntityList(
-      WebMetadata metadata,
-      WebOptions options,
-      List<String> filters,
-      List<Order> orders,
-      List<User> objects)
-      throws QueryParserException {
+  public ResponseEntity<StreamingJsonRoot<User>> getObjectList(
+      Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      UserDetails currentUser)
+      throws ForbiddenException, BadRequestException {
+    WebOptions options = new WebOptions(rpParameters);
+    WebMetadata metadata = new WebMetadata();
+    List<Order> orders = orderParams.getOrders(getSchema());
+    List<String> filters = new ArrayList<>(contextService.getParameterValues("filter"));
+
     UserQueryParams params = makeUserQueryParams(options);
 
     String ou = options.get("ou");
@@ -183,7 +187,10 @@ public class UserController extends AbstractCrudController<User> {
 
     Query query = makeQuery(options, filters, orders, params);
 
-    return (List<User>) queryService.query(query);
+    @SuppressWarnings("unchecked")
+    List<User> users = (List<User>) queryService.query(query);
+
+    return super.getObjectList(rpParameters, orderParams, response, currentUser, false, users);
   }
 
   private Pager makePager(WebOptions options, UserQueryParams params) {

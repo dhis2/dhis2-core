@@ -48,19 +48,14 @@ import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationComment;
 import org.hisp.dhis.interpretation.InterpretationService;
-import org.hisp.dhis.interpretation.MentionUtils;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.Disjunction;
-import org.hisp.dhis.query.Order;
-import org.hisp.dhis.query.Query;
-import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
@@ -69,8 +64,6 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.webapi.webdomain.WebMetadata;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -94,46 +87,6 @@ public class InterpretationController extends AbstractCrudController<Interpretat
   @Autowired private InterpretationService interpretationService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
-
-  @Override
-  @SuppressWarnings("unchecked")
-  protected List<Interpretation> getEntityList(
-      WebMetadata metadata,
-      WebOptions options,
-      List<String> filters,
-      List<Order> orders,
-      List<Interpretation> objects)
-      throws QueryParserException {
-    // If custom filter (mentions:in:[username]) in filters -> Remove from
-    // filters
-    List<String> mentionsFromCustomFilters = MentionUtils.removeCustomFilters(filters);
-
-    Query query =
-        queryService.getQueryFromUrl(
-            getEntityClass(),
-            filters,
-            orders,
-            getPaginationData(options),
-            options.getRootJunction());
-    query.setDefaultOrder();
-    query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
-    // If custom filter (mentions:in:[username]) in filters -> Add as
-    // disjunction including interpretation mentions and comments mentions
-    for (Disjunction disjunction :
-        (Collection<Disjunction>)
-            getDisjunctionsFromCustomMentions(mentionsFromCustomFilters, query.getSchema())) {
-      query.add(disjunction);
-    }
-
-    List<Interpretation> entityList;
-    if (objects == null && options.getOptions().containsKey("query")) {
-      entityList =
-          Lists.newArrayList(manager.filter(getEntityClass(), options.getOptions().get("query")));
-    } else {
-      entityList = (List<Interpretation>) queryService.query(query);
-    }
-    return entityList;
-  }
 
   // -------------------------------------------------------------------------
   // Interpretation create

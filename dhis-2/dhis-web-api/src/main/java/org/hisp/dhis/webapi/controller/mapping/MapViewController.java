@@ -29,27 +29,19 @@ package org.hisp.dhis.webapi.controller.mapping;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
-import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
-import java.util.List;
 import javax.imageio.ImageIO;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.mapping.MappingService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.query.Order;
-import org.hisp.dhis.query.Query;
-import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.webdomain.WebMetadata;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -107,40 +99,6 @@ public class MapViewController extends AbstractCrudController<MapView> {
         mappingService.getIndicatorLastYearMapView(indicatorUid, organisationUnitUid, level);
 
     renderMapViewPng(mapView, response);
-  }
-
-  // --------------------------------------------------------------------------
-  // Hooks
-  // --------------------------------------------------------------------------
-
-  @Override
-  @SuppressWarnings("unchecked")
-  protected List<MapView> getEntityList(
-      WebMetadata metadata,
-      WebOptions options,
-      List<String> filters,
-      List<Order> orders,
-      List<MapView> objects)
-      throws QueryParserException {
-    List<MapView> entityList;
-    Query query =
-        queryService.getQueryFromUrl(
-            getEntityClass(),
-            filters,
-            orders,
-            getPaginationData(options),
-            options.getRootJunction());
-    query.setDefaultOrder();
-    query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
-
-    if (objects == null && options.getOptions().containsKey("query")) {
-      entityList =
-          Lists.newArrayList(manager.filter(getEntityClass(), options.getOptions().get("query")));
-    } else {
-      entityList = (List<MapView>) queryService.query(query);
-    }
-
-    return entityList;
   }
 
   // --------------------------------------------------------------------------

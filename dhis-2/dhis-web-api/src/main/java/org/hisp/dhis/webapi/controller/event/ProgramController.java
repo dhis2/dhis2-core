@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller.event;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
-import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -41,21 +41,19 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.copy.CopyService;
+import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.query.Order;
-import org.hisp.dhis.query.Query;
-import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.webdomain.WebMetadata;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
+import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -81,41 +79,18 @@ public class ProgramController extends AbstractCrudController<Program> {
   private final CopyService copyService;
 
   @Override
-  @SuppressWarnings("unchecked")
-  protected List<Program> getEntityList(
-      WebMetadata metadata,
-      WebOptions options,
-      List<String> filters,
-      List<Order> orders,
-      List<Program> objects)
-      throws QueryParserException {
-    boolean userFilter = Boolean.parseBoolean(options.getOptions().get("userFilter"));
-
-    List<Program> entityList;
-    Query query =
-        queryService.getQueryFromUrl(
-            getEntityClass(),
-            filters,
-            orders,
-            getPaginationData(options),
-            options.getRootJunction());
-    query.setDefaultOrder();
-    query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
-
-    if (objects == null && options.getOptions().containsKey("query")) {
-      entityList =
-          Lists.newArrayList(manager.filter(getEntityClass(), options.getOptions().get("query")));
-    } else {
-      entityList = (List<Program>) queryService.query(query);
-    }
-
+  public ResponseEntity<StreamingJsonRoot<Program>> getObjectList(
+      Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      UserDetails currentUser)
+      throws ForbiddenException, BadRequestException {
+    boolean userFilter = Boolean.parseBoolean(rpParameters.get("userFilter"));
     if (userFilter) {
       List<Program> programs = programService.getCurrentUserPrograms();
-      entityList.retainAll(programs);
-      metadata.setPager(null);
+      return super.getObjectList(rpParameters, orderParams, response, currentUser, false, programs);
     }
-
-    return entityList;
+    return super.getObjectList(rpParameters, orderParams, response, currentUser);
   }
 
   @GetMapping("/{uid}/metadata")

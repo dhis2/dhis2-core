@@ -69,7 +69,6 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PasswordGenerator;
 import org.hisp.dhis.common.UserOrgUnitType;
-import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -88,7 +87,6 @@ import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.filter.UserRoleCanIssueFilter;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.util.DateUtils;
@@ -544,12 +542,14 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public void canIssueFilter(Collection<UserRole> userRoles) {
+  public List<UserRole> filteredByCanIssue(Collection<UserRole> userRoles) {
     User user = getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     boolean canGrantOwnUserRoles = settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
 
-    FilterUtils.filter(userRoles, new UserRoleCanIssueFilter(user, canGrantOwnUserRoles));
+    return userRoles.stream()
+        .filter(role -> user.canIssueUserRole(role, canGrantOwnUserRoles))
+        .toList();
   }
 
   @Override

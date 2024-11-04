@@ -411,7 +411,7 @@ public interface UserService {
    *
    * @param userRoles the collection of user roles.
    */
-  void canIssueFilter(Collection<UserRole> userRoles);
+  List<UserRole> filteredByCanIssue(Collection<UserRole> userRoles);
 
   /**
    * Validate that the current user are allowed to create or modify properties of the given user.

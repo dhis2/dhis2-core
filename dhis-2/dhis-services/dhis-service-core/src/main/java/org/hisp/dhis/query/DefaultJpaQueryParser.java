@@ -30,6 +30,8 @@ package org.hisp.dhis.query;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.query.QueryUtils.parseValue;
 
+import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
@@ -62,6 +64,7 @@ public class DefaultJpaQueryParser implements QueryParser {
     Schema schema = schemaService.getDynamicSchema(klass);
     Query query = Query.from(schema, rootJunction);
 
+    List<String> mentions = new ArrayList<>();
     for (String filter : filters) {
       String[] split = filter.split(":");
 
@@ -69,16 +72,22 @@ public class DefaultJpaQueryParser implements QueryParser {
         throw new QueryParserException("Invalid filter => " + filter);
       }
 
+      String path = split[0];
+      String operator = split[1];
       if (split.length >= 3) {
-        int index = split[0].length() + ":".length() + split[1].length() + ":".length();
-
-        if (split[0].equals(IDENTIFIABLE) && !schema.hasProperty(IDENTIFIABLE)) {
-          handleIdentifiablePath(schema, split[1], filter.substring(index), query.addDisjunction());
+        String arg = split[2];
+        if ("mentions".equals(path) && "in".equals(operator)) {
+          mentions.add(arg);
+        } else if (path.equals(IDENTIFIABLE) && !schema.hasProperty(IDENTIFIABLE)) {
+          handleIdentifiablePath(schema, operator, arg, query.addDisjunction());
         } else {
-          query.add(getRestriction(schema, split[0], split[1], filter.substring(index)));
+          query.add(getRestriction(schema, path, operator, arg));
         }
       } else {
-        query.add(getRestriction(schema, split[0], split[1], null));
+        query.add(getRestriction(schema, path, operator, null));
+      }
+      if (!mentions.isEmpty()) {
+        getDisjunctionsFromCustomMentions(mentions, query.getSchema());
       }
     }
     return query;
@@ -172,6 +181,20 @@ public class DefaultJpaQueryParser implements QueryParser {
       case "empty" -> Restrictions.isEmpty(path);
       default -> throw new QueryParserException("`" + operator + "` is not a valid operator.");
     };
+  }
+
+  private Collection<Disjunction> getDisjunctionsFromCustomMentions(
+      List<String> mentions, Schema schema) {
+    Collection<Disjunction> disjunctions = new ArrayList<Disjunction>();
+    for (String m : mentions) {
+      Disjunction disjunction = new Disjunction(schema);
+      String[] split = m.substring(1, m.length() - 1).split(",");
+      List<String> items = Lists.newArrayList(split);
+      disjunction.add(Restrictions.in("mentions.username", items));
+      disjunction.add(Restrictions.in("comments.mentions.username", items));
+      disjunctions.add(disjunction);
+    }
+    return disjunctions;
   }
 
   @Override

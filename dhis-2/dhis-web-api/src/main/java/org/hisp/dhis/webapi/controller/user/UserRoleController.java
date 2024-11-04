@@ -27,23 +27,27 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
+import static java.lang.Boolean.parseBoolean;
+
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.query.Order;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.webdomain.WebMetadata;
+import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -61,21 +65,23 @@ public class UserRoleController extends AbstractCrudController<UserRole> {
   @Autowired private UserService userService;
 
   @Override
-  protected List<UserRole> getEntityList(
-      WebMetadata metadata,
-      WebOptions options,
-      List<String> filters,
-      List<Order> orders,
-      List<UserRole> objects)
-      throws BadRequestException {
-    List<UserRole> entityList = super.getEntityList(metadata, options, filters, orders, objects);
-
-    if (options.getOptions().containsKey("canIssue")
-        && Boolean.parseBoolean(options.getOptions().get("canIssue"))) {
-      userService.canIssueFilter(entityList);
+  public ResponseEntity<StreamingJsonRoot<UserRole>> getObjectList(
+      Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      UserDetails currentUser)
+      throws ForbiddenException, BadRequestException {
+    if (parseBoolean(rpParameters.getOrDefault("canIssue", "false"))) {
+      super.getObjectList(rpParameters, orderParams, response, currentUser, false, null);
     }
+    return super.getObjectList(rpParameters, orderParams, response, currentUser);
+  }
 
-    return entityList;
+  @Override
+  protected List<UserRole> getEntityListPostProcess(WebOptions options, List<UserRole> entities) {
+    if (parseBoolean(options.getOptions().getOrDefault("canIssue", "false")))
+      return userService.filteredByCanIssue(entities);
+    return super.getEntityListPostProcess(options, entities);
   }
 
   @RequestMapping(

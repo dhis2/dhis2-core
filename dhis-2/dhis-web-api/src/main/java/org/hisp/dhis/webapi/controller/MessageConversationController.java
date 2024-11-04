@@ -38,7 +38,6 @@ import com.google.common.collect.Sets;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -49,15 +48,15 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -73,10 +72,8 @@ import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.Junction;
-import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
-import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.MessageConversationSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
@@ -88,7 +85,7 @@ import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.webdomain.MessageConversation;
-import org.hisp.dhis.webapi.webdomain.WebMetadata;
+import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -171,76 +168,45 @@ public class MessageConversationController
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  protected List<org.hisp.dhis.message.MessageConversation> getEntityList(
-      WebMetadata metadata,
-      WebOptions options,
-      List<String> filters,
-      List<Order> orders,
-      List<org.hisp.dhis.message.MessageConversation> objects)
-      throws QueryParserException {
-    List<org.hisp.dhis.message.MessageConversation> messageConversations;
+  public ResponseEntity<StreamingJsonRoot<org.hisp.dhis.message.MessageConversation>> getObjectList(
+      Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      UserDetails currentUser)
+      throws ForbiddenException, BadRequestException {
+    if (rpParameters.get("queryString") == null)
+      return super.getObjectList(rpParameters, orderParams, response, currentUser);
+    return super.getObjectList(rpParameters, orderParams, response, currentUser, false, null);
+  }
 
-    if (objects == null && options.getOptions().containsKey("query")) {
-      messageConversations =
-          Lists.newArrayList(manager.filter(getEntityClass(), options.getOptions().get("query")));
-    } else {
-      messageConversations = new ArrayList<>(messageService.getMessageConversations());
+  @Override
+  protected List<org.hisp.dhis.message.MessageConversation> getEntityListPostProcess(
+      WebOptions options, List<org.hisp.dhis.message.MessageConversation> entities) {
+    if (options.get("queryString") == null)
+      return super.getEntityListPostProcess(options, entities);
+
+    String queryOperator = "token";
+    if (options.get("queryOperator") != null) {
+      queryOperator = options.get("queryOperator");
     }
 
-    Query query =
-        queryService.getQueryFromUrl(
-            getEntityClass(), filters, orders, new Pagination(), options.getRootJunction());
-    query.setDefaultOrder();
-    query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
-    query.setObjects(messageConversations);
-
-    messageConversations =
-        (List<org.hisp.dhis.message.MessageConversation>) queryService.query(query);
-
-    if (options.get("queryString") != null) {
-      String queryOperator = "token";
-      if (options.get("queryOperator") != null) {
-        queryOperator = options.get("queryOperator");
-      }
-
-      List<String> queryFilter =
-          Arrays.asList(
-              "subject:" + queryOperator + ":" + options.get("queryString"),
-              "messages.text:" + queryOperator + ":" + options.get("queryString"),
-              "messages.sender.displayName:" + queryOperator + ":" + options.get("queryString"));
-      Query subQuery =
-          queryService.getQueryFromUrl(
-              getEntityClass(),
-              queryFilter,
-              Collections.emptyList(),
-              new Pagination(),
-              Junction.Type.OR);
-      subQuery.setObjects(messageConversations);
-      messageConversations =
-          (List<org.hisp.dhis.message.MessageConversation>) queryService.query(subQuery);
-    }
-
-    int count = messageConversations.size();
-
-    Query paginatedQuery =
+    List<String> queryFilter =
+        Arrays.asList(
+            "subject:" + queryOperator + ":" + options.get("queryString"),
+            "messages.text:" + queryOperator + ":" + options.get("queryString"),
+            "messages.sender.displayName:" + queryOperator + ":" + options.get("queryString"));
+    Query subQuery =
         queryService.getQueryFromUrl(
             getEntityClass(),
+            queryFilter,
             Collections.emptyList(),
-            Collections.emptyList(),
-            getPaginationData(options),
-            options.getRootJunction());
-    paginatedQuery.setObjects(messageConversations);
-
-    messageConversations =
-        (List<org.hisp.dhis.message.MessageConversation>) queryService.query(paginatedQuery);
-
-    if (options.hasPaging()) {
-      Pager pager = new Pager(options.getPage(), count, options.getPageSize());
-      metadata.setPager(pager);
-    }
-
-    return messageConversations;
+            new Pagination(),
+            Junction.Type.OR);
+    subQuery.setObjects(entities);
+    @SuppressWarnings("unchecked")
+    List<org.hisp.dhis.message.MessageConversation> res =
+        (List<org.hisp.dhis.message.MessageConversation>) queryService.query(subQuery);
+    return res;
   }
 
   // --------------------------------------------------------------------------

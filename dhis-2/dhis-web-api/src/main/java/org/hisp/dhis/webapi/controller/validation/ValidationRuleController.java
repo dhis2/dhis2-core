@@ -30,25 +30,29 @@ package org.hisp.dhis.webapi.controller.validation;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.query.Order;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.webdomain.WebMetadata;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
+import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -70,24 +74,21 @@ public class ValidationRuleController extends AbstractCrudController<ValidationR
   @Autowired private I18nManager i18nManager;
 
   @Override
-  protected List<ValidationRule> getEntityList(
-      WebMetadata metadata,
-      WebOptions options,
-      List<String> filters,
-      List<Order> orders,
-      List<ValidationRule> objects)
-      throws BadRequestException {
-    if (options.contains("dataSet")) {
-      DataSet ds = dataSetService.getDataSet(options.get("dataSet"));
-
-      if (ds == null) {
-        return List.of();
-      }
-
-      return Lists.newArrayList(validationRuleService.getValidationRulesForDataSet(ds));
+  public ResponseEntity<StreamingJsonRoot<ValidationRule>> getObjectList(
+      Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      UserDetails currentUser)
+      throws ForbiddenException, BadRequestException {
+    if (rpParameters.containsKey("dataSet")) {
+      DataSet ds = dataSetService.getDataSet(rpParameters.get("dataSet"));
+      List<ValidationRule> res =
+          ds == null
+              ? List.of()
+              : new ArrayList<>(validationRuleService.getValidationRulesForDataSet(ds));
+      return super.getObjectList(rpParameters, orderParams, response, currentUser, false, res);
     }
-
-    return super.getEntityList(metadata, options, filters, orders, objects);
+    return super.getObjectList(rpParameters, orderParams, response, currentUser);
   }
 
   @PostMapping(value = "/expression/description", produces = APPLICATION_JSON_VALUE)

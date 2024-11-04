@@ -198,8 +198,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
       @CheckForNull List<T> objects)
       throws ForbiddenException, BadRequestException {
     List<Order> orders = orderParams.getOrders(getSchema());
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
-    List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
+    List<String> fields = new ArrayList<>(contextService.getParameterValues("fields"));
+    List<String> filters = new ArrayList<>(contextService.getParameterValues("filter"));
 
     if (fields.isEmpty()) {
       fields.addAll(FieldPreset.defaultPreset().getFields());
@@ -526,7 +526,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
   }
 
   @SuppressWarnings("unchecked")
-  protected List<T> getEntityList(
+  protected final List<T> getEntityList(
       WebMetadata metadata,
       WebOptions options,
       List<String> filters,
