@@ -88,7 +88,8 @@ class DataQueryServiceTest {
         DataQueryParams.newBuilder().withUserOrgUnitType(DATA_OUTPUT).build();
     User currentUser = mock(User.class);
     AnalyticsSecurityManager analyticsSecurityManager = mock(AnalyticsSecurityManager.class);
-    when(currentUser.getDataViewOrganisationUnits()).thenReturn(Set.of(ouA));
+    when(currentUser.getOrganisationUnits()).thenReturn(Set.of(ouA));
+    when(currentUser.getDataViewOrganisationUnits()).thenReturn(Set.of());
     when(analyticsSecurityManager.getCurrentUser(dataQueryParams)).thenReturn(currentUser);
     DataQueryService dataQueryService =
         new DefaultDataQueryService(
@@ -113,6 +114,7 @@ class DataQueryServiceTest {
         DataQueryParams.newBuilder().withUserOrgUnitType(DATA_OUTPUT).build();
     User currentUser = mock(User.class);
     AnalyticsSecurityManager analyticsSecurityManager = mock(AnalyticsSecurityManager.class);
+    when(currentUser.getOrganisationUnits()).thenReturn(Set.of());
     when(currentUser.getDataViewOrganisationUnits()).thenReturn(Set.of());
     when(analyticsSecurityManager.getCurrentUser(dataQueryParams)).thenReturn(currentUser);
     DataQueryService dataQueryService =
