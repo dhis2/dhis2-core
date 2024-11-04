@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
 
 import static org.hisp.dhis.program.ProgramTest.getNewProgram;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 
@@ -60,6 +61,25 @@ class ProgramTrackedEntityAttributeTest {
 
     assertEquals(original.getAttribute(), copy.getAttribute());
     assertEquals("Copy of Program Name tracked entity attr 1", copy.getName());
+  }
+
+  @Test
+  void testDefaultSkipAnalyticsValue() {
+    ProgramTrackedEntityAttribute ptea = new ProgramTrackedEntityAttribute();
+    assertFalse(ptea.isSkipAnalytics(), "Default value of skipAnalytics should be false");
+  }
+
+  @Test
+  void testCopyOfWithSkipAnalytics() {
+    ProgramTrackedEntityAttribute original = getNewProgramAttribute(getNewProgram());
+    original.setSkipAnalytics(true); // Set to true to check copy behavior
+    ProgramTrackedEntityAttribute copy =
+        ProgramTrackedEntityAttribute.copyOf.apply(original, getNewProgram());
+
+    assertEquals(
+        original.isSkipAnalytics(),
+        copy.isSkipAnalytics(),
+        "skipAnalytics should be copied correctly");
   }
 
   private ProgramTrackedEntityAttribute getNewProgramAttribute(Program program) {
