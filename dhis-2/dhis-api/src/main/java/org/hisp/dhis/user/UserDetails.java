@@ -118,7 +118,7 @@ public interface UserDetails
             .password(user.getPassword())
             .externalAuth(user.isExternalAuth())
             .isTwoFactorEnabled(user.isTwoFactorEnabled())
-            .twoFactorType(user.getTwoFactorType().name())
+            .twoFactorType(user.getTwoFactorType() != null ? user.getTwoFactorType().name() : null)
             .code(user.getCode())
             .firstName(user.getFirstName())
             .surname(user.getSurname())
