@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.resourcetable;
-
-import org.hisp.dhis.scheduling.JobProgress;
+package org.hisp.dhis.dashboard.embedded;
 
 /**
+ * Enumeration of providers for embedded dashboards.
+ *
  * @author Lars Helge Overland
  */
-public interface ResourceTableService {
-  /** Generates resource tables. */
-  void generateResourceTables();
-
-  /** Replicates resource tables in the analytics database. */
-  void replicateAnalyticsResourceTables();
-
-  /** Generates data approval resource tables. */
-  void generateDataApprovalResourceTables();
-
-  /** Create all SQL views. */
-  void createAllSqlViews(JobProgress progress);
-
-  /** Drop all SQL views. */
-  void dropAllSqlViews(JobProgress progress);
+public enum EmbeddedProvider {
+  SUPERSET;
 }

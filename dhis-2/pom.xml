@@ -71,6 +71,9 @@
     <sonar.organization>dhis2</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <sonar.projectKey>dhis2_dhis2-core</sonar.projectKey>
+    <sonar.issue.ignore.multicriteria>S1117</sonar.issue.ignore.multicriteria>
+    <sonar.issue.ignore.multicriteria.S1117.ruleKey>java:S1117</sonar.issue.ignore.multicriteria.S1117.ruleKey>
+    <sonar.issue.ignore.multicriteria.S1117.resourceKey>**/src/test/**/*.java</sonar.issue.ignore.multicriteria.S1117.resourceKey>
 
     <surefireArgLine>-Xmx2024m</surefireArgLine>
 
@@ -112,7 +115,7 @@
     <lettuce.version>6.4.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>10.18.2</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>10.20.1</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.10.8</ehcache3.version>
     <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
@@ -123,6 +126,7 @@
     <postgresql-driver.version>42.7.4</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.10</datasource-proxy.version>
+    <mysql-connector-j.version>8.3.0</mysql-connector-j.version>
 
     <!-- Servlet -->
     <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
@@ -163,7 +167,7 @@
     <jts.version>1.20.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis-jakarta.version>2.37.0</artemis-jakarta.version>
+    <artemis-jakarta.version>2.38.0</artemis-jakarta.version>
     <netty-all.version>4.1.113.Final</netty-all.version>
     <classgraph.version>4.8.177</classgraph.version>
 
@@ -235,7 +239,7 @@
     <restrict-imports-enforcer.version>2.6.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.17.1</versions-maven-plugin.version>
     <dependency-check-maven.version>10.0.4</dependency-check-maven.version>
-    <spotbugs-maven-plugin.version>4.8.6.2</spotbugs-maven-plugin.version>
+    <spotbugs-maven-plugin.version>4.8.6.5</spotbugs-maven-plugin.version>
     <spotless.version>2.43.0</spotless.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
@@ -1083,6 +1087,11 @@
         <groupId>net.postgis</groupId>
         <artifactId>postgis-jdbc</artifactId>
         <version>${postgis-jdbc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.mysql</groupId>
+        <artifactId>mysql-connector-j</artifactId>
+        <version>${mysql-connector-j.version}</version>
       </dependency>
 
       <!-- Flyway -->
@@ -2093,6 +2102,7 @@ jasperreports.version=${jasperreports.version}
               <ignoredUnusedDeclaredDependency>org.hibernate:hibernate-ehcache</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>jakarta.xml.bind:jakarta.xml.bind-api</ignoredUnusedDeclaredDependency>
               <!-- Required only at runtime -->
+              <ignoredUnusedDeclaredDependency>com.mysql:mysql-connector-j</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-hibernate</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-db-migration</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-audit</ignoredUnusedDeclaredDependency>

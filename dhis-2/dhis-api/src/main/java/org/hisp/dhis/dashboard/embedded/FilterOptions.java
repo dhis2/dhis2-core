@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.resourcetable;
+package org.hisp.dhis.dashboard.embedded;
 
-import org.hisp.dhis.scheduling.JobProgress;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-/**
- * @author Lars Helge Overland
- */
-public interface ResourceTableService {
-  /** Generates resource tables. */
-  void generateResourceTables();
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class FilterOptions implements Serializable {
+  /** Whether filter sidebar should be accessible when opening the dashboard. */
+  @JsonProperty private boolean visible;
 
-  /** Replicates resource tables in the analytics database. */
-  void replicateAnalyticsResourceTables();
-
-  /** Generates data approval resource tables. */
-  void generateDataApprovalResourceTables();
-
-  /** Create all SQL views. */
-  void createAllSqlViews(JobProgress progress);
-
-  /** Drop all SQL views. */
-  void dropAllSqlViews(JobProgress progress);
+  /** Whether filter sidebar should be expanded when opening the dashboard. */
+  @JsonProperty private boolean expanded;
 }
