@@ -51,7 +51,7 @@ class DataIntegrityCategoryOptionComboDuplicatedTest extends AbstractDataIntegri
   private String categoryOptionRed;
 
   @Test
-  void testCategoriesDuplicated() {
+  void testCategoryOptionCombosDuplicated() {
 
     categoryOptionRed =
         assertStatus(
@@ -95,7 +95,7 @@ class DataIntegrityCategoryOptionComboDuplicatedTest extends AbstractDataIntegri
   }
 
   @Test
-  void testCategoriesNotDuplicated() {
+  void testCategoryOptionCombosNotDuplicated() {
 
     categoryOptionRed =
         assertStatus(
@@ -132,9 +132,9 @@ class DataIntegrityCategoryOptionComboDuplicatedTest extends AbstractDataIntegri
   }
 
   @Test
-  void testInvalidCategoriesDivideByZero() {
+  void testInvalidCategoryOptionCombosDivideByZero() {
 
-    // Expect a percentage here, since there should always be the default category
+    // Expect a percentage here, since there should always be the default category option combo
     assertHasNoDataIntegrityIssues("categories", check, true);
   }
 }
