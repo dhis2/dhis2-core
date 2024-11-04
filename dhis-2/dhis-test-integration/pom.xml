@@ -322,6 +322,7 @@
     <dependency>
       <groupId>io.hypersistence</groupId>
       <artifactId>hypersistence-utils-hibernate-55</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
