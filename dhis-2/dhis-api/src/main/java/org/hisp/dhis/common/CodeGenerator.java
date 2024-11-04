@@ -144,6 +144,21 @@ public class CodeGenerator {
   }
 
   /**
+   * Generates a string of random numeric characters.
+   *
+   * @param length the number of characters in the code.
+   * @return the code.
+   */
+  public static char[] generateSecureRandomNumber(int length) {
+    char[] digits = new char[length];
+    SecureRandom sr = SecureRandomHolder.GENERATOR;
+    for (int i = 0; i < length; i++) {
+      digits[i] = (char) ('0' + sr.nextInt(10));
+    }
+    return digits;
+  }
+
+  /**
    * Generates a random secure token.
    *
    * <p>The token is generated using {@link SecureRandom} and should be used for security-related

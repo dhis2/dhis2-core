@@ -150,7 +150,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
     if (TwoFactorType.TOTP.equals(type)) {
       return TwoFactoryAuthenticationUtils.verifyTOTP(code, userSecret);
     } else if (TwoFactorType.EMAIL.equals(type)) {
-      return code.equalsIgnoreCase(userSecret);
+      return StringUtils.equals(code, userSecret);
     }
     throw new IllegalStateException("Unknown two-factor type: " + type);
   }

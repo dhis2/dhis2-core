@@ -1055,14 +1055,14 @@ public class DefaultUserService implements UserService {
 
   @Nonnull
   private static Email2FACode getEmail2FACode() {
-    String code = new String(CodeGenerator.generateSecureRandomCode(6));
+    String code = new String(CodeGenerator.generateSecureRandomNumber(6));
     String encodedCode = code + "|" + (System.currentTimeMillis() + TWOFA_EMAIL_CODE_EXPIRY_MILLIS);
     return new Email2FACode(code, encodedCode);
   }
 
   @Nonnull
   private static Email2FACode getEmail2FAForApprovalCode() {
-    String code = new String(CodeGenerator.generateSecureRandomCode(6));
+    String code = new String(CodeGenerator.generateSecureRandomNumber(6));
     String encodedCode =
         TWO_FACTOR_CODE_APPROVAL_PREFIX
             + code

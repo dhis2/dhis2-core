@@ -34,7 +34,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Calendar;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.webapi.AuthenticationApiTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonLoginResponse;
@@ -112,6 +114,8 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
     User userA = createUserWithAuth("usera", "ALL");
     injectSecurityContextUser(userA);
 
+    // This will initiate 2FA enrolment for the user, and set the secret in the user object, this
+    // secret is prefixed with 'APPROVAL_' to indicate that it is not yet approved.
     mvc.perform(
             get("/api/2fa/qrCode")
                 .header("Authorization", "Basic dXNlcmE6ZGlzdHJpY3Q=")
@@ -124,15 +128,17 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
             .content(HttpStatus.OK)
             .as(JsonLoginResponse.class);
 
+    // This means that the user has not yet approved the 2FA enrolment
     assertEquals("REQUIRES_TWO_FACTOR_ENROLMENT", wrong2FaCodeResponse.getLoginStatus());
     assertNull(wrong2FaCodeResponse.getRedirectUrl());
   }
 
   @Test
-  void testLoginWith2FAEnabledUser() {
+  void testLoginWithTOTP2FAEnabledUser() {
     User admin = userService.getUserByUsername("admin");
     String secret = Base32.random();
     admin.setSecret(secret);
+    admin.setTwoFactorType(TwoFactorType.TOTP);
     userService.updateUser(admin);
 
     JsonLoginResponse wrong2FaCodeResponse =
@@ -143,11 +149,41 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
     assertEquals("INCORRECT_TWO_FACTOR_CODE", wrong2FaCodeResponse.getLoginStatus());
     Assertions.assertNull(wrong2FaCodeResponse.getRedirectUrl());
 
-    validateTOTP(secret);
+    validateTOTP2FACode(secret);
+  }
+
+  @Test
+  void testLoginEmail2FAEnabledUser() {
+    User admin = userService.getUserByUsername("admin");
+    String secret = new String(CodeGenerator.generateSecureRandomNumber(6));
+    admin.setSecret(secret);
+    admin.setTwoFactorType(TwoFactorType.EMAIL);
+    userService.updateUser(admin);
+
+    JsonLoginResponse wrong2FaCodeResponse =
+        POST("/auth/login", "{'username':'admin','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("INCORRECT_TWO_FACTOR_CODE", wrong2FaCodeResponse.getLoginStatus());
+    Assertions.assertNull(wrong2FaCodeResponse.getRedirectUrl());
+
+    validateEmail2FACode(secret);
+  }
+
+  private void validateEmail2FACode(String secret) {
+    JsonLoginResponse ok2FaCodeResponse =
+        POST(
+                "/auth/login",
+                "{'username':'admin','password':'district','twoFactorCode':'%s'}".formatted(secret))
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+    assertEquals("SUCCESS", ok2FaCodeResponse.getLoginStatus());
+    assertEquals("/dhis-web-dashboard/", ok2FaCodeResponse.getRedirectUrl());
   }
 
   // test redirect to login page when not logged in, remember url before login...
-  private void validateTOTP(String secret) {
+  private void validateTOTP2FACode(String secret) {
     Totp totp = new Totp(secret);
     String code = totp.now();
     JsonLoginResponse ok2FaCodeResponse =
