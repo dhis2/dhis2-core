@@ -114,7 +114,7 @@ public class TrackerObjectsMapper {
 
     if (dbEnrollment == null) {
       dbEnrollment = new Enrollment();
-      dbEnrollment.setUid(enrollment.getEnrollment());
+      dbEnrollment.setUid(enrollment.getEnrollment().getValue());
       dbEnrollment.setCreated(now);
       dbEnrollment.setStoredBy(enrollment.getStoredBy());
       dbEnrollment.setCreatedByUserInfo(UserInfoSnapshot.from(user));
@@ -129,7 +129,8 @@ public class TrackerObjectsMapper {
     dbEnrollment.setOrganisationUnit(organisationUnit);
     Program program = preheat.getProgram(enrollment.getProgram());
     dbEnrollment.setProgram(program);
-    TrackedEntity trackedEntity = preheat.getTrackedEntity(enrollment.getTrackedEntity());
+    TrackedEntity trackedEntity =
+        preheat.getTrackedEntity(enrollment.getTrackedEntity().getValue());
     dbEnrollment.setTrackedEntity(trackedEntity);
 
     Date enrollmentDate = DateUtils.fromInstant(enrollment.getEnrolledAt());
@@ -275,7 +276,8 @@ public class TrackerObjectsMapper {
           fromItem.setTrackedEntity(
               preheat.getTrackedEntity(relationship.getFrom().getTrackedEntity()));
       case PROGRAM_INSTANCE ->
-          fromItem.setEnrollment(preheat.getEnrollment(relationship.getFrom().getEnrollment()));
+          fromItem.setEnrollment(
+              preheat.getEnrollment(UID.of(relationship.getFrom().getEnrollment())));
       case PROGRAM_STAGE_INSTANCE ->
           fromItem.setEvent(preheat.getEvent(UID.of(relationship.getFrom().getEvent())));
     }
@@ -289,7 +291,7 @@ public class TrackerObjectsMapper {
           toItem.setTrackedEntity(
               preheat.getTrackedEntity(relationship.getTo().getTrackedEntity()));
       case PROGRAM_INSTANCE ->
-          toItem.setEnrollment(preheat.getEnrollment(relationship.getTo().getEnrollment()));
+          toItem.setEnrollment(preheat.getEnrollment(UID.of(relationship.getTo().getEnrollment())));
       case PROGRAM_STAGE_INSTANCE ->
           toItem.setEvent(preheat.getEvent(UID.of(relationship.getTo().getEvent())));
     }
@@ -322,7 +324,7 @@ public class TrackerObjectsMapper {
 
   private static Enrollment getEnrollment(TrackerPreheat preheat, UID enrollment, Program program) {
     return switch (program.getProgramType()) {
-      case WITH_REGISTRATION -> preheat.getEnrollment(enrollment.getValue());
+      case WITH_REGISTRATION -> preheat.getEnrollment(enrollment);
       case WITHOUT_REGISTRATION -> preheat.getEnrollmentsWithoutRegistration(program.getUid());
     };
   }

@@ -58,13 +58,13 @@ class RuleActionEnrollmentMapper {
   public Map<Enrollment, List<RuleActionExecutor<Enrollment>>> mapRuleEffects(
       Map<UID, List<ValidationEffect>> enrollmentValidationEffects, TrackerBundle bundle) {
     return enrollmentValidationEffects.keySet().stream()
-        .filter(e -> bundle.findEnrollmentByUid(e.getValue()).isPresent())
+        .filter(e -> bundle.findEnrollmentByUid(e).isPresent())
         .collect(
             Collectors.toMap(
-                e -> bundle.findEnrollmentByUid(e.getValue()).get(),
+                e -> bundle.findEnrollmentByUid(e).get(),
                 e ->
                     mapRuleEffects(
-                        bundle.findEnrollmentByUid(e.getValue()).get(),
+                        bundle.findEnrollmentByUid(e).get(),
                         enrollmentValidationEffects.get(e),
                         bundle)));
   }
@@ -73,7 +73,7 @@ class RuleActionEnrollmentMapper {
       Enrollment enrollment, List<ValidationEffect> ruleValidationEffects, TrackerBundle bundle) {
     List<Attribute> payloadTeiAttributes =
         bundle
-            .findTrackedEntityByUid(enrollment.getTrackedEntity())
+            .findTrackedEntityByUid(enrollment.getTrackedEntity().getValue())
             .map(TrackedEntity::getAttributes)
             .orElse(Collections.emptyList());
     List<Attribute> attributes = ListUtils.union(enrollment.getAttributes(), payloadTeiAttributes);

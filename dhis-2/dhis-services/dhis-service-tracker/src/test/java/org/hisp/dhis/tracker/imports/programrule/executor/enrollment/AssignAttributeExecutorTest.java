@@ -65,11 +65,11 @@ import org.mockito.quality.Strictness;
 @ExtendWith(MockitoExtension.class)
 class AssignAttributeExecutorTest extends TestBase {
 
-  private static final String TRACKED_ENTITY_ID = "TrackedEntityUid";
+  private static final UID TRACKED_ENTITY_ID = UID.generate();
 
-  private static final String FIRST_ENROLLMENT_ID = "ActiveEnrollmentUid";
+  private static final UID FIRST_ENROLLMENT_ID = UID.generate();
 
-  private static final String SECOND_ENROLLMENT_ID = "CompletedEnrollmentUid";
+  private static final UID SECOND_ENROLLMENT_ID = UID.generate();
 
   private static final UID ATTRIBUTE_UID = UID.of("h4w96yEMlzO");
 
@@ -281,15 +281,15 @@ class AssignAttributeExecutorTest extends TestBase {
   }
 
   private Optional<Attribute> findTeiAttributeByUid(
-      TrackerBundle bundle, String teUid, UID attributeUid) {
-    TrackedEntity te = bundle.findTrackedEntityByUid(teUid).get();
+      TrackerBundle bundle, UID teUid, UID attributeUid) {
+    TrackedEntity te = bundle.findTrackedEntityByUid(teUid.getValue()).get();
     return te.getAttributes().stream()
         .filter(at -> at.getAttribute().equals(MetadataIdentifier.ofUid(attributeUid.getValue())))
         .findAny();
   }
 
   private Optional<Attribute> findAttributeByUid(
-      TrackerBundle bundle, String enrollmentUid, UID attributeUid) {
+      TrackerBundle bundle, UID enrollmentUid, UID attributeUid) {
     Enrollment enrollment = bundle.findEnrollmentByUid(enrollmentUid).get();
     return enrollment.getAttributes().stream()
         .filter(at -> at.getAttribute().equals(MetadataIdentifier.ofUid(attributeUid.getValue())))
@@ -297,7 +297,7 @@ class AssignAttributeExecutorTest extends TestBase {
   }
 
   private Optional<Attribute> findAttributeByCode(
-      TrackerBundle bundle, String enrollmentUid, String attributeCode) {
+      TrackerBundle bundle, UID enrollmentUid, String attributeCode) {
     Enrollment enrollment = bundle.findEnrollmentByUid(enrollmentUid).get();
     return enrollment.getAttributes().stream()
         .filter(at -> at.getAttribute().equals(MetadataIdentifier.ofCode(attributeCode)))
@@ -328,6 +328,7 @@ class AssignAttributeExecutorTest extends TestBase {
   private Enrollment getEnrollmentWithAttributeSet() {
     return Enrollment.builder()
         .enrollment(FIRST_ENROLLMENT_ID)
+        .trackedEntity(UID.generate())
         .status(EnrollmentStatus.ACTIVE)
         .attributes(getAttributes())
         .build();
@@ -344,6 +345,7 @@ class AssignAttributeExecutorTest extends TestBase {
   private Enrollment getEnrollmentWithAttributeSetSameValue() {
     return Enrollment.builder()
         .enrollment(FIRST_ENROLLMENT_ID)
+        .trackedEntity(UID.generate())
         .status(EnrollmentStatus.ACTIVE)
         .attributes(getAttributesSameValue())
         .build();
@@ -351,13 +353,13 @@ class AssignAttributeExecutorTest extends TestBase {
 
   private TrackedEntity getTrackedEntitiesWithAttributeSet() {
     return TrackedEntity.builder()
-        .trackedEntity(TRACKED_ENTITY_ID)
+        .trackedEntity(TRACKED_ENTITY_ID.getValue())
         .attributes(getAttributes())
         .build();
   }
 
   private TrackedEntity getTrackedEntitiesWithAttributeNOTSet() {
-    return TrackedEntity.builder().trackedEntity(TRACKED_ENTITY_ID).build();
+    return TrackedEntity.builder().trackedEntity(TRACKED_ENTITY_ID.getValue()).build();
   }
 
   private Enrollment getEnrollmentWithAttributeNOTSet() {

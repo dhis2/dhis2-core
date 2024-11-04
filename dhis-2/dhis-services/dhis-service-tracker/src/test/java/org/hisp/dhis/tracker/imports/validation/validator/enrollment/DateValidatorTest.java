@@ -42,6 +42,7 @@ import static org.mockito.Mockito.when;
 import java.time.Duration;
 import java.time.Instant;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
@@ -86,7 +87,7 @@ class DateValidatorTest {
   void testMandatoryDatesMustBePresent() {
     Enrollment enrollment =
         Enrollment.builder()
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .occurredAt(now())
             .build();
@@ -103,7 +104,7 @@ class DateValidatorTest {
     final Instant dateInTheFuture = now().plus(Duration.ofDays(2));
     Enrollment enrollment =
         Enrollment.builder()
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .occurredAt(dateInTheFuture)
             .enrolledAt(dateInTheFuture)
@@ -123,7 +124,7 @@ class DateValidatorTest {
     final Instant today = now().plus(Duration.ofMinutes(1));
     Enrollment enrollment =
         Enrollment.builder()
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .occurredAt(today)
             .enrolledAt(today)
@@ -141,7 +142,7 @@ class DateValidatorTest {
     final Instant dateInTheFuture = now().plus(Duration.ofDays(2));
     Enrollment enrollment =
         Enrollment.builder()
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .occurredAt(dateInTheFuture)
             .enrolledAt(dateInTheFuture)
@@ -161,7 +162,7 @@ class DateValidatorTest {
   void testFailOnMissingOccurredAtDate() {
     Enrollment enrollment =
         Enrollment.builder()
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .enrolledAt(now())
             .build();
@@ -178,7 +179,7 @@ class DateValidatorTest {
   @Test
   void shouldFailWhenCompletedAtIsPresentAndStatusIsNotCompleted() {
     Enrollment enrollment = new Enrollment();
-    enrollment.setEnrollment(CodeGenerator.generateUid());
+    enrollment.setEnrollment(UID.generate());
     enrollment.setProgram(MetadataIdentifier.ofUid(CodeGenerator.generateUid()));
     enrollment.setOccurredAt(now());
     enrollment.setCompletedAt(now());
@@ -197,7 +198,7 @@ class DateValidatorTest {
       names = {"COMPLETED", "CANCELLED"})
   void shouldValidateWhenCompletedAtIsPresentAndStatusAcceptCompletedAt(EnrollmentStatus status) {
     Enrollment enrollment = new Enrollment();
-    enrollment.setEnrollment(CodeGenerator.generateUid());
+    enrollment.setEnrollment(UID.generate());
     enrollment.setProgram(MetadataIdentifier.ofUid(CodeGenerator.generateUid()));
     enrollment.setOccurredAt(now());
     enrollment.setCompletedAt(now());

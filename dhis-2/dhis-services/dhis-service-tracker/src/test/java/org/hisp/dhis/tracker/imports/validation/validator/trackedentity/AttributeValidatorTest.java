@@ -40,6 +40,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -116,6 +117,7 @@ class AttributeValidatorTest {
 
     TrackedEntity trackedEntity =
         TrackedEntity.builder()
+            .trackedEntity(UID.generate().getValue())
             .attributes(
                 Collections.singletonList(
                     Attribute.builder()
@@ -274,6 +276,7 @@ class AttributeValidatorTest {
   void shouldFailValidationMissingTea() {
     TrackedEntity trackedEntity =
         TrackedEntity.builder()
+            .trackedEntity(UID.generate().getValue())
             .attributes(
                 Arrays.asList(
                     Attribute.builder().attribute(MetadataIdentifier.ofUid("aaaaa")).build(),
@@ -445,6 +448,7 @@ class AttributeValidatorTest {
 
     TrackedEntity trackedEntity =
         TrackedEntity.builder()
+            .trackedEntity(UID.generate().getValue())
             .attributes(
                 Collections.singletonList(
                     Attribute.builder()
@@ -530,6 +534,7 @@ class AttributeValidatorTest {
 
     TrackedEntity trackedEntity =
         TrackedEntity.builder()
+            .trackedEntity(UID.generate().getValue())
             .attributes(
                 Collections.singletonList(
                     Attribute.builder()
@@ -617,8 +622,10 @@ class AttributeValidatorTest {
 
     reporter = new Reporter(idSchemes);
 
-    trackedEntity.setTrackedEntity("XYZ");
-    fileResource.setFileResourceOwner("ABC");
+    UID uid = UID.generate();
+
+    trackedEntity.setTrackedEntity(UID.generate().getValue());
+    fileResource.setFileResourceOwner(uid.getValue());
 
     bundle.setStrategy(trackedEntity, TrackerImportStrategy.UPDATE);
 
@@ -628,8 +635,8 @@ class AttributeValidatorTest {
 
     reporter = new Reporter(idSchemes);
 
-    trackedEntity.setTrackedEntity("ABC");
-    fileResource.setFileResourceOwner("ABC");
+    trackedEntity.setTrackedEntity(uid.getValue());
+    fileResource.setFileResourceOwner(uid.getValue());
 
     bundle.setStrategy(trackedEntity, TrackerImportStrategy.UPDATE);
 

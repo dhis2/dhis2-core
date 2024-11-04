@@ -29,10 +29,8 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -65,20 +63,19 @@ public class EnrollmentsWithAtLeastOneEventSupplier extends JdbcAbstractPreheatS
 
   @Override
   public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
-    final Map<String, Enrollment> enrollments = preheat.getEnrollments();
-    List<Long> programStageIds =
-        enrollments.values().stream().map(IdentifiableObject::getId).collect(Collectors.toList());
+    List<Long> enrollmentIds =
+        preheat.getEnrollments().values().stream().map(IdentifiableObject::getId).toList();
 
-    if (!programStageIds.isEmpty()) {
-      List<String> uids = new ArrayList<>();
+    if (!enrollmentIds.isEmpty()) {
+      List<UID> uids = new ArrayList<>();
 
       MapSqlParameterSource parameters = new MapSqlParameterSource();
-      parameters.addValue("ids", programStageIds);
+      parameters.addValue("ids", enrollmentIds);
       jdbcTemplate.query(
           SQL,
           parameters,
           rs -> {
-            uids.add(rs.getString(COLUMN));
+            uids.add(UID.of(rs.getString(COLUMN)));
           });
       preheat.setEnrollmentsWithOneOrMoreNonDeletedEvent(uids);
     }

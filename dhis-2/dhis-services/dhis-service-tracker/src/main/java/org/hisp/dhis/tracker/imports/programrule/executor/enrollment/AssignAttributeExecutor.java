@@ -80,7 +80,7 @@ public class AssignAttributeExecutor implements RuleActionExecutor<Enrollment> {
               ruleUid,
               ValidationCode.E1310,
               attributeUid.getValue(),
-              enrollment.getTrackedEntity()));
+              enrollment.getTrackedEntity().getValue()));
     }
     return Optional.of(error(ruleUid, ValidationCode.E1309, attributeUid.getValue(), value));
   }
@@ -89,7 +89,7 @@ public class AssignAttributeExecutor implements RuleActionExecutor<Enrollment> {
     TrackedEntityAttribute attribute =
         bundle.getPreheat().getTrackedEntityAttribute(attributeUid.getValue());
     Optional<TrackedEntity> trackedEntity =
-        bundle.findTrackedEntityByUid(enrollment.getTrackedEntity());
+        bundle.findTrackedEntityByUid(enrollment.getTrackedEntity().getValue());
 
     if (trackedEntity.isPresent()) {
       List<Attribute> teAttributes = trackedEntity.get().getAttributes();

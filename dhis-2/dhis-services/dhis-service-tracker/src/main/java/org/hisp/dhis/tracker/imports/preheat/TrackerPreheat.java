@@ -204,7 +204,7 @@ public class TrackerPreheat {
    * Internal map of all preheated enrollments, mainly used for confirming existence for updates,
    * and used for object merging.
    */
-  @Getter private final Map<String, Enrollment> enrollments = new HashMap<>();
+  @Getter private final Map<UID, Enrollment> enrollments = new HashMap<>();
 
   /**
    * Internal map of all preheated events, mainly used for confirming existence for updates, and
@@ -263,8 +263,7 @@ public class TrackerPreheat {
   @Getter @Setter private List<UniqueAttributeValue> uniqueAttributeValues = Lists.newArrayList();
 
   /** A list of all Enrollment UID having at least one Event that is not deleted. */
-  @Getter @Setter
-  private List<String> enrollmentsWithOneOrMoreNonDeletedEvent = Lists.newArrayList();
+  @Getter @Setter private List<UID> enrollmentsWithOneOrMoreNonDeletedEvent = Lists.newArrayList();
 
   /** A list of Program Stage UID having 1 or more Events */
   private final List<Pair<String, String>> programStageWithEvents = Lists.newArrayList();
@@ -449,16 +448,16 @@ public class TrackerPreheat {
     trackedEntities.put(uid, trackedEntity);
   }
 
-  public Enrollment getEnrollment(String uid) {
+  public Enrollment getEnrollment(UID uid) {
     return enrollments.get(uid);
   }
 
   public void putEnrollments(List<Enrollment> enrollments) {
-    enrollments.forEach(e -> putEnrollment(e.getUid(), e));
+    enrollments.forEach(this::putEnrollment);
   }
 
-  public void putEnrollment(String uid, Enrollment enrollment) {
-    enrollments.put(uid, enrollment);
+  public void putEnrollment(Enrollment enrollment) {
+    enrollments.put(UID.of(enrollment), enrollment);
   }
 
   public Event getEvent(UID uid) {
@@ -638,7 +637,7 @@ public class TrackerPreheat {
 
     return switch (type) {
       case TRACKED_ENTITY -> getTrackedEntity(uid.getValue()) != null;
-      case ENROLLMENT -> getEnrollment(uid.getValue()) != null;
+      case ENROLLMENT -> getEnrollment(uid) != null;
       case EVENT -> getEvent(uid) != null;
       case RELATIONSHIP -> getRelationship(uid.getValue()) != null;
     };
