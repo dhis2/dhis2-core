@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.resourcetable;
+package org.hisp.dhis.dashboard.embedded;
 
-import org.hisp.dhis.scheduling.JobProgress;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
+ * Encapsulates customization options for embedded dashboards.
+ *
  * @author Lars Helge Overland
  */
-public interface ResourceTableService {
-  /** Generates resource tables. */
-  void generateResourceTables();
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class EmbeddedOptions implements Serializable {
+  /** Hide tab. Applies to Superset. */
+  @JsonProperty private boolean hideTab;
 
-  /** Replicates resource tables in the analytics database. */
-  void replicateAnalyticsResourceTables();
+  /** Hide the chart controls. Applies to Superset. */
+  @JsonProperty private boolean hideChartControls;
 
-  /** Generates data approval resource tables. */
-  void generateDataApprovalResourceTables();
+  /** Filter options. Applies to Superset. */
+  @JsonProperty private FilterOptions filters;
 
-  /** Create all SQL views. */
-  void createAllSqlViews(JobProgress progress);
-
-  /** Drop all SQL views. */
-  void dropAllSqlViews(JobProgress progress);
+  /** Show the filters panel. Applies to Superset. */
+  @JsonProperty private boolean showFilters;
 }
