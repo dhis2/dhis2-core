@@ -39,7 +39,7 @@ import org.junit.jupiter.api.Test;
  * <p>{@see
  * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/categories/category_option_combos_same_category_options.yaml}
  *
- * @author Jason P. Pickering
+ * @author David Mackessy
  */
 class DataIntegrityCategoryOptionComboDuplicatedTest extends AbstractDataIntegrityIntegrationTest {
   private final String check = "category_option_combos_same_category_options";
