@@ -226,6 +226,7 @@ public enum ErrorCode {
   E3043("User has not a verified email, please verify your email first before you enable 2FA"),
   E3044("TOTP two-factor authentication is not enabled"),
   E3045("Email based two-factor authentication is not enabled"),
+  E3046("TOTP two-factor authentication is not enabled"),
 
   /* Metadata Validation */
   E4000("Missing required property `{0}`"),

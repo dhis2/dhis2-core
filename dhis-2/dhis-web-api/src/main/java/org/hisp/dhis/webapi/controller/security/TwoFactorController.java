@@ -45,6 +45,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
@@ -74,10 +75,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class TwoFactorController {
   private final UserService userService;
 
-  @PostMapping(value = "/sendEmail2FA")
+  @PostMapping(value = "/enrollEmail2FA")
   @ResponseStatus(HttpStatus.OK)
-  @ResponseBody
-  public WebMessage generateEmail2FACode(@CurrentUser User currentUser, SystemSettings settings)
+  public WebMessage enrollEmail2FA(@CurrentUser User currentUser, SystemSettings settings)
       throws WebMessageException {
     if (currentUser == null) {
       throw new WebMessageException(conflict(ErrorCode.E3027.getMessage(), ErrorCode.E3027));
@@ -98,8 +98,53 @@ public class TwoFactorController {
     return ok("Email 2FA code was generated and sent successfully");
   }
 
+  @PostMapping(value = "/enrollTOTP2FA")
+  @ResponseStatus(HttpStatus.OK)
+  public WebMessage enrollTOTP2FA(@CurrentUser User currentUser, SystemSettings settings)
+      throws WebMessageException {
+
+    if (currentUser == null) {
+      throw new WebMessageException(conflict(ErrorCode.E3027.getMessage(), ErrorCode.E3027));
+    }
+    if (settings.getTOTP2FAEnabled()) {
+      throw new WebMessageException(conflict(ErrorCode.E3044.getMessage(), ErrorCode.E3044));
+    }
+    if (currentUser.isTwoFactorEnabled()
+        && !UserService.hasTwoFactorSecretForApproval(currentUser)) {
+      throw new WebMessageException(conflict(ErrorCode.E3022.getMessage(), ErrorCode.E3022));
+    }
+
+    userService.enrollTOTP2FA(currentUser);
+
+    return ok("TOTP 2FA code was generated and sent, see the QR code endpoint");
+  }
+
   @OpenApi.Response(byte[].class)
-  @GetMapping(value = "/qrCode", produces = APPLICATION_OCTET_STREAM_VALUE)
+  @GetMapping(
+      value = {"/showQRCode"},
+      produces = APPLICATION_OCTET_STREAM_VALUE)
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  public void showQRCode(
+      @CurrentUser User currentUser, HttpServletResponse response, SystemSettings settings)
+      throws IOException, WebMessageException {
+
+    if (currentUser == null) {
+      throw new WebMessageException(conflict(ErrorCode.E3027.getMessage(), ErrorCode.E3027));
+    }
+    if (settings.getTOTP2FAEnabled()) {
+      throw new WebMessageException(conflict(ErrorCode.E3044.getMessage(), ErrorCode.E3044));
+    }
+    if (!currentUser.getTwoFactorType().equals(TwoFactorType.TOTP)) {
+      throw new WebMessageException(conflict(ErrorCode.E3046.getMessage(), ErrorCode.E3046));
+    }
+
+    writeQRCode(currentUser, response, settings);
+  }
+
+  @OpenApi.Response(byte[].class)
+  @GetMapping(
+      value = {"/qrCode"},
+      produces = APPLICATION_OCTET_STREAM_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
   public void generateQRCode(
       @CurrentUser User currentUser, HttpServletResponse response, SystemSettings settings)
@@ -117,6 +162,12 @@ public class TwoFactorController {
 
     userService.enrollTOTP2FA(currentUser);
 
+    writeQRCode(currentUser, response, settings);
+  }
+
+  private static void writeQRCode(
+      User currentUser, HttpServletResponse response, SystemSettings settings)
+      throws WebMessageException, IOException {
     List<ErrorCode> errorCodes = new ArrayList<>();
 
     String qrContent =
