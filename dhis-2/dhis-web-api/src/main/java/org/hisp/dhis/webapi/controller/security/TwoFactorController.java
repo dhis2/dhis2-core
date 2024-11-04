@@ -82,7 +82,7 @@ public class TwoFactorController {
     if (currentUser == null) {
       throw new WebMessageException(conflict(ErrorCode.E3027.getMessage(), ErrorCode.E3027));
     }
-    if (settings.getEmail2FAEnabled()) {
+    if (!settings.getEmail2FAEnabled()) {
       throw new WebMessageException(conflict(ErrorCode.E3045.getMessage(), ErrorCode.E3045));
     }
     if (currentUser.isTwoFactorEnabled()
@@ -102,11 +102,10 @@ public class TwoFactorController {
   @ResponseStatus(HttpStatus.OK)
   public WebMessage enrollTOTP2FA(@CurrentUser User currentUser, SystemSettings settings)
       throws WebMessageException {
-
     if (currentUser == null) {
       throw new WebMessageException(conflict(ErrorCode.E3027.getMessage(), ErrorCode.E3027));
     }
-    if (settings.getTOTP2FAEnabled()) {
+    if (!settings.getTOTP2FAEnabled()) {
       throw new WebMessageException(conflict(ErrorCode.E3044.getMessage(), ErrorCode.E3044));
     }
     if (currentUser.isTwoFactorEnabled()
@@ -131,7 +130,7 @@ public class TwoFactorController {
     if (currentUser == null) {
       throw new WebMessageException(conflict(ErrorCode.E3027.getMessage(), ErrorCode.E3027));
     }
-    if (settings.getTOTP2FAEnabled()) {
+    if (!settings.getTOTP2FAEnabled()) {
       throw new WebMessageException(conflict(ErrorCode.E3044.getMessage(), ErrorCode.E3044));
     }
     if (!currentUser.getTwoFactorType().equals(TwoFactorType.TOTP)) {
@@ -152,7 +151,7 @@ public class TwoFactorController {
     if (currentUser == null) {
       throw new WebMessageException(conflict(ErrorCode.E3027.getMessage(), ErrorCode.E3027));
     }
-    if (settings.getTOTP2FAEnabled()) {
+    if (!settings.getTOTP2FAEnabled()) {
       throw new WebMessageException(conflict(ErrorCode.E3044.getMessage(), ErrorCode.E3044));
     }
     if (currentUser.isTwoFactorEnabled()
