@@ -91,7 +91,7 @@ class DataIntegrityCategoryOptionComboDuplicatedTest extends AbstractDataIntegri
     Set<String> expectedCategorOptCombos = Set.of(cocWithOptionsA, cocWithOptionsB);
     Set<String> expectedMessages = Set.of("(1) Colour", "(1) Color");
     checkDataIntegrityDetailsIssues(
-        check, expectedCategorOptCombos, expectedMessages, Set.of(), "categories");
+        check, expectedCategorOptCombos, expectedMessages, Set.of(), "categoryOptionCombos");
   }
 
   @Test
@@ -128,13 +128,13 @@ class DataIntegrityCategoryOptionComboDuplicatedTest extends AbstractDataIntegri
                 """
                     .formatted(categoryOptionBlue)));
 
-    assertHasNoDataIntegrityIssues("categories", check, true);
+    assertHasNoDataIntegrityIssues("categoryOptionCombos", check, true);
   }
 
   @Test
   void testInvalidCategoryOptionCombosDivideByZero() {
 
     // Expect a percentage here, since there should always be the default category option combo
-    assertHasNoDataIntegrityIssues("categories", check, true);
+    assertHasNoDataIntegrityIssues("categoryOptionCombos", check, true);
   }
 }
