@@ -183,9 +183,9 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
 
   private PeriodType monthly = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY);
 
-  private final String UserWithDataViewOrgUnitsTag = "UserWithDataViewOrgUnits";
+  private final String userWithDataViewOrgUnitsTag = "UserWithDataViewOrgUnits";
 
-  private final String UserWithoutDataViewOrgUnitsTag = "UserWithoutDataViewOrgUnits";
+  private final String userWithoutDataViewOrgUnitsTag = "UserWithoutDataViewOrgUnits";
 
   @Autowired private DataQueryService dataQueryService;
 
@@ -332,14 +332,14 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp(TestInfo testInfo) {
-    if (testInfo.getTags().contains(UserWithDataViewOrgUnitsTag)
-        || testInfo.getTags().contains(UserWithoutDataViewOrgUnitsTag)) {
+    if (testInfo.getTags().contains(userWithDataViewOrgUnitsTag)
+        || testInfo.getTags().contains(userWithoutDataViewOrgUnitsTag)) {
       UserRole role = createUserRole('X', "ALL");
       userService.addUserRole(role);
       User user = makeUser("X");
       user.addOrganisationUnit(ouA);
 
-      if (testInfo.getTags().contains(UserWithDataViewOrgUnitsTag)) {
+      if (testInfo.getTags().contains(userWithDataViewOrgUnitsTag)) {
         user.setDataViewOrganisationUnits(Set.of(ouB, ouC, ouD));
       } else {
         user.setDataViewOrganisationUnits(Set.of());
@@ -353,8 +353,8 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
 
   @AfterEach
   void tearDown(TestInfo testInfo) {
-    if (testInfo.getTags().contains(UserWithDataViewOrgUnitsTag)
-        || testInfo.getTags().contains(UserWithoutDataViewOrgUnitsTag)) {
+    if (testInfo.getTags().contains(userWithDataViewOrgUnitsTag)
+        || testInfo.getTags().contains(userWithoutDataViewOrgUnitsTag)) {
       injectSecurityContextUser(userService.getUser(BASE_USER_UID + "A"));
       User user = userService.getUser(BASE_USER_UID + "X");
       UserRole role = userService.getUserRole(BASE_UID + "X");
@@ -1066,7 +1066,7 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @Tag(UserWithDataViewOrgUnitsTag)
+  @Tag(userWithDataViewOrgUnitsTag)
   void testGetUserOrgUnitsWithGrantedForAnalyticsOrganisationUnits() {
     // given
     DataQueryParams dataQueryParams =
@@ -1083,7 +1083,7 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @Tag(UserWithoutDataViewOrgUnitsTag)
+  @Tag(userWithoutDataViewOrgUnitsTag)
   void testGetUserOrgUnitsWithDeniedForAnalyticsOrganisationUnits() {
     // given
     DataQueryParams dataQueryParams =
