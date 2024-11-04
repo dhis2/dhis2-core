@@ -95,7 +95,6 @@ import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.jboss.aerogear.security.otp.api.Base32;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
@@ -1054,13 +1053,15 @@ public class DefaultUserService implements UserService {
 
   private record Email2FACode(String code, String encodedCode) {}
 
-  private static @NotNull Email2FACode getEmail2FACode() {
+  @Nonnull
+  private static Email2FACode getEmail2FACode() {
     String code = new String(CodeGenerator.generateSecureRandomCode(6));
     String encodedCode = code + "|" + (System.currentTimeMillis() + TWOFA_EMAIL_CODE_EXPIRY_MILLIS);
     return new Email2FACode(code, encodedCode);
   }
 
-  private static @NotNull Email2FACode getEmail2FAForApprovalCode() {
+  @Nonnull
+  private static Email2FACode getEmail2FAForApprovalCode() {
     String code = new String(CodeGenerator.generateSecureRandomCode(6));
     String encodedCode =
         TWO_FACTOR_CODE_APPROVAL_PREFIX
