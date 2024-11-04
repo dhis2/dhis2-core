@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.data;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hisp.dhis.common.UserOrgUnitType.DATA_OUTPUT;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -41,39 +42,24 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/** Unit tests for {@link DataQueryService}. */
 @ExtendWith(MockitoExtension.class)
 class DataQueryServiceTest {
-  private static OrganisationUnit ouA;
-
-  private static OrganisationUnit ouB;
-
-  private static OrganisationUnit ouC;
-
-  private static OrganisationUnit ouD;
-
-  private static DataQueryParams dataQueryParams;
-
-  @BeforeAll
-  static void setUp() {
-    ouA = createOrganisationUnit('A');
-    ouB = createOrganisationUnit('B');
-    ouC = createOrganisationUnit('C');
-    ouD = createOrganisationUnit('D');
-    dataQueryParams =
-        DataQueryParams.newBuilder().withUserOrgUnitType(UserOrgUnitType.DATA_OUTPUT).build();
-  }
 
   @Test
-  void testGetUserOrgUnitsWithExplicitGrantedForAnalyticsOrganisationUnits() {
+  void testGetUserOrgUnitsWithExplicitlyDefinedAnalyticsOrganisationUnits() {
     // given
+    OrganisationUnit ouB = createOrganisationUnit('B');
+    OrganisationUnit ouC = createOrganisationUnit('C');
+    OrganisationUnit ouD = createOrganisationUnit('D');
+    DataQueryParams dataQueryParams =
+        DataQueryParams.newBuilder().withUserOrgUnitType(DATA_OUTPUT).build();
     User currentUser = mock(User.class);
     AnalyticsSecurityManager analyticsSecurityManager = mock(AnalyticsSecurityManager.class);
     when(currentUser.getDataViewOrganisationUnits()).thenReturn(Set.of(ouB, ouC, ouD));
@@ -95,11 +81,13 @@ class DataQueryServiceTest {
   }
 
   @Test
-  void testGetUserOrgUnitsWithDeniedForAnalyticsOrganisationUnits() {
+  void testGetUserOrgUnitsWithNoAnalyticsOrganisationUnitsDefined() {
     // given
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    DataQueryParams dataQueryParams =
+        DataQueryParams.newBuilder().withUserOrgUnitType(DATA_OUTPUT).build();
     User currentUser = mock(User.class);
     AnalyticsSecurityManager analyticsSecurityManager = mock(AnalyticsSecurityManager.class);
-    when(currentUser.getDataViewOrganisationUnits()).thenReturn(Set.of());
     when(currentUser.getDataViewOrganisationUnits()).thenReturn(Set.of(ouA));
     when(analyticsSecurityManager.getCurrentUser(dataQueryParams)).thenReturn(currentUser);
     DataQueryService dataQueryService =
@@ -119,11 +107,12 @@ class DataQueryServiceTest {
   }
 
   @Test
-  void testGetUserOrgUnitsWithDeniedForAllOrganisationUnits() {
+  void testGetUserOrgUnitsWithNoneOrganisationUnitDefined() {
     // given
+    DataQueryParams dataQueryParams =
+        DataQueryParams.newBuilder().withUserOrgUnitType(DATA_OUTPUT).build();
     User currentUser = mock(User.class);
     AnalyticsSecurityManager analyticsSecurityManager = mock(AnalyticsSecurityManager.class);
-    when(currentUser.getDataViewOrganisationUnits()).thenReturn(Set.of());
     when(currentUser.getDataViewOrganisationUnits()).thenReturn(Set.of());
     when(analyticsSecurityManager.getCurrentUser(dataQueryParams)).thenReturn(currentUser);
     DataQueryService dataQueryService =
