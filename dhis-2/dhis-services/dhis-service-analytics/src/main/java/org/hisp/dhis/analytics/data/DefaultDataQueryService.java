@@ -297,7 +297,7 @@ public class DefaultDataQueryService implements DataQueryService {
           units.addAll(currentUser.getOrganisationUnits().stream().sorted().toList());
           break;
         case DATA_OUTPUT:
-          units.addAll(getOrganisationUnitsGrantedForAnalyticsData(currentUser));
+          units.addAll(getAnalyticsOrganisationUnitsOrDefault(currentUser));
           break;
         case TEI_SEARCH:
           units.addAll(currentUser.getTeiSearchOrganisationUnits().stream().sorted().toList());
@@ -311,19 +311,27 @@ public class DefaultDataQueryService implements DataQueryService {
   }
 
   /**
-   * Retrieve the list of organizational units to which the current user has access rights.
+   * Retrieve the list of organisation units to which the current user has access rights. If the
+   * user has analytics organisation units assigned, those will be returned. Otherwise, it returns
+   * the default ones (data capture organisation units).
    *
    * @param currentUser {@link User}
+   * @return a list of {@link OrganisationUnit}.
    */
-  private List<OrganisationUnit> getOrganisationUnitsGrantedForAnalyticsData(User currentUser) {
+  private List<OrganisationUnit> getAnalyticsOrganisationUnitsOrDefault(User currentUser) {
     Set<OrganisationUnit> organisationUnits = currentUser.getDataViewOrganisationUnits();
     if (organisationUnits != null && !organisationUnits.isEmpty()) {
       return organisationUnits.stream().sorted().toList();
     } else {
-      // If the user has no analytics permissions for any organizational unit,
-      // apply their data capture permissions instead.
-      return currentUser.getOrganisationUnits().stream().sorted().toList();
+      // If the user has no analytics permissions for any organization unit,
+      // returns data capture organization units, instead.
+      Set<OrganisationUnit> defaultOrganisationUnits = currentUser.getOrganisationUnits();
+      if (defaultOrganisationUnits != null && !defaultOrganisationUnits.isEmpty()) {
+        return defaultOrganisationUnits.stream().sorted().toList();
+      }
     }
+
+    return new ArrayList<>();
   }
 
   private List<DimensionalObject> getDimensionalObjects(DataQueryRequest request) {
