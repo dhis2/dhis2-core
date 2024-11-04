@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.view;
 import org.hisp.dhis.common.UID;
 import org.mapstruct.Mapper;
 
+@Deprecated(forRemoval = true)
 @Mapper
 public interface UIDMapper {
 

@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.bundle;
 
 import static org.hisp.dhis.program.EnrollmentStatus.ACTIVE;
+import static org.hisp.dhis.test.utils.Assertions.assertEqualUids;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -38,7 +39,6 @@ import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -567,8 +567,8 @@ class TrackerObjectsMapperTest extends TestBase {
       Event actual,
       UserDetails createdBy,
       UserDetails updatedBy) {
-    assertUids(event.getUid(), actual);
-    assertUids(event.getEnrollment(), actual.getEnrollment());
+    assertEqualUids(event.getUid(), actual);
+    assertEqualUids(event.getEnrollment(), actual.getEnrollment());
     assertEquals(event.getOrgUnit().getIdentifier(), actual.getOrganisationUnit().getUid());
     assertEquals(event.getProgramStage().getIdentifier(), actual.getProgramStage().getUid());
     assertEquals(UserInfoSnapshot.from(createdBy), actual.getCreatedByUserInfo());
@@ -582,10 +582,6 @@ class TrackerObjectsMapperTest extends TestBase {
     assertEquals(event.getStatus(), actual.getStatus());
     assertEquals(event.getGeometry(), actual.getGeometry());
     assertNotes(event.getNotes(), actual.getNotes(), updatedBy);
-  }
-
-  private void assertUids(UID uid, UidObject uidObject) {
-    assertEquals(uid.getValue(), uidObject.getUid());
   }
 
   private void assertMappedRelationship(

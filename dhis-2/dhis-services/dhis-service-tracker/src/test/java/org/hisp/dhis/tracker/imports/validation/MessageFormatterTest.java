@@ -191,6 +191,13 @@ class MessageFormatterTest {
   }
 
   @Test
+  void formatArgumentsShouldTurnUIDIntoArguments() {
+    List<String> args = MessageFormatter.formatArguments(idSchemes, UID.of("zwccdzhk5zc"));
+
+    assertContainsOnly(List.of("zwccdzhk5zc"), args);
+  }
+
+  @Test
   void formatArgumentsShouldTurnEnumsIntoArguments() {
     List<String> args =
         MessageFormatter.formatArguments(

@@ -76,7 +76,7 @@ class DataRelationsValidator implements Validator<Event> {
   private void validateProgramWithRegistrationHasTrackedEntity(
       Reporter reporter, TrackerBundle bundle, Program program, Event event) {
     if (program.isRegistration() && !enrollmentFromEventHasTrackedEntity(bundle, event)) {
-      reporter.addError(event, E1313, event);
+      reporter.addError(event, E1313, event.getEvent());
     }
   }
 

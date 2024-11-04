@@ -35,7 +35,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -87,26 +86,19 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     for (UID uid : enrollments) {
       Entity objectReport = new Entity(TrackerType.ENROLLMENT, uid.getValue());
 
-      Enrollment enrollment = manager.get(Enrollment.class, uid.getValue());
+      Enrollment enrollment = manager.get(Enrollment.class, uid);
       if (enrollment == null) {
         throw new NotFoundException(Enrollment.class, uid);
       }
       enrollment.setLastUpdatedByUserInfo(userInfoSnapshot);
 
       List<UID> events =
-          enrollment.getEvents().stream()
-              .filter(event -> !event.isDeleted())
-              .map(BaseIdentifiableObject::getUid)
-              .map(UID::of)
-              .toList();
+          enrollment.getEvents().stream().filter(event -> !event.isDeleted()).map(UID::of).toList();
       deleteEvents(events);
 
       RelationshipQueryParams params = RelationshipQueryParams.builder().entity(enrollment).build();
       List<UID> relationships =
-          relationshipStore.getByEnrollment(enrollment, params).stream()
-              .map(BaseIdentifiableObject::getUid)
-              .map(UID::of)
-              .toList();
+          relationshipStore.getByEnrollment(enrollment, params).stream().map(UID::of).toList();
 
       deleteRelationships(relationships);
 
@@ -137,15 +129,12 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     for (UID uid : events) {
       Entity objectReport = new Entity(TrackerType.EVENT, uid.getValue());
 
-      Event event = manager.get(Event.class, uid.getValue());
+      Event event = manager.get(Event.class, uid);
       event.setLastUpdatedByUserInfo(userInfoSnapshot);
 
       RelationshipQueryParams params = RelationshipQueryParams.builder().entity(event).build();
       List<UID> relationships =
-          relationshipStore.getByEvent(event, params).stream()
-              .map(BaseIdentifiableObject::getUid)
-              .map(UID::of)
-              .toList();
+          relationshipStore.getByEvent(event, params).stream().map(UID::of).toList();
 
       deleteRelationships(relationships);
 
@@ -189,7 +178,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     for (UID uid : trackedEntities) {
       Entity objectReport = new Entity(TrackerType.TRACKED_ENTITY, uid.getValue());
 
-      TrackedEntity entity = manager.get(TrackedEntity.class, uid.getValue());
+      TrackedEntity entity = manager.get(TrackedEntity.class, uid);
       if (entity == null) {
         throw new NotFoundException(TrackedEntity.class, uid);
       }
@@ -202,17 +191,13 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       List<UID> enrollments =
           daoEnrollments.stream()
               .filter(enrollment -> !enrollment.isDeleted())
-              .map(BaseIdentifiableObject::getUid)
               .map(UID::of)
               .toList();
       deleteEnrollments(enrollments);
 
       RelationshipQueryParams params = RelationshipQueryParams.builder().entity(entity).build();
       List<UID> relationships =
-          relationshipStore.getByTrackedEntity(entity, params).stream()
-              .map(BaseIdentifiableObject::getUid)
-              .map(UID::of)
-              .toList();
+          relationshipStore.getByTrackedEntity(entity, params).stream().map(UID::of).toList();
 
       deleteRelationships(relationships);
 
@@ -241,7 +226,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     for (UID uid : relationships) {
       Entity objectReport = new Entity(TrackerType.RELATIONSHIP, uid.getValue());
 
-      Relationship relationship = manager.get(Relationship.class, uid.getValue());
+      Relationship relationship = manager.get(Relationship.class, uid);
       if (relationship == null) {
         throw new NotFoundException(Relationship.class, uid);
       }

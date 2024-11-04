@@ -40,7 +40,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.ErrorCodeException;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -270,6 +273,22 @@ public final class Assertions {
       assertStartsWith(expected.substring(0, paramsStart + 1), actual);
       assertContainsOnly(toParameterList.apply(expected), toParameterList.apply(actual));
     }
+  }
+
+  /**
+   * Asserts that the UID of the given UidObject is equal to the expected UID.
+   *
+   * @param expected expected UID
+   * @param actual actual value to be checked
+   */
+  public static void assertEqualUids(@Nonnull UID expected, @Nonnull UidObject actual) {
+    assertEquals(
+        expected.getValue(),
+        actual.getUid(),
+        () ->
+            String.format(
+                "expected actual UID to be '%s', got '%s' instead",
+                expected.getValue(), actual.getUid()));
   }
 
   public static void assertErrorReport(

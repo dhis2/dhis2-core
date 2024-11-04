@@ -157,7 +157,11 @@ class TrackerIdentifierCollectorTest {
 
   @Test
   void collectEventsSkipsNotesWithoutAnId() {
-    Event event = Event.builder().notes(List.of(Note.builder().value("nice day!").build())).build();
+    Event event =
+        Event.builder()
+            .event(UID.generate())
+            .notes(List.of(Note.builder().value("nice day!").build()))
+            .build();
 
     TrackerObjects trackerObjects = TrackerObjects.builder().events(singletonList(event)).build();
 
@@ -170,7 +174,10 @@ class TrackerIdentifierCollectorTest {
   @Test
   void collectEventsSkipsNotesWithoutAValue() {
     Event event =
-        Event.builder().notes(List.of(Note.builder().note("i1vviSlidJE").build())).build();
+        Event.builder()
+            .event(UID.generate())
+            .notes(List.of(Note.builder().note("i1vviSlidJE").build()))
+            .build();
 
     TrackerObjects trackerObjects = TrackerObjects.builder().events(singletonList(event)).build();
 

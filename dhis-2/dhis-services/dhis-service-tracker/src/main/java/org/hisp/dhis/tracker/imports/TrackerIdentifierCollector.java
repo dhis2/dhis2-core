@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
@@ -187,14 +188,16 @@ public class TrackerIdentifierCollector {
   }
 
   private <T> void addIdentifier(
-      Map<Class<?>, Set<String>> identifiers, Class<T> klass, MetadataIdentifier identifier) {
+      @Nonnull Map<Class<?>, Set<String>> identifiers,
+      @Nonnull Class<T> klass,
+      MetadataIdentifier identifier) {
     addIdentifier(
         identifiers, klass, identifier == null ? null : identifier.getIdentifierOrAttributeValue());
   }
 
   private <T> void addIdentifier(
-      Map<Class<?>, Set<String>> identifiers, Class<T> klass, String identifier) {
-    if (StringUtils.isEmpty(identifier) || identifiers == null || klass == null) {
+      @Nonnull Map<Class<?>, Set<String>> identifiers, @Nonnull Class<T> klass, String identifier) {
+    if (StringUtils.isEmpty(identifier)) {
       return;
     }
 
@@ -202,8 +205,8 @@ public class TrackerIdentifierCollector {
   }
 
   private <T> void addIdentifier(
-      Map<Class<?>, Set<String>> identifiers, Class<T> klass, UID identifier) {
-    if (identifier == null || identifiers == null || klass == null) {
+      @Nonnull Map<Class<?>, Set<String>> identifiers, @Nonnull Class<T> klass, UID identifier) {
+    if (identifier == null) {
       return;
     }
 
