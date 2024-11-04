@@ -1754,8 +1754,9 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeReport report = mergeProcessor.processMerge(mergeParams);
 
     // then
-    List<Section> sectionSources = sectionStore.getByDataElement(List.of(deSource1, deSource2));
-    List<Section> sectionTarget = sectionStore.getByDataElement(List.of(deTarget));
+    List<Section> sectionSources =
+        sectionStore.getSectionsByDataElement(List.of(deSource1, deSource2));
+    List<Section> sectionTarget = sectionStore.getSectionsByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesNotDeleted(report, sectionSources, sectionTarget, allDataElements);
@@ -1783,8 +1784,9 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeReport report = mergeProcessor.processMerge(mergeParams);
 
     // then
-    List<Section> sectionSources = sectionStore.getByDataElement(List.of(deSource1, deSource2));
-    List<Section> sectionTarget = sectionStore.getByDataElement(List.of(deTarget));
+    List<Section> sectionSources =
+        sectionStore.getSectionsByDataElement(List.of(deSource1, deSource2));
+    List<Section> sectionTarget = sectionStore.getSectionsByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, sectionSources, sectionTarget, allDataElements);
