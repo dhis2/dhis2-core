@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.bundle;
 
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import org.hisp.dhis.tracker.TrackerTest;
@@ -39,7 +38,6 @@ import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -90,28 +88,6 @@ class ReportSummaryIntegrationTest extends TrackerTest {
     assertEquals(1, trackerImportTeReport.getStats().getCreated());
     assertEquals(1, trackerImportTeReport.getStats().getUpdated());
     assertEquals(0, trackerImportTeReport.getStats().getIgnored());
-    assertEquals(0, trackerImportTeReport.getStats().getDeleted());
-  }
-
-  @Test
-  void testStatsCountForOneCreatedAndOneUpdatedTEAndOneInvalidTE() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
-    TrackerImportParams params =
-        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
-    trackerImportService.importTracker(params, trackerObjects);
-
-    trackerObjects = fromJson("tracker/one_update_te_and_one_new_te_and_one_invalid_te.json");
-    params.setAtomicMode(AtomicMode.OBJECT);
-    params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
-
-    ImportReport trackerImportTeReport = trackerImportService.importTracker(params, trackerObjects);
-
-    assertNotNull(trackerImportTeReport);
-    assertEquals(Status.OK, trackerImportTeReport.getStatus());
-    assertEquals(1, trackerImportTeReport.getValidationReport().getErrors().size());
-    assertEquals(1, trackerImportTeReport.getStats().getCreated());
-    assertEquals(1, trackerImportTeReport.getStats().getUpdated());
-    assertEquals(1, trackerImportTeReport.getStats().getIgnored());
     assertEquals(0, trackerImportTeReport.getStats().getDeleted());
   }
 

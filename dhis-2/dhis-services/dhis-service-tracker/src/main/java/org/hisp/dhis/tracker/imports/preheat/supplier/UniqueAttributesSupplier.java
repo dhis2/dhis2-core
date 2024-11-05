@@ -139,7 +139,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
 
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity getEntityForEnrollment(
       TrackerObjects trackerObjects, TrackerPreheat preheat, UID teUid) {
-    TrackedEntity trackedEntity = preheat.getTrackedEntity(teUid.getValue());
+    TrackedEntity trackedEntity = preheat.getTrackedEntity(teUid);
 
     // Get te from Preheat
     Optional<org.hisp.dhis.tracker.imports.domain.TrackedEntity> optionalTe =
@@ -152,7 +152,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
     {
       org.hisp.dhis.tracker.imports.domain.TrackedEntity te =
           new org.hisp.dhis.tracker.imports.domain.TrackedEntity();
-      te.setTrackedEntity(teUid.getValue());
+      te.setTrackedEntity(teUid);
       te.setOrgUnit(
           preheat.getIdSchemes().toMetadataIdentifier(trackedEntity.getOrganisationUnit()));
       return te;
@@ -161,7 +161,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
     {
       org.hisp.dhis.tracker.imports.domain.TrackedEntity te =
           new org.hisp.dhis.tracker.imports.domain.TrackedEntity();
-      te.setTrackedEntity(teUid.getValue());
+      te.setTrackedEntity(teUid);
       return te;
     }
   }

@@ -67,7 +67,7 @@ class UpdatableFieldsValidatorTest {
 
   private static final String PROGRAM_STAGE_ID = "ProgramStageId";
 
-  private static final String TRACKED_ENTITY_ID = "TrackedEntityId";
+  private static final UID TRACKED_ENTITY_ID = UID.generate();
 
   private static final UID ENROLLMENT_ID = UID.generate();
 
@@ -145,7 +145,7 @@ class UpdatableFieldsValidatorTest {
     trackedEntityType.setUid(TRACKED_ENTITY_TYPE_ID);
 
     TrackedEntity trackedEntity = new TrackedEntity();
-    trackedEntity.setUid(TRACKED_ENTITY_ID);
+    trackedEntity.setUid(TRACKED_ENTITY_ID.getValue());
     trackedEntity.setTrackedEntityType(trackedEntityType);
     return trackedEntity;
   }

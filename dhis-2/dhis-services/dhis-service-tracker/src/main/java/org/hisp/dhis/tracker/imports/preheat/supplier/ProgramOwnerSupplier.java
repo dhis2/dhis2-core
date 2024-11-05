@@ -54,7 +54,7 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier {
 
   @Override
   public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
-    final Map<String, TrackedEntity> preheatedTrackedEntities = preheat.getTrackedEntities();
+    final Map<UID, TrackedEntity> preheatedTrackedEntities = preheat.getTrackedEntities();
     final Map<UID, Enrollment> preheatedEnrollments = preheat.getEnrollments();
     final Map<UID, Event> preheatedEvents = preheat.getEvents();
     Set<Long> teIds = new HashSet<>();
@@ -62,7 +62,7 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier {
       Enrollment enrollment = preheatedEnrollments.get(en.getEnrollment());
       TrackedEntity te =
           enrollment == null
-              ? preheatedTrackedEntities.get(en.getTrackedEntity().getValue())
+              ? preheatedTrackedEntities.get(en.getTrackedEntity())
               : enrollment.getTrackedEntity();
 
       if (te != null) {

@@ -79,7 +79,7 @@ public class TrackerObjectsMapper {
 
     if (dbTrackedEntity == null) {
       dbTrackedEntity = new TrackedEntity();
-      dbTrackedEntity.setUid(trackedEntity.getTrackedEntity());
+      dbTrackedEntity.setUid(trackedEntity.getTrackedEntity().getValue());
       dbTrackedEntity.setCreated(now);
       dbTrackedEntity.setCreatedByUserInfo(UserInfoSnapshot.from(user));
       dbTrackedEntity.setStoredBy(trackedEntity.getStoredBy());
@@ -129,8 +129,7 @@ public class TrackerObjectsMapper {
     dbEnrollment.setOrganisationUnit(organisationUnit);
     Program program = preheat.getProgram(enrollment.getProgram());
     dbEnrollment.setProgram(program);
-    TrackedEntity trackedEntity =
-        preheat.getTrackedEntity(enrollment.getTrackedEntity().getValue());
+    TrackedEntity trackedEntity = preheat.getTrackedEntity(enrollment.getTrackedEntity());
     dbEnrollment.setTrackedEntity(trackedEntity);
 
     Date enrollmentDate = DateUtils.fromInstant(enrollment.getEnrolledAt());
@@ -274,7 +273,7 @@ public class TrackerObjectsMapper {
     switch (relationshipType.getFromConstraint().getRelationshipEntity()) {
       case TRACKED_ENTITY_INSTANCE ->
           fromItem.setTrackedEntity(
-              preheat.getTrackedEntity(relationship.getFrom().getTrackedEntity()));
+              preheat.getTrackedEntity(UID.of(relationship.getFrom().getTrackedEntity())));
       case PROGRAM_INSTANCE ->
           fromItem.setEnrollment(
               preheat.getEnrollment(UID.of(relationship.getFrom().getEnrollment())));
@@ -289,7 +288,7 @@ public class TrackerObjectsMapper {
     switch (relationshipType.getToConstraint().getRelationshipEntity()) {
       case TRACKED_ENTITY_INSTANCE ->
           toItem.setTrackedEntity(
-              preheat.getTrackedEntity(relationship.getTo().getTrackedEntity()));
+              preheat.getTrackedEntity(UID.of(relationship.getTo().getTrackedEntity())));
       case PROGRAM_INSTANCE ->
           toItem.setEnrollment(preheat.getEnrollment(UID.of(relationship.getTo().getEnrollment())));
       case PROGRAM_STAGE_INSTANCE ->

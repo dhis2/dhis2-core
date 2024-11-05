@@ -105,7 +105,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   private TrackedEntity trackedEntity;
 
-  private Map<String, Map<String, TrackedEntityProgramOwnerOrgUnit>> ownerOrgUnit;
+  private Map<UID, Map<String, TrackedEntityProgramOwnerOrgUnit>> ownerOrgUnit;
 
   @BeforeEach
   public void setUp() {
@@ -136,7 +136,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
     TrackedEntityProgramOwnerOrgUnit owner =
         new TrackedEntityProgramOwnerOrgUnit(TE_ID.getValue(), PROGRAM_ID, organisationUnit);
-    ownerOrgUnit = Map.of(TE_ID.getValue(), Map.of(PROGRAM_ID, owner));
+    ownerOrgUnit = Map.of(TE_ID, Map.of(PROGRAM_ID, owner));
 
     validator = new SecurityOwnershipValidator(aclService, ownershipAccessManager);
   }
@@ -166,7 +166,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
-    when(preheat.getTrackedEntity(TE_ID.getValue())).thenReturn(trackedEntity);
+    when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity);
     when(aclService.canDataWrite(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
@@ -188,7 +188,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE);
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
-    when(preheat.getTrackedEntity(TE_ID.getValue())).thenReturn(trackedEntity);
+    when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
     UserDetails userDetails = setUpUserWithOrgUnit();

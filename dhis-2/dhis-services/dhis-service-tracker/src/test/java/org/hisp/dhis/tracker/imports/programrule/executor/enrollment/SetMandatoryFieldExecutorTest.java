@@ -167,7 +167,7 @@ class SetMandatoryFieldExecutorTest extends TestBase {
   void shouldReturnNoErrorWhenCreatingEnrollmentAndMandatoryAttributeIsPresentOnlyInTE() {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(preheat.getTrackedEntityAttribute(ATTRIBUTE_UID.getValue())).thenReturn(attribute);
-    when(preheat.getTrackedEntity(TE_ID.getValue())).thenReturn(trackedEntity());
+    when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity());
     Enrollment enrollmentWithMandatoryAttributeNOTSet = getEnrollmentWithMandatoryAttributeNOTSet();
     bundle.setEnrollments(List.of(enrollmentWithMandatoryAttributeNOTSet));
     bundle.setStrategy(enrollmentWithMandatoryAttributeNOTSet, TrackerImportStrategy.CREATE);
@@ -183,7 +183,7 @@ class SetMandatoryFieldExecutorTest extends TestBase {
       shouldReturnNoErrorWhenUpdatingEnrollmentAndMandatoryFieldIsNotPresentInEnrollmentButPresentInDB() {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(preheat.getTrackedEntityAttribute(ATTRIBUTE_UID.getValue())).thenReturn(attribute);
-    when(preheat.getTrackedEntity(TE_ID.getValue())).thenReturn(trackedEntity());
+    when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity());
     Enrollment enrollmentWithMandatoryAttributeNOTSet = getEnrollmentWithMandatoryAttributeNOTSet();
     bundle.setEnrollments(List.of(enrollmentWithMandatoryAttributeNOTSet));
     bundle.setStrategy(enrollmentWithMandatoryAttributeNOTSet, TrackerImportStrategy.UPDATE);
@@ -331,7 +331,7 @@ class SetMandatoryFieldExecutorTest extends TestBase {
             .value(ATTRIBUTE_VALUE)
             .build();
     return org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-        .trackedEntity(TE_ID.getValue())
+        .trackedEntity(TE_ID)
         .attributes(List.of(payloadAttribute))
         .build();
   }

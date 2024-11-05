@@ -35,7 +35,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4010;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4012;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4014;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
@@ -99,7 +99,7 @@ class ConstraintValidatorTest {
 
     when(bundle.getPreheat().getRelationshipType(relationship.getRelationshipType()))
         .thenReturn(relType);
-    when(bundle.getPreheat().getTrackedEntity(anyString())).thenReturn(trackedEntity);
+    when(bundle.getPreheat().getTrackedEntity(any())).thenReturn(trackedEntity);
     when(params.toMetadataIdentifier(trackedEntityType))
         .thenReturn(MetadataIdentifier.ofUid(trackedEntityType.getUid()));
     when(bundle.getPreheat().getIdSchemes()).thenReturn(params);
@@ -206,7 +206,7 @@ class ConstraintValidatorTest {
 
     when(bundle.getPreheat().getRelationshipType(relationship.getRelationshipType()))
         .thenReturn(relType);
-    when(bundle.getPreheat().getTrackedEntity(anyString())).thenReturn(trackedEntity);
+    when(bundle.getPreheat().getTrackedEntity(any())).thenReturn(trackedEntity);
     String uid = CodeGenerator.generateUid();
     when(params.toMetadataIdentifier(trackedEntityType)).thenReturn(MetadataIdentifier.ofUid(uid));
     when(bundle.getPreheat().getIdSchemes()).thenReturn(params);

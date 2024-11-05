@@ -111,7 +111,7 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
 
     if (programList.isEmpty() || trackedEntities.isEmpty()) return;
 
-    Map<String, List<Enrollment>> trackedEntityToEnrollmentMap = new HashMap<>();
+    Map<UID, List<Enrollment>> trackedEntityToEnrollmentMap = new HashMap<>();
 
     if (trackerObjects.getEnrollments().isEmpty()) return;
 
@@ -123,7 +123,7 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
   }
 
   private void queryTeAndAddToMap(
-      Map<String, List<Enrollment>> trackedEntityToEnrollmentMap,
+      Map<UID, List<Enrollment>> trackedEntityToEnrollmentMap,
       List<UID> trackedEntityListSubList,
       List<String> programList) {
     MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -134,7 +134,7 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
         SQL,
         parameters,
         resultSet -> {
-          String te = resultSet.getString(TE_UID_COLUMN_ALIAS);
+          UID te = UID.of(resultSet.getString(TE_UID_COLUMN_ALIAS));
 
           Enrollment newPi = new Enrollment();
           newPi.setUid(resultSet.getString(PI_UID_COLUMN_ALIAS));
