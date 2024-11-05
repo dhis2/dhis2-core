@@ -35,6 +35,7 @@ import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsTrackedEntityActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -47,6 +48,7 @@ public class TrackedEntityQueryDownloadTest extends AnalyticsApiTest {
       new AnalyticsTrackedEntityActions();
 
   @Test
+  @Tag("slowQuery")
   void queryWithHtmlDownload() {
     // Given
     QueryParamsBuilder params =
