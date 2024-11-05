@@ -41,6 +41,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -60,6 +61,7 @@ public class TwoFactoryAuthenticationUtils {
   }
 
   private static final String APP_NAME_PREFIX = "DHIS 2 ";
+  private static final Pattern PIPE_SPLIT_PATTERN = Pattern.compile("//|");
 
   /**
    * Generate QR code in PNG format based on given qrContent.
@@ -119,7 +121,7 @@ public class TwoFactoryAuthenticationUtils {
     }
 
     secret = removeApprovalPrefix(secret);
-    String[] codeAndTTL = secret.split("|");
+    String[] codeAndTTL = PIPE_SPLIT_PATTERN.split(secret);
     secret = codeAndTTL[0];
     long ttl = Long.parseLong(codeAndTTL[1]);
 

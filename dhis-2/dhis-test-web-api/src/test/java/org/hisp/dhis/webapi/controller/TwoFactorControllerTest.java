@@ -49,29 +49,13 @@ import org.springframework.transaction.annotation.Transactional;
  * Tests the {@link TwoFactorController} sing (mocked) REST requests.
  *
  * @author Jan Bernitt
+ * @author Morten Svanæs
  */
 @Transactional
 class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
-  @Test
-  void testQr2FaConflictMustDisableFirst() {
-    assertNull(getCurrentUser().getSecret());
-
-    User user = userService.getUser(CurrentUserUtil.getCurrentUserDetails().getUid());
-    userService.enrollTOTP2FA(user);
-
-    user = userService.getUser(CurrentUserUtil.getCurrentUserDetails().getUid());
-    assertNotNull(user.getSecret());
-
-    String code = getCode(user);
-
-    assertStatus(HttpStatus.OK, POST("/2fa/enabled", "{'code':'" + code + "'}"));
-
-    user = userService.getUser(CurrentUserUtil.getCurrentUserDetails().getUid());
-    assertNotNull(user.getSecret());
-  }
 
   @Test
-  void testEnable2Fa() {
+  void testEnableTOTP2FA() {
     User user = makeUser("X", List.of("TEST"));
     user.setEmail("valid.x@email.com");
     userService.addUser(user);
@@ -79,12 +63,28 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
     switchToNewUser(user);
 
-    String code = getCode(user);
+    String code = generateTOTP2FACodeFromUserSecret(user);
     assertStatus(HttpStatus.OK, POST("/2fa/enabled", "{'code':'" + code + "'}"));
   }
 
   @Test
-  void testEnable2FaWrongCode() {
+  void testEnableEmail2FA() {
+    User user = makeUser("X", List.of("TEST"));
+    user.setEmail("valid.x@email.com");
+    userService.addUser(user);
+    userService.enrollEmail2FA(user);
+
+    switchToNewUser(user);
+
+    User enrolledUser = userService.getUserByEmail(user.getUsername());
+    assertNotNull(enrolledUser.getSecret());
+    String secret = enrolledUser.getSecret();
+
+    assertStatus(HttpStatus.OK, POST("/2fa/enabled", "{'code':'" + code + "'}"));
+  }
+
+  @Test
+  void testEnableTOTP2FAWrongCode() {
     User user = makeUser("X", List.of("TEST"));
     user.setEmail("valid.x@email.com");
     userService.addUser(user);
@@ -100,7 +100,25 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testEnable2FaNotCalledQrFirst() {
+  void testQr2FAConflictMustDisableFirst() {
+    assertNull(getCurrentUser().getSecret());
+
+    User user = userService.getUser(CurrentUserUtil.getCurrentUserDetails().getUid());
+    userService.enrollTOTP2FA(user);
+
+    user = userService.getUser(CurrentUserUtil.getCurrentUserDetails().getUid());
+    assertNotNull(user.getSecret());
+
+    String code = generateTOTP2FACodeFromUserSecret(user);
+
+    assertStatus(HttpStatus.OK, POST("/2fa/enabled", "{'code':'" + code + "'}"));
+
+    user = userService.getUser(CurrentUserUtil.getCurrentUserDetails().getUid());
+    assertNotNull(user.getSecret());
+  }
+
+  @Test
+  void testEnable2FANotCalledQrFirst() {
     assertEquals(
         "User must call the /qrCode endpoint first",
         POST("/2fa/enabled", "{'code':'wrong'}")
@@ -109,7 +127,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testDisable2Fa() {
+  void testDisable2FA() {
     User newUser = makeUser("Y", List.of("TEST"));
     newUser.setEmail("valid.y@email.com");
 
@@ -119,13 +137,13 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
     switchToNewUser(newUser);
 
-    String code = getCode(newUser);
+    String code = generateTOTP2FACodeFromUserSecret(newUser);
 
     assertStatus(HttpStatus.OK, POST("/2fa/disabled", "{'code':'" + code + "'}"));
   }
 
   @Test
-  void testDisable2FaNotEnabled() {
+  void testDisable2FANotEnabled() {
     assertEquals(
         "Two factor authentication is not enabled",
         POST("/2fa/disabled", "{'code':'wrong'}")
@@ -134,7 +152,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testDisable2FaTooManyTimes() {
+  void testDisable2FATooManyTimes() {
     User user = makeUser("X", List.of("TEST"));
     user.setEmail("valid.x@email.com");
     userService.addUser(user);
@@ -142,7 +160,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
     switchToNewUser(user);
 
-    String code = getCode(user);
+    String code = generateTOTP2FACodeFromUserSecret(user);
     assertStatus(HttpStatus.OK, POST("/2fa/enabled", "{'code':'" + code + "'}"));
 
     assertStatus(HttpStatus.UNAUTHORIZED, POST("/2fa/disabled", "{'code':'333333'}"));
@@ -168,7 +186,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     return user.getSecret().replace(TWO_FACTOR_CODE_APPROVAL_PREFIX, "");
   }
 
-  private static String getCode(User newUser) {
+  private static String generateTOTP2FACodeFromUserSecret(User newUser) {
     return new Totp(replaceApprovalPartOfTheSecret(newUser)).now();
   }
 }
