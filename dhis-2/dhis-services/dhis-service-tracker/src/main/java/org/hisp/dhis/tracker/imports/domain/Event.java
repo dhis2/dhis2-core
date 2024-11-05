@@ -39,6 +39,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.tracker.TrackerType;
 import org.locationtech.jts.geom.Geometry;
@@ -51,7 +52,7 @@ import org.locationtech.jts.geom.Geometry;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Event implements TrackerDto, Serializable {
-  @JsonProperty private String event;
+  @JsonProperty private UID event;
 
   @JsonProperty @Builder.Default private EventStatus status = EventStatus.ACTIVE;
 
@@ -59,7 +60,7 @@ public class Event implements TrackerDto, Serializable {
 
   @JsonProperty private MetadataIdentifier programStage;
 
-  @JsonProperty private String enrollment;
+  @JsonProperty private UID enrollment;
 
   @JsonProperty private MetadataIdentifier orgUnit;
 
@@ -96,8 +97,13 @@ public class Event implements TrackerDto, Serializable {
   }
 
   @Override
-  public String getUid() {
+  public UID getUid() {
     return this.event;
+  }
+
+  @Override
+  public String getStringUid() {
+    return event.getValue();
   }
 
   @Override

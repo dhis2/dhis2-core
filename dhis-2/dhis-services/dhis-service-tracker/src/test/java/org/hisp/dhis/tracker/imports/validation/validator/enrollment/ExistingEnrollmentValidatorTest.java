@@ -38,11 +38,12 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.HashMap;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -75,7 +76,7 @@ class ExistingEnrollmentValidatorTest {
 
   private static final String TRACKED_ENTIT_UID = "trackedEntity";
 
-  private static final String ENROLLMENT_UID = "enrollment";
+  private static final UID ENROLLMENT_UID = UID.generate();
 
   @BeforeEach
   public void setUp() {
@@ -86,8 +87,9 @@ class ExistingEnrollmentValidatorTest {
     when(enrollment.getProgram()).thenReturn(MetadataIdentifier.ofUid(PROGRAM_UID));
     when(enrollment.getTrackedEntity()).thenReturn(TRACKED_ENTIT_UID);
     when(enrollment.getStatus()).thenReturn(EnrollmentStatus.ACTIVE);
-    when(enrollment.getEnrollment()).thenReturn(ENROLLMENT_UID);
+    when(enrollment.getEnrollment()).thenReturn(ENROLLMENT_UID.getValue());
     when(enrollment.getUid()).thenReturn(ENROLLMENT_UID);
+    when(enrollment.getStringUid()).thenReturn(ENROLLMENT_UID.getValue());
     when(enrollment.getTrackerType()).thenCallRealMethod();
 
     when(preheat.getTrackedEntity(TRACKED_ENTIT_UID)).thenReturn(trackedEntity);

@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
 import java.util.stream.Stream;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -76,7 +75,7 @@ class EventImportTest extends TrackerTest {
 
     importTracker(params, trackerObjects);
 
-    Event event = eventService.getEvent(UID.of(trackerObjects.getEvents().get(0).getUid()));
+    Event event = eventService.getEvent(trackerObjects.getEvents().get(0).getUid());
 
     assertEquals(importUser.getUsername(), event.getCompletedBy());
     assertNotNull(event.getCompletedDate());
@@ -92,7 +91,7 @@ class EventImportTest extends TrackerTest {
 
     importTracker(params, trackerObjects);
 
-    Event event = eventService.getEvent(UID.of(trackerObjects.getEvents().get(0).getUid()));
+    Event event = eventService.getEvent(trackerObjects.getEvents().get(0).getUid());
 
     assertNull(event.getCompletedBy());
     assertNull(event.getCompletedDate());
@@ -111,7 +110,7 @@ class EventImportTest extends TrackerTest {
 
     importTracker(params, trackerObjects);
 
-    Event event = eventService.getEvent(UID.of(trackerObjects.getEvents().get(0).getUid()));
+    Event event = eventService.getEvent(trackerObjects.getEvents().get(0).getUid());
 
     assertNull(event.getCompletedBy());
     assertNull(event.getCompletedDate());
@@ -131,7 +130,7 @@ class EventImportTest extends TrackerTest {
 
     importTracker(params, trackerObjects);
 
-    Event event = eventService.getEvent(UID.of(trackerObjects.getEvents().get(0).getUid()));
+    Event event = eventService.getEvent(trackerObjects.getEvents().get(0).getUid());
 
     assertEquals(importUser.getUsername(), event.getCompletedBy());
     assertNotNull(event.getCompletedDate());

@@ -29,15 +29,13 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.webapi.controller.tracker.view.ProgramOwner;
-import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper
-public interface ProgramOwnerMapper extends ViewMapper<TrackedEntityProgramOwner, ProgramOwner> {
+public interface ProgramOwnerMapper {
   @Mapping(target = "orgUnit", source = "organisationUnit.uid")
   @Mapping(target = "trackedEntity", source = "trackedEntity.uid")
   @Mapping(target = "program", source = "program.uid")
-  @Override
-  ProgramOwner from(TrackedEntityProgramOwner trackedEntityProgramOwner);
+  ProgramOwner map(TrackedEntityProgramOwner trackedEntityProgramOwner);
 }

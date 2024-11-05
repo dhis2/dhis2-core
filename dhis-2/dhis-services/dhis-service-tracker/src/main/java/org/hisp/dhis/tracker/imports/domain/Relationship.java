@@ -34,6 +34,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerType;
 
 /**
@@ -55,7 +56,12 @@ public class Relationship implements TrackerDto, Serializable {
   @JsonProperty private RelationshipItem to;
 
   @Override
-  public String getUid() {
+  public UID getUid() {
+    return UID.of(relationship);
+  }
+
+  @Override
+  public String getStringUid() {
     return relationship;
   }
 

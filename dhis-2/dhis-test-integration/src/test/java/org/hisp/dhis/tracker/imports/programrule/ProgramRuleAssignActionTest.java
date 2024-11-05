@@ -38,7 +38,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1310;
 
 import java.io.IOException;
 import java.util.List;
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -173,10 +173,10 @@ class ProgramRuleAssignActionTest extends TrackerTest {
   void
       shouldImportEventAndCorrectlyAssignPreviousEventDataValueConsideringCreateAtWhenOccurredAtIsSame()
           throws IOException {
-    String firstEventUid = CodeGenerator.generateUid();
-    String secondEventUid = CodeGenerator.generateUid();
-    String thirdEventUid = CodeGenerator.generateUid();
-    String fourthEventUid = CodeGenerator.generateUid();
+    UID firstEventUid = UID.generate();
+    UID secondEventUid = UID.generate();
+    UID thirdEventUid = UID.generate();
+    UID fourthEventUid = UID.generate();
     TrackerImportParams params = new TrackerImportParams();
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
@@ -281,7 +281,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     assertHasOnlyWarnings(importReport, E1308);
   }
 
-  private TrackerObjects getEvent(String eventUid, String occurredDate, String value)
+  private TrackerObjects getEvent(UID eventUid, String occurredDate, String value)
       throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/programrule/event_without_date.json");
     trackerObjects
@@ -294,8 +294,8 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     return trackerObjects;
   }
 
-  private List<String> getValueForAssignedDataElement(String eventUid) {
-    return manager.get(Event.class, eventUid).getEventDataValues().stream()
+  private List<String> getValueForAssignedDataElement(UID eventUid) {
+    return manager.get(Event.class, eventUid.getValue()).getEventDataValues().stream()
         .filter(dv -> dv.getDataElement().equals("DATAEL00002"))
         .map(EventDataValue::getValue)
         .toList();

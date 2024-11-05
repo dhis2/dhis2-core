@@ -39,7 +39,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -48,7 +48,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
@@ -132,9 +132,10 @@ class AttributeValidatorTest {
     when(dhisConfigurationProvider.getEncryptionStatus())
         .thenReturn(EncryptionStatus.MISSING_ENCRYPTION_PASSWORD);
 
-    String uid = CodeGenerator.generateUid();
+    UID uid = UID.generate();
     when(enrollment.getUid()).thenReturn(uid);
-    when(enrollment.getEnrollment()).thenReturn(uid);
+    when(enrollment.getStringUid()).thenReturn(uid.getValue());
+    when(enrollment.getEnrollment()).thenReturn(uid.getValue());
     when(enrollment.getTrackerType()).thenCallRealMethod();
     enrollment.setTrackedEntity("trackedEntity");
 

@@ -81,7 +81,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetOpenApiDocument_PathFilter() {
-    JsonObject doc = GET("/openapi/openapi.json?scope=path./api/users").content();
+    JsonObject doc = GET("/openapi/openapi.json?scope=path:/api/users").content();
     assertTrue(doc.isObject());
     assertTrue(
         doc.getObject("paths")
@@ -95,8 +95,8 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testGetOpenApiDocument_DomainFilter() {
-    JsonObject doc = GET("/openapi/openapi.json?scope=entity.User").content();
+  void testGetOpenApiDocument_ScopeFilter() {
+    JsonObject doc = GET("/openapi/openapi.json?scope=entity:User").content();
     assertTrue(doc.isObject());
     assertTrue(
         doc.getObject("paths")

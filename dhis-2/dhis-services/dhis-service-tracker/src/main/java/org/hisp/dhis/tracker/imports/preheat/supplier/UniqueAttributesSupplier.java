@@ -50,7 +50,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -221,7 +221,10 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
         .map(
             te ->
                 new UniqueAttributeValue(
-                    te.getUid(), attribute.getAttribute(), attribute.getValue(), te.getOrgUnit()))
+                    te.getStringUid(),
+                    attribute.getAttribute(),
+                    attribute.getValue(),
+                    te.getOrgUnit()))
         .toList();
   }
 

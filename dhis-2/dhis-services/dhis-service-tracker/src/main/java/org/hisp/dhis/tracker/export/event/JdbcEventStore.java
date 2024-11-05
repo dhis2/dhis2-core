@@ -1595,14 +1595,10 @@ class JdbcEventStore implements EventStore {
   private void setAccessiblePrograms(User user, EventQueryParams params) {
     if (!isSuper(user)) {
       params.setAccessiblePrograms(
-          manager.getDataReadAll(Program.class).stream()
-              .map(Program::getUid)
-              .map(UID::of)
-              .collect(Collectors.toSet()));
+          manager.getDataReadAll(Program.class).stream().map(UID::of).collect(Collectors.toSet()));
 
       params.setAccessibleProgramStages(
           manager.getDataReadAll(ProgramStage.class).stream()
-              .map(ProgramStage::getUid)
               .map(UID::of)
               .collect(Collectors.toSet()));
     }

@@ -41,6 +41,7 @@ import java.util.Map;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -48,8 +49,8 @@ import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -183,7 +184,15 @@ class MessageFormatterTest {
   @Test
   void formatArgumentsShouldTurnEventIntoArguments() {
     List<String> args =
-        MessageFormatter.formatArguments(idSchemes, Event.builder().event("zwccdzhk5zc").build());
+        MessageFormatter.formatArguments(
+            idSchemes, Event.builder().event(UID.of("zwccdzhk5zc")).build());
+
+    assertContainsOnly(List.of("zwccdzhk5zc"), args);
+  }
+
+  @Test
+  void formatArgumentsShouldTurnUIDIntoArguments() {
+    List<String> args = MessageFormatter.formatArguments(idSchemes, UID.of("zwccdzhk5zc"));
 
     assertContainsOnly(List.of("zwccdzhk5zc"), args);
   }

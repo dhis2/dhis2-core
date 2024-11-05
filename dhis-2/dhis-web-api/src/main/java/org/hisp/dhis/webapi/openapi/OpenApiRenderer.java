@@ -451,13 +451,13 @@ public class OpenApiRenderer {
     } else {
       searchParams.set(name, value);
     }
-    window.location.search = searchParams.toString()
+    setLocationSearchParams(searchParams);
   }
 
   function removeLocationSearch(name, value) {
     const searchParams = new URLSearchParams(window.location.search)
     searchParams.delete(name, value);
-    window.location.search = searchParams.toString();
+    setLocationSearchParams(searchParams);
   }
 
   function modifyLocationSearch(button) {
@@ -466,14 +466,19 @@ public class OpenApiRenderer {
     if (value === '') return;
     const key = select.getAttribute("data-key");
     const params = new URLSearchParams(window.location.search);
-    const scope = key + '.' + value
+    const scope = key + ':' + value
     if (button.value === '+') {
       if (!params.has('scope', scope)) params.append('scope', scope);
     } else {
       params.set('scope', scope);
     }
     window.location.hash = '';
-    window.location.search = params.toString();
+    setLocationSearchParams(params);
+  }
+
+  function setLocationSearchParams(params) {
+    // undo : and / escaping for URL readability
+    window.location.search = params.toString().replaceAll('%3A', ':').replaceAll('%2F', '/');
   }
 
   function addHashHotkey() {
@@ -832,12 +837,12 @@ public class OpenApiRenderer {
 
   private void renderPageHeaderSelectionItems(String name, String value) {
     appendA(
-        "setLocationSearch('scope', '%s.%s')".formatted(name, value),
+        "setLocationSearch('scope', '%s:%s')".formatted(name, value),
         value,
         "View a document containing only this scope");
     appendRaw(" ");
     appendA(
-        "removeLocationSearch('scope', '%s.%s')".formatted(name, value),
+        "removeLocationSearch('scope', '%s:%s')".formatted(name, value),
         "[-]",
         "Remove this scope from this document");
   }
@@ -863,7 +868,7 @@ public class OpenApiRenderer {
         "h2",
         () -> {
           appendRaw(toWords(op.entity()));
-          appendA("/api/openapi/openapi.html?scope=entity." + op.entity, true, "&#x1F5D7;");
+          appendA("/api/openapi/openapi.html?scope=entity:" + op.entity, true, "&#x1F5D7;");
         });
   }
 
