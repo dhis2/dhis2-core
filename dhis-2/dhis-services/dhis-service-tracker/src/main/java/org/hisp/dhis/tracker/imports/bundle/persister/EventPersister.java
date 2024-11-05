@@ -375,7 +375,7 @@ public class EventPersister
   }
 
   private String formatDate(Date date) {
-    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     return formatter.format(date);
   }
 
@@ -397,10 +397,12 @@ public class EventPersister
 
   private <V> ChangeLogType getChangeLogType(
       Event originalEvent, Event payloadEvent, Function<Event, V> valueExtractor) {
-    return isNewProperty(originalEvent, payloadEvent, valueExtractor)
-        ? ChangeLogType.CREATE
-        : isUpdateProperty(originalEvent, payloadEvent, valueExtractor)
-            ? ChangeLogType.UPDATE
-            : ChangeLogType.DELETE;
+    if (isNewProperty(originalEvent, payloadEvent, valueExtractor)) {
+      return ChangeLogType.CREATE;
+    } else if (isUpdateProperty(originalEvent, payloadEvent, valueExtractor)) {
+      return ChangeLogType.UPDATE;
+    } else {
+      return ChangeLogType.DELETE;
+    }
   }
 }
