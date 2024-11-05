@@ -296,7 +296,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
 
   private List<String> getValueForAssignedDataElement(UID eventUid) {
     return manager.get(Event.class, eventUid.getValue()).getEventDataValues().stream()
-        .filter(dv -> dv.getDataElement().equals("DATAEL00002"))
+        .filter(dv -> "DATAEL00002".equals(dv.getDataElement()))
         .map(EventDataValue::getValue)
         .toList();
   }
