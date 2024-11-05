@@ -66,20 +66,22 @@ class ProgramTrackedEntityAttributeTest {
   @Test
   void testDefaultSkipAnalyticsValue() {
     ProgramTrackedEntityAttribute ptea = new ProgramTrackedEntityAttribute();
-    assertFalse(ptea.isSkipAnalytics(), "Default value of skipAnalytics should be false");
+    assertFalse(
+        ptea.isSkipIndividualAnalytics(),
+        "Default value of skipIndividualAnalytics should be false");
   }
 
   @Test
   void testCopyOfWithSkipAnalytics() {
     ProgramTrackedEntityAttribute original = getNewProgramAttribute(getNewProgram());
-    original.setSkipAnalytics(true); // Set to true to check copy behavior
+    original.setSkipIndividualAnalytics(true); // Set to true to check copy behavior
     ProgramTrackedEntityAttribute copy =
         ProgramTrackedEntityAttribute.copyOf.apply(original, getNewProgram());
 
     assertEquals(
-        original.isSkipAnalytics(),
-        copy.isSkipAnalytics(),
-        "skipAnalytics should be copied correctly");
+        original.isSkipIndividualAnalytics(),
+        copy.isSkipIndividualAnalytics(),
+        "skipIndividualAnalytics should be copied correctly");
   }
 
   private ProgramTrackedEntityAttribute getNewProgramAttribute(Program program) {
