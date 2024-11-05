@@ -124,6 +124,13 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     characterEncodingFilter.addMappingForUrlPatterns(null, false, "/*");
     characterEncodingFilter.addMappingForServletNames(null, false, "dispatcher");
 
+    /* Intercept index.html, plugin.html, and other html requests to inject no-cache
+      headers using ContextUtils.setNoStore(response).
+    */
+    context
+        .addFilter("AppHtmlNoCacheFilter", new DelegatingFilterProxy("appHtmlNoCacheFilter"))
+        .addMappingForUrlPatterns(null, true, "/*");
+
     context
         .addFilter(
             "springSecurityFilterChain", new DelegatingFilterProxy("springSecurityFilterChain"))
@@ -131,13 +138,6 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
 
     context
         .addFilter("RequestIdentifierFilter", new DelegatingFilterProxy("requestIdentifierFilter"))
-        .addMappingForUrlPatterns(null, true, "/*");
-
-    /* Intercept index.html, plugin.html, and other html requests to inject no-cache
-      headers using ContextUtils.setNoStore(response).
-    */
-    context
-        .addFilter("AppHtmlNoCacheFilter", new DelegatingFilterProxy("appHtmlNoCacheFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
 
     context

@@ -60,10 +60,12 @@ public class AppHtmlNoCacheFilter extends OncePerRequestFilter {
     String uri = request.getRequestURI();
     Matcher m = HTML_PATH_PATTERN.matcher(uri);
 
+    // Do rest of filters before adding no-cache headers, so they can be added
+    // as late as possible in the chain
+    chain.doFilter(request, response);
+
     if (m.find() && HttpMethod.GET.matches(request.getMethod())) {
       ContextUtils.setNoStore(response);
     }
-
-    chain.doFilter(request, response);
   }
 }
