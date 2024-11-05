@@ -328,14 +328,13 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnEventPropertiesChangeLogWhenExistingDatePropertyUpdated()
       throws IOException, ForbiddenException, NotFoundException {
-    String event = "QRYjLTiJTrA";
+    UID event = UID.of("QRYjLTiJTrA");
     LocalDateTime currentTime = LocalDateTime.now();
 
     updateEventDates(event, currentTime.toDate().toInstant());
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(
-            UID.of(event), defaultOperationParams, defaultPageParams);
+        eventChangeLogService.getEventChangeLog(event, defaultOperationParams, defaultPageParams);
     List<EventChangeLog> scheduledDateLogs = getChangeLogsByProperty(changeLogs, "scheduledDate");
     List<EventChangeLog> occurredDateLogs = getChangeLogsByProperty(changeLogs, "occurredDate");
 
@@ -365,13 +364,12 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnEventPropertiesChangeLogWhenExistingDatePropertyDeleted()
       throws IOException, ForbiddenException, NotFoundException {
-    String event = "QRYjLTiJTrA";
+    UID event = UID.of("QRYjLTiJTrA");
 
     deleteScheduledAtDate(event);
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(
-            UID.of(event), defaultOperationParams, defaultPageParams);
+        eventChangeLogService.getEventChangeLog(event, defaultOperationParams, defaultPageParams);
     List<EventChangeLog> scheduledDateLogs = getChangeLogsByProperty(changeLogs, "scheduledDate");
     List<EventChangeLog> occurredDateLogs = getChangeLogsByProperty(changeLogs, "occurredDate");
 
@@ -408,14 +406,13 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnEventPropertiesChangeLogWhenExistingGeometryPropertyUpdated()
       throws ForbiddenException, NotFoundException, IOException {
-    String event = "QRYjLTiJTrA";
+    UID event = UID.of("QRYjLTiJTrA");
 
     Geometry geometry = createGeometryPoint(16.435547, 49.26422);
     updateEventGeometry(event, geometry);
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(
-            UID.of(event), defaultOperationParams, defaultPageParams);
+        eventChangeLogService.getEventChangeLog(event, defaultOperationParams, defaultPageParams);
     List<EventChangeLog> geometryChangeLogs = getChangeLogsByProperty(changeLogs, "geometry");
 
     assertNumberOfChanges(2, geometryChangeLogs);
@@ -433,13 +430,12 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnEventPropertiesChangeLogWhenExistingGeometryPropertyDeleted()
       throws IOException, ForbiddenException, NotFoundException {
-    String event = "QRYjLTiJTrA";
+    UID event = UID.of("QRYjLTiJTrA");
 
     deleteEventGeometry(event);
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(
-            UID.of(event), defaultOperationParams, defaultPageParams);
+        eventChangeLogService.getEventChangeLog(event, defaultOperationParams, defaultPageParams);
     List<EventChangeLog> geometryChangeLogs = getChangeLogsByProperty(changeLogs, "geometry");
 
     assertNumberOfChanges(2, geometryChangeLogs);
@@ -466,10 +462,10 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
   }
 
-  private void updateEventDates(String event, Instant newDate) throws IOException {
+  private void updateEventDates(UID event, Instant newDate) throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
     trackerObjects.getEvents().stream()
-        .filter(e -> e.getEvent().equalsIgnoreCase(event))
+        .filter(e -> e.getEvent().equals(event))
         .findFirst()
         .ifPresent(
             e -> {
@@ -479,10 +475,10 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
   }
 
-  private void deleteScheduledAtDate(String event) throws IOException {
+  private void deleteScheduledAtDate(UID event) throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
     trackerObjects.getEvents().stream()
-        .filter(e -> e.getEvent().equalsIgnoreCase(event))
+        .filter(e -> e.getEvent().equals(event))
         .findFirst()
         .ifPresent(
             e -> {
@@ -491,19 +487,19 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
   }
 
-  private void updateEventGeometry(String event, Geometry newGeometry) throws IOException {
+  private void updateEventGeometry(UID event, Geometry newGeometry) throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
     trackerObjects.getEvents().stream()
-        .filter(e -> e.getEvent().equalsIgnoreCase(event))
+        .filter(e -> e.getEvent().equals(event))
         .findFirst()
         .ifPresent(e -> e.setGeometry(newGeometry));
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
   }
 
-  private void deleteEventGeometry(String event) throws IOException {
+  private void deleteEventGeometry(UID event) throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
     trackerObjects.getEvents().stream()
-        .filter(e -> e.getEvent().equalsIgnoreCase(event))
+        .filter(e -> e.getEvent().equals(event))
         .findFirst()
         .ifPresent(e -> e.setGeometry(null));
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
