@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.HashSet;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -41,6 +40,8 @@ import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -300,9 +301,10 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
     if (settings == null) return;
     try {
       userSettingsService.putAll(settings, user.getUsername());
-    } catch (NotFoundException ex) {
-      // we know the user exists so this should never happen
-      throw new NoSuchElementException(ex);
+    } catch (NotFoundException | ConflictException | BadRequestException ex) {
+      // this should never happen as this key-value combination should be valid and the user does
+      // exist
+      throw new IllegalArgumentException(ex);
     }
   }
 }

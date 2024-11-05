@@ -41,7 +41,6 @@ import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -213,7 +212,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   @Override
-  public TrackedEntity getTrackedEntity(@Nonnull String uid)
+  public TrackedEntity getTrackedEntity(@Nonnull UID uid)
       throws NotFoundException, ForbiddenException {
     UserDetails currentUser = getCurrentUserDetails();
     TrackedEntity trackedEntity =
@@ -229,14 +228,14 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Override
   public TrackedEntity getTrackedEntity(
-      @Nonnull String uid,
-      @CheckForNull String programIdentifier,
+      @Nonnull UID trackedEntityUid,
+      @CheckForNull UID programIdentifier,
       @Nonnull TrackedEntityParams params)
       throws NotFoundException, ForbiddenException {
     Program program = null;
 
-    if (StringUtils.isNotEmpty(programIdentifier)) {
-      program = programService.getProgram(programIdentifier);
+    if (programIdentifier != null) {
+      program = programService.getProgram(programIdentifier.getValue());
       if (program == null) {
         throw new NotFoundException(Program.class, programIdentifier);
       }
@@ -244,12 +243,12 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
     TrackedEntity trackedEntity;
     if (program != null) {
-      trackedEntity = getTrackedEntity(uid, program, params);
+      trackedEntity = getTrackedEntity(trackedEntityUid.getValue(), program, params);
 
       if (params.isIncludeProgramOwners()) {
         Set<TrackedEntityProgramOwner> filteredProgramOwners =
             trackedEntity.getProgramOwners().stream()
-                .filter(te -> te.getProgram().getUid().equals(programIdentifier))
+                .filter(te -> te.getProgram().getUid().equals(programIdentifier.getValue()))
                 .collect(Collectors.toSet());
         trackedEntity.setProgramOwners(filteredProgramOwners);
       }
@@ -257,7 +256,8 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       UserDetails userDetails = getCurrentUserDetails();
 
       trackedEntity =
-          mapTrackedEntity(getTrackedEntity(uid, userDetails), params, userDetails, null, false);
+          mapTrackedEntity(
+              getTrackedEntity(trackedEntityUid, userDetails), params, userDetails, null, false);
 
       mapTrackedEntityTypeAttributes(trackedEntity);
     }
@@ -304,9 +304,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
    * @throws NotFoundException if TE does not exist
    * @throws ForbiddenException if TE is not accessible
    */
-  private TrackedEntity getTrackedEntity(String uid, UserDetails userDetails)
+  private TrackedEntity getTrackedEntity(UID uid, UserDetails userDetails)
       throws NotFoundException, ForbiddenException {
-    TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid);
+    TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid.getValue());
     trackedEntityAuditService.addTrackedEntityAudit(trackedEntity, getCurrentUsername(), READ);
     if (trackedEntity == null) {
       throw new NotFoundException(TrackedEntity.class, uid);
@@ -445,13 +445,13 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     } else if (item.getEnrollment() != null) {
       result =
           enrollmentService.getEnrollmentInRelationshipItem(
-              item.getEnrollment().getUid(),
+              UID.of(item.getEnrollment()),
               EnrollmentParams.TRUE.withIncludeRelationships(false),
               false);
     } else if (item.getEvent() != null) {
       result =
           eventService.getEventInRelationshipItem(
-              item.getEvent().getUid(), EventParams.TRUE.withIncludeRelationships(false));
+              UID.of(item.getEvent()), EventParams.TRUE.withIncludeRelationships(false));
     }
 
     return result;

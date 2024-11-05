@@ -49,6 +49,7 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.SortProperty;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
@@ -654,6 +655,11 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   @Override
   public List<String> getSearchOrganisationUnitsUidsByUser(String username) {
     return organisationUnitStore.getSearchOrganisationUnitsUidsByUser(username);
+  }
+
+  @Override
+  public List<OrganisationUnit> getByCategoryOption(Collection<UID> categoryOptions) {
+    return organisationUnitStore.getByCategoryOption(UID.toValueList(categoryOptions));
   }
 
   @Override

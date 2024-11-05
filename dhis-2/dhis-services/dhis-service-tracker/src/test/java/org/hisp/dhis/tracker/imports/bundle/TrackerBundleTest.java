@@ -29,14 +29,11 @@ package org.hisp.dhis.tracker.imports.bundle;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.ValidationMode;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
@@ -61,7 +58,7 @@ class TrackerBundleTest {
             .events(Collections.singletonList(new Event()))
             .build();
     assertEquals(AtomicMode.ALL, trackerBundle.getAtomicMode());
-    assertSame(trackerBundle.getValidationMode(), ValidationMode.SKIP);
+    assertEquals(ValidationMode.SKIP, trackerBundle.getValidationMode());
     assertFalse(trackerBundle.getTrackedEntities().isEmpty());
     assertFalse(trackerBundle.getEnrollments().isEmpty());
     assertFalse(trackerBundle.getEvents().isEmpty());
@@ -78,7 +75,7 @@ class TrackerBundleTest {
             .events(Arrays.asList(new Event(), new Event()))
             .build();
     assertEquals(AtomicMode.ALL, trackerBundle.getAtomicMode());
-    assertSame(trackerBundle.getValidationMode(), ValidationMode.SKIP);
+    assertEquals(ValidationMode.SKIP, trackerBundle.getValidationMode());
     assertEquals(2, trackerBundle.getTrackedEntities().size());
     assertEquals(2, trackerBundle.getEnrollments().size());
     assertEquals(2, trackerBundle.getEvents().size());
@@ -95,17 +92,6 @@ class TrackerBundleTest {
   }
 
   @Test
-  void testExistsTrackedEntity() {
-    TrackerBundle bundle =
-        TrackerBundle.builder()
-            .trackedEntities(List.of(TrackedEntity.builder().trackedEntity("uid").build()))
-            .build();
-
-    assertFalse(bundle.exists(TrackerType.TRACKED_ENTITY, "missing"));
-    assertTrue(bundle.exists(TrackedEntity.builder().trackedEntity("uid").build()));
-  }
-
-  @Test
   void testGetEnrollmentGivenNull() {
     TrackerBundle bundle =
         TrackerBundle.builder()
@@ -113,34 +99,6 @@ class TrackerBundleTest {
             .build();
 
     assertTrue(bundle.findEnrollmentByUid(null).isEmpty());
-  }
-
-  @Test
-  void testExistsEnrollment() {
-    TrackerBundle bundle =
-        TrackerBundle.builder()
-            .enrollments(List.of(Enrollment.builder().enrollment("uid").build()))
-            .build();
-
-    assertFalse(bundle.exists(TrackerType.ENROLLMENT, "missing"));
-    assertTrue(bundle.exists(Enrollment.builder().enrollment("uid").build()));
-  }
-
-  @Test
-  void testGetEventGivenNull() {
-    TrackerBundle bundle =
-        TrackerBundle.builder().events(List.of(Event.builder().event("uid").build())).build();
-
-    assertTrue(bundle.findEventByUid(null).isEmpty());
-  }
-
-  @Test
-  void testExistsEvent() {
-    TrackerBundle bundle =
-        TrackerBundle.builder().events(List.of(Event.builder().event("uid").build())).build();
-
-    assertFalse(bundle.exists(TrackerType.EVENT, "missing"));
-    assertTrue(bundle.exists(Event.builder().event("uid").build()));
   }
 
   @Test
@@ -159,23 +117,5 @@ class TrackerBundleTest {
         TrackerBundle.builder().relationships(List.of(Relationship.builder().build())).build();
 
     assertTrue(bundle.findRelationshipByUid("uid").isEmpty());
-  }
-
-  @Test
-  void testExistsRelationship() {
-    TrackerBundle bundle =
-        TrackerBundle.builder()
-            .relationships(List.of(Relationship.builder().relationship("uid").build()))
-            .build();
-
-    assertFalse(bundle.exists(TrackerType.RELATIONSHIP, "missing"));
-    assertTrue(bundle.exists(Relationship.builder().relationship("uid").build()));
-  }
-
-  @Test
-  void testExistsFailsOnNullType() {
-    TrackerBundle bundle = TrackerBundle.builder().build();
-
-    assertThrows(NullPointerException.class, () -> bundle.exists(null, "uid"));
   }
 }

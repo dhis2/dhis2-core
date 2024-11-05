@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.join;
 import static java.util.stream.Collectors.groupingBy;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
@@ -53,7 +54,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
-import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -90,7 +90,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableManager {
   private static final String PROGRAMS_BY_TET_KEY = "programsByTetUid";
 
-  private static final String ALL_TET_ATTRIBUTES = "allTetAttributes";
+  private static final String ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES =
+      "allNonConfidentialTetAttributes";
 
   private final TrackedEntityTypeService trackedEntityTypeService;
 
@@ -332,7 +333,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
 
   @SuppressWarnings("unchecked")
   private List<AnalyticsTableColumn> getColumns(
-      AnalyticsTableUpdateParams params, TrackedEntityType tet) {
+      AnalyticsTableUpdateParams params, TrackedEntityType trackedEntityType) {
     Map<String, List<Program>> programsByTetUid =
         (Map<String, List<Program>>) params.getExtraParam("", PROGRAMS_BY_TET_KEY);
 
@@ -340,11 +341,11 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
 
     String enrolledInProgramExpression =
         """
-        \s exists(select 1 from enrollment en_0 \
+        \s exists(select 1 from ${enrollment} en_0 \
         where en_0.trackedentityid = te.trackedentityid \
         and en_0.programid = ${programId})""";
 
-    CollectionUtils.emptyIfNull(programsByTetUid.get(tet.getUid()))
+    emptyIfNull(programsByTetUid.get(trackedEntityType.getUid()))
         .forEach(
             program ->
                 columns.add(
@@ -352,21 +353,18 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
                         .name(program.getUid())
                         .dataType(BOOLEAN)
                         .selectExpression(
-                            replace(
+                            replaceQualify(
                                 enrolledInProgramExpression,
                                 Map.of("programId", String.valueOf(program.getId()))))
                         .build()));
 
     List<TrackedEntityAttribute> trackedEntityAttributes =
-        programsByTetUid.containsKey(tet.getUid())
-            ?
-            // programs defined for TET -> get attr from program and TET
-            getAllTrackedEntityAttributes(tet, programsByTetUid.get(tet.getUid()))
-            :
-            // no programs defined for TET -> get only attributes from TET
-            getAllTrackedEntityAttributes(tet).toList();
+        getAllTrackedEntityAttributes(trackedEntityType, programsByTetUid)
+            .filter(tea -> !tea.isConfidentialBool())
+            .toList();
 
-    params.addExtraParam(tet.getUid(), ALL_TET_ATTRIBUTES, trackedEntityAttributes);
+    params.addExtraParam(
+        trackedEntityType.getUid(), ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES, trackedEntityAttributes);
 
     columns.addAll(
         trackedEntityAttributes.stream()
@@ -376,13 +374,35 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
                         .name(tea.getUid())
                         .dataType(getColumnType(tea.getValueType(), isSpatialSupport()))
                         .selectExpression(
-                            castBasedOnType(tea.getValueType(), "\"" + tea.getUid() + "\".value"))
+                            castBasedOnType(tea.getValueType(), quote(tea.getUid()) + ".value"))
                         .build())
             .toList());
 
     columns.addAll(getOrganisationUnitGroupSetColumns());
 
     return columns;
+  }
+
+  /**
+   * Returns all {@link TrackedEntityAttribute} for the given {@link TrackedEntityType}.
+   *
+   * @param trackedEntityType the {@link TrackedEntityType} to get attributes for.
+   * @param programsByTetUid the programs by TrackedEntityType UID.
+   * @return a Stream of {@link TrackedEntityAttribute}.
+   */
+  private Stream<TrackedEntityAttribute> getAllTrackedEntityAttributes(
+      TrackedEntityType trackedEntityType, Map<String, List<Program>> programsByTetUid) {
+
+    // Given TET has program(s) defined.
+    if (programsByTetUid.containsKey(trackedEntityType.getUid())) {
+
+      // Programs defined for TET -> get attr from program and TET.
+      return getAllTrackedEntityAttributesByPrograms(
+          trackedEntityType, programsByTetUid.get(trackedEntityType.getUid()));
+    }
+
+    // No programs defined for TET -> get only attributes from TET.
+    return getAllTrackedEntityAttributesByEntityType(trackedEntityType);
   }
 
   /**
@@ -417,20 +437,27 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
     return columnName;
   }
 
-  private List<TrackedEntityAttribute> getAllTrackedEntityAttributes(
+  /**
+   * Returns all {@link TrackedEntityAttribute} for the given {@link TrackedEntityType} and
+   * programs.
+   *
+   * @param trackedEntityType the {@link TrackedEntityType} to get attributes for.
+   * @param programs the programs to get attributes for.
+   * @return a Stream of {@link TrackedEntityAttribute}.
+   */
+  private Stream<TrackedEntityAttribute> getAllTrackedEntityAttributesByPrograms(
       TrackedEntityType trackedEntityType, List<Program> programs) {
     return Stream.concat(
             /* all attributes of programs */
             trackedEntityAttributeService.getProgramTrackedEntityAttributes(programs).stream(),
             /* all attributes of the trackedEntityType */
-            getAllTrackedEntityAttributes(trackedEntityType))
-        .distinct()
-        .toList();
+            getAllTrackedEntityAttributesByEntityType(trackedEntityType))
+        .distinct();
   }
 
-  private Stream<TrackedEntityAttribute> getAllTrackedEntityAttributes(
+  private Stream<TrackedEntityAttribute> getAllTrackedEntityAttributesByEntityType(
       TrackedEntityType trackedEntityType) {
-    return CollectionUtils.emptyIfNull(trackedEntityType.getTrackedEntityAttributes()).stream();
+    return emptyIfNull(trackedEntityType.getTrackedEntityAttributes()).stream();
   }
 
   /**
@@ -482,24 +509,24 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
 
     removeLastComma(sql)
         .append(
-            replace(
+            replaceQualify(
                 """
-                \s from trackedentity te \
-                left join organisationunit ou on te.organisationunitid = ou.organisationunitid \
-                left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
-                left join analytics_rs_organisationunitgroupsetstructure ougs on te.organisationunitid = ougs.organisationunitid \
-                and (cast(${trackedEntityCreatedMonth} as date) = ougs.startdate \
+                \s from ${trackedentity} te \
+                left join ${organisationunit} ou on te.organisationunitid=ou.organisationunitid \
+                left join analytics_rs_orgunitstructure ous on ous.organisationunitid=ou.organisationunitid \
+                left join analytics_rs_organisationunitgroupsetstructure ougs on te.organisationunitid=ougs.organisationunitid \
+                and (cast(${trackedEntityCreatedMonth} as date)=ougs.startdate \
                 or ougs.startdate is null)""",
                 Map.of("trackedEntityCreatedMonth", sqlBuilder.dateTrunc("month", "te.created"))));
 
     ((List<TrackedEntityAttribute>)
-            params.getExtraParam(trackedEntityType.getUid(), ALL_TET_ATTRIBUTES))
+            params.getExtraParam(trackedEntityType.getUid(), ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES))
         .forEach(
             tea ->
                 sql.append(
-                    replace(
+                    replaceQualify(
                         """
-                    \s left join trackedentityattributevalue "${teaUid}" on "${teaUid}".trackedentityid = te.trackedentityid \
+                    \s left join ${trackedentityattributevalue} "${teaUid}" on "${teaUid}".trackedentityid=te.trackedentityid \
                     and "${teaUid}".trackedentityattributeid = ${teaId}""",
                         Map.of(
                             "teaUid", tea.getUid(),

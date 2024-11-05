@@ -47,6 +47,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
@@ -82,7 +83,7 @@ class DataRelationsValidatorTest extends TestBase {
 
   private static final String TE_TYPE_ID = "TE_TYPE_ID";
 
-  private static final String ENROLLMENT_ID = "ENROLLMENT_ID";
+  private static final UID ENROLLMENT_ID = UID.generate();
 
   private DataRelationsValidator validator;
 
@@ -112,13 +113,14 @@ class DataRelationsValidatorTest extends TestBase {
         .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID)))
         .thenReturn(programStage(PROGRAM_STAGE_ID, program));
-    when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(enrollment(ENROLLMENT_ID, program));
+    when(preheat.getEnrollment(ENROLLMENT_ID.getValue()))
+        .thenReturn(enrollment(ENROLLMENT_ID, program));
 
     setUpDefaultCategoryCombo(program);
 
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
@@ -148,7 +150,8 @@ class DataRelationsValidatorTest extends TestBase {
 
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
+            .enrollment(ENROLLMENT_ID)
             .program(MetadataIdentifier.ofUid(program))
             .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
@@ -175,7 +178,7 @@ class DataRelationsValidatorTest extends TestBase {
 
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
@@ -197,7 +200,7 @@ class DataRelationsValidatorTest extends TestBase {
         .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID)))
         .thenReturn(programStage(PROGRAM_STAGE_ID, program));
-    when(preheat.getEnrollment(ENROLLMENT_ID))
+    when(preheat.getEnrollment(ENROLLMENT_ID.getValue()))
         .thenReturn(
             enrollment(
                 ENROLLMENT_ID, programWithRegistration(CodeGenerator.generateUid(), orgUnit)));
@@ -206,7 +209,7 @@ class DataRelationsValidatorTest extends TestBase {
 
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
@@ -232,13 +235,14 @@ class DataRelationsValidatorTest extends TestBase {
                 PROGRAM_UID, Collections.singletonList(anotherOrgUnit.getUid())));
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID)))
         .thenReturn(programStage(PROGRAM_STAGE_ID, program));
-    when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(enrollment(ENROLLMENT_ID, program));
+    when(preheat.getEnrollment(ENROLLMENT_ID.getValue()))
+        .thenReturn(enrollment(ENROLLMENT_ID, program));
 
     setUpDefaultCategoryCombo(program);
 
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
@@ -400,11 +404,11 @@ class DataRelationsValidatorTest extends TestBase {
     Program program = setupProgram(orgUnit);
     program.setCategoryCombo(defaultCategoryCombo());
 
-    String UNKNOWN_AOC_ID = CodeGenerator.generateUid();
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(UNKNOWN_AOC_ID))).thenReturn(null);
+    String unknownAocId = CodeGenerator.generateUid();
+    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(unknownAocId))).thenReturn(null);
 
     Event event =
-        eventBuilder().attributeOptionCombo(MetadataIdentifier.ofUid(UNKNOWN_AOC_ID)).build();
+        eventBuilder().attributeOptionCombo(MetadataIdentifier.ofUid(unknownAocId)).build();
 
     validator.validate(reporter, bundle, event);
 
@@ -417,11 +421,11 @@ class DataRelationsValidatorTest extends TestBase {
     Program program = setupProgram(orgUnit);
     program.setCategoryCombo(categoryCombo());
 
-    String UNKNOWN_AOC_ID = CodeGenerator.generateUid();
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(UNKNOWN_AOC_ID))).thenReturn(null);
+    String unknownAocId = CodeGenerator.generateUid();
+    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(unknownAocId))).thenReturn(null);
 
     Event event =
-        eventBuilder().attributeOptionCombo(MetadataIdentifier.ofUid(UNKNOWN_AOC_ID)).build();
+        eventBuilder().attributeOptionCombo(MetadataIdentifier.ofUid(unknownAocId)).build();
 
     validator.validate(reporter, bundle, event);
 
@@ -548,12 +552,12 @@ class DataRelationsValidatorTest extends TestBase {
     CategoryOption co = cc.getCategoryOptions().get(0);
     when(preheat.getCategoryOption(MetadataIdentifier.ofUid(co))).thenReturn(co);
 
-    String UNKNOWN_AOC_ID = CodeGenerator.generateUid();
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(UNKNOWN_AOC_ID))).thenReturn(null);
+    String unknownAocId = CodeGenerator.generateUid();
+    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(unknownAocId))).thenReturn(null);
 
     Event event =
         eventBuilder()
-            .attributeOptionCombo(MetadataIdentifier.ofUid(UNKNOWN_AOC_ID))
+            .attributeOptionCombo(MetadataIdentifier.ofUid(unknownAocId))
             .attributeCategoryOptions(Set.of(MetadataIdentifier.ofUid(co)))
             .build();
 
@@ -597,13 +601,13 @@ class DataRelationsValidatorTest extends TestBase {
     CategoryOptionCombo aoc = firstCategoryOptionCombo(cc);
     when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(aoc))).thenReturn(aoc);
 
-    String UNKNOWN_CO_ID = CodeGenerator.generateUid();
-    when(preheat.getCategoryOption(MetadataIdentifier.ofUid(UNKNOWN_CO_ID))).thenReturn(null);
+    String unknownCoId = CodeGenerator.generateUid();
+    when(preheat.getCategoryOption(MetadataIdentifier.ofUid(unknownCoId))).thenReturn(null);
 
     Event event =
         eventBuilder()
             .attributeOptionCombo(MetadataIdentifier.ofUid(aoc))
-            .attributeCategoryOptions(Set.of(MetadataIdentifier.ofUid(UNKNOWN_CO_ID)))
+            .attributeCategoryOptions(Set.of(MetadataIdentifier.ofUid(unknownCoId)))
             .build();
 
     validator.validate(reporter, bundle, event);
@@ -621,29 +625,29 @@ class DataRelationsValidatorTest extends TestBase {
     CategoryOption co = cc.getCategoryOptions().get(0);
     when(preheat.getCategoryOption(MetadataIdentifier.ofUid(co))).thenReturn(co);
 
-    String UNKNOWN_CO_ID1 = CodeGenerator.generateUid();
-    when(preheat.getCategoryOption(MetadataIdentifier.ofUid(UNKNOWN_CO_ID1))).thenReturn(null);
-    String UNKNOWN_CO_ID2 = CodeGenerator.generateUid();
-    when(preheat.getCategoryOption(MetadataIdentifier.ofUid(UNKNOWN_CO_ID2))).thenReturn(null);
+    String unknownCoId1 = CodeGenerator.generateUid();
+    when(preheat.getCategoryOption(MetadataIdentifier.ofUid(unknownCoId1))).thenReturn(null);
+    String unknownCoId2 = CodeGenerator.generateUid();
+    when(preheat.getCategoryOption(MetadataIdentifier.ofUid(unknownCoId2))).thenReturn(null);
 
-    String UNKNOWN_AOC_ID = CodeGenerator.generateUid();
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(UNKNOWN_AOC_ID))).thenReturn(null);
+    String unknownAocId = CodeGenerator.generateUid();
+    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(unknownAocId))).thenReturn(null);
 
     Event event =
         eventBuilder()
-            .attributeOptionCombo(MetadataIdentifier.ofUid(UNKNOWN_AOC_ID))
+            .attributeOptionCombo(MetadataIdentifier.ofUid(unknownAocId))
             .attributeCategoryOptions(
                 Set.of(
-                    MetadataIdentifier.ofUid(UNKNOWN_CO_ID1),
+                    MetadataIdentifier.ofUid(unknownCoId1),
                     MetadataIdentifier.ofUid(co),
-                    MetadataIdentifier.ofUid(UNKNOWN_CO_ID2)))
+                    MetadataIdentifier.ofUid(unknownCoId2)))
             .build();
 
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1115);
-    assertHasError(reporter, event, ValidationCode.E1116, UNKNOWN_CO_ID1);
-    assertHasError(reporter, event, ValidationCode.E1116, UNKNOWN_CO_ID2);
+    assertHasError(reporter, event, ValidationCode.E1116, unknownCoId1);
+    assertHasError(reporter, event, ValidationCode.E1116, unknownCoId2);
   }
 
   @Test
@@ -746,7 +750,7 @@ class DataRelationsValidatorTest extends TestBase {
 
     Event event = eventBuilder().enrollment(ENROLLMENT_ID).build();
 
-    when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(null);
+    when(preheat.getEnrollment(ENROLLMENT_ID.getValue())).thenReturn(null);
 
     validator.validate(reporter, bundle, event);
 
@@ -765,13 +769,13 @@ class DataRelationsValidatorTest extends TestBase {
 
     Event event = eventBuilder().enrollment(ENROLLMENT_ID).build();
 
-    when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(null);
+    when(preheat.getEnrollment(ENROLLMENT_ID.getValue())).thenReturn(null);
 
     org.hisp.dhis.tracker.imports.domain.Enrollment e =
         new org.hisp.dhis.tracker.imports.domain.Enrollment();
     e.setTrackedEntity(CodeGenerator.generateUid());
 
-    when(bundle.findEnrollmentByUid(ENROLLMENT_ID)).thenReturn(Optional.of(e));
+    when(bundle.findEnrollmentByUid(ENROLLMENT_ID.getValue())).thenReturn(Optional.of(e));
 
     validator.validate(reporter, bundle, event);
 
@@ -857,23 +861,23 @@ class DataRelationsValidatorTest extends TestBase {
     return programStage;
   }
 
-  private Enrollment enrollment(String uid, Program program) {
+  private Enrollment enrollment(UID uid, Program program) {
     Enrollment enrollment = enrollment(uid);
     enrollment.setProgram(program);
     enrollment.setTrackedEntity(new TrackedEntity());
     return enrollment;
   }
 
-  private Enrollment enrollment(String uid, TrackedEntity trackedEntity) {
+  private Enrollment enrollment(UID uid, TrackedEntity trackedEntity) {
     Enrollment enrollment = new Enrollment();
-    enrollment.setUid(uid);
+    enrollment.setUid(uid.getValue());
     enrollment.setTrackedEntity(trackedEntity);
     return enrollment;
   }
 
-  private Enrollment enrollment(String uid) {
+  private Enrollment enrollment(UID uid) {
     Enrollment enrollment = new Enrollment();
-    enrollment.setUid(uid);
+    enrollment.setUid(uid.getValue());
     return enrollment;
   }
 
@@ -884,7 +888,8 @@ class DataRelationsValidatorTest extends TestBase {
         .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID)))
         .thenReturn(programStage(PROGRAM_STAGE_ID, program));
-    when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(enrollment(ENROLLMENT_ID, program));
+    when(preheat.getEnrollment(ENROLLMENT_ID.getValue()))
+        .thenReturn(enrollment(ENROLLMENT_ID, program));
     return program;
   }
 
@@ -896,7 +901,7 @@ class DataRelationsValidatorTest extends TestBase {
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID)))
         .thenReturn(programStage(PROGRAM_STAGE_ID, program));
     enrollment.setProgram(program);
-    when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(enrollment);
+    when(preheat.getEnrollment(ENROLLMENT_ID.getValue())).thenReturn(enrollment);
     return program;
   }
 
@@ -959,7 +964,7 @@ class DataRelationsValidatorTest extends TestBase {
 
   private Event.EventBuilder eventBuilder() {
     return Event.builder()
-        .event(CodeGenerator.generateUid())
+        .event(UID.generate())
         .program(MetadataIdentifier.ofUid(PROGRAM_UID))
         .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
         .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))

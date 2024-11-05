@@ -48,6 +48,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -110,6 +111,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequestMapping("/api/messageConversations")
 @RequiredArgsConstructor
+@OpenApi.Document(classifiers = {"team:platform", "purpose:support"})
 public class MessageConversationController
     extends AbstractCrudController<org.hisp.dhis.message.MessageConversation> {
   private final MessageService messageService;

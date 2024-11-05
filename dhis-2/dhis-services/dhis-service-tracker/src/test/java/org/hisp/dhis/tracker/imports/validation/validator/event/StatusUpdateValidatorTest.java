@@ -38,6 +38,7 @@ import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidatio
 import static org.mockito.Mockito.when;
 
 import java.util.stream.Stream;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -63,7 +64,7 @@ class StatusUpdateValidatorTest {
 
   @Mock TrackerPreheat preheat;
 
-  private static final String EVENT_UID = "h4w96yEMlzO";
+  private static final UID EVENT_UID = UID.generate();
 
   @Mock private TrackerBundle bundle;
 
@@ -84,7 +85,7 @@ class StatusUpdateValidatorTest {
   void shouldPassValidationWhenGoingFromStatusToStatus(
       EventStatus fromStatus, EventStatus toStatus) {
     org.hisp.dhis.program.Event savedEvent = new org.hisp.dhis.program.Event();
-    savedEvent.setUid(EVENT_UID);
+    savedEvent.setUid(EVENT_UID.getValue());
     savedEvent.setStatus(fromStatus);
     when(preheat.getEvent(EVENT_UID)).thenReturn(savedEvent);
 
@@ -100,7 +101,7 @@ class StatusUpdateValidatorTest {
   void shouldFailValidationWhenGoingFromStatusToStatus(
       EventStatus fromStatus, EventStatus toStatus) {
     org.hisp.dhis.program.Event savedEvent = new org.hisp.dhis.program.Event();
-    savedEvent.setUid(EVENT_UID);
+    savedEvent.setUid(EVENT_UID.getValue());
     savedEvent.setStatus(fromStatus);
     when(preheat.getEvent(EVENT_UID)).thenReturn(savedEvent);
 

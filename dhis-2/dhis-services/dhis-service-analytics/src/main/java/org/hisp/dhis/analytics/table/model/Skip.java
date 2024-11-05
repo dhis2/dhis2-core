@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.analytics.table.model;
 
+/**
+ * Represents whether an object should be skipped or included as part of a process.
+ *
+ * @author Lars Helge Overland
+ */
 public enum Skip {
   SKIP,
   INCLUDE;

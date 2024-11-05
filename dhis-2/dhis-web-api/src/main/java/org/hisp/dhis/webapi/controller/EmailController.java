@@ -62,7 +62,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
-@OpenApi.Document(domain = Email.class)
+@OpenApi.Document(
+    entity = Email.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping("/api/email")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

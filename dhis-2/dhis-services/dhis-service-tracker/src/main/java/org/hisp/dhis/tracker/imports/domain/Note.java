@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
-import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -48,11 +47,7 @@ import lombok.NoArgsConstructor;
 public class Note implements Serializable {
   @JsonProperty private String note;
 
-  @JsonProperty private Instant storedAt;
-
   @JsonProperty private String value;
-
-  @JsonProperty private User createdBy;
 
   @JsonProperty private String storedBy;
 }

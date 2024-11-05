@@ -31,7 +31,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
@@ -64,8 +66,8 @@ public class DefaultDeduplicationService implements DeduplicationService {
 
   @Override
   @Transactional(readOnly = true)
-  public PotentialDuplicate getPotentialDuplicateByUid(String uid) {
-    return potentialDuplicateStore.getByUid(uid);
+  public PotentialDuplicate getPotentialDuplicateByUid(@Nonnull UID uid) {
+    return potentialDuplicateStore.getByUid(uid.getValue());
   }
 
   @Override
@@ -118,10 +120,10 @@ public class DefaultDeduplicationService implements DeduplicationService {
   @Override
   @Transactional
   public void manualMerge(DeduplicationMergeParams deduplicationMergeParams)
-      throws PotentialDuplicateConflictException,
-          PotentialDuplicateForbiddenException,
+      throws PotentialDuplicateForbiddenException,
           ForbiddenException,
-          NotFoundException {
+          NotFoundException,
+          PotentialDuplicateConflictException {
     String invalidReference =
         deduplicationHelper.getInvalidReferenceErrors(deduplicationMergeParams);
     if (invalidReference != null) {
@@ -173,7 +175,7 @@ public class DefaultDeduplicationService implements DeduplicationService {
     potentialDuplicateStore.moveRelationships(original, duplicate, mergeObject.getRelationships());
     potentialDuplicateStore.moveEnrollments(original, duplicate, mergeObject.getEnrollments());
     try {
-      trackerObjectDeletionService.deleteTrackedEntities(List.of(duplicate.getUid()));
+      trackerObjectDeletionService.deleteTrackedEntities(List.of(UID.of(duplicate)));
     } catch (NotFoundException e) {
       throw new RuntimeException("Could not find TrackedEntity: " + duplicate.getUid());
     }

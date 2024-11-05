@@ -122,8 +122,7 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
       TrackedEntityChangeLogOperationParams operationParams,
       PageParams pageParams)
       throws NotFoundException, ForbiddenException, BadRequestException {
-    TrackedEntity trackedEntity =
-        trackedEntityService.getTrackedEntity(trackedEntityUid.getValue());
+    TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(trackedEntityUid);
     if (trackedEntity == null) {
       throw new NotFoundException(TrackedEntity.class, trackedEntityUid.getValue());
     }

@@ -22,7 +22,7 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Run unit tests
-        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles unit-test
+        run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles unit-test
         timeout-minutes: 30
       - name: Report coverage to codecov
         uses: codecov/codecov-action@v3
@@ -65,7 +65,7 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Run integration tests
-        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles integration-test
+        run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles integration-test
         timeout-minutes: 30
       - uses: actions/upload-artifact@v4
         name: Upload test logs on failure
@@ -116,7 +116,7 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Run integration h2 tests
-        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles integration-h2-test
+        run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles integration-h2-test
         timeout-minutes: 30
       - uses: actions/upload-artifact@v4
         name: Upload test logs on failure

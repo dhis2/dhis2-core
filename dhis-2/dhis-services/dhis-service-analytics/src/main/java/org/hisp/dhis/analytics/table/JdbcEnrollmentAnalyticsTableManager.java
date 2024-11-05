@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
@@ -167,14 +166,14 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     Program program = partition.getMasterTable().getProgram();
 
     String fromClause =
-        replace(
+        replaceQualify(
             """
-            \s from enrollment en \
-            inner join program pr on en.programid=pr.programid \
-            left join trackedentity te on en.trackedentityid=te.trackedentityid \
+            \s from ${enrollment} en \
+            inner join ${program} pr on en.programid=pr.programid \
+            left join ${trackedentity} te on en.trackedentityid=te.trackedentityid \
             and te.deleted = false \
-            left join organisationunit registrationou on te.organisationunitid=registrationou.organisationunitid \
-            inner join organisationunit ou on en.organisationunitid=ou.organisationunitid \
+            left join ${organisationunit} registrationou on te.organisationunitid=registrationou.organisationunitid \
+            inner join ${organisationunit} ou on en.organisationunitid=ou.organisationunitid \
             left join analytics_rs_orgunitstructure ous on en.organisationunitid=ous.organisationunitid \
             left join analytics_rs_organisationunitgroupsetstructure ougs on en.organisationunitid=ougs.organisationunitid \
             and (cast(${enrollmentDateMonth} as date)=ougs.startdate or ougs.startdate is null) \

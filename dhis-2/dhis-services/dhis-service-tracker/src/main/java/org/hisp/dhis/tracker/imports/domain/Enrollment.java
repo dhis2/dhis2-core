@@ -36,6 +36,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.TrackerType;
 import org.locationtech.jts.geom.Geometry;
@@ -50,11 +51,7 @@ import org.locationtech.jts.geom.Geometry;
 public class Enrollment implements TrackerDto, Serializable {
   @JsonProperty private String enrollment;
 
-  @JsonProperty private Instant createdAt;
-
   @JsonProperty private Instant createdAtClient;
-
-  @JsonProperty private Instant updatedAt;
 
   @JsonProperty private Instant updatedAtClient;
 
@@ -62,7 +59,7 @@ public class Enrollment implements TrackerDto, Serializable {
 
   @JsonProperty private MetadataIdentifier program;
 
-  @JsonProperty private EnrollmentStatus status;
+  @JsonProperty private EnrollmentStatus status = EnrollmentStatus.ACTIVE;
 
   @JsonProperty private MetadataIdentifier orgUnit;
 
@@ -72,31 +69,24 @@ public class Enrollment implements TrackerDto, Serializable {
 
   @JsonProperty private boolean followUp;
 
-  @JsonProperty private String completedBy;
+  @JsonProperty private String storedBy;
 
   @JsonProperty private Instant completedAt;
 
-  @JsonProperty private boolean deleted;
-
-  @JsonProperty private String storedBy;
-
-  @JsonProperty private User createdBy;
-
-  @JsonProperty private User updatedBy;
-
   @JsonProperty private Geometry geometry;
-
-  @JsonProperty @Builder.Default private List<Event> events = new ArrayList<>();
-
-  @JsonProperty @Builder.Default private List<Relationship> relationships = new ArrayList<>();
 
   @JsonProperty @Builder.Default private List<Attribute> attributes = new ArrayList<>();
 
   @JsonProperty @Builder.Default private List<Note> notes = new ArrayList<>();
 
   @Override
-  public String getUid() {
-    return this.enrollment;
+  public UID getUid() {
+    return UID.of(enrollment);
+  }
+
+  @Override
+  public String getStringUid() {
+    return enrollment;
   }
 
   @Override

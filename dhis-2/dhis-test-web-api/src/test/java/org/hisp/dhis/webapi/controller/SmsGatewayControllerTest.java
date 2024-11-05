@@ -96,7 +96,8 @@ class SmsGatewayControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testUpdateGateway() {
     // language=JSON
-    String json = """
+    String json =
+        """
       {"name":"test", "username":"user", "password":"pwd", "type":"http"}""";
     uid = assertStatus(HttpStatus.OK, POST("/gateways", json));
 

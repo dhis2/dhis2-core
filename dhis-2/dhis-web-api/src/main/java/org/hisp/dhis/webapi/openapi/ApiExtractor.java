@@ -67,13 +67,10 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.jsontree.Json;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
@@ -81,11 +78,9 @@ import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.system.util.HttpUtils;
 import org.hisp.dhis.webapi.openapi.Api.Parameter.In;
-import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -97,7 +92,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -110,54 +104,9 @@ import org.springframework.web.servlet.view.RedirectView;
  *
  * @author Jan Bernitt
  */
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 final class ApiExtractor {
-  /**
-   * The included classes can be filtered based on REST API resource path or {@link
-   * OpenApi.Document#domain()} present on the controller class level. Method level path and tags
-   * will not be considered for this filter.
-   *
-   * @param controllers controllers all potential controllers
-   * @param paths filter based on resource path (empty includes all)
-   * @param domains filter based on {@link OpenApi.Document#domain()} (empty includes all)
-   */
-  record Scope(
-      @Nonnull Set<Class<?>> controllers,
-      @Nonnull Set<String> paths,
-      @Nonnull Set<String> domains) {
 
-    boolean includes(Class<?> controller) {
-      if (!isControllerType(controller)) return false;
-      if (!controllers.contains(controller)) return false;
-      if (paths.isEmpty() && domains.isEmpty()) return true;
-      if (!paths.isEmpty() && paths(controller).noneMatch(paths::contains)) return false;
-      Class<?> domain = OpenApiAnnotations.getDomain(controller);
-      return domains.isEmpty()
-          || domains.contains(domain.getName())
-          || domains.contains(domain.getSimpleName());
-    }
-
-    private static boolean isControllerType(Class<?> source) {
-      return (source.isAnnotationPresent(RestController.class)
-              || source.isAnnotationPresent(Controller.class))
-          && !source.isAnnotationPresent(OpenApi.Ignore.class);
-    }
-
-    private static Stream<String> paths(Class<?> controller) {
-      RequestMapping a = controller.getAnnotation(RequestMapping.class);
-      return a == null
-          ? Stream.empty()
-          : stream(firstNonEmpty(a.value(), a.path()))
-              .flatMap(path -> Stream.of(path, normalisePath(path)));
-    }
-
-    @Nonnull
-    private static String normalisePath(@Nonnull String path) {
-      return path.startsWith("/api/") ? path.substring(4) : path;
-    }
-  }
-
-  record Configuration(Scope scope, boolean ignoreTypeAs) {}
+  record Configuration(boolean ignoreTypeAs) {}
 
   private static final Map<Class<?>, Api.SchemaGenerator> GENERATORS = new ConcurrentHashMap<>();
 
@@ -182,19 +131,22 @@ final class ApiExtractor {
    *
    * @return the {@link Api} for all controllers matching both of the filters
    */
-  public static Api extractApi(Configuration config) {
-    ApiExtractor tool = new ApiExtractor(config);
+  public static Api extractApi(Api.Scope scope, Configuration config) {
+    ApiExtractor tool = new ApiExtractor(scope, config);
     tool.extractApi();
     return tool.api;
   }
 
   private final Configuration config;
-  private final Api api = new Api();
+  private final Api api;
+
+  private ApiExtractor(Api.Scope scope, Configuration config) {
+    this.config = config;
+    this.api = new Api(scope);
+  }
 
   private void extractApi() {
-    config.scope.controllers.stream()
-        .filter(config.scope::includes)
-        .forEach(source -> api.getControllers().add(extractController(source)));
+    api.getScope().matches().forEach(source -> api.getControllers().add(extractController(source)));
   }
 
   private Api.Controller extractController(Class<?> source) {
@@ -206,8 +158,10 @@ final class ApiExtractor {
             n -> !n.isEmpty(),
             () -> source.getSimpleName().replace("Controller", ""));
     Class<?> entityClass = OpenApiAnnotations.getEntityType(source);
-    Class<?> domain = OpenApiAnnotations.getDomain(source);
-    Api.Controller controller = new Api.Controller(api, source, entityClass, name, domain);
+    Api.Controller controller = new Api.Controller(api, source, entityClass, name);
+    Map<String, String> classifiers = controller.getClassifiers();
+    classifiers.putAll(OpenApiAnnotations.getClassifiers(source));
+
     whenAnnotated(
         source, RequestMapping.class, a -> controller.getPaths().addAll(List.of(a.value())));
 
@@ -567,14 +521,17 @@ final class ApiExtractor {
     String sharedName = getSharedName(paramsObject, shared, null);
     if (sharedName != null) {
       Map<Class<?>, List<Api.Parameter>> sharedParameters = api.getComponents().getParameters();
+      boolean addShared = !sharedParameters.containsKey(paramsObject);
       properties.forEach(
           property -> {
             Api.Parameter parameter = extractParameter(endpoint, property);
             if (!parameter.getSource().isAnnotationPresent(OpenApi.Shared.Inline.class)) {
               parameter.getSharedName().setValue(sharedName);
-              sharedParameters
-                  .computeIfAbsent(paramsObject, key -> new ArrayList<>())
-                  .add(parameter);
+              if (addShared) {
+                sharedParameters
+                    .computeIfAbsent(paramsObject, key -> new ArrayList<>())
+                    .add(parameter);
+              }
             }
             endpoint.getParameters().putIfAbsent(parameter.getName(), parameter);
           });
@@ -634,7 +591,8 @@ final class ApiExtractor {
             : extractSchema(endpoint, null, oneOf);
     for (OpenApi.Property p : properties) {
       obj.addProperty(
-          new Api.Property(null, p.name(), p.required(), extractSchema(endpoint, null, p.value())));
+          new Api.Property(null, p.name(), p.required(), extractSchema(endpoint, null, p.value()))
+              .withAccess(p.access()));
     }
     return obj.sealed();
   }
@@ -741,7 +699,9 @@ final class ApiExtractor {
     // the schemas map so recursive types do resolve (unless they are inlined)
     for (Property p : properties) {
       Function<Api.Schema, Api.Property> toProperty =
-          t -> new Api.Property(p.getSource(), getPropertyName(endpoint, p), p.getRequired(), t);
+          t ->
+              new Api.Property(p.getSource(), getPropertyName(endpoint, p), p.getRequired(), t)
+                  .withAccess(p.getAccess());
       Api.Property property = extractObjectProperty(endpoint, p, toProperty);
       property.getDescription().setValue(extractDescription(p.getSource()));
       schema.addProperty(property);
@@ -757,8 +717,13 @@ final class ApiExtractor {
     }
     Type type = getSubstitutedType(endpoint, property, source);
     OpenApi.Property annotated = source.getAnnotation(OpenApi.Property.class);
-    if (type instanceof Class && isGeneratorType((Class<?>) type) && annotated != null) {
-      return toProperty.apply(extractGeneratorSchema(endpoint, type, annotated.value()));
+    if (annotated != null) {
+      if (type instanceof Class && isGeneratorType((Class<?>) type)) {
+        return toProperty.apply(extractGeneratorSchema(endpoint, type, annotated.value()));
+      }
+      if (annotated.value().length > 1) { // oneOf type
+        return toProperty.apply(extractSchema(endpoint, type, annotated.value()));
+      }
     }
     if (config.ignoreTypeAs) {
       return toProperty.apply(extractTypeSchema(endpoint, type));
@@ -873,9 +838,6 @@ final class ApiExtractor {
     }
     if (type == OpenApi.EntityType[].class && endpoint.getEntityType() != null) {
       return Array.newInstance(endpoint.getEntityType(), 0).getClass();
-    }
-    if (type == WebMessageResponse.class) {
-      return WebMessage.class;
     }
     return type;
   }

@@ -39,6 +39,8 @@ import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.springframework.stereotype.Component;
 
 /**
+ * Job for full analytics table update.
+ *
  * @author Lars Helge Overland
  */
 @Component

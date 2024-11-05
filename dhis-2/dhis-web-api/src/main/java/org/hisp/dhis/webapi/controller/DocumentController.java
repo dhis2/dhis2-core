@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
@@ -60,6 +61,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @Slf4j
 @RequestMapping("/api/documents")
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class DocumentController extends AbstractCrudController<Document> {
 
   @Autowired private DocumentService documentService;

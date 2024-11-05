@@ -42,14 +42,14 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 /**
  * Merge handler for metadata entities.
  *
  * @author david mackessy
  */
-@Service
+@Component
 @RequiredArgsConstructor
 public class IndicatorMergeHandler {
 

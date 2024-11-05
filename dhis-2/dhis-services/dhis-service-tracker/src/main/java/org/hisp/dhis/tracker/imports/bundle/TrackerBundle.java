@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -147,8 +148,8 @@ public class TrackerBundle {
     return findById(this.enrollments, uid);
   }
 
-  public Optional<Event> findEventByUid(String uid) {
-    return findById(this.events, uid);
+  public Optional<Event> findEventByUid(@Nonnull UID uid) {
+    return findById(this.events, uid.getValue());
   }
 
   public Optional<Relationship> findRelationshipByUid(String uid) {
@@ -156,7 +157,7 @@ public class TrackerBundle {
   }
 
   private static <T extends TrackerDto> Optional<T> findById(List<T> entities, String uid) {
-    return entities.stream().filter(e -> Objects.equals(e.getUid(), uid)).findFirst();
+    return entities.stream().filter(e -> Objects.equals(e.getStringUid(), uid)).findFirst();
   }
 
   public Map<UID, List<Notification>> getEnrollmentNotifications() {
@@ -168,11 +169,13 @@ public class TrackerBundle {
   }
 
   public TrackerImportStrategy setStrategy(TrackerDto dto, TrackerImportStrategy strategy) {
-    return this.getResolvedStrategyMap().get(dto.getTrackerType()).put(dto.getUid(), strategy);
+    return this.getResolvedStrategyMap()
+        .get(dto.getTrackerType())
+        .put(dto.getStringUid(), strategy);
   }
 
   public TrackerImportStrategy getStrategy(TrackerDto dto) {
-    return getResolvedStrategyMap().get(dto.getTrackerType()).get(dto.getUid());
+    return getResolvedStrategyMap().get(dto.getTrackerType()).get(dto.getStringUid());
   }
 
   @SuppressWarnings("unchecked")
@@ -189,28 +192,5 @@ public class TrackerBundle {
     }
     // only reached if a new TrackerDto implementation is added
     throw new IllegalStateException("TrackerType " + type.getName() + " not yet supported.");
-  }
-
-  /** Checks if an entity exists in the payload. */
-  public <T extends TrackerDto> boolean exists(T entity) {
-    return exists(entity.getTrackerType(), entity.getUid());
-  }
-
-  /**
-   * Checks if an entity of given type and UID exists in the payload.
-   *
-   * @param type tracker type
-   * @param uid uid of entity to check
-   * @return true if an entity of given type and UID exists in the payload
-   */
-  public boolean exists(TrackerType type, String uid) {
-    Objects.requireNonNull(type);
-
-    return switch (type) {
-      case TRACKED_ENTITY -> findTrackedEntityByUid(uid).isPresent();
-      case ENROLLMENT -> findEnrollmentByUid(uid).isPresent();
-      case EVENT -> findEventByUid(uid).isPresent();
-      case RELATIONSHIP -> findRelationshipByUid(uid).isPresent();
-    };
   }
 }

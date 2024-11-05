@@ -90,7 +90,7 @@ public class SystemUser implements UserDetails {
 
   @Override
   public String getUid() {
-    return "system-process";
+    return "XXXXXSystem";
   }
 
   @Override

@@ -28,9 +28,11 @@
 package org.hisp.dhis.common;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.ObjectUtils;
 
 /**
  * @author Lars Helge Overland
@@ -45,7 +47,9 @@ public class RegexUtils {
    * @return a set of matches.
    */
   public static Set<String> getMatches(Pattern pattern, String input, Integer group) {
-    group = group != null ? group : 0;
+    Objects.requireNonNull(pattern);
+
+    int gr = ObjectUtils.firstNonNull(group, 0);
 
     Set<String> set = new HashSet<>();
 
@@ -53,28 +57,8 @@ public class RegexUtils {
       Matcher matcher = pattern.matcher(input);
 
       while (matcher.find()) {
-        set.add(matcher.group(group));
+        set.add(matcher.group(gr));
       }
-    }
-
-    return set;
-  }
-
-  /**
-   * Return the matches in the given input based on the given pattern and group name.
-   *
-   * @param pattern the pattern.
-   * @param input the input.
-   * @param groupName the group name, not null.
-   * @return a set of matches.
-   */
-  public static Set<String> getMatches(Pattern pattern, String input, String groupName) {
-    Set<String> set = new HashSet<>();
-
-    Matcher matcher = pattern.matcher(input);
-
-    while (matcher.find()) {
-      set.add(matcher.group(groupName));
     }
 
     return set;

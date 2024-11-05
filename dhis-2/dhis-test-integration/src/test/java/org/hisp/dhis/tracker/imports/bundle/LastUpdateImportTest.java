@@ -38,6 +38,7 @@ import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.SoftDeletableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -465,7 +466,7 @@ class LastUpdateImportTest extends TrackerTest {
     TrackerObjects trackerObjects = fromJson("tracker/single_event.json");
     org.hisp.dhis.tracker.imports.domain.Event ev = trackerObjects.getEvents().get(0);
     ev.setEnrollment(null);
-    ev.setEvent(CodeGenerator.generateUid());
+    ev.setEvent(UID.generate());
     // set event program and program stage
     ev.setProgramStage(MetadataIdentifier.of(TrackerIdScheme.UID, "NpsdDv6kKSe", null));
     ev.setProgram(MetadataIdentifier.of(TrackerIdScheme.UID, "BFcipDERJne", null));
@@ -478,12 +479,13 @@ class LastUpdateImportTest extends TrackerTest {
   }
 
   void enrollTrackerEntity() {
-    trackedEntity.setEnrollments(List.of(enrollment));
-
     assertNoErrors(
         trackerImportService.importTracker(
             new TrackerImportParams(),
-            TrackerObjects.builder().trackedEntities(List.of(trackedEntity)).build()));
+            TrackerObjects.builder()
+                .trackedEntities(List.of(trackedEntity))
+                .enrollments(List.of(enrollment))
+                .build()));
   }
 
   /**
@@ -495,19 +497,19 @@ class LastUpdateImportTest extends TrackerTest {
   }
 
   Enrollment getEnrollment() {
-    return getEntityJpql(Enrollment.class.getSimpleName(), enrollment.getUid());
+    return getEntityJpql(Enrollment.class.getSimpleName(), enrollment.getStringUid());
   }
 
   Event getEvent() {
-    return getEntityJpql(Event.class.getSimpleName(), event.getUid());
+    return getEntityJpql(Event.class.getSimpleName(), event.getUid().getValue());
   }
 
-  Event getEvent(String uid) {
-    return getEntityJpql(Event.class.getSimpleName(), uid);
+  Event getEvent(UID uid) {
+    return getEntityJpql(Event.class.getSimpleName(), uid.getValue());
   }
 
   TrackedEntity getTrackedEntity() {
-    return getEntityJpql(TrackedEntity.class.getSimpleName(), trackedEntity.getUid());
+    return getEntityJpql(TrackedEntity.class.getSimpleName(), trackedEntity.getStringUid());
   }
 
   /**

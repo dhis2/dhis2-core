@@ -76,7 +76,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-@OpenApi.Document(domain = Visualization.class)
+@OpenApi.Document(
+    entity = Visualization.class,
+    classifiers = {"team:analytics", "purpose:data"})
 @RestController
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

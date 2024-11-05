@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -53,11 +54,10 @@ public interface TrackedEntityService {
   /**
    * Get the tracked entity matching given {@code UID} under the privileges of the currently
    * authenticated user. No program attributes are included, only TETAs. Enrollments and
-   * relationships are not included. Use {@link #getTrackedEntity(String, String,
-   * TrackedEntityParams)} instead to also get the relationships, enrollments and program
-   * attributes.
+   * relationships are not included. Use {@link #getTrackedEntity(UID, UID, TrackedEntityParams)}
+   * instead to also get the relationships, enrollments and program attributes.
    */
-  TrackedEntity getTrackedEntity(String uid)
+  TrackedEntity getTrackedEntity(UID uid)
       throws NotFoundException, ForbiddenException, BadRequestException;
 
   /**
@@ -66,14 +66,16 @@ public interface TrackedEntityService {
    * are included, otherwise only TETAs are included. It will include enrollments, relationships,
    * attributes and ownerships as defined in @param params
    */
-  TrackedEntity getTrackedEntity(String uid, String programIdentifier, TrackedEntityParams params)
+  TrackedEntity getTrackedEntity(UID uid, UID programIdentifier, TrackedEntityParams params)
       throws NotFoundException, ForbiddenException, BadRequestException;
 
   /** Get all tracked entities matching given params. */
+  @Nonnull
   List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)
       throws BadRequestException, ForbiddenException, NotFoundException;
 
   /** Get a page of tracked entities matching given params. */
+  @Nonnull
   Page<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams params, PageParams pageParams)
       throws BadRequestException, ForbiddenException, NotFoundException;
 

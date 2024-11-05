@@ -32,8 +32,9 @@ import java.util.List;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
+import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
@@ -47,23 +48,22 @@ import org.springframework.stereotype.Component;
 @Component
 public class RelationshipPersister
     extends AbstractTrackerPersister<Relationship, org.hisp.dhis.relationship.Relationship> {
-  private final TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship>
-      relationshipConverter;
 
   public RelationshipPersister(
       ReservedValueService reservedValueService,
-      TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship>
-          relationshipConverter,
       TrackedEntityChangeLogService trackedEntityChangeLogService) {
 
     super(reservedValueService, trackedEntityChangeLogService);
-    this.relationshipConverter = relationshipConverter;
   }
 
   @Override
   protected org.hisp.dhis.relationship.Relationship convert(
       TrackerBundle bundle, Relationship trackerDto) {
-    return relationshipConverter.from(bundle.getPreheat(), trackerDto, bundle.getUser());
+    if (bundle.getStrategy(trackerDto) == TrackerImportStrategy.UPDATE) {
+      return null;
+    }
+
+    return TrackerObjectsMapper.map(bundle.getPreheat(), trackerDto, bundle.getUser());
   }
 
   @Override
@@ -93,28 +93,6 @@ public class RelationshipPersister
   }
 
   @Override
-  protected boolean isUpdatable() {
-    // We don't want to update relationships. Only CREATE/DELETE is
-    // supported
-    // so this method will inform AbstractTrackerPersister to not proceed
-    // with merge.
-    return false;
-  }
-
-  @Override
-  protected boolean isNew(TrackerPreheat preheat, Relationship trackerDto) {
-    return preheat.getRelationship(trackerDto) == null;
-  }
-
-  @Override
-  protected boolean isNew(TrackerPreheat preheat, String uid) {
-    // Normally this method is never invoked, since for Relationships
-    // isNew( TrackerPreheat, Relationship ) is invoked instead
-    throw new UnsupportedOperationException(
-        "use isNew(TrackerPreheat preheat, Relationship trackerDto) instead");
-  }
-
-  @Override
   protected TrackerNotificationDataBundle handleNotifications(
       TrackerBundle bundle,
       org.hisp.dhis.relationship.Relationship entity,
@@ -129,7 +107,9 @@ public class RelationshipPersister
 
   @Override
   protected void persistOwnership(
-      TrackerPreheat preheat, org.hisp.dhis.relationship.Relationship entity) {
+      TrackerBundle bundle,
+      Relationship trackerDto,
+      org.hisp.dhis.relationship.Relationship entity) {
     // NOTHING TO DO
 
   }

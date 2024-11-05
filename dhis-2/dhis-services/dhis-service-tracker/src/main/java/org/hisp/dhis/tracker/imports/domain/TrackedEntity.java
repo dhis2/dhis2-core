@@ -36,6 +36,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerType;
 import org.locationtech.jts.geom.Geometry;
 
@@ -51,11 +52,7 @@ public class TrackedEntity implements TrackerDto, Serializable {
 
   @JsonProperty private MetadataIdentifier trackedEntityType;
 
-  @JsonProperty private Instant createdAt;
-
   @JsonProperty private Instant createdAtClient;
-
-  @JsonProperty private Instant updatedAt;
 
   @JsonProperty private Instant updatedAtClient;
 
@@ -63,27 +60,22 @@ public class TrackedEntity implements TrackerDto, Serializable {
 
   @JsonProperty private boolean inactive;
 
-  @JsonProperty private boolean deleted;
-
   @JsonProperty private boolean potentialDuplicate;
 
   @JsonProperty private Geometry geometry;
 
   @JsonProperty private String storedBy;
 
-  @JsonProperty private User createdBy;
-
-  @JsonProperty private User updatedBy;
-
-  @JsonProperty @Builder.Default private List<Relationship> relationships = new ArrayList<>();
-
   @JsonProperty @Builder.Default private List<Attribute> attributes = new ArrayList<>();
 
-  @JsonProperty @Builder.Default private List<Enrollment> enrollments = new ArrayList<>();
+  @Override
+  public UID getUid() {
+    return UID.of(trackedEntity);
+  }
 
   @Override
-  public String getUid() {
-    return this.trackedEntity;
+  public String getStringUid() {
+    return trackedEntity;
   }
 
   @Override

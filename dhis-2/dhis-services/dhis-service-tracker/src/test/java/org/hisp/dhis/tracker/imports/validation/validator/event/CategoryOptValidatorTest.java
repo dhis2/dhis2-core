@@ -41,7 +41,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.Program;
@@ -95,11 +95,11 @@ class CategoryOptValidatorTest extends TestBase {
 
   private Reporter reporter;
 
-  private final Date ONE_YEAR_BEFORE_EVENT = getDate(2020, 1, 1);
+  private static final Date ONE_YEAR_BEFORE_EVENT = getDate(2020, 1, 1);
 
-  private final Instant EVENT_INSTANT = getDate(2021, 1, 1).toInstant();
+  private static final Instant EVENT_INSTANT = getDate(2021, 1, 1).toInstant();
 
-  private final Date ONE_YEAR_AFTER_EVENT = getDate(2022, 1, 1);
+  private static final Date ONE_YEAR_AFTER_EVENT = getDate(2022, 1, 1);
 
   @BeforeEach
   public void setUp() {
@@ -127,7 +127,7 @@ class CategoryOptValidatorTest extends TestBase {
     program.setCategoryCombo(catCombo);
 
     event = new Event();
-    event.setEvent(CodeGenerator.generateUid());
+    event.setEvent(UID.generate());
     event.setProgram(MetadataIdentifier.ofUid(program));
     event.setOccurredAt(EVENT_INSTANT);
 

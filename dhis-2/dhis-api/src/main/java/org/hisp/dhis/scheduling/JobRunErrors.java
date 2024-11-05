@@ -74,7 +74,8 @@ public interface JobRunErrors extends JsonObject {
     return get("finished", JsonDate.class);
   }
 
-  @OpenApi.Description("""
+  @OpenApi.Description(
+      """
     The file resource used to store the job's input
     """)
   @OpenApi.Property({UID.class, FileResource.class})

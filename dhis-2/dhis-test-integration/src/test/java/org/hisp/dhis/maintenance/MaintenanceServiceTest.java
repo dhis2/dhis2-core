@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -49,8 +48,10 @@ import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -178,7 +179,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     testDate2.withTimeAtStartOfDay();
     enrollmentDate = testDate2.toDate();
     enrollment = new Enrollment(enrollmentDate, occurredDate, trackedEntity, program);
-    enrollment.setUid("UID-A");
+    enrollment.setUid(CodeGenerator.generateUid());
     enrollment.setOrganisationUnit(organisationUnit);
     Enrollment enrollmentWithTeAssociation =
         new Enrollment(enrollmentDate, occurredDate, trackedEntityWithAssociations, program);
@@ -242,7 +243,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDeleteSoftDeletedEnrollmentWithAProgramMessage()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     ProgramMessageRecipients programMessageRecipients = new ProgramMessageRecipients();
     programMessageRecipients.setEmailAddresses(Sets.newHashSet("testemail"));
     programMessageRecipients.setPhoneNumbers(Sets.newHashSet("testphone"));
@@ -313,11 +314,11 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
             .build();
     manager.save(trackedEntityB);
     programMessageService.saveProgramMessage(message);
-    assertNotNull(trackedEntityService.getTrackedEntity(trackedEntityB.getUid()));
+    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(trackedEntityB)));
     manager.delete(trackedEntityB);
     assertThrows(
         NotFoundException.class,
-        () -> trackedEntityService.getTrackedEntity(trackedEntityB.getUid()));
+        () -> trackedEntityService.getTrackedEntity(UID.of(trackedEntityB)));
     assertTrue(trackedEntityExistsIncludingDeleted(trackedEntityB.getUid()));
 
     maintenanceService.deleteSoftDeletedTrackedEntities();
@@ -327,7 +328,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDeleteSoftDeletedEnrollmentLinkedToATrackedEntityDataValueAudit()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     DataElement dataElement = createDataElement('A');
     dataElementService.addDataElement(dataElement);
     Event eventA = new Event(enrollment, program.getProgramStageByStage(1));
@@ -393,7 +394,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDeleteSoftDeletedEnrollmentLinkedToARelationshipItem()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     RelationshipType rType = createRelationshipType('A');
     rType.getFromConstraint().setRelationshipEntity(RelationshipEntity.PROGRAM_INSTANCE);
     rType.getFromConstraint().setProgram(program);
@@ -452,7 +453,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
         audits.stream()
             .filter(a -> a.getKlass().equals("org.hisp.dhis.trackedentity.TrackedEntity"))
             .count());
-    audits.forEach(a -> assertSame(a.getAuditType(), AuditType.DELETE));
+    audits.forEach(a -> assertEquals(AuditType.DELETE, a.getAuditType()));
   }
 
   @Test
@@ -501,10 +502,10 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   }
 
   private boolean enrollmentExistsIncludingDeleted(Enrollment enrollment)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
-            .enrollmentUids(Set.of(enrollment.getUid()))
+            .enrollments(enrollment)
             .orgUnitMode(ALL)
             .includeDeleted(true)
             .build();

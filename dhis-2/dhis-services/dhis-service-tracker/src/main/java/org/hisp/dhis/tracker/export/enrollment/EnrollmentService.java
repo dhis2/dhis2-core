@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.export.enrollment;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -39,27 +40,29 @@ import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 
 public interface EnrollmentService {
-  Enrollment getEnrollment(String uid) throws ForbiddenException, NotFoundException;
+  Enrollment getEnrollment(UID uid) throws ForbiddenException, NotFoundException;
 
-  Enrollment getEnrollment(String uid, EnrollmentParams params, boolean includeDeleted)
+  Enrollment getEnrollment(UID uid, EnrollmentParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
 
   RelationshipItem getEnrollmentInRelationshipItem(
-      String uid, EnrollmentParams params, boolean includeDeleted) throws NotFoundException;
+      UID uid, EnrollmentParams params, boolean includeDeleted) throws NotFoundException;
 
   /** Get all enrollments matching given params. */
+  @Nonnull
   List<Enrollment> getEnrollments(EnrollmentOperationParams params)
-      throws BadRequestException, ForbiddenException, NotFoundException;
+      throws BadRequestException, ForbiddenException;
 
   /** Get a page of enrollments matching given params. */
+  @Nonnull
   Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
-      throws BadRequestException, ForbiddenException, NotFoundException;
+      throws BadRequestException, ForbiddenException;
 
   /**
    * Get event matching given {@code UID} under the privileges the user in the context. This method
    * does not get the events relationships.
    */
-  List<Enrollment> getEnrollments(@Nonnull List<String> uids) throws ForbiddenException;
+  List<Enrollment> getEnrollments(@Nonnull Set<UID> uids) throws ForbiddenException;
 
   /**
    * Fields the {@link #getEnrollments(EnrollmentOperationParams)} can order enrollments by.

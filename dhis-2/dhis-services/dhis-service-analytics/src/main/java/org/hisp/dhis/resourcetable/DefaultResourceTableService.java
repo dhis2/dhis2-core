@@ -112,6 +112,14 @@ public class DefaultResourceTableService implements ResourceTableService {
 
   @Override
   @Transactional
+  public void replicateAnalyticsResourceTables() {
+    for (ResourceTable table : getResourceTables()) {
+      resourceTableStore.replicateAnalyticsResourceTable(table);
+    }
+  }
+
+  @Override
+  @Transactional
   public void generateDataApprovalResourceTables() {
     for (ResourceTable table : getApprovalResourceTables()) {
       resourceTableStore.generateResourceTable(table);

@@ -29,6 +29,7 @@ package org.hisp.test.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
@@ -46,7 +47,7 @@ class RelationshipUtilsTest {
 
   private static final String ENROLLMENT_UID = "ENROLLMENT_UID";
 
-  private static final String EVENT_UID = "EVENT_UID";
+  private static final UID EVENT_UID = UID.generate();
 
   private static final String RELATIONSHIP_TYPE_UID = "RELATIONSHIP_TYPE_UID";
 
@@ -67,7 +68,7 @@ class RelationshipUtilsTest {
     enrollmentA = new Enrollment();
     enrollmentA.setUid(ENROLLMENT_UID);
     eventA = new Event();
-    eventA.setUid(EVENT_UID);
+    eventA.setUid(EVENT_UID.getValue());
     relationshipType = new RelationshipType();
     relationshipType.setUid(RELATIONSHIP_TYPE_UID);
   }

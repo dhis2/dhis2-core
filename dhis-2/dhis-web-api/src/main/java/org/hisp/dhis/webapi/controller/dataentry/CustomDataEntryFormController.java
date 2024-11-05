@@ -44,7 +44,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = DataEntryForm.class)
+@OpenApi.Document(
+    entity = DataEntryForm.class,
+    classifiers = {"team:platform", "purpose:data"})
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/dataEntry")

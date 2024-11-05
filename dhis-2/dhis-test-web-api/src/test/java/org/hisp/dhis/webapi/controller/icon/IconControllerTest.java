@@ -231,6 +231,12 @@ class IconControllerTest extends PostgresControllerIntegrationTestBase {
         () -> String.format("mismatch in number of expected Icon(s), fetched %s", icons));
   }
 
+  @Test
+  void testRepairPhantomIcons() {
+    JsonWebMessage msg = PATCH("/icons").content().as(JsonWebMessage.class);
+    assertEquals("0 icons repaired", msg.getMessage());
+  }
+
   private JsonWebMessage createIcon(Set<String> keywords, String key) throws ConflictException {
     return createIcon(createFileResource(), keywords, key);
   }

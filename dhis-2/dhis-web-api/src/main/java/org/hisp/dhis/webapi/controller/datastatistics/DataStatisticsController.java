@@ -74,7 +74,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-@OpenApi.Document(domain = DataStatistics.class)
+@OpenApi.Document(
+    entity = DataStatistics.class,
+    classifiers = {"team:analytics", "purpose:analytics"})
 @Controller
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

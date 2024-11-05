@@ -153,7 +153,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
   private static final String TABLE_PREFIX = "analytics_event_";
 
-  private static final String FROM_CLAUSE = "from event where eventid=ev.eventid";
+  private static final String FROM_CLAUSE = "from \"event\" where eventid=ev.eventid";
 
   private static final String DATE_CLAUSE =
       "CASE WHEN 'SCHEDULE' = ev.status THEN ev.scheduleddate ELSE ev.occurreddate END";
@@ -445,7 +445,7 @@ class JdbcEventAnalyticsTableManagerTest {
             + FROM_CLAUSE
             + "  and eventdatavalues #>> '{%s,value}' ~* '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$') as \"%s\"";
     String aliasD5 =
-        "(select ou.uid from organisationunit ou where ou.uid = "
+        "(select ou.uid from \"organisationunit\" ou where ou.uid = "
             + "(select eventdatavalues #>> '{"
             + d5.getUid()
             + ", value}' "
@@ -458,9 +458,9 @@ class JdbcEventAnalyticsTableManagerTest {
             + FROM_CLAUSE
             + "  and eventdatavalues #>> '{%s,value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
     String aliasD7 =
-        "(select ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{%s, value}') || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}') from event where eventid=ev.eventid ) as \"%s\"";
+        "(select ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{%s, value}') || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}') from \"event\" where eventid=ev.eventid ) as \"%s\"";
     String aliasD5_geo =
-        "(select ou.geometry from organisationunit ou where ou.uid = (select eventdatavalues #>> '{"
+        "(select ou.geometry from \"organisationunit\" ou where ou.uid = (select eventdatavalues #>> '{"
             + d5.getUid()
             + ", value}' "
             + FROM_CLAUSE
@@ -468,7 +468,7 @@ class JdbcEventAnalyticsTableManagerTest {
             + d5.getUid()
             + "\"";
     String aliasD5_name =
-        "(select ou.name from organisationunit ou where ou.uid = (select eventdatavalues #>> '{"
+        "(select ou.name from \"organisationunit\" ou where ou.uid = (select eventdatavalues #>> '{"
             + d5.getUid()
             + ", value}' "
             + FROM_CLAUSE
@@ -576,8 +576,8 @@ class JdbcEventAnalyticsTableManagerTest {
 
     String aliasD1 = "(select eventdatavalues #>> '{%s, value}' " + FROM_CLAUSE + " ) as \"%s\"";
     String aliasTea1 =
-        "(select %s from organisationunit ou where ou.uid = (select value from "
-            + "trackedentityattributevalue where trackedentityid=en.trackedentityid and "
+        "(select %s from \"organisationunit\" ou where ou.uid = (select value from "
+            + "\"trackedentityattributevalue\" where trackedentityid=en.trackedentityid and "
             + "trackedentityattributeid=%d)) as \"%s\"";
 
     AnalyticsTableUpdateParams params =
@@ -668,10 +668,10 @@ class JdbcEventAnalyticsTableManagerTest {
     verify(jdbcTemplate).execute(sql.capture());
 
     String ouQuery =
-        "(select ou.%s from organisationunit ou where ou.uid = "
+        "(select ou.%s from \"organisationunit\" ou where ou.uid = "
             + "(select eventdatavalues #>> '{"
             + d5.getUid()
-            + ", value}' from event where "
+            + ", value}' from \"event\" where "
             + "eventid=ev.eventid )) as \""
             + d5.getUid()
             + "\"";
@@ -720,8 +720,8 @@ class JdbcEventAnalyticsTableManagerTest {
     verify(jdbcTemplate).execute(sql.capture());
 
     String ouQuery =
-        "(select ou.%s from organisationunit ou where ou.uid = "
-            + "(select value from trackedentityattributevalue where trackedentityid=en.trackedentityid and "
+        "(select ou.%s from \"organisationunit\" ou where ou.uid = "
+            + "(select value from \"trackedentityattributevalue\" where trackedentityid=en.trackedentityid and "
             + "trackedentityattributeid=9999)) as \""
             + tea.getUid()
             + "\"";
@@ -771,9 +771,9 @@ class JdbcEventAnalyticsTableManagerTest {
     verify(jdbcTemplate).execute(sql.capture());
 
     String ouEnrollmentLeftJoin =
-        "left join organisationunit enrollmentou on en.organisationunitid=enrollmentou.organisationunitid";
+        "left join \"organisationunit\" enrollmentou on en.organisationunitid=enrollmentou.organisationunitid";
     String ouRegistrationLeftJoin =
-        "left join organisationunit registrationou on te.organisationunitid=registrationou.organisationunitid";
+        "left join \"organisationunit\" registrationou on te.organisationunitid=registrationou.organisationunitid";
 
     assertThat(sql.getValue(), containsString(ouEnrollmentLeftJoin));
     assertThat(sql.getValue(), containsString(ouRegistrationLeftJoin));
@@ -799,7 +799,7 @@ class JdbcEventAnalyticsTableManagerTest {
             "select temp.supportedyear from (select distinct extract(year from "
                 + DATE_CLAUSE
                 + ") as supportedyear "
-                + "from event ev inner join enrollment en on ev.enrollmentid = en.enrollmentid "
+                + "from \"event\" ev inner join \"enrollment\" en on ev.enrollmentid = en.enrollmentid "
                 + "where ev.lastupdated <= '2019-08-01T00:00:00' and en.programid = 0 and ("
                 + DATE_CLAUSE
                 + ") is not null "
@@ -980,8 +980,8 @@ class JdbcEventAnalyticsTableManagerTest {
             "select temp.supportedyear from (select distinct extract(year from "
                 + DATE_CLAUSE
                 + ") as supportedyear "
-                + "from event ev "
-                + "inner join enrollment en on ev.enrollmentid = en.enrollmentid "
+                + "from \"event\" ev "
+                + "inner join \"enrollment\" en on ev.enrollmentid = en.enrollmentid "
                 + "where ev.lastupdated <= '2019-08-01T00:00:00' and en.programid = 0 "
                 + "and ("
                 + DATE_CLAUSE
@@ -1015,8 +1015,8 @@ class JdbcEventAnalyticsTableManagerTest {
 
     String ouQuery =
         """
-        (select ou.%s from organisationunit ou where ou.uid = \
-        (select value from trackedentityattributevalue where trackedentityid=en.trackedentityid and \
+        (select ou.%s from \"organisationunit\" ou where ou.uid = \
+        (select value from \"trackedentityattributevalue\" where trackedentityid=en.trackedentityid and \
         trackedentityattributeid=9999)) as %s""";
 
     assertThat(sql.getValue(), containsString(String.format(ouQuery, "uid", quote(tea.getUid()))));
@@ -1041,8 +1041,8 @@ class JdbcEventAnalyticsTableManagerTest {
             + "extract(year from "
             + DATE_CLAUSE
             + ") as supportedyear "
-            + "from event ev "
-            + "inner join enrollment en on ev.enrollmentid = en.enrollmentid "
+            + "from \"event\" ev "
+            + "inner join \"enrollment\" en on ev.enrollmentid = en.enrollmentid "
             + "where ev.lastupdated <= '2019-08-01T00:00:00' "
             + "and en.programid = "
             + program.getId()

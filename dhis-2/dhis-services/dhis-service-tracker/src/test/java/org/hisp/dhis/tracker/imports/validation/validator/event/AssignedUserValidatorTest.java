@@ -34,7 +34,7 @@ import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidatio
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasWarning;
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
@@ -139,7 +139,7 @@ class AssignedUserValidatorTest extends TestBase {
   void testEventWithNotValidUsername() {
     // given
     Event event = new Event();
-    event.setEvent(CodeGenerator.generateUid());
+    event.setEvent(UID.generate());
     event.setAssignedUser(INVALID_USER);
     event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
 
@@ -154,7 +154,7 @@ class AssignedUserValidatorTest extends TestBase {
   void testEventWithUserNotPresentInPreheat() {
     // given
     Event event = new Event();
-    event.setEvent(CodeGenerator.generateUid());
+    event.setEvent(UID.generate());
     event.setAssignedUser(VALID_USER);
     event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
 
@@ -173,7 +173,7 @@ class AssignedUserValidatorTest extends TestBase {
   void testEventWithNotEnabledUserAssignment() {
     // given
     Event event = new Event();
-    event.setEvent(CodeGenerator.generateUid());
+    event.setEvent(UID.generate());
     event.setAssignedUser(VALID_USER);
     event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
 
@@ -191,7 +191,7 @@ class AssignedUserValidatorTest extends TestBase {
   void testEventWithNullEnabledUserAssignment() {
     // given
     Event event = new Event();
-    event.setEvent(CodeGenerator.generateUid());
+    event.setEvent(UID.generate());
     event.setAssignedUser(VALID_USER);
     event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
 

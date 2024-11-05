@@ -171,6 +171,11 @@ public class DataElement extends BaseDimensionalItemObject
     return element.getDataSet().getDataSetElements().remove(element);
   }
 
+  public void addDataSetElement(DataSetElement element) {
+    dataSetElements.add(element);
+    element.getDataSet().getDataSetElements().add(element);
+  }
+
   /**
    * Returns the resolved category combinations by joining the category combinations of the data set
    * elements of which this data element is part of and the category combination linked directly

@@ -143,7 +143,7 @@ class IndicatorMergeProcessorTest extends PostgresIntegrationTestBase {
 
     // given merge params with an invalid source indicator
     MergeParams params = new MergeParams();
-    params.setSources(Set.of(UID.of(validSource1.getUid()), UID.of("Uid00000011")));
+    params.setSources(UID.of(validSource1.getUid(), "Uid00000011"));
     params.setTarget(UID.of(validTarget.getUid()));
     params.setMergeType(MergeType.INDICATOR);
 
@@ -219,7 +219,7 @@ class IndicatorMergeProcessorTest extends PostgresIntegrationTestBase {
 
     // given merge params with a target indicator and source indicators
     MergeParams params = new MergeParams();
-    params.setSources(Set.of(UID.of(validSource1.getUid()), UID.of(validSource2.getUid())));
+    params.setSources(UID.of(validSource1.getUid(), validSource2.getUid()));
     params.setTarget(UID.of(validTarget.getUid()));
     params.setDeleteSources(true);
     params.setMergeType(MergeType.INDICATOR);
