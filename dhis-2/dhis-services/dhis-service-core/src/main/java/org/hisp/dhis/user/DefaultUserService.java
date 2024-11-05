@@ -998,7 +998,8 @@ public class DefaultUserService implements UserService {
   @Transactional
   public void enrollTOTP2FA(User user) {
     if (user.isTwoFactorEnabled()) {
-      throw new IllegalStateException("User has 2FA enabled, disable first");
+      throw new IllegalStateException(
+          "User has 2FA enabled already, disable first to enroll again");
     }
     String newSecret = TWO_FACTOR_CODE_APPROVAL_PREFIX + Base32.random();
     user.setSecret(newSecret);
@@ -1010,10 +1011,11 @@ public class DefaultUserService implements UserService {
   @Transactional
   public void enrollEmail2FA(User user) {
     if (user.isTwoFactorEnabled()) {
-      throw new IllegalStateException("User has 2FA enabled, disable first");
+      throw new IllegalStateException(
+          "User has 2FA enabled already, disable first to enroll again");
     }
     if (!isEmailVerified(user)) {
-      throw new IllegalStateException("User email is not verified");
+      throw new IllegalStateException("User's email is not verified");
     }
 
     user.setTwoFactorType(TwoFactorType.EMAIL);
@@ -1021,9 +1023,7 @@ public class DefaultUserService implements UserService {
     Email2FACode email2FACode = getEmail2FAForApprovalCode();
     user.setSecret(email2FACode.encodedCode());
 
-    if (!sendEmail2FACode(user, email2FACode.code())) {
-      throw new IllegalStateException("Could not send 2FA code email");
-    }
+    trySendingEmail2FACode(user, email2FACode.code());
 
     updateUser(user);
   }
@@ -1032,21 +1032,20 @@ public class DefaultUserService implements UserService {
   @Transactional
   public void sendEmail2FACode(User user) {
     if (!user.isTwoFactorEnabled()) {
-      throw new IllegalStateException("User has not 2FA enabled, enable first");
+      throw new IllegalStateException(
+          "User has not enabled 2FA , enable before trying to send code");
     }
     if (!user.getTwoFactorType().equals(TwoFactorType.EMAIL)) {
       throw new IllegalStateException("User has not email 2FA enabled");
     }
     if (!isEmailVerified(user)) {
-      throw new IllegalStateException("User email is not verified");
+      throw new IllegalStateException("User's email is not verified");
     }
 
     Email2FACode email2FACode = getEmail2FACode();
     user.setSecret(email2FACode.encodedCode());
 
-    if (!sendEmail2FACode(user, email2FACode.code())) {
-      throw new IllegalStateException("Could not send 2FA code email");
-    }
+    trySendingEmail2FACode(user, email2FACode.code());
 
     updateUser(user);
   }
@@ -1071,7 +1070,7 @@ public class DefaultUserService implements UserService {
     return new Email2FACode(code, encodedCode);
   }
 
-  private boolean sendEmail2FACode(User user, String code) {
+  private void trySendingEmail2FACode(User user, String code) {
     String applicationTitle = settingsProvider.getCurrentSettings().getApplicationTitle();
     if (applicationTitle == null || applicationTitle.isEmpty()) {
       applicationTitle = DEFAULT_APPLICATION_TITLE;
@@ -1095,7 +1094,11 @@ public class DefaultUserService implements UserService {
     OutboundMessageResponse status =
         emailMessageSender.sendMessage(messageSubject, messageBody, null, null, Set.of(user), true);
 
-    return status.getResponseObject() == EmailResponse.SENT;
+    boolean success = status.getResponseObject() == EmailResponse.SENT;
+
+    if (!success) {
+      throw new IllegalStateException("Sending 2FA code with email failed");
+    }
   }
 
   @Override
