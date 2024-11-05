@@ -40,6 +40,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
@@ -61,6 +62,7 @@ import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.user.UserDetails;
+import org.locationtech.jts.geom.Geometry;
 import org.springframework.stereotype.Component;
 
 /**
@@ -265,8 +267,8 @@ public class EventPersister
           null,
           "geometry",
           event,
-          event.getGeometry() != null ? event.getGeometry().toString() : null,
-          originalEvent.getGeometry() != null ? originalEvent.getGeometry().toString() : null,
+          event.getGeometry() != null ? formatGeometry(event.getGeometry()) : null,
+          originalEvent.getGeometry() != null ? formatGeometry(originalEvent.getGeometry()) : null,
           changeLogType);
     }
   }
@@ -377,6 +379,12 @@ public class EventPersister
   private String formatDate(Date date) {
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     return formatter.format(date);
+  }
+
+  private String formatGeometry(Geometry geometry) {
+    return Stream.of(geometry.getCoordinates())
+        .map(c -> String.format("(%f, %f)", c.x, c.y))
+        .collect(Collectors.joining(", "));
   }
 
   private <V> boolean isNewProperty(

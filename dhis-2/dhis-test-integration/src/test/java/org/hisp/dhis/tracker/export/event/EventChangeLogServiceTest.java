@@ -400,7 +400,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     assertNumberOfChanges(1, geometryChangeLogs);
     assertAll(
         () ->
-            assertPropertyCreate("geometry", "POINT (-11.4197 8.1039)", geometryChangeLogs.get(0)));
+            assertPropertyCreate("geometry", "(-11.419700, 8.103900)", geometryChangeLogs.get(0)));
   }
 
   @Test
@@ -420,11 +420,11 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
         () ->
             assertPropertyUpdate(
                 "geometry",
-                "POINT (-11.4197 8.1039)",
-                geometry.toString(),
+                "(-11.419700, 8.103900)",
+                "(16.435547, 49.264220)",
                 geometryChangeLogs.get(0)),
         () ->
-            assertPropertyCreate("geometry", "POINT (-11.4197 8.1039)", geometryChangeLogs.get(1)));
+            assertPropertyCreate("geometry", "(-11.419700, 8.103900)", geometryChangeLogs.get(1)));
   }
 
   @Test
@@ -440,10 +440,9 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     assertNumberOfChanges(2, geometryChangeLogs);
     assertAll(
+        () -> assertPropertyDelete("geometry", "(-11.419700, 8.103900)", geometryChangeLogs.get(0)),
         () ->
-            assertPropertyDelete("geometry", "POINT (-11.4197 8.1039)", geometryChangeLogs.get(0)),
-        () ->
-            assertPropertyCreate("geometry", "POINT (-11.4197 8.1039)", geometryChangeLogs.get(1)));
+            assertPropertyCreate("geometry", "(-11.419700, 8.103900)", geometryChangeLogs.get(1)));
   }
 
   private void updateDataValue(String event, String dataElementUid, String newValue)
