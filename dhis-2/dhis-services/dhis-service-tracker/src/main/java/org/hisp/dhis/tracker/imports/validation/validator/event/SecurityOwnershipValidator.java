@@ -198,11 +198,21 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       return null;
     }
 
-    Enrollment enrollment = bundle.getPreheat().getEnrollment(event.getEnrollment());
+    // TODO: Check if this fix was a bug
+    if (bundle.getStrategy(event).isUpdateOrDelete()) {
+      return bundle
+          .getPreheat()
+          .getEvent(event.getUid())
+          .getEnrollment()
+          .getTrackedEntity()
+          .getUid();
+    }
+
+    Enrollment enrollment = bundle.getPreheat().getEnrollment(event.getEnrollment().getValue());
 
     if (enrollment == null) {
       return bundle
-          .findEnrollmentByUid(event.getEnrollment())
+          .findEnrollmentByUid(event.getEnrollment().getValue())
           .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getTrackedEntity)
           .orElse(null);
     }

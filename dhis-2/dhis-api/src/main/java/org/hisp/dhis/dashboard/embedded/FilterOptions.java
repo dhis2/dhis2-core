@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,40 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.validation.validator.event;
+package org.hisp.dhis.dashboard.embedded;
 
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1128;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.validation.Reporter;
-import org.hisp.dhis.tracker.imports.validation.Validator;
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class FilterOptions implements Serializable {
+  /** Whether filter sidebar should be accessible when opening the dashboard. */
+  @JsonProperty private boolean visible;
 
-/**
- * @author Enrico Colasante
- */
-class UpdatableFieldsValidator implements Validator<org.hisp.dhis.tracker.imports.domain.Event> {
-  @Override
-  public void validate(
-      Reporter reporter, TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event) {
-    Event preheatEvent = bundle.getPreheat().getEvent(event.getEvent());
-    ProgramStage programStage = preheatEvent.getProgramStage();
-
-    reporter.addErrorIf(
-        () -> !event.getProgramStage().isEqualTo(programStage), event, E1128, "programStage");
-    reporter.addErrorIf(
-        () ->
-            event.getEnrollment() != null
-                && !event.getEnrollment().getValue().equals(preheatEvent.getEnrollment().getUid()),
-        event,
-        E1128,
-        "enrollment");
-  }
-
-  @Override
-  public boolean needsToRun(TrackerImportStrategy strategy) {
-    return strategy == TrackerImportStrategy.UPDATE;
-  }
+  /** Whether filter sidebar should be expanded when opening the dashboard. */
+  @JsonProperty private boolean expanded;
 }

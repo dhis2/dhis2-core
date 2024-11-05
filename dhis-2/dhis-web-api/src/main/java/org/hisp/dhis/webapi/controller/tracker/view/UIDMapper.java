@@ -27,18 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import org.hisp.dhis.common.UID;
+import org.mapstruct.Mapper;
 
-public interface ViewMapper<T, R> {
-  R from(T from);
+@Deprecated(forRemoval = true)
+@Mapper
+public interface UIDMapper {
 
-  default List<R> fromCollection(Collection<T> froms) {
-    return Optional.ofNullable(froms).orElse(Collections.emptySet()).stream()
-        .map(this::from)
-        .collect(Collectors.toList());
+  default UID fromString(String stringUid) {
+    return stringUid == null ? null : UID.of(stringUid);
   }
 }

@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -40,6 +41,7 @@ import org.mapstruct.Mapping;
       NoteMapper.class,
       DataValueMapper.class,
       InstantMapper.class,
+      UIDMapper.class,
       MetadataIdentifierMapper.class
     })
 interface EventMapper extends DomainMapper<Event, org.hisp.dhis.tracker.imports.domain.Event> {

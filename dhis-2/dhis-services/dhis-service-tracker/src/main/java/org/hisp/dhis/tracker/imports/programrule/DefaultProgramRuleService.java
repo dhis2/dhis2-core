@@ -112,7 +112,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
               return programRuleEngine.evaluateEnrollmentAndEvents(
                   enrollment,
-                  getEventsFromEnrollment(enrollment.getEnrollment(), bundle, preheat),
+                  getEventsFromEnrollment(e.getUid(), bundle, preheat),
                   preheat.getProgram(e.getProgram()),
                   bundle.getUser());
             })
@@ -124,9 +124,9 @@ class DefaultProgramRuleService implements ProgramRuleService {
       TrackerBundle bundle, TrackerPreheat preheat) {
     Set<Enrollment> enrollments =
         bundle.getEvents().stream()
-            .filter(event -> bundle.findEnrollmentByUid(event.getEnrollment()).isEmpty())
+            .filter(event -> bundle.findEnrollmentByUid(event.getEnrollment().getValue()).isEmpty())
             .filter(event -> preheat.getProgram(event.getProgram()).isRegistration())
-            .map(event -> preheat.getEnrollment(event.getEnrollment()))
+            .map(event -> preheat.getEnrollment(event.getEnrollment().getValue()))
             .collect(Collectors.toSet());
 
     return enrollments.stream()
@@ -137,7 +137,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
               RuleEnrollment enrollment = RuleEngineMapper.mapSavedEnrollment(e, attributes);
               return programRuleEngine.evaluateEnrollmentAndEvents(
                   enrollment,
-                  getEventsFromEnrollment(e.getUid(), bundle, preheat),
+                  getEventsFromEnrollment(UID.of(e), bundle, preheat),
                   e.getProgram(),
                   bundle.getUser());
             })
@@ -203,7 +203,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
   // Get all the events linked to enrollment from the payload and the DB,
   // using the one from payload if they are present in both places
   private List<RuleEvent> getEventsFromEnrollment(
-      String enrollmentUid, TrackerBundle bundle, TrackerPreheat preheat) {
+      UID enrollmentUid, TrackerBundle bundle, TrackerPreheat preheat) {
     Stream<Event> events;
     try {
       events =
@@ -212,10 +212,10 @@ class DefaultProgramRuleService implements ProgramRuleService {
                   EventOperationParams.builder()
                       .eventParams(EventParams.TRUE)
                       .orgUnitMode(ACCESSIBLE)
-                      .enrollments(Set.of(UID.of(enrollmentUid)))
+                      .enrollments(Set.of(enrollmentUid))
                       .build())
               .stream()
-              .filter(e -> bundle.findEventByUid(e.getUid()).isEmpty());
+              .filter(e -> bundle.findEventByUid(UID.of(e)).isEmpty());
     } catch (BadRequestException | ForbiddenException e) {
       throw new RuntimeException(e);
     }

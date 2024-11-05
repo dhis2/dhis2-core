@@ -77,6 +77,10 @@
     <param name="clazz">org.hisp.dhis.dashboard.design.ItemConfig</param>
   </typedef>
 
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbEmbeddedDashboard">
+    <param name="clazz">org.hisp.dhis.dashboard.embedded.EmbeddedDashboard</param>
+  </typedef>
+
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbTextPattern">
     <param name="clazz">org.hisp.dhis.textpattern.TextPattern</param>
   </typedef>

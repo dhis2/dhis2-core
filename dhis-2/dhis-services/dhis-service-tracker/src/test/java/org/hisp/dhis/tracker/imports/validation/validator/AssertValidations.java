@@ -73,7 +73,7 @@ public class AssertValidations {
     }
 
     TrackerType type = dto.getTrackerType();
-    String uid = dto.getUid();
+    String uid = dto.getStringUid();
     assertFalse(
         reporter.getErrors().stream()
             .anyMatch(
@@ -132,7 +132,7 @@ public class AssertValidations {
       TrackerDto dto,
       ValidationCode code) {
     TrackerType type = dto.getTrackerType();
-    String uid = dto.getUid();
+    String uid = dto.getStringUid();
     assertFalse(
         validations.isEmpty(),
         validationType + " not found since " + validationType + "s is empty");
@@ -155,7 +155,7 @@ public class AssertValidations {
       ValidationCode code,
       String messageContains) {
     TrackerType type = dto.getTrackerType();
-    String uid = dto.getUid();
+    String uid = dto.getStringUid();
     assertFalse(
         validations.isEmpty(),
         validationType + " not found since " + validationType + "s is empty");
