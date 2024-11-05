@@ -32,12 +32,8 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import java.util.Set;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.json.domain.JsonCategoryOptionCombo;
-import org.hisp.dhis.test.webapi.json.domain.JsonDataElement;
-import org.hisp.dhis.test.webapi.json.domain.JsonDataElementGroup;
-import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -113,7 +109,6 @@ class DataIntegrityCategoryOptionComboDuplicatedTest extends AbstractDataIntegri
     assertNamedMetadataObjectExists("categoryOptionCombos", "Reddish");
     assertNamedMetadataObjectExists("categoryOptionCombos", "Not Red");
 
-
     /*We need to get the Red category option combo to be able to check the data integrity issues*/
 
     JsonObject response = GET("/categoryOptionCombos?fields=id,name&filter=name:eq:Red").content();
@@ -123,12 +118,11 @@ class DataIntegrityCategoryOptionComboDuplicatedTest extends AbstractDataIntegri
     /* There are four total category option combos, so we expect 25% */
     checkDataIntegritySummary(check, 1, 25, true);
 
-    Set<String> expectedCategoryOptCombos = Set.of(cocWithOptionsA,redCategoryOptionComboId);
+    Set<String> expectedCategoryOptCombos = Set.of(cocWithOptionsA, redCategoryOptionComboId);
     Set<String> expectedMessages = Set.of("Red", "Reddish");
     checkDataIntegrityDetailsIssues(
         check, expectedCategoryOptCombos, expectedMessages, Set.of(), "categoryOptionCombos");
   }
-
 
   @Test
   void testCategoryOptionCombosNotDuplicated() {
