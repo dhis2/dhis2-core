@@ -40,8 +40,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Value;
 import lombok.experimental.NonFinal;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 
 /**

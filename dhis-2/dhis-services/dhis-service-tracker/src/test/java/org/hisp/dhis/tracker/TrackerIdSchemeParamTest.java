@@ -28,22 +28,34 @@
 package org.hisp.dhis.tracker;
 
 import static org.hisp.dhis.common.CodeGenerator.generateUid;
-import static org.hisp.dhis.tracker.imports.TrackerIdScheme.ATTRIBUTE;
-import static org.hisp.dhis.tracker.imports.TrackerIdScheme.CODE;
-import static org.hisp.dhis.tracker.imports.TrackerIdScheme.NAME;
-import static org.hisp.dhis.tracker.imports.TrackerIdScheme.UID;
+import static org.hisp.dhis.tracker.TrackerIdScheme.ATTRIBUTE;
+import static org.hisp.dhis.tracker.TrackerIdScheme.CODE;
+import static org.hisp.dhis.tracker.TrackerIdScheme.NAME;
+import static org.hisp.dhis.tracker.TrackerIdScheme.UID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Map;
 import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.junit.jupiter.api.Test;
 
 class TrackerIdSchemeParamTest {
+
+  @Test
+  void testParams() {
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder()
+            .idScheme(TrackerIdSchemeParam.NAME)
+            .categoryOptionIdScheme(TrackerIdSchemeParam.ofAttribute(CodeGenerator.generateUid()))
+            .categoryOptionComboIdScheme(TrackerIdSchemeParam.CODE)
+            .build();
+
+    assertEquals(TrackerIdSchemeParam.NAME, params.getProgramIdScheme());
+  }
 
   @Test
   void toMetadataIdentifierUIDFromString() {
