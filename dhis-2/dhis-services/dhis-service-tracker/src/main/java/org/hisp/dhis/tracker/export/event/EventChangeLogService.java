@@ -75,7 +75,6 @@ public interface EventChangeLogService {
 
   void deleteTrackedEntityDataValueChangeLog(Event event);
 
-  @Transactional
   void deleteEventChangeLog(Event event);
 
   void deleteTrackedEntityDataValueChangeLog(DataElement dataElement);
