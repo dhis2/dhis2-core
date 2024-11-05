@@ -273,7 +273,7 @@ public class OpenApiController {
   private Api extractUncached(OpenApiScopingParams scoping, OpenApiGenerationParams generation) {
     Map<String, Set<String>> filters = new HashMap<>();
     for (String s : scoping.scope) {
-      int split = s.indexOf('.');
+      int split = s.indexOf(':');
       if (split > 0) {
         String key = s.substring(0, split);
         String value = s.substring(split + 1);

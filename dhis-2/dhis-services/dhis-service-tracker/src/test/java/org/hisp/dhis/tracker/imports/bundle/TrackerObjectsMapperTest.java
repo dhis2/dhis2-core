@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.bundle;
 
 import static org.hisp.dhis.program.EnrollmentStatus.ACTIVE;
+import static org.hisp.dhis.test.utils.Assertions.assertEqualUids;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -52,7 +54,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -69,11 +71,11 @@ class TrackerObjectsMapperTest extends TestBase {
 
   private static final Date YESTERDAY = DateUtils.addDays(NOW, -1);
 
-  private static final String TE_UID = CodeGenerator.generateUid();
+  private static final UID TE_UID = UID.generate();
 
-  private static final String ENROLLMENT_UID = CodeGenerator.generateUid();
+  private static final UID ENROLLMENT_UID = UID.generate();
 
-  private static final String EVENT_UID = CodeGenerator.generateUid();
+  private static final UID EVENT_UID = UID.generate();
 
   private static final String RELATIONSHIP_UID = CodeGenerator.generateUid();
 
@@ -158,7 +160,7 @@ class TrackerObjectsMapperTest extends TestBase {
   void shouldMapTrackedEntityWhenItIsACreation() {
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
         org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-            .trackedEntity(TE_UID)
+            .trackedEntity(TE_UID.getValue())
             .orgUnit(MetadataIdentifier.ofUid(organisationUnit.getUid()))
             .trackedEntityType(MetadataIdentifier.ofUid(trackerEntityType))
             .createdAtClient(NOW.toInstant())
@@ -177,7 +179,7 @@ class TrackerObjectsMapperTest extends TestBase {
     preheat.putTrackedEntities(List.of(trackedEntity()));
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
         org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-            .trackedEntity(TE_UID)
+            .trackedEntity(TE_UID.getValue())
             .orgUnit(MetadataIdentifier.ofUid(organisationUnit.getUid()))
             .trackedEntityType(MetadataIdentifier.ofUid(trackerEntityType))
             .createdAtClient(NOW.toInstant())
@@ -467,8 +469,8 @@ class TrackerObjectsMapperTest extends TestBase {
         org.hisp.dhis.tracker.imports.domain.Relationship.builder()
             .relationship(RELATIONSHIP_UID)
             .relationshipType(MetadataIdentifier.ofUid(TE_TO_ENROLLMENT_RELATIONSHIP_TYPE))
-            .from(RelationshipItem.builder().trackedEntity(TE_UID).build())
-            .to(RelationshipItem.builder().enrollment(ENROLLMENT_UID).build())
+            .from(RelationshipItem.builder().trackedEntity(TE_UID.getValue()).build())
+            .to(RelationshipItem.builder().enrollment(ENROLLMENT_UID.getValue()).build())
             .build();
 
     org.hisp.dhis.relationship.Relationship dbRelationship =
@@ -485,8 +487,8 @@ class TrackerObjectsMapperTest extends TestBase {
         org.hisp.dhis.tracker.imports.domain.Relationship.builder()
             .relationship(RELATIONSHIP_UID)
             .relationshipType(MetadataIdentifier.ofUid(TE_TO_EVENT_RELATIONSHIP_TYPE))
-            .from(RelationshipItem.builder().trackedEntity(TE_UID).build())
-            .to(RelationshipItem.builder().event(EVENT_UID).build())
+            .from(RelationshipItem.builder().trackedEntity(TE_UID.getValue()).build())
+            .to(RelationshipItem.builder().event(EVENT_UID.getValue()).build())
             .build();
 
     org.hisp.dhis.relationship.Relationship dbRelationship =
@@ -505,7 +507,7 @@ class TrackerObjectsMapperTest extends TestBase {
         org.hisp.dhis.tracker.imports.domain.Relationship.builder()
             .relationship(RELATIONSHIP_UID)
             .relationshipType(MetadataIdentifier.ofUid(TE_TO_TE_RELATIONSHIP_TYPE))
-            .from(RelationshipItem.builder().trackedEntity(TE_UID).build())
+            .from(RelationshipItem.builder().trackedEntity(TE_UID.getValue()).build())
             .to(RelationshipItem.builder().trackedEntity(toTrackedEntityUid).build())
             .build();
 
@@ -520,7 +522,7 @@ class TrackerObjectsMapperTest extends TestBase {
       TrackedEntity actual,
       UserDetails createdBy,
       UserDetails updatedBy) {
-    assertEquals(trackedEntity.getUid(), actual.getUid());
+    assertEquals(trackedEntity.getStringUid(), actual.getUid());
     assertEquals(trackedEntity.getOrgUnit().getIdentifier(), actual.getOrganisationUnit().getUid());
     assertEquals(
         trackedEntity.getTrackedEntityType().getIdentifier(),
@@ -542,8 +544,8 @@ class TrackerObjectsMapperTest extends TestBase {
       Enrollment actual,
       UserDetails createdBy,
       UserDetails updatedBy) {
-    assertEquals(enrollment.getUid(), actual.getUid());
-    assertEquals(enrollment.getTrackedEntity(), actual.getTrackedEntity().getUid());
+    assertEquals(enrollment.getStringUid(), actual.getUid());
+    assertEqualUids(enrollment.getTrackedEntity(), actual.getTrackedEntity());
     assertEquals(enrollment.getOrgUnit().getIdentifier(), actual.getOrganisationUnit().getUid());
     assertEquals(enrollment.getProgram().getIdentifier(), actual.getProgram().getUid());
     assertEquals(UserInfoSnapshot.from(createdBy), actual.getCreatedByUserInfo());
@@ -565,8 +567,8 @@ class TrackerObjectsMapperTest extends TestBase {
       Event actual,
       UserDetails createdBy,
       UserDetails updatedBy) {
-    assertEquals(event.getUid(), actual.getUid());
-    assertEquals(event.getEnrollment(), actual.getEnrollment().getUid());
+    assertEqualUids(event.getUid(), actual);
+    assertEqualUids(event.getEnrollment(), actual.getEnrollment());
     assertEquals(event.getOrgUnit().getIdentifier(), actual.getOrganisationUnit().getUid());
     assertEquals(event.getProgramStage().getIdentifier(), actual.getProgramStage().getUid());
     assertEquals(UserInfoSnapshot.from(createdBy), actual.getCreatedByUserInfo());
@@ -586,7 +588,7 @@ class TrackerObjectsMapperTest extends TestBase {
       org.hisp.dhis.tracker.imports.domain.Relationship relationship,
       Relationship actual,
       UserDetails createdBy) {
-    assertEquals(relationship.getUid(), actual.getUid());
+    assertEquals(relationship.getStringUid(), actual.getUid());
     assertEquals(createdBy.getUid(), actual.getLastUpdatedBy().getUid());
     assertEquals(
         DateUtils.fromInstant(relationship.getCreatedAtClient()), actual.getCreatedAtClient());
@@ -632,7 +634,7 @@ class TrackerObjectsMapperTest extends TestBase {
 
   private TrackedEntity trackedEntity() {
     TrackedEntity dbTrackedEntity = new TrackedEntity();
-    dbTrackedEntity.setUid(TE_UID);
+    dbTrackedEntity.setUid(TE_UID.getValue());
     dbTrackedEntity.setCreated(NOW);
     dbTrackedEntity.setCreatedByUserInfo(UserInfoSnapshot.from(creatingUser));
 
@@ -651,7 +653,7 @@ class TrackerObjectsMapperTest extends TestBase {
 
   private Enrollment enrollment(EnrollmentStatus status) {
     Enrollment dbEnrollment = new Enrollment();
-    dbEnrollment.setUid(ENROLLMENT_UID);
+    dbEnrollment.setUid(ENROLLMENT_UID.getValue());
     dbEnrollment.setCreated(NOW);
     dbEnrollment.setCreatedByUserInfo(UserInfoSnapshot.from(creatingUser));
     dbEnrollment.setLastUpdatedByUserInfo(UserInfoSnapshot.from(updatingUser));
@@ -669,7 +671,7 @@ class TrackerObjectsMapperTest extends TestBase {
 
   private Event event(EventStatus status) {
     Event dbEvent = new Event();
-    dbEvent.setUid(EVENT_UID);
+    dbEvent.setUid(EVENT_UID.getValue());
     dbEvent.setCreated(NOW);
     dbEvent.setCreatedByUserInfo(UserInfoSnapshot.from(creatingUser));
     dbEvent.setLastUpdatedByUserInfo(UserInfoSnapshot.from(updatingUser));

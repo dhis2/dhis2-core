@@ -40,8 +40,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -54,8 +53,8 @@ import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -76,7 +75,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class SecurityOwnershipValidatorTest extends TestBase {
   private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
 
-  private static final String TE_ID = "TE_ID";
+  private static final UID TE_ID = UID.generate();
 
   private static final String TE_TYPE_ID = "TE_TYPE_ID";
 
@@ -130,14 +129,14 @@ class SecurityOwnershipValidatorTest extends TestBase {
     programStage.setUid(PS_ID);
 
     trackedEntity = new TrackedEntity();
-    trackedEntity.setUid(TE_ID);
+    trackedEntity.setUid(TE_ID.getValue());
 
     TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new Reporter(idSchemes);
 
     TrackedEntityProgramOwnerOrgUnit owner =
-        new TrackedEntityProgramOwnerOrgUnit(TE_ID, PROGRAM_ID, organisationUnit);
-    ownerOrgUnit = Map.of(TE_ID, Map.of(PROGRAM_ID, owner));
+        new TrackedEntityProgramOwnerOrgUnit(TE_ID.getValue(), PROGRAM_ID, organisationUnit);
+    ownerOrgUnit = Map.of(TE_ID.getValue(), Map.of(PROGRAM_ID, owner));
 
     validator = new SecurityOwnershipValidator(aclService, ownershipAccessManager);
   }
@@ -158,7 +157,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   void verifyValidationSuccessForEnrollment() {
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .trackedEntity(TE_ID)
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
@@ -167,7 +166,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
-    when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity);
+    when(preheat.getTrackedEntity(TE_ID.getValue())).thenReturn(trackedEntity);
     when(aclService.canDataWrite(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
@@ -180,7 +179,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   void verifyCaptureScopeIsCheckedForEnrollmentCreation() {
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .trackedEntity(TE_ID)
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
@@ -189,7 +188,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE);
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
-    when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity);
+    when(preheat.getTrackedEntity(TE_ID.getValue())).thenReturn(trackedEntity);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
     UserDetails userDetails = setUpUserWithOrgUnit();
@@ -203,7 +202,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   @Test
   void verifyCaptureScopeIsCheckedForEnrollmentDeletion() {
-    String enrollmentUid = CodeGenerator.generateUid();
+    UID enrollmentUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .enrollment(enrollmentUid)
@@ -221,7 +220,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
     when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
     when(ownershipAccessManager.hasAccess(
-            userDetails, enrollment.getTrackedEntity(), organisationUnit, program))
+            userDetails, enrollment.getTrackedEntity().getValue(), organisationUnit, program))
         .thenReturn(true);
 
     validator.validate(reporter, bundle, enrollment);
@@ -233,7 +232,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   void verifyValidationSuccessForEnrollmentWithoutEventsUsingDeleteStrategy() {
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .trackedEntity(TE_ID)
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
@@ -249,7 +248,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
     when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
     when(ownershipAccessManager.hasAccess(
-            userDetails, enrollment.getTrackedEntity(), organisationUnit, program))
+            userDetails, enrollment.getTrackedEntity().getValue(), organisationUnit, program))
         .thenReturn(true);
 
     validator.validate(reporter, bundle, enrollment);
@@ -261,7 +260,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   void verifyValidationSuccessForEnrollmentUsingDeleteStrategyAndUserWithCascadeAuthority() {
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .trackedEntity(TE_ID)
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
@@ -280,7 +279,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
     when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
     when(ownershipAccessManager.hasAccess(
-            userDetails, enrollment.getTrackedEntity(), organisationUnit, program))
+            userDetails, enrollment.getTrackedEntity().getValue(), organisationUnit, program))
         .thenReturn(true);
 
     validator.validate(reporter, bundle, enrollment);
@@ -293,7 +292,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
       verifyValidationFailsForEnrollmentWithoutEventsUsingDeleteStrategyAndUserNotInOrgUnitHierarchy() {
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .trackedEntity(TE_ID)
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
@@ -317,7 +316,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   void verifyValidationFailsForEnrollmentUsingDeleteStrategyAndUserWithoutCascadeAuthority() {
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .trackedEntity(TE_ID)
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
@@ -341,7 +340,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   @Test
   void verifyValidationFailsForEnrollmentDeletionAndUserWithoutProgramWriteAccess() {
-    String enrollmentUid = CodeGenerator.generateUid();
+    UID enrollmentUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .enrollment(enrollmentUid)
@@ -366,7 +365,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   @Test
   void verifyValidationFailsForEnrollmentDeletionAndUserWithoutTrackedEntityTypeReadAccess() {
-    String enrollmentUid = CodeGenerator.generateUid();
+    UID enrollmentUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .enrollment(enrollmentUid)
@@ -391,19 +390,19 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   private TrackedEntity teWithNoEnrollments() {
     TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
-    trackedEntity.setUid(TE_ID);
+    trackedEntity.setUid(TE_ID.getValue());
     trackedEntity.setEnrollments(Sets.newHashSet());
     trackedEntity.setTrackedEntityType(trackedEntityType);
 
     return trackedEntity;
   }
 
-  private Enrollment getEnrollment(String enrollmentUid) {
-    if (StringUtils.isEmpty(enrollmentUid)) {
-      enrollmentUid = CodeGenerator.generateUid();
+  private Enrollment getEnrollment(UID enrollmentUid) {
+    if (enrollmentUid == null) {
+      enrollmentUid = UID.generate();
     }
     Enrollment enrollment = new Enrollment();
-    enrollment.setUid(enrollmentUid);
+    enrollment.setUid(enrollmentUid.getValue());
     enrollment.setOrganisationUnit(organisationUnit);
     enrollment.setTrackedEntity(teWithNoEnrollments());
     enrollment.setProgram(program);

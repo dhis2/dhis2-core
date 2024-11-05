@@ -33,6 +33,7 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
@@ -101,18 +102,18 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
   private TrackedEntity getTrackedEntityWhenStrategyCreate(
       TrackerBundle bundle, Enrollment enrollment) {
     TrackedEntity trackedEntity =
-        bundle.getPreheat().getTrackedEntity(enrollment.getTrackedEntity());
+        bundle.getPreheat().getTrackedEntity(enrollment.getTrackedEntity().getValue());
 
     if (trackedEntity != null) {
       return trackedEntity;
     }
 
     return bundle
-        .findTrackedEntityByUid(enrollment.getTrackedEntity())
+        .findTrackedEntityByUid(enrollment.getTrackedEntity().getValue())
         .map(
             entity -> {
               TrackedEntity newEntity = new TrackedEntity();
-              newEntity.setUid(entity.getUid());
+              newEntity.setUid(entity.getStringUid());
               newEntity.setOrganisationUnit(
                   bundle.getPreheat().getOrganisationUnit(entity.getOrgUnit()));
               return newEntity;
@@ -120,7 +121,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
         .orElseGet(
             () -> {
               TrackedEntity newEntity = new TrackedEntity();
-              newEntity.setUid(enrollment.getTrackedEntity());
+              newEntity.setUid(enrollment.getTrackedEntity().getValue());
               return newEntity;
             });
   }
@@ -136,7 +137,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
     }
   }
 
-  private boolean enrollmentHasEvents(TrackerPreheat preheat, String enrollmentUid) {
+  private boolean enrollmentHasEvents(TrackerPreheat preheat, UID enrollmentUid) {
     return preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent().contains(enrollmentUid);
   }
 

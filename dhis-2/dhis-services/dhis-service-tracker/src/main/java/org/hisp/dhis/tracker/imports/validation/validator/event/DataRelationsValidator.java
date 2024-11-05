@@ -42,7 +42,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -77,7 +76,7 @@ class DataRelationsValidator implements Validator<Event> {
   private void validateProgramWithRegistrationHasTrackedEntity(
       Reporter reporter, TrackerBundle bundle, Program program, Event event) {
     if (program.isRegistration() && !enrollmentFromEventHasTrackedEntity(bundle, event)) {
-      reporter.addError(event, E1313, event);
+      reporter.addError(event, E1313, event.getEvent());
     }
   }
 
@@ -94,7 +93,7 @@ class DataRelationsValidator implements Validator<Event> {
       return;
     }
 
-    if (StringUtils.isEmpty(event.getEnrollment())) {
+    if (event.getEnrollment() == null) {
       reporter.addError(event, E1033, event.getEvent());
     } else {
       Program enrollmentProgram = getEnrollmentProgramFromEvent(bundle, event);
@@ -346,6 +345,11 @@ class DataRelationsValidator implements Validator<Event> {
    * @return whether the enrollment of the event has an existing tracked entity
    */
   private boolean enrollmentFromEventHasTrackedEntity(TrackerBundle bundle, Event event) {
+    // TODO: Check logic here
+    if (event.getEnrollment() == null) {
+      return true;
+    }
+
     Enrollment enrollment = bundle.getPreheat().getEnrollment(event.getEnrollment());
 
     if (enrollment == null) {

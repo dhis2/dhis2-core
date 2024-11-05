@@ -128,7 +128,7 @@ public abstract class AttributeValidator {
           () ->
               fileResource != null
                   && fileResource.getFileResourceOwner() != null
-                  && !fileResource.getFileResourceOwner().equals(trackerDto.getUid()),
+                  && !fileResource.getFileResourceOwner().equals(trackerDto.getStringUid()),
           trackerDto,
           E1009,
           value);

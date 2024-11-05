@@ -33,13 +33,14 @@ import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidatio
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -68,9 +69,9 @@ class UpdatableFieldsValidatorTest {
 
   private static final String TRACKED_ENTITY_ID = "TrackedEntityId";
 
-  private static final String ENROLLMENT_ID = "EnrollmentId";
+  private static final UID ENROLLMENT_ID = UID.generate();
 
-  private static final String EVENT_ID = "EventId";
+  private static final UID EVENT_UID = UID.generate();
 
   private UpdatableFieldsValidator validator;
 
@@ -95,7 +96,7 @@ class UpdatableFieldsValidatorTest {
 
     when(preheat.getTrackedEntity(TRACKED_ENTITY_ID)).thenReturn(trackedEntity());
     when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(getEnrollment());
-    when(preheat.getEvent(EVENT_ID)).thenReturn(event());
+    when(preheat.getEvent(EVENT_UID)).thenReturn(event());
 
     when(bundle.getPreheat()).thenReturn(preheat);
 
@@ -124,7 +125,7 @@ class UpdatableFieldsValidatorTest {
   @Test
   void verifyEventValidationFailsWhenUpdateEnrollment() {
     org.hisp.dhis.tracker.imports.domain.Event event = validEvent();
-    event.setEnrollment("NewEnrollmentId");
+    event.setEnrollment(UID.generate());
 
     validator.validate(reporter, bundle, event);
 
@@ -133,7 +134,7 @@ class UpdatableFieldsValidatorTest {
 
   private org.hisp.dhis.tracker.imports.domain.Event validEvent() {
     return org.hisp.dhis.tracker.imports.domain.Event.builder()
-        .event(EVENT_ID)
+        .event(EVENT_UID)
         .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
         .enrollment(ENROLLMENT_ID)
         .build();
@@ -154,7 +155,7 @@ class UpdatableFieldsValidatorTest {
     program.setUid(PROGRAM_ID);
 
     Enrollment enrollment = new Enrollment();
-    enrollment.setUid(ENROLLMENT_ID);
+    enrollment.setUid(ENROLLMENT_ID.getValue());
     enrollment.setProgram(program);
     enrollment.setTrackedEntity(trackedEntity());
     return enrollment;
@@ -165,7 +166,7 @@ class UpdatableFieldsValidatorTest {
     programStage.setUid(PROGRAM_STAGE_ID);
 
     Event event = new Event();
-    event.setUid(EVENT_ID);
+    event.setUid(EVENT_UID.getValue());
     event.setEnrollment(getEnrollment());
     event.setProgramStage(programStage);
     return event;

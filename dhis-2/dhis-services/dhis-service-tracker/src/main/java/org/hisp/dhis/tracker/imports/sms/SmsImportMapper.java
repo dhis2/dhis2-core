@@ -45,7 +45,7 @@ import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -226,8 +226,8 @@ class SmsImportMapper {
     return Enrollment.builder()
         .orgUnit(metadataUid(submission.getOrgUnit()))
         .program(metadataUid(submission.getTrackerProgram()))
-        .trackedEntity(submission.getTrackedEntityInstance().getUid())
-        .enrollment(submission.getEnrollment().getUid())
+        .trackedEntity(UID.of(submission.getTrackedEntityInstance().getUid()))
+        .enrollment(UID.of(submission.getEnrollment().getUid()))
         .enrolledAt(toInstant(submission.getEnrollmentDate()))
         .occurredAt(toInstant(submission.getIncidentDate()))
         .status(map(submission.getEnrollmentStatus()))
@@ -277,8 +277,8 @@ class SmsImportMapper {
   private static Event mapToEvent(
       @Nonnull SmsEvent submission, @Nonnull String username, @Nonnull Uid enrollment) {
     return Event.builder()
-        .event(submission.getEvent().getUid())
-        .enrollment(enrollment.getUid())
+        .event(UID.of(submission.getEvent().getUid()))
+        .enrollment(UID.of(enrollment.getUid()))
         .orgUnit(metadataUid(submission.getOrgUnit()))
         .programStage(metadataUid(submission.getProgramStage()))
         .attributeOptionCombo(metadataUid(submission.getAttributeOptionCombo()))
@@ -301,8 +301,8 @@ class SmsImportMapper {
   private static Event mapEvent(
       @Nonnull TrackerEventSmsSubmission submission, @Nonnull String username) {
     return Event.builder()
-        .event(submission.getEvent().getUid())
-        .enrollment(submission.getEnrollment().getUid())
+        .event(UID.of(submission.getEvent().getUid()))
+        .enrollment(UID.of(submission.getEnrollment().getUid()))
         .orgUnit(metadataUid(submission.getOrgUnit()))
         .programStage(metadataUid(submission.getProgramStage()))
         .attributeOptionCombo(metadataUid(submission.getAttributeOptionCombo()))
@@ -325,7 +325,7 @@ class SmsImportMapper {
   private static Event mapEvent(
       @Nonnull SimpleEventSmsSubmission submission, @Nonnull String username) {
     return Event.builder()
-        .event(submission.getEvent().getUid())
+        .event(UID.of(submission.getEvent().getUid()))
         .orgUnit(metadataUid(submission.getOrgUnit()))
         .program(metadataUid(submission.getEventProgram()))
         .attributeOptionCombo(metadataUid(submission.getAttributeOptionCombo()))
@@ -405,15 +405,15 @@ class SmsImportMapper {
       @Nonnull String username,
       @Nonnull CategoryService dataElementCategoryService,
       @Nonnull String trackedEntity,
-      @CheckForNull String enrollmentUid) {
+      @CheckForNull UID enrollmentUid) {
     List<Enrollment> enrollments = List.of();
     if (enrollmentUid == null) {
-      enrollmentUid = CodeGenerator.generateUid();
+      enrollmentUid = UID.generate();
       Instant now = Instant.now();
       Enrollment enrollment =
           Enrollment.builder()
               .enrollment(enrollmentUid)
-              .trackedEntity(trackedEntity)
+              .trackedEntity(UID.of(trackedEntity))
               .program(metadataUid(smsCommand.getProgram()))
               .orgUnit(MetadataIdentifier.ofUid(orgUnit))
               .occurredAt(now)
@@ -452,7 +452,7 @@ class SmsImportMapper {
       @Nonnull SMSCommand smsCommand,
       @Nonnull Map<String, String> attributeValues,
       @Nonnull OrganisationUnit orgUnit) {
-    String trackedEntity = CodeGenerator.generateUid();
+    UID trackedEntity = UID.generate();
     Date now = new Date();
     Date occurredDate = Objects.requireNonNullElse(SmsUtils.lookForDate(sms.getText()), now);
 
@@ -477,7 +477,7 @@ class SmsImportMapper {
         .trackedEntities(
             List.of(
                 TrackedEntity.builder()
-                    .trackedEntity(trackedEntity)
+                    .trackedEntity(trackedEntity.getValue())
                     .orgUnit(metadataUid(orgUnit))
                     .trackedEntityType(metadataUid(smsCommand.getProgram().getTrackedEntityType()))
                     .attributes(attributes)
@@ -485,7 +485,7 @@ class SmsImportMapper {
         .enrollments(
             List.of(
                 Enrollment.builder()
-                    .enrollment(CodeGenerator.generateUid())
+                    .enrollment(UID.generate())
                     .trackedEntity(trackedEntity)
                     .orgUnit(metadataUid(orgUnit))
                     .program(metadataUid(smsCommand.getProgram()))
@@ -504,7 +504,7 @@ class SmsImportMapper {
       @Nonnull String username,
       @Nonnull CategoryService dataElementCategoryService) {
     return Event.builder()
-        .event(CodeGenerator.generateUid())
+        .event(UID.generate())
         .orgUnit(MetadataIdentifier.ofUid(orgUnit))
         .program(metadataUid(smsCommand.getProgram()))
         .programStage(metadataUid(smsCommand.getProgramStage()))
