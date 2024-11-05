@@ -50,7 +50,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
@@ -151,11 +151,11 @@ public class ValidationUtils {
   public static boolean needsToValidateDataValues(Event event, @Nonnull ProgramStage programStage) {
     if (EventStatus.STATUSES_WITHOUT_DATA_VALUES.contains(event.getStatus())) {
       return false;
-    } else if (programStage.getValidationStrategy().equals(ValidationStrategy.ON_COMPLETE)
-        && event.getStatus().equals(EventStatus.COMPLETED)) {
+    } else if (ValidationStrategy.ON_COMPLETE.equals(programStage.getValidationStrategy())
+        && EventStatus.COMPLETED.equals(event.getStatus())) {
       return true;
     } else {
-      return !programStage.getValidationStrategy().equals(ValidationStrategy.ON_COMPLETE);
+      return !ValidationStrategy.ON_COMPLETE.equals(programStage.getValidationStrategy());
     }
   }
 
@@ -188,7 +188,7 @@ public class ValidationUtils {
   public static void addIssuesToReporter(
       Reporter reporter, TrackerDto dto, List<ProgramRuleIssue> programRuleIssues) {
     programRuleIssues.stream()
-        .filter(issue -> issue.getIssueType().equals(ERROR))
+        .filter(issue -> ERROR.equals(issue.getIssueType()))
         .forEach(
             issue -> {
               List<String> args = Lists.newArrayList(issue.getRuleUid().getValue());
@@ -197,7 +197,7 @@ public class ValidationUtils {
             });
 
     programRuleIssues.stream()
-        .filter(issue -> issue.getIssueType().equals(WARNING))
+        .filter(issue -> WARNING.equals(issue.getIssueType()))
         .forEach(
             issue -> {
               List<String> args = Lists.newArrayList(issue.getRuleUid().getValue());

@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -69,10 +70,12 @@ public interface TrackedEntityService {
       throws NotFoundException, ForbiddenException, BadRequestException;
 
   /** Get all tracked entities matching given params. */
+  @Nonnull
   List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)
       throws BadRequestException, ForbiddenException, NotFoundException;
 
   /** Get a page of tracked entities matching given params. */
+  @Nonnull
   Page<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams params, PageParams pageParams)
       throws BadRequestException, ForbiddenException, NotFoundException;
 
