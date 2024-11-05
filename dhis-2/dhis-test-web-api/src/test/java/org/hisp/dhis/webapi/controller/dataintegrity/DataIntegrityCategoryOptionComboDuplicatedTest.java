@@ -89,7 +89,7 @@ class DataIntegrityCategoryOptionComboDuplicatedTest extends AbstractDataIntegri
     checkDataIntegritySummary(check, 1, 33, true);
 
     Set<String> expectedCategorOptCombos = Set.of(cocWithOptionsA, cocWithOptionsB);
-    Set<String> expectedMessages = Set.of("(1) Colour", "(1) Color");
+    Set<String> expectedMessages = Set.of("Colour", "Color");
     checkDataIntegrityDetailsIssues(
         check, expectedCategorOptCombos, expectedMessages, Set.of(), "categoryOptionCombos");
   }
