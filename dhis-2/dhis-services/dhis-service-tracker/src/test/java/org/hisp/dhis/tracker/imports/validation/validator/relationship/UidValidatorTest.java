@@ -32,7 +32,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1048;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;

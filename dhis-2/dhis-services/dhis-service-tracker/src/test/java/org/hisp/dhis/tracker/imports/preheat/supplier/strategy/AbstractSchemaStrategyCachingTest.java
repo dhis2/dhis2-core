@@ -49,7 +49,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.descriptors.ProgramSchemaDescriptor;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.test.random.BeanRandomizer;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.imports.preheat.mappers.CopyMapper;

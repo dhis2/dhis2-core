@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;

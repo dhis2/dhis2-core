@@ -33,7 +33,7 @@ import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidatio
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Note;
