@@ -33,7 +33,7 @@
     
     <property name="searchable" column="searchable" />
 
-    <property name="isSkipAnalytics" column="skipanalytics" />
+    <property name="skipIndividualAnalytics" column="skipIndividualAnalytics" />
 
     </class>
 

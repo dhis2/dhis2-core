@@ -68,8 +68,7 @@ public class ProgramTrackedEntityAttribute extends BaseIdentifiableObject
 
   private Boolean searchable = false;
 
-  /** Whether to skip this attribute in analytics tables and queries */
-  private boolean skipAnalytics;
+  private boolean skipIndividualAnalytics;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -270,12 +269,12 @@ public class ProgramTrackedEntityAttribute extends BaseIdentifiableObject
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isSkipAnalytics() {
-    return skipAnalytics;
+  public boolean isSkipIndividualAnalytics() {
+    return skipIndividualAnalytics;
   }
 
-  public void setSkipAnalytics(boolean skipAnalytics) {
-    this.skipAnalytics = skipAnalytics;
+  public void setSkipIndividualAnalytics(boolean skipIndividualAnalytics) {
+    this.skipIndividualAnalytics = skipIndividualAnalytics;
   }
 
   public void setRenderType(DeviceRenderTypeMap<ValueTypeRenderingObject> renderType) {
@@ -308,6 +307,6 @@ public class ProgramTrackedEntityAttribute extends BaseIdentifiableObject
     copy.setSharing(original.getSharing());
     copy.setSortOrder(original.getSortOrder());
     copy.setTranslations(original.getTranslations());
-    copy.setSkipAnalytics(original.isSkipAnalytics());
+    copy.setSkipIndividualAnalytics(original.isSkipIndividualAnalytics());
   }
 }
