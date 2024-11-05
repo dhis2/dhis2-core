@@ -33,7 +33,6 @@ import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.Enrollme
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -114,21 +113,22 @@ class EnrollmentsExportController {
 
       org.hisp.dhis.tracker.export.Page<org.hisp.dhis.program.Enrollment> enrollmentsPage =
           enrollmentService.getEnrollments(operationParams, pageParams);
+      List<Enrollment> enrollments =
+          enrollmentsPage.getItems().stream().map(ENROLLMENT_MAPPER::map).toList();
       List<ObjectNode> objectNodes =
-          fieldFilterService.toObjectNodes(
-              ENROLLMENT_MAPPER.fromCollection(enrollmentsPage.getItems()),
-              requestParams.getFields());
+          fieldFilterService.toObjectNodes(enrollments, requestParams.getFields());
 
       return ResponseEntity.ok()
           .contentType(MediaType.APPLICATION_JSON)
           .body(Page.withPager(ENROLLMENTS, enrollmentsPage.withItems(objectNodes)));
     }
 
-    Collection<org.hisp.dhis.program.Enrollment> enrollments =
-        enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments =
+        enrollmentService.getEnrollments(operationParams).stream()
+            .map(ENROLLMENT_MAPPER::map)
+            .toList();
     List<ObjectNode> objectNodes =
-        fieldFilterService.toObjectNodes(
-            ENROLLMENT_MAPPER.fromCollection(enrollments), requestParams.getFields());
+        fieldFilterService.toObjectNodes(enrollments, requestParams.getFields());
 
     return ResponseEntity.ok()
         .contentType(MediaType.APPLICATION_JSON)
@@ -144,7 +144,7 @@ class EnrollmentsExportController {
       throws NotFoundException, ForbiddenException {
     EnrollmentParams enrollmentParams = fieldsMapper.map(fields);
     Enrollment enrollment =
-        ENROLLMENT_MAPPER.from(enrollmentService.getEnrollment(uid, enrollmentParams, false));
+        ENROLLMENT_MAPPER.map(enrollmentService.getEnrollment(uid, enrollmentParams, false));
     return ResponseEntity.ok(fieldFilterService.toObjectNode(enrollment, fields));
   }
 }

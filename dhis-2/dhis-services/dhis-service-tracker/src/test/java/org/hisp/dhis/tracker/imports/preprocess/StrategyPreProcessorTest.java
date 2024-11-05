@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import com.google.common.collect.Lists;
 import org.hamcrest.Matchers;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
@@ -58,9 +59,9 @@ class StrategyPreProcessorTest extends TestBase {
 
   private static final String NEW_ENROLLMENT_UID = "NewEnrollmentUid";
 
-  private static final String EVENT_UID = "EventUid";
+  private static final UID EVENT_UID = UID.generate();
 
-  private static final String NEW_EVENT_UID = "NewEventUid";
+  private static final UID NEW_EVENT_UID = UID.generate();
 
   private static final String RELATIONSHIP_UID = "RelationshipUid";
 
@@ -109,7 +110,7 @@ class StrategyPreProcessorTest extends TestBase {
     newEnrollment = new org.hisp.dhis.tracker.imports.domain.Enrollment();
     newEnrollment.setEnrollment(NEW_ENROLLMENT_UID);
     dbEvent = new Event();
-    dbEvent.setUid(EVENT_UID);
+    dbEvent.setUid(EVENT_UID.getValue());
     event = new org.hisp.dhis.tracker.imports.domain.Event();
     event.setEvent(EVENT_UID);
     newEvent = new org.hisp.dhis.tracker.imports.domain.Event();
@@ -151,10 +152,10 @@ class StrategyPreProcessorTest extends TestBase {
         bundle.getResolvedStrategyMap().get(TrackerType.ENROLLMENT).get(NEW_ENROLLMENT_UID),
         Matchers.is(TrackerImportStrategy.CREATE));
     assertThat(
-        bundle.getResolvedStrategyMap().get(TrackerType.EVENT).get(EVENT_UID),
+        bundle.getResolvedStrategyMap().get(TrackerType.EVENT).get(EVENT_UID.getValue()),
         Matchers.is(TrackerImportStrategy.UPDATE));
     assertThat(
-        bundle.getResolvedStrategyMap().get(TrackerType.EVENT).get(NEW_EVENT_UID),
+        bundle.getResolvedStrategyMap().get(TrackerType.EVENT).get(NEW_EVENT_UID.getValue()),
         Matchers.is(TrackerImportStrategy.CREATE));
     assertThat(
         bundle.getResolvedStrategyMap().get(TrackerType.RELATIONSHIP).get(RELATIONSHIP_UID),
@@ -189,10 +190,10 @@ class StrategyPreProcessorTest extends TestBase {
         bundle.getResolvedStrategyMap().get(TrackerType.ENROLLMENT).get(NEW_ENROLLMENT_UID),
         Matchers.is(TrackerImportStrategy.DELETE));
     assertThat(
-        bundle.getResolvedStrategyMap().get(TrackerType.EVENT).get(EVENT_UID),
+        bundle.getResolvedStrategyMap().get(TrackerType.EVENT).get(EVENT_UID.getValue()),
         Matchers.is(TrackerImportStrategy.DELETE));
     assertThat(
-        bundle.getResolvedStrategyMap().get(TrackerType.EVENT).get(NEW_EVENT_UID),
+        bundle.getResolvedStrategyMap().get(TrackerType.EVENT).get(NEW_EVENT_UID.getValue()),
         Matchers.is(TrackerImportStrategy.DELETE));
     assertThat(
         bundle.getResolvedStrategyMap().get(TrackerType.RELATIONSHIP).get(RELATIONSHIP_UID),

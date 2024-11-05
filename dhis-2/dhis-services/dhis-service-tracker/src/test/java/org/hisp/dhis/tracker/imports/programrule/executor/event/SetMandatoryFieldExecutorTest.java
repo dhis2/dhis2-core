@@ -67,9 +67,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class SetMandatoryFieldExecutorTest extends TestBase {
-  private static final String ACTIVE_EVENT_ID = "EventUid";
+  private static final UID ACTIVE_EVENT_UID = UID.generate();
 
-  private static final String COMPLETED_EVENT_ID = "CompletedEventUid";
+  private static final UID COMPLETED_EVENT_UID = UID.generate();
 
   private static final UID DATA_ELEMENT_UID = UID.of("h4w96yEMlzO");
 
@@ -251,25 +251,25 @@ class SetMandatoryFieldExecutorTest extends TestBase {
     assertEquals(error(RULE_UID, E1301, dataElement.getUid()), error.get());
   }
 
-  private org.hisp.dhis.program.Event eventWithMandatoryValue(String uid, EventStatus status) {
+  private org.hisp.dhis.program.Event eventWithMandatoryValue(UID uid, EventStatus status) {
     org.hisp.dhis.program.Event event = new org.hisp.dhis.program.Event();
-    event.setUid(uid);
+    event.setUid(uid.getValue());
     event.setStatus(status);
     event.setEventDataValues(
         Set.of(new EventDataValue(DATA_ELEMENT_UID.getValue(), DATA_ELEMENT_VALUE)));
     return event;
   }
 
-  private org.hisp.dhis.program.Event event(String uid, EventStatus status) {
+  private org.hisp.dhis.program.Event event(UID uid, EventStatus status) {
     org.hisp.dhis.program.Event event = new org.hisp.dhis.program.Event();
-    event.setUid(uid);
+    event.setUid(uid.getValue());
     event.setStatus(status);
     return event;
   }
 
   private Event getEventWithDeleteMandatoryValue() {
     return Event.builder()
-        .event(ACTIVE_EVENT_ID)
+        .event(ACTIVE_EVENT_UID)
         .status(EventStatus.ACTIVE)
         .programStage(MetadataIdentifier.ofUid(programStage))
         .dataValues(getNullEventDataValues())
@@ -278,7 +278,7 @@ class SetMandatoryFieldExecutorTest extends TestBase {
 
   private Event getEventWithMandatoryValueSet(TrackerIdSchemeParams idSchemes) {
     return Event.builder()
-        .event(ACTIVE_EVENT_ID)
+        .event(ACTIVE_EVENT_UID)
         .status(EventStatus.ACTIVE)
         .programStage(idSchemes.toMetadataIdentifier(programStage))
         .dataValues(getActiveEventDataValues(idSchemes))
@@ -287,7 +287,7 @@ class SetMandatoryFieldExecutorTest extends TestBase {
 
   private Event getEventWithMandatoryValueSet() {
     return Event.builder()
-        .event(ACTIVE_EVENT_ID)
+        .event(ACTIVE_EVENT_UID)
         .status(EventStatus.ACTIVE)
         .programStage(MetadataIdentifier.ofUid(programStage))
         .dataValues(getActiveEventDataValues())
@@ -296,7 +296,7 @@ class SetMandatoryFieldExecutorTest extends TestBase {
 
   private Event getEventWithMandatoryValueNOTSet() {
     return Event.builder()
-        .event(COMPLETED_EVENT_ID)
+        .event(COMPLETED_EVENT_UID)
         .status(EventStatus.ACTIVE)
         .programStage(MetadataIdentifier.ofUid(programStage))
         .build();
@@ -304,7 +304,7 @@ class SetMandatoryFieldExecutorTest extends TestBase {
 
   private Event getEventWithMandatoryValueNOTSet(EventStatus status) {
     return Event.builder()
-        .event(COMPLETED_EVENT_ID)
+        .event(COMPLETED_EVENT_UID)
         .status(status)
         .programStage(MetadataIdentifier.ofUid(programStage))
         .build();

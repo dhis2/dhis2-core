@@ -71,9 +71,9 @@ import org.mockito.quality.Strictness;
 class AssignDataValueExecutorTest extends TestBase {
   private static final UID RULE_UID = UID.of("TvctPPhpD8u");
 
-  private static final String EVENT_ID = "EventId";
+  private static final UID EVENT_UID = UID.generate();
 
-  private static final String SECOND_EVENT_ID = "SecondEventId";
+  private static final UID SECOND_EVENT_UID = UID.generate();
 
   private static final UID DATA_ELEMENT_UID = UID.of("h4w96yEMlzO");
 
@@ -168,7 +168,7 @@ class AssignDataValueExecutorTest extends TestBase {
         executor.executeRuleAction(bundle, eventWithOptionDataValue);
 
     Optional<DataValue> dataValue =
-        findDataValueByUid(bundle, EVENT_ID, OPTION_SET_DATA_ELEMENT_UID);
+        findDataValueByUid(bundle, EVENT_UID, OPTION_SET_DATA_ELEMENT_UID);
 
     assertDataValueWasNotAssignedAndErrorIsPresent(VALID_OPTION_VALUE, dataValue, warning);
   }
@@ -192,7 +192,7 @@ class AssignDataValueExecutorTest extends TestBase {
         executor.executeRuleAction(bundle, eventWithOptionDataValue);
 
     Optional<DataValue> dataValue =
-        findDataValueByUid(bundle, EVENT_ID, OPTION_SET_DATA_ELEMENT_UID);
+        findDataValueByUid(bundle, EVENT_UID, OPTION_SET_DATA_ELEMENT_UID);
 
     assertTrue(dataValue.isPresent());
     assertEquals(VALID_OPTION_VALUE, dataValue.get().getValue());
@@ -219,7 +219,7 @@ class AssignDataValueExecutorTest extends TestBase {
         executor.executeRuleAction(bundle, eventWithOptionDataValue);
 
     Optional<DataValue> dataValue =
-        findDataValueByUid(bundle, SECOND_EVENT_ID, OPTION_SET_DATA_ELEMENT_UID);
+        findDataValueByUid(bundle, SECOND_EVENT_UID, OPTION_SET_DATA_ELEMENT_UID);
 
     assertAll(
         () -> assertTrue(dataValue.isEmpty()),
@@ -247,7 +247,7 @@ class AssignDataValueExecutorTest extends TestBase {
         executor.executeRuleAction(bundle, eventWithOptionDataValue);
 
     Optional<DataValue> dataValue =
-        findDataValueByUid(bundle, EVENT_ID, OPTION_SET_DATA_ELEMENT_UID);
+        findDataValueByUid(bundle, EVENT_UID, OPTION_SET_DATA_ELEMENT_UID);
 
     assertDataValueWasAssignedAndWarningIsPresent(null, dataValue, warning);
   }
@@ -270,7 +270,7 @@ class AssignDataValueExecutorTest extends TestBase {
     Optional<ProgramRuleIssue> warning =
         executor.executeRuleAction(bundle, eventWithDataValueNOTSet);
 
-    Optional<DataValue> dataValue = findDataValueByUid(bundle, SECOND_EVENT_ID, DATA_ELEMENT_UID);
+    Optional<DataValue> dataValue = findDataValueByUid(bundle, SECOND_EVENT_UID, DATA_ELEMENT_UID);
 
     assertDataValueWasAssignedAndWarningIsPresent(DATAELEMENT_NEW_VALUE, dataValue, warning);
   }
@@ -291,7 +291,7 @@ class AssignDataValueExecutorTest extends TestBase {
 
     Optional<ProgramRuleIssue> error = executor.executeRuleAction(bundle, eventWithDataValueSet);
 
-    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_ID, DATA_ELEMENT_UID);
+    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_UID, DATA_ELEMENT_UID);
 
     assertDataValueWasNotAssignedAndErrorIsPresent(DATAELEMENT_OLD_VALUE, dataValue, error);
   }
@@ -315,7 +315,7 @@ class AssignDataValueExecutorTest extends TestBase {
 
     Optional<ProgramRuleIssue> error = executor.executeRuleAction(bundle, eventWithDataValueSet);
 
-    Optional<DataValue> dataValue = findDataValueByCode(bundle, EVENT_ID, DATA_ELEMENT_CODE);
+    Optional<DataValue> dataValue = findDataValueByCode(bundle, EVENT_UID, DATA_ELEMENT_CODE);
 
     assertDataValueWasNotAssignedAndErrorIsPresent(DATAELEMENT_OLD_VALUE, dataValue, error);
   }
@@ -337,7 +337,7 @@ class AssignDataValueExecutorTest extends TestBase {
     Optional<ProgramRuleIssue> warning =
         executor.executeRuleAction(bundle, eventWithDataValueSetSameValue);
 
-    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_ID, DATA_ELEMENT_UID);
+    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_UID, DATA_ELEMENT_UID);
 
     assertDataValueWasAssignedAndWarningIsPresent(DATAELEMENT_NEW_VALUE, dataValue, warning);
   }
@@ -360,13 +360,13 @@ class AssignDataValueExecutorTest extends TestBase {
 
     Optional<ProgramRuleIssue> warning = executor.executeRuleAction(bundle, eventWithDataValueSet);
 
-    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_ID, DATA_ELEMENT_UID);
+    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_UID, DATA_ELEMENT_UID);
 
     assertDataValueWasAssignedAndWarningIsPresent(DATAELEMENT_NEW_VALUE, dataValue, warning);
   }
 
   private Optional<DataValue> findDataValueByUid(
-      TrackerBundle bundle, String eventUid, UID dataValueUid) {
+      TrackerBundle bundle, UID eventUid, UID dataValueUid) {
     Event event = bundle.findEventByUid(eventUid).get();
     return event.getDataValues().stream()
         .filter(dv -> dv.getDataElement().equals(MetadataIdentifier.ofUid(dataValueUid.getValue())))
@@ -374,7 +374,7 @@ class AssignDataValueExecutorTest extends TestBase {
   }
 
   private Optional<DataValue> findDataValueByCode(
-      TrackerBundle bundle, String eventUid, String dataValueCode) {
+      TrackerBundle bundle, UID eventUid, String dataValueCode) {
     Event event = bundle.findEventByUid(eventUid).get();
     return event.getDataValues().stream()
         .filter(dv -> dv.getDataElement().equals(MetadataIdentifier.ofCode(dataValueCode)))
@@ -404,7 +404,7 @@ class AssignDataValueExecutorTest extends TestBase {
 
   private Event getEventWithDataValueSet() {
     return Event.builder()
-        .event(EVENT_ID)
+        .event(EVENT_UID)
         .status(EventStatus.ACTIVE)
         .dataValues(getDataValues())
         .build();
@@ -412,7 +412,7 @@ class AssignDataValueExecutorTest extends TestBase {
 
   private Event getEventWithDataValueSet(TrackerIdSchemeParams idSchemes) {
     return Event.builder()
-        .event(EVENT_ID)
+        .event(EVENT_UID)
         .status(EventStatus.ACTIVE)
         .dataValues(getDataValues(idSchemes))
         .build();
@@ -420,7 +420,7 @@ class AssignDataValueExecutorTest extends TestBase {
 
   private Event getEventWithDataValueSetSameValue() {
     return Event.builder()
-        .event(EVENT_ID)
+        .event(EVENT_UID)
         .status(EventStatus.ACTIVE)
         .dataValues(getDataValuesSameValue())
         .build();
@@ -428,14 +428,14 @@ class AssignDataValueExecutorTest extends TestBase {
 
   private Event getEventWithOptionSetDataValueWithValidValue() {
     return Event.builder()
-        .event(EVENT_ID)
+        .event(EVENT_UID)
         .status(EventStatus.ACTIVE)
         .dataValues(getOptionSetDataValues())
         .build();
   }
 
   private Event getEventWithDataValueNOTSet() {
-    return Event.builder().event(SECOND_EVENT_ID).status(EventStatus.COMPLETED).build();
+    return Event.builder().event(SECOND_EVENT_UID).status(EventStatus.COMPLETED).build();
   }
 
   private Set<DataValue> getDataValues(TrackerIdSchemeParams idSchemes) {

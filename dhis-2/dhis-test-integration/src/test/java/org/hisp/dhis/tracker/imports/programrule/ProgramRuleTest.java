@@ -38,6 +38,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1300;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import java.io.IOException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -66,7 +67,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class ProgramRuleTest extends TrackerTest {
   private static final String ENROLLMENT_UID = "TvctPPhpD8u";
 
-  private static final String EVENT_UID = "D9PbzJY8bJO";
+  private static final UID EVENT_UID = UID.of("D9PbzJY8bJO");
 
   private static final String PROGRAM_EVENT_UID = "PEVENT12345";
 
@@ -235,7 +236,7 @@ class ProgramRuleTest extends TrackerTest {
 
     assertAll(
         () -> assertHasError(report, E1300, ENROLLMENT_UID),
-        () -> assertHasError(report, ValidationCode.E5000, EVENT_UID));
+        () -> assertHasError(report, ValidationCode.E5000, EVENT_UID.getValue()));
   }
 
   @Test
@@ -265,7 +266,7 @@ class ProgramRuleTest extends TrackerTest {
 
     assertAll(
         () -> assertHasError(report, E1300, ENROLLMENT_UID),
-        () -> assertHasError(report, E1300, EVENT_UID),
+        () -> assertHasError(report, E1300, EVENT_UID.getValue()),
         () -> assertHasError(report, E1300, PROGRAM_EVENT_UID));
   }
 
