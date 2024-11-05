@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -57,7 +58,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.utils.Assertions;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -178,8 +178,8 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
             .filter(log -> log.getChange().getEventProperty().getProperty() != null)
             .toList();
 
-    Assertions.assertHasSize(3, dataValueChangeLogs);
-    Assertions.assertHasSize(2, eventPropertyChangeLogs);
+    assertHasSize(3, dataValueChangeLogs);
+    assertHasSize(2, eventPropertyChangeLogs);
 
     assertAll(
         () -> assertDelete(dataElement, "value 3", dataValueChangeLogs.get(0)),
@@ -208,8 +208,8 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
             .filter(log -> log.getChange().getEventProperty().getProperty() != null)
             .toList();
 
-    Assertions.assertHasSize(3, dataValueChangeLogs);
-    Assertions.assertHasSize(2, eventPropertyChangeLogs);
+    assertHasSize(3, dataValueChangeLogs);
+    assertHasSize(2, eventPropertyChangeLogs);
     assertAll(
         () -> assertUpdate(dataElement, "value 1", "value 2", dataValueChangeLogs.get(0)),
         () -> assertUpdate(dataElement, "value 2", "value 3", dataValueChangeLogs.get(1)),
@@ -419,16 +419,6 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
             event.getOrganisationUnit().getUid(),
             event.getEventDataValues().iterator().next().getDataElement(),
             value);
-  }
-
-  private static void assertNumberOfChanges(int expected, JsonList<JsonEventChangeLog> changeLogs) {
-    assertNotNull(changeLogs);
-    assertEquals(
-        expected,
-        changeLogs.size(),
-        String.format(
-            "Expected to find %s elements in the change log list, found %s instead: %s",
-            expected, changeLogs.size(), changeLogs));
   }
 
   private static void assertUser(JsonEventChangeLog changeLog) {
