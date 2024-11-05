@@ -107,7 +107,7 @@ public class EnrollmentPersister
   @Override
   protected List<NotificationTrigger> determineNotificationTriggers(
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Enrollment entity) {
-    Enrollment persistedEnrollment = preheat.getEnrollment(entity.getUid());
+    Enrollment persistedEnrollment = preheat.getEnrollment(entity.getStringUid());
     List<NotificationTrigger> triggers = new ArrayList<>();
 
     if (persistedEnrollment == null) {

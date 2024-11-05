@@ -34,7 +34,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1013;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.mockito.Mockito.when;
 
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -137,7 +137,7 @@ class MetaValidatorTest {
 
   private Event validEvent() {
     return Event.builder()
-        .event(CodeGenerator.generateUid())
+        .event(UID.generate())
         .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID))
         .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID))
         .program(MetadataIdentifier.ofUid(PROGRAM_UID))

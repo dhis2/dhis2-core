@@ -32,8 +32,8 @@ import static org.hisp.dhis.analytics.common.query.ConstantValuesRenderer.hasMul
 import lombok.RequiredArgsConstructor;
 
 /**
- * A condition renderer which renders a condition with an IN or EQ operator, depending on the size
- * of values
+ * A condition renderer which renders a condition with an IN or EQ operator, depending on the number
+ * of values.
  */
 @RequiredArgsConstructor(staticName = "of")
 public class InOrEqConditionRenderer extends BaseRenderable {

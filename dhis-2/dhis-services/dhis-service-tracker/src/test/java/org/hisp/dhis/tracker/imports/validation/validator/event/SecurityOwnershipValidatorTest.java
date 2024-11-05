@@ -38,8 +38,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.Set;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -147,7 +146,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   @Test
   void verifyValidationSuccessForEventUsingDeleteStrategy() {
-    String enrollmentUid = CodeGenerator.generateUid();
+    UID enrollmentUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.Event event =
         org.hisp.dhis.tracker.imports.domain.Event.builder()
             .enrollment(enrollmentUid)
@@ -163,7 +162,6 @@ class SecurityOwnershipValidatorTest extends TestBase {
     preheatEvent.setEnrollment(enrollment);
 
     when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
-    when(preheat.getEnrollment(event.getEnrollment())).thenReturn(enrollment);
 
     UserDetails userDetails = setUpUserWithOrgUnit();
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
@@ -178,7 +176,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   @Test
   void verifyValidationSuccessForNonTrackerEventUsingCreateStrategy() {
     program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
-    String enrollmentUid = CodeGenerator.generateUid();
+    UID enrollmentUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.Event event =
         org.hisp.dhis.tracker.imports.domain.Event.builder()
             .enrollment(enrollmentUid)
@@ -208,7 +206,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   void verifyValidationSuccessForTrackerEventCreation() {
     org.hisp.dhis.tracker.imports.domain.Event event =
         org.hisp.dhis.tracker.imports.domain.Event.builder()
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .programStage(MetadataIdentifier.ofUid(PS_ID))
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
@@ -217,7 +215,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
-    when(preheat.getEnrollment(event.getEnrollment())).thenReturn(getEnrollment(null));
+    when(preheat.getEnrollment(event.getEnrollment().getValue())).thenReturn(getEnrollment(null));
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
@@ -235,7 +233,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   void verifyValidationSuccessForTrackerEventUpdate() {
     org.hisp.dhis.tracker.imports.domain.Event event =
         org.hisp.dhis.tracker.imports.domain.Event.builder()
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .programStage(MetadataIdentifier.ofUid(PS_ID))
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
@@ -244,7 +242,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
     when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
-    when(preheat.getEnrollment(event.getEnrollment())).thenReturn(getEnrollment(null));
+    when(preheat.getEnrollment(event.getEnrollment().getValue())).thenReturn(getEnrollment(null));
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
@@ -260,7 +258,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   @Test
   void verifyValidationSuccessForEventUsingUpdateStrategy() {
-    String enrollmentUid = CodeGenerator.generateUid();
+    UID enrollmentUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.Event event =
         org.hisp.dhis.tracker.imports.domain.Event.builder()
             .enrollment(enrollmentUid)
@@ -277,7 +275,6 @@ class SecurityOwnershipValidatorTest extends TestBase {
     Event preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
     when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
-    when(preheat.getEnrollment(event.getEnrollment())).thenReturn(enrollment);
 
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
     when(aclService.canDataRead(user, program)).thenReturn(true);
@@ -290,8 +287,8 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   @Test
   void verifyValidationSuccessForEventUsingUpdateStrategyOutsideCaptureScopeWithBrokenGlass() {
-    String enrollmentUid = CodeGenerator.generateUid();
-    String eventUid = CodeGenerator.generateUid();
+    UID enrollmentUid = UID.generate();
+    UID eventUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.Event event =
         org.hisp.dhis.tracker.imports.domain.Event.builder()
             .event(eventUid)
@@ -309,7 +306,6 @@ class SecurityOwnershipValidatorTest extends TestBase {
     Event preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
     when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
-    when(preheat.getEnrollment(event.getEnrollment())).thenReturn(enrollment);
     when(preheat.getProgramOwner())
         .thenReturn(
             Collections.singletonMap(
@@ -337,7 +333,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   @Test
   void verifyValidationSuccessForEventUsingUpdateStrategyAndUserWithAuthority() {
-    String enrollmentUid = CodeGenerator.generateUid();
+    UID enrollmentUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.Event event =
         org.hisp.dhis.tracker.imports.domain.Event.builder()
             .enrollment(enrollmentUid)
@@ -355,7 +351,6 @@ class SecurityOwnershipValidatorTest extends TestBase {
     preheatEvent.setEnrollment(enrollment);
 
     when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
-    when(preheat.getEnrollment(event.getEnrollment())).thenReturn(enrollment);
 
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
     when(aclService.canDataRead(userDetails, program)).thenReturn(true);
@@ -370,8 +365,8 @@ class SecurityOwnershipValidatorTest extends TestBase {
   void verifyValidationFailsForTrackerEventCreationAndUserNotInOrgUnitCaptureScope() {
     org.hisp.dhis.tracker.imports.domain.Event event =
         org.hisp.dhis.tracker.imports.domain.Event.builder()
-            .event(CodeGenerator.generateUid())
-            .enrollment(CodeGenerator.generateUid())
+            .event(UID.generate())
+            .enrollment(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .programStage(MetadataIdentifier.ofUid(PS_ID))
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
@@ -380,7 +375,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
-    when(preheat.getEnrollment(event.getEnrollment())).thenReturn(getEnrollment(null));
+    when(preheat.getEnrollment(event.getEnrollment().getValue())).thenReturn(getEnrollment(null));
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
@@ -398,8 +393,8 @@ class SecurityOwnershipValidatorTest extends TestBase {
       verifyValidationFailsForEventCreationThatIsCreatableInSearchScopeAndUserNotInOrgUnitSearchHierarchy() {
     org.hisp.dhis.tracker.imports.domain.Event event =
         org.hisp.dhis.tracker.imports.domain.Event.builder()
-            .event(CodeGenerator.generateUid())
-            .enrollment(CodeGenerator.generateUid())
+            .event(UID.generate())
+            .enrollment(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .programStage(MetadataIdentifier.ofUid(PS_ID))
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
@@ -409,7 +404,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
-    when(preheat.getEnrollment(event.getEnrollment())).thenReturn(getEnrollment(null));
+    when(preheat.getEnrollment(event.getEnrollment().getValue())).thenReturn(getEnrollment(null));
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
@@ -424,10 +419,10 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   @Test
   void verifyValidationFailsForEventUsingUpdateStrategyAndUserWithoutAuthority() {
-    String enrollmentUid = CodeGenerator.generateUid();
+    UID enrollmentUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.Event event =
         org.hisp.dhis.tracker.imports.domain.Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .enrollment(enrollmentUid)
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .programStage(MetadataIdentifier.ofUid(PS_ID))
@@ -440,7 +435,6 @@ class SecurityOwnershipValidatorTest extends TestBase {
     Event preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
     when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
-    when(preheat.getEnrollment(event.getEnrollment())).thenReturn(enrollment);
 
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
     when(aclService.canDataRead(user, program)).thenReturn(true);
@@ -453,10 +447,10 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   @Test
   void verifySuccessEventValidationWhenEventHasNoOrgUnitAssigned() {
-    String enrollmentUid = CodeGenerator.generateUid();
+    UID enrollmentUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.Event event =
         org.hisp.dhis.tracker.imports.domain.Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .enrollment(enrollmentUid)
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .programStage(MetadataIdentifier.ofUid(PS_ID))
@@ -473,7 +467,6 @@ class SecurityOwnershipValidatorTest extends TestBase {
     preheatEvent.setOrganisationUnit(null);
 
     when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
-    when(preheat.getEnrollment(event.getEnrollment())).thenReturn(enrollment);
 
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
     when(aclService.canDataRead(user, program)).thenReturn(true);
@@ -493,12 +486,12 @@ class SecurityOwnershipValidatorTest extends TestBase {
     return trackedEntity;
   }
 
-  private Enrollment getEnrollment(String enrollmentUid) {
-    if (StringUtils.isEmpty(enrollmentUid)) {
-      enrollmentUid = CodeGenerator.generateUid();
+  private Enrollment getEnrollment(UID enrollmentUid) {
+    if (enrollmentUid == null) {
+      enrollmentUid = UID.generate();
     }
     Enrollment enrollment = new Enrollment();
-    enrollment.setUid(enrollmentUid);
+    enrollment.setUid(enrollmentUid.getValue());
     enrollment.setOrganisationUnit(organisationUnit);
     enrollment.setTrackedEntity(teWithNoEnrollments());
     enrollment.setProgram(program);

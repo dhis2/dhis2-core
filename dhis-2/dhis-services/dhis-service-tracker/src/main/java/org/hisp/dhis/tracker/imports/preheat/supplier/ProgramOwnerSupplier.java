@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -55,7 +56,7 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier {
   public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
     final Map<String, TrackedEntity> preheatedTrackedEntities = preheat.getTrackedEntities();
     final Map<String, Enrollment> preheatedEnrollments = preheat.getEnrollments();
-    final Map<String, Event> preheatedEvents = preheat.getEvents();
+    final Map<UID, Event> preheatedEvents = preheat.getEvents();
     Set<Long> teIds = new HashSet<>();
     for (org.hisp.dhis.tracker.imports.domain.Enrollment en : trackerObjects.getEnrollments()) {
       Enrollment enrollment = preheatedEnrollments.get(en.getEnrollment());
@@ -72,7 +73,9 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier {
     for (org.hisp.dhis.tracker.imports.domain.Event ev : trackerObjects.getEvents()) {
       Event event = preheatedEvents.get(ev.getEvent());
       Enrollment enrollment =
-          event == null ? preheatedEnrollments.get(ev.getEnrollment()) : event.getEnrollment();
+          event == null
+              ? preheatedEnrollments.get(ev.getEnrollment().getValue())
+              : event.getEnrollment();
       if (enrollment != null && enrollment.getTrackedEntity() != null) {
         teIds.add(enrollment.getTrackedEntity().getId());
       }

@@ -37,7 +37,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
 import java.util.stream.Stream;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
@@ -83,7 +82,7 @@ class EnrollmentImportTest extends TrackerTest {
     assertNoErrors(importReport);
 
     Enrollment enrollment =
-        enrollmentService.getEnrollment(UID.of(trackerObjects.getEnrollments().get(0).getUid()));
+        enrollmentService.getEnrollment(trackerObjects.getEnrollments().get(0).getUid());
 
     assertEnrollmentCompletedData(enrollment);
   }
@@ -107,7 +106,7 @@ class EnrollmentImportTest extends TrackerTest {
     assertNoErrors(importReport);
 
     Enrollment enrollment =
-        enrollmentService.getEnrollment(UID.of(trackerObjects.getEnrollments().get(0).getUid()));
+        enrollmentService.getEnrollment(trackerObjects.getEnrollments().get(0).getUid());
 
     assertEnrollmentCompletedData(enrollment);
   }

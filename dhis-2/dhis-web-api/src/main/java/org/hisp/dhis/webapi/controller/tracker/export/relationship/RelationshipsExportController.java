@@ -111,21 +111,22 @@ class RelationshipsExportController {
 
       org.hisp.dhis.tracker.export.Page<org.hisp.dhis.relationship.Relationship> relationshipsPage =
           relationshipService.getRelationships(operationParams, pageParams);
+      List<Relationship> relationships =
+          relationshipsPage.getItems().stream().map(RELATIONSHIP_MAPPER::map).toList();
       List<ObjectNode> objectNodes =
-          fieldFilterService.toObjectNodes(
-              RELATIONSHIP_MAPPER.fromCollection(relationshipsPage.getItems()),
-              requestParams.getFields());
+          fieldFilterService.toObjectNodes(relationships, requestParams.getFields());
 
       return ResponseEntity.ok()
           .contentType(MediaType.APPLICATION_JSON)
           .body(Page.withPager(RELATIONSHIPS, relationshipsPage.withItems(objectNodes)));
     }
 
-    List<org.hisp.dhis.relationship.Relationship> relationships =
-        relationshipService.getRelationships(operationParams);
+    List<Relationship> relationships =
+        relationshipService.getRelationships(operationParams).stream()
+            .map(RELATIONSHIP_MAPPER::map)
+            .toList();
     List<ObjectNode> objectNodes =
-        fieldFilterService.toObjectNodes(
-            RELATIONSHIP_MAPPER.fromCollection(relationships), requestParams.getFields());
+        fieldFilterService.toObjectNodes(relationships, requestParams.getFields());
 
     return ResponseEntity.ok()
         .contentType(MediaType.APPLICATION_JSON)
@@ -140,7 +141,7 @@ class RelationshipsExportController {
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           List<FieldPath> fields)
       throws NotFoundException, ForbiddenException {
-    Relationship relationship = RELATIONSHIP_MAPPER.from(relationshipService.getRelationship(uid));
+    Relationship relationship = RELATIONSHIP_MAPPER.map(relationshipService.getRelationship(uid));
 
     return ResponseEntity.ok(fieldFilterService.toObjectNode(relationship, fields));
   }

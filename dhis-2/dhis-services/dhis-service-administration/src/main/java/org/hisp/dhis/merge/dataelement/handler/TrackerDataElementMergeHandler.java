@@ -57,7 +57,7 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableStore;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 /**
  * Merge handler for tracker entities.
@@ -65,7 +65,7 @@ import org.springframework.stereotype.Service;
  * @author david mackessy
  */
 @Slf4j
-@Service
+@Component
 @RequiredArgsConstructor
 public class TrackerDataElementMergeHandler {
 

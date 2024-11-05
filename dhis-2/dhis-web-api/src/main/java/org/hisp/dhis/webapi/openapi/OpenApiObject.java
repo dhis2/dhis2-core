@@ -37,7 +37,6 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
-import org.hisp.dhis.jsontree.JsonMultiMap;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
@@ -120,23 +119,6 @@ public interface OpenApiObject extends JsonObject {
     @Required
     default String version() {
       return getString("version").string();
-    }
-
-    /**
-     *
-     *
-     * <pre>
-     *   {
-     *   "path": ["/foo", "/bar", ...],
-     *   "entity": ["DataElement", ...],
-     *   ...
-     *   }
-     * </pre>
-     *
-     * @return all possible values for each classification
-     */
-    default JsonMultiMap<JsonString> x_navigation() {
-      return getMultiMap("x-navigation", JsonString.class);
     }
   }
 

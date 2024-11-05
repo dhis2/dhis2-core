@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
@@ -204,7 +205,7 @@ class SmsImportMapperTest extends TestBase {
     List<Event> expected =
         List.of(
             Event.builder()
-                .event(smsEvent.getEvent().getUid())
+                .event(UID.of(smsEvent.getEvent().getUid()))
                 .orgUnit(MetadataIdentifier.ofUid(smsEvent.getOrgUnit().getUid()))
                 .programStage(MetadataIdentifier.ofUid(smsEvent.getProgramStage().getUid()))
                 .attributeOptionCombo(
@@ -218,7 +219,7 @@ class SmsImportMapperTest extends TestBase {
                             .value("hello")
                             .storedBy("francis")
                             .build()))
-                .enrollment(input.getEnrollment().getUid())
+                .enrollment(UID.of(input.getEnrollment().getUid()))
                 .build());
     assertEquals(expected, actual.getEvents());
   }
@@ -340,10 +341,10 @@ class SmsImportMapperTest extends TestBase {
 
     Event expected =
         Event.builder()
-            .event(input.getEvent().getUid())
+            .event(UID.of(input.getEvent().getUid()))
             .orgUnit(MetadataIdentifier.ofUid(input.getOrgUnit().getUid()))
             .programStage(MetadataIdentifier.ofUid(input.getProgramStage().getUid()))
-            .enrollment(input.getEnrollment().getUid())
+            .enrollment(UID.of(input.getEnrollment().getUid()))
             .attributeOptionCombo(
                 MetadataIdentifier.ofUid(input.getAttributeOptionCombo().getUid()))
             .status(EventStatus.COMPLETED)
@@ -374,10 +375,10 @@ class SmsImportMapperTest extends TestBase {
 
     Event expected =
         Event.builder()
-            .event(input.getEvent().getUid())
+            .event(UID.of(input.getEvent().getUid()))
             .orgUnit(MetadataIdentifier.ofUid(input.getOrgUnit().getUid()))
             .programStage(MetadataIdentifier.ofUid(input.getProgramStage().getUid()))
-            .enrollment(input.getEnrollment().getUid())
+            .enrollment(UID.of(input.getEnrollment().getUid()))
             .attributeOptionCombo(
                 MetadataIdentifier.ofUid(input.getAttributeOptionCombo().getUid()))
             .status(EventStatus.ACTIVE)

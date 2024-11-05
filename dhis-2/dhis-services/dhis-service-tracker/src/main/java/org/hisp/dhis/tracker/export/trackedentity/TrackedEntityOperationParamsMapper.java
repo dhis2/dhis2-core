@@ -267,7 +267,6 @@ class TrackedEntityOperationParamsMapper {
         && orgUnits.isEmpty()) {
       List<UID> uniqueAttributeIds =
           trackedEntityAttributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
-              .map(TrackedEntityAttribute::getUid)
               .map(UID::of)
               .toList();
 
@@ -310,7 +309,6 @@ class TrackedEntityOperationParamsMapper {
     if (!params.hasProgram() && !params.hasTrackedEntityType()) {
       searchableAttributeIds.addAll(
           trackedEntityAttributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
-              .map(TrackedEntityAttribute::getUid)
               .map(UID::of)
               .toList());
     }

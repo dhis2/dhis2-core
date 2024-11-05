@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.validation.validator.event;
-
-import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.checkUidFormat;
-import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateNotesUid;
-
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Event;
-import org.hisp.dhis.tracker.imports.validation.Reporter;
-import org.hisp.dhis.tracker.imports.validation.Validator;
+package org.hisp.dhis.dashboard.embedded;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Enumeration of providers for embedded dashboards.
+ *
+ * @author Lars Helge Overland
  */
-class UidValidator implements Validator<Event> {
-  @Override
-  public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
-    checkUidFormat(event.getEvent(), reporter, event, event, event.getEvent());
-
-    validateNotesUid(event.getNotes(), reporter, event);
-  }
+public enum EmbeddedProvider {
+  SUPERSET;
 }

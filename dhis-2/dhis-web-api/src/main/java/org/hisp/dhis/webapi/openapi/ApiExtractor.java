@@ -81,7 +81,6 @@ import org.hisp.dhis.webapi.openapi.Api.Parameter.In;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -93,7 +92,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -107,36 +105,8 @@ import org.springframework.web.servlet.view.RedirectView;
  * @author Jan Bernitt
  */
 final class ApiExtractor {
-  /**
-   * The included classes can be filtered based on REST API resource path or {@link
-   * OpenApi.Document#entity()} present on the controller class level. Method level path and tags
-   * will not be considered for this filter.
-   *
-   * @param controllers controllers all potential controllers
-   * @param filters the scope filter used (empty includes all)
-   */
-  record Scope(@Nonnull Set<Class<?>> controllers, @Nonnull Map<String, Set<String>> filters) {
 
-    boolean includes(Class<?> controller) {
-      if (!isControllerType(controller)) return false;
-      if (!controllers.contains(controller)) return false;
-      if (filters.isEmpty()) return true;
-      Map<String, String> present = OpenApiAnnotations.getClassifiers(controller);
-      for (Map.Entry<String, Set<String>> filter : filters.entrySet()) {
-        String value = present.get(filter.getKey());
-        if (value != null && filter.getValue().contains(value)) return true;
-      }
-      return false;
-    }
-
-    private static boolean isControllerType(Class<?> source) {
-      return (source.isAnnotationPresent(RestController.class)
-              || source.isAnnotationPresent(Controller.class))
-          && !source.isAnnotationPresent(OpenApi.Ignore.class);
-    }
-  }
-
-  record Configuration(Scope scope, boolean ignoreTypeAs) {}
+  record Configuration(boolean ignoreTypeAs) {}
 
   private static final Map<Class<?>, Api.SchemaGenerator> GENERATORS = new ConcurrentHashMap<>();
 
@@ -161,8 +131,8 @@ final class ApiExtractor {
    *
    * @return the {@link Api} for all controllers matching both of the filters
    */
-  public static Api extractApi(Configuration config) {
-    ApiExtractor tool = new ApiExtractor(config);
+  public static Api extractApi(Api.Scope scope, Configuration config) {
+    ApiExtractor tool = new ApiExtractor(scope, config);
     tool.extractApi();
     return tool.api;
   }
@@ -170,15 +140,13 @@ final class ApiExtractor {
   private final Configuration config;
   private final Api api;
 
-  private ApiExtractor(Configuration config) {
+  private ApiExtractor(Api.Scope scope, Configuration config) {
     this.config = config;
-    this.api = new Api(config.scope.controllers);
+    this.api = new Api(scope);
   }
 
   private void extractApi() {
-    config.scope.controllers.stream()
-        .filter(config.scope::includes)
-        .forEach(source -> api.getControllers().add(extractController(source)));
+    api.getScope().matches().forEach(source -> api.getControllers().add(extractController(source)));
   }
 
   private Api.Controller extractController(Class<?> source) {
@@ -553,14 +521,17 @@ final class ApiExtractor {
     String sharedName = getSharedName(paramsObject, shared, null);
     if (sharedName != null) {
       Map<Class<?>, List<Api.Parameter>> sharedParameters = api.getComponents().getParameters();
+      boolean addShared = !sharedParameters.containsKey(paramsObject);
       properties.forEach(
           property -> {
             Api.Parameter parameter = extractParameter(endpoint, property);
             if (!parameter.getSource().isAnnotationPresent(OpenApi.Shared.Inline.class)) {
               parameter.getSharedName().setValue(sharedName);
-              sharedParameters
-                  .computeIfAbsent(paramsObject, key -> new ArrayList<>())
-                  .add(parameter);
+              if (addShared) {
+                sharedParameters
+                    .computeIfAbsent(paramsObject, key -> new ArrayList<>())
+                    .add(parameter);
+              }
             }
             endpoint.getParameters().putIfAbsent(parameter.getName(), parameter);
           });

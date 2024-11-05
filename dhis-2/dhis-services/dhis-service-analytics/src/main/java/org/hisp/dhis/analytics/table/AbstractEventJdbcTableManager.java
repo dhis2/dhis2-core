@@ -114,8 +114,9 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @param valueType the value type to represent as database column type.
    */
   protected String getSelectClause(ValueType valueType, String columnName) {
+    String doubleType = sqlBuilder.dataTypeDouble();
     if (valueType.isDecimal()) {
-      return "cast(" + columnName + " as double precision)";
+      return "cast(" + columnName + " as " + doubleType + ")";
     } else if (valueType.isInteger()) {
       return "cast(" + columnName + " as bigint)";
     } else if (valueType.isBoolean()) {

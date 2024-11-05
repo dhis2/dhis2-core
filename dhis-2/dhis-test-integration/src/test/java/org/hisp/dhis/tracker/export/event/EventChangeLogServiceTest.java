@@ -123,7 +123,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailWhenEventIsSoftDeleted() throws NotFoundException {
-    trackerObjectDeletionService.deleteEvents(List.of("D9PbzJY8bJM"));
+    trackerObjectDeletionService.deleteEvents(List.of(UID.of("D9PbzJY8bJM")));
 
     assertThrows(
         NotFoundException.class,
@@ -454,7 +454,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
       throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
     trackerObjects.getEvents().stream()
-        .filter(e -> e.getEvent().equalsIgnoreCase(event))
+        .filter(e -> e.getEvent().getValue().equalsIgnoreCase(event))
         .findFirst()
         .flatMap(
             e ->

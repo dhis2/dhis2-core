@@ -175,21 +175,22 @@ class TrackedEntitiesExportController {
       org.hisp.dhis.tracker.export.Page<org.hisp.dhis.trackedentity.TrackedEntity>
           trackedEntitiesPage =
               trackedEntityService.getTrackedEntities(operationParams, pageParams);
+      List<TrackedEntity> trackedEntities =
+          trackedEntitiesPage.getItems().stream().map(TRACKED_ENTITY_MAPPER::map).toList();
       List<ObjectNode> objectNodes =
-          fieldFilterService.toObjectNodes(
-              TRACKED_ENTITY_MAPPER.fromCollection(trackedEntitiesPage.getItems()),
-              requestParams.getFields());
+          fieldFilterService.toObjectNodes(trackedEntities, requestParams.getFields());
 
       return ResponseEntity.ok()
           .contentType(MediaType.APPLICATION_JSON)
           .body(Page.withPager(TRACKED_ENTITIES, trackedEntitiesPage.withItems(objectNodes)));
     }
 
-    List<org.hisp.dhis.trackedentity.TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).stream()
+            .map(TRACKED_ENTITY_MAPPER::map)
+            .toList();
     List<ObjectNode> objectNodes =
-        fieldFilterService.toObjectNodes(
-            TRACKED_ENTITY_MAPPER.fromCollection(trackedEntities), requestParams.getFields());
+        fieldFilterService.toObjectNodes(trackedEntities, requestParams.getFields());
 
     return ResponseEntity.ok()
         .contentType(MediaType.APPLICATION_JSON)
@@ -206,15 +207,16 @@ class TrackedEntitiesExportController {
     TrackedEntityOperationParams operationParams =
         paramsMapper.map(trackedEntityRequestParams, CSV_FIELDS, currentUser);
 
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).stream()
+            .map(TRACKED_ENTITY_MAPPER::map)
+            .toList();
+
     ResponseHeader.addContentDispositionAttachment(response, TE_CSV_FILE);
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_CSV);
 
-    entityCsvService.write(
-        response.getOutputStream(),
-        TRACKED_ENTITY_MAPPER.fromCollection(
-            trackedEntityService.getTrackedEntities(operationParams)),
-        !skipHeader);
+    entityCsvService.write(response.getOutputStream(), trackedEntities, !skipHeader);
   }
 
   @GetMapping(produces = {CONTENT_TYPE_CSV_ZIP})
@@ -227,16 +229,17 @@ class TrackedEntitiesExportController {
     TrackedEntityOperationParams operationParams =
         paramsMapper.map(trackedEntityRequestParams, CSV_FIELDS, currentUser);
 
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).stream()
+            .map(TRACKED_ENTITY_MAPPER::map)
+            .toList();
+
     ResponseHeader.addContentDispositionAttachment(response, TE_CSV_FILE + ZIP_EXT);
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_CSV_ZIP);
 
     entityCsvService.writeZip(
-        response.getOutputStream(),
-        TRACKED_ENTITY_MAPPER.fromCollection(
-            trackedEntityService.getTrackedEntities(operationParams)),
-        !skipHeader,
-        TE_CSV_FILE);
+        response.getOutputStream(), trackedEntities, !skipHeader, TE_CSV_FILE);
   }
 
   @GetMapping(produces = {CONTENT_TYPE_CSV_GZIP})
@@ -249,15 +252,16 @@ class TrackedEntitiesExportController {
     TrackedEntityOperationParams operationParams =
         paramsMapper.map(trackedEntityRequestParams, CSV_FIELDS, currentUser);
 
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams).stream()
+            .map(TRACKED_ENTITY_MAPPER::map)
+            .toList();
+
     ResponseHeader.addContentDispositionAttachment(response, TE_CSV_FILE + GZIP_EXT);
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_CSV_GZIP);
 
-    entityCsvService.writeGzip(
-        response.getOutputStream(),
-        TRACKED_ENTITY_MAPPER.fromCollection(
-            trackedEntityService.getTrackedEntities(operationParams)),
-        !skipHeader);
+    entityCsvService.writeGzip(response.getOutputStream(), trackedEntities, !skipHeader);
   }
 
   @OpenApi.Response(OpenApi.EntityType.class)
@@ -271,7 +275,7 @@ class TrackedEntitiesExportController {
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityParams trackedEntityParams = fieldsMapper.map(fields);
     TrackedEntity trackedEntity =
-        TRACKED_ENTITY_MAPPER.from(
+        TRACKED_ENTITY_MAPPER.map(
             trackedEntityService.getTrackedEntity(uid, program, trackedEntityParams));
 
     return ResponseEntity.ok(fieldFilterService.toObjectNode(trackedEntity, fields));
@@ -289,7 +293,7 @@ class TrackedEntitiesExportController {
     TrackedEntityParams trackedEntityParams = fieldsMapper.map(CSV_FIELDS);
 
     TrackedEntity trackedEntity =
-        TRACKED_ENTITY_MAPPER.from(
+        TRACKED_ENTITY_MAPPER.map(
             trackedEntityService.getTrackedEntity(uid, program, trackedEntityParams));
 
     OutputStream outputStream = response.getOutputStream();
@@ -309,7 +313,8 @@ class TrackedEntitiesExportController {
     validateUnsupportedParameter(
         request,
         "dimension",
-        "Request parameter 'dimension' is only supported for images by API /tracker/trackedEntities/attributes/{attribute}/image");
+        "Request parameter 'dimension' is only supported for images by API"
+            + " /tracker/trackedEntities/attributes/{attribute}/image");
 
     return fileResourceRequestHandler.handle(
         request, trackedEntityService.getFileResource(trackedEntity, attribute, program));
