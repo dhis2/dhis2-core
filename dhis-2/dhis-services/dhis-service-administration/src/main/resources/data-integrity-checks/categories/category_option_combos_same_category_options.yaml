@@ -25,44 +25,101 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-  name: category_option_combos_same_category_options
-  description: Category option combos with the same category options
-  section: Categories
-  section_order: 6
-  summary_sql: >-
-      WITH duplicative_cocs  AS (
-      SELECT catoptions, COUNT(*) as count
-      FROM ( SELECT categoryoptioncomboid,
-      array_agg(categoryoptionid ORDER BY categoryoptionid) as catoptions
-      FROM categoryoptioncombos_categoryoptions group by categoryoptioncomboid) as foo
-      GROUP BY catoptions HAVING COUNT(*) > 1
-      )
-      SELECT COUNT(*) as value,
-       100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*)
-      FROM categoryoptioncombo),0 ) percent
-      FROM duplicative_cocs;
-  details_sql: >-
-      SELECT x.uid,'(' || b.rank || ') ' || x.name as name from categoryoptioncombo x
-      INNER JOIN (
-      SELECT categoryoptioncomboid, array_agg(categoryoptionid ORDER BY categoryoptionid) as catoptions
-      from categoryoptioncombos_categoryoptions GROUP BY categoryoptioncomboid
-      ) a on x.categoryoptioncomboid = a.categoryoptioncomboid
-      INNER JOIN (
-      SELECT catoptions, COUNT(*) as count, DENSE_RANK() OVER (ORDER BY catoptions) as rank
-      FROM ( SELECT categoryoptioncomboid,
-      array_agg(categoryoptionid ORDER BY categoryoptionid) as catoptions
-      FROM categoryoptioncombos_categoryoptions group by categoryoptioncomboid) as foo
-      GROUP BY catoptions HAVING COUNT(*) > 1
-      ) b on b.catoptions = a.catoptions
-      ORDER BY b.rank;
-  severity: WARNING
-  introduction: >
-    Category option combos with the exact same category options should be considered
-    to be merged. Category option combos with the exact same category options
-    may be easily confused by users in analysis. The details view will
-    provide a list of category option combos which have the exact same category options.
-    For each duplicated category option combo a number in parentheses such as (1) will
-    indicate which category option combos belong to duplicated groups.
-  details_id_type: categoryOptionCombos
-  recommendation: |
+name: category_option_combos_same_category_options
+description: Category option combos with the same category options
+section: Categories
+section_order: 6
+summary_sql: >-
+  WITH coc_long AS (
+  SELECT coc.name as coc_name,coc.uid as coc_uid,
+  cc.uid as cc_uid,cc.name as cc_name,
+  co.uid as co_uid,co.name as co_name
+  FROM(
+  SELECT a.categorycomboid,
+  b.categoryoptioncomboid,
+  b.categoryoptionid
+  FROM categorycombos_optioncombos a
+  RIGHT OUTER JOIN categoryoptioncombos_categoryoptions b on a.categoryoptioncomboid = b.categoryoptioncomboid
+  ORDER BY a.categorycomboid,b.categoryoptionid
+  
+  ) as x
+  JOIN categorycombo cc on cc.categorycomboid = x.categorycomboid
+  JOIN categoryoptioncombo coc on coc.categoryoptioncomboid = x.categoryoptioncomboid
+  JOIN categoryoption co on co.categoryoptionid = x.categoryoptionid
+  ORDER BY coc.name,cc.name,co.name
+  ),
+  coc_wide AS (
+  SELECT coc_name,coc_uid,
+  array_agg(cc_uid) as cc_uids,
+  array_agg(cc_name) as cc_names,
+  array_agg(co_uid) as co_uids,
+  array_agg(co_name) as co_names
+  FROM coc_long
+  GROUP BY coc_name,coc_uid
+  ),
+  coc_summary AS(
+  SELECT cc_uids,cc_names,co_uids,co_names,COUNT(*) as coc_count
+  FROM coc_wide
+  GROUP BY cc_uids,cc_names,co_uids,co_names
+  HAVING COUNT(*) > 1
+  )
+  SELECT COUNT(*) as value,
+   100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*)
+  FROM categoryoptioncombo),0 ) percent
+  FROM coc_summary;
+details_sql: >-
+  WITH coc_long AS (
+  SELECT coc.name as coc_name,coc.uid as coc_uid,
+  cc.uid as cc_uid,cc.name as cc_name,
+  co.uid as co_uid,co.name as co_name
+  FROM(
+  SELECT a.categorycomboid,
+  b.categoryoptioncomboid,
+  b.categoryoptionid
+  FROM categorycombos_optioncombos a
+  RIGHT OUTER JOIN categoryoptioncombos_categoryoptions b on a.categoryoptioncomboid = b.categoryoptioncomboid
+  ORDER BY a.categorycomboid,b.categoryoptionid
+
+  ) as x
+  JOIN categorycombo cc on cc.categorycomboid = x.categorycomboid
+  JOIN categoryoptioncombo coc on coc.categoryoptioncomboid = x.categoryoptioncomboid
+  JOIN categoryoption co on co.categoryoptionid = x.categoryoptionid
+  ORDER BY coc.name,cc.name,co.name
+  ),
+  coc_wide AS (
+  SELECT coc_name,coc_uid,
+  array_agg(cc_uid) as cc_uids,
+  array_agg(cc_name) as cc_names,
+  array_agg(co_uid) as co_uids,
+  array_agg(co_name) as co_names
+  FROM coc_long
+  GROUP BY coc_name,coc_uid
+  ),
+  coc_summary AS(
+  SELECT cc_uids,cc_names,co_uids,co_names,COUNT(*) as coc_count
+  FROM coc_wide
+  GROUP BY cc_uids,cc_names,co_uids,co_names
+  HAVING COUNT(*) > 1
+  )
+  SELECT coc_wide.coc_uid as uid,
+    coc_wide.coc_name as name,
+    array_to_string(coc_wide.cc_names,',') as comment,
+    coc_wide.cc_names  as refs
+    FROM coc_wide
+    JOIN coc_summary on coc_wide.cc_uids = coc_summary.cc_uids and coc_wide.co_uids = coc_summary.co_uids
+severity: WARNING
+introduction: >
+  Category option combos with the exact same category options should be considered
+  to be merged when they associated with the same category combination. 
+  Category option combos with the exact same category options
+  may be easily confused by users in analysis. The details view will
+  provide a list of category option combos which have the exact same category options along
+  with the category combo that they are associated with.
+details_id_type: categoryOptionCombos
+recommendation: |
+  Duplicate category option combinations can arise from a number of different factors. Metadata
+  may have been imported which may lead to duplicates in certain situations. Other causes
+  may include manual creation of these category option combinations through either the database
+  or the API. Once you have identified the potential duplicates, you should consider merging
+  these category option combinations. 
     
