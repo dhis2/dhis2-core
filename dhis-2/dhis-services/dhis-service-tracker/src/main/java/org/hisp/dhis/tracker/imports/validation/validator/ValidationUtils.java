@@ -211,14 +211,13 @@ public class ValidationUtils {
         || bundle.findTrackedEntityByUid(teUid).isPresent();
   }
 
-  public static boolean enrollmentExist(TrackerBundle bundle, UID enrollmentUid) {
-    return bundle.getPreheat().getEnrollment(enrollmentUid) != null
-        || bundle.findEnrollmentByUid(enrollmentUid).isPresent();
+  public static boolean enrollmentExist(TrackerBundle bundle, UID enrollment) {
+    return bundle.getPreheat().getEnrollment(enrollment) != null
+        || bundle.findEnrollmentByUid(enrollment).isPresent();
   }
 
-  public static boolean eventExist(TrackerBundle bundle, UID eventUid) {
-    return bundle.getPreheat().getEvent(eventUid) != null
-        || bundle.findEventByUid(eventUid).isPresent();
+  public static boolean eventExist(TrackerBundle bundle, UID event) {
+    return bundle.getPreheat().getEvent(event) != null || bundle.findEventByUid(event).isPresent();
   }
 
   public static <T extends ValueTypedDimensionalItemObject> void validateOptionSet(
