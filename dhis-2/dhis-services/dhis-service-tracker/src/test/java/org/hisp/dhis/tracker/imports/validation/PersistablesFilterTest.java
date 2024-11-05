@@ -473,20 +473,17 @@ class PersistablesFilterTest {
        * @return builder
        */
       Builder enrollment(String uid) {
-        Entity<Enrollment> entity = enrollment(uid, currentTrackedEntity);
+        Entity<Enrollment> entity = enrollment(UID.of(uid), currentTrackedEntity);
         this.enrollments.add(entity);
         current = entity;
         currentEnrollment = entity;
         return this;
       }
 
-      private static Entity<Enrollment> enrollment(String uid, Entity<TrackedEntity> parent) {
+      private static Entity<Enrollment> enrollment(UID uid, Entity<TrackedEntity> parent) {
         // set child/parent links
         Enrollment enrollment =
-            Enrollment.builder()
-                .enrollment(uid)
-                .trackedEntity(parent.entity.getStringUid())
-                .build();
+            Enrollment.builder().enrollment(uid).trackedEntity(parent.entity.getUid()).build();
         return new Entity<>(enrollment);
       }
 

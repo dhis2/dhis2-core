@@ -67,9 +67,9 @@ class UpdatableFieldsValidatorTest {
 
   private static final String PROGRAM_STAGE_ID = "ProgramStageId";
 
-  private static final String TRACKED_ENTITY_ID = "TrackedEntityId";
+  private static final UID TRACKED_ENTITY_ID = UID.generate();
 
-  private static final String ENROLLMENT_ID = "EnrollmentId";
+  private static final UID ENROLLMENT_ID = UID.generate();
 
   private static final UID EVENT_UID = UID.generate();
 
@@ -94,7 +94,7 @@ class UpdatableFieldsValidatorTest {
     when(bundle.getStrategy(any(org.hisp.dhis.tracker.imports.domain.Event.class)))
         .thenReturn(TrackerImportStrategy.UPDATE);
 
-    when(preheat.getTrackedEntity(TRACKED_ENTITY_ID)).thenReturn(trackedEntity());
+    when(preheat.getTrackedEntity(TRACKED_ENTITY_ID.getValue())).thenReturn(trackedEntity());
     when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(getEnrollment());
     when(preheat.getEvent(EVENT_UID)).thenReturn(event());
 
@@ -124,7 +124,7 @@ class UpdatableFieldsValidatorTest {
   @Test
   void verifyEnrollmentValidationFailsWhenUpdateTrackedEntity() {
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = validEnrollment();
-    enrollment.setTrackedEntity("NewTrackedEntityId");
+    enrollment.setTrackedEntity(UID.generate());
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -148,7 +148,7 @@ class UpdatableFieldsValidatorTest {
     trackedEntityType.setUid(TRACKED_ENTITY_TYPE_ID);
 
     TrackedEntity trackedEntity = new TrackedEntity();
-    trackedEntity.setUid(TRACKED_ENTITY_ID);
+    trackedEntity.setUid(TRACKED_ENTITY_ID.getValue());
     trackedEntity.setTrackedEntityType(trackedEntityType);
     return trackedEntity;
   }
@@ -158,7 +158,7 @@ class UpdatableFieldsValidatorTest {
     program.setUid(PROGRAM_ID);
 
     Enrollment enrollment = new Enrollment();
-    enrollment.setUid(ENROLLMENT_ID);
+    enrollment.setUid(ENROLLMENT_ID.getValue());
     enrollment.setProgram(program);
     enrollment.setTrackedEntity(trackedEntity());
     return enrollment;

@@ -50,7 +50,6 @@ public class EnrollmentValidator implements Validator<TrackerBundle> {
         each(
             TrackerBundle::getEnrollments,
             seq(
-                new UidValidator(),
                 new ExistenceValidator(),
                 new MandatoryFieldsValidator(),
                 new MetaValidator(),

@@ -337,8 +337,8 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
         .enrolledAt(NOW.toInstant())
         .occurredAt(TOMORROW.toInstant())
         .program(MetadataIdentifier.ofUid(program))
-        .trackedEntity(CodeGenerator.generateUid())
-        .enrollment(CodeGenerator.generateUid())
+        .trackedEntity(UID.generate())
+        .enrollment(UID.generate())
         .build();
   }
 

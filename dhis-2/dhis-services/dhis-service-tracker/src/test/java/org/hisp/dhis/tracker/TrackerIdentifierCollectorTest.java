@@ -104,8 +104,8 @@ class TrackerIdentifierCollectorTest {
   void collectEnrollments() {
     Enrollment enrollment =
         Enrollment.builder()
-            .enrollment(stringUid())
-            .trackedEntity(stringUid())
+            .enrollment(uid())
+            .trackedEntity(uid())
             .program(ofAttribute("NTVsGflP5Ix", "sunshine"))
             .orgUnit(ofName("ward"))
             .attributes(teAttributes("VohJnvWfvyo", "qv9xOw8fBzy"))
@@ -118,7 +118,8 @@ class TrackerIdentifierCollectorTest {
 
     assertNotNull(ids);
     assertContainsOnly(Set.of(enrollment.getStringUid()), ids.get(Enrollment.class));
-    assertContainsOnly(Set.of(enrollment.getTrackedEntity()), ids.get(TrackedEntity.class));
+    assertContainsOnly(
+        Set.of(enrollment.getTrackedEntity().getValue()), ids.get(TrackedEntity.class));
     assertContainsOnly(Set.of("sunshine"), ids.get(Program.class));
     assertContainsOnly(Set.of("ward"), ids.get(OrganisationUnit.class));
     assertContainsOnly(Set.of("VohJnvWfvyo", "qv9xOw8fBzy"), ids.get(TrackedEntityAttribute.class));

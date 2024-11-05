@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
@@ -97,7 +98,7 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
 
   @Override
   public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
-    List<String> trackedEntityList =
+    List<UID> trackedEntityList =
         trackerObjects.getEnrollments().stream()
             .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getTrackedEntity)
             .toList();
@@ -105,7 +106,7 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
     List<String> programList =
         preheat.getAll(Program.class).stream().map(IdentifiableObject::getUid).toList();
 
-    List<List<String>> trackedEntities =
+    List<List<UID>> trackedEntities =
         Lists.partition(new ArrayList<>(trackedEntityList), Constant.SPLIT_LIST_PARTITION_SIZE);
 
     if (programList.isEmpty() || trackedEntities.isEmpty()) return;
@@ -114,7 +115,7 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
 
     if (trackerObjects.getEnrollments().isEmpty()) return;
 
-    for (List<String> trackedEntityListSubList : trackedEntities) {
+    for (List<UID> trackedEntityListSubList : trackedEntities) {
       queryTeAndAddToMap(trackedEntityToEnrollmentMap, trackedEntityListSubList, programList);
     }
 
@@ -123,10 +124,10 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
 
   private void queryTeAndAddToMap(
       Map<String, List<Enrollment>> trackedEntityToEnrollmentMap,
-      List<String> trackedEntityListSubList,
+      List<UID> trackedEntityListSubList,
       List<String> programList) {
     MapSqlParameterSource parameters = new MapSqlParameterSource();
-    parameters.addValue("teuids", trackedEntityListSubList);
+    parameters.addValue("teuids", UID.toValueList(trackedEntityListSubList));
     parameters.addValue("pruids", programList);
 
     jdbcTemplate.query(

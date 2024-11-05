@@ -67,9 +67,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class SetMandatoryFieldExecutorTest extends TestBase {
   private static final UID RULE_UID = UID.of("TvctPPhpD8u");
 
-  private static final String ACTIVE_ENROLLMENT_ID = "ActiveEnrollmentUid";
+  private static final UID ACTIVE_ENROLLMENT_ID = UID.generate();
 
-  private static final String COMPLETED_ENROLLMENT_ID = "CompletedEnrollmentUid";
+  private static final UID COMPLETED_ENROLLMENT_ID = UID.generate();
 
   private static final String DATA_ELEMENT_ID = "DataElementId";
 
@@ -77,7 +77,7 @@ class SetMandatoryFieldExecutorTest extends TestBase {
 
   private static final String ATTRIBUTE_CODE = "AttributeCode";
 
-  private static final String TE_ID = "TeiId";
+  private static final UID TE_ID = UID.generate();
 
   private static final String ATTRIBUTE_VALUE = "23.0";
 
@@ -167,7 +167,7 @@ class SetMandatoryFieldExecutorTest extends TestBase {
   void shouldReturnNoErrorWhenCreatingEnrollmentAndMandatoryAttributeIsPresentOnlyInTE() {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(preheat.getTrackedEntityAttribute(ATTRIBUTE_UID.getValue())).thenReturn(attribute);
-    when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity());
+    when(preheat.getTrackedEntity(TE_ID.getValue())).thenReturn(trackedEntity());
     Enrollment enrollmentWithMandatoryAttributeNOTSet = getEnrollmentWithMandatoryAttributeNOTSet();
     bundle.setEnrollments(List.of(enrollmentWithMandatoryAttributeNOTSet));
     bundle.setStrategy(enrollmentWithMandatoryAttributeNOTSet, TrackerImportStrategy.CREATE);
@@ -183,7 +183,7 @@ class SetMandatoryFieldExecutorTest extends TestBase {
       shouldReturnNoErrorWhenUpdatingEnrollmentAndMandatoryFieldIsNotPresentInEnrollmentButPresentInDB() {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(preheat.getTrackedEntityAttribute(ATTRIBUTE_UID.getValue())).thenReturn(attribute);
-    when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity());
+    when(preheat.getTrackedEntity(TE_ID.getValue())).thenReturn(trackedEntity());
     Enrollment enrollmentWithMandatoryAttributeNOTSet = getEnrollmentWithMandatoryAttributeNOTSet();
     bundle.setEnrollments(List.of(enrollmentWithMandatoryAttributeNOTSet));
     bundle.setStrategy(enrollmentWithMandatoryAttributeNOTSet, TrackerImportStrategy.UPDATE);
@@ -331,14 +331,14 @@ class SetMandatoryFieldExecutorTest extends TestBase {
             .value(ATTRIBUTE_VALUE)
             .build();
     return org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-        .trackedEntity(TE_ID)
+        .trackedEntity(TE_ID.getValue())
         .attributes(List.of(payloadAttribute))
         .build();
   }
 
   private TrackedEntity trackedEntity() {
     TrackedEntity trackedEntity = new TrackedEntity();
-    trackedEntity.setUid(TE_ID);
+    trackedEntity.setUid(TE_ID.getValue());
     TrackedEntityAttributeValue attributeValue =
         createTrackedEntityAttributeValue('A', trackedEntity, attribute);
     attributeValue.setValue(ATTRIBUTE_VALUE);

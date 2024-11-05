@@ -36,6 +36,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
@@ -81,7 +82,7 @@ class ExistingEnrollmentValidator
             .filter(e -> e.getProgram().isEqualTo(program))
             .filter(
                 e ->
-                    e.getTrackedEntity().equals(te.getUid())
+                    e.getTrackedEntity().equals(UID.of(te))
                         && !e.getEnrollment().equals(enrollment.getEnrollment()))
             .filter(
                 e ->
@@ -93,13 +94,13 @@ class ExistingEnrollmentValidator
         bundle
             .getPreheat()
             .getTrackedEntityToEnrollmentMap()
-            .getOrDefault(enrollment.getTrackedEntity(), new ArrayList<>())
+            .getOrDefault(enrollment.getTrackedEntity().getValue(), new ArrayList<>())
             .stream()
             .filter(Objects::nonNull)
             .filter(
                 e ->
                     e.getProgram().getUid().equals(program.getUid())
-                        && !e.getUid().equals(enrollment.getEnrollment()))
+                        && !e.getUid().equals(enrollment.getEnrollment().getValue()))
             .filter(
                 e ->
                     EnrollmentStatus.ACTIVE == e.getStatus()
@@ -141,18 +142,18 @@ class ExistingEnrollmentValidator
       Enrollment dbEnrollment) {
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         new org.hisp.dhis.tracker.imports.domain.Enrollment();
-    enrollment.setEnrollment(dbEnrollment.getUid());
+    enrollment.setEnrollment(UID.of(dbEnrollment));
     enrollment.setStatus(dbEnrollment.getStatus());
 
     return enrollment;
   }
 
-  private TrackedEntity getTrackedEntity(TrackerBundle bundle, String uid) {
-    TrackedEntity te = bundle.getPreheat().getTrackedEntity(uid);
+  private TrackedEntity getTrackedEntity(TrackerBundle bundle, UID uid) {
+    TrackedEntity te = bundle.getPreheat().getTrackedEntity(uid.getValue());
 
-    if (te == null && bundle.findTrackedEntityByUid(uid).isPresent()) {
+    if (te == null && bundle.findTrackedEntityByUid(uid.getValue()).isPresent()) {
       te = new TrackedEntity();
-      te.setUid(uid);
+      te.setUid(uid.getValue());
     }
     return te;
   }

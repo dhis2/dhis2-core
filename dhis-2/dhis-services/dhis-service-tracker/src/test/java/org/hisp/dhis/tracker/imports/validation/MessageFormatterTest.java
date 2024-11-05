@@ -176,7 +176,7 @@ class MessageFormatterTest {
   void formatArgumentsShouldTurnEnrollmentIntoArguments() {
     List<String> args =
         MessageFormatter.formatArguments(
-            idSchemes, Enrollment.builder().enrollment("zwccdzhk5zc").build());
+            idSchemes, Enrollment.builder().enrollment(UID.of("zwccdzhk5zc")).build());
 
     assertContainsOnly(List.of("zwccdzhk5zc"), args);
   }

@@ -74,7 +74,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class SecurityOwnershipValidatorTest extends TestBase {
   private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
 
-  private static final String TE_ID = "TE_ID";
+  private static final UID TE_ID = UID.generate();
 
   private static final String TE_TYPE_ID = "TE_TYPE_ID";
 
@@ -215,7 +215,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
-    when(preheat.getEnrollment(event.getEnrollment().getValue())).thenReturn(getEnrollment(null));
+    when(preheat.getEnrollment(event.getEnrollment())).thenReturn(getEnrollment(null));
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
@@ -242,7 +242,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
     when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
-    when(preheat.getEnrollment(event.getEnrollment().getValue())).thenReturn(getEnrollment(null));
+    when(preheat.getEnrollment(event.getEnrollment())).thenReturn(getEnrollment(null));
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
@@ -309,21 +309,23 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(preheat.getProgramOwner())
         .thenReturn(
             Collections.singletonMap(
-                TE_ID,
+                TE_ID.getValue(),
                 Collections.singletonMap(
                     PROGRAM_ID,
-                    new TrackedEntityProgramOwnerOrgUnit(TE_ID, PROGRAM_ID, organisationUnit))));
+                    new TrackedEntityProgramOwnerOrgUnit(
+                        TE_ID.getValue(), PROGRAM_ID, organisationUnit))));
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(aclService.canDataWrite(user, programStage)).thenReturn(true);
 
-    when(ownershipAccessManager.hasAccess(user, TE_ID, organisationUnit, program))
+    when(ownershipAccessManager.hasAccess(user, TE_ID.getValue(), organisationUnit, program))
         .thenReturn(false);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, E1102);
 
-    when(ownershipAccessManager.hasAccess(user, TE_ID, organisationUnit, program)).thenReturn(true);
+    when(ownershipAccessManager.hasAccess(user, TE_ID.getValue(), organisationUnit, program))
+        .thenReturn(true);
 
     reporter = new Reporter(idSchemes);
     validator.validate(reporter, bundle, event);
@@ -375,7 +377,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
-    when(preheat.getEnrollment(event.getEnrollment().getValue())).thenReturn(getEnrollment(null));
+    when(preheat.getEnrollment(event.getEnrollment())).thenReturn(getEnrollment(null));
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
@@ -404,7 +406,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
-    when(preheat.getEnrollment(event.getEnrollment().getValue())).thenReturn(getEnrollment(null));
+    when(preheat.getEnrollment(event.getEnrollment())).thenReturn(getEnrollment(null));
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
@@ -479,7 +481,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   private TrackedEntity teWithNoEnrollments() {
     TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
-    trackedEntity.setUid(TE_ID);
+    trackedEntity.setUid(TE_ID.getValue());
     trackedEntity.setEnrollments(Sets.newHashSet());
     trackedEntity.setTrackedEntityType(trackedEntityType);
 
@@ -503,7 +505,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     Event event = new Event();
     event.setProgramStage(programStage);
     event.setOrganisationUnit(organisationUnit);
-    event.setEnrollment(new Enrollment());
+    event.setEnrollment(getEnrollment(UID.generate()));
     event.setStatus(EventStatus.COMPLETED);
     return event;
   }
