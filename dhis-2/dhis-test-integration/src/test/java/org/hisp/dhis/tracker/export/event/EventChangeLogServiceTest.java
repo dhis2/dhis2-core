@@ -388,7 +388,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnEventPropertiesChangeLogWhenNewGeometryPropertyValueAdded()
+  void shouldReturnEventPropertiesChangeLogWhenNewGeometryPointPropertyValueAdded()
       throws ForbiddenException, NotFoundException {
     String event = "QRYjLTiJTrA";
 
@@ -404,7 +404,26 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnEventPropertiesChangeLogWhenExistingGeometryPropertyUpdated()
+  void shouldReturnEventPropertiesChangeLogWhenNewGeometryPolygonPropertyValueAdded()
+      throws ForbiddenException, NotFoundException {
+    String event = "YKmfzHdjUDL";
+
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(
+            UID.of(event), defaultOperationParams, defaultPageParams);
+    List<EventChangeLog> geometryChangeLogs = getChangeLogsByProperty(changeLogs, "geometry");
+
+    assertNumberOfChanges(1, geometryChangeLogs);
+    assertAll(
+        () ->
+            assertPropertyCreate(
+                "geometry",
+                "(-11.416855, 8.132308), (-11.445351, 8.089312), (-11.383896, 8.089652), (-11.416855, 8.132308)",
+                geometryChangeLogs.get(0)));
+  }
+
+  @Test
+  void shouldReturnEventPropertiesChangeLogWhenExistingGeometryPointPropertyUpdated()
       throws ForbiddenException, NotFoundException, IOException {
     UID event = UID.of("QRYjLTiJTrA");
 
@@ -428,7 +447,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnEventPropertiesChangeLogWhenExistingGeometryPropertyDeleted()
+  void shouldReturnEventPropertiesChangeLogWhenExistingGeometryPointPropertyDeleted()
       throws IOException, ForbiddenException, NotFoundException {
     UID event = UID.of("QRYjLTiJTrA");
 

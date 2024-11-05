@@ -1168,7 +1168,29 @@
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
       },
-      "notes": []
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -11.416855,
+              8.132308
+            ],
+            [
+              -11.445351,
+              8.089312
+            ],
+            [
+              -11.383896,
+              8.089652
+            ],
+            [
+              -11.416855,
+              8.132308
+            ]
+          ]
+        ]
+      }
     },
     {
       "event": "G9PbzJY8bJG",
