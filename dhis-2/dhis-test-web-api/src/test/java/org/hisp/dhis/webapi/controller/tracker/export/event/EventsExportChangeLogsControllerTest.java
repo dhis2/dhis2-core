@@ -34,12 +34,15 @@ import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNo
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.util.Date;
+import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -54,6 +57,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.test.utils.Assertions;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -165,12 +169,28 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
         GET("/tracker/events/{id}/changeLogs", event.getUid())
             .content(HttpStatus.OK)
             .getList("changeLogs", JsonEventChangeLog.class);
+    List<JsonEventChangeLog> dataValueChangeLogs =
+        changeLogs.stream()
+            .filter(log -> log.getChange().getDataValue().getDataElement() != null)
+            .toList();
+    List<JsonEventChangeLog> eventPropertyChangeLogs =
+        changeLogs.stream()
+            .filter(log -> log.getChange().getEventProperty().getProperty() != null)
+            .toList();
 
-    assertNumberOfChanges(3, changeLogs);
+    Assertions.assertHasSize(3, dataValueChangeLogs);
+    Assertions.assertHasSize(2, eventPropertyChangeLogs);
+
     assertAll(
-        () -> assertDelete(dataElement, "value 3", changeLogs.get(0)),
-        () -> assertUpdate(dataElement, "value 2", "value 3", changeLogs.get(1)),
-        () -> assertUpdate(dataElement, "value 1", "value 2", changeLogs.get(2)));
+        () -> assertDelete(dataElement, "value 3", dataValueChangeLogs.get(0)),
+        () -> assertUpdate(dataElement, "value 2", "value 3", dataValueChangeLogs.get(1)),
+        () -> assertUpdate(dataElement, "value 1", "value 2", dataValueChangeLogs.get(2)),
+        () ->
+            assertPropertyCreateExists(
+                "occurredDate", "2023-01-10 00:00:00.000", eventPropertyChangeLogs),
+        () ->
+            assertPropertyCreateExists(
+                "scheduledDate", "2023-01-10 00:00:00.000", eventPropertyChangeLogs));
   }
 
   @Test
@@ -179,12 +199,27 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
         GET("/tracker/events/{id}/changeLogs?order=createdAt:asc", event.getUid())
             .content(HttpStatus.OK)
             .getList("changeLogs", JsonEventChangeLog.class);
+    List<JsonEventChangeLog> dataValueChangeLogs =
+        changeLogs.stream()
+            .filter(log -> log.getChange().getDataValue().getDataElement() != null)
+            .toList();
+    List<JsonEventChangeLog> eventPropertyChangeLogs =
+        changeLogs.stream()
+            .filter(log -> log.getChange().getEventProperty().getProperty() != null)
+            .toList();
 
-    assertNumberOfChanges(3, changeLogs);
+    Assertions.assertHasSize(3, dataValueChangeLogs);
+    Assertions.assertHasSize(2, eventPropertyChangeLogs);
     assertAll(
-        () -> assertUpdate(dataElement, "value 1", "value 2", changeLogs.get(0)),
-        () -> assertUpdate(dataElement, "value 2", "value 3", changeLogs.get(1)),
-        () -> assertDelete(dataElement, "value 3", changeLogs.get(2)));
+        () -> assertUpdate(dataElement, "value 1", "value 2", dataValueChangeLogs.get(0)),
+        () -> assertUpdate(dataElement, "value 2", "value 3", dataValueChangeLogs.get(1)),
+        () -> assertDelete(dataElement, "value 3", dataValueChangeLogs.get(2)),
+        () ->
+            assertPropertyCreateExists(
+                "occurredDate", "2023-01-10 00:00:00.000", eventPropertyChangeLogs),
+        () ->
+            assertPropertyCreateExists(
+                "scheduledDate", "2023-01-10 00:00:00.000", eventPropertyChangeLogs));
   }
 
   @Test
@@ -250,19 +285,19 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
         GET(
                 "/tracker/events/{id}/changeLogs?page={page}&pageSize={pageSize}",
                 event.getUid(),
-                "3",
+                "5",
                 "1")
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
     JsonPager pager = changeLogs.getPager();
     assertAll(
-        () -> assertEquals(3, pager.getPage()),
+        () -> assertEquals(5, pager.getPage()),
         () -> assertEquals(1, pager.getPageSize()),
         () ->
             assertPagerLink(
                 pager.getPrevPage(),
-                2,
+                4,
                 1,
                 String.format("http://localhost/api/tracker/events/%s/changeLogs", event.getUid())),
         () -> assertHasNoMember(pager, "nextPage"));
@@ -276,14 +311,14 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
                 "/tracker/events/{id}/changeLogs?page={page}&pageSize={pageSize}",
                 event.getUid(),
                 "1",
-                "3")
+                "5")
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
     JsonPager pagerObject = changeLogs.getPager();
     assertAll(
         () -> assertEquals(1, pagerObject.getPage()),
-        () -> assertEquals(3, pagerObject.getPageSize()),
+        () -> assertEquals(5, pagerObject.getPageSize()),
         () -> assertHasNoMember(pagerObject, "prevPage"),
         () -> assertHasNoMember(pagerObject, "nextPage"));
   }
@@ -443,5 +478,24 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
         () -> assertStartsWith(start, actual),
         () -> assertContains("page=" + page, actual),
         () -> assertContains("pageSize=" + pageSize, actual));
+  }
+
+  private static void assertPropertyCreateExists(
+      String property, String currentValue, List<JsonEventChangeLog> logs) {
+    assertTrue(
+        logs.stream().anyMatch(log -> isEventPropertyCreate(log, property, currentValue)),
+        "Expected a "
+            + property
+            + " change with value "
+            + currentValue
+            + " among the change log entries.");
+  }
+
+  private static boolean isEventPropertyCreate(
+      JsonEventChangeLog actual, String property, String currentValue) {
+    return actual.getType().equals(ChangeLogType.CREATE.name())
+        && actual.getChange().getEventProperty().getProperty().equals(property)
+        && actual.getChange().getEventProperty().getCurrentValue().equals(currentValue)
+        && actual.getChange().getEventProperty().getPreviousValue() == null;
   }
 }

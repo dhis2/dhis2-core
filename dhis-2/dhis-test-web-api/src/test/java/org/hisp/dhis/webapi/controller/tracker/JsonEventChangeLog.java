@@ -47,11 +47,29 @@ public interface JsonEventChangeLog extends JsonObject {
     default JsonDataValue getDataValue() {
       return get("dataValue").as(JsonDataValue.class);
     }
+
+    default JsonEventProperty getEventProperty() {
+      return get("eventProperty").as(JsonEventProperty.class);
+    }
   }
 
   interface JsonDataValue extends JsonObject {
     default String getDataElement() {
       return getString("dataElement").string();
+    }
+
+    default String getPreviousValue() {
+      return getString("previousValue").string();
+    }
+
+    default String getCurrentValue() {
+      return getString("currentValue").string();
+    }
+  }
+
+  interface JsonEventProperty extends JsonObject {
+    default String getProperty() {
+      return getString("property").string();
     }
 
     default String getPreviousValue() {
