@@ -7,6 +7,10 @@ pipeline {
         label 'ec2-jdk17'
     }
 
+    triggers {
+        cron('H H(9-16)/2 * * 1-5')
+        pollSCM('H/30 * * * *')
+    }
 
     options {
         buildDiscarder(logRotator(daysToKeepStr: '5'))
@@ -98,7 +102,6 @@ pipeline {
               }
         }
 
-        /* Commented out for testing purposes
         stage('Sync WAR') {
             steps {
                 implementIoBuildStarted(buildName: "${STAGE_NAME}")
@@ -195,31 +198,6 @@ pipeline {
                 }
             }
         }
-        */
-
-        stage('Trigger Cypress Tests') {
-            steps {
-                script {
-                    def repos = ['dhis2/line-listing-app']
-                    def event_type = 'cypress-test-trigger'
-                    def payload = [
-                        dhis2_version: env.DHIS2_VERSION
-                    ]
-                    
-                    repos.each { repo ->
-                        withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
-                            sh """
-                                curl -X POST \
-                                -H "Accept: application/vnd.github.v3+json" \
-                                -H "Authorization: token $GITHUB_TOKEN" \
-                                https://api.github.com/repos/${repo}/dispatches \
-                                -d '{ "event_type": "${event_type}", "client_payload": ${groovy.json.JsonOutput.toJson(payload)} }'
-                            """
-                        }
-                    }
-                }
-            }
-        }
     }
 
     post {
@@ -230,7 +208,6 @@ pipeline {
                 gitHelper.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
             }
         }
-        /* Commented out for testing purposes
 
         failure {
             script {
@@ -241,7 +218,6 @@ pipeline {
                 )
             }
         }
-        */
 
         aborted {
             script {
