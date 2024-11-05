@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.webdomain;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
@@ -39,15 +38,16 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParams;
  * @author Morten Olav Hansen
  */
 @Data
-@RequiredArgsConstructor
 @AllArgsConstructor
 @JsonRootName(value = "root", namespace = DxfNamespaces.DXF_2_0)
 public class StreamingJsonRoot<T> {
-  private final Pager pager;
 
+  private Pager pager;
   private final String wrapperName;
-
   private final FieldFilterParams<T> params;
-
   private boolean excludeDefaults;
+
+  public StreamingJsonRoot(Pager pager, String wrapperName, FieldFilterParams<T> params) {
+    this(pager, wrapperName, params, false);
+  }
 }

@@ -206,7 +206,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     }
 
     WebOptions options = new WebOptions(rpParameters);
-    WebMetadata metadata = new WebMetadata();
 
     if (!aclService.canRead(userDetails, getEntityClass())) {
       throw new ForbiddenException(
@@ -215,11 +214,11 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     forceFiltering(options, filters);
 
-    List<T> entities = getEntityList(metadata, options, filters, orders, objects);
+    List<T> entities = getEntityList(options, filters, orders, objects);
 
-    Pager pager = metadata.getPager();
+    Pager pager = null;
 
-    if (options.hasPaging() && pager == null) {
+    if (options.hasPaging()) {
       long totalCount;
 
       if (!countTotal) {
@@ -288,7 +287,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
           "You don't have the proper permissions to read objects of this type.");
     }
 
-    List<T> entities = getEntityList(metadata, options, filters, orders, null);
+    List<T> entities = getEntityList(options, filters, orders, null);
 
     try {
       String csv = applyCsvSteps(fields, entities, separator, arraySeparator, skipHeader);
@@ -527,11 +526,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
   @SuppressWarnings("unchecked")
   protected final List<T> getEntityList(
-      WebMetadata metadata,
-      WebOptions options,
-      List<String> filters,
-      List<Order> orders,
-      List<T> objects)
+      WebOptions options, List<String> filters, List<Order> orders, List<T> objects)
       throws BadRequestException {
     Query query =
         BadRequestException.on(

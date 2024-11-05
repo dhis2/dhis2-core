@@ -110,7 +110,6 @@ import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
-import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -161,7 +160,6 @@ public class UserController extends AbstractCrudController<User> {
       UserDetails currentUser)
       throws ForbiddenException, BadRequestException {
     WebOptions options = new WebOptions(rpParameters);
-    WebMetadata metadata = new WebMetadata();
     List<Order> orders = orderParams.getOrders(getSchema());
     List<String> filters = new ArrayList<>(contextService.getParameterValues("filter"));
 
@@ -181,8 +179,9 @@ public class UserController extends AbstractCrudController<User> {
     boolean hasUserGroupFilter = filters.stream().anyMatch(f -> f.startsWith("userGroups."));
     params.setPrefetchUserGroups(hasUserGroupFilter);
 
+    Pager pager = null;
     if (filters.isEmpty() && options.hasPaging()) {
-      metadata.setPager(makePager(options, params));
+      pager = makePager(options, params);
     }
 
     Query query = makeQuery(options, filters, orders, params);
@@ -190,7 +189,10 @@ public class UserController extends AbstractCrudController<User> {
     @SuppressWarnings("unchecked")
     List<User> users = (List<User>) queryService.query(query);
 
-    return super.getObjectList(rpParameters, orderParams, response, currentUser, false, users);
+    ResponseEntity<StreamingJsonRoot<User>> res =
+        super.getObjectList(rpParameters, orderParams, response, currentUser, pager == null, users);
+    if (pager != null) res.getBody().setPager(pager);
+    return res;
   }
 
   private Pager makePager(WebOptions options, UserQueryParams params) {
