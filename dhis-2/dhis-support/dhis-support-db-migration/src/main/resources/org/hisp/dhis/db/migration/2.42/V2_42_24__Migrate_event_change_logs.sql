@@ -18,7 +18,7 @@ create table if not exists eventchangelog (
     constraint fk_eventchangelog_eventid foreign key (eventid) references event(eventid)
 );
 
-create index if not exists index_eventchangelog_programstageinstanceid on eventchangelog using btree (eventid);
+create index if not exists index_eventchangelog_eventid on eventchangelog using btree (eventid);
 
 -- Migrate data from trackedentitydatavalueaudit to eventchangelog
 insert into eventchangelog (eventchangelogid, eventid, dataelementid, currentvalue, previousvalue, created, createdby, changelogtype)

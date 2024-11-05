@@ -37,7 +37,6 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.springframework.transaction.annotation.Transactional;
 
 public interface EventChangeLogService {
 
@@ -75,12 +74,10 @@ public interface EventChangeLogService {
 
   void deleteTrackedEntityDataValueChangeLog(Event event);
 
-  @Transactional
   void deleteEventChangeLog(Event event);
 
   void deleteTrackedEntityDataValueChangeLog(DataElement dataElement);
 
-  @Transactional
   void deleteEventChangeLog(DataElement dataElement);
 
   /**

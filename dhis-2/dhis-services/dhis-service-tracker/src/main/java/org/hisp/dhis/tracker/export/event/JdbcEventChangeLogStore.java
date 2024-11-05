@@ -183,10 +183,10 @@ class JdbcEventChangeLogStore {
   public void deleteEventChangeLog(DataElement dataElement) {
     String sql =
         """
-          DELETE FROM eventchangelog WHERE dataelementid = :dataelementio
+          DELETE FROM eventchangelog WHERE dataelementid = :dataelementid
         """;
     SqlParameterSource params =
-        new MapSqlParameterSource().addValue("dataelementio", dataElement.getId());
+        new MapSqlParameterSource().addValue("dataelementid", dataElement.getId());
     jdbcTemplate.update(sql, params);
   }
 
