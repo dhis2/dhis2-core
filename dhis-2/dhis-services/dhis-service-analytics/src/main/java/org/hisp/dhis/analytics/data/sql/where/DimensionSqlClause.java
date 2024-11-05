@@ -25,40 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.data.sql.from.strategy;
+package org.hisp.dhis.analytics.data.sql.where;
 
-import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 
-import org.hisp.dhis.analytics.AnalyticsTableType;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.data.sql.WhereClauseBuilder;
-import org.hisp.dhis.analytics.data.sql.from.ColumnBuilder;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.SqlBuilder;
 
-/** Strategy for building min/max value subqueries */
-public class MinMaxValueStrategy extends BaseSubqueryStrategy {
-  private final ColumnBuilder columnBuilder;
-  private final WhereClauseBuilder whereClauseBuilder;
-
-  public MinMaxValueStrategy(
-      DataQueryParams params,
-      SqlBuilder sqlBuilder,
-      ColumnBuilder columnBuilder,
-      AnalyticsTableType tableType) {
-    super(params, sqlBuilder);
-    this.columnBuilder = columnBuilder;
-    this.whereClauseBuilder = new WhereClauseBuilder(params, sqlBuilder, tableType);
-  }
+@RequiredArgsConstructor
+public class DimensionSqlClause implements SqlClauseAppender {
+  private final DataQueryParams params;
+  private final SqlBuilder sqlBuilder;
 
   @Override
-  public String buildSubquery() {
-    String dimensionColumns = columnBuilder.getMinMaxDimensionColumns();
-    String valueColumns = columnBuilder.getMinMaxValueColumns();
-    String fromSourceClause = getFromSourceClause() + " as " + ANALYTICS_TBL_ALIAS;
-    String whereClause = whereClauseBuilder.build(sqlBuilder);
-
-    return String.format(
-        "(select %s, %s from %s %s group by %s)",
-        dimensionColumns, valueColumns, fromSourceClause, whereClause, dimensionColumns);
+  public void appendTo(StringBuilder sql, SqlHelper sqlHelper) {
+    for (DimensionalObject dim : params.getDimensions()) {
+      if (dim.hasItems() && !dim.isFixed()) {
+        String col = sqlBuilder.quoteAx(dim.getDimensionName());
+        String items = sqlBuilder.singleQuotedCommaDelimited(getUids(dim.getItems()));
+        sql.append(sqlHelper.whereAnd())
+            .append(" ")
+            .append(col)
+            .append(" in (")
+            .append(items)
+            .append(") ");
+      }
+    }
   }
 }

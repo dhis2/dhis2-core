@@ -25,34 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.data.sql.where;
+package org.hisp.dhis.analytics.data.sql.from.strategy;
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.analytics.data.sql.WhereClauseBuilder;
+import org.hisp.dhis.analytics.data.sql.from.SubqueryColumnGenerator;
 import org.hisp.dhis.db.sql.SqlBuilder;
 
-@RequiredArgsConstructor
-public class DimensionWhereClause implements WhereClauseComponent {
-  private final DataQueryParams params;
-  private final SqlBuilder sqlBuilder;
+/** Strategy for building min/max value subqueries */
+public class MinMaxValue extends BaseSubqueryStrategy {
+  private final SubqueryColumnGenerator subqueryColumnGenerator;
+  private final WhereClauseBuilder whereClauseBuilder;
+
+  public MinMaxValue(
+      DataQueryParams params,
+      SqlBuilder sqlBuilder,
+      SubqueryColumnGenerator subqueryColumnGenerator,
+      AnalyticsTableType tableType) {
+    super(params, sqlBuilder);
+    this.subqueryColumnGenerator = subqueryColumnGenerator;
+    this.whereClauseBuilder = new WhereClauseBuilder(params, sqlBuilder, tableType);
+  }
 
   @Override
-  public void appendTo(StringBuilder sql, SqlHelper sqlHelper) {
-    for (DimensionalObject dim : params.getDimensions()) {
-      if (dim.hasItems() && !dim.isFixed()) {
-        String col = sqlBuilder.quoteAx(dim.getDimensionName());
-        String items = sqlBuilder.singleQuotedCommaDelimited(getUids(dim.getItems()));
-        sql.append(sqlHelper.whereAnd())
-            .append(" ")
-            .append(col)
-            .append(" in (")
-            .append(items)
-            .append(") ");
-      }
-    }
+  public String buildSubquery() {
+    String dimensionColumns = subqueryColumnGenerator.getMinMaxDimensionColumns();
+    String valueColumns = subqueryColumnGenerator.getMinMaxValueColumns();
+    String fromSourceClause = getTablePartitionOrTableName() + " as " + ANALYTICS_TBL_ALIAS;
+    String whereClause = whereClauseBuilder.build(sqlBuilder);
+
+    return String.format(
+        "(select %s, %s from %s %s group by %s)",
+        dimensionColumns, valueColumns, fromSourceClause, whereClause, dimensionColumns);
   }
 }

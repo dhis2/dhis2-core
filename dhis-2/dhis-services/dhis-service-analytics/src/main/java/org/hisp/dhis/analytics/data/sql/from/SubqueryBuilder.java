@@ -42,17 +42,17 @@ public class SubqueryBuilder implements DatasourceProvider {
   public SubqueryBuilder(
       DataQueryParams params,
       SqlBuilder sqlBuilder,
-      ColumnBuilder columnBuilder,
+      SubqueryColumnGenerator subqueryColumnGenerator,
       AnalyticsTableType tableType) {
     this.strategyFactory =
-        new SubqueryStrategyFactory(params, sqlBuilder, columnBuilder, tableType);
+        new SubqueryStrategyFactory(params, sqlBuilder, subqueryColumnGenerator, tableType);
   }
 
   @Override
   public String buildForPostgres() {
     // TODO we can have dedicated strategies for doris or use the DatasourceProvider on each
     // strategy
-    SubqueryStrategy strategy = strategyFactory.createStrategy();
+    SubqueryStrategy strategy = strategyFactory.instanceOf();
     String subquery = strategy.buildSubquery();
     return String.format("from %s as %s ", subquery, ANALYTICS_TBL_ALIAS);
   }

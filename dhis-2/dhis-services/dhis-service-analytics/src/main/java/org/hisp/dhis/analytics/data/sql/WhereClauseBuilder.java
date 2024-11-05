@@ -31,31 +31,31 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.data.sql.where.DataApprovalWhereClause;
-import org.hisp.dhis.analytics.data.sql.where.DimensionWhereClause;
-import org.hisp.dhis.analytics.data.sql.where.FilterWhereClause;
-import org.hisp.dhis.analytics.data.sql.where.RestrictionsWhereClause;
-import org.hisp.dhis.analytics.data.sql.where.WhereClauseComponent;
+import org.hisp.dhis.analytics.data.sql.where.DataApprovalSqlClause;
+import org.hisp.dhis.analytics.data.sql.where.DimensionSqlClause;
+import org.hisp.dhis.analytics.data.sql.where.FilterSqlClause;
+import org.hisp.dhis.analytics.data.sql.where.RestrictionsSqlClause;
+import org.hisp.dhis.analytics.data.sql.where.SqlClauseAppender;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.SqlBuilder;
 
 @RequiredArgsConstructor
 public class WhereClauseBuilder implements SqlClauseBuilder {
-  private final List<WhereClauseComponent> components;
+  private final List<SqlClauseAppender> components;
 
   public WhereClauseBuilder(
       DataQueryParams params, SqlBuilder sqlBuilder, AnalyticsTableType tableType) {
     this.components = initializeComponents(params, sqlBuilder, tableType);
   }
 
-  private List<WhereClauseComponent> initializeComponents(
+  private List<SqlClauseAppender> initializeComponents(
       DataQueryParams params, SqlBuilder sqlBuilder, AnalyticsTableType tableType) {
     return List.of(
         // Order matters! - dimensions and filters first, then approval rules, then restrictions
-        new DimensionWhereClause(params, sqlBuilder),
-        new FilterWhereClause(params, sqlBuilder),
-        new DataApprovalWhereClause(params, sqlBuilder),
-        new RestrictionsWhereClause(params, sqlBuilder, tableType));
+        new DimensionSqlClause(params, sqlBuilder),
+        new FilterSqlClause(params, sqlBuilder),
+        new DataApprovalSqlClause(params, sqlBuilder),
+        new RestrictionsSqlClause(params, sqlBuilder, tableType));
   }
 
   @Override

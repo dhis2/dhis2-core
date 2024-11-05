@@ -27,58 +27,47 @@
  */
 package org.hisp.dhis.analytics.data.sql.where;
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
+import static org.hisp.dhis.analytics.data.sql.AnalyticsColumns.APPROVALLEVEL;
 
-import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
-import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.SqlBuilder;
 
 @RequiredArgsConstructor
-public class FilterWhereClause implements WhereClauseComponent {
+public class DataApprovalSqlClause implements SqlClauseAppender {
   private final DataQueryParams params;
   private final SqlBuilder sqlBuilder;
 
   @Override
   public void appendTo(StringBuilder sql, SqlHelper sqlHelper) {
-    ListMap<String, DimensionalObject> filterMap = params.getDimensionFilterMap();
-
-    for (String dimension : filterMap.keySet()) {
-      List<DimensionalObject> filters = filterMap.get(dimension);
-
-      if (DimensionalObjectUtils.anyDimensionHasItems(filters)) {
-        appendFilterGroup(sql, sqlHelper, filters);
-      }
+    if (!params.isDataApproval()) {
+      return;
     }
-  }
 
-  /** Appends a group of filters for the same dimension connected with OR operators */
-  private void appendFilterGroup(
-      StringBuilder sql, SqlHelper sqlHelper, List<DimensionalObject> filters) {
     sql.append(sqlHelper.whereAnd()).append(" ( ");
 
-    List<String> filterConditions = buildFilterConditions(filters);
-    sql.append(String.join(" or ", filterConditions));
+    String approvalConditions =
+        params.getDataApprovalLevels().keySet().stream()
+            .map(
+                unit -> {
+                  String ouCol = sqlBuilder.quoteAx(LEVEL_PREFIX + unit.getLevel());
+                  Integer level = params.getDataApprovalLevels().get(unit);
 
-    sql.append(" ) ");
-  }
+                  return "("
+                      + ouCol
+                      + " = '"
+                      + unit.getUid()
+                      + "' and "
+                      + sqlBuilder.quoteAx(APPROVALLEVEL)
+                      + " <= "
+                      + level
+                      + ")";
+                })
+            .collect(Collectors.joining(" or "));
 
-  /** Builds individual filter conditions for each filter that has items */
-  private List<String> buildFilterConditions(List<DimensionalObject> filters) {
-    return filters.stream()
-        .filter(DimensionalObject::hasItems)
-        .map(this::buildSingleFilterCondition)
-        .toList();
-  }
-
-  /** Builds a single filter condition using IN clause */
-  private String buildSingleFilterCondition(DimensionalObject filter) {
-    String columnName = sqlBuilder.quoteAx(filter.getDimensionName());
-    String items = sqlBuilder.singleQuotedCommaDelimited(getUids(filter.getItems()));
-    return columnName + " in (" + items + ") ";
+    sql.append(approvalConditions).append(") ");
   }
 }

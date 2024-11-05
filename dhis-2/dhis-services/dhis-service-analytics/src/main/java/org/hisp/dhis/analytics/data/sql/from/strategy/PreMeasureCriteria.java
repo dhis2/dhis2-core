@@ -35,7 +35,7 @@ import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.db.sql.SqlBuilder;
 
 /** Strategy for building pre-measure criteria subqueries */
-public class PreMeasureCriteriaStrategy extends BaseSubqueryStrategy {
+public class PreMeasureCriteria extends BaseSubqueryStrategy {
   private static final java.util.Map<MeasureFilter, String> OPERATOR_SQL_MAP =
       java.util.Map.of(
           MeasureFilter.EQ, "=",
@@ -44,13 +44,13 @@ public class PreMeasureCriteriaStrategy extends BaseSubqueryStrategy {
           MeasureFilter.LT, "<",
           MeasureFilter.LE, "<=");
 
-  public PreMeasureCriteriaStrategy(DataQueryParams params, SqlBuilder sqlBuilder) {
+  public PreMeasureCriteria(DataQueryParams params, SqlBuilder sqlBuilder) {
     super(params, sqlBuilder);
   }
 
   @Override
   public String buildSubquery() {
-    String fromSourceClause = getFromSourceClause() + " as " + ANALYTICS_TBL_ALIAS;
+    String fromSourceClause = getTablePartitionOrTableName() + " as " + ANALYTICS_TBL_ALIAS;
     StringBuilder sql = new StringBuilder().append("(select * from ").append(fromSourceClause);
 
     String whereClause = buildPreMeasureCriteriaWhereClause();

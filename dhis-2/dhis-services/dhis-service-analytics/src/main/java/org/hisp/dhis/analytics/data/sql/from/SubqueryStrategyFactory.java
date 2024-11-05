@@ -36,10 +36,10 @@ import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
-import org.hisp.dhis.analytics.data.sql.from.strategy.DefaultStrategy;
-import org.hisp.dhis.analytics.data.sql.from.strategy.FirstLastValueStrategy;
-import org.hisp.dhis.analytics.data.sql.from.strategy.MinMaxValueStrategy;
-import org.hisp.dhis.analytics.data.sql.from.strategy.PreMeasureCriteriaStrategy;
+import org.hisp.dhis.analytics.data.sql.from.strategy.DefaultSubquery;
+import org.hisp.dhis.analytics.data.sql.from.strategy.FirstLastValue;
+import org.hisp.dhis.analytics.data.sql.from.strategy.MinMaxValue;
+import org.hisp.dhis.analytics.data.sql.from.strategy.PreMeasureCriteria;
 import org.hisp.dhis.analytics.data.sql.from.strategy.SubqueryStrategy;
 import org.hisp.dhis.db.sql.SqlBuilder;
 
@@ -47,10 +47,10 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 public class SubqueryStrategyFactory {
   private final DataQueryParams params;
   private final SqlBuilder sqlBuilder;
-  private final ColumnBuilder columnBuilder;
+  private final SubqueryColumnGenerator subqueryColumnGenerator;
   private final AnalyticsTableType tableType;
 
-  public SubqueryStrategy createStrategy() {
+  public SubqueryStrategy instanceOf() {
     AnalyticsAggregationType aggregationType = params.getAggregationType();
 
     if (isFirstOrLastPeriodAggregationType(aggregationType)) {
@@ -90,23 +90,23 @@ public class SubqueryStrategyFactory {
 
   private SubqueryStrategy createFirstLastValueStrategyForFirstOrLastPeriod() {
     Date earliest = DateUtils.addYears(params.getLatestEndDate(), LAST_VALUE_YEARS_OFFSET);
-    return new FirstLastValueStrategy(params, sqlBuilder, columnBuilder, earliest);
+    return new FirstLastValue(params, sqlBuilder, subqueryColumnGenerator, earliest);
   }
 
   private SubqueryStrategy createFirstLastValueStrategyForLastInPeriod() {
-    return new FirstLastValueStrategy(
-        params, sqlBuilder, columnBuilder, params.getEarliestStartDate());
+    return new FirstLastValue(
+        params, sqlBuilder, subqueryColumnGenerator, params.getEarliestStartDate());
   }
 
   private SubqueryStrategy createMinMaxValueStrategy() {
-    return new MinMaxValueStrategy(params, sqlBuilder, columnBuilder, tableType);
+    return new MinMaxValue(params, sqlBuilder, subqueryColumnGenerator, tableType);
   }
 
   private SubqueryStrategy createPreMeasureCriteriaStrategy() {
-    return new PreMeasureCriteriaStrategy(params, sqlBuilder);
+    return new PreMeasureCriteria(params, sqlBuilder);
   }
 
   private SubqueryStrategy createDefaultStrategy() {
-    return new DefaultStrategy(params, sqlBuilder);
+    return new DefaultSubquery(params, sqlBuilder);
   }
 }

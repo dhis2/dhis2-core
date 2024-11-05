@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.data.sql;
 
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.data.sql.from.ColumnBuilder;
+import org.hisp.dhis.analytics.data.sql.from.SubqueryColumnGenerator;
 import org.hisp.dhis.analytics.data.sql.from.SubqueryBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 
@@ -39,7 +39,7 @@ public class FromClauseBuilder implements SqlClauseBuilder {
 
   public FromClauseBuilder(
       DataQueryParams params, SqlBuilder sqlBuilder, AnalyticsTableType tableType) {
-    var columnBuilder = new ColumnBuilder(params, sqlBuilder);
+    var columnBuilder = new SubqueryColumnGenerator(params, sqlBuilder);
     this.subqueryBuilder = new SubqueryBuilder(params, sqlBuilder, columnBuilder, tableType);
   }
 

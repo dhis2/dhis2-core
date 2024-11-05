@@ -30,10 +30,18 @@ package org.hisp.dhis.analytics.data.sql;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 
+/**
+ * Marker interface for building SQL clauses, such as SELECT, FROM, WHERE, etc.
+ */
 public interface SqlClauseBuilder extends DatasourceProvider {
-
-  default String build(SqlBuilder sqlBuilder) {
-    // TODO: This is a hack, we need to find a better way to do this
-    return (sqlBuilder instanceof PostgreSqlBuilder) ? buildForPostgres() : buildForDoris();
-  }
+    /**
+     * Builds the SQL clause for the engine used by the given {@link SqlBuilder}.
+     *
+     * @param sqlBuilder the SQL builder
+     * @return the SQL clause
+     */
+    default String build(SqlBuilder sqlBuilder) {
+        // TODO: This is a hack, we need to find a better way to do this
+        return (sqlBuilder instanceof PostgreSqlBuilder) ? buildForPostgres() : buildForDoris();
+    }
 }

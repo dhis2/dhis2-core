@@ -353,7 +353,6 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       /* Reporting rates applies the measure criteria after the rates calculation phase. It cannot be done at this stage. */
       builder.append(getMeasureCriteriaSql(params));
     }
-    System.out.println(builder.toString());
     return builder.toString();
   }
 
@@ -454,7 +453,6 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    * @return a SQL from source clause.
    */
   protected String getFromSourceClause(DataQueryParams params) {
-
     if (!params.isSkipPartitioning() && params.hasPartitions() && params.getPartitions().hasOne()) {
       Integer partition = params.getPartitions().getAny();
 
@@ -817,7 +815,6 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    * @return comma separated list of columns
    */
   private String getFirstOrLastValueSubqueryColumns(DataQueryParams params) {
-
     return join(
         ",",
         concat(
@@ -990,14 +987,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       key.deleteCharAt(key.length() - 1);
 
       if (params.isDataType(TEXT)) {
-          String value = null;
-          try {
-              value = rowSet.getString(VALUE_ID);
-          } catch (InvalidResultSetAccessException e) {
-              System.out.println("ERROR:\n" + sql);
-              throw new RuntimeException(e);
-          }
-
+          String value = rowSet.getString(VALUE_ID);
           map.put(key.toString(), value);
       } else // NUMERIC
       {

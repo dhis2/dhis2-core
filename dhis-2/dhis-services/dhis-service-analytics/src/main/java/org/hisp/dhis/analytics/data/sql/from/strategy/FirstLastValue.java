@@ -36,28 +36,28 @@ import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.Date;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.data.sql.from.ColumnBuilder;
+import org.hisp.dhis.analytics.data.sql.from.SubqueryColumnGenerator;
 import org.hisp.dhis.db.sql.SqlBuilder;
 
 /** Strategy for building first/last value subqueries */
-public class FirstLastValueStrategy extends BaseSubqueryStrategy {
-  private final ColumnBuilder columnBuilder;
+public class FirstLastValue extends BaseSubqueryStrategy {
+  private final SubqueryColumnGenerator subqueryColumnGenerator;
   private final Date startDate;
 
-  public FirstLastValueStrategy(
-      DataQueryParams params, SqlBuilder sqlBuilder, ColumnBuilder columnBuilder, Date startDate) {
+  public FirstLastValue(
+          DataQueryParams params, SqlBuilder sqlBuilder, SubqueryColumnGenerator subqueryColumnGenerator, Date startDate) {
     super(params, sqlBuilder);
-    this.columnBuilder = columnBuilder;
+    this.subqueryColumnGenerator = subqueryColumnGenerator;
     this.startDate = startDate;
   }
 
   @Override
   public String buildSubquery() {
     Date latestDate = params.getLatestEndDate();
-    String columns = columnBuilder.getFirstOrLastValueColumns();
-    String partitionColumns = columnBuilder.getFirstOrLastValuePartitionColumns();
+    String columns = subqueryColumnGenerator.getFirstOrLastValueColumns();
+    String partitionColumns = subqueryColumnGenerator.getFirstOrLastValuePartitionColumns();
     String order = params.getAggregationType().isFirstPeriodAggregationType() ? "asc" : "desc";
-    String fromSourceClause = getFromSourceClause() + " as " + ANALYTICS_TBL_ALIAS;
+    String fromSourceClause = getTablePartitionOrTableName() + " as " + ANALYTICS_TBL_ALIAS;
 
     return String.format(
         """

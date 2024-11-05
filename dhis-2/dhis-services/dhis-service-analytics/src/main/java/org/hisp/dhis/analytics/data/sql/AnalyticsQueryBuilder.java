@@ -30,12 +30,50 @@ package org.hisp.dhis.analytics.data.sql;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 
+/**
+ * Interface for building SQL queries for analytics data.
+ */
 public interface AnalyticsQueryBuilder {
-  String buildSelectClause(DataQueryParams params);
+    String EMPTY_STRING = "";
+    /**
+     * Builds the SELECT clause of the SQL query.
+     *
+     * @param params the data query parameters
+     * @return the SELECT clause
+     */
+    default String buildSelectClause(DataQueryParams params) {
+        return EMPTY_STRING;
+    }
 
-  String buildFromClause(DataQueryParams params, AnalyticsTableType tableType);
+    /**
+     * Builds the FROM clause of the SQL query.
+     *
+     * @param params    the data query parameters
+     * @param tableType the type of analytics table
+     * @return the FROM clause
+     */
+    default String buildFromClause(DataQueryParams params, AnalyticsTableType tableType) {
+        return EMPTY_STRING;
+    }
 
-  String buildWhereClause(DataQueryParams params, AnalyticsTableType tableType);
+    /**
+     * Builds the WHERE clause of the SQL query.
+     *
+     * @param params    the data query parameters
+     * @param tableType the type of analytics table
+     * @return the WHERE clause
+     */
+    default String buildWhereClause(DataQueryParams params, AnalyticsTableType tableType) {
+        return EMPTY_STRING;
+    }
 
-  String buildGroupByClause(DataQueryParams params);
+    /**
+     * Builds the GROUP BY clause of the SQL query.
+     *
+     * @param params    the data query parameters
+     * @return the GROUP BY clause
+     */
+    default String buildGroupByClause(DataQueryParams params) {
+        return EMPTY_STRING;
+    }
 }

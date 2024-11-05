@@ -39,7 +39,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.SqlBuilder;
 
 @RequiredArgsConstructor
-public class RestrictionsWhereClause implements WhereClauseComponent {
+public class RestrictionsSqlClause implements SqlClauseAppender {
   private final DataQueryParams params;
   private final SqlBuilder sqlBuilder;
   private final AnalyticsTableType tableType;

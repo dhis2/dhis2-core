@@ -39,7 +39,7 @@ public abstract class BaseSubqueryStrategy implements SubqueryStrategy {
   protected final DataQueryParams params;
   protected final SqlBuilder sqlBuilder;
 
-  protected String getFromSourceClause() {
+  protected String getTablePartitionOrTableName() {
     if (!params.isSkipPartitioning() && params.hasPartitions()) {
       return params.getPartitions().hasOne()
           ? PartitionUtils.getPartitionName(params.getTableName(), params.getPartitions().getAny())

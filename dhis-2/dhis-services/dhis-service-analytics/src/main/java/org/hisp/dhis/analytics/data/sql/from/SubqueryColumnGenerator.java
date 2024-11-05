@@ -47,14 +47,26 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.springframework.util.Assert;
 
-public class ColumnBuilder {
+/**
+ * A specialized builder class for generating SQL columns in the context of analytics subqueries
+ * This class handles complex data aggregations, organizational hierarchies, and time-based analytics.
+ *
+ * <p>The ColumnBuilder supports various aggregation types including:
+ * <ul>
+ *   <li>Basic statistical operations (SUM, AVERAGE, COUNT)</li>
+ *   <li>Temporal analysis (FIRST, LAST, LAST_IN_PERIOD)</li>
+ *   <li>Boundary operations (MIN, MAX)</li>
+ * </ul>
+ *
+ */
+public class SubqueryColumnGenerator {
   private final DataQueryParams params;
   private final SqlBuilder sqlBuilder;
   private final DimensionsUtils dimensionsUtils;
 
   private static final List<String> COMPOSITE_KEY_COLUMNS = AnalyticsColumns.getDimensionColumns();
 
-  public ColumnBuilder(DataQueryParams params, SqlBuilder sqlBuilder) {
+  public SubqueryColumnGenerator(DataQueryParams params, SqlBuilder sqlBuilder) {
     this.params = params;
     this.sqlBuilder = sqlBuilder;
     this.dimensionsUtils = new DimensionsUtils(sqlBuilder);

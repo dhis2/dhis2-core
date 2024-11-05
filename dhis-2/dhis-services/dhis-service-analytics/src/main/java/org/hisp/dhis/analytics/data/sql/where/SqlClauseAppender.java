@@ -25,20 +25,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.data.sql.from.strategy;
+package org.hisp.dhis.analytics.data.sql.where;
 
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.commons.util.SqlHelper;
 
-public class DefaultStrategy extends BaseSubqueryStrategy {
-
-  public DefaultStrategy(DataQueryParams params, SqlBuilder sqlBuilder) {
-    super(params, sqlBuilder);
-  }
-
-  @Override
-  public String buildSubquery() {
-    // Simply returns the base table or partitions
-    return getFromSourceClause();
-  }
+public interface SqlClauseAppender {
+  void appendTo(StringBuilder sql, SqlHelper sqlHelper);
 }

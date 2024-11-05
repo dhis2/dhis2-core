@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.analytics.data.sql;
 
+/**
+ * This enum contains SQL aggregation templates for different types of aggregations.
+ * The templates are used to format SQL queries with the correct aggregation function.
+ */
 public enum SqlAggregationTemplate {
   AVERAGE_PERIOD_SUM("sum(daysxvalue) / %d"),
   NUMERIC_AVERAGE("avg(%s)"),

@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.analytics.data.sql;
 
-import static java.lang.String.join;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.db.sql.SqlBuilder;
+
+import java.util.Collection;
+import java.util.List;
+
+import static java.lang.String.join;
 
 @RequiredArgsConstructor
 public class DimensionsUtils {
@@ -64,6 +64,6 @@ public class DimensionsUtils {
         .filter(d -> !d.isFixed())
         .map(DimensionalObject::getDimensionName)
         .map(sqlBuilder::quoteAx)
-        .collect(Collectors.toList());
+        .toList();
   }
 }
