@@ -112,6 +112,8 @@ public abstract class AbstractTrackerPersister<
           determineNotificationTriggers(bundle.getPreheat(), trackerDto);
 
       try {
+        V originalEntity = cloneEntityProperties(bundle.getPreheat(), trackerDto);
+
         //
         // Convert the TrackerDto into an Hibernate-managed entity
         //
@@ -128,7 +130,13 @@ public abstract class AbstractTrackerPersister<
         if (isNew(bundle, trackerDto)) {
           entityManager.persist(convertedDto);
           entityManager.flush();
-          updateDataValues(entityManager, bundle.getPreheat(), convertedDto, bundle.getUser());
+          updateDataValues(
+              entityManager,
+              bundle.getPreheat(),
+              trackerDto,
+              convertedDto,
+              originalEntity,
+              bundle.getUser());
           typeReport.getStats().incCreated();
           typeReport.addEntity(objectReport);
           updateAttributes(
@@ -138,6 +146,13 @@ public abstract class AbstractTrackerPersister<
             typeReport.getStats().incIgnored();
             // Relationships are not updated. A warning was already added to the report
           } else {
+            updateDataValues(
+                entityManager,
+                bundle.getPreheat(),
+                trackerDto,
+                convertedDto,
+                originalEntity,
+                bundle.getUser());
             updateAttributes(
                 entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
             entityManager.merge(convertedDto);
@@ -197,6 +212,12 @@ public abstract class AbstractTrackerPersister<
   /** Get Tracked Entity for enrollments or events that have been updated */
   protected abstract String getUpdatedTrackedEntity(V entity);
 
+  /** Clones the event properties that may potentially be change logged */
+  protected V cloneEntityProperties(TrackerPreheat preheat, T trackerDto) {
+    return null;
+    // No need to clone properties for tracked entities, enrollments nor relationships
+  }
+
   /**
    * Converts an object implementing the {@link TrackerDto} interface into the corresponding
    * Hibernate-managed object
@@ -208,7 +229,12 @@ public abstract class AbstractTrackerPersister<
 
   /** Execute the persistence of Data values linked to the entity being processed */
   protected void updateDataValues(
-      EntityManager entityManager, TrackerPreheat preheat, V hibernateEntity, UserDetails user) {
+      EntityManager entityManager,
+      TrackerPreheat preheat,
+      T trackerDto,
+      V hibernateEntity,
+      V clonedEntity,
+      UserDetails user) {
     // Nothing to do by default
   }
 

@@ -44,6 +44,8 @@ import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLog.Change;
+import org.hisp.dhis.tracker.export.event.EventChangeLog.DataValueChange;
+import org.hisp.dhis.tracker.export.event.EventChangeLog.PropertyChange;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -78,15 +80,27 @@ class JdbcEventChangeLogStore {
         createdBy.setSurname(rs.getString("surname"));
         createdBy.setUid(rs.getString("useruid"));
 
+        DataValueChange dataValueChange = null;
+        PropertyChange propertyChange = null;
+        if (rs.getString("dataelementuid") != null) {
+          dataValueChange =
+              new DataValueChange(
+                  rs.getString("dataelementuid"),
+                  rs.getString("previousvalue"),
+                  rs.getString("currentvalue"));
+        } else {
+          propertyChange =
+              new PropertyChange(
+                  rs.getString("eventproperty"),
+                  rs.getString("previousvalue"),
+                  rs.getString("currentvalue"));
+        }
+
         return new EventChangeLog(
             createdBy,
             rs.getTimestamp(COLUMN_CHANGELOG_CREATED),
             rs.getString("changelogtype"),
-            new Change(
-                new EventChangeLog.DataValueChange(
-                    rs.getString("dataelementuid"),
-                    rs.getString("previousvalue"),
-                    rs.getString("currentvalue"))));
+            new Change(dataValueChange, propertyChange));
       };
 
   public void addEventChangeLog(
@@ -107,7 +121,7 @@ class JdbcEventChangeLogStore {
     MapSqlParameterSource params =
         new MapSqlParameterSource()
             .addValue("eventId", event.getId())
-            .addValue("dataElementId", dataElement.getId())
+            .addValue("dataElementId", dataElement != null ? dataElement.getId() : null)
             .addValue("eventProperty", eventProperty)
             .addValue("currentValue", currentValue)
             .addValue("previousValue", previousValue)
@@ -123,7 +137,7 @@ class JdbcEventChangeLogStore {
     // language=SQL
     String sql =
         """
-           select d.uid as dataelementuid, ecl.currentvalue, ecl.previousvalue, ecl.changelogtype, ecl.created, ecl.createdby, ui.firstname, ui.surname, COALESCE(ui.username, ecl.createdby) as username, ui.uid as useruid
+           select d.uid as dataelementuid, ecl.eventproperty, ecl.currentvalue, ecl.previousvalue, ecl.changelogtype, ecl.created, ecl.createdby, ui.firstname, ui.surname, COALESCE(ui.username, ecl.createdby) as username, ui.uid as useruid
            from eventchangelog ecl
            join event e using (eventid)
            left join dataelement d using (dataelementid)

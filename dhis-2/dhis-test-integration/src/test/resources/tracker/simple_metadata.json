@@ -1304,7 +1304,6 @@
       "program": {
         "id": "iS7eutanDry"
       },
-      "notificationTemplates": [],
       "programStageDataElements": [
         {
           "lastUpdated": "2022-04-22T05:57:59.783",
@@ -1337,15 +1336,10 @@
           },
           "dataElement": {
             "id": "GieVkTxp4HH"
-          },
-          "favorites": [],
-          "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
+          }
         }
       ],
-      "translations": [],
+      "featureType": "POINT",
       "attributeValues": [
         {
           "attribute": {
@@ -1353,8 +1347,7 @@
           },
           "value": "multi-program-stage-attribute"
         }
-      ],
-      "programStageSections": []
+      ]
     },
     {
       "lastUpdated": "2020-05-31T11:41:22.426",

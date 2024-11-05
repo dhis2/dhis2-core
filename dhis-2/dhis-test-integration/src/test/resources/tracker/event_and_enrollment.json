@@ -826,7 +826,7 @@
         "idScheme": "UID",
         "identifier": "DiszpKrYNg8"
       },
-      "status": "ACTIVE",
+      "status": "VISITED",
       "deleted": false,
       "dataValues": [
         {
@@ -839,8 +839,13 @@
           "providedElsewhere": false
         }
       ],
-      "notes": [],
-      "relationships": []
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -11.4197,
+          8.1039
+        ]
+      }
     },
     {
       "event": "kWjSezkXHVp",
