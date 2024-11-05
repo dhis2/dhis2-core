@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
+import static org.hisp.dhis.test.utils.Assertions.assertEqualUids;
 import static org.hisp.dhis.tracker.Assertions.assertHasError;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
@@ -39,8 +40,8 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -110,9 +111,8 @@ class OwnershipTest extends TrackerTest {
     assertTrue(trackerObjects.getEnrollments().get(0).getProgram().isEqualTo(tepo.getProgram()));
     assertTrue(
         trackerObjects.getEnrollments().get(0).getOrgUnit().isEqualTo(tepo.getOrganisationUnit()));
-    assertEquals(
-        trackerObjects.getEnrollments().get(0).getTrackedEntity(),
-        tepo.getTrackedEntity().getUid());
+    assertEqualUids(
+        trackerObjects.getEnrollments().get(0).getTrackedEntity(), tepo.getTrackedEntity());
   }
 
   @Test
@@ -223,7 +223,7 @@ class OwnershipTest extends TrackerTest {
     enrollments = manager.getAll(Enrollment.class);
     assertEquals(1, enrollments.size());
     params.setImportStrategy(TrackerImportStrategy.CREATE);
-    trackerObjects.getEnrollments().get(0).setEnrollment(CodeGenerator.generateUid());
+    trackerObjects.getEnrollments().get(0).setEnrollment(UID.generate());
     updatedReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(updatedReport);
     assertEquals(1, updatedReport.getStats().getCreated());
@@ -247,7 +247,7 @@ class OwnershipTest extends TrackerTest {
     Program pgm = manager.get(Program.class, "BFcipDERJnf");
     trackerOwnershipManager.transferOwnership(trackedEntity, pgm, ou);
     params.setImportStrategy(TrackerImportStrategy.CREATE);
-    trackerObjects.getEnrollments().get(0).setEnrollment(CodeGenerator.generateUid());
+    trackerObjects.getEnrollments().get(0).setEnrollment(UID.generate());
     updatedReport = trackerImportService.importTracker(params, trackerObjects);
     assertEquals(1, updatedReport.getStats().getIgnored());
     assertHasError(updatedReport, ValidationCode.E1102);

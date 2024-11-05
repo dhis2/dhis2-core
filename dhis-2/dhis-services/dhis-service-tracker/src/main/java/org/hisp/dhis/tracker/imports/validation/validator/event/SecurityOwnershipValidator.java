@@ -36,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -54,6 +55,7 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -102,7 +104,8 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       }
     }
 
-    String teUid = getTeUidFromEvent(bundle, event, program);
+    String teUid =
+        ObjectUtils.applyIfNotNull(getTeUidFromEvent(bundle, event, program), UID::getValue);
 
     CategoryOptionCombo categoryOptionCombo =
         bundle.getPreheat().getCategoryOptionCombo(event.getAttributeOptionCombo());
@@ -192,10 +195,16 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     }
   }
 
-  private String getTeUidFromEvent(
+  private UID getTeUidFromEvent(
       TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event, Program program) {
     if (program.isWithoutRegistration()) {
       return null;
+    }
+
+    // TODO: Check if this fix was a bug
+    if (bundle.getStrategy(event).isUpdateOrDelete()) {
+      return UID.of(
+          bundle.getPreheat().getEvent(event.getUid()).getEnrollment().getTrackedEntity());
     }
 
     Enrollment enrollment = bundle.getPreheat().getEnrollment(event.getEnrollment());
@@ -207,7 +216,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
           .orElse(null);
     }
 
-    return enrollment.getTrackedEntity().getUid();
+    return UID.of(enrollment.getTrackedEntity());
   }
 
   private OrganisationUnit getOwnerOrganisationUnit(

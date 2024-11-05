@@ -30,9 +30,9 @@ package org.hisp.dhis.tracker.deduplication;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.google.common.collect.Lists;
-import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -107,29 +107,29 @@ class PotentialDuplicateStoreRelationshipTest extends PostgresIntegrationTestBas
     manager.save(bi4);
     transactionTemplate.execute(
         status -> {
-          List<String> relationships = Lists.newArrayList(bi2.getUid());
+          Set<UID> relationships = Set.of(UID.of(bi2));
           potentialDuplicateStore.moveRelationships(original, duplicate, relationships);
           return null;
         });
     transactionTemplate.execute(
         status -> {
           dbmsManager.clearSession();
-          Relationship _bi1 = getRelationship(bi1.getUid());
-          Relationship _bi2 = getRelationship(bi2.getUid());
-          Relationship _bi3 = getRelationship(bi3.getUid());
-          Relationship _bi4 = getRelationship(bi4.getUid());
-          assertNotNull(_bi1);
-          assertEquals(original.getUid(), _bi1.getFrom().getTrackedEntity().getUid());
-          assertEquals(extra2.getUid(), _bi1.getTo().getTrackedEntity().getUid());
-          assertNotNull(_bi2);
-          assertEquals(original.getUid(), _bi2.getFrom().getTrackedEntity().getUid());
-          assertEquals(extra1.getUid(), _bi2.getTo().getTrackedEntity().getUid());
-          assertNotNull(_bi3);
-          assertEquals(duplicate.getUid(), _bi3.getFrom().getTrackedEntity().getUid());
-          assertEquals(extra2.getUid(), _bi3.getTo().getTrackedEntity().getUid());
-          assertNotNull(_bi4);
-          assertEquals(extra1.getUid(), _bi4.getFrom().getTrackedEntity().getUid());
-          assertEquals(extra2.getUid(), _bi4.getTo().getTrackedEntity().getUid());
+          Relationship bi1FromDB = getRelationship(bi1.getUid());
+          Relationship bi2FromDB = getRelationship(bi2.getUid());
+          Relationship bi3FromDB = getRelationship(bi3.getUid());
+          Relationship bi4FromDB = getRelationship(bi4.getUid());
+          assertNotNull(bi1FromDB);
+          assertEquals(original.getUid(), bi1FromDB.getFrom().getTrackedEntity().getUid());
+          assertEquals(extra2.getUid(), bi1FromDB.getTo().getTrackedEntity().getUid());
+          assertNotNull(bi2FromDB);
+          assertEquals(original.getUid(), bi2FromDB.getFrom().getTrackedEntity().getUid());
+          assertEquals(extra1.getUid(), bi2FromDB.getTo().getTrackedEntity().getUid());
+          assertNotNull(bi3FromDB);
+          assertEquals(duplicate.getUid(), bi3FromDB.getFrom().getTrackedEntity().getUid());
+          assertEquals(extra2.getUid(), bi3FromDB.getTo().getTrackedEntity().getUid());
+          assertNotNull(bi4FromDB);
+          assertEquals(extra1.getUid(), bi4FromDB.getFrom().getTrackedEntity().getUid());
+          assertEquals(extra2.getUid(), bi4FromDB.getTo().getTrackedEntity().getUid());
           return null;
         });
   }
@@ -146,26 +146,26 @@ class PotentialDuplicateStoreRelationshipTest extends PostgresIntegrationTestBas
     manager.save(uni4);
     original = manager.get(TrackedEntity.class, original.getUid());
     duplicate = manager.get(TrackedEntity.class, duplicate.getUid());
-    List<String> relationships = Lists.newArrayList(uni3.getUid());
+    Set<UID> relationships = Set.of(UID.of(uni3));
     potentialDuplicateStore.moveRelationships(original, duplicate, relationships);
     manager.update(original);
     manager.update(duplicate);
-    Relationship _uni1 = getRelationship(uni1.getUid());
-    Relationship _uni2 = getRelationship(uni2.getUid());
-    Relationship _uni3 = getRelationship(uni3.getUid());
-    Relationship _uni4 = getRelationship(uni4.getUid());
-    assertNotNull(_uni1);
-    assertEquals(original.getUid(), _uni1.getFrom().getTrackedEntity().getUid());
-    assertEquals(extra2.getUid(), _uni1.getTo().getTrackedEntity().getUid());
-    assertNotNull(_uni2);
-    assertEquals(duplicate.getUid(), _uni2.getFrom().getTrackedEntity().getUid());
-    assertEquals(extra1.getUid(), _uni2.getTo().getTrackedEntity().getUid());
-    assertNotNull(_uni3);
-    assertEquals(extra2.getUid(), _uni3.getFrom().getTrackedEntity().getUid());
-    assertEquals(original.getUid(), _uni3.getTo().getTrackedEntity().getUid());
-    assertNotNull(_uni4);
-    assertEquals(extra1.getUid(), _uni4.getFrom().getTrackedEntity().getUid());
-    assertEquals(extra2.getUid(), _uni4.getTo().getTrackedEntity().getUid());
+    Relationship uni1FromDB = getRelationship(uni1.getUid());
+    Relationship uni2FromDB = getRelationship(uni2.getUid());
+    Relationship uni3FromDB = getRelationship(uni3.getUid());
+    Relationship uni4FromDB = getRelationship(uni4.getUid());
+    assertNotNull(uni1FromDB);
+    assertEquals(original.getUid(), uni1FromDB.getFrom().getTrackedEntity().getUid());
+    assertEquals(extra2.getUid(), uni1FromDB.getTo().getTrackedEntity().getUid());
+    assertNotNull(uni2FromDB);
+    assertEquals(duplicate.getUid(), uni2FromDB.getFrom().getTrackedEntity().getUid());
+    assertEquals(extra1.getUid(), uni2FromDB.getTo().getTrackedEntity().getUid());
+    assertNotNull(uni3FromDB);
+    assertEquals(extra2.getUid(), uni3FromDB.getFrom().getTrackedEntity().getUid());
+    assertEquals(original.getUid(), uni3FromDB.getTo().getTrackedEntity().getUid());
+    assertNotNull(uni4FromDB);
+    assertEquals(extra1.getUid(), uni4FromDB.getFrom().getTrackedEntity().getUid());
+    assertEquals(extra2.getUid(), uni4FromDB.getTo().getTrackedEntity().getUid());
   }
 
   @Test
@@ -180,29 +180,29 @@ class PotentialDuplicateStoreRelationshipTest extends PostgresIntegrationTestBas
     manager.save(bi2);
     transactionTemplate.execute(
         status -> {
-          List<String> relationships = Lists.newArrayList(uni2.getUid(), bi1.getUid());
+          Set<UID> relationships = UID.of(uni2, bi1);
           potentialDuplicateStore.moveRelationships(original, duplicate, relationships);
           return null;
         });
     transactionTemplate.execute(
         status -> {
           dbmsManager.clearSession();
-          Relationship _uni1 = getRelationship(uni1.getUid());
-          Relationship _uni2 = getRelationship(uni2.getUid());
-          Relationship _bi1 = getRelationship(bi1.getUid());
-          Relationship _bi2 = getRelationship(bi2.getUid());
-          assertNotNull(_uni1);
-          assertEquals(original.getUid(), _uni1.getFrom().getTrackedEntity().getUid());
-          assertEquals(extra2.getUid(), _uni1.getTo().getTrackedEntity().getUid());
-          assertNotNull(_uni2);
-          assertEquals(original.getUid(), _uni2.getFrom().getTrackedEntity().getUid());
-          assertEquals(extra1.getUid(), _uni2.getTo().getTrackedEntity().getUid());
-          assertNotNull(_bi1);
-          assertEquals(extra2.getUid(), _bi1.getFrom().getTrackedEntity().getUid());
-          assertEquals(original.getUid(), _bi1.getTo().getTrackedEntity().getUid());
-          assertNotNull(_bi2);
-          assertEquals(extra1.getUid(), _bi2.getFrom().getTrackedEntity().getUid());
-          assertEquals(extra2.getUid(), _bi2.getTo().getTrackedEntity().getUid());
+          Relationship uni1FromDB = getRelationship(uni1.getUid());
+          Relationship uni2FromDB = getRelationship(uni2.getUid());
+          Relationship bi1FromDB = getRelationship(bi1.getUid());
+          Relationship bi2FromDB = getRelationship(bi2.getUid());
+          assertNotNull(uni1FromDB);
+          assertEquals(original.getUid(), uni1FromDB.getFrom().getTrackedEntity().getUid());
+          assertEquals(extra2.getUid(), uni1FromDB.getTo().getTrackedEntity().getUid());
+          assertNotNull(uni2FromDB);
+          assertEquals(original.getUid(), uni2FromDB.getFrom().getTrackedEntity().getUid());
+          assertEquals(extra1.getUid(), uni2FromDB.getTo().getTrackedEntity().getUid());
+          assertNotNull(bi1FromDB);
+          assertEquals(extra2.getUid(), bi1FromDB.getFrom().getTrackedEntity().getUid());
+          assertEquals(original.getUid(), bi1FromDB.getTo().getTrackedEntity().getUid());
+          assertNotNull(bi2FromDB);
+          assertEquals(extra1.getUid(), bi2FromDB.getFrom().getTrackedEntity().getUid());
+          assertEquals(extra2.getUid(), bi2FromDB.getTo().getTrackedEntity().getUid());
           return null;
         });
   }

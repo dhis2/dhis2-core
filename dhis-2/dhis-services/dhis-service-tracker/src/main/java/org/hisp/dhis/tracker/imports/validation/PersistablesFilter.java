@@ -45,6 +45,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -103,7 +104,8 @@ class PersistablesFilter {
    * different types (trackedEntity, enrollment, ...) transparent.
    */
   private static final List<Function<Enrollment, TrackerDto>> ENROLLMENT_PARENTS =
-      List.of(en -> TrackedEntity.builder().trackedEntity(en.getTrackedEntity()).build());
+      List.of(
+          en -> TrackedEntity.builder().trackedEntity(en.getTrackedEntity().getValue()).build());
 
   private static final List<Function<Event, TrackerDto>> EVENT_PARENTS =
       List.of(ev -> Enrollment.builder().enrollment(ev.getEnrollment()).build());
@@ -201,7 +203,7 @@ class PersistablesFilter {
   }
 
   private boolean isContained(EnumMap<TrackerType, Set<String>> map, TrackerDto entity) {
-    return map.get(entity.getTrackerType()).contains(entity.getUid());
+    return map.get(entity.getTrackerType()).contains(entity.getStringUid());
   }
 
   /**
@@ -226,7 +228,7 @@ class PersistablesFilter {
   }
 
   private <T extends TrackerDto> void mark(T entity) {
-    this.markedEntities.get(entity.getTrackerType()).add(entity.getUid());
+    this.markedEntities.get(entity.getTrackerType()).add(entity.getStringUid());
   }
 
   private <T extends TrackerDto> boolean isMarked(T entity) {
@@ -291,7 +293,11 @@ class PersistablesFilter {
     };
     String message = MessageFormat.format(code.getMessage(), args);
     return new Error(
-        message, code, notPersistable.getTrackerType(), notPersistable.getUid(), List.of(args));
+        message,
+        code,
+        notPersistable.getTrackerType(),
+        notPersistable.getStringUid(),
+        List.of(args));
   }
 
   /**
@@ -307,9 +313,9 @@ class PersistablesFilter {
     if (StringUtils.isNotEmpty(item.getTrackedEntity())) {
       return TrackedEntity.builder().trackedEntity(item.getTrackedEntity()).build();
     } else if (StringUtils.isNotEmpty(item.getEnrollment())) {
-      return Enrollment.builder().enrollment(item.getEnrollment()).build();
+      return Enrollment.builder().enrollment(UID.of(item.getEnrollment())).build();
     } else if (StringUtils.isNotEmpty(item.getEvent())) {
-      return Event.builder().event(item.getEvent()).build();
+      return Event.builder().event(UID.of(item.getEvent())).build();
     }
     // only reached if a new TrackerDto implementation is added
     throw new IllegalStateException("TrackerType for relationship item not yet supported.");

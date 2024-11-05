@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.google.common.collect.Sets;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -43,17 +44,20 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-class ProgramNotificationInstanceControllerTest extends H2ControllerIntegrationTestBase {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private ProgramNotificationInstanceService programNotificationInstanceService;
 
@@ -67,18 +71,24 @@ class ProgramNotificationInstanceControllerTest extends H2ControllerIntegrationT
 
   private ProgramNotificationInstance eventNotification;
 
+  private User user;
+
   @BeforeEach
   void setUp() {
-    OrganisationUnit ouA = createOrganisationUnit('A');
-    manager.save(ouA);
+    OrganisationUnit orgUnit = createOrganisationUnit('A');
+    manager.save(orgUnit);
 
-    Program prA = createProgram('A', Sets.newHashSet(), ouA);
+    user = createAndAddUser("tester", orgUnit, ALL.name());
+    user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
+    this.userService.updateUser(user);
+
+    Program prA = createProgram('A', Set.of(), orgUnit);
     manager.save(prA);
     ProgramStage psA = createProgramStage('A', prA);
     manager.save(psA);
-    TrackedEntity trackedEntityA = createTrackedEntity('A', ouA);
+    TrackedEntity trackedEntityA = createTrackedEntity('A', orgUnit);
     manager.save(trackedEntityA);
-    enrollment = createEnrollment(prA, trackedEntityA, ouA);
+    enrollment = createEnrollment(prA, trackedEntityA, orgUnit);
     manager.save(enrollment);
 
     enrollmentNotification1 = new ProgramNotificationInstance();
@@ -91,12 +101,15 @@ class ProgramNotificationInstanceControllerTest extends H2ControllerIntegrationT
     enrollmentNotification2.setEnrollment(enrollment);
     programNotificationInstanceService.save(enrollmentNotification2);
 
-    event = createEvent(psA, enrollment, ouA);
+    event = createEvent(psA, enrollment, orgUnit);
     manager.save(event);
     eventNotification = new ProgramNotificationInstance();
     eventNotification.setName("event A notification");
     eventNotification.setEvent(event);
     programNotificationInstanceService.save(eventNotification);
+    manager.flush();
+
+    switchContextToUser(user);
   }
 
   @Test

@@ -34,6 +34,7 @@ import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils
 import static org.hisp.dhis.tracker.imports.validation.validator.relationship.ValidationUtils.relationshipItemValueType;
 
 import java.util.Optional;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -127,7 +128,7 @@ public class ConstraintValidator implements Validator<Relationship> {
           relSide,
           TrackerType.ENROLLMENT.getName(),
           relationshipItemValueType(item).getName());
-    } else if (!enrollmentExist(bundle, item.getEnrollment())) {
+    } else if (!enrollmentExist(bundle, UID.of(item.getEnrollment()))) {
       reporter.addError(
           relationship, E4012, TrackerType.ENROLLMENT.getName(), item.getEnrollment());
     }
@@ -146,7 +147,7 @@ public class ConstraintValidator implements Validator<Relationship> {
           relSide,
           TrackerType.EVENT.getName(),
           relationshipItemValueType(item).getName());
-    } else if (!eventExist(bundle, item.getEvent())) {
+    } else if (!eventExist(bundle, UID.of(item.getEvent()))) {
       reporter.addError(relationship, E4012, TrackerType.EVENT.getName(), item.getEvent());
     }
   }

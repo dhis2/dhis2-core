@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,25 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
+package org.hisp.dhis.analytics.hibernate;
 
-import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.checkUidFormat;
-import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateNotesUid;
-
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.validation.Reporter;
-import org.hisp.dhis.tracker.imports.validation.Validator;
+import jakarta.persistence.EntityManager;
+import java.util.Collection;
+import java.util.List;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.analytics.CategoryDimensionStore;
+import org.hisp.dhis.category.CategoryDimension;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author david mackessy
  */
-class UidValidator implements Validator<Enrollment> {
-  @Override
-  public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
-    checkUidFormat(
-        enrollment.getEnrollment(), reporter, enrollment, enrollment, enrollment.getEnrollment());
+@Repository
+public class HibernateCategoryDimensionStore extends HibernateGenericStore<CategoryDimension>
+    implements CategoryDimensionStore {
 
-    validateNotesUid(enrollment.getNotes(), reporter, enrollment);
+  public HibernateCategoryDimensionStore(
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, CategoryDimension.class, false);
+  }
+
+  @Override
+  public List<CategoryDimension> getByCategoryOption(@Nonnull Collection<String> categoryOptions) {
+    if (categoryOptions.isEmpty()) return List.of();
+    return getQuery(
+            """
+            select distinct cd from CategoryDimension cd
+            join cd.items co
+            where co.uid in :categoryOptions
+            """,
+            CategoryDimension.class)
+        .setParameter("categoryOptions", categoryOptions)
+        .getResultList();
   }
 }

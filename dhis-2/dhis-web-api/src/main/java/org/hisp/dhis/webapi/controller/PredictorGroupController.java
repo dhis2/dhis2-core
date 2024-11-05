@@ -34,6 +34,7 @@ import static org.hisp.dhis.security.Authorities.F_PREDICTOR_RUN;
 import java.util.Date;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
@@ -53,6 +54,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping("/api/predictorGroups")
 @RequiredArgsConstructor
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class PredictorGroupController extends AbstractCrudController<PredictorGroup> {
 
   private final PredictionService predictionService;

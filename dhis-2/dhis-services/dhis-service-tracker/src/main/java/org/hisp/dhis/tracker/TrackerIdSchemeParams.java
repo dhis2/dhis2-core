@@ -25,10 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports;
+package org.hisp.dhis.tracker;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
+import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -43,7 +45,11 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 
 /**
- * Wrapper object to handle identifier-related parameters for tracker import/export
+ * IdScheme parameter for tracker import and export.
+ *
+ * <p>The default idScheme is {@link TrackerIdSchemeParam#UID}. The idScheme used for all metadata
+ * defaults to the value specified in the {@code idScheme} field. This can be overridden by
+ * metadata-specific fields, which take precedence over the general {@code idScheme} field.
  *
  * @author Stian Sandvold
  */
@@ -52,45 +58,101 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TrackerIdSchemeParams implements Serializable {
-  /** Specific identifier to match data elements on. */
-  @JsonProperty @Builder.Default
-  private TrackerIdSchemeParam dataElementIdScheme = TrackerIdSchemeParam.UID;
-
-  /** Specific identifier to match organisation units on. */
-  @JsonProperty @Builder.Default
-  private TrackerIdSchemeParam orgUnitIdScheme = TrackerIdSchemeParam.UID;
-
-  /** Specific identifier to match program on. */
-  @JsonProperty @Builder.Default
-  private TrackerIdSchemeParam programIdScheme = TrackerIdSchemeParam.UID;
-
-  /** Specific identifier to match program stage on. */
-  @JsonProperty @Builder.Default
-  private TrackerIdSchemeParam programStageIdScheme = TrackerIdSchemeParam.UID;
-
-  /**
-   * Specific identifier to match all metadata on. Will be overridden by metadata-specific
-   * idSchemes.
-   */
+  /** IdScheme used for all metadata unless overridden by a metadata specific parameter. */
   @JsonProperty @Builder.Default private TrackerIdSchemeParam idScheme = TrackerIdSchemeParam.UID;
 
-  /** Specific identifier to match category option combo on. */
-  @JsonProperty @Builder.Default
-  private TrackerIdSchemeParam categoryOptionComboIdScheme = TrackerIdSchemeParam.UID;
+  /** Specific idScheme to match data elements on. */
+  @JsonIgnore private TrackerIdSchemeParam dataElementIdScheme;
 
-  /** Specific identifier to match category option on. */
-  @JsonProperty @Builder.Default
-  private TrackerIdSchemeParam categoryOptionIdScheme = TrackerIdSchemeParam.UID;
+  /** Specific idScheme to match organisation units on. */
+  @JsonIgnore private TrackerIdSchemeParam orgUnitIdScheme;
+
+  /** Specific idScheme to match programs on. */
+  @JsonIgnore private TrackerIdSchemeParam programIdScheme;
+
+  /** Specific idScheme to match program stages on. */
+  @JsonIgnore private TrackerIdSchemeParam programStageIdScheme;
+
+  /** Specific idScheme to match category option combos on. */
+  @JsonIgnore private TrackerIdSchemeParam categoryOptionComboIdScheme;
+
+  /** Specific idScheme to match category options on. */
+  @JsonIgnore private TrackerIdSchemeParam categoryOptionIdScheme;
+
+  @JsonProperty("dataElementIdScheme")
+  public void setDataElementIdScheme(TrackerIdSchemeParam idSchemeParam) {
+    this.dataElementIdScheme = idSchemeParam;
+  }
+
+  @JsonProperty("dataElementIdScheme")
+  @Nonnull
+  public TrackerIdSchemeParam getDataElementIdScheme() {
+    return dataElementIdScheme != null ? dataElementIdScheme : idScheme;
+  }
+
+  @JsonProperty("orgUnitIdScheme")
+  public void setOrgUnitIdScheme(TrackerIdSchemeParam idSchemeParam) {
+    this.orgUnitIdScheme = idSchemeParam;
+  }
+
+  @JsonProperty("orgUnitIdScheme")
+  @Nonnull
+  public TrackerIdSchemeParam getOrgUnitIdScheme() {
+    return orgUnitIdScheme != null ? orgUnitIdScheme : idScheme;
+  }
+
+  @JsonProperty("programIdScheme")
+  public void setProgramIdScheme(TrackerIdSchemeParam idSchemeParam) {
+    this.programIdScheme = idSchemeParam;
+  }
+
+  @JsonProperty("programIdScheme")
+  @Nonnull
+  public TrackerIdSchemeParam getProgramIdScheme() {
+    return programIdScheme != null ? programIdScheme : idScheme;
+  }
+
+  @JsonProperty("programStageIdScheme")
+  public void setProgramStageIdScheme(TrackerIdSchemeParam idSchemeParam) {
+    this.programStageIdScheme = idSchemeParam;
+  }
+
+  @JsonProperty("programStageIdScheme")
+  @Nonnull
+  public TrackerIdSchemeParam getProgramStageIdScheme() {
+    return programStageIdScheme != null ? programStageIdScheme : idScheme;
+  }
+
+  @JsonProperty("categoryOptionComboIdScheme")
+  public void setCategoryOptionComboIdScheme(TrackerIdSchemeParam idSchemeParam) {
+    this.categoryOptionComboIdScheme = idSchemeParam;
+  }
+
+  @JsonProperty("categoryOptionComboIdScheme")
+  public TrackerIdSchemeParam getCategoryOptionComboIdScheme() {
+    return categoryOptionComboIdScheme != null ? categoryOptionComboIdScheme : idScheme;
+  }
+
+  @JsonProperty("categoryOptionIdScheme")
+  public void setCategoryOptionIdScheme(TrackerIdSchemeParam idSchemeParam) {
+    this.categoryOptionIdScheme = idSchemeParam;
+  }
+
+  @JsonProperty("categoryOptionIdScheme")
+  @Nonnull
+  public TrackerIdSchemeParam getCategoryOptionIdScheme() {
+    return categoryOptionIdScheme != null ? categoryOptionIdScheme : idScheme;
+  }
 
   public TrackerIdSchemeParam getByClass(Class<?> klazz) {
     return switch (klazz.getSimpleName()) {
-      case "CategoryOptionCombo" -> categoryOptionComboIdScheme;
-      case "OrganisationUnit" -> orgUnitIdScheme;
-      case "CategoryOption" -> categoryOptionIdScheme;
-      case "DataElement" -> dataElementIdScheme;
-      case "Program" -> programIdScheme;
-      case "ProgramStage" -> programStageIdScheme;
-      default -> idScheme;
+      case "CategoryOptionCombo" -> getCategoryOptionComboIdScheme();
+      case "OrganisationUnit" -> getOrgUnitIdScheme();
+      case "CategoryOption" -> getCategoryOptionIdScheme();
+      case "DataElement" -> getDataElementIdScheme();
+      case "Program" -> getProgramIdScheme();
+      case "ProgramStage" -> getProgramStageIdScheme();
+      default -> getIdScheme();
     };
   }
 
@@ -102,7 +164,7 @@ public class TrackerIdSchemeParams implements Serializable {
    * @return metadata identifier representing metadata using the idScheme
    */
   public MetadataIdentifier toMetadataIdentifier(IdentifiableObject metadata) {
-    return idScheme.toMetadataIdentifier(metadata);
+    return getIdScheme().toMetadataIdentifier(metadata);
   }
 
   /**
@@ -114,7 +176,7 @@ public class TrackerIdSchemeParams implements Serializable {
    * @return metadata identifier representing metadata using the categoryOptionComboIdScheme
    */
   public MetadataIdentifier toMetadataIdentifier(CategoryOptionCombo categoryOptionCombo) {
-    return categoryOptionComboIdScheme.toMetadataIdentifier(categoryOptionCombo);
+    return getCategoryOptionComboIdScheme().toMetadataIdentifier(categoryOptionCombo);
   }
 
   /**
@@ -126,7 +188,7 @@ public class TrackerIdSchemeParams implements Serializable {
    * @return metadata identifier representing metadata using the categoryOptionIdScheme
    */
   public MetadataIdentifier toMetadataIdentifier(CategoryOption categoryOption) {
-    return categoryOptionIdScheme.toMetadataIdentifier(categoryOption);
+    return getCategoryOptionIdScheme().toMetadataIdentifier(categoryOption);
   }
 
   /**
@@ -137,7 +199,7 @@ public class TrackerIdSchemeParams implements Serializable {
    * @return metadata identifier representing dataElement using the idScheme
    */
   public MetadataIdentifier toMetadataIdentifier(DataElement dataElement) {
-    return dataElementIdScheme.toMetadataIdentifier(dataElement);
+    return getDataElementIdScheme().toMetadataIdentifier(dataElement);
   }
 
   /**
@@ -148,7 +210,7 @@ public class TrackerIdSchemeParams implements Serializable {
    * @return metadata identifier representing metadata using the orgUnitIdScheme
    */
   public MetadataIdentifier toMetadataIdentifier(OrganisationUnit orgUnit) {
-    return orgUnitIdScheme.toMetadataIdentifier(orgUnit);
+    return getOrgUnitIdScheme().toMetadataIdentifier(orgUnit);
   }
 
   /**
@@ -159,7 +221,7 @@ public class TrackerIdSchemeParams implements Serializable {
    * @return metadata identifier representing metadata using the programIdScheme
    */
   public MetadataIdentifier toMetadataIdentifier(Program program) {
-    return programIdScheme.toMetadataIdentifier(program);
+    return getProgramIdScheme().toMetadataIdentifier(program);
   }
 
   /**
@@ -167,9 +229,9 @@ public class TrackerIdSchemeParams implements Serializable {
    * For more details refer to {@link TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}
    *
    * @param programStage to create metadata identifier for
-   * @return metadata identifier representing metadata using the programIdScheme
+   * @return metadata identifier representing metadata using the programStageIdScheme
    */
   public MetadataIdentifier toMetadataIdentifier(ProgramStage programStage) {
-    return programStageIdScheme.toMetadataIdentifier(programStage);
+    return getProgramStageIdScheme().toMetadataIdentifier(programStage);
   }
 }

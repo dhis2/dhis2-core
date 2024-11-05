@@ -56,7 +56,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Zubair Asghar
  */
-@OpenApi.Document(domain = App.class)
+@OpenApi.Document(
+    entity = App.class,
+    classifiers = {"team:extensibility", "purpose:support"})
 @RestController
 @RequestMapping("/api/appHub")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

@@ -36,7 +36,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
@@ -65,8 +64,8 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class ProgramMessageOperationParamsMapperTest {
-  private static UID ENROLLMENT = UID.of(CodeGenerator.generateUid());
-  private static UID EVENT = UID.of(CodeGenerator.generateUid());
+  private static final UID ENROLLMENT = UID.generate();
+  private static final UID EVENT = UID.generate();
 
   @Mock private IdentifiableObjectManager manager;
   @Mock private ProgramService programService;
@@ -119,7 +118,7 @@ class ProgramMessageOperationParamsMapperTest {
 
   @Test
   void shouldFailWhenEnrollmentNotFound() {
-    UID invalidEnrollment = UID.of(CodeGenerator.generateUid());
+    UID invalidEnrollment = UID.generate();
     when(manager.get(eq(Enrollment.class), anyString())).thenReturn(null);
 
     NotFoundException exception =
@@ -137,7 +136,7 @@ class ProgramMessageOperationParamsMapperTest {
 
   @Test
   void shouldFailWhenEventNotFound() {
-    UID invalidEvent = UID.of(CodeGenerator.generateUid());
+    UID invalidEvent = UID.generate();
     when(manager.get(eq(Event.class), anyString())).thenReturn(null);
 
     NotFoundException exception =

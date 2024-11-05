@@ -49,12 +49,14 @@ public interface EnrollmentService {
       UID uid, EnrollmentParams params, boolean includeDeleted) throws NotFoundException;
 
   /** Get all enrollments matching given params. */
+  @Nonnull
   List<Enrollment> getEnrollments(EnrollmentOperationParams params)
-      throws BadRequestException, ForbiddenException, NotFoundException;
+      throws BadRequestException, ForbiddenException;
 
   /** Get a page of enrollments matching given params. */
+  @Nonnull
   Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
-      throws BadRequestException, ForbiddenException, NotFoundException;
+      throws BadRequestException, ForbiddenException;
 
   /**
    * Get event matching given {@code UID} under the privileges the user in the context. This method

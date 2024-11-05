@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
 import java.util.stream.Stream;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -44,7 +43,6 @@ import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -75,11 +73,9 @@ class EventImportTest extends TrackerTest {
     TrackerObjects trackerObjects = fromJson("tracker/te_enrollment_event.json");
     trackerObjects.getEvents().get(0).setStatus(EventStatus.COMPLETED);
 
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+    importTracker(params, trackerObjects);
 
-    assertNoErrors(importReport);
-
-    Event event = eventService.getEvent(UID.of(trackerObjects.getEvents().get(0).getUid()));
+    Event event = eventService.getEvent(trackerObjects.getEvents().get(0).getUid());
 
     assertEquals(importUser.getUsername(), event.getCompletedBy());
     assertNotNull(event.getCompletedDate());
@@ -93,11 +89,9 @@ class EventImportTest extends TrackerTest {
     TrackerObjects trackerObjects = fromJson("tracker/te_enrollment_event.json");
     trackerObjects.getEvents().get(0).setStatus(status);
 
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+    importTracker(params, trackerObjects);
 
-    assertNoErrors(importReport);
-
-    Event event = eventService.getEvent(UID.of(trackerObjects.getEvents().get(0).getUid()));
+    Event event = eventService.getEvent(trackerObjects.getEvents().get(0).getUid());
 
     assertNull(event.getCompletedBy());
     assertNull(event.getCompletedDate());
@@ -110,17 +104,13 @@ class EventImportTest extends TrackerTest {
     TrackerObjects trackerObjects = fromJson("tracker/te_enrollment_event.json");
     trackerObjects.getEvents().get(0).setStatus(EventStatus.COMPLETED);
 
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
-
-    assertNoErrors(importReport);
+    importTracker(params, trackerObjects);
 
     trackerObjects.getEvents().get(0).setStatus(EventStatus.ACTIVE);
 
-    importReport = trackerImportService.importTracker(params, trackerObjects);
+    importTracker(params, trackerObjects);
 
-    assertNoErrors(importReport);
-
-    Event event = eventService.getEvent(UID.of(trackerObjects.getEvents().get(0).getUid()));
+    Event event = eventService.getEvent(trackerObjects.getEvents().get(0).getUid());
 
     assertNull(event.getCompletedBy());
     assertNull(event.getCompletedDate());
@@ -134,20 +124,21 @@ class EventImportTest extends TrackerTest {
     TrackerObjects trackerObjects = fromJson("tracker/te_enrollment_event.json");
     trackerObjects.getEvents().get(0).setStatus(status);
 
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
-
-    assertNoErrors(importReport);
+    importTracker(params, trackerObjects);
 
     trackerObjects.getEvents().get(0).setStatus(EventStatus.COMPLETED);
 
-    importReport = trackerImportService.importTracker(params, trackerObjects);
+    importTracker(params, trackerObjects);
 
-    assertNoErrors(importReport);
-
-    Event event = eventService.getEvent(UID.of(trackerObjects.getEvents().get(0).getUid()));
+    Event event = eventService.getEvent(trackerObjects.getEvents().get(0).getUid());
 
     assertEquals(importUser.getUsername(), event.getCompletedBy());
     assertNotNull(event.getCompletedDate());
+  }
+
+  private void importTracker(TrackerImportParams params, TrackerObjects trackerObjects) {
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+    manager.flush();
   }
 
   public Stream<Arguments> notCompletedStatus() {

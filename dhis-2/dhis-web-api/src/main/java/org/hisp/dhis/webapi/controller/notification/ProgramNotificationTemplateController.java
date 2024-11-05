@@ -32,6 +32,7 @@ import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValida
 
 import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -53,6 +54,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping("/api/programNotificationTemplates")
 @ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
 public class ProgramNotificationTemplateController
     extends AbstractCrudController<ProgramNotificationTemplate> {
   private final ProgramNotificationTemplateService programNotificationTemplateService;

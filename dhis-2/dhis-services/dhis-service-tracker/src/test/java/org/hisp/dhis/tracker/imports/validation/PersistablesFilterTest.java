@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.test.utils.Assertions;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -472,14 +473,14 @@ class PersistablesFilterTest {
        * @return builder
        */
       Builder enrollment(String uid) {
-        Entity<Enrollment> entity = enrollment(uid, currentTrackedEntity);
+        Entity<Enrollment> entity = enrollment(UID.of(uid), currentTrackedEntity);
         this.enrollments.add(entity);
         current = entity;
         currentEnrollment = entity;
         return this;
       }
 
-      private static Entity<Enrollment> enrollment(String uid, Entity<TrackedEntity> parent) {
+      private static Entity<Enrollment> enrollment(UID uid, Entity<TrackedEntity> parent) {
         // set child/parent links
         Enrollment enrollment =
             Enrollment.builder().enrollment(uid).trackedEntity(parent.entity.getUid()).build();
@@ -498,13 +499,13 @@ class PersistablesFilterTest {
        * @return builder
        */
       Builder event(String uid) {
-        Entity<Event> entity = event(uid, currentEnrollment);
+        Entity<Event> entity = event(UID.of(uid), currentEnrollment);
         this.events.add(entity);
         current = entity;
         return this;
       }
 
-      private static Entity<Event> event(String uid, Entity<Enrollment> parent) {
+      private static Entity<Event> event(UID uid, Entity<Enrollment> parent) {
         // set child/parent links only if the event has a parent. Events in an event program have no
         // enrollment.
         // They do have a "fake" enrollment (a default program) but it's not set on the event DTO.
@@ -567,7 +568,7 @@ class PersistablesFilterTest {
       private <T extends TrackerDto> Set<String> invalid(List<Entity<T>> entities) {
         return entities.stream()
             .filter(e -> !e.valid)
-            .map(e -> e.entity.getUid())
+            .map(e -> e.entity.getStringUid())
             .collect(Collectors.toSet());
       }
 
@@ -647,7 +648,7 @@ class PersistablesFilterTest {
 
   private static <T extends TrackerDto> List<String> persistableUids(
       PersistablesFilter.Result persistable, Class<T> type) {
-    return persistable.get(type).stream().map(TrackerDto::getUid).toList();
+    return persistable.get(type).stream().map(TrackerDto::getStringUid).toList();
   }
 
   private static void assertHasError(
@@ -667,7 +668,12 @@ class PersistablesFilterTest {
       }
 
       @Override
-      public String getUid() {
+      public UID getUid() {
+        return UID.of(uid);
+      }
+
+      @Override
+      public String getStringUid() {
         return uid;
       }
     };

@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
@@ -90,7 +89,7 @@ public class EnrollmentPersister
 
   @Override
   protected void updatePreheat(TrackerPreheat preheat, Enrollment enrollment) {
-    preheat.putEnrollments(Collections.singletonList(enrollment));
+    preheat.putEnrollment(enrollment);
     preheat.addProgramOwner(
         enrollment.getTrackedEntity().getUid(),
         enrollment.getProgram().getUid(),

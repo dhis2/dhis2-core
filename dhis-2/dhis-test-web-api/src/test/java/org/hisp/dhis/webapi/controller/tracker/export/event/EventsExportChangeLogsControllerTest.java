@@ -72,7 +72,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-class EventsExportControllerPostgresTest extends PostgresControllerIntegrationTestBase {
+class EventsExportChangeLogsControllerTest extends PostgresControllerIntegrationTestBase {
   private static final String DATA_ELEMENT_VALUE = "value 1";
 
   @Autowired private IdentifiableObjectManager manager;
@@ -347,34 +347,34 @@ class EventsExportControllerPostgresTest extends PostgresControllerIntegrationTe
 
   private String createJson(Event event, String value) {
     return """
-      {
-        "events": [
-          {
-            "event": "%s",
-            "status": "COMPLETED",
-            "program": "%s",
-            "programStage": "%s",
-            "enrollment": "%s",
-            "trackedEntity": "%s",
-            "orgUnit": "%s",
-            "occurredAt": "2023-01-10",
-            "scheduledAt": "2023-01-10",
-            "storedBy": "tracker",
-            "followUp": false,
-            "createdAtClient": "2017-01-20T10:44:03.222",
-            "completedBy": "tracker",
-            "completedAt": "2023-01-20",
-            "notes": [],
-            "dataValues": [
-              {
-                "dataElement": "%s",
-                "value": "%s"
-              }
-            ]
-          }
-        ]
-      }}
-        """
+           {
+             "events": [
+               {
+                 "event": "%s",
+                 "status": "COMPLETED",
+                 "program": "%s",
+                 "programStage": "%s",
+                 "enrollment": "%s",
+                 "trackedEntity": "%s",
+                 "orgUnit": "%s",
+                 "occurredAt": "2023-01-10",
+                 "scheduledAt": "2023-01-10",
+                 "storedBy": "tracker",
+                 "followUp": false,
+                 "createdAtClient": "2017-01-20T10:44:03.222",
+                 "completedBy": "tracker",
+                 "completedAt": "2023-01-20",
+                 "notes": [],
+                 "dataValues": [
+                   {
+                     "dataElement": "%s",
+                     "value": "%s"
+                   }
+                 ]
+               }
+             ]
+           }}
+           """
         .formatted(
             event.getUid(),
             program.getUid(),

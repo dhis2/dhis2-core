@@ -104,7 +104,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(domain = User.class, group = OpenApi.Document.GROUP_QUERY)
+@OpenApi.Document(
+    entity = User.class,
+    group = OpenApi.Document.GROUP_QUERY,
+    classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequestMapping("/api/me")

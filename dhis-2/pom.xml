@@ -71,18 +71,12 @@
     <sonar.organization>dhis2</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <sonar.projectKey>dhis2_dhis2-core</sonar.projectKey>
+    <sonar.issue.ignore.multicriteria>S1117</sonar.issue.ignore.multicriteria>
+    <sonar.issue.ignore.multicriteria.S1117.ruleKey>java:S1117</sonar.issue.ignore.multicriteria.S1117.ruleKey>
+    <sonar.issue.ignore.multicriteria.S1117.resourceKey>**/src/test/**/*.java</sonar.issue.ignore.multicriteria.S1117.resourceKey>
 
     <surefireArgLine>-Xmx2024m</surefireArgLine>
 
-    <!-- *Build* -->
-    <jib.version>3.4.3</jib.version>
-    <jib.from.image>tomcat:10.1.30-jre21</jib.from.image>
-    <jib.to.image>dhis2/core-dev:local</jib.to.image>
-    <!-- uid=65534(nobody) gid=65534(nogroup) present in Tomcat image -->
-    <jib.container.user>65534</jib.container.user>
-    <jib.container.appRoot>/usr/local/tomcat/webapps/ROOT</jib.container.appRoot>
-
-    <tomcat.version>10.1.30</tomcat.version>
     <jrebel-maven-plugin.version>1.1.6</jrebel-maven-plugin.version>
     <maven-war-plugin.version>3.4.0</maven-war-plugin.version>
     <properties-maven-plugin.version>1.2.1</properties-maven-plugin.version>
@@ -104,7 +98,7 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.41.2</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>9.45</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
@@ -116,12 +110,12 @@
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
     <spring-retry.version>1.3.4</spring-retry.version>
     <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
-    <spring-ldap.version>2.4.1</spring-ldap.version>
+    <spring-ldap.version>2.4.2</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
     <lettuce.version>6.4.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>10.18.2</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>10.20.1</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.10.8</ehcache3.version>
     <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
@@ -132,6 +126,7 @@
     <postgresql-driver.version>42.7.4</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.10</datasource-proxy.version>
+    <mysql-connector-j.version>8.3.0</mysql-connector-j.version>
 
     <!-- Servlet -->
     <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
@@ -141,7 +136,7 @@
     <velocity-tools.version>3.1</velocity-tools.version>
 
     <!-- Jackson -->
-    <jackson.version>2.18.0</jackson.version>
+    <jackson.version>2.18.1</jackson.version>
     <jackson-datatype-jts.version>2.14</jackson-datatype-jts.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 
@@ -172,9 +167,9 @@
     <jts.version>1.20.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis-jakarta.version>2.37.0</artemis-jakarta.version>
+    <artemis-jakarta.version>2.38.0</artemis-jakarta.version>
     <netty-all.version>4.1.113.Final</netty-all.version>
-    <classgraph.version>4.8.175</classgraph.version>
+    <classgraph.version>4.8.177</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.2.1.1</sms-compression.version>
@@ -204,13 +199,13 @@
     <commons-codec.version>1.17.1</commons-codec.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
-    <httpcomponents-core.version>5.2.5</httpcomponents-core.version>
-    <httpcomponents-client5.version>5.3.1</httpcomponents-client5.version>
-    <kafka.version>3.8.0</kafka.version>
+    <httpcomponents-core.version>5.3.1</httpcomponents-core.version>
+    <httpcomponents-client5.version>5.4.1</httpcomponents-client5.version>
+    <kafka.version>3.8.1</kafka.version>
 
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
-    <micrometer.version>1.13.5</micrometer.version>
+    <micrometer.version>1.13.6</micrometer.version>
     <prometheus-metrics-model.version>1.3.1</prometheus-metrics-model.version>
 
     <!-- Logging -->
@@ -218,18 +213,18 @@
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
-    <junit.version>5.11.1</junit.version>
+    <junit.version>5.11.3</junit.version>
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>3.0</hamcrest.version>
-    <testcontainers.version>1.20.2</testcontainers.version>
+    <testcontainers.version>1.20.3</testcontainers.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.2.2</awaitility.version>
-    <swagger.version>2.1.21</swagger.version>
+    <swagger.version>2.1.23</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
     <h2.version>2.3.232</h2.version>
-    <jakarta.persistence-api.version>3.1.0</jakarta.persistence-api.version>
+    <jakarta.persistence-api.version>3.2.0</jakarta.persistence-api.version>
 
     <!-- Maven plugin versions -->
     <maven-surefire-plugin.version>3.5.1</maven-surefire-plugin.version>
@@ -244,7 +239,7 @@
     <restrict-imports-enforcer.version>2.6.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.17.1</versions-maven-plugin.version>
     <dependency-check-maven.version>10.0.4</dependency-check-maven.version>
-    <spotbugs-maven-plugin.version>4.8.6.2</spotbugs-maven-plugin.version>
+    <spotbugs-maven-plugin.version>4.8.6.5</spotbugs-maven-plugin.version>
     <spotless.version>2.43.0</spotless.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
@@ -252,7 +247,7 @@
     <jai-imageio.version>1.1.1</jai-imageio.version>
     <gson.version>2.11.0</gson.version>
     <semver4j.version>3.1.0</semver4j.version>
-    <opentelemetry.version>2.8.0</opentelemetry.version>
+    <opentelemetry.version>2.9.0</opentelemetry.version>
   </properties>
 
   <dependencyManagement>
@@ -865,7 +860,7 @@
       <dependency>
         <groupId>org.jetbrains</groupId>
         <artifactId>annotations</artifactId>
-        <version>24.1.0</version>
+        <version>26.0.1</version>
         <scope>compile</scope>
       </dependency>
 
@@ -1092,6 +1087,11 @@
         <groupId>net.postgis</groupId>
         <artifactId>postgis-jdbc</artifactId>
         <version>${postgis-jdbc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.mysql</groupId>
+        <artifactId>mysql-connector-j</artifactId>
+        <version>${mysql-connector-j.version}</version>
       </dependency>
 
       <!-- Flyway -->
@@ -2037,7 +2037,10 @@ jasperreports.version=${jasperreports.version}
               <enabled>true</enabled>
             </upToDateChecking>
             <java>
-              <googleJavaFormat/>
+              <googleJavaFormat>
+                <version>1.24.0</version>
+                <style>GOOGLE</style>
+              </googleJavaFormat>
               <trimTrailingWhitespace/>
               <licenseHeader>
                 <file>${rootDir}/license-header</file>
@@ -2099,6 +2102,7 @@ jasperreports.version=${jasperreports.version}
               <ignoredUnusedDeclaredDependency>org.hibernate:hibernate-ehcache</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>jakarta.xml.bind:jakarta.xml.bind-api</ignoredUnusedDeclaredDependency>
               <!-- Required only at runtime -->
+              <ignoredUnusedDeclaredDependency>com.mysql:mysql-connector-j</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-hibernate</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-db-migration</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-audit</ignoredUnusedDeclaredDependency>
@@ -2170,20 +2174,6 @@ jasperreports.version=${jasperreports.version}
 
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-war-plugin</artifactId>
-        <version>${maven-war-plugin.version}</version>
-        <configuration>
-          <failOnMissingWebXml>false</failOnMissingWebXml>
-          <archiveClasses>true</archiveClasses>
-          <dependentWarExcludes>**/web.xml</dependentWarExcludes>
-          <archive>
-            <compress>${useWarCompression}</compress>
-          </archive>
-        </configuration>
-      </plugin>
-
-      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>properties-maven-plugin</artifactId>
         <version>${properties-maven-plugin.version}</version>
@@ -2206,40 +2196,6 @@ jasperreports.version=${jasperreports.version}
             </configuration>
           </execution>
         </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.codehaus.cargo</groupId>
-        <artifactId>cargo-maven2-plugin</artifactId>
-        <version>${cargo-maven2-plugin.version}</version>
-        <configuration>
-          <container>
-            <containerId>tomcat8x</containerId>
-            <artifactInstaller>
-              <groupId>org.apache.tomcat</groupId>
-              <artifactId>tomcat</artifactId>
-              <version>${tomcat.version}</version>
-            </artifactInstaller>
-          </container>
-          <configuration>
-            <type>standalone</type>
-            <home>${project.build.directory}/apache-tomcat-${tomcat.version}</home>
-            <properties>
-              <cargo.servlet.port>8080</cargo.servlet.port>
-              <cargo.logging>low</cargo.logging>
-            </properties>
-          </configuration>
-          <deployables>
-            <deployable>
-              <groupId>${project.groupId}</groupId>
-              <artifactId>${project.artifactId}</artifactId>
-              <type>war</type>
-              <properties>
-                <context>/</context>
-              </properties>
-            </deployable>
-          </deployables>
-        </configuration>
       </plugin>
 
       <plugin>

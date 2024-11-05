@@ -193,7 +193,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
   }
 
   private void removeTrackedEntity(TrackedEntity trackedEntity) throws NotFoundException {
-    trackerObjectDeletionService.deleteTrackedEntities(List.of(trackedEntity.getUid()));
+    trackerObjectDeletionService.deleteTrackedEntities(List.of(UID.of(trackedEntity)));
   }
 
   private Relationship getRelationship(String uid) {

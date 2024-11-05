@@ -34,6 +34,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -113,7 +114,7 @@ public class TrackerObjectsMapper {
 
     if (dbEnrollment == null) {
       dbEnrollment = new Enrollment();
-      dbEnrollment.setUid(enrollment.getEnrollment());
+      dbEnrollment.setUid(enrollment.getEnrollment().getValue());
       dbEnrollment.setCreated(now);
       dbEnrollment.setStoredBy(enrollment.getStoredBy());
       dbEnrollment.setCreatedByUserInfo(UserInfoSnapshot.from(user));
@@ -128,7 +129,8 @@ public class TrackerObjectsMapper {
     dbEnrollment.setOrganisationUnit(organisationUnit);
     Program program = preheat.getProgram(enrollment.getProgram());
     dbEnrollment.setProgram(program);
-    TrackedEntity trackedEntity = preheat.getTrackedEntity(enrollment.getTrackedEntity());
+    TrackedEntity trackedEntity =
+        preheat.getTrackedEntity(enrollment.getTrackedEntity().getValue());
     dbEnrollment.setTrackedEntity(trackedEntity);
 
     Date enrollmentDate = DateUtils.fromInstant(enrollment.getEnrolledAt());
@@ -182,7 +184,7 @@ public class TrackerObjectsMapper {
 
     if (dbEvent == null) {
       dbEvent = new Event();
-      dbEvent.setUid(event.getEvent());
+      dbEvent.setUid(event.getEvent().getValue());
       dbEvent.setCreated(now);
       dbEvent.setStoredBy(event.getStoredBy());
       dbEvent.setCreatedByUserInfo(UserInfoSnapshot.from(user));
@@ -274,9 +276,10 @@ public class TrackerObjectsMapper {
           fromItem.setTrackedEntity(
               preheat.getTrackedEntity(relationship.getFrom().getTrackedEntity()));
       case PROGRAM_INSTANCE ->
-          fromItem.setEnrollment(preheat.getEnrollment(relationship.getFrom().getEnrollment()));
+          fromItem.setEnrollment(
+              preheat.getEnrollment(UID.of(relationship.getFrom().getEnrollment())));
       case PROGRAM_STAGE_INSTANCE ->
-          fromItem.setEvent(preheat.getEvent(relationship.getFrom().getEvent()));
+          fromItem.setEvent(preheat.getEvent(UID.of(relationship.getFrom().getEvent())));
     }
     dbRelationship.setFrom(fromItem);
 
@@ -288,9 +291,9 @@ public class TrackerObjectsMapper {
           toItem.setTrackedEntity(
               preheat.getTrackedEntity(relationship.getTo().getTrackedEntity()));
       case PROGRAM_INSTANCE ->
-          toItem.setEnrollment(preheat.getEnrollment(relationship.getTo().getEnrollment()));
+          toItem.setEnrollment(preheat.getEnrollment(UID.of(relationship.getTo().getEnrollment())));
       case PROGRAM_STAGE_INSTANCE ->
-          toItem.setEvent(preheat.getEvent(relationship.getTo().getEvent()));
+          toItem.setEvent(preheat.getEvent(UID.of(relationship.getTo().getEvent())));
     }
     dbRelationship.setTo(toItem);
 
@@ -319,8 +322,7 @@ public class TrackerObjectsMapper {
     return dbNote;
   }
 
-  private static Enrollment getEnrollment(
-      TrackerPreheat preheat, String enrollment, Program program) {
+  private static Enrollment getEnrollment(TrackerPreheat preheat, UID enrollment, Program program) {
     return switch (program.getProgramType()) {
       case WITH_REGISTRATION -> preheat.getEnrollment(enrollment);
       case WITHOUT_REGISTRATION -> preheat.getEnrollmentsWithoutRegistration(program.getUid());

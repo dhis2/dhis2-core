@@ -107,9 +107,8 @@ class EventRequestParamsMapper {
             "event", eventRequestParams.getEvent(), "events", eventRequestParams.getEvents());
 
     validateFilter(eventRequestParams.getFilter(), eventUids);
-    Map<String, List<QueryFilter>> dataElementFilters =
-        parseFilters(eventRequestParams.getFilter());
-    Map<String, List<QueryFilter>> attributeFilters =
+    Map<UID, List<QueryFilter>> dataElementFilters = parseFilters(eventRequestParams.getFilter());
+    Map<UID, List<QueryFilter>> attributeFilters =
         parseFilters(eventRequestParams.getFilterAttributes());
 
     Set<UID> assignedUsers =

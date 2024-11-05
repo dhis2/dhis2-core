@@ -46,11 +46,12 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -137,13 +138,13 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
   }
 
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity getEntityForEnrollment(
-      TrackerObjects trackerObjects, TrackerPreheat preheat, String teUid) {
-    TrackedEntity trackedEntity = preheat.getTrackedEntity(teUid);
+      TrackerObjects trackerObjects, TrackerPreheat preheat, UID teUid) {
+    TrackedEntity trackedEntity = preheat.getTrackedEntity(teUid.getValue());
 
     // Get te from Preheat
     Optional<org.hisp.dhis.tracker.imports.domain.TrackedEntity> optionalTe =
         trackerObjects.getTrackedEntities().stream()
-            .filter(te -> Objects.equals(te.getTrackedEntity(), teUid))
+            .filter(te -> Objects.equals(te.getUid(), teUid))
             .findAny();
     if (optionalTe.isPresent()) {
       return optionalTe.get();
@@ -151,7 +152,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
     {
       org.hisp.dhis.tracker.imports.domain.TrackedEntity te =
           new org.hisp.dhis.tracker.imports.domain.TrackedEntity();
-      te.setTrackedEntity(teUid);
+      te.setTrackedEntity(teUid.getValue());
       te.setOrgUnit(
           preheat.getIdSchemes().toMetadataIdentifier(trackedEntity.getOrganisationUnit()));
       return te;
@@ -160,7 +161,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
     {
       org.hisp.dhis.tracker.imports.domain.TrackedEntity te =
           new org.hisp.dhis.tracker.imports.domain.TrackedEntity();
-      te.setTrackedEntity(teUid);
+      te.setTrackedEntity(teUid.getValue());
       return te;
     }
   }
@@ -221,7 +222,10 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
         .map(
             te ->
                 new UniqueAttributeValue(
-                    te.getUid(), attribute.getAttribute(), attribute.getValue(), te.getOrgUnit()))
+                    te.getStringUid(),
+                    attribute.getAttribute(),
+                    attribute.getValue(),
+                    te.getOrgUnit()))
         .toList();
   }
 
