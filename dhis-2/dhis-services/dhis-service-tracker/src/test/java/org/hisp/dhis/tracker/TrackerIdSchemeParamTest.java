@@ -37,25 +37,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Map;
 import org.hisp.dhis.attribute.AttributeValues;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.junit.jupiter.api.Test;
 
 class TrackerIdSchemeParamTest {
-
-  @Test
-  void testParams() {
-    TrackerIdSchemeParams params =
-        TrackerIdSchemeParams.builder()
-            .idScheme(TrackerIdSchemeParam.NAME)
-            .categoryOptionIdScheme(TrackerIdSchemeParam.ofAttribute(CodeGenerator.generateUid()))
-            .categoryOptionComboIdScheme(TrackerIdSchemeParam.CODE)
-            .build();
-
-    assertEquals(TrackerIdSchemeParam.NAME, params.getProgramIdScheme());
-  }
 
   @Test
   void toMetadataIdentifierUIDFromString() {

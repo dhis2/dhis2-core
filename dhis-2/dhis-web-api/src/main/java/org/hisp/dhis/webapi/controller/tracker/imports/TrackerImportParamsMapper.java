@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -58,20 +57,15 @@ public class TrackerImportParamsMapper {
   private TrackerImportParamsMapper() {}
 
   public static TrackerImportParams trackerImportParams(ImportRequestParams request) {
-    TrackerIdSchemeParam defaultIdSchemeParam = request.getIdScheme();
     TrackerIdSchemeParams idSchemeParams =
         TrackerIdSchemeParams.builder()
-            .idScheme(defaultIdSchemeParam)
-            .programIdScheme(getIdSchemeParam(request.getProgramIdScheme(), defaultIdSchemeParam))
-            .categoryOptionIdScheme(
-                getIdSchemeParam(request.getCategoryOptionIdScheme(), defaultIdSchemeParam))
-            .dataElementIdScheme(
-                getIdSchemeParam(request.getDataElementIdScheme(), defaultIdSchemeParam))
-            .orgUnitIdScheme(getIdSchemeParam(request.getOrgUnitIdScheme(), defaultIdSchemeParam))
-            .programStageIdScheme(
-                getIdSchemeParam(request.getProgramStageIdScheme(), defaultIdSchemeParam))
-            .categoryOptionComboIdScheme(
-                getIdSchemeParam(request.getCategoryOptionComboIdScheme(), defaultIdSchemeParam))
+            .idScheme(request.getIdScheme())
+            .programIdScheme(request.getProgramIdScheme())
+            .categoryOptionIdScheme(request.getCategoryOptionIdScheme())
+            .dataElementIdScheme(request.getDataElementIdScheme())
+            .orgUnitIdScheme(request.getOrgUnitIdScheme())
+            .programStageIdScheme(request.getProgramStageIdScheme())
+            .categoryOptionComboIdScheme(request.getCategoryOptionComboIdScheme())
             .build();
 
     TrackerImportParams.TrackerImportParamsBuilder paramsBuilder =
@@ -86,10 +80,5 @@ public class TrackerImportParamsMapper {
             .skipRuleEngine(request.isSkipRuleEngine())
             .reportMode(request.getReportMode());
     return paramsBuilder.build();
-  }
-
-  private static TrackerIdSchemeParam getIdSchemeParam(
-      TrackerIdSchemeParam idScheme, TrackerIdSchemeParam defaultIdSchemeParam) {
-    return idScheme == null ? defaultIdSchemeParam : idScheme;
   }
 }
