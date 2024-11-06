@@ -38,6 +38,7 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,6 +59,8 @@ class AppHubControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  @Disabled(
+      "Calling an actual live service should not be part of the automated build tests. Should be moved to release testing.")
   void testListAppHub() {
     JsonArray apps = GET("/appHub").content();
     assertTrue(apps.isArray());
@@ -65,6 +68,8 @@ class AppHubControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  @Disabled(
+      "Calling an actual live service should not be part of the automated build tests. Should be moved to release testing.")
   void testGetAppHubApiResponse() {
     assertWebMessage(
         "Not Found",
@@ -75,6 +80,8 @@ class AppHubControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  @Disabled(
+      "Calling an actual live service should not be part of the automated build tests. Should be moved to release testing.")
   void testAppHubInstallResponseContainsAppInfo() {
     JsonArray apps = GET("/appHub").content();
     JsonObject firstApp = apps.getObject(0).getArray("versions").getObject(0);
