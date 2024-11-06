@@ -332,7 +332,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   private void assertCreate(String dataElement, String currentValue, EventChangeLogDto changeLog) {
     assertAll(
         () -> assertUser(importUser, changeLog),
-        () -> assertEquals("CREATE", changeLog.getChangeLogType().name()),
+        () -> assertEquals("CREATE", changeLog.changeLogType().name()),
         () -> assertChange(dataElement, null, currentValue, changeLog));
   }
 
@@ -349,30 +349,30 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
       User user) {
     assertAll(
         () -> assertUser(user, changeLog),
-        () -> assertEquals("UPDATE", changeLog.getChangeLogType().name()),
+        () -> assertEquals("UPDATE", changeLog.changeLogType().name()),
         () -> assertChange(dataElement, previousValue, currentValue, changeLog));
   }
 
   private void assertDelete(String dataElement, String previousValue, EventChangeLogDto changeLog) {
     assertAll(
         () -> assertUser(importUser, changeLog),
-        () -> assertEquals("DELETE", changeLog.getChangeLogType().name()),
+        () -> assertEquals("DELETE", changeLog.changeLogType().name()),
         () -> assertChange(dataElement, previousValue, null, changeLog));
   }
 
   private static void assertChange(
       String dataElement, String previousValue, String currentValue, EventChangeLogDto changeLog) {
-    assertEquals(dataElement, changeLog.getDataElementUid());
-    assertEquals(currentValue, changeLog.getCurrentValue());
-    assertEquals(previousValue, changeLog.getPreviousValue());
+    assertEquals(dataElement, changeLog.dataElementUid());
+    assertEquals(currentValue, changeLog.currentValue());
+    assertEquals(previousValue, changeLog.previousValue());
   }
 
   private static void assertUser(User user, EventChangeLogDto changeLog) {
     assertAll(
-        () -> assertEquals(user.getUsername(), changeLog.getUsername()),
-        () -> assertEquals(user.getFirstName(), changeLog.getFirstName()),
-        () -> assertEquals(user.getSurname(), changeLog.getSurname()),
-        () -> assertEquals(user.getUid(), changeLog.getUserUid()));
+        () -> assertEquals(user.getUsername(), changeLog.username()),
+        () -> assertEquals(user.getFirstName(), changeLog.firstName()),
+        () -> assertEquals(user.getSurname(), changeLog.surname()),
+        () -> assertEquals(user.getUid(), changeLog.userUid()));
   }
 
   private void setUpMetadata(String path) throws IOException {
