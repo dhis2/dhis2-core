@@ -29,16 +29,12 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 
-import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.json.domain.JsonCategoryOptionCombo;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Tests the metadata check for category option combos with the same category options.
@@ -49,9 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author David Mackessy
  */
 class DataIntegrityCategoryOptionComboDuplicatedTest extends AbstractDataIntegrityIntegrationTest {
-
-  @Autowired private CategoryService store;
-
+  
   private final String check = "category_option_combo_duplicates";
 
   private String cocWithOptionsA;
@@ -113,9 +107,7 @@ class DataIntegrityCategoryOptionComboDuplicatedTest extends AbstractDataIntegri
     assertNamedMetadataObjectExists("categoryOptionCombos", "Red");
     assertNamedMetadataObjectExists("categoryOptionCombos", "Reddish");
     assertNamedMetadataObjectExists("categoryOptionCombos", "Not Red");
-
-    List<CategoryOptionCombo> all = store.getAllCategoryOptionCombos();
-
+    
     /*We need to get the Red category option combo to be able to check the data integrity issues*/
 
     JsonObject response = GET("/categoryOptionCombos?fields=id,name&filter=name:eq:Red").content();
