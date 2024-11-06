@@ -165,7 +165,7 @@ public class ValidationUtils {
     Set<MetadataIdentifier> savedTrackedEntityAttributes =
         Optional.of(bundle)
             .map(TrackerBundle::getPreheat)
-            .map(trackerPreheat -> trackerPreheat.getTrackedEntity(trackedEntityUid.getValue()))
+            .map(trackerPreheat -> trackerPreheat.getTrackedEntity(trackedEntityUid))
             .map(TrackedEntity::getTrackedEntityAttributeValues)
             .orElse(Collections.emptySet())
             .stream()
@@ -174,7 +174,7 @@ public class ValidationUtils {
             .collect(Collectors.toSet());
     Set<MetadataIdentifier> payloadTrackedEntityAttributes =
         bundle
-            .findTrackedEntityByUid(trackedEntityUid.getValue())
+            .findTrackedEntityByUid(trackedEntityUid)
             .map(org.hisp.dhis.tracker.imports.domain.TrackedEntity::getAttributes)
             .orElse(List.of())
             .stream()
@@ -206,9 +206,9 @@ public class ValidationUtils {
             });
   }
 
-  public static boolean trackedEntityExists(TrackerBundle bundle, String teUid) {
-    return bundle.getPreheat().getTrackedEntity(teUid) != null
-        || bundle.findTrackedEntityByUid(teUid).isPresent();
+  public static boolean trackedEntityExists(TrackerBundle bundle, UID te) {
+    return bundle.getPreheat().getTrackedEntity(te) != null
+        || bundle.findTrackedEntityByUid(te).isPresent();
   }
 
   public static boolean enrollmentExist(TrackerBundle bundle, UID enrollment) {

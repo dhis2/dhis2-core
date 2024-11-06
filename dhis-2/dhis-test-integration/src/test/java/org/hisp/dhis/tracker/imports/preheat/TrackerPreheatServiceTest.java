@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
@@ -105,7 +106,7 @@ class TrackerPreheatServiceTest extends TrackerTest {
             .trackedEntities(
                 Lists.newArrayList(
                     TrackedEntity.builder()
-                        .trackedEntity("TE012345678")
+                        .trackedEntity(UID.of("TE012345678"))
                         .orgUnit(MetadataIdentifier.ofCode("OU123456789"))
                         .build()))
             .build();

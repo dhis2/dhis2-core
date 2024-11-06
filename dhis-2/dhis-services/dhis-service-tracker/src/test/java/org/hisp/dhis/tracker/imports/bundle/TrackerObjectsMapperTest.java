@@ -160,7 +160,7 @@ class TrackerObjectsMapperTest extends TestBase {
   void shouldMapTrackedEntityWhenItIsACreation() {
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
         org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-            .trackedEntity(TE_UID.getValue())
+            .trackedEntity(TE_UID)
             .orgUnit(MetadataIdentifier.ofUid(organisationUnit.getUid()))
             .trackedEntityType(MetadataIdentifier.ofUid(trackerEntityType))
             .createdAtClient(NOW.toInstant())
@@ -179,7 +179,7 @@ class TrackerObjectsMapperTest extends TestBase {
     preheat.putTrackedEntities(List.of(trackedEntity()));
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
         org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-            .trackedEntity(TE_UID.getValue())
+            .trackedEntity(TE_UID)
             .orgUnit(MetadataIdentifier.ofUid(organisationUnit.getUid()))
             .trackedEntityType(MetadataIdentifier.ofUid(trackerEntityType))
             .createdAtClient(NOW.toInstant())

@@ -94,7 +94,7 @@ class UpdatableFieldsValidatorTest {
     when(bundle.getStrategy(any(org.hisp.dhis.tracker.imports.domain.Event.class)))
         .thenReturn(TrackerImportStrategy.UPDATE);
 
-    when(preheat.getTrackedEntity(TRACKED_ENTITY_ID.getValue())).thenReturn(trackedEntity());
+    when(preheat.getTrackedEntity(TRACKED_ENTITY_ID)).thenReturn(trackedEntity());
     when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(getEnrollment());
     when(preheat.getEvent(EVENT_UID)).thenReturn(event());
 

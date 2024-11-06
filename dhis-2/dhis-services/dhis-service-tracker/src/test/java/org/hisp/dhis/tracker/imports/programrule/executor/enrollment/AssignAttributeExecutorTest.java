@@ -282,7 +282,7 @@ class AssignAttributeExecutorTest extends TestBase {
 
   private Optional<Attribute> findTeiAttributeByUid(
       TrackerBundle bundle, UID teUid, UID attributeUid) {
-    TrackedEntity te = bundle.findTrackedEntityByUid(teUid.getValue()).get();
+    TrackedEntity te = bundle.findTrackedEntityByUid(teUid).get();
     return te.getAttributes().stream()
         .filter(at -> at.getAttribute().equals(MetadataIdentifier.ofUid(attributeUid.getValue())))
         .findAny();
@@ -353,13 +353,13 @@ class AssignAttributeExecutorTest extends TestBase {
 
   private TrackedEntity getTrackedEntitiesWithAttributeSet() {
     return TrackedEntity.builder()
-        .trackedEntity(TRACKED_ENTITY_ID.getValue())
+        .trackedEntity(TRACKED_ENTITY_ID)
         .attributes(getAttributes())
         .build();
   }
 
   private TrackedEntity getTrackedEntitiesWithAttributeNOTSet() {
-    return TrackedEntity.builder().trackedEntity(TRACKED_ENTITY_ID.getValue()).build();
+    return TrackedEntity.builder().trackedEntity(TRACKED_ENTITY_ID).build();
   }
 
   private Enrollment getEnrollmentWithAttributeNOTSet() {

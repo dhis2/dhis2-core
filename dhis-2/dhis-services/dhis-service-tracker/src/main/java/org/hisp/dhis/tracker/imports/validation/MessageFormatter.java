@@ -111,7 +111,7 @@ class MessageFormatter {
       return ((Enrollment) argument).getEnrollment().getValue();
     if (Event.class.isAssignableFrom(type)) return ((Event) argument).getEvent().getValue();
     if (TrackedEntity.class.isAssignableFrom(type))
-      return ((TrackedEntity) argument).getTrackedEntity();
+      return ((TrackedEntity) argument).getTrackedEntity().getValue();
     return argument.toString();
   }
 

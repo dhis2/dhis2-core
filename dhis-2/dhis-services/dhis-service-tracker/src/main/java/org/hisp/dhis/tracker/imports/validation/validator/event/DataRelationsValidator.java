@@ -345,7 +345,6 @@ class DataRelationsValidator implements Validator<Event> {
    * @return whether the enrollment of the event has an existing tracked entity
    */
   private boolean enrollmentFromEventHasTrackedEntity(TrackerBundle bundle, Event event) {
-    // TODO: Check logic here
     if (event.getEnrollment() == null) {
       return true;
     }

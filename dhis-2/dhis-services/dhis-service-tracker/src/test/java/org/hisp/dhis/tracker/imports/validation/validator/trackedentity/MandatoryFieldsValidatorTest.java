@@ -31,6 +31,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.ValidationMode;
@@ -81,7 +82,7 @@ class MandatoryFieldsValidatorTest {
   void verifyTrackedEntityValidationSuccess() {
     TrackedEntity trackedEntity =
         TrackedEntity.builder()
-            .trackedEntity(CodeGenerator.generateUid())
+            .trackedEntity(UID.generate())
             .trackedEntityType(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .build();
@@ -95,7 +96,7 @@ class MandatoryFieldsValidatorTest {
   void verifyTrackedEntityValidationFailsOnMissingOrgUnit() {
     TrackedEntity trackedEntity =
         TrackedEntity.builder()
-            .trackedEntity(CodeGenerator.generateUid())
+            .trackedEntity(UID.generate())
             .trackedEntityType(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .orgUnit(MetadataIdentifier.EMPTY_UID)
             .build();
@@ -109,7 +110,7 @@ class MandatoryFieldsValidatorTest {
   void verifyTrackedEntityValidationFailsOnMissingTrackedEntityType() {
     TrackedEntity trackedEntity =
         TrackedEntity.builder()
-            .trackedEntity(CodeGenerator.generateUid())
+            .trackedEntity(UID.generate())
             .trackedEntityType(MetadataIdentifier.EMPTY_UID)
             .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .build();

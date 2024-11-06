@@ -204,7 +204,7 @@ class UniqueAttributeSupplierTest extends TestBase {
     return Lists.newArrayList(
         trackedEntity(),
         org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-            .trackedEntity(ANOTHER_TE_UID.getValue())
+            .trackedEntity(ANOTHER_TE_UID)
             .attributes(Collections.singletonList(uniqueAttribute()))
             .build());
   }
@@ -212,7 +212,7 @@ class UniqueAttributeSupplierTest extends TestBase {
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity() {
 
     return org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-        .trackedEntity(TE_UID.getValue())
+        .trackedEntity(TE_UID)
         .attributes(Collections.singletonList(uniqueAttribute()))
         .build();
   }
@@ -220,7 +220,7 @@ class UniqueAttributeSupplierTest extends TestBase {
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity anotherTrackedEntity() {
 
     return org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-        .trackedEntity(ANOTHER_TE_UID.getValue())
+        .trackedEntity(ANOTHER_TE_UID)
         .attributes(Collections.singletonList(uniqueAttribute()))
         .build();
   }

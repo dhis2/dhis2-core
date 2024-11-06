@@ -82,7 +82,7 @@ class TrackerIdentifierCollectorTest {
   void collectTrackedEntities() {
     TrackedEntity trackedEntity =
         TrackedEntity.builder()
-            .trackedEntity(stringUid())
+            .trackedEntity(uid())
             .trackedEntityType(ofAttribute("NTVsGflP5Ix", "sunshine"))
             .orgUnit(ofName("ward"))
             .attributes(teAttributes("VohJnvWfvyo", "qv9xOw8fBzy"))
@@ -94,7 +94,8 @@ class TrackerIdentifierCollectorTest {
     Map<Class<?>, Set<String>> ids = collector.collect(trackerObjects);
 
     assertNotNull(ids);
-    assertContainsOnly(Set.of(trackedEntity.getTrackedEntity()), ids.get(TrackedEntity.class));
+    assertContainsOnly(
+        Set.of(trackedEntity.getTrackedEntity().getValue()), ids.get(TrackedEntity.class));
     assertContainsOnly(Set.of("sunshine"), ids.get(TrackedEntityType.class));
     assertContainsOnly(Set.of("ward"), ids.get(OrganisationUnit.class));
     assertContainsOnly(Set.of("VohJnvWfvyo", "qv9xOw8fBzy"), ids.get(TrackedEntityAttribute.class));

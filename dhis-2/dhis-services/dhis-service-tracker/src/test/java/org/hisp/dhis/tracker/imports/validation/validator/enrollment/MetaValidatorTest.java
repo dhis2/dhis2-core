@@ -85,7 +85,7 @@ class MetaValidatorTest {
     Enrollment enrollment = validEnrollment();
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
         .thenReturn(new OrganisationUnit());
-    when(preheat.getTrackedEntity(TRACKED_ENTITY_UID.getValue())).thenReturn(new TrackedEntity());
+    when(preheat.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(new TrackedEntity());
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(new Program());
 
     validator.validate(reporter, bundle, enrollment);
@@ -96,7 +96,7 @@ class MetaValidatorTest {
   @Test
   void verifyEnrollmentValidationSuccessWhenTeiIsInPayload() {
     Enrollment enrollment = validEnrollment();
-    when(bundle.findTrackedEntityByUid(TRACKED_ENTITY_UID.getValue()))
+    when(bundle.findTrackedEntityByUid(TRACKED_ENTITY_UID))
         .thenReturn(Optional.of(new org.hisp.dhis.tracker.imports.domain.TrackedEntity()));
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
         .thenReturn(new OrganisationUnit());
@@ -111,7 +111,7 @@ class MetaValidatorTest {
   void verifyEnrollmentValidationFailsWhenOrgUnitIsNotPresentInDb() {
     Enrollment enrollment = validEnrollment();
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(new Program());
-    when(preheat.getTrackedEntity(TRACKED_ENTITY_UID.getValue())).thenReturn(new TrackedEntity());
+    when(preheat.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(new TrackedEntity());
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -135,7 +135,7 @@ class MetaValidatorTest {
     Enrollment enrollment = validEnrollment();
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
         .thenReturn(new OrganisationUnit());
-    when(preheat.getTrackedEntity(TRACKED_ENTITY_UID.getValue())).thenReturn(new TrackedEntity());
+    when(preheat.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(new TrackedEntity());
 
     validator.validate(reporter, bundle, enrollment);
 

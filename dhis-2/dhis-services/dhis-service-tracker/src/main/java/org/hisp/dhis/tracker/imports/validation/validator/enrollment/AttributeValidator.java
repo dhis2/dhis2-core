@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -76,12 +77,10 @@ class AttributeValidator
   public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
     TrackerPreheat preheat = bundle.getPreheat();
     Program program = preheat.getProgram(enrollment.getProgram());
-    TrackedEntity te =
-        bundle.getPreheat().getTrackedEntity(enrollment.getTrackedEntity().getValue());
+    TrackedEntity te = bundle.getPreheat().getTrackedEntity(enrollment.getTrackedEntity());
 
     OrganisationUnit orgUnit =
-        preheat.getOrganisationUnit(
-            getOrgUnitUidFromTei(bundle, enrollment.getTrackedEntity().getValue()));
+        preheat.getOrganisationUnit(getOrgUnitUidFromTei(bundle, enrollment.getTrackedEntity()));
 
     Map<MetadataIdentifier, String> attributeValueMap = Maps.newHashMap();
 
@@ -196,9 +195,9 @@ class AttributeValidator
                     enrollment.getEnrollment()));
   }
 
-  private MetadataIdentifier getOrgUnitUidFromTei(TrackerBundle bundle, String teUid) {
+  private MetadataIdentifier getOrgUnitUidFromTei(TrackerBundle bundle, UID te) {
     return bundle
-        .findTrackedEntityByUid(teUid)
+        .findTrackedEntityByUid(te)
         .map(org.hisp.dhis.tracker.imports.domain.TrackedEntity::getOrgUnit)
         .orElse(null);
   }

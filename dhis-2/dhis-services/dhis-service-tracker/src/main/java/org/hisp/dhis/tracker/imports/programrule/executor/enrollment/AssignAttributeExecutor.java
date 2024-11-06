@@ -89,7 +89,7 @@ public class AssignAttributeExecutor implements RuleActionExecutor<Enrollment> {
     TrackedEntityAttribute attribute =
         bundle.getPreheat().getTrackedEntityAttribute(attributeUid.getValue());
     Optional<TrackedEntity> trackedEntity =
-        bundle.findTrackedEntityByUid(enrollment.getTrackedEntity().getValue());
+        bundle.findTrackedEntityByUid(enrollment.getTrackedEntity());
 
     if (trackedEntity.isPresent()) {
       List<Attribute> teAttributes = trackedEntity.get().getAttributes();

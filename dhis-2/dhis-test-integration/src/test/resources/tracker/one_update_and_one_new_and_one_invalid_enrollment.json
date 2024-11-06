@@ -30,60 +30,78 @@
   "skipPatternValidation": false,
   "skipSideEffects": false,
   "skipRuleEngine": false,
-  "trackedEntities": [
+  "trackedEntities": [],
+  "enrollments": [
     {
+      "enrollment": "TvctPPhpD8u",
+      "createdAtClient": "2017-01-26T13:48:13.363",
       "trackedEntity": "IOR1AXXl24H",
-      "trackedEntityType": {
+      "program": {
         "idScheme": "UID",
-        "identifier": "ja8NY4PW7Xm"
+        "identifier": "BFcipDERJnf"
       },
+      "status": "COMPLETED",
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "h4w96yEMlzO"
       },
-      "inactive": false,
+      "orgUnitName": "Mbokie CHP",
+      "enrolledAt": "2019-03-28T12:05:00.000",
+      "occurredAt": "2019-03-28T12:05:00.000",
+      "followUp": false,
       "deleted": false,
-      "potentialDuplicate": false,
+      "events": [],
       "relationships": [],
       "attributes": [],
-      "enrollments": []
+      "notes": []
     },
     {
-      "trackedEntity": "CREATEDTEI1",
-      "trackedEntityType": {
+      "enrollment": "NENROLLMENT",
+      "createdAtClient": "2017-01-26T13:48:13.363",
+      "trackedEntity": "Jz5CN5GfdFg",
+      "program": {
         "idScheme": "UID",
-        "identifier": "ja8NY4PW7Xm"
+        "identifier": "BFcipDERJnf"
       },
+      "status": "ACTIVE",
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "h4w96yEMlzO"
       },
-      "inactive": false,
+      "orgUnitName": "Mbokie CHP",
+      "enrolledAt": "2019-03-28T12:05:00.000",
+      "occurredAt": "2019-03-28T12:05:00.000",
+      "followUp": false,
       "deleted": false,
-      "potentialDuplicate": false,
+      "events": [],
       "relationships": [],
       "attributes": [],
-      "enrollments": []
+      "notes": []
     },
     {
-      "trackedEntity": "ja8NY4PW7XF",
-      "trackedEntityType": {
-        "idScheme": "CODE",
+      "enrollment": "XjRvstYX68A",
+      "createdAtClient": "2017-01-26T13:48:13.363",
+      "trackedEntity": "XjRvstYX689",
+      "program": {
+        "idScheme": "UID",
         "identifier": "invalid"
       },
+      "status": "ACTIVE",
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "h4w96yEMlzO"
       },
-      "inactive": false,
+      "orgUnitName": "Mbokie CHP",
+      "enrolledAt": "2019-03-28T12:05:00.000",
+      "occurredAt": "2019-03-28T12:05:00.000",
+      "followUp": false,
       "deleted": false,
-      "potentialDuplicate": false,
+      "events": [],
       "relationships": [],
       "attributes": [],
-      "enrollments": []
+      "notes": []
     }
   ],
-  "enrollments": [],
   "events": [],
   "relationships": [],
   "username": "system-process"

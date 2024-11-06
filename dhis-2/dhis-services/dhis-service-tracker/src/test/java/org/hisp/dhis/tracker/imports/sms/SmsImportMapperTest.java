@@ -93,7 +93,7 @@ class SmsImportMapperTest extends TestBase {
             .trackedEntities(
                 List.of(
                     TrackedEntity.builder()
-                        .trackedEntity(input.getTrackedEntityInstance().getUid())
+                        .trackedEntity(UID.of(input.getTrackedEntityInstance().getUid()))
                         .orgUnit(MetadataIdentifier.ofUid(input.getOrgUnit().getUid()))
                         .trackedEntityType(
                             MetadataIdentifier.ofUid(input.getTrackedEntityType().getUid()))
@@ -130,7 +130,7 @@ class SmsImportMapperTest extends TestBase {
             .trackedEntities(
                 List.of(
                     TrackedEntity.builder()
-                        .trackedEntity(input.getTrackedEntityInstance().getUid())
+                        .trackedEntity(UID.of(input.getTrackedEntityInstance().getUid()))
                         .orgUnit(MetadataIdentifier.ofUid(input.getOrgUnit().getUid()))
                         .trackedEntityType(
                             MetadataIdentifier.ofUid(input.getTrackedEntityType().getUid()))

@@ -94,7 +94,7 @@ class ExistingEnrollmentValidator
         bundle
             .getPreheat()
             .getTrackedEntityToEnrollmentMap()
-            .getOrDefault(enrollment.getTrackedEntity().getValue(), new ArrayList<>())
+            .getOrDefault(enrollment.getTrackedEntity(), new ArrayList<>())
             .stream()
             .filter(Objects::nonNull)
             .filter(
@@ -149,9 +149,9 @@ class ExistingEnrollmentValidator
   }
 
   private TrackedEntity getTrackedEntity(TrackerBundle bundle, UID uid) {
-    TrackedEntity te = bundle.getPreheat().getTrackedEntity(uid.getValue());
+    TrackedEntity te = bundle.getPreheat().getTrackedEntity(uid);
 
-    if (te == null && bundle.findTrackedEntityByUid(uid.getValue()).isPresent()) {
+    if (te == null && bundle.findTrackedEntityByUid(uid).isPresent()) {
       te = new TrackedEntity();
       te.setUid(uid.getValue());
     }
