@@ -137,7 +137,7 @@ class TrackerIdentifierCollectorTest {
             .dataValues(dataValues("VohJnvWfvyo", "qv9xOw8fBzy"))
             .attributeOptionCombo(ofCode("rgb"))
             .attributeCategoryOptions(Set.of(ofCode("red"), ofCode("green"), ofCode("blue")))
-            .notes(List.of(Note.builder().note("i1vviSlidJE").value("nice day!").build()))
+            .notes(List.of(Note.builder().note(UID.of("i1vviSlidJE")).value("nice day!").build()))
             .build();
 
     TrackerObjects trackerObjects = TrackerObjects.builder().events(singletonList(event)).build();
@@ -177,7 +177,7 @@ class TrackerIdentifierCollectorTest {
     Event event =
         Event.builder()
             .event(UID.generate())
-            .notes(List.of(Note.builder().note("i1vviSlidJE").build()))
+            .notes(List.of(Note.builder().note(UID.of("i1vviSlidJE")).build()))
             .build();
 
     TrackerObjects trackerObjects = TrackerObjects.builder().events(singletonList(event)).build();

@@ -78,7 +78,7 @@ class TrackerObjectsMapperTest extends TestBase {
 
   private static final UID RELATIONSHIP_UID = UID.generate();
 
-  private static final String NOTE_UID = CodeGenerator.generateUid();
+  private static final UID NOTE_UID = UID.generate();
 
   private static final String PROGRAM_STAGE_UID = CodeGenerator.generateUid();
 
@@ -625,7 +625,10 @@ class TrackerObjectsMapperTest extends TestBase {
       UserDetails updatedBy) {
     for (org.hisp.dhis.tracker.imports.domain.Note note : notes) {
       Note dbNote =
-          dbNotes.stream().filter(n -> n.getUid().equals(note.getNote())).findFirst().orElse(null);
+          dbNotes.stream()
+              .filter(n -> n.getUid().equals(note.getNote().getValue()))
+              .findFirst()
+              .orElse(null);
       assertNotNull(dbNote);
       assertEquals(note.getValue(), dbNote.getNoteText());
       assertEquals(note.getStoredBy(), dbNote.getCreator());
