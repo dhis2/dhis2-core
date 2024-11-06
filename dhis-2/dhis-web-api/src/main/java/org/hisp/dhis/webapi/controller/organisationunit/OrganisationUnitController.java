@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.organisationunit;
 
 import static java.lang.Math.max;
-import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.security.Authorities.F_ORGANISATION_UNIT_MERGE;
 import static org.hisp.dhis.security.Authorities.F_ORGANISATION_UNIT_SPLIT;
@@ -45,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
@@ -145,9 +145,10 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
     OrganisationUnit parent = getEntity(uid);
-    List<OrganisationUnit> objects =
-        Stream.concat(Stream.of(parent), parent.getChildren().stream()).toList();
-    return getObjectList(rpParameters, orderParams, response, currentUser, false, objects);
+    Function<WebOptions, List<UID>> getSpecialFilterMatches =
+        (options) ->
+            Stream.concat(Stream.of(parent), parent.getChildren().stream()).map(UID::of).toList();
+    return getObjectList(rpParameters, orderParams, response, currentUser, getSpecialFilterMatches);
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
@@ -180,10 +181,14 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
     OrganisationUnit parent = getEntity(uid);
-    List<OrganisationUnit> objects =
-        organisationUnitService.getOrganisationUnitsAtLevel(
-            parent.getLevel() + max(0, level), parent);
-    return getObjectList(rpParameters, orderParams, response, currentUser, false, objects);
+    Function<WebOptions, List<UID>> getSpecialFilterMatches =
+        (options) ->
+            organisationUnitService
+                .getOrganisationUnitsAtLevel(parent.getLevel() + max(0, level), parent)
+                .stream()
+                .map(UID::of)
+                .toList();
+    return getObjectList(rpParameters, orderParams, response, currentUser, getSpecialFilterMatches);
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
@@ -214,13 +219,12 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
     OrganisationUnit parent = getEntity(uid);
-    return getObjectList(
-        rpParameters,
-        orderParams,
-        response,
-        currentUser,
-        false,
-        organisationUnitService.getOrganisationUnitWithChildren(parent.getUid()));
+    Function<WebOptions, List<UID>> getSpecialFilterMatches =
+        (options) ->
+            organisationUnitService.getOrganisationUnitWithChildren(parent.getUid()).stream()
+                .map(UID::of)
+                .toList();
+    return getObjectList(rpParameters, orderParams, response, currentUser, getSpecialFilterMatches);
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
@@ -251,10 +255,14 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
     OrganisationUnit parent = getEntity(uid);
-    List<OrganisationUnit> objects = new ArrayList<>(parent.getAncestors());
-    Collections.reverse(objects);
-    objects.add(0, parent);
-    return getObjectList(rpParameters, orderParams, response, currentUser, false, objects);
+    Function<WebOptions, List<UID>> getSpecialFilterMatches =
+        (options) -> {
+          List<OrganisationUnit> objects = new ArrayList<>(parent.getAncestors());
+          Collections.reverse(objects);
+          objects.add(0, parent);
+          return objects.stream().map(UID::of).toList();
+        };
+    return getObjectList(rpParameters, orderParams, response, currentUser, getSpecialFilterMatches);
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
@@ -270,13 +278,17 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
     OrganisationUnit root = getEntity(uid);
-    OrganisationUnit parent = root.getParent();
-    List<OrganisationUnit> objects = new ArrayList<>();
-    while (parent != null) {
-      objects.add(parent);
-      parent = parent.getParent();
-    }
-    return getObjectList(rpParameters, orderParams, response, currentUser, false, objects);
+    Function<WebOptions, List<UID>> getSpecialFilterMatches =
+        (options) -> {
+          OrganisationUnit parent = root.getParent();
+          List<OrganisationUnit> objects = new ArrayList<>();
+          while (parent != null) {
+            objects.add(parent);
+            parent = parent.getParent();
+          }
+          return objects.stream().map(UID::of).toList();
+        };
+    return getObjectList(rpParameters, orderParams, response, currentUser, getSpecialFilterMatches);
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
@@ -296,8 +308,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
         orderParams,
         response,
         UserDetails.fromUser(currentUser),
-        false,
-        new ArrayList<>(currentUser.getOrganisationUnits()));
+        options -> currentUser.getOrganisationUnits().stream().map(UID::of).toList());
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
@@ -318,8 +329,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
         orderParams,
         response,
         UserDetails.fromUser(currentUser),
-        false,
-        new ArrayList<>(currentUser.getDataViewOrganisationUnits()));
+        options -> currentUser.getDataViewOrganisationUnits().stream().map(UID::of).toList());
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
@@ -335,15 +345,18 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
           HttpServletResponse response,
           @CurrentUser User currentUser)
           throws ForbiddenException, BadRequestException {
+    Function<WebOptions, List<UID>> getSpecialFilterMatches =
+        options ->
+            (currentUser.hasDataViewOrganisationUnit()
+                    ? currentUser.getDataViewOrganisationUnits()
+                    : organisationUnitService.getOrganisationUnitsAtLevel(1))
+                .stream().map(UID::of).toList();
     return getObjectList(
         rpParameters,
         orderParams,
         response,
         UserDetails.fromUser(currentUser),
-        false,
-        currentUser.hasDataViewOrganisationUnit()
-            ? new ArrayList<>(currentUser.getDataViewOrganisationUnits())
-            : organisationUnitService.getOrganisationUnitsAtLevel(1));
+        getSpecialFilterMatches);
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
@@ -364,10 +377,11 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
         orderParams,
         response,
         currentUser,
-        false,
-        manager.getAll(getEntityClass()).stream()
-            .sorted(OrganisationUnitByLevelComparator.INSTANCE)
-            .collect(toList()));
+        options ->
+            manager.getAll(getEntityClass()).stream()
+                .sorted(OrganisationUnitByLevelComparator.INSTANCE)
+                .map(UID::of)
+                .toList());
   }
 
   @Override
@@ -422,14 +436,19 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
                 ? currentUser.getTeiSearchOrganisationUnitsWithFallback()
                 : Set.of());
 
-    List<OrganisationUnit> objects = organisationUnitService.getOrganisationUnitsByQuery(params);
     return getObjectList(
-        rpParameters, orderParams, response, UserDetails.fromUser(currentUser), false, objects);
+        rpParameters,
+        orderParams,
+        response,
+        UserDetails.fromUser(currentUser),
+        options ->
+            organisationUnitService.getOrganisationUnitsByQuery(params).stream()
+                .map(UID::of)
+                .toList());
   }
 
   @Override
-  protected List<OrganisationUnit> getEntityListPostProcess(
-      WebOptions options, List<OrganisationUnit> entities) {
+  protected void getEntityListPostProcess(WebOptions options, List<OrganisationUnit> entities) {
     String memberObject = options.get("memberObject");
     String memberCollection = options.get("memberCollection");
     if (memberObject != null && memberCollection != null) {
@@ -444,7 +463,6 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
         }
       }
     }
-    return entities;
   }
 
   @GetMapping(

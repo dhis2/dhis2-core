@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static java.util.stream.Collectors.toList;
 import static org.springframework.http.CacheControl.noCache;
 
 import com.fasterxml.jackson.databind.SequenceWriter;
@@ -50,7 +49,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.Value;
 import org.hisp.dhis.attribute.AttributeService;
@@ -73,11 +71,13 @@ import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
+import org.hisp.dhis.query.Criterion;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
@@ -186,16 +186,15 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException {
     return getObjectList(
-        rpParameters, orderParams, response, currentUser, !rpParameters.containsKey("query"), null);
+        rpParameters, orderParams, response, currentUser, this::getSpecialFilterMatches);
   }
 
-  protected final ResponseEntity<StreamingJsonRoot<T>> getObjectList(
+  protected final @ResponseBody ResponseEntity<StreamingJsonRoot<T>> getObjectList(
       @RequestParam Map<String, String> rpParameters,
       OrderParams orderParams,
       HttpServletResponse response,
-      UserDetails userDetails,
-      boolean countTotal,
-      @CheckForNull List<T> objects)
+      @CurrentUser UserDetails currentUser,
+      Function<WebOptions, List<UID>> getSpecialFilterMatches)
       throws ForbiddenException, BadRequestException {
     List<Order> orders = orderParams.getOrders(getSchema());
     List<String> fields = new ArrayList<>(contextService.getParameterValues("fields"));
@@ -207,35 +206,30 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     WebOptions options = new WebOptions(rpParameters);
 
-    if (!aclService.canRead(userDetails, getEntityClass())) {
+    if (!aclService.canRead(currentUser, getEntityClass())) {
       throw new ForbiddenException(
           "You don't have the proper permissions to read objects of this type.");
     }
 
     forceFiltering(options, filters);
 
-    List<T> entities = getEntityList(options, filters, orders, objects);
-
+    List<UID> specialFilterMatches = getSpecialFilterMatches.apply(options);
+    List<T> entities = List.of();
+    long totalCount = 0L;
     Pager pager = null;
+    // Note: null = no special filters, empty = no matches for special filters
+    if (specialFilterMatches == null || !specialFilterMatches.isEmpty()) {
+      Criterion inIds = createIdInMatchesRestriction(specialFilterMatches);
 
-    if (options.hasPaging()) {
-      long totalCount;
+      entities = getEntityList(options, filters, orders, inIds);
+      postProcessResponseEntities(entities, options, rpParameters);
+      handleLinksAndAccess(entities, fields, false);
 
-      if (!countTotal) {
-        totalCount = entities.size();
-
-        long skip = (long) (options.getPage() - 1) * options.getPageSize();
-        entities = entities.stream().skip(skip).limit(options.getPageSize()).collect(toList());
-      } else {
-        totalCount = countTotal(options, filters, orders);
-      }
-
-      pager = new Pager(options.getPage(), totalCount, options.getPageSize());
+      if (options.hasPaging()) totalCount = countTotal(options, filters, orders, inIds);
     }
+    if (options.hasPaging())
+      pager = new Pager(options.getPage(), totalCount, options.getPageSize());
 
-    postProcessResponseEntities(entities, options, rpParameters);
-
-    handleLinksAndAccess(entities, fields, false);
     linkService.generatePagerLinks(pager, getEntityClass());
 
     cachePrivate(response);
@@ -246,6 +240,15 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             getSchema().getCollectionName(),
             FieldFilterParams.of(entities, fields),
             Defaults.valueOf(options.get("defaults", DEFAULTS)).isExclude()));
+  }
+
+  protected List<UID> getSpecialFilterMatches(WebOptions options) {
+    return null; // no special filters used
+  }
+
+  private Criterion createIdInMatchesRestriction(List<UID> specialFilterMatches) {
+    if (specialFilterMatches == null) return null;
+    return Restrictions.in("id", UID.toValueList(specialFilterMatches));
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
@@ -524,9 +527,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     return objectNodes.isEmpty() ? fieldFilterService.createObjectNode() : objectNodes.get(0);
   }
 
-  @SuppressWarnings("unchecked")
-  protected final List<T> getEntityList(
-      WebOptions options, List<String> filters, List<Order> orders, List<T> objects)
+  private List<T> getEntityList(
+      WebOptions options, List<String> filters, List<Order> orders, Criterion specialFilterMatches)
       throws BadRequestException {
     Query query =
         BadRequestException.on(
@@ -538,25 +540,26 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
                     orders,
                     getPaginationData(options),
                     options.getRootJunction()));
+    if (specialFilterMatches != null) query.add(specialFilterMatches);
+
     query.setDefaultOrder();
     query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
-    query.setObjects(objects);
 
-    // Note: objects being null means no query had been running whereas empty means a query did run
-    // with no result
-    if (objects == null && options.getOptions().containsKey("query")) {
-      return getEntityListPostProcess(
-          options,
-          Lists.newArrayList(manager.filter(getEntityClass(), options.getOptions().get("query"))));
+    if (options.getOptions().containsKey("query")) {
+      // set the result as starting point of in-memory post filtering
+      // TODO this then is still inconsistent with counting so we should replace this
+      query.setObjects(manager.filter(getEntityClass(), options.getOptions().get("query")));
     }
-    return getEntityListPostProcess(options, (List<T>) queryService.query(query));
+    @SuppressWarnings("unchecked")
+    List<T> res = (List<T>) queryService.query(query);
+    getEntityListPostProcess(options, res);
+    return res;
   }
 
-  protected List<T> getEntityListPostProcess(WebOptions options, List<T> entities) {
-    return entities;
-  }
+  protected void getEntityListPostProcess(WebOptions options, List<T> entities) {}
 
-  private long countTotal(WebOptions options, List<String> filters, List<Order> orders)
+  private long countTotal(
+      WebOptions options, List<String> filters, List<Order> orders, Criterion specialFilterMatches)
       throws BadRequestException {
     Query query =
         BadRequestException.on(
@@ -568,7 +571,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
                     orders,
                     new Pagination(),
                     options.getRootJunction()));
-
+    if (specialFilterMatches != null) query.add(specialFilterMatches);
     return queryService.count(query);
   }
 

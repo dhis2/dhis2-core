@@ -38,7 +38,6 @@ import com.google.common.collect.Sets;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -48,12 +47,11 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.configuration.ConfigurationService;
-import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -85,7 +83,6 @@ import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.webdomain.MessageConversation;
-import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -168,22 +165,8 @@ public class MessageConversationController
   }
 
   @Override
-  public ResponseEntity<StreamingJsonRoot<org.hisp.dhis.message.MessageConversation>> getObjectList(
-      Map<String, String> rpParameters,
-      OrderParams orderParams,
-      HttpServletResponse response,
-      UserDetails currentUser)
-      throws ForbiddenException, BadRequestException {
-    if (rpParameters.get("queryString") == null)
-      return super.getObjectList(rpParameters, orderParams, response, currentUser);
-    return super.getObjectList(rpParameters, orderParams, response, currentUser, false, null);
-  }
-
-  @Override
-  protected List<org.hisp.dhis.message.MessageConversation> getEntityListPostProcess(
-      WebOptions options, List<org.hisp.dhis.message.MessageConversation> entities) {
-    if (options.get("queryString") == null)
-      return super.getEntityListPostProcess(options, entities);
+  protected List<UID> getSpecialFilterMatches(WebOptions options) {
+    if (options.get("queryString") == null) return null;
 
     String queryOperator = "token";
     if (options.get("queryOperator") != null) {
@@ -191,7 +174,7 @@ public class MessageConversationController
     }
 
     List<String> queryFilter =
-        Arrays.asList(
+        List.of(
             "subject:" + queryOperator + ":" + options.get("queryString"),
             "messages.text:" + queryOperator + ":" + options.get("queryString"),
             "messages.sender.displayName:" + queryOperator + ":" + options.get("queryString"));
@@ -202,11 +185,7 @@ public class MessageConversationController
             Collections.emptyList(),
             new Pagination(),
             Junction.Type.OR);
-    subQuery.setObjects(entities);
-    @SuppressWarnings("unchecked")
-    List<org.hisp.dhis.message.MessageConversation> res =
-        (List<org.hisp.dhis.message.MessageConversation>) queryService.query(subQuery);
-    return res;
+    return queryService.query(subQuery).stream().map(UID::of).toList();
   }
 
   // --------------------------------------------------------------------------

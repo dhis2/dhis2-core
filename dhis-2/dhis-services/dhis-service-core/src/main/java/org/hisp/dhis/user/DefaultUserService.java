@@ -542,12 +542,12 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<UserRole> filteredByCanIssue(Collection<UserRole> userRoles) {
+  public List<UserRole> filteredByCanIssue() {
     User user = getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     boolean canGrantOwnUserRoles = settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
 
-    return userRoles.stream()
+    return userRoleStore.getAll().stream()
         .filter(role -> user.canIssueUserRole(role, canGrantOwnUserRoles))
         .toList();
   }

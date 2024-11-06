@@ -46,8 +46,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -60,10 +62,8 @@ import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
-import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
@@ -84,12 +84,9 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.Order;
-import org.hisp.dhis.query.Pagination;
-import org.hisp.dhis.query.Query;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -109,7 +106,6 @@ import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
-import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -153,16 +149,7 @@ public class UserController extends AbstractCrudController<User> {
   // -------------------------------------------------------------------------
 
   @Override
-  public ResponseEntity<StreamingJsonRoot<User>> getObjectList(
-      Map<String, String> rpParameters,
-      OrderParams orderParams,
-      HttpServletResponse response,
-      UserDetails currentUser)
-      throws ForbiddenException, BadRequestException {
-    WebOptions options = new WebOptions(rpParameters);
-    List<Order> orders = orderParams.getOrders(getSchema());
-    List<String> filters = new ArrayList<>(contextService.getParameterValues("filter"));
-
+  protected List<UID> getSpecialFilterMatches(WebOptions options) {
     UserQueryParams params = makeUserQueryParams(options);
 
     String ou = options.get("ou");
@@ -176,59 +163,18 @@ public class UserController extends AbstractCrudController<User> {
       params.setAuthSubset(true);
     }
 
+    List<String> filters = new ArrayList<>(contextService.getParameterValues("filter"));
+    Set<String> orders = new LinkedHashSet<>(contextService.getParameterValues("order"));
+    List<Order> orderParams = new OrderParams(orders).getOrders(getSchema());
     boolean hasUserGroupFilter = filters.stream().anyMatch(f -> f.startsWith("userGroups."));
     params.setPrefetchUserGroups(hasUserGroupFilter);
 
-    Pager pager = null;
-    if (filters.isEmpty() && options.hasPaging()) {
-      pager = makePager(options, params);
-    }
-
-    Query query = makeQuery(options, filters, orders, params);
-
-    @SuppressWarnings("unchecked")
-    List<User> users = (List<User>) queryService.query(query);
-
-    ResponseEntity<StreamingJsonRoot<User>> res =
-        super.getObjectList(rpParameters, orderParams, response, currentUser, pager == null, users);
-    if (pager != null) res.getBody().setPager(pager);
-    return res;
-  }
-
-  private Pager makePager(WebOptions options, UserQueryParams params) {
-    long count = userService.getUserCount(params);
-
-    Pager pager = new Pager(options.getPage(), count, options.getPageSize());
-    params.setFirst(pager.getOffset());
-    params.setMax(pager.getPageSize());
-
-    return pager;
-  }
-
-  private Query makeQuery(
-      WebOptions options, List<String> filters, List<Order> orders, UserQueryParams params) {
-    Pagination pagination =
-        CollectionUtils.isEmpty(filters) ? new Pagination() : getPaginationData(options);
-
     List<String> ordersAsString =
-        (orders == null)
+        (orderParams == null)
             ? null
-            : orders.stream().map(Order::toOrderString).collect(Collectors.toList());
+            : orderParams.stream().map(Order::toOrderString).collect(Collectors.toList());
 
-    /*
-     * Keep the memory query on the result
-     */
-    Query query =
-        queryService.getQueryFromUrl(
-            getEntityClass(), filters, orders, pagination, options.getRootJunction());
-
-    // Fetches all users if there are no query, i.e only filters...
-    List<User> users = userService.getUsers(params, ordersAsString);
-    query.setObjects(users);
-    query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
-    query.setDefaultOrder();
-
-    return query;
+    return userService.getUsers(params, ordersAsString).stream().map(UID::of).toList();
   }
 
   private UserQueryParams makeUserQueryParams(WebOptions options) {

@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.event;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -40,20 +39,18 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.copy.CopyService;
-import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
+import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -79,18 +76,12 @@ public class ProgramController extends AbstractCrudController<Program> {
   private final CopyService copyService;
 
   @Override
-  public ResponseEntity<StreamingJsonRoot<Program>> getObjectList(
-      Map<String, String> rpParameters,
-      OrderParams orderParams,
-      HttpServletResponse response,
-      UserDetails currentUser)
-      throws ForbiddenException, BadRequestException {
-    boolean userFilter = Boolean.parseBoolean(rpParameters.get("userFilter"));
-    if (userFilter) {
-      List<Program> programs = programService.getCurrentUserPrograms();
-      return super.getObjectList(rpParameters, orderParams, response, currentUser, false, programs);
-    }
-    return super.getObjectList(rpParameters, orderParams, response, currentUser);
+  protected List<UID> getSpecialFilterMatches(WebOptions options) {
+    boolean userFilter = Boolean.parseBoolean(options.get("userFilter"));
+    if (!userFilter) return null;
+    return programService.getCurrentUserPrograms().stream()
+        .map(obj -> UID.of(obj.getUid()))
+        .toList();
   }
 
   @GetMapping("/{uid}/metadata")

@@ -408,10 +408,8 @@ public interface UserService {
   /**
    * Filters the given collection of user roles based on whether the current user is allowed to
    * issue it.
-   *
-   * @param userRoles the collection of user roles.
    */
-  List<UserRole> filteredByCanIssue(Collection<UserRole> userRoles);
+  List<UserRole> filteredByCanIssue();
 
   /**
    * Validate that the current user are allowed to create or modify properties of the given user.

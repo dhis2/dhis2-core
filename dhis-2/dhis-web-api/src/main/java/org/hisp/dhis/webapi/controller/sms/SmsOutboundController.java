@@ -99,8 +99,7 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms> {
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException {
-    return getObjectList(
-        rpParameters, orderParams, response, currentUser, !rpParameters.containsKey("query"), null);
+    return getObjectList(rpParameters, orderParams, response, currentUser);
   }
 
   // -------------------------------------------------------------------------
