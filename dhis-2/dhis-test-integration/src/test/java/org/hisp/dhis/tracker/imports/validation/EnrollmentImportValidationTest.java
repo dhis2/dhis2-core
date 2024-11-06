@@ -115,7 +115,7 @@ class EnrollmentImportValidationTest extends TrackerTest {
                       .isEqualTo(
                           preheat
                               .getProgramOwner()
-                              .get(e.getTrackedEntity().getValue())
+                              .get(e.getTrackedEntity())
                               .get(e.getProgram().getIdentifier())
                               .getOrganisationUnit()));
             });

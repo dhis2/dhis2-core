@@ -190,6 +190,34 @@ class ReportSummaryIntegrationTest extends TrackerTest {
   }
 
   @Test
+  void testStatsCountForOneUpdateEnrollmentAndOneCreatedEnrollmentAndOneInvalidEnrollment()
+      throws IOException {
+    TrackerObjects trackerObjects = fromJson("tracker/three_tes.json");
+    TrackerImportParams params =
+        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
+    trackerImportService.importTracker(params, trackerObjects);
+
+    trackerObjects = fromJson("tracker/single_enrollment.json");
+    trackerImportService.importTracker(params, trackerObjects);
+
+    trackerObjects = fromJson("tracker/one_update_and_one_new_and_one_invalid_enrollment.json");
+
+    params.setAtomicMode(AtomicMode.OBJECT);
+    params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+
+    ImportReport trackerImportEnrollmentReport =
+        trackerImportService.importTracker(params, trackerObjects);
+
+    assertNotNull(trackerImportEnrollmentReport);
+    assertEquals(Status.OK, trackerImportEnrollmentReport.getStatus());
+    assertEquals(1, trackerImportEnrollmentReport.getValidationReport().getErrors().size());
+    assertEquals(1, trackerImportEnrollmentReport.getStats().getCreated());
+    assertEquals(1, trackerImportEnrollmentReport.getStats().getUpdated());
+    assertEquals(1, trackerImportEnrollmentReport.getStats().getIgnored());
+    assertEquals(0, trackerImportEnrollmentReport.getStats().getDeleted());
+  }
+
+  @Test
   void testStatsCountForOneCreatedEvent() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
     TrackerImportParams params =
@@ -233,6 +261,35 @@ class ReportSummaryIntegrationTest extends TrackerTest {
     assertEquals(1, trackerImportEventReport.getStats().getCreated());
     assertEquals(1, trackerImportEventReport.getStats().getUpdated());
     assertEquals(0, trackerImportEventReport.getStats().getIgnored());
+    assertEquals(0, trackerImportEventReport.getStats().getDeleted());
+  }
+
+  @Test
+  void testStatsCountForOneUpdateEventAndOneNewEventAndOneInvalidEvent() throws IOException {
+    TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
+    TrackerImportParams params =
+        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
+    trackerImportService.importTracker(params, trackerObjects);
+
+    trackerObjects = fromJson("tracker/single_enrollment.json");
+    trackerImportService.importTracker(params, trackerObjects);
+
+    trackerObjects = fromJson("tracker/single_event.json");
+    trackerImportService.importTracker(params, trackerObjects);
+
+    trackerObjects = fromJson("tracker/one_update_and_one_new_and_one_invalid_event.json");
+    params.setAtomicMode(AtomicMode.OBJECT);
+    params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+
+    ImportReport trackerImportEventReport =
+        trackerImportService.importTracker(params, trackerObjects);
+
+    assertNotNull(trackerImportEventReport);
+    assertEquals(Status.OK, trackerImportEventReport.getStatus());
+    assertEquals(1, trackerImportEventReport.getValidationReport().getErrors().size());
+    assertEquals(1, trackerImportEventReport.getStats().getCreated());
+    assertEquals(1, trackerImportEventReport.getStats().getUpdated());
+    assertEquals(1, trackerImportEventReport.getStats().getIgnored());
     assertEquals(0, trackerImportEventReport.getStats().getDeleted());
   }
 }

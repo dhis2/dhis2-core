@@ -454,7 +454,7 @@ class PersistablesFilterTest {
        */
       Builder trackedEntity(String uid) {
         Entity<TrackedEntity> entity =
-            new Entity<>(TrackedEntity.builder().trackedEntity(uid).build());
+            new Entity<>(TrackedEntity.builder().trackedEntity(UID.of(uid)).build());
         this.trackedEntities.add(entity);
         current = entity;
         currentTrackedEntity = entity;

@@ -155,7 +155,7 @@ class SmsImportMapper {
       Set<String> existingAttributeValues) {
     return TrackedEntity.builder()
         .orgUnit(metadataUid(submission.getOrgUnit()))
-        .trackedEntity(submission.getTrackedEntityInstance().getUid())
+        .trackedEntity(UID.of(submission.getTrackedEntityInstance().getUid()))
         .trackedEntityType(metadataUid(submission.getTrackedEntityType()))
         .attributes(
             mapTrackedEntityTypeAttributes(
@@ -477,7 +477,7 @@ class SmsImportMapper {
         .trackedEntities(
             List.of(
                 TrackedEntity.builder()
-                    .trackedEntity(trackedEntity.getValue())
+                    .trackedEntity(trackedEntity)
                     .orgUnit(metadataUid(orgUnit))
                     .trackedEntityType(metadataUid(smsCommand.getProgram().getTrackedEntityType()))
                     .attributes(attributes)

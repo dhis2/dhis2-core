@@ -73,7 +73,7 @@ class RuleActionEnrollmentMapper {
       Enrollment enrollment, List<ValidationEffect> ruleValidationEffects, TrackerBundle bundle) {
     List<Attribute> payloadTeiAttributes =
         bundle
-            .findTrackedEntityByUid(enrollment.getTrackedEntity().getValue())
+            .findTrackedEntityByUid(enrollment.getTrackedEntity())
             .map(TrackedEntity::getAttributes)
             .orElse(Collections.emptyList());
     List<Attribute> attributes = ListUtils.union(enrollment.getAttributes(), payloadTeiAttributes);

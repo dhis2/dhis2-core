@@ -94,7 +94,7 @@ class ExistingEnrollmentValidatorTest {
     when(enrollment.getStringUid()).thenReturn(ENROLLMENT_UID.getValue());
     when(enrollment.getTrackerType()).thenCallRealMethod();
 
-    when(preheat.getTrackedEntity(TRACKED_ENTITY_UID.getValue())).thenReturn(trackedEntity);
+    when(preheat.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(trackedEntity);
     when(trackedEntity.getUid()).thenReturn(TRACKED_ENTITY_UID.getValue());
 
     Program program = new Program();
@@ -260,7 +260,7 @@ class ExistingEnrollmentValidatorTest {
                 enrollment.setStatus(status);
                 enrollment.setProgram(program);
 
-                put(TRACKED_ENTITY_UID.getValue(), Collections.singletonList(enrollment));
+                put(TRACKED_ENTITY_UID, Collections.singletonList(enrollment));
               }
             });
   }

@@ -97,8 +97,7 @@ class DataRelationsValidatorTest extends TestBase {
         .thenReturn(programWithRegistration(PROGRAM_UID, orgUnit, teType));
     when(preheat.getProgramWithOrgUnitsMap())
         .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
-    when(preheat.getTrackedEntity(TE_ID.getValue()))
-        .thenReturn(trackedEntity(TE_ID, teType, orgUnit));
+    when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity(TE_ID, teType, orgUnit));
 
     Enrollment enrollment =
         Enrollment.builder()
@@ -169,7 +168,7 @@ class DataRelationsValidatorTest extends TestBase {
     when(preheat.getProgramWithOrgUnitsMap())
         .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
     TrackedEntityType anotherTrackedEntityType = trackedEntityType(ANOTHER_TE_TYPE_ID, 'B');
-    when(preheat.getTrackedEntity(TE_ID.getValue()))
+    when(preheat.getTrackedEntity(TE_ID))
         .thenReturn(trackedEntity(TE_ID, anotherTrackedEntityType, orgUnit));
 
     Enrollment enrollment =
@@ -193,11 +192,11 @@ class DataRelationsValidatorTest extends TestBase {
         .thenReturn(programWithRegistration(PROGRAM_UID, orgUnit, trackedEntityType(TE_TYPE_ID)));
     when(preheat.getProgramWithOrgUnitsMap())
         .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
-    when(preheat.getTrackedEntity(TE_ID.getValue())).thenReturn(null);
+    when(preheat.getTrackedEntity(TE_ID)).thenReturn(null);
 
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
         org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-            .trackedEntity(TE_ID.getValue())
+            .trackedEntity(TE_ID)
             .trackedEntityType(MetadataIdentifier.ofUid(ANOTHER_TE_TYPE_ID))
             .build();
     bundle.setTrackedEntities(Collections.singletonList(trackedEntity));

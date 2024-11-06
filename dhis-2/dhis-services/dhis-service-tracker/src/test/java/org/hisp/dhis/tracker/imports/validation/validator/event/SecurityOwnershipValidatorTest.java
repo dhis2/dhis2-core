@@ -309,7 +309,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(preheat.getProgramOwner())
         .thenReturn(
             Collections.singletonMap(
-                TE_ID.getValue(),
+                TE_ID,
                 Collections.singletonMap(
                     PROGRAM_ID,
                     new TrackedEntityProgramOwnerOrgUnit(

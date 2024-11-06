@@ -53,7 +53,7 @@ class MetaValidator implements Validator<Enrollment> {
     reporter.addErrorIfNull(program, enrollment, E1069, enrollment.getProgram());
 
     reporter.addErrorIf(
-        () -> !trackedEntityExists(bundle, enrollment.getTrackedEntity().getValue()),
+        () -> !trackedEntityExists(bundle, enrollment.getTrackedEntity()),
         enrollment,
         E1068,
         enrollment.getTrackedEntity());

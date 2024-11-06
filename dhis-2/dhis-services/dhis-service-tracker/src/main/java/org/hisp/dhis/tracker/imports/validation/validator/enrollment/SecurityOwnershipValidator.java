@@ -102,14 +102,14 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
   private TrackedEntity getTrackedEntityWhenStrategyCreate(
       TrackerBundle bundle, Enrollment enrollment) {
     TrackedEntity trackedEntity =
-        bundle.getPreheat().getTrackedEntity(enrollment.getTrackedEntity().getValue());
+        bundle.getPreheat().getTrackedEntity(enrollment.getTrackedEntity());
 
     if (trackedEntity != null) {
       return trackedEntity;
     }
 
     return bundle
-        .findTrackedEntityByUid(enrollment.getTrackedEntity().getValue())
+        .findTrackedEntityByUid(enrollment.getTrackedEntity())
         .map(
             entity -> {
               TrackedEntity newEntity = new TrackedEntity();
@@ -129,7 +129,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
   private OrganisationUnit getOwnerOrganisationUnit(
       TrackerPreheat preheat, TrackedEntity trackedEntity, Program program) {
     Map<String, TrackedEntityProgramOwnerOrgUnit> programOwner =
-        preheat.getProgramOwner().get(trackedEntity.getUid());
+        preheat.getProgramOwner().get(UID.of(trackedEntity));
     if (programOwner == null || programOwner.get(program.getUid()) == null) {
       return trackedEntity.getOrganisationUnit();
     } else {

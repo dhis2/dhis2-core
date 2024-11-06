@@ -371,7 +371,7 @@ class TrackerPreheatTest extends TestBase {
     assertTrue(
         preheat.exists(
             org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-                .trackedEntity(uid.getValue())
+                .trackedEntity(uid)
                 .build()));
   }
 

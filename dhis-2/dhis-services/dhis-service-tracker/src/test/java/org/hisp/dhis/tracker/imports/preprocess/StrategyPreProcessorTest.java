@@ -106,9 +106,9 @@ class StrategyPreProcessorTest extends TestBase {
     te = new TrackedEntity();
     te.setUid(TE_UID.getValue());
     trackedEntity = new org.hisp.dhis.tracker.imports.domain.TrackedEntity();
-    trackedEntity.setTrackedEntity(TE_UID.getValue());
+    trackedEntity.setTrackedEntity(TE_UID);
     newTrackedEntity = new org.hisp.dhis.tracker.imports.domain.TrackedEntity();
-    newTrackedEntity.setTrackedEntity(NEW_TE_UID.getValue());
+    newTrackedEntity.setTrackedEntity(NEW_TE_UID);
     preheatEnrollment = new Enrollment();
     preheatEnrollment.setUid(ENROLLMENT_UID.getValue());
     enrollment = new org.hisp.dhis.tracker.imports.domain.Enrollment();
@@ -127,7 +127,7 @@ class StrategyPreProcessorTest extends TestBase {
     payloadRelationship.setRelationship(RELATIONSHIP_UID.getValue());
     newPayloadRelationship = new org.hisp.dhis.tracker.imports.domain.Relationship();
     newPayloadRelationship.setRelationship(NEW_RELATIONSHIP_UID.getValue());
-    Mockito.when(preheat.getTrackedEntity(TE_UID.getValue())).thenReturn(te);
+    Mockito.when(preheat.getTrackedEntity(TE_UID)).thenReturn(te);
     Mockito.when(preheat.getEnrollment(ENROLLMENT_UID)).thenReturn(preheatEnrollment);
     Mockito.when(preheat.getEvent(EVENT_UID)).thenReturn(dbEvent);
     Mockito.when(preheat.getRelationship(RELATIONSHIP_UID.getValue())).thenReturn(relationship);

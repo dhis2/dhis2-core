@@ -335,8 +335,8 @@ public class RelationshipsTests extends TrackerApiTest {
     JsonObject object =
         JsonObjectBuilder.jsonObject()
             .addProperty("relationshipType", "xLmPUYJX8Ks")
-            .addObject("from", relationshipItem("trackedEntity", "invalid-trackedEntity"))
-            .addObject("to", relationshipItem("trackedEntity", "more-invalid"))
+            .addObject("from", relationshipItem("trackedEntity", "xLmPUYJXXXX"))
+            .addObject("to", relationshipItem("trackedEntity", "xLmPUYJXYYY"))
             .wrapIntoArray("relationships");
 
     trackerImportExportActions

@@ -55,7 +55,6 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -104,8 +103,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       }
     }
 
-    String teUid =
-        ObjectUtils.applyIfNotNull(getTeUidFromEvent(bundle, event, program), UID::getValue);
+    UID teUid = getTeUidFromEvent(bundle, event, program);
 
     CategoryOptionCombo categoryOptionCombo =
         bundle.getPreheat().getCategoryOptionCombo(event.getAttributeOptionCombo());
@@ -118,7 +116,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
           bundle,
           event,
           preheatEvent,
-          trackedEntity == null ? null : trackedEntity.getUid(),
+          trackedEntity == null ? null : UID.of(trackedEntity),
           ownerOrgUnit,
           bundle.getUser());
     } else {
@@ -142,7 +140,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       org.hisp.dhis.tracker.imports.domain.Event event,
       CategoryOptionCombo categoryOptionCombo,
       ProgramStage programStage,
-      String teUid,
+      UID teUid,
       OrganisationUnit organisationUnit,
       OrganisationUnit ownerOrgUnit,
       Program program,
@@ -171,7 +169,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.Event event,
       Event preheatEvent,
-      String teUid,
+      UID teUid,
       OrganisationUnit ownerOrgUnit,
       UserDetails user) {
     TrackerImportStrategy strategy = bundle.getStrategy(event);
@@ -201,7 +199,6 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       return null;
     }
 
-    // TODO: Check if this fix was a bug
     if (bundle.getStrategy(event).isUpdateOrDelete()) {
       return UID.of(
           bundle.getPreheat().getEvent(event.getUid()).getEnrollment().getTrackedEntity());
@@ -220,7 +217,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
   }
 
   private OrganisationUnit getOwnerOrganisationUnit(
-      TrackerPreheat preheat, String teUid, Program program) {
+      TrackerPreheat preheat, UID teUid, Program program) {
     Map<String, TrackedEntityProgramOwnerOrgUnit> programOwner =
         preheat.getProgramOwner().get(teUid);
     if (programOwner == null || programOwner.get(program.getUid()) == null) {
@@ -245,7 +242,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
   private void checkTeTypeAndTeProgramAccess(
       Reporter reporter,
       TrackerDto dto,
-      String trackedEntity,
+      UID trackedEntity,
       OrganisationUnit ownerOrganisationUnit,
       Program program,
       UserDetails user) {
@@ -254,7 +251,11 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     }
 
     if (ownerOrganisationUnit != null
-        && !ownershipAccessManager.hasAccess(user, trackedEntity, ownerOrganisationUnit, program)) {
+        && !ownershipAccessManager.hasAccess(
+            user,
+            trackedEntity == null ? null : trackedEntity.getValue(),
+            ownerOrganisationUnit,
+            program)) {
       reporter.addError(dto, ValidationCode.E1102, user, trackedEntity, program);
     }
   }
@@ -267,7 +268,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       OrganisationUnit eventOrgUnit,
       OrganisationUnit ownerOrgUnit,
       CategoryOptionCombo categoryOptionCombo,
-      String trackedEntity,
+      UID trackedEntity,
       boolean isCreatableInSearchScope) {
 
     if (bundle.getStrategy(event) != TrackerImportStrategy.UPDATE) {

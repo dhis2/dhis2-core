@@ -167,7 +167,7 @@ class MessageFormatterTest {
   void formatArgumentsShouldTurnTrackedEntityIntoArguments() {
     List<String> args =
         MessageFormatter.formatArguments(
-            idSchemes, TrackedEntity.builder().trackedEntity("zwccdzhk5zc").build());
+            idSchemes, TrackedEntity.builder().trackedEntity(UID.of("zwccdzhk5zc")).build());
 
     assertContainsOnly(List.of("zwccdzhk5zc"), args);
   }
