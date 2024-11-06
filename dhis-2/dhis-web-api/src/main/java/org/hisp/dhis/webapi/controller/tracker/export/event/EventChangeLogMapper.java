@@ -25,54 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import java.util.Date;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.tracker.export.event.EventChangeLogDto;
+import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog;
+import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog.DataValueChange;
+import org.hisp.dhis.webapi.controller.tracker.view.User;
+import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
-@NoArgsConstructor
-@Getter
-@Setter
-public class EventChangeLog {
-  private long id;
+@Mapper
+public interface EventChangeLogMapper
+    extends ViewMapper<
+        EventChangeLogDto, org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog> {
 
-  private Event event;
+  @Mapping(target = "createdBy", expression = "java(mapUser(dto))")
+  @Mapping(target = "createdAt", source = "created")
+  @Mapping(target = "type", source = "changeLogType")
+  @Mapping(target = "change.dataValue", source = "dto")
+  EventChangeLog from(EventChangeLogDto dto);
 
-  private DataElement dataElement;
-
-  private String eventProperty;
-
-  private String currentValue;
-
-  private String previousValue;
-
-  private ChangeLogType changeLogType;
-
-  private Date created;
-
-  private String createdBy;
-
-  public EventChangeLog(
-      Event event,
-      DataElement dataElement,
-      String eventProperty,
-      String currentValue,
-      String previousValue,
-      ChangeLogType changeLogType,
-      Date created,
-      String createdBy) {
-    this.event = event;
-    this.dataElement = dataElement;
-    this.eventProperty = eventProperty;
-    this.currentValue = currentValue;
-    this.previousValue = previousValue;
-    this.changeLogType = changeLogType;
-    this.created = created;
-    this.createdBy = createdBy;
+  @Named("mapUser")
+  default User mapUser(EventChangeLogDto dto) {
+    return User.builder()
+        .uid(dto.getUserUid())
+        .username(dto.getUsername())
+        .firstName(dto.getFirstName())
+        .surname(dto.getSurname())
+        .build();
   }
+
+  @Mapping(target = "dataElement", source = "dataElementUid")
+  @Mapping(target = "previousValue", source = "previousValue")
+  @Mapping(target = "currentValue", source = "currentValue")
+  DataValueChange mapDataValueChange(EventChangeLogDto dto);
 }

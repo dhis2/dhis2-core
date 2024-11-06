@@ -56,7 +56,6 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.tracker.export.event.EventChangeLog.DataValueChange;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
@@ -161,7 +160,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     String event = "QRYjLTiJTrA";
     String dataElement = getDataElement(event);
 
-    Page<EventChangeLog> changeLogs =
+    Page<EventChangeLogDto> changeLogs =
         eventChangeLogService.getEventChangeLog(
             UID.of(event), defaultOperationParams, defaultPageParams);
 
@@ -177,7 +176,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     updateDataValue(event, dataElement, "");
 
-    Page<EventChangeLog> changeLogs =
+    Page<EventChangeLogDto> changeLogs =
         eventChangeLogService.getEventChangeLog(
             UID.of(event), defaultOperationParams, defaultPageParams);
 
@@ -196,7 +195,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     updateDataValue(event, dataElement, "");
     updateDataValue(event, dataElement, "");
 
-    Page<EventChangeLog> changeLogs =
+    Page<EventChangeLogDto> changeLogs =
         eventChangeLogService.getEventChangeLog(
             UID.of(event), defaultOperationParams, defaultPageParams);
 
@@ -214,7 +213,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     updateDataValue(event, dataElement, "20");
 
-    Page<EventChangeLog> changeLogs =
+    Page<EventChangeLogDto> changeLogs =
         eventChangeLogService.getEventChangeLog(
             UID.of(event), defaultOperationParams, defaultPageParams);
 
@@ -233,7 +232,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     updateDataValue(event, dataElement, "20");
     updateDataValue(event, dataElement, "25");
 
-    Page<EventChangeLog> changeLogs =
+    Page<EventChangeLogDto> changeLogs =
         eventChangeLogService.getEventChangeLog(
             UID.of(event), defaultOperationParams, defaultPageParams);
 
@@ -253,7 +252,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     updateDataValue(event, dataElement, "20");
     updateDataValue(event, dataElement, "");
 
-    Page<EventChangeLog> changeLogs =
+    Page<EventChangeLogDto> changeLogs =
         eventChangeLogService.getEventChangeLog(
             UID.of(event), defaultOperationParams, defaultPageParams);
 
@@ -275,7 +274,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     eventChangeLogService.addDataValueChangeLog(
         event, dataElement, "current", "previous", UPDATE, deletedUser.getUsername());
 
-    Page<EventChangeLog> changeLogs =
+    Page<EventChangeLogDto> changeLogs =
         eventChangeLogService.getEventChangeLog(
             UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
 
@@ -320,7 +319,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(manager.get(User.class, user));
   }
 
-  private static void assertNumberOfChanges(int expected, List<EventChangeLog> changeLogs) {
+  private static void assertNumberOfChanges(int expected, List<EventChangeLogDto> changeLogs) {
     assertNotNull(changeLogs);
     assertEquals(
         expected,
@@ -330,15 +329,15 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
             expected, changeLogs.size(), changeLogs));
   }
 
-  private void assertCreate(String dataElement, String currentValue, EventChangeLog changeLog) {
+  private void assertCreate(String dataElement, String currentValue, EventChangeLogDto changeLog) {
     assertAll(
         () -> assertUser(importUser, changeLog),
-        () -> assertEquals("CREATE", changeLog.type()),
+        () -> assertEquals("CREATE", changeLog.getChangeLogType().name()),
         () -> assertChange(dataElement, null, currentValue, changeLog));
   }
 
   private void assertUpdate(
-      String dataElement, String previousValue, String currentValue, EventChangeLog changeLog) {
+      String dataElement, String previousValue, String currentValue, EventChangeLogDto changeLog) {
     assertUpdate(dataElement, previousValue, currentValue, changeLog, importUser);
   }
 
@@ -346,36 +345,37 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
       String dataElement,
       String previousValue,
       String currentValue,
-      EventChangeLog changeLog,
+      EventChangeLogDto changeLog,
       User user) {
     assertAll(
         () -> assertUser(user, changeLog),
-        () -> assertEquals("UPDATE", changeLog.type()),
+        () -> assertEquals("UPDATE", changeLog.getChangeLogType().name()),
         () -> assertChange(dataElement, previousValue, currentValue, changeLog));
   }
 
-  private void assertDelete(String dataElement, String previousValue, EventChangeLog changeLog) {
+  private void assertDelete(String dataElement, String previousValue, EventChangeLogDto changeLog) {
     assertAll(
         () -> assertUser(importUser, changeLog),
-        () -> assertEquals("DELETE", changeLog.type()),
+        () -> assertEquals("DELETE", changeLog.getChangeLogType().name()),
         () -> assertChange(dataElement, previousValue, null, changeLog));
   }
 
   private static void assertChange(
-      String dataElement, String previousValue, String currentValue, EventChangeLog changeLog) {
-    DataValueChange expected = new DataValueChange(dataElement, previousValue, currentValue);
-    assertEquals(expected, changeLog.change().dataValue());
+      String dataElement, String previousValue, String currentValue, EventChangeLogDto changeLog) {
+    assertEquals(dataElement, changeLog.getDataElementUid());
+    assertEquals(currentValue, changeLog.getCurrentValue());
+    assertEquals(previousValue, changeLog.getPreviousValue());
   }
 
-  private static void assertUser(User user, EventChangeLog changeLog) {
+  private static void assertUser(User user, EventChangeLogDto changeLog) {
     assertAll(
-        () -> assertEquals(user.getUsername(), changeLog.createdBy().getUsername()),
-        () -> assertEquals(user.getFirstName(), changeLog.createdBy().getFirstName()),
-        () -> assertEquals(user.getSurname(), changeLog.createdBy().getSurname()),
-        () -> assertEquals(user.getUid(), changeLog.createdBy().getUid()));
+        () -> assertEquals(user.getUsername(), changeLog.getUsername()),
+        () -> assertEquals(user.getFirstName(), changeLog.getFirstName()),
+        () -> assertEquals(user.getSurname(), changeLog.getSurname()),
+        () -> assertEquals(user.getUid(), changeLog.getUserUid()));
   }
 
-  private ObjectBundle setUpMetadata(String path) throws IOException {
+  private void setUpMetadata(String path) throws IOException {
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
         renderService.fromMetadata(new ClassPathResource(path).getInputStream(), RenderFormat.JSON);
     ObjectBundleParams params = new ObjectBundleParams();
@@ -385,7 +385,6 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     ObjectBundle bundle = objectBundleService.create(params);
     Assertions.assertNoErrors(objectBundleValidationService.validate(bundle));
     objectBundleService.commit(bundle);
-    return bundle;
   }
 
   private TrackerObjects fromJson(String path) throws IOException {

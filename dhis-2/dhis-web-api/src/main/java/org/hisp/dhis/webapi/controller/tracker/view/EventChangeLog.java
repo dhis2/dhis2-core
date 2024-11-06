@@ -25,54 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.webapi.controller.tracker.view;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.Event;
 
-@NoArgsConstructor
-@Getter
-@Setter
-public class EventChangeLog {
-  private long id;
+public record EventChangeLog(
+    @JsonProperty User createdBy,
+    @JsonProperty Date createdAt,
+    @JsonProperty String type,
+    @JsonProperty Change change) {
 
-  private Event event;
+  public record Change(@JsonProperty DataValueChange dataValue) {}
 
-  private DataElement dataElement;
-
-  private String eventProperty;
-
-  private String currentValue;
-
-  private String previousValue;
-
-  private ChangeLogType changeLogType;
-
-  private Date created;
-
-  private String createdBy;
-
-  public EventChangeLog(
-      Event event,
-      DataElement dataElement,
-      String eventProperty,
-      String currentValue,
-      String previousValue,
-      ChangeLogType changeLogType,
-      Date created,
-      String createdBy) {
-    this.event = event;
-    this.dataElement = dataElement;
-    this.eventProperty = eventProperty;
-    this.currentValue = currentValue;
-    this.previousValue = previousValue;
-    this.changeLogType = changeLogType;
-    this.created = created;
-    this.createdBy = createdBy;
-  }
+  public record DataValueChange(
+      @JsonProperty String dataElement,
+      @JsonProperty String previousValue,
+      @JsonProperty String currentValue) {}
 }

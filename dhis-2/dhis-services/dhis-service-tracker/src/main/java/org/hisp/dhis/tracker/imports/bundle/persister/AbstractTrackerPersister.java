@@ -127,7 +127,6 @@ public abstract class AbstractTrackerPersister<
         //
         if (isNew(bundle, trackerDto)) {
           entityManager.persist(convertedDto);
-          entityManager.flush();
           updateDataValues(
               entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
           typeReport.getStats().incCreated();
