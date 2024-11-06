@@ -45,7 +45,7 @@ import org.junit.jupiter.api.Test;
  * @author David Mackessy
  */
 class DataIntegrityCategoryOptionComboDuplicatedTest extends AbstractDataIntegrityIntegrationTest {
-  
+
   private final String check = "category_option_combo_duplicates";
 
   private String cocWithOptionsA;
@@ -107,7 +107,7 @@ class DataIntegrityCategoryOptionComboDuplicatedTest extends AbstractDataIntegri
     assertNamedMetadataObjectExists("categoryOptionCombos", "Red");
     assertNamedMetadataObjectExists("categoryOptionCombos", "Reddish");
     assertNamedMetadataObjectExists("categoryOptionCombos", "Not Red");
-    
+
     /*We need to get the Red category option combo to be able to check the data integrity issues*/
 
     JsonObject response = GET("/categoryOptionCombos?fields=id,name&filter=name:eq:Red").content();
