@@ -46,7 +46,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Tests the {@link TwoFactorController} sing (mocked) REST requests.
+ * Tests the {@link TwoFactorController}
  *
  * @author Jan Bernitt
  * @author Morten Svanæs
@@ -64,21 +64,25 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     switchToNewUser(user);
 
     String code = generateTOTP2FACodeFromUserSecret(user);
-    assertStatus(HttpStatus.OK, POST("/2fa/enabled", "{'code':'" + code + "'}"));
+    assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
   }
 
   @Test
   void testEnableEmail2FA() {
     User user = makeUser("X", List.of("TEST"));
     user.setEmail("valid.x@email.com");
+    user.setVerifiedEmail("valid.x@email.com");
     userService.addUser(user);
     userService.enrollEmail2FA(user);
 
     switchToNewUser(user);
 
-    User enrolledUser = userService.getUserByEmail(user.getUsername());
-    assertNotNull(enrolledUser.getSecret());
+    User enrolledUser = userService.getUserByUsername(user.getUsername());
     String secret = enrolledUser.getSecret();
+    assertNotNull(secret);
+    String codeTTL = replaceApprovalPartOfTheSecret(secret);
+    String[] codeAndTTL = codeTTL.split("//|");
+    String code = codeAndTTL[0];
 
     assertStatus(HttpStatus.OK, POST("/2fa/enabled", "{'code':'" + code + "'}"));
   }
@@ -182,11 +186,11 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
         POST("/2fa/disabled", "{'code':'333333'}").content(HttpStatus.CONFLICT));
   }
 
-  private static String replaceApprovalPartOfTheSecret(User user) {
-    return user.getSecret().replace(TWO_FACTOR_CODE_APPROVAL_PREFIX, "");
+  private static String replaceApprovalPartOfTheSecret(String secret) {
+    return secret.replace(TWO_FACTOR_CODE_APPROVAL_PREFIX, "");
   }
 
   private static String generateTOTP2FACodeFromUserSecret(User newUser) {
-    return new Totp(replaceApprovalPartOfTheSecret(newUser)).now();
+    return new Totp(replaceApprovalPartOfTheSecret(newUser.getSecret())).now();
   }
 }
