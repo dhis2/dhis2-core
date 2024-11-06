@@ -27,17 +27,29 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
-@Mapper(uses = {InstantMapper.class, UserMapper.class})
-public interface DataValueMapper {
-  @Mapping(target = "createdAt", source = "created")
-  @Mapping(target = "updatedAt", source = "lastUpdated")
-  @Mapping(target = "createdBy", source = "createdByUserInfo")
-  @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
-  DataValue from(EventDataValue dataValue);
+@Mapper
+public interface MetadataMapper {
+
+  @Named("programToString")
+  default String map(Program program, @Context TrackerIdSchemeParams idSchemeParams) {
+    return idSchemeParams.getProgramIdScheme().getIdentifier(program);
+  }
+
+  @Named("programStageToString")
+  default String map(ProgramStage programStage, @Context TrackerIdSchemeParams idSchemeParams) {
+    return idSchemeParams.getProgramStageIdScheme().getIdentifier(programStage);
+  }
+
+  @Named("organisationUnitToString")
+  default String map(OrganisationUnit orgUnit, @Context TrackerIdSchemeParams idSchemeParams) {
+    return idSchemeParams.getOrgUnitIdScheme().getIdentifier(orgUnit);
+  }
 }

@@ -31,12 +31,14 @@ import static java.util.Map.entry;
 
 import java.util.Map;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.relationship.RelationshipMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -80,5 +82,6 @@ public interface EnrollmentMapper {
   @Mapping(target = "relationships", source = "relationshipItems")
   @Mapping(target = "attributes", source = "trackedEntity.trackedEntityAttributeValues")
   @Mapping(target = "notes", source = "notes")
-  org.hisp.dhis.webapi.controller.tracker.view.Enrollment map(Enrollment enrollment);
+  org.hisp.dhis.webapi.controller.tracker.view.Enrollment map(
+      Enrollment enrollment, @Context TrackerIdSchemeParams idSchemeParams);
 }
