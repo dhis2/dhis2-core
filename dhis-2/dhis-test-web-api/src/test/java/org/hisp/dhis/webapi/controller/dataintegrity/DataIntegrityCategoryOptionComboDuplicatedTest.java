@@ -31,6 +31,9 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 
 import java.util.Set;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.test.webapi.json.domain.JsonCategoryOptionCombo;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -57,16 +60,38 @@ class DataIntegrityCategoryOptionComboDuplicatedTest extends AbstractDataIntegri
         assertStatus(
             HttpStatus.CREATED, POST("/categoryOptions", "{ 'name': 'Red', 'shortName': 'Red' }"));
 
+    String categoryColor =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories",
+                "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ,"
+                    + "'categoryOptions' : [{'id' : '"
+                    + categoryOptionRed
+                    + "'} ] }"));
+
+    String testCatCombo =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categoryCombos",
+                "{ 'name' : 'Color', "
+                    + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
+                    + "{'id' : '"
+                    + categoryColor
+                    + "'}]} "));
+
     cocWithOptionsA =
         assertStatus(
             HttpStatus.CREATED,
             POST(
                 "/categoryOptionCombos",
                 """
-                { "name": "Color",
-                "categoryOptions" : [{"id" : "%s"}] }
+                { "name": "Reddish",
+                "categoryOptions" : [{"id" : "%s"}],
+                "categoryCombo" : {"id" : "%s"} }
                 """
-                    .formatted(categoryOptionRed)));
+                    .formatted(categoryOptionRed, testCatCombo)));
 
     cocWithOptionsB =
         assertStatus(
@@ -74,24 +99,29 @@ class DataIntegrityCategoryOptionComboDuplicatedTest extends AbstractDataIntegri
             POST(
                 "/categoryOptionCombos",
                 """
-                { "name": "Colour",
-                "categoryOptions" : [{"id" : "%s"}] }
+                { "name": "Not Red",
+                "categoryOptions" : [{"id" : "%s"}]}
                 """
-                    .formatted(categoryOptionRed)));
+                    .formatted(categoryOptionRed, testCatCombo)));
 
     assertNamedMetadataObjectExists("categoryOptionCombos", "default");
-    assertNamedMetadataObjectExists("categoryOptionCombos", "Color");
-    assertNamedMetadataObjectExists("categoryOptionCombos", "Colour");
-    /*
-     * This percentage may seem strange, but is based on the number of
-     * duplicated category options
-     */
-    checkDataIntegritySummary(check, 1, 33, true);
+    assertNamedMetadataObjectExists("categoryOptionCombos", "Red");
+    assertNamedMetadataObjectExists("categoryOptionCombos", "Reddish");
+    assertNamedMetadataObjectExists("categoryOptionCombos", "Not Red");
 
-    Set<String> expectedCategorOptCombos = Set.of(cocWithOptionsA, cocWithOptionsB);
-    Set<String> expectedMessages = Set.of("Colour", "Color");
+    /*We need to get the Red category option combo to be able to check the data integrity issues*/
+
+    JsonObject response = GET("/categoryOptionCombos?fields=id,name&filter=name:eq:Red").content();
+    JsonList<JsonCategoryOptionCombo> catOptionCombos =
+        response.getList("categoryOptionCombos", JsonCategoryOptionCombo.class);
+    String redCategoryOptionComboId = catOptionCombos.get(0).getId();
+    /* There are four total category option combos, so we expect 25% */
+    checkDataIntegritySummary(check, 1, 25, true);
+
+    Set<String> expectedCategoryOptCombos = Set.of(cocWithOptionsA, redCategoryOptionComboId);
+    Set<String> expectedMessages = Set.of("Red", "Reddish");
     checkDataIntegrityDetailsIssues(
-        check, expectedCategorOptCombos, expectedMessages, Set.of(), "categoryOptionCombos");
+        check, expectedCategoryOptCombos, expectedMessages, Set.of(), "categoryOptionCombos");
   }
 
   @Test
