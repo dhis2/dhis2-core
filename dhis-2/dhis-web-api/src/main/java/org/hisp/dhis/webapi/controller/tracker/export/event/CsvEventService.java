@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
+import static org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig.csvMapper;
+
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,9 +58,6 @@ import org.springframework.stereotype.Service;
  */
 @Service("org.hisp.dhis.webapi.controller.tracker.export.event.CsvEventService")
 class CsvEventService implements CsvService<Event> {
-  private static final CsvMapper CSV_MAPPER =
-      new CsvMapper().enable(CsvParser.Feature.WRAP_AS_ARRAY);
-
   private static final Pattern TRIM_SINGLE_QUOTES = Pattern.compile("^'|'$");
 
   @Override
@@ -88,12 +85,12 @@ class CsvEventService implements CsvService<Event> {
 
   private ObjectWriter getObjectWriter(boolean withHeader) {
     final CsvSchema csvSchema =
-        CSV_MAPPER
+        csvMapper
             .schemaFor(CsvEventDataValue.class)
             .withLineSeparator("\n")
             .withUseHeader(withHeader);
 
-    return CSV_MAPPER.writer(csvSchema.withUseHeader(withHeader));
+    return csvMapper.writer(csvSchema.withUseHeader(withHeader));
   }
 
   private List<CsvEventDataValue> getCsvEventDataValues(List<Event> events) {
@@ -180,12 +177,12 @@ class CsvEventService implements CsvService<Event> {
 
     if (!skipFirst) {
       csvSchema =
-          CSV_MAPPER.schemaFor(CsvEventDataValue.class).withoutHeader().withColumnReordering(true);
+          csvMapper.schemaFor(CsvEventDataValue.class).withoutHeader().withColumnReordering(true);
     }
 
     List<Event> events = new ArrayList<>();
 
-    ObjectReader reader = CSV_MAPPER.readerFor(CsvEventDataValue.class).with(csvSchema);
+    ObjectReader reader = csvMapper.readerFor(CsvEventDataValue.class).with(csvSchema);
 
     MappingIterator<CsvEventDataValue> iterator = reader.readValues(inputStream);
     Event event = new Event();
@@ -193,7 +190,7 @@ class CsvEventService implements CsvService<Event> {
     while (iterator.hasNext()) {
       CsvEventDataValue dataValue = iterator.next();
 
-      if (!Objects.equals(event.getEvent(), dataValue.getEvent())) {
+      if (dataValue.getEvent() == null || !Objects.equals(event.getEvent(), dataValue.getEvent())) {
         event = map(dataValue);
         events.add(event);
       }
@@ -202,6 +199,7 @@ class CsvEventService implements CsvService<Event> {
           dataValue.getProvidedElsewhere(),
           dataValue.getDataElement(),
           dataValue.getValue(),
+          dataValue.getGeometry(),
           dataValue.getCreatedAtDataValue(),
           dataValue.getUpdatedAtDataValue(),
           dataValue.getStoredByDataValue())) {

@@ -37,6 +37,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.RuntimeJsonMappingException;
 import io.github.classgraph.ClassGraph;
 import jakarta.persistence.PersistenceException;
 import jakarta.servlet.ServletException;
@@ -510,6 +511,18 @@ public class CrudControllerAdvice {
   @ResponseBody
   public WebMessage illegalArgumentExceptionHandler(IllegalArgumentException ex) {
     log.error(IllegalArgumentException.class.getName(), ex);
+    return badRequest(ex.getMessage());
+  }
+
+  /**
+   * Handles {@link RuntimeJsonMappingException} and logs the stack trace to standard error. {@link
+   * RuntimeJsonMappingException} is used in DHIS 2 application code but also by various frameworks
+   * to indicate parsing errors, so stack trace must be printed and not swallowed.
+   */
+  @ExceptionHandler(RuntimeJsonMappingException.class)
+  @ResponseBody
+  public WebMessage runtimeJsonMappingExceptionHandler(RuntimeJsonMappingException ex) {
+    log.error(RuntimeJsonMappingException.class.getName(), ex);
     return badRequest(ex.getMessage());
   }
 

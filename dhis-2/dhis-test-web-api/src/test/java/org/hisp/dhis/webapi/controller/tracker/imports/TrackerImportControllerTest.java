@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 
+import java.nio.file.Path;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
@@ -59,6 +60,22 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
                     + "&validationMode=FULL",
                 "{}")
             .content(HttpStatus.OK));
+  }
+
+  @Test
+  void shouldReturnBadRequestWhenThereIsAnInvalidUidInThePayload() {
+    assertWebMessage(
+        "Bad Request",
+        400,
+        "ERROR",
+        "JSON parse error: Cannot construct instance of `org.hisp.dhis.common.UID`, problem: UID must be an alphanumeric string of 11 characters starting with a letter.",
+        POST(
+                "/tracker?async=false&reportMode=FULL"
+                    + "&validationMode=SKIP"
+                    + "&atomicMode=OBJECT"
+                    + "&skipRuleEngine=true",
+                Path.of("tracker/import_invalid_uid_payload.json"))
+            .content(HttpStatus.BAD_REQUEST));
   }
 
   @Test

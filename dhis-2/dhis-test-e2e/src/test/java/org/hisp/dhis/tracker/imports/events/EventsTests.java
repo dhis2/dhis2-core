@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.startsWith;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 import com.google.gson.JsonObject;
@@ -134,6 +135,57 @@ class EventsTests extends TrackerApiTest {
     response = trackerImportExportActions.getJobReport(jobId, "FULL");
 
     response.validate().statusCode(200).body("status", equalTo("OK"));
+  }
+
+  @Test
+  void eventsImportNewEventsWithInvalidUidForJson() throws Exception {
+    Object obj =
+        new FileReaderUtils()
+            .read(new File("src/test/resources/tracker/importer/events/event.json"))
+            .replacePropertyValuesWith("event", "invalid_uid")
+            .get();
+
+    ApiResponse response =
+        trackerImportExportActions.post(
+            "",
+            ContentType.JSON.toString(),
+            obj,
+            new QueryParamsBuilder()
+                .addAll("dryRun=false", "eventIdScheme=UID", "orgUnitIdScheme=UID"));
+    response
+        .validate()
+        .statusCode(400)
+        .body("status", equalTo("ERROR"))
+        .body(
+            "message",
+            equalTo(
+                "JSON parse error: Cannot construct instance of `org.hisp.dhis.common.UID`, problem: UID must be an alphanumeric string of 11 characters starting with a letter."));
+    ;
+  }
+
+  @Test
+  void eventsImportNewEventsWithInvalidUidForCSV() throws Exception {
+    Object obj =
+        new FileReaderUtils()
+            .read(new File("src/test/resources/tracker/importer/events/event.csv"))
+            .replacePropertyValuesWith("event", "invalid_uid")
+            .get();
+
+    ApiResponse response =
+        trackerImportExportActions.post(
+            "",
+            "text/csv",
+            obj,
+            new QueryParamsBuilder()
+                .addAll("dryRun=false", "eventIdScheme=UID", "orgUnitIdScheme=UID"));
+    response
+        .validate()
+        .statusCode(400)
+        .body("status", equalTo("ERROR"))
+        .body(
+            "message",
+            startsWith(
+                "UID must be an alphanumeric string of 11 characters starting with a letter"));
   }
 
   @ParameterizedTest

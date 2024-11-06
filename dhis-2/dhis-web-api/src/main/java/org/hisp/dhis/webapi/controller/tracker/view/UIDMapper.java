@@ -30,10 +30,13 @@ package org.hisp.dhis.webapi.controller.tracker.view;
 import org.hisp.dhis.common.UID;
 import org.mapstruct.Mapper;
 
-@Deprecated(forRemoval = true)
+/**
+ * Converts a string representation of a UID to a {@link UID} object. If the provided string is
+ * {@code null}, the method returns {@code null}. Otherwise, it creates a new {@link UID} instance
+ * using {@code UID.of}.
+ */
 @Mapper
 public interface UIDMapper {
-
   default UID fromString(String stringUid) {
     return stringUid == null ? null : UID.of(stringUid);
   }
