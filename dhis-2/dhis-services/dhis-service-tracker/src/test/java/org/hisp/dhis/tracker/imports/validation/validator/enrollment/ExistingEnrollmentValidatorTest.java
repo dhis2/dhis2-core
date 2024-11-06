@@ -91,7 +91,6 @@ class ExistingEnrollmentValidatorTest {
     when(enrollment.getStatus()).thenReturn(EnrollmentStatus.ACTIVE);
     when(enrollment.getEnrollment()).thenReturn(ENROLLMENT_UID);
     when(enrollment.getUid()).thenReturn(ENROLLMENT_UID);
-    when(enrollment.getStringUid()).thenReturn(ENROLLMENT_UID.getValue());
     when(enrollment.getTrackerType()).thenCallRealMethod();
 
     when(preheat.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(trackedEntity);

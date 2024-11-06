@@ -192,8 +192,7 @@ class RepeatedEventsValidatorTest extends TestBase {
     bundle.setEvents(events);
     events.forEach(e -> bundle.setStrategy(e, TrackerImportStrategy.CREATE_AND_UPDATE));
     reporter.addError(
-        new Error(
-            "", E9999, invalidEvent.getTrackerType(), invalidEvent.getUid().getValue(), List.of()));
+        new Error("", E9999, invalidEvent.getTrackerType(), invalidEvent.getUid(), List.of()));
 
     validator.validate(reporter, bundle, bundle.getEvents());
 

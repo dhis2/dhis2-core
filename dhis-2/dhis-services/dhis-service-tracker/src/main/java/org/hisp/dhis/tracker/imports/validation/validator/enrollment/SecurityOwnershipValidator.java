@@ -113,7 +113,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
         .map(
             entity -> {
               TrackedEntity newEntity = new TrackedEntity();
-              newEntity.setUid(entity.getStringUid());
+              newEntity.setUid(entity.getUid().getValue());
               newEntity.setOrganisationUnit(
                   bundle.getPreheat().getOrganisationUnit(entity.getOrgUnit()));
               return newEntity;

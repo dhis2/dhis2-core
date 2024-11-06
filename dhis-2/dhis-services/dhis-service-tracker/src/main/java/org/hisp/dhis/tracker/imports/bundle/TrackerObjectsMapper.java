@@ -310,7 +310,7 @@ public class TrackerObjectsMapper {
     Date now = new Date();
 
     Note dbNote = new Note();
-    dbNote.setUid(note.getNote());
+    dbNote.setUid(note.getNote().getValue());
     dbNote.setCreated(now);
     dbNote.setLastUpdated(now);
     dbNote.setLastUpdatedBy(preheat.getUserByUid(user.getUid()).orElse(null));

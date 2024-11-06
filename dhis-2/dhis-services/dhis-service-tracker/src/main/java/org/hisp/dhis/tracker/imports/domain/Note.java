@@ -33,6 +33,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.UID;
 
 /**
  * Notes are text-only objects attached to Events and Enrollments. An Event or Enrollment may have
@@ -45,7 +46,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Note implements Serializable {
-  @JsonProperty private String note;
+  @JsonProperty private UID note;
 
   @JsonProperty private String value;
 

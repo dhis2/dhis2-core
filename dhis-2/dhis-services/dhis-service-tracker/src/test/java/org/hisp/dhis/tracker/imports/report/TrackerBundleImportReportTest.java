@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.TrackerType;
@@ -115,7 +116,7 @@ class TrackerBundleImportReportTest {
     TrackerTypeReport typeReport = new TrackerTypeReport(TRACKED_ENTITY);
     Entity entity = new Entity(TRACKED_ENTITY);
 
-    entity.setUid("BltTZV9HvEZ");
+    entity.setUid(UID.of("BltTZV9HvEZ"));
     typeReport.addEntity(entity);
     typeReport.getStats().setCreated(1);
     typeReport.getStats().setUpdated(2);
@@ -132,7 +133,7 @@ class TrackerBundleImportReportTest {
                 "Could not find OrganisationUnit: ``, linked to Tracked Entity.",
                 ValidationCode.E1049.name(),
                 TRACKED_ENTITY.name(),
-                "BltTZV9HvEZ",
+                UID.of("BltTZV9HvEZ"),
                 List.of("BltTZV9HvEZ"))));
     tvr.addWarnings(
         List.of(
@@ -140,7 +141,7 @@ class TrackerBundleImportReportTest {
                 "ProgramStage `l8oDIfJJhtg` does not allow user assignment",
                 ValidationCode.E1120.name(),
                 TrackerType.EVENT.name(),
-                "BltTZV9HvEZ")));
+                UID.of("BltTZV9HvEZ"))));
     // Create the TrackerImportReport
     final Map<TrackerType, Integer> bundleSize = new HashMap<>();
     bundleSize.put(TRACKED_ENTITY, 1);
@@ -243,20 +244,20 @@ class TrackerBundleImportReportTest {
                 "Could not find OrganisationUnit: ``, linked to Tracked Entity.",
                 ValidationCode.E1049.name(),
                 TRACKED_ENTITY.name(),
-                "BltTZV9HvEZ",
+                UID.of("BltTZV9HvEZ"),
                 List.of("BltTZV9HvEZ"))),
         List.of(
             new Warning(
                 "ProgramStage `l8oDIfJJhtg` does not allow user assignment",
                 ValidationCode.E1120.name(),
                 TrackerType.EVENT.name(),
-                "BltTZV9HvEZ")));
+                UID.of("BltTZV9HvEZ"))));
   }
 
   private PersistenceReport createBundleReport() {
     PersistenceReport persistenceReport = PersistenceReport.emptyReport();
     TrackerTypeReport typeReport = new TrackerTypeReport(TRACKED_ENTITY);
-    Entity objectReport = new Entity(TRACKED_ENTITY, "TE_UID");
+    Entity objectReport = new Entity(TRACKED_ENTITY, UID.generate());
     typeReport.addEntity(objectReport);
     typeReport.getStats().incCreated();
     persistenceReport.getTypeReportMap().put(TRACKED_ENTITY, typeReport);
