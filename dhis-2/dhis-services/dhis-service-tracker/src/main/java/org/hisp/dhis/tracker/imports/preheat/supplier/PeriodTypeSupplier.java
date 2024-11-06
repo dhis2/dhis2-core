@@ -33,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.cache.PreheatCacheService;

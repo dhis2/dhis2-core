@@ -107,7 +107,7 @@ class PersistablesFilter {
       List.of(en -> TrackedEntity.builder().trackedEntity(en.getTrackedEntity()).build());
 
   private static final List<Function<Event, TrackerDto>> EVENT_PARENTS =
-      List.of(ev -> Enrollment.builder().enrollment(ev.getEnrollment().getValue()).build());
+      List.of(ev -> Enrollment.builder().enrollment(ev.getEnrollment()).build());
 
   private static final List<Function<Relationship, TrackerDto>> RELATIONSHIP_PARENTS =
       List.of(rel -> toTrackerDto(rel.getFrom()), rel -> toTrackerDto(rel.getTo()));
@@ -310,9 +310,9 @@ class PersistablesFilter {
    */
   private static TrackerDto toTrackerDto(RelationshipItem item) {
     if (StringUtils.isNotEmpty(item.getTrackedEntity())) {
-      return TrackedEntity.builder().trackedEntity(item.getTrackedEntity()).build();
+      return TrackedEntity.builder().trackedEntity(UID.of(item.getTrackedEntity())).build();
     } else if (StringUtils.isNotEmpty(item.getEnrollment())) {
-      return Enrollment.builder().enrollment(item.getEnrollment()).build();
+      return Enrollment.builder().enrollment(UID.of(item.getEnrollment())).build();
     } else if (StringUtils.isNotEmpty(item.getEvent())) {
       return Event.builder().event(UID.of(item.getEvent())).build();
     }

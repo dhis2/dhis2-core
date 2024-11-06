@@ -140,12 +140,12 @@ public class TrackerBundle {
 
   @Builder.Default @JsonIgnore private Set<String> updatedTrackedEntities = new HashSet<>();
 
-  public Optional<TrackedEntity> findTrackedEntityByUid(String uid) {
-    return findById(this.trackedEntities, uid);
+  public Optional<TrackedEntity> findTrackedEntityByUid(@Nonnull UID uid) {
+    return findById(this.trackedEntities, uid.getValue());
   }
 
-  public Optional<Enrollment> findEnrollmentByUid(String uid) {
-    return findById(this.enrollments, uid);
+  public Optional<Enrollment> findEnrollmentByUid(@Nonnull UID uid) {
+    return findById(this.enrollments, uid.getValue());
   }
 
   public Optional<Event> findEventByUid(@Nonnull UID uid) {

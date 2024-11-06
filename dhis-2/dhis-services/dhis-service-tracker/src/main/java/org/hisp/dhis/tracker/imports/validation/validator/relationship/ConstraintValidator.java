@@ -107,7 +107,7 @@ public class ConstraintValidator implements Validator<Relationship> {
           relSide,
           TrackerType.TRACKED_ENTITY.getName(),
           relationshipItemValueType(item).getName());
-    } else if (!trackedEntityExists(bundle, item.getTrackedEntity())) {
+    } else if (!trackedEntityExists(bundle, UID.of(item.getTrackedEntity()))) {
       reporter.addError(
           relationship, E4012, TrackerType.TRACKED_ENTITY.getName(), item.getTrackedEntity());
     } else {
@@ -128,7 +128,7 @@ public class ConstraintValidator implements Validator<Relationship> {
           relSide,
           TrackerType.ENROLLMENT.getName(),
           relationshipItemValueType(item).getName());
-    } else if (!enrollmentExist(bundle, item.getEnrollment())) {
+    } else if (!enrollmentExist(bundle, UID.of(item.getEnrollment()))) {
       reporter.addError(
           relationship, E4012, TrackerType.ENROLLMENT.getName(), item.getEnrollment());
     }
@@ -159,7 +159,7 @@ public class ConstraintValidator implements Validator<Relationship> {
       String relSide,
       TrackerBundle bundle,
       RelationshipConstraint constraint) {
-    getRelationshipTypeUidFromTrackedEntity(bundle, item.getTrackedEntity())
+    getRelationshipTypeUidFromTrackedEntity(bundle, UID.of(item.getTrackedEntity()))
         .ifPresent(
             type -> {
               if (!type.isEqualTo(constraint.getTrackedEntityType())) {
@@ -174,13 +174,13 @@ public class ConstraintValidator implements Validator<Relationship> {
   }
 
   private Optional<MetadataIdentifier> getRelationshipTypeUidFromTrackedEntity(
-      TrackerBundle bundle, String uid) {
+      TrackerBundle bundle, UID uid) {
     return getTrackedEntityTypeFromTrackedEntity(bundle, uid)
         .or(() -> getTrackedEntityTypeFromTrackedEntityRef(bundle, uid));
   }
 
   private Optional<MetadataIdentifier> getTrackedEntityTypeFromTrackedEntity(
-      TrackerBundle bundle, String uid) {
+      TrackerBundle bundle, UID uid) {
     final TrackedEntity trackedEntity = bundle.getPreheat().getTrackedEntity(uid);
 
     return trackedEntity != null
@@ -193,7 +193,7 @@ public class ConstraintValidator implements Validator<Relationship> {
   }
 
   private Optional<MetadataIdentifier> getTrackedEntityTypeFromTrackedEntityRef(
-      TrackerBundle bundle, String uid) {
+      TrackerBundle bundle, UID uid) {
     final Optional<org.hisp.dhis.tracker.imports.domain.TrackedEntity> payloadTei =
         bundle.findTrackedEntityByUid(uid);
     return payloadTei.map(org.hisp.dhis.tracker.imports.domain.TrackedEntity::getTrackedEntityType);

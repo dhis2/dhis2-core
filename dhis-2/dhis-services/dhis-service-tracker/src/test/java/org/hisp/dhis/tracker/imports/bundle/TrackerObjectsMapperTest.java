@@ -54,7 +54,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -71,7 +71,7 @@ class TrackerObjectsMapperTest extends TestBase {
 
   private static final Date YESTERDAY = DateUtils.addDays(NOW, -1);
 
-  private static final String TE_UID = CodeGenerator.generateUid();
+  private static final UID TE_UID = UID.generate();
 
   private static final UID ENROLLMENT_UID = UID.generate();
 
@@ -198,7 +198,7 @@ class TrackerObjectsMapperTest extends TestBase {
     preheat.putTrackedEntities(List.of(trackedEntity()));
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(ENROLLMENT_UID.getValue())
+            .enrollment(ENROLLMENT_UID)
             .trackedEntity(TE_UID)
             .orgUnit(MetadataIdentifier.ofUid(organisationUnit))
             .program(MetadataIdentifier.ofUid(program))
@@ -224,7 +224,7 @@ class TrackerObjectsMapperTest extends TestBase {
     preheat.putTrackedEntities(List.of(trackedEntity()));
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(ENROLLMENT_UID.getValue())
+            .enrollment(ENROLLMENT_UID)
             .trackedEntity(TE_UID)
             .orgUnit(MetadataIdentifier.ofUid(organisationUnit))
             .program(MetadataIdentifier.ofUid(program))
@@ -251,7 +251,7 @@ class TrackerObjectsMapperTest extends TestBase {
     preheat.putEnrollments(List.of(savedEnrollment));
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(ENROLLMENT_UID.getValue())
+            .enrollment(ENROLLMENT_UID)
             .trackedEntity(TE_UID)
             .orgUnit(MetadataIdentifier.ofUid(organisationUnit))
             .program(MetadataIdentifier.ofUid(program))
@@ -278,7 +278,7 @@ class TrackerObjectsMapperTest extends TestBase {
     preheat.putEnrollments(List.of(savedEnrollment));
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(ENROLLMENT_UID.getValue())
+            .enrollment(ENROLLMENT_UID)
             .trackedEntity(TE_UID)
             .orgUnit(MetadataIdentifier.ofUid(organisationUnit))
             .program(MetadataIdentifier.ofUid(program))
@@ -305,7 +305,7 @@ class TrackerObjectsMapperTest extends TestBase {
     preheat.putEnrollments(List.of(savedEnrollment));
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(ENROLLMENT_UID.getValue())
+            .enrollment(ENROLLMENT_UID)
             .trackedEntity(TE_UID)
             .orgUnit(MetadataIdentifier.ofUid(organisationUnit))
             .program(MetadataIdentifier.ofUid(program))
@@ -469,7 +469,7 @@ class TrackerObjectsMapperTest extends TestBase {
         org.hisp.dhis.tracker.imports.domain.Relationship.builder()
             .relationship(RELATIONSHIP_UID)
             .relationshipType(MetadataIdentifier.ofUid(TE_TO_ENROLLMENT_RELATIONSHIP_TYPE))
-            .from(RelationshipItem.builder().trackedEntity(TE_UID).build())
+            .from(RelationshipItem.builder().trackedEntity(TE_UID.getValue()).build())
             .to(RelationshipItem.builder().enrollment(ENROLLMENT_UID.getValue()).build())
             .build();
 
@@ -487,7 +487,7 @@ class TrackerObjectsMapperTest extends TestBase {
         org.hisp.dhis.tracker.imports.domain.Relationship.builder()
             .relationship(RELATIONSHIP_UID)
             .relationshipType(MetadataIdentifier.ofUid(TE_TO_EVENT_RELATIONSHIP_TYPE))
-            .from(RelationshipItem.builder().trackedEntity(TE_UID).build())
+            .from(RelationshipItem.builder().trackedEntity(TE_UID.getValue()).build())
             .to(RelationshipItem.builder().event(EVENT_UID.getValue()).build())
             .build();
 
@@ -507,7 +507,7 @@ class TrackerObjectsMapperTest extends TestBase {
         org.hisp.dhis.tracker.imports.domain.Relationship.builder()
             .relationship(RELATIONSHIP_UID)
             .relationshipType(MetadataIdentifier.ofUid(TE_TO_TE_RELATIONSHIP_TYPE))
-            .from(RelationshipItem.builder().trackedEntity(TE_UID).build())
+            .from(RelationshipItem.builder().trackedEntity(TE_UID.getValue()).build())
             .to(RelationshipItem.builder().trackedEntity(toTrackedEntityUid).build())
             .build();
 
@@ -545,7 +545,7 @@ class TrackerObjectsMapperTest extends TestBase {
       UserDetails createdBy,
       UserDetails updatedBy) {
     assertEquals(enrollment.getStringUid(), actual.getUid());
-    assertEquals(enrollment.getTrackedEntity(), actual.getTrackedEntity().getUid());
+    assertEqualUids(enrollment.getTrackedEntity(), actual.getTrackedEntity());
     assertEquals(enrollment.getOrgUnit().getIdentifier(), actual.getOrganisationUnit().getUid());
     assertEquals(enrollment.getProgram().getIdentifier(), actual.getProgram().getUid());
     assertEquals(UserInfoSnapshot.from(createdBy), actual.getCreatedByUserInfo());
@@ -634,7 +634,7 @@ class TrackerObjectsMapperTest extends TestBase {
 
   private TrackedEntity trackedEntity() {
     TrackedEntity dbTrackedEntity = new TrackedEntity();
-    dbTrackedEntity.setUid(TE_UID);
+    dbTrackedEntity.setUid(TE_UID.getValue());
     dbTrackedEntity.setCreated(NOW);
     dbTrackedEntity.setCreatedByUserInfo(UserInfoSnapshot.from(creatingUser));
 

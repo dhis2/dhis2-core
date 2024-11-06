@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.ValidationMode;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;

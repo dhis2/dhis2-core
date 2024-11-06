@@ -321,13 +321,12 @@ class DataRelationsValidator implements Validator<Event> {
   }
 
   private Program getEnrollmentProgramFromEvent(TrackerBundle bundle, Event event) {
-    Enrollment preheatEnrollment =
-        bundle.getPreheat().getEnrollment(event.getEnrollment().getValue());
+    Enrollment preheatEnrollment = bundle.getPreheat().getEnrollment(event.getEnrollment());
     if (preheatEnrollment != null) {
       return preheatEnrollment.getProgram();
     } else {
       final Optional<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollment =
-          bundle.findEnrollmentByUid(event.getEnrollment().getValue());
+          bundle.findEnrollmentByUid(event.getEnrollment());
       if (enrollment.isPresent()) {
         return bundle.getPreheat().getProgram(enrollment.get().getProgram());
       }
@@ -346,17 +345,16 @@ class DataRelationsValidator implements Validator<Event> {
    * @return whether the enrollment of the event has an existing tracked entity
    */
   private boolean enrollmentFromEventHasTrackedEntity(TrackerBundle bundle, Event event) {
-    // TODO: Check logic here
     if (event.getEnrollment() == null) {
       return true;
     }
 
-    Enrollment enrollment = bundle.getPreheat().getEnrollment(event.getEnrollment().getValue());
+    Enrollment enrollment = bundle.getPreheat().getEnrollment(event.getEnrollment());
 
     if (enrollment == null) {
       return !Objects.isNull(
           bundle
-              .findEnrollmentByUid(event.getEnrollment().getValue())
+              .findEnrollmentByUid(event.getEnrollment())
               .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getTrackedEntity)
               .orElse(null));
     }

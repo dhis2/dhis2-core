@@ -56,7 +56,7 @@ import org.hisp.dhis.rules.models.RuleEvent;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -337,8 +337,8 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
         .enrolledAt(NOW.toInstant())
         .occurredAt(TOMORROW.toInstant())
         .program(MetadataIdentifier.ofUid(program))
-        .trackedEntity(CodeGenerator.generateUid())
-        .enrollment(CodeGenerator.generateUid())
+        .trackedEntity(UID.generate())
+        .enrollment(UID.generate())
         .build();
   }
 
