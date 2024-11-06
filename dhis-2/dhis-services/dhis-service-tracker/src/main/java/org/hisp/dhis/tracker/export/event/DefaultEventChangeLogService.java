@@ -53,20 +53,6 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   private final HibernateTrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore;
   private final TrackerAccessManager trackerAccessManager;
 
-  @Transactional
-  @Override
-  public void addEventChangeLog(
-      Event event,
-      DataElement dataElement,
-      String eventProperty,
-      String currentValue,
-      String previousValue,
-      ChangeLogType changeLogType,
-      String userName) {
-    jdbcEventChangeLogStore.addEventChangeLog(
-        event, dataElement, eventProperty, currentValue, previousValue, changeLogType, userName);
-  }
-
   @Override
   @Transactional(readOnly = true)
   public Page<EventChangeLog> getEventChangeLog(
@@ -114,6 +100,18 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
       TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog) {
     trackedEntityDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(
         trackedEntityDataValueChangeLog);
+  }
+
+  @Override
+  public void addDataValueChangeLog(
+      Event event,
+      DataElement dataElement,
+      String currentValue,
+      String previousValue,
+      ChangeLogType changeLogType,
+      String userName) {
+    jdbcEventChangeLogStore.addEventChangeLog(
+        event, dataElement, null, currentValue, previousValue, changeLogType, userName);
   }
 
   @Override

@@ -60,10 +60,9 @@ public interface EventChangeLogService {
   void addTrackedEntityDataValueChangeLog(
       TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog);
 
-  void addEventChangeLog(
+  void addDataValueChangeLog(
       Event event,
       DataElement dataElement,
-      String eventProperty,
       String currentValue,
       String previousValue,
       ChangeLogType changeLogType,

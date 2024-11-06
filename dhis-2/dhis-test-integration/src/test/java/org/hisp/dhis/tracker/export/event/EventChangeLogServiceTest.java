@@ -270,10 +270,10 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
     DataElement dataElement = manager.get(DataElement.class, dataElementUid);
-    User fakeUser = new User();
-    fakeUser.setUsername("fakeUserName");
-    eventChangeLogService.addEventChangeLog(
-        event, dataElement, "", "current", "previous", UPDATE, fakeUser.getUsername());
+    User deletedUser = new User();
+    deletedUser.setUsername("fakeUserName");
+    eventChangeLogService.addDataValueChangeLog(
+        event, dataElement, "current", "previous", UPDATE, deletedUser.getUsername());
 
     Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(
@@ -283,7 +283,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     assertAll(
         () ->
             assertUpdate(
-                dataElementUid, "previous", "current", changeLogs.getItems().get(0), fakeUser),
+                dataElementUid, "previous", "current", changeLogs.getItems().get(0), deletedUser),
         () -> assertCreate(dataElementUid, "15", changeLogs.getItems().get(1)));
   }
 
