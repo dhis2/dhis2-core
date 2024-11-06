@@ -530,7 +530,7 @@ class PersistablesFilterTest {
        */
       Builder relationship(String uid, RelationshipItem from, RelationshipItem to) {
         Relationship relationship =
-            Relationship.builder().relationship(uid).from(from).to(to).build();
+            Relationship.builder().relationship(UID.of(uid)).from(from).to(to).build();
         Entity<Relationship> entity = new Entity<>(relationship);
         this.relationships.add(entity);
         current = entity;
@@ -621,15 +621,15 @@ class PersistablesFilterTest {
   }
 
   private static RelationshipItem trackedEntity(String uid) {
-    return RelationshipItem.builder().trackedEntity(uid).build();
+    return RelationshipItem.builder().trackedEntity(UID.of(uid)).build();
   }
 
   private static RelationshipItem enrollment(String uid) {
-    return RelationshipItem.builder().enrollment(uid).build();
+    return RelationshipItem.builder().enrollment(UID.of(uid)).build();
   }
 
   private static RelationshipItem event(String uid) {
-    return RelationshipItem.builder().event(uid).build();
+    return RelationshipItem.builder().event(UID.of(uid)).build();
   }
 
   private static EnumMap<TrackerType, Set<String>> invalidEntities() {

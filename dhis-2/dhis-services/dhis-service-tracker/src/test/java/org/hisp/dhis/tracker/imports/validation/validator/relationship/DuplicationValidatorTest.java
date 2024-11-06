@@ -75,7 +75,7 @@ class DuplicationValidatorTest {
   void shouldFailWhenRelationshipIsDuplicated() {
     Relationship relationship =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .relationshipType(MetadataIdentifier.ofUid(createRelTypeConstraint().getUid()))
             .from(trackedEntityRelationshipItem())
             .to(trackedEntityRelationshipItem())
@@ -92,7 +92,7 @@ class DuplicationValidatorTest {
   void shouldBeValidWhenRelationshipIsNotDuplicated() {
     Relationship relationship =
         Relationship.builder()
-            .relationship(CodeGenerator.generateUid())
+            .relationship(UID.generate())
             .relationshipType(MetadataIdentifier.ofUid(createRelTypeConstraint().getUid()))
             .from(trackedEntityRelationshipItem())
             .to(trackedEntityRelationshipItem())
@@ -122,6 +122,6 @@ class DuplicationValidatorTest {
   }
 
   private RelationshipItem trackedEntityRelationshipItem() {
-    return RelationshipItem.builder().trackedEntity(UID.generate().getValue()).build();
+    return RelationshipItem.builder().trackedEntity(UID.generate()).build();
   }
 }

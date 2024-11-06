@@ -107,7 +107,7 @@ public class ConstraintValidator implements Validator<Relationship> {
           relSide,
           TrackerType.TRACKED_ENTITY.getName(),
           relationshipItemValueType(item).getName());
-    } else if (!trackedEntityExists(bundle, UID.of(item.getTrackedEntity()))) {
+    } else if (!trackedEntityExists(bundle, item.getTrackedEntity())) {
       reporter.addError(
           relationship, E4012, TrackerType.TRACKED_ENTITY.getName(), item.getTrackedEntity());
     } else {
@@ -128,7 +128,7 @@ public class ConstraintValidator implements Validator<Relationship> {
           relSide,
           TrackerType.ENROLLMENT.getName(),
           relationshipItemValueType(item).getName());
-    } else if (!enrollmentExist(bundle, UID.of(item.getEnrollment()))) {
+    } else if (!enrollmentExist(bundle, item.getEnrollment())) {
       reporter.addError(
           relationship, E4012, TrackerType.ENROLLMENT.getName(), item.getEnrollment());
     }
@@ -147,7 +147,7 @@ public class ConstraintValidator implements Validator<Relationship> {
           relSide,
           TrackerType.EVENT.getName(),
           relationshipItemValueType(item).getName());
-    } else if (!eventExist(bundle, UID.of(item.getEvent()))) {
+    } else if (!eventExist(bundle, item.getEvent())) {
       reporter.addError(relationship, E4012, TrackerType.EVENT.getName(), item.getEvent());
     }
   }
@@ -159,7 +159,7 @@ public class ConstraintValidator implements Validator<Relationship> {
       String relSide,
       TrackerBundle bundle,
       RelationshipConstraint constraint) {
-    getRelationshipTypeUidFromTrackedEntity(bundle, UID.of(item.getTrackedEntity()))
+    getRelationshipTypeUidFromTrackedEntity(bundle, item.getTrackedEntity())
         .ifPresent(
             type -> {
               if (!type.isEqualTo(constraint.getTrackedEntityType())) {

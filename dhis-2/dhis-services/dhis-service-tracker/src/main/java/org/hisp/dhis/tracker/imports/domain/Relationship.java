@@ -45,7 +45,7 @@ import org.hisp.dhis.tracker.TrackerType;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Relationship implements TrackerDto, Serializable {
-  @JsonProperty private String relationship;
+  @JsonProperty private UID relationship;
 
   @JsonProperty private MetadataIdentifier relationshipType;
 
@@ -57,12 +57,12 @@ public class Relationship implements TrackerDto, Serializable {
 
   @Override
   public UID getUid() {
-    return UID.of(relationship);
+    return relationship;
   }
 
   @Override
   public String getStringUid() {
-    return relationship;
+    return relationship.getValue();
   }
 
   @Override
