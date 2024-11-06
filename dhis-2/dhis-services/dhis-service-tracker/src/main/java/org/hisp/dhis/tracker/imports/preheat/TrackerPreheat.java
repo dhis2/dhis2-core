@@ -540,17 +540,16 @@ public class TrackerPreheat {
         tepo -> addProgramOwner(UID.of(tepo.getTrackedEntityId()), tepo.getProgramId(), tepo));
   }
 
-  private void addProgramOwner(
-      UID teUid, String programUid, TrackedEntityProgramOwnerOrgUnit tepo) {
-    programOwner.computeIfAbsent(teUid, k -> new HashMap<>()).put(programUid, tepo);
+  private void addProgramOwner(UID te, String program, TrackedEntityProgramOwnerOrgUnit tepo) {
+    programOwner.computeIfAbsent(te, k -> new HashMap<>()).put(program, tepo);
   }
 
-  public void addProgramOwner(UID teUid, String programUid, OrganisationUnit orgUnit) {
-    programOwner.computeIfAbsent(teUid, k -> new HashMap<>());
-    if (!programOwner.get(teUid).containsKey(programUid)) {
+  public void addProgramOwner(UID te, String program, OrganisationUnit orgUnit) {
+    programOwner.computeIfAbsent(te, k -> new HashMap<>());
+    if (!programOwner.get(te).containsKey(program)) {
       TrackedEntityProgramOwnerOrgUnit tepo =
-          new TrackedEntityProgramOwnerOrgUnit(teUid.getValue(), programUid, orgUnit);
-      programOwner.get(teUid).put(programUid, tepo);
+          new TrackedEntityProgramOwnerOrgUnit(te.getValue(), program, orgUnit);
+      programOwner.get(te).put(program, tepo);
     }
   }
 

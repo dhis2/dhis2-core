@@ -195,9 +195,9 @@ class AttributeValidator
                     enrollment.getEnrollment()));
   }
 
-  private MetadataIdentifier getOrgUnitUidFromTei(TrackerBundle bundle, UID teUid) {
+  private MetadataIdentifier getOrgUnitUidFromTei(TrackerBundle bundle, UID te) {
     return bundle
-        .findTrackedEntityByUid(teUid)
+        .findTrackedEntityByUid(te)
         .map(org.hisp.dhis.tracker.imports.domain.TrackedEntity::getOrgUnit)
         .orElse(null);
   }
