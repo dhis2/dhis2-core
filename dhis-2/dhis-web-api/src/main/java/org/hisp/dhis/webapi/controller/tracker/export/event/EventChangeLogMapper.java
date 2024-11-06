@@ -29,17 +29,13 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import org.hisp.dhis.tracker.export.event.EventChangeLogDto;
 import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog;
-import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog.DataValueChange;
-import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 
 @Mapper
 public interface EventChangeLogMapper extends ViewMapper<EventChangeLogDto, EventChangeLog> {
 
-  @Mapping(target = "createdBy", expression = "java(mapUser(dto))")
+  /*  @Mapping(target = "createdBy", expression = "java(mapUser(dto))")
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "type", source = "changeLogType")
   @Mapping(target = "change.dataValue", source = "dto")
@@ -58,5 +54,5 @@ public interface EventChangeLogMapper extends ViewMapper<EventChangeLogDto, Even
   @Mapping(target = "dataElement", source = "dataElementUid")
   @Mapping(target = "previousValue", source = "previousValue")
   @Mapping(target = "currentValue", source = "currentValue")
-  DataValueChange mapDataValueChange(EventChangeLogDto dto);
+  DataValueChange mapDataValueChange(EventChangeLogDto dto);*/
 }
