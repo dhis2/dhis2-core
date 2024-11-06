@@ -240,6 +240,7 @@ public abstract class AbstractTrackerPersister<
     // Nothing to do by default
   }
 
+  /** Records changes to event properties in the change log */
   protected void logPropertyChanges(V originalEvent, V event, UserDetails user) {
     // Nothing to do by default
   }
