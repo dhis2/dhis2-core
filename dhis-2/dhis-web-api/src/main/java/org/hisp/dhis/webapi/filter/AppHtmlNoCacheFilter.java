@@ -25,26 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat;
+package org.hisp.dhis.webapi.filter;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.springframework.http.HttpMethod;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
-@Getter
-@RequiredArgsConstructor
-public class ReferenceTrackerEntity {
-  /**
-   * Reference uid: this correspond to the UID of a TE, PS or event from the tracker import payload
-   */
-  private final String uid;
+/**
+ * Filter which enforces no cache for HTML pages like index pages to prevent stale versions being
+ * rendered in clients.
+ *
+ * @author Kai Vandivier
+ */
+@Component
+public class AppHtmlNoCacheFilter extends OncePerRequestFilter {
+  // Match paths with '/dhis-web-' or '/apps' that end with '.html' or '/'
+  // https://regex101.com/r/4QfxgS/1
+  public static final String HTML_PATH_REGEX = "\\/(dhis-web-|apps).*(\\.html|\\/)$";
+  public static final Pattern HTML_PATH_PATTERN = Pattern.compile(HTML_PATH_REGEX);
 
-  /**
-   * Reference uid of the parent object of this Reference. This is only populated if uid references
-   * a ProgramStage or an Event
-   */
-  private final String parentUid;
+  @Override
+  protected void doFilterInternal(
+      HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+      throws IOException, ServletException {
 
-  public boolean isRoot() {
-    return this.parentUid.equals("ROOT");
+    String uri = request.getRequestURI();
+    Matcher m = HTML_PATH_PATTERN.matcher(uri);
+
+    if (m.find() && HttpMethod.GET.matches(request.getMethod())) {
+      ContextUtils.setNoStore(response);
+    }
+
+    chain.doFilter(request, response);
   }
 }

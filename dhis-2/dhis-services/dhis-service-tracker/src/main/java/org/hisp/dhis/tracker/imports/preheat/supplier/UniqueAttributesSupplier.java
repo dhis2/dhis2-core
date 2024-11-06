@@ -222,10 +222,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
         .map(
             te ->
                 new UniqueAttributeValue(
-                    te.getStringUid(),
-                    attribute.getAttribute(),
-                    attribute.getValue(),
-                    te.getOrgUnit()))
+                    te.getUid(), attribute.getAttribute(), attribute.getValue(), te.getOrgUnit()))
         .toList();
   }
 
@@ -251,7 +248,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
         .map(
             av ->
                 new UniqueAttributeValue(
-                    av.getTrackedEntity().getUid(),
+                    UID.of(av.getTrackedEntity()),
                     idSchemes.toMetadataIdentifier(av.getAttribute()),
                     av.getValue(),
                     idSchemes.toMetadataIdentifier(av.getTrackedEntity().getOrganisationUnit())))

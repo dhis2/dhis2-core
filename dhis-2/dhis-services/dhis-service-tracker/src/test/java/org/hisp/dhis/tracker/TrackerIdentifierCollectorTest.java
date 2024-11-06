@@ -44,7 +44,6 @@ import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -118,7 +117,7 @@ class TrackerIdentifierCollectorTest {
     Map<Class<?>, Set<String>> ids = collector.collect(trackerObjects);
 
     assertNotNull(ids);
-    assertContainsOnly(Set.of(enrollment.getStringUid()), ids.get(Enrollment.class));
+    assertContainsOnly(Set.of(enrollment.getUid().getValue()), ids.get(Enrollment.class));
     assertContainsOnly(
         Set.of(enrollment.getTrackedEntity().getValue()), ids.get(TrackedEntity.class));
     assertContainsOnly(Set.of("sunshine"), ids.get(Program.class));
@@ -146,7 +145,7 @@ class TrackerIdentifierCollectorTest {
     Map<Class<?>, Set<String>> ids = collector.collect(trackerObjects);
 
     assertNotNull(ids);
-    assertContainsOnly(Set.of(event.getStringUid()), ids.get(Event.class));
+    assertContainsOnly(Set.of(event.getUid().getValue()), ids.get(Event.class));
     assertContainsOnly(Set.of(event.getEnrollment().getValue()), ids.get(Enrollment.class));
     assertContainsOnly(Set.of("sunshine"), ids.get(Program.class));
     assertContainsOnly(Set.of("flowers"), ids.get(ProgramStage.class));
@@ -193,10 +192,10 @@ class TrackerIdentifierCollectorTest {
   void collectRelationships() {
     Relationship relationship =
         Relationship.builder()
-            .relationship(stringUid())
+            .relationship(uid())
             .relationshipType(ofAttribute("NTVsGflP5Ix", "sunshine"))
-            .from(RelationshipItem.builder().enrollment(stringUid()).build())
-            .to(RelationshipItem.builder().event(stringUid()).build())
+            .from(RelationshipItem.builder().enrollment(uid()).build())
+            .to(RelationshipItem.builder().event(uid()).build())
             .build();
 
     TrackerObjects trackerObjects =
@@ -205,14 +204,12 @@ class TrackerIdentifierCollectorTest {
     Map<Class<?>, Set<String>> ids = collector.collect(trackerObjects);
 
     assertNotNull(ids);
-    assertContainsOnly(Set.of(relationship.getRelationship()), ids.get(Relationship.class));
+    assertContainsOnly(
+        Set.of(relationship.getRelationship().getValue()), ids.get(Relationship.class));
     assertContainsOnly(Set.of("sunshine"), ids.get(RelationshipType.class));
-    assertContainsOnly(Set.of(relationship.getFrom().getEnrollment()), ids.get(Enrollment.class));
-    assertContainsOnly(Set.of(relationship.getTo().getEvent()), ids.get(Event.class));
-  }
-
-  private String stringUid() {
-    return CodeGenerator.generateUid();
+    assertContainsOnly(
+        Set.of(relationship.getFrom().getEnrollment().getValue()), ids.get(Enrollment.class));
+    assertContainsOnly(Set.of(relationship.getTo().getEvent().getValue()), ids.get(Event.class));
   }
 
   private UID uid() {

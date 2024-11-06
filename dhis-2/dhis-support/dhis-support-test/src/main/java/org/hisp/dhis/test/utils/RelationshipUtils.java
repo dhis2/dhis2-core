@@ -29,9 +29,9 @@ package org.hisp.dhis.test.utils;
 
 import java.util.Objects;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipKey;
@@ -86,18 +86,16 @@ public class RelationshipUtils {
       RelationshipItem relationshipItem) {
     if (Objects.nonNull(relationshipItem)) {
       return RelationshipKey.RelationshipItemKey.builder()
-          .trackedEntity(getUidOrEmptyString(relationshipItem.getTrackedEntity()))
-          .enrollment(getUidOrEmptyString(relationshipItem.getEnrollment()))
-          .event(getUidOrEmptyString(relationshipItem.getEvent()))
+          .trackedEntity(getUidOrNull(relationshipItem.getTrackedEntity()))
+          .enrollment(getUidOrNull(relationshipItem.getEnrollment()))
+          .event(getUidOrNull(relationshipItem.getEvent()))
           .build();
     }
     throw new IllegalStateException("Unable to determine uid for relationship item");
   }
 
-  private static String getUidOrEmptyString(BaseIdentifiableObject baseIdentifiableObject) {
-    return Objects.isNull(baseIdentifiableObject)
-        ? ""
-        : StringUtils.trimToEmpty(baseIdentifiableObject.getUid());
+  private static UID getUidOrNull(BaseIdentifiableObject baseIdentifiableObject) {
+    return Objects.isNull(baseIdentifiableObject) ? null : UID.of(baseIdentifiableObject);
   }
 
   private static RelationshipKey getRelationshipKey(Relationship relationship) {

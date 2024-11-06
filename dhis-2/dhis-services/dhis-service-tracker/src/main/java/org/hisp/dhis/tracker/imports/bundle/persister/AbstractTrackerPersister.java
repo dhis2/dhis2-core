@@ -107,7 +107,7 @@ public abstract class AbstractTrackerPersister<
 
     for (T trackerDto : dtos) {
 
-      Entity objectReport = new Entity(getType(), trackerDto.getStringUid());
+      Entity objectReport = new Entity(getType(), trackerDto.getUid());
       List<NotificationTrigger> triggers =
           determineNotificationTriggers(bundle.getPreheat(), trackerDto);
 

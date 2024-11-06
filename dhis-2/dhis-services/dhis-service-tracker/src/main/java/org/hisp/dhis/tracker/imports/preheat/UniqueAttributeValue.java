@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.imports.preheat;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 
@@ -44,7 +45,7 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 @EqualsAndHashCode
 public class UniqueAttributeValue {
 
-  private String teUid;
+  private UID te;
 
   private MetadataIdentifier attribute;
 
