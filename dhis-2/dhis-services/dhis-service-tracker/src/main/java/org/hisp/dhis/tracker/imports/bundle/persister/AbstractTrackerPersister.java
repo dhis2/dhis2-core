@@ -137,6 +137,7 @@ public abstract class AbstractTrackerPersister<
               convertedDto,
               originalEntity,
               bundle.getUser());
+          logPropertyChanges(originalEntity, convertedDto, bundle.getUser());
           typeReport.getStats().incCreated();
           typeReport.addEntity(objectReport);
           updateAttributes(
@@ -155,6 +156,7 @@ public abstract class AbstractTrackerPersister<
                 bundle.getUser());
             updateAttributes(
                 entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
+            logPropertyChanges(originalEntity, convertedDto, bundle.getUser());
             entityManager.merge(convertedDto);
             typeReport.getStats().incUpdated();
             typeReport.addEntity(objectReport);
@@ -235,6 +237,10 @@ public abstract class AbstractTrackerPersister<
       V hibernateEntity,
       V clonedEntity,
       UserDetails user) {
+    // Nothing to do by default
+  }
+
+  protected void logPropertyChanges(V originalEvent, V event, UserDetails user) {
     // Nothing to do by default
   }
 

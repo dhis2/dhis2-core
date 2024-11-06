@@ -44,6 +44,7 @@ import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
+import org.geolatte.geom.V;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
@@ -172,7 +173,6 @@ public class EventPersister
       Event clonedEntity,
       UserDetails user) {
     handleDataValues(entityManager, preheat, event.getDataValues(), hibernateEntity, user);
-    logPropertyChanges(clonedEntity, hibernateEntity, user);
   }
 
   private void handleDataValues(
@@ -230,45 +230,36 @@ public class EventPersister
         });
   }
 
-  private void logPropertyChanges(Event originalEvent, Event event, UserDetails user) {
-    if (!Objects.equals(event.getOccurredDate(), originalEvent.getOccurredDate())) {
-      ChangeLogType changeLogType = getChangeLogType(originalEvent, event, Event::getOccurredDate);
-      logEventValueChange(
-          user.getUsername(),
-          null,
-          "occurredDate",
-          event,
-          event.getOccurredDate() != null ? formatDate(event.getOccurredDate()) : null,
-          originalEvent.getOccurredDate() != null
-              ? formatDate(originalEvent.getOccurredDate())
-              : null,
-          changeLogType);
-    }
+  @Override
+  protected void logPropertyChanges(Event originalEvent, Event event, UserDetails user) {
+    logIfChanged(
+        "occurredDate", Event::getOccurredDate, this::formatDate, originalEvent, event, user);
+    logIfChanged(
+        "scheduledDate", Event::getScheduledDate, this::formatDate, originalEvent, event, user);
+    logIfChanged("geometry", Event::getGeometry, this::formatGeometry, originalEvent, event, user);
+  }
 
-    if (!Objects.equals(event.getScheduledDate(), originalEvent.getScheduledDate())) {
-      ChangeLogType changeLogType = getChangeLogType(originalEvent, event, Event::getScheduledDate);
-      logEventValueChange(
-          user.getUsername(),
-          null,
-          "scheduledDate",
-          event,
-          event.getScheduledDate() != null ? formatDate(event.getScheduledDate()) : null,
-          originalEvent.getScheduledDate() != null
-              ? formatDate(originalEvent.getScheduledDate())
-              : null,
-          changeLogType);
-    }
+  private <T> void logIfChanged(
+      String propertyName,
+      Function<Event, T> valueExtractor,
+      Function<T, String> formatter,
+      Event originalEvent,
+      Event event,
+      UserDetails user) {
 
-    if (!Objects.equals(event.getGeometry(), originalEvent.getGeometry())) {
-      ChangeLogType changeLogType = getChangeLogType(originalEvent, event, Event::getGeometry);
+    T originalValue = valueExtractor.apply(originalEvent);
+    T newValue = valueExtractor.apply(event);
+
+    if (!Objects.equals(originalValue, newValue)) {
+      ChangeLogType changeLogType = getChangeLogType(originalEvent, event, valueExtractor);
 
       logEventValueChange(
           user.getUsername(),
           null,
-          "geometry",
+          propertyName,
           event,
-          event.getGeometry() != null ? formatGeometry(event.getGeometry()) : null,
-          originalEvent.getGeometry() != null ? formatGeometry(originalEvent.getGeometry()) : null,
+          newValue != null ? formatter.apply(newValue) : null,
+          originalValue != null ? formatter.apply(originalValue) : null,
           changeLogType);
     }
   }
