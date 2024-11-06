@@ -181,6 +181,6 @@ class StrategyPreProcessorTest extends TestBase {
 
   private TrackerImportStrategy getStrategy(
       TrackerBundle bundle, TrackerType trackerType, UID uid) {
-    return bundle.getResolvedStrategyMap().get(trackerType).get(uid.getValue());
+    return bundle.getResolvedStrategyMap().get(trackerType).get(uid);
   }
 }

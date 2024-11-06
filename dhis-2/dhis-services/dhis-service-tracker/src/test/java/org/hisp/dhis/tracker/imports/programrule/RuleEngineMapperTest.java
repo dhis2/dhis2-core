@@ -289,7 +289,7 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
 
   private void assertEnrollment(
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment, RuleEnrollment ruleEnrollment) {
-    assertEquals(enrollment.getStringUid(), ruleEnrollment.getEnrollment());
+    assertEquals(enrollment.getUid().getValue(), ruleEnrollment.getEnrollment());
     assertNotNull(ruleEnrollment.getProgramName());
     assertDates(enrollment.getOccurredAt(), ruleEnrollment.getIncidentDate());
     assertDates(enrollment.getEnrolledAt(), ruleEnrollment.getEnrollmentDate());

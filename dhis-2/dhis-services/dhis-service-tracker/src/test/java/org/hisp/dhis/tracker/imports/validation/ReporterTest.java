@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.junit.jupiter.api.Test;
@@ -77,10 +78,11 @@ class ReporterTest {
 
   private Error eventError() {
     return new Error(
-        "some error", ValidationCode.E1000, TrackerType.EVENT, "JgDfHAGzzfS", List.of());
+        "some error", ValidationCode.E1000, TrackerType.EVENT, UID.of("JgDfHAGzzfS"), List.of());
   }
 
   private Warning eventWarning() {
-    return new Warning("some warning", ValidationCode.E1000, TrackerType.EVENT, "JgDfHAGzzfS");
+    return new Warning(
+        "some warning", ValidationCode.E1000, TrackerType.EVENT, UID.of("JgDfHAGzzfS"));
   }
 }

@@ -114,8 +114,8 @@ class EachTest {
                     Map.of(
                         ENROLLMENT,
                         Map.of(
-                            "Kj6vYde4LHh", UPDATE,
-                            "Nav6inZRw1u", CREATE))))
+                            UID.of("Kj6vYde4LHh"), UPDATE,
+                            UID.of("Nav6inZRw1u"), CREATE))))
             .enrollments(
                 List.of(enrollment(UID.of("Kj6vYde4LHh")), enrollment(UID.of("Nav6inZRw1u"))))
             .build();
@@ -153,7 +153,8 @@ class EachTest {
    */
   private static void addError(Reporter reporter, String message) {
     reporter.addError(
-        new Error(message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, "uid", List.of()));
+        new Error(
+            message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, UID.generate(), List.of()));
   }
 
   private List<String> actualErrorMessages() {

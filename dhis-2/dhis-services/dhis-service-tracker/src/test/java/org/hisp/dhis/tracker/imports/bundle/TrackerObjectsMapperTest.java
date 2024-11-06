@@ -521,7 +521,7 @@ class TrackerObjectsMapperTest extends TestBase {
       TrackedEntity actual,
       UserDetails createdBy,
       UserDetails updatedBy) {
-    assertEquals(trackedEntity.getStringUid(), actual.getUid());
+    assertEqualUids(trackedEntity.getTrackedEntity(), actual);
     assertEquals(trackedEntity.getOrgUnit().getIdentifier(), actual.getOrganisationUnit().getUid());
     assertEquals(
         trackedEntity.getTrackedEntityType().getIdentifier(),
@@ -543,7 +543,7 @@ class TrackerObjectsMapperTest extends TestBase {
       Enrollment actual,
       UserDetails createdBy,
       UserDetails updatedBy) {
-    assertEquals(enrollment.getStringUid(), actual.getUid());
+    assertEqualUids(enrollment.getEnrollment(), actual);
     assertEqualUids(enrollment.getTrackedEntity(), actual.getTrackedEntity());
     assertEquals(enrollment.getOrgUnit().getIdentifier(), actual.getOrganisationUnit().getUid());
     assertEquals(enrollment.getProgram().getIdentifier(), actual.getProgram().getUid());
@@ -587,7 +587,7 @@ class TrackerObjectsMapperTest extends TestBase {
       org.hisp.dhis.tracker.imports.domain.Relationship relationship,
       Relationship actual,
       UserDetails createdBy) {
-    assertEquals(relationship.getStringUid(), actual.getUid());
+    assertEqualUids(relationship.getRelationship(), actual);
     assertEquals(createdBy.getUid(), actual.getLastUpdatedBy().getUid());
     assertEquals(
         DateUtils.fromInstant(relationship.getCreatedAtClient()), actual.getCreatedAtClient());

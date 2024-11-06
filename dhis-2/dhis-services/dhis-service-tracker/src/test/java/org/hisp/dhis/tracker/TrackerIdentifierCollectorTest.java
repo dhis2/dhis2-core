@@ -117,7 +117,7 @@ class TrackerIdentifierCollectorTest {
     Map<Class<?>, Set<String>> ids = collector.collect(trackerObjects);
 
     assertNotNull(ids);
-    assertContainsOnly(Set.of(enrollment.getStringUid()), ids.get(Enrollment.class));
+    assertContainsOnly(Set.of(enrollment.getUid().getValue()), ids.get(Enrollment.class));
     assertContainsOnly(
         Set.of(enrollment.getTrackedEntity().getValue()), ids.get(TrackedEntity.class));
     assertContainsOnly(Set.of("sunshine"), ids.get(Program.class));
@@ -145,7 +145,7 @@ class TrackerIdentifierCollectorTest {
     Map<Class<?>, Set<String>> ids = collector.collect(trackerObjects);
 
     assertNotNull(ids);
-    assertContainsOnly(Set.of(event.getStringUid()), ids.get(Event.class));
+    assertContainsOnly(Set.of(event.getUid().getValue()), ids.get(Event.class));
     assertContainsOnly(Set.of(event.getEnrollment().getValue()), ids.get(Enrollment.class));
     assertContainsOnly(Set.of("sunshine"), ids.get(Program.class));
     assertContainsOnly(Set.of("flowers"), ids.get(ProgramStage.class));
