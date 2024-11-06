@@ -95,7 +95,7 @@ public class ValidationUtils {
       {
         // If a note having the same UID already exist in the db, raise
         // warning, ignore the note and continue
-        if (isNotEmpty(note.getNote()) && preheat.hasNote(note.getNote())) {
+        if (note.getNote() != null && preheat.hasNote(note.getNote())) {
           reporter.addWarning(dto, ValidationCode.E1119, note.getNote());
         } else {
           notes.add(note);
@@ -236,12 +236,6 @@ public class ValidationUtils {
 
     if (!isValid) {
       reporter.addError(dto, ValidationCode.E1125, value, optionalObject.getOptionSet().getUid());
-    }
-  }
-
-  public static void validateNotesUid(List<Note> notes, Reporter reporter, TrackerDto dto) {
-    for (Note note : notes) {
-      checkUidFormat(note.getNote(), reporter, dto, note, note.getNote());
     }
   }
 

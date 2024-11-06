@@ -71,12 +71,15 @@ class EachTest {
   @Test
   void testCallsValidatorForEachItemInCollection() {
     Validator<Enrollment> validator =
-        each(Enrollment::getNotes, (r, b, n) -> addError(r, n.getNote()));
+        each(Enrollment::getNotes, (r, b, n) -> addError(r, n.getNote().getValue()));
 
-    validator.validate(reporter, bundle, enrollment(UID.of("Kj6vYde4LHh"), "V1", "V2", "V3"));
+    UID note1 = UID.generate();
+    UID note2 = UID.generate();
+    UID note3 = UID.generate();
+    validator.validate(reporter, bundle, enrollment(UID.of("Kj6vYde4LHh"), note1, note2, note3));
 
     // order of input collection is preserved
-    assertEquals(List.of("V1", "V2", "V3"), actualErrorMessages());
+    assertEquals(UID.toValueList(List.of(note1, note2, note3)), actualErrorMessages());
   }
 
   @Test
@@ -99,7 +102,9 @@ class EachTest {
             });
 
     validator.validate(
-        reporter, bundle, enrollment(UID.of("Kj6vYde4LHh"), "input1", "input2", "input2"));
+        reporter,
+        bundle,
+        enrollment(UID.of("Kj6vYde4LHh"), UID.generate(), UID.generate(), UID.generate()));
 
     assertIsEmpty(actualErrorMessages());
   }
@@ -140,7 +145,7 @@ class EachTest {
     assertContainsOnly(List.of("Nav6inZRw1u"), actualErrorMessages());
   }
 
-  private static Enrollment enrollment(UID uid, String... notes) {
+  private static Enrollment enrollment(UID uid, UID... notes) {
     List<Note> n = Arrays.stream(notes).map(s -> Note.builder().note(s).build()).toList();
 
     return Enrollment.builder().enrollment(uid).notes(n).build();

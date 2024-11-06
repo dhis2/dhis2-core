@@ -228,7 +228,7 @@ public class TrackerPreheat {
   private final Set<String> existingRelationships = new HashSet<>();
 
   /** Internal set of all preheated notes uids (events and enrollments) */
-  private final Set<String> notes = new HashSet<>();
+  private final Set<UID> notes = new HashSet<>();
 
   /**
    * Internal map of all existing TrackedEntityProgramOwner. Used for ownership validations and
@@ -471,11 +471,11 @@ public class TrackerPreheat {
     events.put(UID.of(event), event);
   }
 
-  public void addNotes(Set<String> notes) {
+  public void addNotes(Set<UID> notes) {
     this.notes.addAll(notes);
   }
 
-  public boolean hasNote(String uid) {
+  public boolean hasNote(UID uid) {
     return notes.contains(uid);
   }
 
