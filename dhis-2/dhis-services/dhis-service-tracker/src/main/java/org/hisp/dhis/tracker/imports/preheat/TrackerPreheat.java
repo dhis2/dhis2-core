@@ -216,7 +216,7 @@ public class TrackerPreheat {
    * Internal map of all preheated relationships, mainly used for confirming existence for updates,
    * and used for object merging.
    */
-  @Getter private final Map<String, Relationship> relationships = new HashMap<>();
+  @Getter private final Map<UID, Relationship> relationships = new HashMap<>();
 
   /**
    * Internal set of all relationship keys and inverted keys already present in the DB. This is used
@@ -483,13 +483,13 @@ public class TrackerPreheat {
     return get(RelationshipType.class, id);
   }
 
-  public Relationship getRelationship(String relationshipUid) {
-    return relationships.get(relationshipUid);
+  public Relationship getRelationship(UID relationship) {
+    return relationships.get(relationship);
   }
 
   public Relationship getRelationship(
       org.hisp.dhis.tracker.imports.domain.Relationship relationship) {
-    return relationships.get(relationship.getStringUid());
+    return relationships.get(relationship.getUid());
   }
 
   public boolean isDuplicate(org.hisp.dhis.tracker.imports.domain.Relationship relationship) {
@@ -516,7 +516,7 @@ public class TrackerPreheat {
 
   public void putRelationship(Relationship relationship) {
     if (Objects.nonNull(relationship)) {
-      relationships.put(relationship.getUid(), relationship);
+      relationships.put(UID.of(relationship), relationship);
     }
   }
 
@@ -638,7 +638,7 @@ public class TrackerPreheat {
       case TRACKED_ENTITY -> getTrackedEntity(uid) != null;
       case ENROLLMENT -> getEnrollment(uid) != null;
       case EVENT -> getEvent(uid) != null;
-      case RELATIONSHIP -> getRelationship(uid.getValue()) != null;
+      case RELATIONSHIP -> getRelationship(uid) != null;
     };
   }
 
