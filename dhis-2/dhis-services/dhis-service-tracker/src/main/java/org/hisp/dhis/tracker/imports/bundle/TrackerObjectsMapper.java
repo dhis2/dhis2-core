@@ -257,7 +257,7 @@ public class TrackerObjectsMapper {
       @Nonnull UserDetails user) {
     Date now = new Date();
     Relationship dbRelationship = new org.hisp.dhis.relationship.Relationship();
-    dbRelationship.setUid(relationship.getRelationship());
+    dbRelationship.setUid(relationship.getRelationship().getValue());
     dbRelationship.setCreated(now);
     dbRelationship.setLastUpdated(now);
     dbRelationship.setLastUpdatedBy(preheat.getUserByUid(user.getUid()).orElse(null));
@@ -273,12 +273,11 @@ public class TrackerObjectsMapper {
     switch (relationshipType.getFromConstraint().getRelationshipEntity()) {
       case TRACKED_ENTITY_INSTANCE ->
           fromItem.setTrackedEntity(
-              preheat.getTrackedEntity(UID.of(relationship.getFrom().getTrackedEntity())));
+              preheat.getTrackedEntity(relationship.getFrom().getTrackedEntity()));
       case PROGRAM_INSTANCE ->
-          fromItem.setEnrollment(
-              preheat.getEnrollment(UID.of(relationship.getFrom().getEnrollment())));
+          fromItem.setEnrollment(preheat.getEnrollment(relationship.getFrom().getEnrollment()));
       case PROGRAM_STAGE_INSTANCE ->
-          fromItem.setEvent(preheat.getEvent(UID.of(relationship.getFrom().getEvent())));
+          fromItem.setEvent(preheat.getEvent(relationship.getFrom().getEvent()));
     }
     dbRelationship.setFrom(fromItem);
 
@@ -288,11 +287,11 @@ public class TrackerObjectsMapper {
     switch (relationshipType.getToConstraint().getRelationshipEntity()) {
       case TRACKED_ENTITY_INSTANCE ->
           toItem.setTrackedEntity(
-              preheat.getTrackedEntity(UID.of(relationship.getTo().getTrackedEntity())));
+              preheat.getTrackedEntity(relationship.getTo().getTrackedEntity()));
       case PROGRAM_INSTANCE ->
-          toItem.setEnrollment(preheat.getEnrollment(UID.of(relationship.getTo().getEnrollment())));
+          toItem.setEnrollment(preheat.getEnrollment(relationship.getTo().getEnrollment()));
       case PROGRAM_STAGE_INSTANCE ->
-          toItem.setEvent(preheat.getEvent(UID.of(relationship.getTo().getEvent())));
+          toItem.setEvent(preheat.getEvent(relationship.getTo().getEvent()));
     }
     dbRelationship.setTo(toItem);
 
@@ -311,7 +310,7 @@ public class TrackerObjectsMapper {
     Date now = new Date();
 
     Note dbNote = new Note();
-    dbNote.setUid(note.getNote());
+    dbNote.setUid(note.getNote().getValue());
     dbNote.setCreated(now);
     dbNote.setLastUpdated(now);
     dbNote.setLastUpdatedBy(preheat.getUserByUid(user.getUid()).orElse(null));
