@@ -74,11 +74,6 @@ public class TrackedEntity implements TrackerDto, Serializable {
   }
 
   @Override
-  public String getStringUid() {
-    return trackedEntity.getValue();
-  }
-
-  @Override
   public TrackerType getTrackerType() {
     return TrackerType.TRACKED_ENTITY;
   }

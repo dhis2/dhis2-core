@@ -77,7 +77,7 @@ class FieldTest {
     Validator<UID> isValidUid =
         (r, b, uid) -> {
           // to demonstrate that we are getting the trackedEntity field
-          r.addError(new Error(uid.getValue(), E1000, ENROLLMENT, uid.getValue(), List.of(uid)));
+          r.addError(new Error(uid.getValue(), E1000, ENROLLMENT, uid, List.of(uid)));
         };
 
     Validator<Enrollment> validator = field(Enrollment::getTrackedEntity, isValidUid);
@@ -121,7 +121,8 @@ class FieldTest {
     bundle =
         TrackerBundle.builder()
             .importStrategy(CREATE_AND_UPDATE)
-            .resolvedStrategyMap(new EnumMap<>(Map.of(ENROLLMENT, Map.of("Kj6vYde4LHh", UPDATE))))
+            .resolvedStrategyMap(
+                new EnumMap<>(Map.of(ENROLLMENT, Map.of(UID.of("Kj6vYde4LHh"), UPDATE))))
             .build();
     Enrollment enrollment =
         Enrollment.builder()
@@ -188,7 +189,8 @@ class FieldTest {
    */
   private static void addError(Reporter reporter, String message) {
     reporter.addError(
-        new Error(message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, "uid", List.of()));
+        new Error(
+            message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, UID.generate(), List.of()));
   }
 
   private List<String> actualErrorMessages() {

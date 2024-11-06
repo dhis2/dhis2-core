@@ -61,11 +61,6 @@ public class Relationship implements TrackerDto, Serializable {
   }
 
   @Override
-  public String getStringUid() {
-    return relationship.getValue();
-  }
-
-  @Override
   public TrackerType getTrackerType() {
     return TrackerType.RELATIONSHIP;
   }

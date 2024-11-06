@@ -196,7 +196,7 @@ class UniqueAttributeSupplierTest extends TestBase {
     this.supplier.preheatAdd(importParams, preheat);
 
     assertThat(preheat.getUniqueAttributeValues(), hasSize(1));
-    assertEquals(TE_UID.getValue(), preheat.getUniqueAttributeValues().get(0).getTeUid());
+    assertEquals(TE_UID, preheat.getUniqueAttributeValues().get(0).getTe());
   }
 
   private List<org.hisp.dhis.tracker.imports.domain.TrackedEntity>

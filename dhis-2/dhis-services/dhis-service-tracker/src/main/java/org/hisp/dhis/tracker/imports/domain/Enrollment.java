@@ -85,11 +85,6 @@ public class Enrollment implements TrackerDto, Serializable {
   }
 
   @Override
-  public String getStringUid() {
-    return enrollment.getValue();
-  }
-
-  @Override
   public TrackerType getTrackerType() {
     return TrackerType.ENROLLMENT;
   }

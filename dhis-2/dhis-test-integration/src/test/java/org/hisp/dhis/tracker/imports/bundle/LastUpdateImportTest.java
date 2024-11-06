@@ -519,7 +519,7 @@ class LastUpdateImportTest extends TrackerTest {
   }
 
   Enrollment getEnrollment() {
-    return getEntityJpql(Enrollment.class.getSimpleName(), enrollment.getStringUid());
+    return getEntityJpql(Enrollment.class.getSimpleName(), enrollment.getUid().getValue());
   }
 
   Event getEvent() {
@@ -531,7 +531,7 @@ class LastUpdateImportTest extends TrackerTest {
   }
 
   TrackedEntity getTrackedEntity() {
-    return getEntityJpql(TrackedEntity.class.getSimpleName(), trackedEntity.getStringUid());
+    return getEntityJpql(TrackedEntity.class.getSimpleName(), trackedEntity.getUid().getValue());
   }
 
   /**

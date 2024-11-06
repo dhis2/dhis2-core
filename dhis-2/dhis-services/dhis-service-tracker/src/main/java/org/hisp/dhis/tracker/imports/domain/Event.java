@@ -102,11 +102,6 @@ public class Event implements TrackerDto, Serializable {
   }
 
   @Override
-  public String getStringUid() {
-    return event.getValue();
-  }
-
-  @Override
   public TrackerType getTrackerType() {
     return TrackerType.EVENT;
   }
