@@ -46,7 +46,7 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityCategoryOptionComboDuplicatedTest extends AbstractDataIntegrityIntegrationTest {
 
-  private final String check = "category_option_combo_duplicates";
+  private final String check = "category_option_combos_have_duplicates";
 
   private String cocWithOptionsA;
 
