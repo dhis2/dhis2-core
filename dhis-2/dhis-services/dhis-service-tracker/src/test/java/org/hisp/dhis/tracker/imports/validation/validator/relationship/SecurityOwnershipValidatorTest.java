@@ -89,10 +89,10 @@ class SecurityOwnershipValidatorTest extends TestBase {
     reporter = new Reporter(idSchemes);
     relationship =
         Relationship.builder()
-            .relationship("relationshipUid")
+            .relationship(UID.generate())
             .relationshipType(relationshipTypeUid)
-            .from(RelationshipItem.builder().trackedEntity(UID.generate().getValue()).build())
-            .to(RelationshipItem.builder().trackedEntity(UID.generate().getValue()).build())
+            .from(RelationshipItem.builder().trackedEntity(UID.generate()).build())
+            .to(RelationshipItem.builder().trackedEntity(UID.generate()).build())
             .build();
 
     convertedRelationship = TrackerObjectsMapper.map(preheat, relationship, new SystemUser());

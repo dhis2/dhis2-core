@@ -124,13 +124,13 @@ class StrategyPreProcessorTest extends TestBase {
     relationship = new Relationship();
     relationship.setUid(RELATIONSHIP_UID.getValue());
     payloadRelationship = new org.hisp.dhis.tracker.imports.domain.Relationship();
-    payloadRelationship.setRelationship(RELATIONSHIP_UID.getValue());
+    payloadRelationship.setRelationship(RELATIONSHIP_UID);
     newPayloadRelationship = new org.hisp.dhis.tracker.imports.domain.Relationship();
-    newPayloadRelationship.setRelationship(NEW_RELATIONSHIP_UID.getValue());
+    newPayloadRelationship.setRelationship(NEW_RELATIONSHIP_UID);
     Mockito.when(preheat.getTrackedEntity(TE_UID)).thenReturn(te);
     Mockito.when(preheat.getEnrollment(ENROLLMENT_UID)).thenReturn(preheatEnrollment);
     Mockito.when(preheat.getEvent(EVENT_UID)).thenReturn(dbEvent);
-    Mockito.when(preheat.getRelationship(RELATIONSHIP_UID.getValue())).thenReturn(relationship);
+    Mockito.when(preheat.getRelationship(RELATIONSHIP_UID)).thenReturn(relationship);
   }
 
   @Test

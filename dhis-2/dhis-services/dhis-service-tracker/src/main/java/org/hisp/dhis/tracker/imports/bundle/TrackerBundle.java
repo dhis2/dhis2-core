@@ -152,8 +152,8 @@ public class TrackerBundle {
     return findById(this.events, uid.getValue());
   }
 
-  public Optional<Relationship> findRelationshipByUid(String uid) {
-    return findById(this.relationships, uid);
+  public Optional<Relationship> findRelationshipByUid(@Nonnull UID uid) {
+    return findById(this.relationships, uid.getValue());
   }
 
   private static <T extends TrackerDto> Optional<T> findById(List<T> entities, String uid) {
