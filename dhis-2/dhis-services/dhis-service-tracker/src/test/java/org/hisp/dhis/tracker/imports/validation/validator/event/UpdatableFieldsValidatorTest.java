@@ -95,7 +95,7 @@ class UpdatableFieldsValidatorTest {
         .thenReturn(TrackerImportStrategy.UPDATE);
 
     when(preheat.getTrackedEntity(TRACKED_ENTITY_ID)).thenReturn(trackedEntity());
-    when(preheat.getEnrollment(ENROLLMENT_ID.getValue())).thenReturn(getEnrollment());
+    when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(getEnrollment());
     when(preheat.getEvent(EVENT_UID)).thenReturn(event());
 
     when(bundle.getPreheat()).thenReturn(preheat);

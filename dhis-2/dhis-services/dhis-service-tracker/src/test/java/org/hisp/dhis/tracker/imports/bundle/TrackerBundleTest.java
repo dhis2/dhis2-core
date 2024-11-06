@@ -92,16 +92,6 @@ class TrackerBundleTest {
   }
 
   @Test
-  void testGetEnrollmentGivenNull() {
-    TrackerBundle bundle =
-        TrackerBundle.builder()
-            .enrollments(List.of(Enrollment.builder().enrollment("uid").build()))
-            .build();
-
-    assertTrue(bundle.findEnrollmentByUid(null).isEmpty());
-  }
-
-  @Test
   void testGetRelationshipGivenNull() {
     TrackerBundle bundle =
         TrackerBundle.builder()

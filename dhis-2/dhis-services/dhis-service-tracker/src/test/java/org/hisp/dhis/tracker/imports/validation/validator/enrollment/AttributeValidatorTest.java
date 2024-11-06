@@ -135,9 +135,9 @@ class AttributeValidatorTest {
     UID uid = UID.generate();
     when(enrollment.getUid()).thenReturn(uid);
     when(enrollment.getStringUid()).thenReturn(uid.getValue());
-    when(enrollment.getEnrollment()).thenReturn(uid.getValue());
+    when(enrollment.getEnrollment()).thenReturn(uid);
     when(enrollment.getTrackerType()).thenCallRealMethod();
-    enrollment.setTrackedEntity("trackedEntity");
+    enrollment.setTrackedEntity(UID.generate());
 
     bundle = TrackerBundle.builder().preheat(preheat).build();
 
@@ -166,7 +166,9 @@ class AttributeValidatorTest {
                 Arrays.asList(
                     new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity),
                     new TrackedEntityAttributeValue(trackedEntityAttribute1, trackedEntity))));
-    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity().getValue()))
+        .thenReturn(trackedEntity);
     bundle.setStrategy(enrollment, TrackerImportStrategy.CREATE);
 
     validator.validate(reporter, bundle, enrollment);
@@ -191,7 +193,9 @@ class AttributeValidatorTest {
 
     when(enrollment.getAttributes()).thenReturn(Collections.singletonList(attribute));
     when(trackedEntity.getTrackedEntityAttributeValues()).thenReturn(Set.of());
-    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity().getValue()))
+        .thenReturn(trackedEntity);
     bundle.setStrategy(enrollment, TrackerImportStrategy.UPDATE);
 
     validator.validate(reporter, bundle, enrollment);
@@ -222,12 +226,14 @@ class AttributeValidatorTest {
 
     when(enrollment.getAttributes()).thenReturn(Collections.singletonList(attribute));
     when(trackedEntity.getTrackedEntityAttributeValues()).thenReturn(Set.of());
-    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity().getValue()))
+        .thenReturn(trackedEntity);
     bundle.setStrategy(enrollment, TrackerImportStrategy.UPDATE);
     bundle.setTrackedEntities(
         List.of(
             org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-                .trackedEntity(enrollment.getTrackedEntity())
+                .trackedEntity(enrollment.getTrackedEntity().getValue())
                 .attributes(List.of(attribute, attribute1))
                 .build()));
 
@@ -258,7 +264,9 @@ class AttributeValidatorTest {
                 List.of(
                     new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity),
                     new TrackedEntityAttributeValue(trackedEntityAttribute1, trackedEntity))));
-    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity().getValue()))
+        .thenReturn(trackedEntity);
     bundle.setStrategy(enrollment, TrackerImportStrategy.UPDATE);
 
     validator.validate(reporter, bundle, enrollment);
@@ -286,7 +294,9 @@ class AttributeValidatorTest {
             new HashSet<>(
                 Collections.singletonList(
                     new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity))));
-    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity().getValue()))
+        .thenReturn(trackedEntity);
     bundle.setStrategy(enrollment, TrackerImportStrategy.CREATE);
 
     validator.validate(reporter, bundle, enrollment);
@@ -317,7 +327,9 @@ class AttributeValidatorTest {
                 Arrays.asList(
                     new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity),
                     new TrackedEntityAttributeValue(trackedEntityAttribute1, trackedEntity))));
-    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity().getValue()))
+        .thenReturn(trackedEntity);
     bundle.setStrategy(enrollment, TrackerImportStrategy.CREATE);
 
     validator.validate(reporter, bundle, enrollment);
@@ -348,7 +360,9 @@ class AttributeValidatorTest {
                 Arrays.asList(
                     new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity),
                     new TrackedEntityAttributeValue(trackedEntityAttribute1, trackedEntity))));
-    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity().getValue()))
+        .thenReturn(trackedEntity);
     bundle.setStrategy(enrollment, TrackerImportStrategy.UPDATE);
 
     validator.validate(reporter, bundle, enrollment);
@@ -379,7 +393,9 @@ class AttributeValidatorTest {
                 Arrays.asList(
                     new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity),
                     new TrackedEntityAttributeValue(trackedEntityAttribute1, trackedEntity))));
-    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity().getValue()))
+        .thenReturn(trackedEntity);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -412,7 +428,9 @@ class AttributeValidatorTest {
                 Arrays.asList(
                     new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity),
                     new TrackedEntityAttributeValue(trackedEntityAttributeP, trackedEntity))));
-    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity().getValue()))
+        .thenReturn(trackedEntity);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -442,7 +460,9 @@ class AttributeValidatorTest {
             new HashSet<>(
                 Collections.singletonList(
                     new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity))));
-    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity().getValue()))
+        .thenReturn(trackedEntity);
     bundle.setStrategy(enrollment, TrackerImportStrategy.CREATE);
 
     validator.validate(reporter, bundle, enrollment);
@@ -475,7 +495,9 @@ class AttributeValidatorTest {
             new HashSet<>(
                 Collections.singletonList(
                     new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity))));
-    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity().getValue()))
+        .thenReturn(trackedEntity);
     bundle.setStrategy(enrollment, TrackerImportStrategy.UPDATE);
 
     validator.validate(reporter, bundle, enrollment);
@@ -499,7 +521,9 @@ class AttributeValidatorTest {
             new HashSet<>(
                 Collections.singletonList(
                     new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity))));
-    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntity);
+    when(enrollment.getTrackedEntity()).thenReturn(UID.generate());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity().getValue()))
+        .thenReturn(trackedEntity);
 
     validator.validate(reporter, bundle, enrollment);
 

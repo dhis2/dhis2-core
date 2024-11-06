@@ -86,7 +86,7 @@
 
     <!-- DHIS2 Rule Engine -->
     <dhis2-rule-engine.version>3.1.0</dhis2-rule-engine.version>
-    <kotlinx-datetime.version>0.6.0</kotlinx-datetime.version>
+    <kotlinx-datetime.version>0.6.1</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.4</dhis-hisp-quick.version>
@@ -168,7 +168,7 @@
 
     <!-- Apache Artemis -->
     <artemis-jakarta.version>2.38.0</artemis-jakarta.version>
-    <netty-all.version>4.1.113.Final</netty-all.version>
+    <netty-all.version>4.1.114.Final</netty-all.version>
     <classgraph.version>4.8.177</classgraph.version>
 
     <!-- SMS/SMPP -->

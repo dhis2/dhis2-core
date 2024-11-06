@@ -144,8 +144,8 @@ public class TrackerBundle {
     return findById(this.trackedEntities, uid);
   }
 
-  public Optional<Enrollment> findEnrollmentByUid(String uid) {
-    return findById(this.enrollments, uid);
+  public Optional<Enrollment> findEnrollmentByUid(@Nonnull UID uid) {
+    return findById(this.enrollments, uid.getValue());
   }
 
   public Optional<Event> findEventByUid(@Nonnull UID uid) {

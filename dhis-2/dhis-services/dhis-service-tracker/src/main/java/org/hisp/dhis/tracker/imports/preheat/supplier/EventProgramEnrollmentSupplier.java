@@ -56,7 +56,7 @@ public class EventProgramEnrollmentSupplier extends AbstractPreheatSupplier {
 
     enrollments.forEach(
         e -> {
-          preheat.putEnrollment(e.getUid(), e);
+          preheat.putEnrollment(e);
           preheat.putEnrollmentsWithoutRegistration(e.getProgram().getUid(), e);
         });
   }

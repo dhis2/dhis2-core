@@ -83,7 +83,7 @@ class DataRelationsValidator implements Validator<Enrollment> {
   private boolean trackedEntityTypesMatch(
       TrackerBundle bundle, Program program, Enrollment enrollment) {
     final TrackedEntity trackedEntity =
-        bundle.getPreheat().getTrackedEntity(enrollment.getTrackedEntity());
+        bundle.getPreheat().getTrackedEntity(enrollment.getTrackedEntity().getValue());
     if (trackedEntity != null) {
       return program
           .getTrackedEntityType()
@@ -92,7 +92,7 @@ class DataRelationsValidator implements Validator<Enrollment> {
     }
 
     return bundle
-        .findTrackedEntityByUid(enrollment.getTrackedEntity())
+        .findTrackedEntityByUid(enrollment.getTrackedEntity().getValue())
         .map(te -> te.getTrackedEntityType().isEqualTo(program.getTrackedEntityType()))
         .orElse(false);
   }

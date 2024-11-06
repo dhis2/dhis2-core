@@ -160,12 +160,12 @@ public class ValidationUtils {
   }
 
   public static Set<MetadataIdentifier> getTrackedEntityAttributes(
-      TrackerBundle bundle, String trackedEntityUid) {
+      TrackerBundle bundle, UID trackedEntityUid) {
     TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
     Set<MetadataIdentifier> savedTrackedEntityAttributes =
         Optional.of(bundle)
             .map(TrackerBundle::getPreheat)
-            .map(trackerPreheat -> trackerPreheat.getTrackedEntity(trackedEntityUid))
+            .map(trackerPreheat -> trackerPreheat.getTrackedEntity(trackedEntityUid.getValue()))
             .map(TrackedEntity::getTrackedEntityAttributeValues)
             .orElse(Collections.emptySet())
             .stream()
@@ -174,7 +174,7 @@ public class ValidationUtils {
             .collect(Collectors.toSet());
     Set<MetadataIdentifier> payloadTrackedEntityAttributes =
         bundle
-            .findTrackedEntityByUid(trackedEntityUid)
+            .findTrackedEntityByUid(trackedEntityUid.getValue())
             .map(org.hisp.dhis.tracker.imports.domain.TrackedEntity::getAttributes)
             .orElse(List.of())
             .stream()
@@ -211,14 +211,13 @@ public class ValidationUtils {
         || bundle.findTrackedEntityByUid(teUid).isPresent();
   }
 
-  public static boolean enrollmentExist(TrackerBundle bundle, String enrollmentUid) {
-    return bundle.getPreheat().getEnrollment(enrollmentUid) != null
-        || bundle.findEnrollmentByUid(enrollmentUid).isPresent();
+  public static boolean enrollmentExist(TrackerBundle bundle, UID enrollment) {
+    return bundle.getPreheat().getEnrollment(enrollment) != null
+        || bundle.findEnrollmentByUid(enrollment).isPresent();
   }
 
-  public static boolean eventExist(TrackerBundle bundle, UID eventUid) {
-    return bundle.getPreheat().getEvent(eventUid) != null
-        || bundle.findEventByUid(eventUid).isPresent();
+  public static boolean eventExist(TrackerBundle bundle, UID event) {
+    return bundle.getPreheat().getEvent(event) != null || bundle.findEventByUid(event).isPresent();
   }
 
   public static <T extends ValueTypedDimensionalItemObject> void validateOptionSet(

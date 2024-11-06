@@ -128,7 +128,7 @@ public class ConstraintValidator implements Validator<Relationship> {
           relSide,
           TrackerType.ENROLLMENT.getName(),
           relationshipItemValueType(item).getName());
-    } else if (!enrollmentExist(bundle, item.getEnrollment())) {
+    } else if (!enrollmentExist(bundle, UID.of(item.getEnrollment()))) {
       reporter.addError(
           relationship, E4012, TrackerType.ENROLLMENT.getName(), item.getEnrollment());
     }

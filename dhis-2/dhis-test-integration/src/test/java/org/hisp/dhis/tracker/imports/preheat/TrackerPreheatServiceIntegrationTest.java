@@ -35,6 +35,7 @@ import java.util.Map;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -112,7 +113,7 @@ class TrackerPreheatServiceIntegrationTest extends PostgresIntegrationTestBase {
         Enrollment.builder()
             .orgUnit(MetadataIdentifier.ofCode("OUA"))
             .program(MetadataIdentifier.ofAttribute(ATTRIBUTE_UID, programAttribute))
-            .trackedEntity("TE123456789")
+            .trackedEntity(UID.of("TE123456789"))
             .build();
 
     TrackerObjects trackerObjects =

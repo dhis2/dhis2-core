@@ -34,6 +34,7 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.Sets;
 import java.util.Collections;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
@@ -67,7 +68,7 @@ class DataRelationsValidatorTest extends TestBase {
 
   private static final String ANOTHER_TE_TYPE_ID = "ANOTHER_TE_TYPE_ID";
 
-  private static final String TE_ID = "TE_ID";
+  private static final UID TE_ID = UID.generate();
 
   private DataRelationsValidator validator;
 
@@ -96,13 +97,14 @@ class DataRelationsValidatorTest extends TestBase {
         .thenReturn(programWithRegistration(PROGRAM_UID, orgUnit, teType));
     when(preheat.getProgramWithOrgUnitsMap())
         .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
-    when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity(TE_TYPE_ID, teType, orgUnit));
+    when(preheat.getTrackedEntity(TE_ID.getValue()))
+        .thenReturn(trackedEntity(TE_ID, teType, orgUnit));
 
     Enrollment enrollment =
         Enrollment.builder()
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .program(MetadataIdentifier.ofUid(PROGRAM_UID))
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .trackedEntity(TE_ID)
             .build();
 
@@ -123,7 +125,8 @@ class DataRelationsValidatorTest extends TestBase {
     Enrollment enrollment =
         Enrollment.builder()
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
+            .trackedEntity(UID.generate())
             .program(MetadataIdentifier.ofUid(PROGRAM_UID))
             .build();
 
@@ -146,7 +149,8 @@ class DataRelationsValidatorTest extends TestBase {
 
     Enrollment enrollment =
         Enrollment.builder()
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
+            .trackedEntity(UID.generate())
             .program(MetadataIdentifier.ofUid(PROGRAM_UID))
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .build();
@@ -164,13 +168,13 @@ class DataRelationsValidatorTest extends TestBase {
         .thenReturn(programWithRegistration(PROGRAM_UID, orgUnit, trackedEntityType(TE_TYPE_ID)));
     when(preheat.getProgramWithOrgUnitsMap())
         .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
-    TrackedEntityType anotherTrackedEntityType = trackedEntityType(TE_ID, 'B');
-    when(preheat.getTrackedEntity(TE_ID))
+    TrackedEntityType anotherTrackedEntityType = trackedEntityType(ANOTHER_TE_TYPE_ID, 'B');
+    when(preheat.getTrackedEntity(TE_ID.getValue()))
         .thenReturn(trackedEntity(TE_ID, anotherTrackedEntityType, orgUnit));
 
     Enrollment enrollment =
         Enrollment.builder()
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .program(MetadataIdentifier.ofUid(PROGRAM_UID))
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .trackedEntity(TE_ID)
@@ -189,18 +193,18 @@ class DataRelationsValidatorTest extends TestBase {
         .thenReturn(programWithRegistration(PROGRAM_UID, orgUnit, trackedEntityType(TE_TYPE_ID)));
     when(preheat.getProgramWithOrgUnitsMap())
         .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
-    when(preheat.getTrackedEntity(TE_ID)).thenReturn(null);
+    when(preheat.getTrackedEntity(TE_ID.getValue())).thenReturn(null);
 
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
         org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-            .trackedEntity(TE_ID)
+            .trackedEntity(TE_ID.getValue())
             .trackedEntityType(MetadataIdentifier.ofUid(ANOTHER_TE_TYPE_ID))
             .build();
     bundle.setTrackedEntities(Collections.singletonList(trackedEntity));
 
     Enrollment enrollment =
         Enrollment.builder()
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .program(MetadataIdentifier.ofUid(PROGRAM_UID))
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .trackedEntity(TE_ID)
@@ -259,10 +263,9 @@ class DataRelationsValidatorTest extends TestBase {
     return trackedEntityType;
   }
 
-  private TrackedEntity trackedEntity(
-      String uid, TrackedEntityType type, OrganisationUnit orgUnit) {
+  private TrackedEntity trackedEntity(UID uid, TrackedEntityType type, OrganisationUnit orgUnit) {
     TrackedEntity te = createTrackedEntity(orgUnit);
-    te.setUid(uid);
+    te.setUid(uid.getValue());
     te.setTrackedEntityType(type);
     return te;
   }
