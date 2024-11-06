@@ -43,7 +43,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -74,9 +74,11 @@ class ExistingEnrollmentValidatorTest {
 
   private static final String PROGRAM_UID = "program";
 
-  private static final String TRACKED_ENTIT_UID = "trackedEntity";
+  private static final UID TRACKED_ENTITY_UID = UID.generate();
 
   private static final UID ENROLLMENT_UID = UID.generate();
+
+  private static final UID ANOTHER_ENROLLMENT_UID = UID.generate();
 
   @BeforeEach
   public void setUp() {
@@ -85,15 +87,15 @@ class ExistingEnrollmentValidatorTest {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(enrollment.getProgram()).thenReturn(MetadataIdentifier.ofUid(PROGRAM_UID));
-    when(enrollment.getTrackedEntity()).thenReturn(TRACKED_ENTIT_UID);
+    when(enrollment.getTrackedEntity()).thenReturn(TRACKED_ENTITY_UID);
     when(enrollment.getStatus()).thenReturn(EnrollmentStatus.ACTIVE);
-    when(enrollment.getEnrollment()).thenReturn(ENROLLMENT_UID.getValue());
+    when(enrollment.getEnrollment()).thenReturn(ENROLLMENT_UID);
     when(enrollment.getUid()).thenReturn(ENROLLMENT_UID);
     when(enrollment.getStringUid()).thenReturn(ENROLLMENT_UID.getValue());
     when(enrollment.getTrackerType()).thenCallRealMethod();
 
-    when(preheat.getTrackedEntity(TRACKED_ENTIT_UID)).thenReturn(trackedEntity);
-    when(trackedEntity.getUid()).thenReturn(TRACKED_ENTIT_UID);
+    when(preheat.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(trackedEntity);
+    when(trackedEntity.getUid()).thenReturn(TRACKED_ENTITY_UID.getValue());
 
     Program program = new Program();
     program.setOnlyEnrollOnce(false);
@@ -254,11 +256,11 @@ class ExistingEnrollmentValidatorTest {
                 Program program = new Program();
                 program.setUid(PROGRAM_UID);
 
-                enrollment.setUid("another_enrollment");
+                enrollment.setUid(ANOTHER_ENROLLMENT_UID.getValue());
                 enrollment.setStatus(status);
                 enrollment.setProgram(program);
 
-                put(TRACKED_ENTIT_UID, Collections.singletonList(enrollment));
+                put(TRACKED_ENTITY_UID, Collections.singletonList(enrollment));
               }
             });
   }
@@ -266,9 +268,9 @@ class ExistingEnrollmentValidatorTest {
   private void setEnrollmentInPayload(EnrollmentStatus status) {
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollmentInBundle =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment("another_enrollment")
+            .enrollment(ANOTHER_ENROLLMENT_UID)
             .program(MetadataIdentifier.ofUid(PROGRAM_UID))
-            .trackedEntity(TRACKED_ENTIT_UID)
+            .trackedEntity(TRACKED_ENTITY_UID)
             .status(status)
             .build();
 

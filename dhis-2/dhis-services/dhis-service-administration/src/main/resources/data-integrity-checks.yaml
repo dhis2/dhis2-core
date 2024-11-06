@@ -15,6 +15,7 @@ checks:
   - categories/category_option_groups_excess_members.yaml
   - categories/category_option_groups_sets_incomplete.yaml
   - categories/invalid_category_combos.yaml
+  - categories/categories_dimensions_no_visualizations.yaml
   - datasets/datasets_empty.yaml
   - datasets/datasets_not_assigned_to_org_units.yaml
   - orgunits/compulsory_orgunit_groups.yaml

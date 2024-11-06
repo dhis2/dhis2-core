@@ -36,7 +36,6 @@ import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.relationship.RelationshipMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -50,8 +49,7 @@ import org.mapstruct.Mapping;
       RelationshipMapper.class,
       UserMapper.class
     })
-public interface EventMapper
-    extends ViewMapper<Event, org.hisp.dhis.webapi.controller.tracker.view.Event> {
+public interface EventMapper {
 
   /**
    * Events can be ordered by given fields which correspond to fields on {@link
@@ -115,5 +113,5 @@ public interface EventMapper
   @Mapping(target = "dataValues", source = "eventDataValues")
   @Mapping(target = "relationships", source = "relationshipItems")
   @Mapping(target = "notes", source = "notes")
-  org.hisp.dhis.webapi.controller.tracker.view.Event from(Event event);
+  org.hisp.dhis.webapi.controller.tracker.view.Event map(Event event);
 }

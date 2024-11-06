@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.export.event;
 
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -73,12 +74,14 @@ public interface EventService {
   /**
    * Get all events matching given params under the privileges of the currently authenticated user.
    */
+  @Nonnull
   List<Event> getEvents(EventOperationParams params) throws BadRequestException, ForbiddenException;
 
   /**
    * Get a page of events matching given params under the privileges of the currently authenticated
    * user.
    */
+  @Nonnull
   Page<Event> getEvents(EventOperationParams params, PageParams pageParams)
       throws BadRequestException, ForbiddenException;
 

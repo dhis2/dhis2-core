@@ -58,9 +58,9 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -371,7 +371,7 @@ class TrackerPreheatTest extends TestBase {
     assertTrue(
         preheat.exists(
             org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-                .trackedEntity(uid.getValue())
+                .trackedEntity(uid)
                 .build()));
   }
 

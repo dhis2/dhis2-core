@@ -35,6 +35,7 @@ import java.util.Map;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -43,8 +44,8 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
@@ -112,7 +113,7 @@ class TrackerPreheatServiceIntegrationTest extends PostgresIntegrationTestBase {
         Enrollment.builder()
             .orgUnit(MetadataIdentifier.ofCode("OUA"))
             .program(MetadataIdentifier.ofAttribute(ATTRIBUTE_UID, programAttribute))
-            .trackedEntity("TE123456789")
+            .trackedEntity(UID.of("TE123456789"))
             .build();
 
     TrackerObjects trackerObjects =

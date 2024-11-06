@@ -44,8 +44,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -107,7 +105,7 @@ class PersistablesFilter {
       List.of(en -> TrackedEntity.builder().trackedEntity(en.getTrackedEntity()).build());
 
   private static final List<Function<Event, TrackerDto>> EVENT_PARENTS =
-      List.of(ev -> Enrollment.builder().enrollment(ev.getEnrollment().getValue()).build());
+      List.of(ev -> Enrollment.builder().enrollment(ev.getEnrollment()).build());
 
   private static final List<Function<Relationship, TrackerDto>> RELATIONSHIP_PARENTS =
       List.of(rel -> toTrackerDto(rel.getFrom()), rel -> toTrackerDto(rel.getTo()));
@@ -309,12 +307,12 @@ class PersistablesFilter {
    * @return a tracker dto only capturing the uid and type
    */
   private static TrackerDto toTrackerDto(RelationshipItem item) {
-    if (StringUtils.isNotEmpty(item.getTrackedEntity())) {
+    if (item.getTrackedEntity() != null) {
       return TrackedEntity.builder().trackedEntity(item.getTrackedEntity()).build();
-    } else if (StringUtils.isNotEmpty(item.getEnrollment())) {
+    } else if (item.getEnrollment() != null) {
       return Enrollment.builder().enrollment(item.getEnrollment()).build();
-    } else if (StringUtils.isNotEmpty(item.getEvent())) {
-      return Event.builder().event(UID.of(item.getEvent())).build();
+    } else if (item.getEvent() != null) {
+      return Event.builder().event(item.getEvent()).build();
     }
     // only reached if a new TrackerDto implementation is added
     throw new IllegalStateException("TrackerType for relationship item not yet supported.");
