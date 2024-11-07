@@ -41,6 +41,6 @@ public class UIDStdSerializer extends StdSerializer<UID> {
   @Override
   public void serialize(UID uid, JsonGenerator gen, SerializerProvider provider)
       throws IOException {
-    gen.writeString(uid == null ? "" : uid.toString());
+    gen.writeString(uid == null ? null : uid.toString());
   }
 }

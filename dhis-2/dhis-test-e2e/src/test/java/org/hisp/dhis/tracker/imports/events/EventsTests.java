@@ -138,32 +138,6 @@ class EventsTests extends TrackerApiTest {
   }
 
   @Test
-  void eventsImportNewEventsWithInvalidUidForJson() throws Exception {
-    Object obj =
-        new FileReaderUtils()
-            .read(new File("src/test/resources/tracker/importer/events/event.json"))
-            .replacePropertyValuesWith("event", "invalid_uid")
-            .get();
-
-    ApiResponse response =
-        trackerImportExportActions.post(
-            "",
-            ContentType.JSON.toString(),
-            obj,
-            new QueryParamsBuilder()
-                .addAll("dryRun=false", "eventIdScheme=UID", "orgUnitIdScheme=UID"));
-    response
-        .validate()
-        .statusCode(400)
-        .body("status", equalTo("ERROR"))
-        .body(
-            "message",
-            equalTo(
-                "JSON parse error: Cannot construct instance of `org.hisp.dhis.common.UID`, problem: UID must be an alphanumeric string of 11 characters starting with a letter."));
-    ;
-  }
-
-  @Test
   void eventsImportNewEventsWithInvalidUidForCSV() throws Exception {
     Object obj =
         new FileReaderUtils()
@@ -172,12 +146,7 @@ class EventsTests extends TrackerApiTest {
             .get();
 
     ApiResponse response =
-        trackerImportExportActions.post(
-            "",
-            "text/csv",
-            obj,
-            new QueryParamsBuilder()
-                .addAll("dryRun=false", "eventIdScheme=UID", "orgUnitIdScheme=UID"));
+        trackerImportExportActions.post("", "text/csv", obj, new QueryParamsBuilder());
     response
         .validate()
         .statusCode(400)

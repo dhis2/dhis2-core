@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
+import javax.annotation.CheckForNull;
 import org.hisp.dhis.common.UID;
 import org.mapstruct.Mapper;
 
@@ -37,7 +38,8 @@ import org.mapstruct.Mapper;
  */
 @Mapper
 public interface UIDMapper {
-  default UID fromString(String stringUid) {
-    return stringUid == null ? null : UID.of(stringUid);
+  @CheckForNull
+  default UID fromString(@CheckForNull String uid) {
+    return uid == null ? null : UID.of(uid);
   }
 }

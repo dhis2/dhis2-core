@@ -515,7 +515,7 @@ public class CrudControllerAdvice {
   }
 
   /**
-   * Handles {@link RuntimeJsonMappingException} and logs the stack trace to standard error. {@link
+   * Handles {@link RuntimeJsonMappingException} and logs the stack trace. {@link
    * RuntimeJsonMappingException} is used in DHIS 2 application code but also by various frameworks
    * to indicate parsing errors, so stack trace must be printed and not swallowed.
    */
