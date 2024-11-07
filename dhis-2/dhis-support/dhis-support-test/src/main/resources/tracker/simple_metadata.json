@@ -5,21 +5,20 @@
       "categoryOptionAttribute": true,
       "categoryOptionComboAttribute": true,
       "dataElementAttribute": true,
-      "mandatory": false,
-      "name": "some attribute",
       "organisationUnitAttribute": true,
       "programAttribute": true,
       "programStageAttribute": true,
-      "relationshipTypeAttribute": true,
+      "trackedEntityAttributeAttribute": false,
+      "trackedEntityTypeAttribute": false,
+      "mandatory": false,
+      "name": "idScheme related attribute",
       "sharing": {
         "owner": "PQD6wXJ2r5j",
         "public": "rw------",
         "userGroups": {},
         "users": {}
       },
-      "trackedEntityAttributeAttribute": true,
-      "trackedEntityTypeAttribute": true,
-      "unique": true,
+      "unique": false,
       "valueType": "TEXT"
     }
   ],
@@ -112,7 +111,14 @@
   "categoryOptionCombos": [
     {
       "id": "HllvX50cXC0",
-      "attributeValues": [],
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "categoryOptionCombo HllvX50cXC0"
+        }
+      ],
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
@@ -121,9 +127,9 @@
           "id": "xYerKDKCefk"
         }
       ],
-      "code": "default",
+      "code": "HllvX50cXC0 code",
       "ignoreApproval": false,
-      "name": "default",
+      "name": "HllvX50cXC0 name",
       "translations": []
     },
     {

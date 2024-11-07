@@ -115,7 +115,10 @@ interface RelationshipItemMapper {
   @Mapping(target = "createdAtClient", source = "createdAtClient")
   @Mapping(target = "updatedAt", source = "lastUpdated")
   @Mapping(target = "updatedAtClient", source = "lastUpdatedAtClient")
-  @Mapping(target = "attributeOptionCombo", source = "attributeOptionCombo.uid")
+  @Mapping(
+      target = "attributeOptionCombo",
+      source = "attributeOptionCombo",
+      qualifiedByName = "categoryOptionComboToString")
   @Mapping(
       target = "attributeCategoryOptions",
       source = "attributeOptionCombo.categoryOptions",

@@ -212,8 +212,9 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
             program,
             "programStage",
             programStage,
-            "attributeCategoryOptions", // TODO(ivo) the event.field does not map directly to the
-            // idScheme param
+            "attributeOptionCombo",
+            categoryOptionCombo,
+            "attributeCategoryOptions",
             categoryOption);
     String fields = metadata.keySet().stream().collect(Collectors.joining(","));
     Map<String, String> idSchemeParams =
