@@ -29,12 +29,82 @@ package org.hisp.dhis.webapi.controller.tracker.view;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
+import java.util.Objects;
 
-public record EventChangeLog(
-    @JsonProperty User createdBy,
-    @JsonProperty Date createdAt,
-    @JsonProperty String type,
-    @JsonProperty Change change) {
+public final class EventChangeLog {
+
+  @JsonProperty private final User createdBy;
+  @JsonProperty private final Date createdAt;
+  @JsonProperty private final String type;
+  @JsonProperty private final Change change;
+
+  public EventChangeLog(
+      @JsonProperty User createdBy,
+      @JsonProperty Date createdAt,
+      @JsonProperty String type,
+      @JsonProperty Change change) {
+    this.createdBy = createdBy;
+    this.createdAt = createdAt;
+    this.type = type;
+    this.change = change;
+  }
+
+  @JsonProperty
+  public User createdBy() {
+    return createdBy;
+  }
+
+  @JsonProperty
+  public Date createdAt() {
+    return createdAt;
+  }
+
+  @JsonProperty
+  public String type() {
+    return type;
+  }
+
+  @JsonProperty
+  public Change change() {
+    return change;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (obj == null || obj.getClass() != this.getClass()) {
+      return false;
+    }
+    var that = (EventChangeLog) obj;
+    return Objects.equals(this.createdBy, that.createdBy)
+        && Objects.equals(this.createdAt, that.createdAt)
+        && Objects.equals(this.type, that.type)
+        && Objects.equals(this.change, that.change);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(createdBy, createdAt, type, change);
+  }
+
+  @Override
+  public String toString() {
+    return "EventChangeLog["
+        + "createdBy="
+        + createdBy
+        + ", "
+        + "createdAt="
+        + createdAt
+        + ", "
+        + "type="
+        + type
+        + ", "
+        + "change="
+        + change
+        + ']';
+  }
 
   public record Change(@JsonProperty DataValueChange dataValue) {}
 

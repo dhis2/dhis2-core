@@ -48,10 +48,10 @@ public interface EventChangeLogMapper extends ViewMapper<EventChangeLogDto, Even
   @Named("mapUser")
   default User mapUser(EventChangeLogDto dto) {
     return User.builder()
-        .uid(dto.userUid())
-        .username(dto.username())
-        .firstName(dto.firstName())
-        .surname(dto.surname())
+        .uid(dto.getUserUid())
+        .username(dto.getUsername())
+        .firstName(dto.getFirstName())
+        .surname(dto.getSurname())
         .build();
   }
 
