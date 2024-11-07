@@ -49,7 +49,7 @@ jobs:
             mvn clean verify --threads 2C --batch-mode --no-transfer-progress \
               -DskipTests --update-snapshots --file dhis-2/pom.xml \
               --projects dhis-web-server --also-make --activate-profiles jibDockerBuild \
-              -Djib.to.image=$CORE_IMAGE_NAME
+              -Djib.to.image=$CORE_IMAGE_NAME -Dmapstruct.verbose=true
           fi
 
       - name: Run tests
