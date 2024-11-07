@@ -37,6 +37,7 @@ import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.enrollment.EnrollmentMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.relationship.RelationshipMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -45,6 +46,7 @@ import org.mapstruct.Mapping;
       AttributeMapper.class,
       EnrollmentMapper.class,
       InstantMapper.class,
+      UIDMapper.class,
       ProgramOwnerMapper.class,
       RelationshipMapper.class,
       UserMapper.class

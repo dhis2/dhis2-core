@@ -42,7 +42,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.test.TestBase;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -192,8 +192,7 @@ class RepeatedEventsValidatorTest extends TestBase {
     bundle.setEvents(events);
     events.forEach(e -> bundle.setStrategy(e, TrackerImportStrategy.CREATE_AND_UPDATE));
     reporter.addError(
-        new Error(
-            "", E9999, invalidEvent.getTrackerType(), invalidEvent.getUid().getValue(), List.of()));
+        new Error("", E9999, invalidEvent.getTrackerType(), invalidEvent.getUid(), List.of()));
 
     validator.validate(reporter, bundle, bundle.getEvents());
 

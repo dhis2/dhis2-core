@@ -63,9 +63,9 @@ class ValidationExecutorTest extends TestBase {
 
   private static final String EVALUATED_DATA = "4.0";
 
-  private static final String ACTIVE_ENROLLMENT_ID = "ActiveEnrollmentUid";
+  private static final UID ACTIVE_ENROLLMENT_ID = UID.generate();
 
-  private static final String COMPLETED_ENROLLMENT_ID = "CompletedEnrollmentUid";
+  private static final UID COMPLETED_ENROLLMENT_ID = UID.generate();
 
   private final ShowWarningOnCompleteExecutor warningOnCompleteExecutor =
       new ShowWarningOnCompleteExecutor(

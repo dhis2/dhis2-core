@@ -49,8 +49,8 @@ import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -167,7 +167,7 @@ class MessageFormatterTest {
   void formatArgumentsShouldTurnTrackedEntityIntoArguments() {
     List<String> args =
         MessageFormatter.formatArguments(
-            idSchemes, TrackedEntity.builder().trackedEntity("zwccdzhk5zc").build());
+            idSchemes, TrackedEntity.builder().trackedEntity(UID.of("zwccdzhk5zc")).build());
 
     assertContainsOnly(List.of("zwccdzhk5zc"), args);
   }
@@ -176,7 +176,7 @@ class MessageFormatterTest {
   void formatArgumentsShouldTurnEnrollmentIntoArguments() {
     List<String> args =
         MessageFormatter.formatArguments(
-            idSchemes, Enrollment.builder().enrollment("zwccdzhk5zc").build());
+            idSchemes, Enrollment.builder().enrollment(UID.of("zwccdzhk5zc")).build());
 
     assertContainsOnly(List.of("zwccdzhk5zc"), args);
   }

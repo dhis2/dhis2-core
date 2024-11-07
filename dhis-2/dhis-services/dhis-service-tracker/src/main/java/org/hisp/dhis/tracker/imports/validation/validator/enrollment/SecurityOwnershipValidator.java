@@ -33,6 +33,7 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
@@ -112,7 +113,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
         .map(
             entity -> {
               TrackedEntity newEntity = new TrackedEntity();
-              newEntity.setUid(entity.getStringUid());
+              newEntity.setUid(entity.getUid().getValue());
               newEntity.setOrganisationUnit(
                   bundle.getPreheat().getOrganisationUnit(entity.getOrgUnit()));
               return newEntity;
@@ -120,7 +121,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
         .orElseGet(
             () -> {
               TrackedEntity newEntity = new TrackedEntity();
-              newEntity.setUid(enrollment.getTrackedEntity());
+              newEntity.setUid(enrollment.getTrackedEntity().getValue());
               return newEntity;
             });
   }
@@ -128,7 +129,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
   private OrganisationUnit getOwnerOrganisationUnit(
       TrackerPreheat preheat, TrackedEntity trackedEntity, Program program) {
     Map<String, TrackedEntityProgramOwnerOrgUnit> programOwner =
-        preheat.getProgramOwner().get(trackedEntity.getUid());
+        preheat.getProgramOwner().get(UID.of(trackedEntity));
     if (programOwner == null || programOwner.get(program.getUid()) == null) {
       return trackedEntity.getOrganisationUnit();
     } else {
@@ -136,7 +137,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
     }
   }
 
-  private boolean enrollmentHasEvents(TrackerPreheat preheat, String enrollmentUid) {
+  private boolean enrollmentHasEvents(TrackerPreheat preheat, UID enrollmentUid) {
     return preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent().contains(enrollmentUid);
   }
 

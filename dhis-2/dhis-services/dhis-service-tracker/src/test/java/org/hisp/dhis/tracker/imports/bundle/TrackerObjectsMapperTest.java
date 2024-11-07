@@ -54,7 +54,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -62,7 +62,6 @@ import org.hisp.dhis.tracker.imports.util.RelationshipKeySupport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.util.ObjectUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -71,15 +70,15 @@ class TrackerObjectsMapperTest extends TestBase {
 
   private static final Date YESTERDAY = DateUtils.addDays(NOW, -1);
 
-  private static final String TE_UID = CodeGenerator.generateUid();
+  private static final UID TE_UID = UID.generate();
 
   private static final UID ENROLLMENT_UID = UID.generate();
 
   private static final UID EVENT_UID = UID.generate();
 
-  private static final String RELATIONSHIP_UID = CodeGenerator.generateUid();
+  private static final UID RELATIONSHIP_UID = UID.generate();
 
-  private static final String NOTE_UID = CodeGenerator.generateUid();
+  private static final UID NOTE_UID = UID.generate();
 
   private static final String PROGRAM_STAGE_UID = CodeGenerator.generateUid();
 
@@ -198,7 +197,7 @@ class TrackerObjectsMapperTest extends TestBase {
     preheat.putTrackedEntities(List.of(trackedEntity()));
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(ENROLLMENT_UID.getValue())
+            .enrollment(ENROLLMENT_UID)
             .trackedEntity(TE_UID)
             .orgUnit(MetadataIdentifier.ofUid(organisationUnit))
             .program(MetadataIdentifier.ofUid(program))
@@ -224,7 +223,7 @@ class TrackerObjectsMapperTest extends TestBase {
     preheat.putTrackedEntities(List.of(trackedEntity()));
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(ENROLLMENT_UID.getValue())
+            .enrollment(ENROLLMENT_UID)
             .trackedEntity(TE_UID)
             .orgUnit(MetadataIdentifier.ofUid(organisationUnit))
             .program(MetadataIdentifier.ofUid(program))
@@ -251,7 +250,7 @@ class TrackerObjectsMapperTest extends TestBase {
     preheat.putEnrollments(List.of(savedEnrollment));
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(ENROLLMENT_UID.getValue())
+            .enrollment(ENROLLMENT_UID)
             .trackedEntity(TE_UID)
             .orgUnit(MetadataIdentifier.ofUid(organisationUnit))
             .program(MetadataIdentifier.ofUid(program))
@@ -278,7 +277,7 @@ class TrackerObjectsMapperTest extends TestBase {
     preheat.putEnrollments(List.of(savedEnrollment));
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(ENROLLMENT_UID.getValue())
+            .enrollment(ENROLLMENT_UID)
             .trackedEntity(TE_UID)
             .orgUnit(MetadataIdentifier.ofUid(organisationUnit))
             .program(MetadataIdentifier.ofUid(program))
@@ -305,7 +304,7 @@ class TrackerObjectsMapperTest extends TestBase {
     preheat.putEnrollments(List.of(savedEnrollment));
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(ENROLLMENT_UID.getValue())
+            .enrollment(ENROLLMENT_UID)
             .trackedEntity(TE_UID)
             .orgUnit(MetadataIdentifier.ofUid(organisationUnit))
             .program(MetadataIdentifier.ofUid(program))
@@ -470,7 +469,7 @@ class TrackerObjectsMapperTest extends TestBase {
             .relationship(RELATIONSHIP_UID)
             .relationshipType(MetadataIdentifier.ofUid(TE_TO_ENROLLMENT_RELATIONSHIP_TYPE))
             .from(RelationshipItem.builder().trackedEntity(TE_UID).build())
-            .to(RelationshipItem.builder().enrollment(ENROLLMENT_UID.getValue()).build())
+            .to(RelationshipItem.builder().enrollment(ENROLLMENT_UID).build())
             .build();
 
     org.hisp.dhis.relationship.Relationship dbRelationship =
@@ -488,7 +487,7 @@ class TrackerObjectsMapperTest extends TestBase {
             .relationship(RELATIONSHIP_UID)
             .relationshipType(MetadataIdentifier.ofUid(TE_TO_EVENT_RELATIONSHIP_TYPE))
             .from(RelationshipItem.builder().trackedEntity(TE_UID).build())
-            .to(RelationshipItem.builder().event(EVENT_UID.getValue()).build())
+            .to(RelationshipItem.builder().event(EVENT_UID).build())
             .build();
 
     org.hisp.dhis.relationship.Relationship dbRelationship =
@@ -500,8 +499,8 @@ class TrackerObjectsMapperTest extends TestBase {
   @Test
   void testMapRelationshipFromTEToTE() {
     TrackedEntity toTrackedEntity = trackedEntity();
-    String toTrackedEntityUid = CodeGenerator.generateUid();
-    toTrackedEntity.setUid(toTrackedEntityUid);
+    UID toTrackedEntityUid = UID.generate();
+    toTrackedEntity.setUid(toTrackedEntityUid.getValue());
     preheat.putTrackedEntities(List.of(toTrackedEntity, trackedEntity()));
     org.hisp.dhis.tracker.imports.domain.Relationship relationship =
         org.hisp.dhis.tracker.imports.domain.Relationship.builder()
@@ -522,7 +521,7 @@ class TrackerObjectsMapperTest extends TestBase {
       TrackedEntity actual,
       UserDetails createdBy,
       UserDetails updatedBy) {
-    assertEquals(trackedEntity.getStringUid(), actual.getUid());
+    assertEqualUids(trackedEntity.getTrackedEntity(), actual);
     assertEquals(trackedEntity.getOrgUnit().getIdentifier(), actual.getOrganisationUnit().getUid());
     assertEquals(
         trackedEntity.getTrackedEntityType().getIdentifier(),
@@ -544,8 +543,8 @@ class TrackerObjectsMapperTest extends TestBase {
       Enrollment actual,
       UserDetails createdBy,
       UserDetails updatedBy) {
-    assertEquals(enrollment.getStringUid(), actual.getUid());
-    assertEquals(enrollment.getTrackedEntity(), actual.getTrackedEntity().getUid());
+    assertEqualUids(enrollment.getEnrollment(), actual);
+    assertEqualUids(enrollment.getTrackedEntity(), actual.getTrackedEntity());
     assertEquals(enrollment.getOrgUnit().getIdentifier(), actual.getOrganisationUnit().getUid());
     assertEquals(enrollment.getProgram().getIdentifier(), actual.getProgram().getUid());
     assertEquals(UserInfoSnapshot.from(createdBy), actual.getCreatedByUserInfo());
@@ -588,30 +587,32 @@ class TrackerObjectsMapperTest extends TestBase {
       org.hisp.dhis.tracker.imports.domain.Relationship relationship,
       Relationship actual,
       UserDetails createdBy) {
-    assertEquals(relationship.getStringUid(), actual.getUid());
+    assertEqualUids(relationship.getRelationship(), actual);
     assertEquals(createdBy.getUid(), actual.getLastUpdatedBy().getUid());
     assertEquals(
         DateUtils.fromInstant(relationship.getCreatedAtClient()), actual.getCreatedAtClient());
     assertEquals(
         relationship.getRelationshipType().getIdentifier(), actual.getRelationshipType().getUid());
-    assertEquals(
-        relationship.getFrom().getTrackedEntity(),
-        ObjectUtils.applyIfNotNull(actual.getFrom().getTrackedEntity(), TrackedEntity::getUid));
-    assertEquals(
-        relationship.getFrom().getEnrollment(),
-        ObjectUtils.applyIfNotNull(actual.getFrom().getEnrollment(), Enrollment::getUid));
-    assertEquals(
-        relationship.getFrom().getEvent(),
-        ObjectUtils.applyIfNotNull(actual.getFrom().getEvent(), Event::getUid));
-    assertEquals(
-        relationship.getTo().getTrackedEntity(),
-        ObjectUtils.applyIfNotNull(actual.getTo().getTrackedEntity(), TrackedEntity::getUid));
-    assertEquals(
-        relationship.getTo().getEnrollment(),
-        ObjectUtils.applyIfNotNull(actual.getTo().getEnrollment(), Enrollment::getUid));
-    assertEquals(
-        relationship.getTo().getEvent(),
-        ObjectUtils.applyIfNotNull(actual.getTo().getEvent(), Event::getUid));
+    switch (actual.getRelationshipType().getFromConstraint().getRelationshipEntity()) {
+      case TRACKED_ENTITY_INSTANCE ->
+          assertEqualUids(
+              relationship.getFrom().getTrackedEntity(), actual.getFrom().getTrackedEntity());
+      case PROGRAM_INSTANCE ->
+          assertEqualUids(relationship.getFrom().getEnrollment(), actual.getFrom().getEnrollment());
+      case PROGRAM_STAGE_INSTANCE ->
+          assertEqualUids(relationship.getFrom().getEvent(), actual.getFrom().getEvent());
+    }
+
+    switch (actual.getRelationshipType().getToConstraint().getRelationshipEntity()) {
+      case TRACKED_ENTITY_INSTANCE ->
+          assertEqualUids(
+              relationship.getTo().getTrackedEntity(), actual.getTo().getTrackedEntity());
+      case PROGRAM_INSTANCE ->
+          assertEqualUids(relationship.getTo().getEnrollment(), actual.getTo().getEnrollment());
+      case PROGRAM_STAGE_INSTANCE ->
+          assertEqualUids(relationship.getTo().getEvent(), actual.getTo().getEvent());
+    }
+
     RelationshipKey relationshipKey =
         RelationshipKeySupport.getRelationshipKey(relationship, actual.getRelationshipType());
     assertEquals(relationshipKey.asString(), actual.getKey());
@@ -624,7 +625,10 @@ class TrackerObjectsMapperTest extends TestBase {
       UserDetails updatedBy) {
     for (org.hisp.dhis.tracker.imports.domain.Note note : notes) {
       Note dbNote =
-          dbNotes.stream().filter(n -> n.getUid().equals(note.getNote())).findFirst().orElse(null);
+          dbNotes.stream()
+              .filter(n -> n.getUid().equals(note.getNote().getValue()))
+              .findFirst()
+              .orElse(null);
       assertNotNull(dbNote);
       assertEquals(note.getValue(), dbNote.getNoteText());
       assertEquals(note.getStoredBy(), dbNote.getCreator());
@@ -634,7 +638,7 @@ class TrackerObjectsMapperTest extends TestBase {
 
   private TrackedEntity trackedEntity() {
     TrackedEntity dbTrackedEntity = new TrackedEntity();
-    dbTrackedEntity.setUid(TE_UID);
+    dbTrackedEntity.setUid(TE_UID.getValue());
     dbTrackedEntity.setCreated(NOW);
     dbTrackedEntity.setCreatedByUserInfo(UserInfoSnapshot.from(creatingUser));
 

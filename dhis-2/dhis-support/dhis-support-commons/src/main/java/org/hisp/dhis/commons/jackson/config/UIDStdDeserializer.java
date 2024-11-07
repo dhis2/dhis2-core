@@ -25,26 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat;
+package org.hisp.dhis.commons.jackson.config;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import java.io.IOException;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.UID;
 
-@Getter
-@RequiredArgsConstructor
-public class ReferenceTrackerEntity {
-  /**
-   * Reference uid: this correspond to the UID of a TE, PS or event from the tracker import payload
-   */
-  private final String uid;
+public class UIDStdDeserializer extends StdDeserializer<UID> {
+  public UIDStdDeserializer() {
+    super(UID.class);
+  }
 
-  /**
-   * Reference uid of the parent object of this Reference. This is only populated if uid references
-   * a ProgramStage or an Event
-   */
-  private final String parentUid;
+  @Override
+  public UID deserialize(JsonParser parser, DeserializationContext context) throws IOException {
+    String valueAsString = parser.getText();
 
-  public boolean isRoot() {
-    return this.parentUid.equals("ROOT");
+    if (StringUtils.isNotBlank(valueAsString)) {
+      try {
+        return UID.of(valueAsString);
+      } catch (Exception e) {
+        throw new JsonParseException(parser, e.getMessage());
+      }
+    }
+    return null;
   }
 }

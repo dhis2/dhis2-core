@@ -86,14 +86,14 @@ class SmsImportMapperTest extends TestBase {
                     Enrollment.builder()
                         .orgUnit(MetadataIdentifier.ofUid(input.getOrgUnit().getUid()))
                         .program(MetadataIdentifier.ofUid(input.getTrackerProgram().getUid()))
-                        .trackedEntity(input.getTrackedEntityInstance().getUid())
-                        .enrollment(input.getEnrollment().getUid())
+                        .trackedEntity(UID.of(input.getTrackedEntityInstance().getUid()))
+                        .enrollment(UID.of(input.getEnrollment().getUid()))
                         .status(EnrollmentStatus.COMPLETED)
                         .build()))
             .trackedEntities(
                 List.of(
                     TrackedEntity.builder()
-                        .trackedEntity(input.getTrackedEntityInstance().getUid())
+                        .trackedEntity(UID.of(input.getTrackedEntityInstance().getUid()))
                         .orgUnit(MetadataIdentifier.ofUid(input.getOrgUnit().getUid()))
                         .trackedEntityType(
                             MetadataIdentifier.ofUid(input.getTrackedEntityType().getUid()))
@@ -123,14 +123,14 @@ class SmsImportMapperTest extends TestBase {
                     Enrollment.builder()
                         .orgUnit(MetadataIdentifier.ofUid(input.getOrgUnit().getUid()))
                         .program(MetadataIdentifier.ofUid(input.getTrackerProgram().getUid()))
-                        .trackedEntity(input.getTrackedEntityInstance().getUid())
-                        .enrollment(input.getEnrollment().getUid())
+                        .trackedEntity(UID.of(input.getTrackedEntityInstance().getUid()))
+                        .enrollment(UID.of(input.getEnrollment().getUid()))
                         .status(EnrollmentStatus.COMPLETED)
                         .build()))
             .trackedEntities(
                 List.of(
                     TrackedEntity.builder()
-                        .trackedEntity(input.getTrackedEntityInstance().getUid())
+                        .trackedEntity(UID.of(input.getTrackedEntityInstance().getUid()))
                         .orgUnit(MetadataIdentifier.ofUid(input.getOrgUnit().getUid()))
                         .trackedEntityType(
                             MetadataIdentifier.ofUid(input.getTrackedEntityType().getUid()))
@@ -168,8 +168,8 @@ class SmsImportMapperTest extends TestBase {
             Enrollment.builder()
                 .orgUnit(MetadataIdentifier.ofUid(input.getOrgUnit().getUid()))
                 .program(MetadataIdentifier.ofUid(input.getTrackerProgram().getUid()))
-                .trackedEntity(input.getTrackedEntityInstance().getUid())
-                .enrollment(input.getEnrollment().getUid())
+                .trackedEntity(UID.of(input.getTrackedEntityInstance().getUid()))
+                .enrollment(UID.of(input.getEnrollment().getUid()))
                 .enrolledAt(enrollmentDate.toInstant())
                 .occurredAt(occurredDate.toInstant())
                 .status(EnrollmentStatus.CANCELLED)

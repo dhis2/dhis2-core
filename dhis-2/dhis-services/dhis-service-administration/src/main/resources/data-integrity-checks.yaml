@@ -7,6 +7,7 @@ checks:
   - categories/categories_unique_category_combo.yaml
   - categories/category_combos_unused.yaml
   - categories/categories_same_category_options.yaml
+  - categories/category_option_combos_have_duplicates.yaml
   - categories/category_option_combinations_cardinality.yaml
   - categories/categories_shared_category_options_in_combo.yaml
   - categories/category_option_combinations_disjoint.yaml
@@ -15,6 +16,7 @@ checks:
   - categories/category_option_groups_excess_members.yaml
   - categories/category_option_groups_sets_incomplete.yaml
   - categories/invalid_category_combos.yaml
+  - categories/categories_dimensions_no_visualizations.yaml
   - datasets/datasets_empty.yaml
   - datasets/datasets_not_assigned_to_org_units.yaml
   - orgunits/compulsory_orgunit_groups.yaml
