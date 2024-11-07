@@ -147,7 +147,7 @@ public class ConstraintValidator implements Validator<Relationship> {
           relSide,
           TrackerType.EVENT.getName(),
           relationshipItemValueType(item).getName());
-    } else if (!eventExist(bundle, UID.of(item.getEvent()))) {
+    } else if (!eventExist(bundle, item.getEvent())) {
       reporter.addError(relationship, E4012, TrackerType.EVENT.getName(), item.getEvent());
     }
   }
@@ -174,13 +174,13 @@ public class ConstraintValidator implements Validator<Relationship> {
   }
 
   private Optional<MetadataIdentifier> getRelationshipTypeUidFromTrackedEntity(
-      TrackerBundle bundle, String uid) {
+      TrackerBundle bundle, UID uid) {
     return getTrackedEntityTypeFromTrackedEntity(bundle, uid)
         .or(() -> getTrackedEntityTypeFromTrackedEntityRef(bundle, uid));
   }
 
   private Optional<MetadataIdentifier> getTrackedEntityTypeFromTrackedEntity(
-      TrackerBundle bundle, String uid) {
+      TrackerBundle bundle, UID uid) {
     final TrackedEntity trackedEntity = bundle.getPreheat().getTrackedEntity(uid);
 
     return trackedEntity != null
@@ -193,7 +193,7 @@ public class ConstraintValidator implements Validator<Relationship> {
   }
 
   private Optional<MetadataIdentifier> getTrackedEntityTypeFromTrackedEntityRef(
-      TrackerBundle bundle, String uid) {
+      TrackerBundle bundle, UID uid) {
     final Optional<org.hisp.dhis.tracker.imports.domain.TrackedEntity> payloadTei =
         bundle.findTrackedEntityByUid(uid);
     return payloadTei.map(org.hisp.dhis.tracker.imports.domain.TrackedEntity::getTrackedEntityType);

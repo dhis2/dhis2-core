@@ -37,9 +37,5 @@ public interface TrackerDto {
 
   UID getUid();
 
-  // Temporary method to make it possible to transition one entity at a time
-  @Deprecated(forRemoval = true)
-  String getStringUid();
-
   TrackerType getTrackerType();
 }

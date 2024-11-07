@@ -33,7 +33,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -57,23 +57,23 @@ public class NoteStrategy extends HibernateGenericStore<Note>
 
   @Override
   public void add(List<List<String>> splitList, TrackerPreheat preheat) {
-    List<String> uids =
-        splitList.stream().flatMap(Collection::stream).filter(CodeGenerator::isValidUid).toList();
+    List<UID> uids = splitList.stream().flatMap(Collection::stream).map(UID::of).toList();
 
     preheat.addNotes(getExistingNotes(uids));
   }
 
-  private Set<String> getExistingNotes(List<String> uids) {
-    Set<String> notes = new HashSet<>();
-    List<List<String>> uidsPartitions = Lists.partition(uids, 20000);
+  private Set<UID> getExistingNotes(List<UID> uids) {
+    Set<UID> notes = new HashSet<>();
+    List<List<UID>> uidsPartitions = Lists.partition(uids, 20000);
 
-    for (List<String> uidsPartition : uidsPartitions) {
+    for (List<UID> uidsPartition : uidsPartitions) {
       if (!uidsPartition.isEmpty()) {
         notes.addAll(
-            getSession()
-                .createQuery("select n.uid from Note as n where n.uid in (:uids)", String.class)
-                .setParameter("uids", uidsPartition)
-                .list());
+            UID.of(
+                getSession()
+                    .createQuery("select n.uid from Note as n where n.uid in (:uids)", String.class)
+                    .setParameter("uids", UID.toValueList(uidsPartition))
+                    .list()));
       }
     }
 

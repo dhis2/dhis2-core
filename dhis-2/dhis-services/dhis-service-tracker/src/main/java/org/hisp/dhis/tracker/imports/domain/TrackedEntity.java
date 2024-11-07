@@ -48,7 +48,7 @@ import org.locationtech.jts.geom.Geometry;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TrackedEntity implements TrackerDto, Serializable {
-  @JsonProperty private String trackedEntity;
+  @JsonProperty private UID trackedEntity;
 
   @JsonProperty private MetadataIdentifier trackedEntityType;
 
@@ -70,11 +70,6 @@ public class TrackedEntity implements TrackerDto, Serializable {
 
   @Override
   public UID getUid() {
-    return UID.of(trackedEntity);
-  }
-
-  @Override
-  public String getStringUid() {
     return trackedEntity;
   }
 

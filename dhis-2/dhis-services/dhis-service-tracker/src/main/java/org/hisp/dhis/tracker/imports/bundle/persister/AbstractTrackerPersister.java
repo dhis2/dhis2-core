@@ -51,12 +51,12 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLog;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.FlushMode;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
@@ -107,7 +107,7 @@ public abstract class AbstractTrackerPersister<
 
     for (T trackerDto : dtos) {
 
-      Entity objectReport = new Entity(getType(), trackerDto.getStringUid());
+      Entity objectReport = new Entity(getType(), trackerDto.getUid());
       List<NotificationTrigger> triggers =
           determineNotificationTriggers(bundle.getPreheat(), trackerDto);
 
@@ -171,7 +171,7 @@ public abstract class AbstractTrackerPersister<
                 + trackerDto.getUid()
                 + ") failed to persist.";
 
-        if (bundle.getAtomicMode().equals(AtomicMode.ALL)) {
+        if (AtomicMode.ALL.equals(bundle.getAtomicMode())) {
           throw new PersistenceException(msg, e);
         } else {
           // TODO currently we do not keep track of the failed entity
@@ -250,13 +250,13 @@ public abstract class AbstractTrackerPersister<
   @SuppressWarnings("unchecked")
   private List<T> getByType(TrackerType type, TrackerBundle bundle) {
 
-    if (type.equals(TrackerType.TRACKED_ENTITY)) {
+    if (TrackerType.TRACKED_ENTITY.equals(type)) {
       return (List<T>) bundle.getTrackedEntities();
-    } else if (type.equals(TrackerType.ENROLLMENT)) {
+    } else if (TrackerType.ENROLLMENT.equals(type)) {
       return (List<T>) bundle.getEnrollments();
-    } else if (type.equals(TrackerType.EVENT)) {
+    } else if (TrackerType.EVENT.equals(type)) {
       return (List<T>) bundle.getEvents();
-    } else if (type.equals(TrackerType.RELATIONSHIP)) {
+    } else if (TrackerType.RELATIONSHIP.equals(type)) {
       return (List<T>) bundle.getRelationships();
     } else {
       return new ArrayList<>();
