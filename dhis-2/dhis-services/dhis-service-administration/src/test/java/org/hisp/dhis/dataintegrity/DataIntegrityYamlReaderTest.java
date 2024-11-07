@@ -146,18 +146,17 @@ class DataIntegrityYamlReaderTest {
   void testChecksHaveTranslations() {
     ResourceBundle resourceBundle = ResourceBundle.getBundle("i18n_global");
 
-    List<String> translations_suffix = new ArrayList<>();
-    translations_suffix.add("name");
+    List<String> translationsSuffix = new ArrayList<>();
     /* Require the name only for now, but we can add the other translations strings later when needed.
-    translations_suffix.add("description");
-    translations_suffix.add("section");
-    translations_suffix.add("recommendation");*/
+    e.g. description, introduction, recommendation, section
+     */
+    translationsSuffix.add("name");
 
     List<DataIntegrityCheck> checks = new ArrayList<>();
     readYaml(checks, "data-integrity-checks.yaml", "data-integrity-checks", CLASS_PATH);
     // Check for names
     for (DataIntegrityCheck check : checks) {
-      for (String suffix : translations_suffix) {
+      for (String suffix : translationsSuffix) {
         String translationKey = "data_integrity." + check.getName() + "." + suffix;
         assertTrue(
             resourceBundle.containsKey(translationKey),
