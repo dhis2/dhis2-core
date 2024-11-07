@@ -347,11 +347,9 @@ public class EventPersister
       return null;
     }
 
-    return geometry == null
-        ? null
-        : Stream.of(geometry.getCoordinates())
-            .map(c -> String.format("(%f, %f)", c.x, c.y))
-            .collect(Collectors.joining(", "));
+    return Stream.of(geometry.getCoordinates())
+        .map(c -> String.format("(%f, %f)", c.x, c.y))
+        .collect(Collectors.joining(", "));
   }
 
   private <V> boolean isNewProperty(
