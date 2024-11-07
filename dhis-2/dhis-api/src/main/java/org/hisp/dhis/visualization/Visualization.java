@@ -62,6 +62,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.analytics.NumberType;
 import org.hisp.dhis.category.CategoryCombo;
@@ -1367,6 +1368,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
    *
    * @param grid the grid, should be empty and not null.
    * @param valueMap the mapping of identifiers to aggregate values.
+   * @param alternativeGridItems the alternate grid items to use for populating the grid.
    * @param displayProperty the display property to use for meta data.
    * @param reportParamColumns whether to include report parameter columns.
    * @return a grid.
@@ -1374,6 +1376,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   public Grid getGrid(
       final Grid grid,
       Map<String, Object> valueMap,
+      AlternativeGridItems alternativeGridItems,
       final DisplayProperty displayProperty,
       final boolean reportParamColumns) {
     valueMap = getSortedKeysMap(valueMap);
@@ -1424,6 +1427,16 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
     final int startColumnIndex = grid.getHeaders().size();
     final int numberOfColumns = getGridColumns().size();
+
+    List<List<DimensionalItemObject>> gridColumns =
+        Optional.ofNullable(alternativeGridItems)
+            .map(AlternativeGridItems::getColumns)
+            .orElse(this.gridColumns);
+
+    List<List<DimensionalItemObject>> gridRows =
+        Optional.ofNullable(alternativeGridItems)
+            .map(AlternativeGridItems::getRows)
+            .orElse(this.gridRows);
 
     for (List<DimensionalItemObject> column : gridColumns) {
       grid.addHeader(
@@ -1518,6 +1531,23 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
       addHierarchyColumns(grid, ouIdColumnIndex);
     }
     return grid;
+  }
+
+  /**
+   * Generates a grid for this visualization based on the given aggregate value map.
+   *
+   * @param grid the grid, should be empty and not null.
+   * @param valueMap the mapping of identifiers to aggregate values.
+   * @param displayProperty the display property to use for meta data.
+   * @param reportParamColumns whether to include report parameter columns.
+   * @return a grid.
+   */
+  public Grid getGrid(
+      final Grid grid,
+      Map<String, Object> valueMap,
+      final DisplayProperty displayProperty,
+      final boolean reportParamColumns) {
+    return getGrid(grid, valueMap, null, displayProperty, reportParamColumns);
   }
 
   /** Indicates whether this visualization is multi-dimensional. */

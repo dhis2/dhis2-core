@@ -36,8 +36,13 @@ import static org.hisp.dhis.commons.collection.ListUtils.removeEmptys;
 import static org.hisp.dhis.visualization.Visualization.addListIfEmpty;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.AnalyticsService;
@@ -54,6 +59,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.visualization.AlternativeGridItems;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,6 +70,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.analytics.AnalyticsService")
 @RequiredArgsConstructor
 public class DefaultAnalyticsService implements AnalyticsService {
+
   private final AnalyticsSecurityManager securityManager;
 
   private final QueryValidator queryValidator;
@@ -220,6 +227,8 @@ public class DefaultAnalyticsService implements AnalyticsService {
 
     List<List<DimensionalItemObject>> tableColumns = new ArrayList<>();
     List<List<DimensionalItemObject>> tableRows = new ArrayList<>();
+    Map<String, List<DimensionalItemObject>> columnsDimensionItemsByDimension = new HashMap<>();
+    Map<String, List<DimensionalItemObject>> rowsDimensionItemsByDimension = new HashMap<>();
 
     if (columns != null) {
       for (String dimension : columns) {
@@ -227,7 +236,10 @@ public class DefaultAnalyticsService implements AnalyticsService {
             dimension, params.getDimension(dimension).getDimensionType());
 
         visualization.getColumnDimensions().add(dimension);
-        tableColumns.add(params.getDimensionItemsExplodeCoc(dimension));
+        List<DimensionalItemObject> dimensionItemsExplodeCoc =
+            params.getDimensionItemsExplodeCoc(dimension);
+        columnsDimensionItemsByDimension.put(dimension, dimensionItemsExplodeCoc);
+        tableColumns.add(dimensionItemsExplodeCoc);
       }
     }
 
@@ -237,7 +249,11 @@ public class DefaultAnalyticsService implements AnalyticsService {
             dimension, params.getDimension(dimension).getDimensionType());
 
         visualization.getRowDimensions().add(dimension);
-        tableRows.add(params.getDimensionItemsExplodeCoc(dimension));
+
+        List<DimensionalItemObject> dimensionItemsExplodeCoc =
+            params.getDimensionItemsExplodeCoc(dimension);
+        rowsDimensionItemsByDimension.put(dimension, dimensionItemsExplodeCoc);
+        tableRows.add(dimensionItemsExplodeCoc);
       }
     }
 
@@ -255,10 +271,96 @@ public class DefaultAnalyticsService implements AnalyticsService {
 
     Map<String, Object> valueMap = AnalyticsUtils.getAggregatedDataValueMapping(grid);
 
+    AlternativeGridItems alternativeGridItems =
+        getAlternateGridItems(
+            grid, columnsDimensionItemsByDimension, rowsDimensionItemsByDimension, columns, rows);
+
+    alternativeGridItems =
+        AlternativeGridItems.of(
+            reorderItems(alternativeGridItems.getRows()),
+            reorderItems(alternativeGridItems.getColumns()));
+
     return visualization.getGrid(
         new ListGrid(grid.getMetaData(), grid.getInternalMetaData()),
         valueMap,
+        alternativeGridItems,
         params.getDisplayProperty(),
         false);
+  }
+
+  private List<List<DimensionalItemObject>> reorderItems(
+      List<List<DimensionalItemObject>> alternateItems) {
+    return alternateItems.stream().sorted(this::compareItems).collect(Collectors.toList());
+  }
+
+  private int compareItems(List<DimensionalItemObject> dio, List<DimensionalItemObject> other) {
+    return dio.get(0).getDisplayName().compareTo(other.get(0).getDisplayName());
+  }
+
+  /**
+   * Returns alternative grid rows and columns based on the given grid and dimension items.
+   * Alternative grid items are used improve the performance of the grid rendering when the
+   * combination of dimension items is large. The alternative grid items are a list of lists of
+   * dimension items where each list represents a possible combination of dimension items that are
+   * used to render the grid.
+   *
+   * @param grid the grid
+   * @param columnsDimensionItemsByDimension a map of dimension items by dimension for columns
+   * @param rowsDimensionItemsByDimension a map of dimension items by dimension for rows
+   * @param columnDimensionIds the column dimension ids
+   * @param rowDimensionIds the row dimension ids
+   * @return the alternative grid items
+   */
+  public static AlternativeGridItems getAlternateGridItems(
+      Grid grid,
+      Map<String, List<DimensionalItemObject>> columnsDimensionItemsByDimension,
+      Map<String, List<DimensionalItemObject>> rowsDimensionItemsByDimension,
+      List<String> columnDimensionIds,
+      List<String> rowDimensionIds) {
+
+    Set<List<DimensionalItemObject>> alternateRows = new HashSet<>();
+    Set<List<DimensionalItemObject>> alternateColumns = new HashSet<>();
+
+    // last column is the value column
+    int metaCount = grid.getWidth() - 1;
+
+    for (List<Object> row : grid.getRows()) {
+
+      DimensionalItemObject[] alternateRow = new DimensionalItemObject[rowDimensionIds.size()];
+      DimensionalItemObject[] alternateColumn =
+          new DimensionalItemObject[columnDimensionIds.size()];
+
+      for (int i = 0; i < metaCount; i++) {
+        String dimensionUid = grid.getHeaders().get(i).getName();
+        String value = row.get(i).toString();
+        if (isDimension(dimensionUid, rowsDimensionItemsByDimension)) {
+          int indexInRow = rowDimensionIds.indexOf(dimensionUid);
+          alternateRow[indexInRow] = findItem(rowsDimensionItemsByDimension, value);
+        }
+        if (isDimension(dimensionUid, columnsDimensionItemsByDimension)) {
+          int indexInColumn = columnDimensionIds.indexOf(dimensionUid);
+          alternateColumn[indexInColumn] = findItem(columnsDimensionItemsByDimension, value);
+        }
+      }
+
+      alternateColumns.add(Arrays.stream(alternateColumn).collect(Collectors.toList()));
+      alternateRows.add(Arrays.stream(alternateRow).collect(Collectors.toList()));
+    }
+    return AlternativeGridItems.of(
+        new ArrayList<>(alternateRows), new ArrayList<>(alternateColumns));
+  }
+
+  private static DimensionalItemObject findItem(
+      Map<String, List<DimensionalItemObject>> rowsDimensionItemsByDimension, String value) {
+    return rowsDimensionItemsByDimension.values().stream()
+        .flatMap(List::stream)
+        .filter(dio -> dio.getDimensionItem().equals(value))
+        .findFirst()
+        .orElse(null);
+  }
+
+  private static boolean isDimension(
+      String dimensionUid, Map<String, List<DimensionalItemObject>> rowsDimensionItemsByDimension) {
+    return rowsDimensionItemsByDimension.containsKey(dimensionUid);
   }
 }
