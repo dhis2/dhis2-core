@@ -1428,17 +1428,17 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     final int startColumnIndex = grid.getHeaders().size();
     final int numberOfColumns = getGridColumns().size();
 
-    List<List<DimensionalItemObject>> gridColumns =
+    List<List<DimensionalItemObject>> actualGridColumns =
         Optional.ofNullable(alternativeGridItems)
             .map(AlternativeGridItems::getColumns)
             .orElse(this.gridColumns);
 
-    List<List<DimensionalItemObject>> gridRows =
+    List<List<DimensionalItemObject>> actualGridRows =
         Optional.ofNullable(alternativeGridItems)
             .map(AlternativeGridItems::getRows)
             .orElse(this.gridRows);
 
-    for (List<DimensionalItemObject> column : gridColumns) {
+    for (List<DimensionalItemObject> column : actualGridColumns) {
       grid.addHeader(
           new GridHeader(
               getColumnName(column),
@@ -1452,7 +1452,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     // Values
     // ---------------------------------------------------------------------
 
-    for (List<DimensionalItemObject> row : gridRows) {
+    for (List<DimensionalItemObject> row : actualGridRows) {
       grid.addRow();
 
       // -----------------------------------------------------------------
@@ -1478,7 +1478,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
       boolean hasValue = false;
 
-      for (List<DimensionalItemObject> column : gridColumns) {
+      for (List<DimensionalItemObject> column : actualGridColumns) {
         final String key = DimensionalObjectUtils.getKey(column, row);
 
         final Object value = valueMap.get(key);
