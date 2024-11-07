@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.junit.Assert.assertEquals;
 
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
@@ -67,6 +68,14 @@ class DataIntegrityCategoryOptionCombosNoNames extends AbstractDataIntegrityInte
         PUT(
             "/categoryOptionCombos/" + redCategoryOptionComboId,
             "{ 'name': '', 'categoryOptions': [{'id': '" + categoryOptionRed + "'}]}"));
+
+    JsonCategoryOptionCombo blankNameCatOptionCombo =
+        GET("/categoryOptionCombos/" + redCategoryOptionComboId + "?fields=id,name")
+            .content()
+            .as(JsonCategoryOptionCombo.class);
+
+    assertEquals("", blankNameCatOptionCombo.getName());
+    assertEquals(redCategoryOptionComboId, blankNameCatOptionCombo.getId());
     /* There are four total category option combos, so we expect 25% */
     checkDataIntegritySummary(check, 1, 50, true);
 
