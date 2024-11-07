@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
 import java.util.Map;
@@ -35,14 +37,18 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataElement;
+import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -132,5 +138,55 @@ class DataElementControllerTest extends H2ControllerIntegrationTestBase {
             .map(JsonIdentifiableObject::getId)
             .collect(Collectors.toSet()),
         "Returned cat combo IDs equal custom cat combos Ids only");
+  }
+
+  @Test
+  @DisplayName(
+      "Changing a data element's value type is prohibited when it has any associated data value")
+  void prohibitValueTypeChangeWhenHasDataTest() {
+    String deUid = UID.generate().toString();
+    // create new data element
+    POST(
+            "/dataElements",
+            """
+                {
+                    "id": "%s",
+                    "aggregationType": "DEFAULT",
+                    "domainType": "AGGREGATE",
+                    "name": "test de 1",
+                    "shortName": "test DE 1",
+                    "valueType": "TEXT"
+                }"""
+                .formatted(deUid))
+        .content(HttpStatus.CREATED);
+
+    // try update data element with new value type
+    JsonWebMessage validationErrorMsg =
+        assertWebMessage(
+            "Conflict",
+            409,
+            "ERROR",
+            "One or more errors occurred, please see full details in import report.",
+            PUT(
+                    "/dataElements/" + deUid,
+                    """
+                    {
+                        "id": "%s",
+                        "aggregationType": "DEFAULT",
+                        "domainType": "AGGREGATE",
+                        "name": "test de 1",
+                        "shortName": "test DE 1",
+                        "valueType": "NUMBER"
+                    }"""
+                        .formatted(deUid))
+                .content(HttpStatus.CONFLICT));
+
+    JsonErrorReport errorReport =
+        validationErrorMsg.find(
+            JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E1121);
+    assertNotNull(errorReport);
+    assertEquals(
+        "Data element value type cannot be changed as it has associated data values",
+        errorReport.getMessage());
   }
 }

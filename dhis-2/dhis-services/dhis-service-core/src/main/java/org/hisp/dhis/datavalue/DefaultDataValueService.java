@@ -35,6 +35,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
@@ -42,6 +43,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -347,5 +349,10 @@ public class DefaultDataValueService implements DataValueService {
   @Transactional(readOnly = true)
   public boolean dataValueExists(CategoryCombo combo) {
     return dataValueStore.dataValueExists(combo);
+  }
+
+  @Override
+  public boolean dataValueExists(@Nonnull UID dataElementUid) {
+    return dataValueStore.dataValueExists(dataElementUid.getValue());
   }
 }

@@ -28,18 +28,36 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.function.Consumer;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.textpattern.TextPatternParser;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
+@RequiredArgsConstructor
 public class DataElementObjectBundleHook extends AbstractObjectBundleHook<DataElement> {
+
+  private final DataElementService dataElementService;
+  private final DataValueService dataValueService;
+
   @Override
   public void validate(
       DataElement dataElement, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    fieldMaskValidation(dataElement, addReports);
+    valueTypeChangeValidation(dataElement, bundle, addReports);
+  }
+
+  private void fieldMaskValidation(DataElement dataElement, Consumer<ErrorReport> addReports) {
     if (dataElement.getFieldMask() != null) {
       try {
         TextPatternParser.parse("\"" + dataElement.getFieldMask() + "\"");
@@ -50,6 +68,40 @@ public class DataElementObjectBundleHook extends AbstractObjectBundleHook<DataEl
                 ErrorCode.E4019,
                 dataElement.getFieldMask(),
                 "Not a valid TextPattern 'TEXT' segment"));
+      }
+    }
+  }
+
+  private void valueTypeChangeValidation(
+      DataElement dataElement, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    // check value type being changed
+    // if no data for DE then allow, otherwise reject
+    log.info("checking data element value type validation");
+
+    // preheat value
+    DataElement dePreheat = bundle.getPreheat().get(PreheatIdentifier.UID, dataElement);
+    ValueType existingValueType = dePreheat.getValueType();
+    log.info("PREHEAT: data element value type: " + existingValueType);
+    log.info("PREHEAT: data element UID: " + dePreheat.getUid());
+
+    // new value
+    ValueType proposedNewValueType = dataElement.getValueType();
+    log.info("NEW: data element value type: " + proposedNewValueType);
+    log.info("NEW: data element UID: " + dataElement.getUid());
+
+    if (existingValueType != proposedNewValueType) {
+      log.info(
+          "DataElement {} valueType is different from existing valueType, checking if any data associated with DataElement",
+          dataElement.getUid());
+      if (dataValueService.dataValueExists(UID.of(dataElement))) {
+        log.info(
+            "DataElement {} has associated data values, changing of valueType is prohibited",
+            dataElement.getUid());
+        addReports.accept(new ErrorReport(DataElement.class, ErrorCode.E1121));
+      } else {
+        log.info(
+            "DataElement {} has no associated data values, allow changing of valueType",
+            dataElement.getUid());
       }
     }
   }

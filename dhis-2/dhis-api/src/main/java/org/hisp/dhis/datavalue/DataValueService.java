@@ -32,6 +32,7 @@ import java.util.List;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -212,4 +213,12 @@ public interface DataValueService {
    * @return true, if any value exist, otherwise false
    */
   boolean dataValueExists(CategoryCombo combo);
+
+  /**
+   * Checks if any data values exist for the provided {@link DataElement} UID.
+   *
+   * @param dataElementUid the data element to check
+   * @return true, if any values exist, otherwise false
+   */
+  boolean dataValueExists(UID dataElementUid);
 }

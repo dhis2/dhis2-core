@@ -267,6 +267,15 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         .isEmpty();
   }
 
+  @Override
+  public boolean dataValueExists(String dataElementUid) {
+    return !getQuery("select 1 from DataValue dv where dv.dataElement.uid = :dataElementUid")
+        .setParameter("dataElementUid", dataElementUid)
+        .setMaxResults(1)
+        .getResultList()
+        .isEmpty();
+  }
+
   // -------------------------------------------------------------------------
   // getDataValues and related supportive methods
   // -------------------------------------------------------------------------

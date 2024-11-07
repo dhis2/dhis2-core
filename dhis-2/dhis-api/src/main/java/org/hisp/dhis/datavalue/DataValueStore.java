@@ -184,4 +184,12 @@ public interface DataValueStore {
    * @return true, if any value exist, otherwise false
    */
   boolean dataValueExists(CategoryCombo combo);
+
+  /**
+   * Checks if any data values exist for the provided {@link DataElement} uid.
+   *
+   * @param dataElementUid the data element uid to check
+   * @return true, if any values exist, otherwise false
+   */
+  boolean dataValueExists(String dataElementUid);
 }
