@@ -103,16 +103,15 @@ class DataIntegrityCategoryOptionCombosNoNames extends AbstractDataIntegrityInte
                     + categoryOptionRed
                     + "'} ] }"));
 
-
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/categoryCombos",
-                "{ 'name' : 'Color', "
-                    + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
-                    + "{'id' : '"
-                    + categoryColor
-                    + "'}]} "));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/categoryCombos",
+            "{ 'name' : 'Color', "
+                + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
+                + "{'id' : '"
+                + categoryColor
+                + "'}]} "));
 
     assertNamedMetadataObjectExists("categoryOptionCombos", "default");
     assertNamedMetadataObjectExists("categoryOptionCombos", "Red");
