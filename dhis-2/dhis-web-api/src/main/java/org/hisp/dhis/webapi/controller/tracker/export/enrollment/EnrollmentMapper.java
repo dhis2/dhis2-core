@@ -33,6 +33,7 @@ import java.util.Map;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.MetadataMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
@@ -49,7 +50,8 @@ import org.mapstruct.Mapping;
       InstantMapper.class,
       NoteMapper.class,
       RelationshipMapper.class,
-      UserMapper.class
+      UserMapper.class,
+      MetadataMapper.class
     })
 public interface EnrollmentMapper {
   /**

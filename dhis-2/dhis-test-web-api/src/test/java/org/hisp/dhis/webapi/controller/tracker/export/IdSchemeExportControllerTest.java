@@ -43,6 +43,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -101,8 +103,10 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
   @Autowired private IdentifiableObjectManager manager;
 
   private OrganisationUnit orgUnit;
-  private ProgramStage programStage;
   private Program program;
+  private ProgramStage programStage;
+  private CategoryOption categoryOption;
+  private CategoryOptionCombo categoryOptionCombo;
 
   private EventOperationParamsBuilder paramsBuilder;
 
@@ -140,7 +144,47 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
     orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
     program = get(Program.class, "BFcipDERJnf");
     programStage = get(ProgramStage.class, "NpsdDv6kKSO");
+    categoryOption = get(CategoryOption.class, "xYerKDKCefk");
+    System.out.println(categoryOption.getAttributeValues().toObjectJson());
+    categoryOptionCombo = get(CategoryOptionCombo.class, "HllvX50cXC0");
 
+    // "dataValues": [
+    //   {
+    //     "dataElement": {
+    //       "idScheme": "UID",
+    //       "identifier": "DATAEL00001"
+    //     },
+    //     "value": "value00002",
+    //   },
+    //   {
+    //     "dataElement": {
+    //       "idScheme": "UID",
+    //       "identifier": "DATAEL00002"
+    //     },
+    //     "value": "value00002",
+    //   },
+    //   {
+    //     "dataElement": {
+    //       "idScheme": "UID",
+    //       "identifier": "DATAEL00005"
+    //     },
+    //     "value": "option2",
+    //   },
+    //   {
+    //     "dataElement": {
+    //       "idScheme": "UID",
+    //       "identifier": "DATAEL00006"
+    //     },
+    //     "value": "70",
+    //   },
+    //   {
+    //     "dataElement": {
+    //       "idScheme": "UID",
+    //       "identifier": "DATAEL00007"
+    //     },
+    //     "value": "70",
+    //   }
+    // ],
     manager.flush();
     manager.clear();
   }
@@ -158,14 +202,35 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
 
     // TODO(ivo) use every metadata-specific request parameter
     // categoryOptionComboIdScheme
-    // categoryOptionIdScheme
     // dataElementIdScheme
+    // maps JSON fields to metadata
     Map<String, IdentifiableObject> metadata =
-        Map.of("orgUnit", orgUnit, "program", program, "programStage", programStage);
+        Map.of(
+            "orgUnit",
+            orgUnit,
+            "program",
+            program,
+            "programStage",
+            programStage,
+            "attributeCategoryOptions", // TODO(ivo) the event.field does not map directly to the
+            // idScheme param
+            categoryOption);
     String fields = metadata.keySet().stream().collect(Collectors.joining(","));
+    Map<String, String> idSchemeParams =
+        Map.of(
+            "orgUnit",
+            "orgUnit",
+            "program",
+            "program",
+            "programStage",
+            "programStage",
+            "attributeCategoryOptions",
+            "categoryOption",
+            "attributeOptionCombo",
+            "categoryOptionCombo");
     String idSchemes =
         metadata.keySet().stream()
-            .map(m -> m + "IdScheme=" + idSchemeParam)
+            .map(m -> idSchemeParams.get(m) + "IdScheme=" + idSchemeParam)
             .collect(Collectors.joining("&"));
     Event d9PbzJY8bJM = get(Event.class, "D9PbzJY8bJM");
 
@@ -218,8 +283,8 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
     assertNotEmpty(
         idSchemeParam.getIdentifier(expected),
         String.format(
-            "metadata \"%s\"(%s) has no value in test data for idScheme '%s'",
-            field, expected.getUid(), idSchemeParam));
+            "metadata %s(%s) has no value in test data for idScheme '%s'",
+            expected.getClass().getSimpleName(), expected.getUid(), idSchemeParam));
     assertTrue(
         actual.has(field),
         () ->
@@ -231,7 +296,7 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
         actual.getString(field).string(),
         () ->
             String.format(
-                "field '%s' does not have required idScheme '%s' in response",
+                "field \"%s\" does not have required idScheme '%s' in response",
                 field, idSchemeParam));
   }
 

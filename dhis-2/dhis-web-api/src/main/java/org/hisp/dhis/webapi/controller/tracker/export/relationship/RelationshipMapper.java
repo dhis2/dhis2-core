@@ -33,10 +33,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
 import org.mapstruct.AfterMapping;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -58,7 +60,9 @@ public abstract class RelationshipMapper {
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "createdAtClient", source = "createdAtClient")
   @Mapping(target = "updatedAt", source = "lastUpdated")
-  public abstract Relationship map(org.hisp.dhis.relationship.Relationship relationship);
+  public abstract Relationship map(
+      org.hisp.dhis.relationship.Relationship relationship,
+      @Context TrackerIdSchemeParams idSchemeParams);
 
   /**
    * Maps a {@link org.hisp.dhis.relationship.RelationshipItem} to a {@link

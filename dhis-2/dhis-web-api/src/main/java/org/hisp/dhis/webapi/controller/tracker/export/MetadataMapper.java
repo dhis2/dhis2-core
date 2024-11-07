@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -51,5 +55,21 @@ public interface MetadataMapper {
   @Named("organisationUnitToString")
   default String map(OrganisationUnit orgUnit, @Context TrackerIdSchemeParams idSchemeParams) {
     return idSchemeParams.getOrgUnitIdScheme().getIdentifier(orgUnit);
+  }
+
+  @Named("categoryOptionToString")
+  default String map(CategoryOption categoryOption, @Context TrackerIdSchemeParams idSchemeParams) {
+    return idSchemeParams.getCategoryOptionIdScheme().getIdentifier(categoryOption);
+  }
+
+  @Named("categoryOptionsToString")
+  default String map(Set<CategoryOption> categoryOptions, @Context TrackerIdSchemeParams context) {
+    if (categoryOptions == null || categoryOptions.isEmpty()) {
+      return null;
+    }
+
+    return categoryOptions.stream()
+        .map(co -> map(co, context))
+        .collect(Collectors.joining(TextUtils.COMMA));
   }
 }

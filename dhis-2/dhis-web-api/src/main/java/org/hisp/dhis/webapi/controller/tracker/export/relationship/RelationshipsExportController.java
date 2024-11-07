@@ -43,6 +43,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
@@ -112,7 +113,9 @@ class RelationshipsExportController {
       org.hisp.dhis.tracker.export.Page<org.hisp.dhis.relationship.Relationship> relationshipsPage =
           relationshipService.getRelationships(operationParams, pageParams);
       List<Relationship> relationships =
-          relationshipsPage.getItems().stream().map(RELATIONSHIP_MAPPER::map).toList();
+          relationshipsPage.getItems().stream()
+              .map(re -> RELATIONSHIP_MAPPER.map(re, TrackerIdSchemeParams.builder().build()))
+              .toList();
       List<ObjectNode> objectNodes =
           fieldFilterService.toObjectNodes(relationships, requestParams.getFields());
 
@@ -123,7 +126,7 @@ class RelationshipsExportController {
 
     List<Relationship> relationships =
         relationshipService.getRelationships(operationParams).stream()
-            .map(RELATIONSHIP_MAPPER::map)
+            .map(re -> RELATIONSHIP_MAPPER.map(re, TrackerIdSchemeParams.builder().build()))
             .toList();
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(relationships, requestParams.getFields());
@@ -141,7 +144,9 @@ class RelationshipsExportController {
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           List<FieldPath> fields)
       throws NotFoundException, ForbiddenException {
-    Relationship relationship = RELATIONSHIP_MAPPER.map(relationshipService.getRelationship(uid));
+    Relationship relationship =
+        RELATIONSHIP_MAPPER.map(
+            relationshipService.getRelationship(uid), TrackerIdSchemeParams.builder().build());
 
     return ResponseEntity.ok(fieldFilterService.toObjectNode(relationship, fields));
   }

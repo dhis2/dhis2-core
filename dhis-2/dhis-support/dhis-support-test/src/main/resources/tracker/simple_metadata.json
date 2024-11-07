@@ -284,9 +284,17 @@
   "categoryOptions": [
     {
       "id": "xYerKDKCefk",
-      "code": "default",
-      "name": "default",
-      "shortName": "default"
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "categoryOption xYerKDKCefk"
+        }
+      ],
+      "code": "xYerKDKCefk code",
+      "name": "xYerKDKCefk name",
+      "shortName": "xYerKDKCefk short name"
     },
     {
       "id": "xwZ2u3WyQR0",
