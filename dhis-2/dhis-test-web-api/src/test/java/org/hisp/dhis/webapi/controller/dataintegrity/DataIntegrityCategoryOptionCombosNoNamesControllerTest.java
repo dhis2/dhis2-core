@@ -103,7 +103,7 @@ class DataIntegrityCategoryOptionCombosNoNames extends AbstractDataIntegrityInte
                     + categoryOptionRed
                     + "'} ] }"));
 
-    String testCatCombo =
+
         assertStatus(
             HttpStatus.CREATED,
             POST(
