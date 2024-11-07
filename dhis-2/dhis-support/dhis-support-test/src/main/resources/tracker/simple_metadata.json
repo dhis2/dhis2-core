@@ -2567,7 +2567,7 @@
   "trackedEntityTypes": [
     {
       "id": "ja8NY4PW7Xm",
-      "allowAuditLog": false,
+      "allowAuditLog": true,
       "attributeValues": [],
       "created": "2020-05-31T08:59:52.758",
       "description": "person",
@@ -2579,43 +2579,27 @@
       "maxTeiCountToReturn": 0,
       "minAttributesRequiredToSearch": 1,
       "name": "Person",
-      "publicAccess": "rw------",
       "sharing": {
         "external": false,
-        "public": "rwrw----",
-        "userGroups": {},
-        "users": {}
+        "public": "rwrw----"
       },
       "trackedEntityTypeAttributes": [
         {
-          "id": "IvcLJpReZPS",
-          "access": {
-            "delete": true,
-            "externalize": true,
-            "manage": true,
-            "read": true,
-            "update": true,
-            "write": true
-          },
-          "attributeValues": [],
-          "created": "2019-02-05T13:46:01.219",
           "displayInList": true,
-          "displayName": "TA Person TA First name",
-          "displayShortName": "null TA First name",
+          "displayName": "Person Given name",
+          "displayShortName": "null Given name",
+          "externalAccess": false,
           "favorite": false,
           "favorites": [],
-          "lastUpdated": "2022-04-25T08:34:44.294",
-          "name": "TA Person TA First name",
+          "id": "hKZ9AJpnVcG",
+          "name": "Person Given name",
           "searchable": true,
-          "sharing": {
-            "external": false,
-            "userGroups": {},
-            "users": {}
-          },
           "trackedEntityAttribute": {
-            "id": "dIVt4l5vIOa"
+            "id": "numericAttr"
           },
-          "translations": [],
+          "trackedEntityType": {
+            "id": "ja8NY4PW7Xm"
+          },
           "valueType": "TEXT"
         }
       ],
