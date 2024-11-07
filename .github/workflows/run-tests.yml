@@ -22,7 +22,7 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Run unit tests
-        run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles unit-test
+        run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots -Dmapstruct.verbose=true --file ./dhis-2/pom.xml --activate-profiles unit-test
         timeout-minutes: 30
       - name: Report coverage to codecov
         uses: codecov/codecov-action@v3
