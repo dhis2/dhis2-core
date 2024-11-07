@@ -45,7 +45,7 @@ public record EventChangeLog(
       @JsonProperty String currentValue) {}
 
   public record EventPropertyChange(
-      @JsonProperty String eventProperty,
+      @JsonProperty String property,
       @JsonProperty String previousValue,
       @JsonProperty String currentValue) {}
 }

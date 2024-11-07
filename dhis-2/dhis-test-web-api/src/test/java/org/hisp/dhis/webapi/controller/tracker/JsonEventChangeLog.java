@@ -70,7 +70,7 @@ public interface JsonEventChangeLog extends JsonObject {
 
   interface JsonEventProperty extends JsonObject {
     default String getProperty() {
-      return getString("eventProperty").string();
+      return getString("property").string();
     }
 
     default String getPreviousValue() {

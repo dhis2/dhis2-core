@@ -173,7 +173,6 @@ public class EventPersister
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Event event,
       Event hibernateEntity,
-      Event clonedEntity,
       UserDetails user) {
     handleDataValues(entityManager, preheat, event.getDataValues(), hibernateEntity, user);
   }
@@ -237,19 +236,14 @@ public class EventPersister
       Event event,
       UserDetails user) {
 
-    T originalValue = valueExtractor.apply(originalEvent);
-    T newValue = valueExtractor.apply(event);
+    String originalValue = formatter.apply(valueExtractor.apply(originalEvent));
+    String newValue = formatter.apply(valueExtractor.apply(event));
 
     if (!Objects.equals(originalValue, newValue)) {
       ChangeLogType changeLogType = getChangeLogType(originalEvent, event, valueExtractor);
 
       eventChangeLogService.addEventPropertyChangeLog(
-          event,
-          propertyName,
-          newValue != null ? formatter.apply(newValue) : null,
-          originalValue != null ? formatter.apply(originalValue) : null,
-          changeLogType,
-          user.getUsername());
+          event, propertyName, newValue, originalValue, changeLogType, user.getUsername());
     }
   }
 
@@ -345,13 +339,19 @@ public class EventPersister
 
   private String formatDate(Date date) {
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-    return formatter.format(date);
+    return date != null ? formatter.format(date) : null;
   }
 
   private String formatGeometry(Geometry geometry) {
-    return Stream.of(geometry.getCoordinates())
-        .map(c -> String.format("(%f, %f)", c.x, c.y))
-        .collect(Collectors.joining(", "));
+    if (geometry == null) {
+      return null;
+    }
+
+    return geometry == null
+        ? null
+        : Stream.of(geometry.getCoordinates())
+            .map(c -> String.format("(%f, %f)", c.x, c.y))
+            .collect(Collectors.joining(", "));
   }
 
   private <V> boolean isNewProperty(

@@ -130,12 +130,7 @@ public abstract class AbstractTrackerPersister<
         if (isNew(bundle, trackerDto)) {
           entityManager.persist(convertedDto);
           updateDataValues(
-              entityManager,
-              bundle.getPreheat(),
-              trackerDto,
-              convertedDto,
-              originalEntity,
-              bundle.getUser());
+              entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
           logPropertyChanges(originalEntity, convertedDto, bundle.getUser());
           typeReport.getStats().incCreated();
           typeReport.addEntity(objectReport);
@@ -147,12 +142,7 @@ public abstract class AbstractTrackerPersister<
             // Relationships are not updated. A warning was already added to the report
           } else {
             updateDataValues(
-                entityManager,
-                bundle.getPreheat(),
-                trackerDto,
-                convertedDto,
-                originalEntity,
-                bundle.getUser());
+                entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
             updateAttributes(
                 entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
             logPropertyChanges(originalEntity, convertedDto, bundle.getUser());
@@ -234,7 +224,6 @@ public abstract class AbstractTrackerPersister<
       TrackerPreheat preheat,
       T trackerDto,
       V hibernateEntity,
-      V clonedEntity,
       UserDetails user) {
     // Nothing to do by default
   }
