@@ -86,7 +86,7 @@
 
     <!-- DHIS2 Rule Engine -->
     <dhis2-rule-engine.version>3.1.0</dhis2-rule-engine.version>
-    <kotlinx-datetime.version>0.6.0</kotlinx-datetime.version>
+    <kotlinx-datetime.version>0.6.1</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.4</dhis-hisp-quick.version>
@@ -98,7 +98,7 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.41.2</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>9.45</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
@@ -119,7 +119,7 @@
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.10.8</ehcache3.version>
     <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
-    <hypersistence-utils.version>3.8.2</hypersistence-utils.version>
+    <hypersistence-utils.version>3.8.3</hypersistence-utils.version>
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.10.1</c3p0.version>
     <HikariCP.version>6.0.0</HikariCP.version>
@@ -168,7 +168,7 @@
 
     <!-- Apache Artemis -->
     <artemis-jakarta.version>2.38.0</artemis-jakarta.version>
-    <netty-all.version>4.1.113.Final</netty-all.version>
+    <netty-all.version>4.1.114.Final</netty-all.version>
     <classgraph.version>4.8.177</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -201,7 +201,7 @@
     <commons-email.version>1.6.0</commons-email.version>
     <httpcomponents-core.version>5.3.1</httpcomponents-core.version>
     <httpcomponents-client5.version>5.4.1</httpcomponents-client5.version>
-    <kafka.version>3.8.1</kafka.version>
+    <kafka.version>3.9.0</kafka.version>
 
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
@@ -213,7 +213,7 @@
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
-    <junit.version>5.11.1</junit.version>
+    <junit.version>5.11.3</junit.version>
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>3.0</hamcrest.version>

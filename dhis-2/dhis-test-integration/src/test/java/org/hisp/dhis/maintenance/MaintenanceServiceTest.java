@@ -362,7 +362,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     relationshipTypeService.addRelationshipType(rType);
     Event eventA = new Event(enrollment, program.getProgramStageByStage(1));
     eventA.setScheduledDate(enrollmentDate);
-    eventA.setUid("UID-A");
+    eventA.setUid(UID.generate().getValue());
     eventA.setAttributeOptionCombo(coA);
     manager.save(eventA);
     long idA = eventA.getId();

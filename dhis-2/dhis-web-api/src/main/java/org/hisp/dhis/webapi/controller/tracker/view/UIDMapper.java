@@ -25,21 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports;
+package org.hisp.dhis.webapi.controller.tracker.view;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public enum TrackerIdScheme {
-  /** Preheat using UID identifiers. */
-  UID,
+import org.hisp.dhis.common.UID;
+import org.mapstruct.Mapper;
 
-  /** Preheat using CODE identifiers. */
-  CODE,
+@Deprecated(forRemoval = true)
+@Mapper
+public interface UIDMapper {
 
-  /** Preheat using NAME identifiers */
-  NAME,
-
-  /** Preheat using ATTRIBUTE identifiers */
-  ATTRIBUTE,
+  default UID fromString(String stringUid) {
+    return stringUid == null ? null : UID.of(stringUid);
+  }
 }

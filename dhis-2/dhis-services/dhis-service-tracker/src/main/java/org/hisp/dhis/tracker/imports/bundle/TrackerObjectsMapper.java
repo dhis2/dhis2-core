@@ -34,6 +34,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -78,7 +79,7 @@ public class TrackerObjectsMapper {
 
     if (dbTrackedEntity == null) {
       dbTrackedEntity = new TrackedEntity();
-      dbTrackedEntity.setUid(trackedEntity.getTrackedEntity());
+      dbTrackedEntity.setUid(trackedEntity.getTrackedEntity().getValue());
       dbTrackedEntity.setCreated(now);
       dbTrackedEntity.setCreatedByUserInfo(UserInfoSnapshot.from(user));
       dbTrackedEntity.setStoredBy(trackedEntity.getStoredBy());
@@ -113,7 +114,7 @@ public class TrackerObjectsMapper {
 
     if (dbEnrollment == null) {
       dbEnrollment = new Enrollment();
-      dbEnrollment.setUid(enrollment.getEnrollment());
+      dbEnrollment.setUid(enrollment.getEnrollment().getValue());
       dbEnrollment.setCreated(now);
       dbEnrollment.setStoredBy(enrollment.getStoredBy());
       dbEnrollment.setCreatedByUserInfo(UserInfoSnapshot.from(user));
@@ -182,7 +183,7 @@ public class TrackerObjectsMapper {
 
     if (dbEvent == null) {
       dbEvent = new Event();
-      dbEvent.setUid(event.getEvent());
+      dbEvent.setUid(event.getEvent().getValue());
       dbEvent.setCreated(now);
       dbEvent.setStoredBy(event.getStoredBy());
       dbEvent.setCreatedByUserInfo(UserInfoSnapshot.from(user));
@@ -256,7 +257,7 @@ public class TrackerObjectsMapper {
       @Nonnull UserDetails user) {
     Date now = new Date();
     Relationship dbRelationship = new org.hisp.dhis.relationship.Relationship();
-    dbRelationship.setUid(relationship.getRelationship());
+    dbRelationship.setUid(relationship.getRelationship().getValue());
     dbRelationship.setCreated(now);
     dbRelationship.setLastUpdated(now);
     dbRelationship.setLastUpdatedBy(preheat.getUserByUid(user.getUid()).orElse(null));
@@ -309,7 +310,7 @@ public class TrackerObjectsMapper {
     Date now = new Date();
 
     Note dbNote = new Note();
-    dbNote.setUid(note.getNote());
+    dbNote.setUid(note.getNote().getValue());
     dbNote.setCreated(now);
     dbNote.setLastUpdated(now);
     dbNote.setLastUpdatedBy(preheat.getUserByUid(user.getUid()).orElse(null));
@@ -319,8 +320,7 @@ public class TrackerObjectsMapper {
     return dbNote;
   }
 
-  private static Enrollment getEnrollment(
-      TrackerPreheat preheat, String enrollment, Program program) {
+  private static Enrollment getEnrollment(TrackerPreheat preheat, UID enrollment, Program program) {
     return switch (program.getProgramType()) {
       case WITH_REGISTRATION -> preheat.getEnrollment(enrollment);
       case WITHOUT_REGISTRATION -> preheat.getEnrollmentsWithoutRegistration(program.getUid());

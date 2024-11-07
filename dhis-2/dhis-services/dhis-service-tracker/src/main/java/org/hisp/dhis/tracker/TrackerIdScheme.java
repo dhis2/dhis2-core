@@ -25,24 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.validation.validator.event;
-
-import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.checkUidFormat;
-import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateNotesUid;
-
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Event;
-import org.hisp.dhis.tracker.imports.validation.Reporter;
-import org.hisp.dhis.tracker.imports.validation.Validator;
+package org.hisp.dhis.tracker;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class UidValidator implements Validator<Event> {
-  @Override
-  public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
-    checkUidFormat(event.getEvent(), reporter, event, event, event.getEvent());
+public enum TrackerIdScheme {
+  /** Preheat using UID identifiers. */
+  UID,
 
-    validateNotesUid(event.getNotes(), reporter, event);
-  }
+  /** Preheat using CODE identifiers. */
+  CODE,
+
+  /** Preheat using NAME identifiers */
+  NAME,
+
+  /** Preheat using ATTRIBUTE identifiers */
+  ATTRIBUTE,
 }

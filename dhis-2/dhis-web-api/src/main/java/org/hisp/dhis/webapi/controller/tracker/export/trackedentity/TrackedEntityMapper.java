@@ -37,7 +37,6 @@ import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.enrollment.EnrollmentMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.relationship.RelationshipMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -50,8 +49,7 @@ import org.mapstruct.Mapping;
       RelationshipMapper.class,
       UserMapper.class
     })
-interface TrackedEntityMapper
-    extends ViewMapper<TrackedEntity, org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> {
+interface TrackedEntityMapper {
 
   /**
    * Tracked entities can be ordered by given fields which correspond to fields on {@link
@@ -78,6 +76,5 @@ interface TrackedEntityMapper
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
   @Mapping(target = "relationships", source = "relationshipItems")
   @Mapping(target = "attributes", source = "trackedEntityAttributeValues")
-  @Override
-  org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity from(TrackedEntity trackedEntity);
+  org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity map(TrackedEntity trackedEntity);
 }

@@ -36,7 +36,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.supplier.ClassBasedSupplier;

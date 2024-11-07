@@ -78,9 +78,9 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
 import org.hisp.dhis.system.util.HttpUtils;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateForbiddenException;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
@@ -327,7 +327,8 @@ public class CrudControllerAdvice {
         && (rootValue != null && rootValue.getClass().isArray())) {
       return "You likely repeated request parameter '"
           + field
-          + "' and used multiple comma-separated values within at least one of its values. Choose one of these approaches. "
+          + "' and used multiple comma-separated values within at least one of its values. Choose"
+          + " one of these approaches. "
           + ex.getCause().getMessage();
     }
 
@@ -557,8 +558,7 @@ public class CrudControllerAdvice {
   @ResponseBody
   public WebMessage handleOAuth2AuthenticationException(OAuth2AuthenticationException ex) {
     OAuth2Error error = ex.getError();
-    if (error instanceof BearerTokenError) {
-      BearerTokenError bearerTokenError = (BearerTokenError) error;
+    if (error instanceof BearerTokenError bearerTokenError) {
       HttpStatus status = ((BearerTokenError) error).getHttpStatus();
 
       return createWebMessage(

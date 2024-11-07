@@ -43,7 +43,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
@@ -159,10 +158,7 @@ public class TrackedEntityQueryParams {
 
   /** Returns a list of attributes and filters combined. */
   public Set<UID> getFilterIds() {
-    return filters.keySet().stream()
-        .map(BaseIdentifiableObject::getUid)
-        .map(UID::of)
-        .collect(Collectors.toSet());
+    return filters.keySet().stream().map(UID::of).collect(Collectors.toSet());
   }
 
   /** Indicates whether these parameters specify any filters. */

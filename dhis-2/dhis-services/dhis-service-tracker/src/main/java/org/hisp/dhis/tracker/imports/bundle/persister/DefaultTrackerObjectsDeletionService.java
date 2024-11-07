@@ -35,8 +35,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -79,11 +79,11 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   private final ProgramNotificationInstanceService programNotificationInstanceService;
 
   @Override
-  public TrackerTypeReport deleteEnrollments(List<String> enrollments) throws NotFoundException {
+  public TrackerTypeReport deleteEnrollments(List<UID> enrollments) throws NotFoundException {
     UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.ENROLLMENT);
 
-    for (String uid : enrollments) {
+    for (UID uid : enrollments) {
       Entity objectReport = new Entity(TrackerType.ENROLLMENT, uid);
 
       Enrollment enrollment = manager.get(Enrollment.class, uid);
@@ -92,18 +92,13 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       }
       enrollment.setLastUpdatedByUserInfo(userInfoSnapshot);
 
-      List<String> events =
-          enrollment.getEvents().stream()
-              .filter(event -> !event.isDeleted())
-              .map(BaseIdentifiableObject::getUid)
-              .toList();
+      List<UID> events =
+          enrollment.getEvents().stream().filter(event -> !event.isDeleted()).map(UID::of).toList();
       deleteEvents(events);
 
       RelationshipQueryParams params = RelationshipQueryParams.builder().entity(enrollment).build();
-      List<String> relationships =
-          relationshipStore.getByEnrollment(enrollment, params).stream()
-              .map(BaseIdentifiableObject::getUid)
-              .toList();
+      List<UID> relationships =
+          relationshipStore.getByEnrollment(enrollment, params).stream().map(UID::of).toList();
 
       deleteRelationships(relationships);
 
@@ -128,20 +123,18 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   }
 
   @Override
-  public TrackerTypeReport deleteEvents(List<String> events) throws NotFoundException {
+  public TrackerTypeReport deleteEvents(List<UID> events) throws NotFoundException {
     UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.EVENT);
-    for (String uid : events) {
+    for (UID uid : events) {
       Entity objectReport = new Entity(TrackerType.EVENT, uid);
 
       Event event = manager.get(Event.class, uid);
       event.setLastUpdatedByUserInfo(userInfoSnapshot);
 
       RelationshipQueryParams params = RelationshipQueryParams.builder().entity(event).build();
-      List<String> relationships =
-          relationshipStore.getByEvent(event, params).stream()
-              .map(BaseIdentifiableObject::getUid)
-              .toList();
+      List<UID> relationships =
+          relationshipStore.getByEvent(event, params).stream().map(UID::of).toList();
 
       deleteRelationships(relationships);
 
@@ -178,12 +171,12 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   }
 
   @Override
-  public TrackerTypeReport deleteTrackedEntities(List<String> trackedEntities)
+  public TrackerTypeReport deleteTrackedEntities(List<UID> trackedEntities)
       throws NotFoundException {
     UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.TRACKED_ENTITY);
 
-    for (String uid : trackedEntities) {
+    for (UID uid : trackedEntities) {
       Entity objectReport = new Entity(TrackerType.TRACKED_ENTITY, uid);
 
       TrackedEntity entity = manager.get(TrackedEntity.class, uid);
@@ -196,18 +189,16 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       Set<Enrollment> daoEnrollments = entity.getEnrollments();
 
-      List<String> enrollments =
+      List<UID> enrollments =
           daoEnrollments.stream()
               .filter(enrollment -> !enrollment.isDeleted())
-              .map(BaseIdentifiableObject::getUid)
+              .map(UID::of)
               .toList();
       deleteEnrollments(enrollments);
 
       RelationshipQueryParams params = RelationshipQueryParams.builder().entity(entity).build();
-      List<String> relationships =
-          relationshipStore.getByTrackedEntity(entity, params).stream()
-              .map(BaseIdentifiableObject::getUid)
-              .toList();
+      List<UID> relationships =
+          relationshipStore.getByTrackedEntity(entity, params).stream().map(UID::of).toList();
 
       deleteRelationships(relationships);
 
@@ -230,11 +221,10 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   }
 
   @Override
-  public TrackerTypeReport deleteRelationships(List<String> relationships)
-      throws NotFoundException {
+  public TrackerTypeReport deleteRelationships(List<UID> relationships) throws NotFoundException {
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.RELATIONSHIP);
 
-    for (String uid : relationships) {
+    for (UID uid : relationships) {
       Entity objectReport = new Entity(TrackerType.RELATIONSHIP, uid);
 
       Relationship relationship = manager.get(Relationship.class, uid);

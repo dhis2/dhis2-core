@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import jakarta.persistence.EntityManager;
 import java.util.List;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.TestBase;
@@ -112,6 +113,6 @@ class EventProgramEnrollmentSupplierTest extends TestBase {
   private void assertEnrollmentInPreheat(Enrollment expected, Enrollment actual) {
     assertEquals(expected.getUid(), actual.getUid());
     assertEquals(expected.getProgram().getUid(), actual.getProgram().getUid());
-    assertEquals(actual, preheat.getEnrollment(actual.getUid()));
+    assertEquals(actual, preheat.getEnrollment(UID.of(actual)));
   }
 }
