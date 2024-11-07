@@ -660,7 +660,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   /**
    * Assembles a list of DimensionalObjects based on the concrete objects in this
-   * BaseAnalyticalObject.
+   * BaseAnalyticalObject
    *
    * <p>Merges fixed and relative periods into the pe dimension, where the RelativePeriods object is
    * represented by enums (e.g. LAST_MONTH). Merges fixed and user organisation units into the ou
