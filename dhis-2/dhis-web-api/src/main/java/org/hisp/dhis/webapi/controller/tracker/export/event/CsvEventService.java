@@ -199,7 +199,6 @@ class CsvEventService implements CsvService<Event> {
           dataValue.getProvidedElsewhere(),
           dataValue.getDataElement(),
           dataValue.getValue(),
-          dataValue.getGeometry(),
           dataValue.getCreatedAtDataValue(),
           dataValue.getUpdatedAtDataValue(),
           dataValue.getStoredByDataValue())) {
