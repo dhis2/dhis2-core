@@ -45,7 +45,7 @@ public interface EventChangeLogService {
    *
    * @return event change logs page
    */
-  Page<EventChangeLog> getEventChangeLog(
+  Page<EventChangeLogDto> getEventChangeLog(
       UID event, EventChangeLogOperationParams operationParams, PageParams pageParams)
       throws NotFoundException, ForbiddenException;
 
@@ -60,9 +60,16 @@ public interface EventChangeLogService {
   void addTrackedEntityDataValueChangeLog(
       TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog);
 
-  void addEventChangeLog(
+  void addDataValueChangeLog(
       Event event,
       DataElement dataElement,
+      String currentValue,
+      String previousValue,
+      ChangeLogType changeLogType,
+      String userName);
+
+  void addEventPropertyChangeLog(
+      Event event,
       String eventProperty,
       String currentValue,
       String previousValue,

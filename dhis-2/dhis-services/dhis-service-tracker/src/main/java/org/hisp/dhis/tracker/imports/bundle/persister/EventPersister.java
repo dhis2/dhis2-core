@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
+import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
+import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
+
 import jakarta.persistence.EntityManager;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -195,35 +199,22 @@ public class EventPersister
           EventDataValue dbDataValue = dataValueDBMap.get(dataElement.getUid());
 
           if (isNewDataValue(dbDataValue, dataValue)) {
-            logEventValueChange(
-                user.getUsername(),
-                dataElement,
-                null,
-                event,
-                dataValue.getValue(),
-                null,
-                ChangeLogType.CREATE);
+            eventChangeLogService.addDataValueChangeLog(
+                event, dataElement, dataValue.getValue(), null, CREATE, user.getUsername());
             saveDataValue(dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isUpdate(dbDataValue, dataValue)) {
-            logEventValueChange(
-                user.getUsername(),
-                dataElement,
-                null,
+            eventChangeLogService.addDataValueChangeLog(
                 event,
+                dataElement,
                 dataValue.getValue(),
                 dbDataValue.getValue(),
-                ChangeLogType.UPDATE);
+                UPDATE,
+                user.getUsername());
             updateDataValue(
                 dbDataValue, dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isDeletion(dbDataValue, dataValue)) {
-            logEventValueChange(
-                user.getUsername(),
-                dataElement,
-                null,
-                event,
-                null,
-                dbDataValue.getValue(),
-                ChangeLogType.DELETE);
+            eventChangeLogService.addDataValueChangeLog(
+                event, dataElement, null, dbDataValue.getValue(), DELETE, user.getUsername());
             deleteDataValue(dbDataValue, event, dataElement, entityManager, preheat);
           }
         });
@@ -252,14 +243,13 @@ public class EventPersister
     if (!Objects.equals(originalValue, newValue)) {
       ChangeLogType changeLogType = getChangeLogType(originalEvent, event, valueExtractor);
 
-      logEventValueChange(
-          user.getUsername(),
-          null,
-          propertyName,
+      eventChangeLogService.addEventPropertyChangeLog(
           event,
+          propertyName,
           newValue != null ? formatter.apply(newValue) : null,
           originalValue != null ? formatter.apply(originalValue) : null,
-          changeLogType);
+          changeLogType,
+          user.getUsername());
     }
   }
 
@@ -320,19 +310,6 @@ public class EventPersister
     }
 
     event.getEventDataValues().remove(eventDataValue);
-  }
-
-  private void logEventValueChange(
-      String userName,
-      DataElement dataElement,
-      String eventProperty,
-      Event event,
-      String currentValue,
-      String previousValue,
-      ChangeLogType changeLogType) {
-
-    eventChangeLogService.addEventChangeLog(
-        event, dataElement, eventProperty, currentValue, previousValue, changeLogType, userName);
   }
 
   @Override

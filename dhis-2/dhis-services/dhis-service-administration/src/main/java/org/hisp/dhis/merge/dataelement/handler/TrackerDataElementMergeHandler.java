@@ -55,6 +55,7 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionStore;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableStore;
+import org.hisp.dhis.tracker.export.event.EventChangeLog;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
 import org.springframework.stereotype.Component;
@@ -274,9 +275,9 @@ public class TrackerDataElementMergeHandler {
   }
 
   /**
-   * Method handling {@link TrackedEntityDataValueChangeLog}s and {@link
-   * org.hisp.dhis.tracker.export.event.EventChangeLog}s. Both of them will either be deleted or
-   * left as is, based on whether the source {@link DataElement}s are being deleted or not.
+   * Method handling {@link TrackedEntityDataValueChangeLog}s and {@link EventChangeLog}s. Both of
+   * them will either be deleted or left as is, based on whether the source {@link DataElement}s are
+   * being deleted or not.
    *
    * @param sources source {@link DataElement}s used to retrieve {@link DataValueAudit}s
    * @param mergeRequest merge request

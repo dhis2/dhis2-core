@@ -28,51 +28,17 @@
 package org.hisp.dhis.tracker.export.event;
 
 import java.util.Date;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.Event;
 
-@NoArgsConstructor
-@Getter
-@Setter
-public class EventChangeLog {
-  private long id;
-
-  private Event event;
-
-  private DataElement dataElement;
-
-  private String eventProperty;
-
-  private String currentValue;
-
-  private String previousValue;
-
-  private ChangeLogType changeLogType;
-
-  private Date created;
-
-  private String createdBy;
-
-  public EventChangeLog(
-      Event event,
-      DataElement dataElement,
-      String eventProperty,
-      String currentValue,
-      String previousValue,
-      ChangeLogType changeLogType,
-      Date created,
-      String createdBy) {
-    this.event = event;
-    this.dataElement = dataElement;
-    this.eventProperty = eventProperty;
-    this.currentValue = currentValue;
-    this.previousValue = previousValue;
-    this.changeLogType = changeLogType;
-    this.created = created;
-    this.createdBy = createdBy;
-  }
-}
+public record EventChangeLogDto(
+    String dataElementUid,
+    String eventProperty,
+    String currentValue,
+    String previousValue,
+    ChangeLogType changeLogType,
+    Date created,
+    String createdBy,
+    String firstName,
+    String surname,
+    String username,
+    String userUid) {}
