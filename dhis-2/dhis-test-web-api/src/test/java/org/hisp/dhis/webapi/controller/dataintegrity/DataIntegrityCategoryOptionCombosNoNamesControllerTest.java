@@ -38,18 +38,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the metadata check for category option combos with the same category options.
+ * Tests metadata integrity check category option combinations with no names.
  *
  * <p>{@see
- * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/categories/category_option_combos_have_duplicates.yaml}
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/categories/category_option_combos_no_name.yaml}
  *
- * @author David Mackessy
+ * @author Jason P. Pickering
  */
 class DataIntegrityCategoryOptionCombosNoNames extends AbstractDataIntegrityIntegrationTest {
 
   private final String check = "category_option_combos_no_names";
-
-  private String cocWithOptionsA;
 
   private String categoryOptionRed;
 
