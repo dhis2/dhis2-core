@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeGzip;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeZip;
+import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.event.EventRequestParams.DEFAULT_FIELDS_PARAM;
@@ -61,7 +62,7 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.tracker.export.event.EventChangeLog;
+import org.hisp.dhis.tracker.export.event.EventChangeLogDto;
 import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
@@ -93,6 +94,9 @@ class EventsExportController {
   protected static final String EVENTS = "events";
 
   private static final EventMapper EVENTS_MAPPER = Mappers.getMapper(EventMapper.class);
+
+  private static final EventChangeLogMapper EVENT_CHANGE_LOG_MAPPER =
+      Mappers.getMapper(EventChangeLogMapper.class);
 
   private static final String EVENT_CSV_FILE = EVENTS + ".csv";
 
@@ -325,7 +329,7 @@ class EventsExportController {
   }
 
   @GetMapping("/{event}/changeLogs")
-  Page<ObjectNode> getEventChangeLogsByUid(
+  ResponseEntity<Page<ObjectNode>> getEventChangeLogsByUid(
       @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
       ChangeLogRequestParams requestParams,
       HttpServletRequest request)
@@ -335,9 +339,18 @@ class EventsExportController {
     PageParams pageParams =
         new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
 
-    org.hisp.dhis.tracker.export.Page<EventChangeLog> changeLogs =
+    org.hisp.dhis.tracker.export.Page<EventChangeLogDto> changeLogs =
         eventChangeLogService.getEventChangeLog(event, operationParams, pageParams);
 
-    return fieldFilterRequestHandler.handle(request, "changeLogs", changeLogs, requestParams);
+    List<ObjectNode> objectNodes =
+        fieldFilterService.toObjectNodes(
+            EVENT_CHANGE_LOG_MAPPER.fromCollection(changeLogs.getItems()),
+            requestParams.getFields());
+
+    return ResponseEntity.ok()
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(
+            Page.withPager(
+                "changeLogs", changeLogs.withItems(objectNodes), getRequestURL(request)));
   }
 }

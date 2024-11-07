@@ -45,7 +45,7 @@ public interface EventChangeLogService {
    *
    * @return event change logs page
    */
-  Page<EventChangeLog> getEventChangeLog(
+  Page<EventChangeLogDto> getEventChangeLog(
       UID event, EventChangeLogOperationParams operationParams, PageParams pageParams)
       throws NotFoundException, ForbiddenException;
 
