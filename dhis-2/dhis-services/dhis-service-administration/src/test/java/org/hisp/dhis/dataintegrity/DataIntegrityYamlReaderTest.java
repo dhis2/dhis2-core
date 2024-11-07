@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -139,6 +140,28 @@ class DataIntegrityYamlReaderTest {
     readYaml(
         checks, "test-data-integrity-checks.yaml", "test-data-integrity-checks.yaml", FILE_SYSTEM);
     assertEquals(0, checks.size());
+  }
+
+  @Test
+  void testChecksHaveTranslations() {
+    ResourceBundle resourceBundle = ResourceBundle.getBundle("i18n_global");
+
+    List<String> translations_suffix = new ArrayList<>();
+    translations_suffix.add("name");
+    /* Require the name only for now, but we can add the other translations strings later when needed.
+    translations_suffix.add("description");
+    translations_suffix.add("section");
+    translations_suffix.add("recommendation");*/
+
+    List<DataIntegrityCheck> checks = new ArrayList<>();
+    readYaml(checks, "data-integrity-checks.yaml", "data-integrity-checks", CLASS_PATH);
+    //Check for names
+    for (DataIntegrityCheck check : checks) {
+        for (String suffix : translations_suffix) {
+            String translationKey = "data_integrity." + check.getName() + "." + suffix;
+            assertTrue(resourceBundle.containsKey(translationKey), "data integrity check translations should contain " + translationKey);
+        }
+    }
   }
 
   private void readYaml(
