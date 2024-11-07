@@ -96,7 +96,7 @@ class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerInte
   @BeforeEach
   void setUp() throws IOException {
     this.renderService = _renderService;
-    setUpMetadata("tracker/simple_metadata_changelog.json");
+    setUpMetadata("tracker/simple_metadata.json");
 
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
