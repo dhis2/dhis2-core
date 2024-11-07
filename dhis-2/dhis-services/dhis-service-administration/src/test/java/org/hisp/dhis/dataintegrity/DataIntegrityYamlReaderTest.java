@@ -155,12 +155,14 @@ class DataIntegrityYamlReaderTest {
 
     List<DataIntegrityCheck> checks = new ArrayList<>();
     readYaml(checks, "data-integrity-checks.yaml", "data-integrity-checks", CLASS_PATH);
-    //Check for names
+    // Check for names
     for (DataIntegrityCheck check : checks) {
-        for (String suffix : translations_suffix) {
-            String translationKey = "data_integrity." + check.getName() + "." + suffix;
-            assertTrue(resourceBundle.containsKey(translationKey), "data integrity check translations should contain " + translationKey);
-        }
+      for (String suffix : translations_suffix) {
+        String translationKey = "data_integrity." + check.getName() + "." + suffix;
+        assertTrue(
+            resourceBundle.containsKey(translationKey),
+            "data integrity check translations should contain " + translationKey);
+      }
     }
   }
 
