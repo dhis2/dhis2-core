@@ -39,7 +39,7 @@ import org.mapstruct.Named;
 @Mapper
 public interface EventChangeLogMapper extends ViewMapper<EventChangeLogDto, EventChangeLog> {
 
-  @Mapping(target = "createdBy", expression = "java(mapUser(dto))")
+  @Mapping(target = "createdBy", source = "dto", qualifiedByName = "mapUser")
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "type", source = "changeLogType")
   @Mapping(target = "change.dataValue", source = "dto")
