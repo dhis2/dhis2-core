@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.tracker.view;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
-import java.util.Objects;
 
 public final class EventChangeLog {
 
@@ -69,47 +68,48 @@ public final class EventChangeLog {
     return change;
   }
 
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == this) {
-      return true;
+  public static final class Change {
+
+    @JsonProperty private final DataValueChange dataValue;
+
+    public Change(@JsonProperty DataValueChange dataValue) {
+      this.dataValue = dataValue;
     }
-    if (obj == null || obj.getClass() != this.getClass()) {
-      return false;
+
+    @JsonProperty
+    public DataValueChange dataValue() {
+      return dataValue;
     }
-    var that = (EventChangeLog) obj;
-    return Objects.equals(this.createdBy, that.createdBy)
-        && Objects.equals(this.createdAt, that.createdAt)
-        && Objects.equals(this.type, that.type)
-        && Objects.equals(this.change, that.change);
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(createdBy, createdAt, type, change);
+  public static final class DataValueChange {
+
+    @JsonProperty private final String dataElement;
+    @JsonProperty private final String previousValue;
+    @JsonProperty private final String currentValue;
+
+    public DataValueChange(
+        @JsonProperty String dataElement,
+        @JsonProperty String previousValue,
+        @JsonProperty String currentValue) {
+      this.dataElement = dataElement;
+      this.previousValue = previousValue;
+      this.currentValue = currentValue;
+    }
+
+    @JsonProperty
+    public String dataElement() {
+      return dataElement;
+    }
+
+    @JsonProperty
+    public String previousValue() {
+      return previousValue;
+    }
+
+    @JsonProperty
+    public String currentValue() {
+      return currentValue;
+    }
   }
-
-  @Override
-  public String toString() {
-    return "EventChangeLog["
-        + "createdBy="
-        + createdBy
-        + ", "
-        + "createdAt="
-        + createdAt
-        + ", "
-        + "type="
-        + type
-        + ", "
-        + "change="
-        + change
-        + ']';
-  }
-
-  public record Change(@JsonProperty DataValueChange dataValue) {}
-
-  public record DataValueChange(
-      @JsonProperty String dataElement,
-      @JsonProperty String previousValue,
-      @JsonProperty String currentValue) {}
 }
