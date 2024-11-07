@@ -106,11 +106,13 @@ class TrackerPreheatServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testPreheatWithDifferentIdSchemes() {
     TrackedEntity teA =
         TrackedEntity.builder()
+            .trackedEntity(UID.generate())
             .orgUnit(MetadataIdentifier.ofCode("OUA"))
             .trackedEntityType(MetadataIdentifier.ofUid(TET_UID))
             .build();
     Enrollment enrollmentA =
         Enrollment.builder()
+            .enrollment(UID.generate())
             .orgUnit(MetadataIdentifier.ofCode("OUA"))
             .program(MetadataIdentifier.ofAttribute(ATTRIBUTE_UID, programAttribute))
             .trackedEntity(UID.of("TE123456789"))
