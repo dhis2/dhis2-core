@@ -46,7 +46,7 @@ public interface EventChangeLogMapper {
       expression =
           "java(mapDataValueIfNotNull(eventChangeLogDto, eventChangeLogDto.dataElementUid()))")
   @Mapping(
-      target = "change.property",
+      target = "change.eventProperty",
       expression =
           "java(mapEventPropertyIfNotNull(eventChangeLogDto, eventChangeLogDto.eventProperty()))")
   EventChangeLog map(EventChangeLogDto dto);
