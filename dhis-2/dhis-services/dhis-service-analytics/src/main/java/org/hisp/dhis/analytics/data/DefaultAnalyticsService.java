@@ -38,7 +38,6 @@ import static org.hisp.dhis.visualization.Visualization.addListIfEmpty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -47,6 +46,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -260,10 +260,24 @@ public class DefaultAnalyticsService implements AnalyticsService {
       }
     }
 
+    List<List<DimensionalItemObject>> gridColumns =
+        Optional.ofNullable(columns)
+            .map(cols -> getGridItems(grid, columnsDimensionItemsByDimension, cols))
+            .filter(CollectionUtils::isNotEmpty)
+            .map(this::reorderItems)
+            .orElseGet(() -> CombinationGenerator.newInstance(tableColumns).getCombinations());
+
+    List<List<DimensionalItemObject>> gridRows =
+        Optional.ofNullable(rows)
+            .map(rws -> getGridItems(grid, rowsDimensionItemsByDimension, rws))
+            .filter(CollectionUtils::isNotEmpty)
+            .map(this::reorderItems)
+            .orElseGet(() -> CombinationGenerator.newInstance(tableRows).getCombinations());
+
     visualization
         .setGridTitle(IdentifiableObjectUtils.join(params.getFilterItems()))
-        .setGridColumns(CombinationGenerator.newInstance(tableColumns).getCombinations())
-        .setGridRows(CombinationGenerator.newInstance(tableRows).getCombinations());
+        .setGridColumns(gridColumns)
+        .setGridRows(gridRows);
 
     addListIfEmpty(visualization.getGridColumns());
     addListIfEmpty(visualization.getGridRows());
@@ -274,23 +288,9 @@ public class DefaultAnalyticsService implements AnalyticsService {
 
     Map<String, Object> valueMap = AnalyticsUtils.getAggregatedDataValueMapping(grid);
 
-    List<List<DimensionalItemObject>> alternativeGridColumns =
-        Optional.ofNullable(columns)
-            .map(cols -> getGridItems(grid, columnsDimensionItemsByDimension, cols))
-            .map(this::reorderItems)
-            .orElse(Collections.emptyList());
-
-    List<List<DimensionalItemObject>> alternativeGridRows =
-        Optional.ofNullable(rows)
-            .map(rws -> getGridItems(grid, rowsDimensionItemsByDimension, rws))
-            .map(this::reorderItems)
-            .orElse(Collections.emptyList());
-
     return visualization.getGrid(
         new ListGrid(grid.getMetaData(), grid.getInternalMetaData()),
         valueMap,
-        alternativeGridColumns,
-        alternativeGridRows,
         params.getDisplayProperty(),
         false);
   }
