@@ -57,9 +57,9 @@ import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.visualization.AlternativeGridItems;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -271,19 +271,16 @@ public class DefaultAnalyticsService implements AnalyticsService {
 
     Map<String, Object> valueMap = AnalyticsUtils.getAggregatedDataValueMapping(grid);
 
-    AlternativeGridItems alternativeGridItems =
-        getAlternateGridItems(
-            grid, columnsDimensionItemsByDimension, rowsDimensionItemsByDimension, columns, rows);
-
-    alternativeGridItems =
-        AlternativeGridItems.of(
-            reorderItems(alternativeGridItems.getRows()),
-            reorderItems(alternativeGridItems.getColumns()));
+    List<List<DimensionalItemObject>> alternativeGridColumns =
+        reorderItems(getGridItems(grid, columnsDimensionItemsByDimension, columns));
+    List<List<DimensionalItemObject>> alternativeGridRows =
+        reorderItems(getGridItems(grid, rowsDimensionItemsByDimension, rows));
 
     return visualization.getGrid(
         new ListGrid(grid.getMetaData(), grid.getInternalMetaData()),
         valueMap,
-        alternativeGridItems,
+        alternativeGridColumns,
+        alternativeGridRows,
         params.getDisplayProperty(),
         false);
   }
@@ -298,65 +295,51 @@ public class DefaultAnalyticsService implements AnalyticsService {
   }
 
   /**
-   * Returns alternative grid rows and columns based on the given grid and dimension items.
+   * Returns alternative grid dimensional items based on the given grid and all dimension items.
    * Alternative grid items are used improve the performance of the grid rendering when the
    * combination of dimension items is large. The alternative grid items are a list of lists of
    * dimension items where each list represents a possible combination of dimension items that are
    * used to render the grid.
    *
    * @param grid the grid
-   * @param columnsDimensionItemsByDimension a map of dimension items by dimension for columns
-   * @param rowsDimensionItemsByDimension a map of dimension items by dimension for rows
-   * @param columnDimensionIds the column dimension ids
-   * @param rowDimensionIds the row dimension ids
+   * @param dimensionItemsByDimension a map of dimension items by dimension
+   * @param dimensionIds the dimension ids
    * @return the alternative grid items
    */
-  public static AlternativeGridItems getAlternateGridItems(
+  static List<List<DimensionalItemObject>> getGridItems(
       Grid grid,
-      Map<String, List<DimensionalItemObject>> columnsDimensionItemsByDimension,
-      Map<String, List<DimensionalItemObject>> rowsDimensionItemsByDimension,
-      List<String> columnDimensionIds,
-      List<String> rowDimensionIds) {
+      Map<String, List<DimensionalItemObject>> dimensionItemsByDimension,
+      List<String> dimensionIds) {
 
-    Set<List<DimensionalItemObject>> alternateRows = new HashSet<>();
-    Set<List<DimensionalItemObject>> alternateColumns = new HashSet<>();
+    Set<List<DimensionalItemObject>> alternateItems = new HashSet<>();
 
-    // last column is the value column
+    // Last column is the value column.
     int metaCount = grid.getWidth() - 1;
 
     for (List<Object> row : grid.getRows()) {
-
-      DimensionalItemObject[] alternateRow = new DimensionalItemObject[rowDimensionIds.size()];
-      DimensionalItemObject[] alternateColumn =
-          new DimensionalItemObject[columnDimensionIds.size()];
+      DimensionalItemObject[] alternateItem = new DimensionalItemObject[dimensionIds.size()];
 
       for (int i = 0; i < metaCount; i++) {
-        String dimensionUid = grid.getHeaders().get(i).getName();
+        // Header name is the dimension id.
+        String headerName = grid.getHeaders().get(i).getName();
         String value = row.get(i).toString();
-        if (isDimension(dimensionUid, rowsDimensionItemsByDimension)) {
-          int indexInRow = rowDimensionIds.indexOf(dimensionUid);
-          alternateRow[indexInRow] = findItem(rowsDimensionItemsByDimension, value);
-        }
-        if (isDimension(dimensionUid, columnsDimensionItemsByDimension)) {
-          int indexInColumn = columnDimensionIds.indexOf(dimensionUid);
-          alternateColumn[indexInColumn] = findItem(columnsDimensionItemsByDimension, value);
+        if (isDimension(headerName, dimensionItemsByDimension)) {
+          int indexInColumn = dimensionIds.indexOf(headerName);
+          alternateItem[indexInColumn] = findValueInDimensionItem(dimensionItemsByDimension, value);
         }
       }
-
-      alternateColumns.add(Arrays.stream(alternateColumn).collect(Collectors.toList()));
-      alternateRows.add(Arrays.stream(alternateRow).collect(Collectors.toList()));
+      alternateItems.add(Arrays.stream(alternateItem).collect(Collectors.toList()));
     }
-    return AlternativeGridItems.of(
-        new ArrayList<>(alternateRows), new ArrayList<>(alternateColumns));
+    return new ArrayList<>(alternateItems);
   }
 
-  private static DimensionalItemObject findItem(
+  private static DimensionalItemObject findValueInDimensionItem(
       Map<String, List<DimensionalItemObject>> rowsDimensionItemsByDimension, String value) {
     return rowsDimensionItemsByDimension.values().stream()
         .flatMap(List::stream)
-        .filter(dio -> dio.getDimensionItem().equals(value))
+        .filter(dimensionalItemObject -> dimensionalItemObject.getDimensionItem().equals(value))
         .findFirst()
-        .orElse(null);
+        .orElseThrow(() -> new IllegalQueryException("Dimensional item not found"));
   }
 
   private static boolean isDimension(

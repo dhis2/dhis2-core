@@ -1368,7 +1368,8 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
    *
    * @param grid the grid, should be empty and not null.
    * @param valueMap the mapping of identifiers to aggregate values.
-   * @param alternativeGridItems the alternate grid items to use for populating the grid.
+   * @param altenativeGridColumns alternative grid columns.
+   * @param alternativeGridRows alternative grid rows.
    * @param displayProperty the display property to use for meta data.
    * @param reportParamColumns whether to include report parameter columns.
    * @return a grid.
@@ -1376,7 +1377,8 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   public Grid getGrid(
       final Grid grid,
       Map<String, Object> valueMap,
-      AlternativeGridItems alternativeGridItems,
+      List<List<DimensionalItemObject>> altenativeGridColumns,
+      List<List<DimensionalItemObject>> alternativeGridRows,
       final DisplayProperty displayProperty,
       final boolean reportParamColumns) {
     valueMap = getSortedKeysMap(valueMap);
@@ -1429,14 +1431,10 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     final int numberOfColumns = getGridColumns().size();
 
     List<List<DimensionalItemObject>> actualGridColumns =
-        Optional.ofNullable(alternativeGridItems)
-            .map(AlternativeGridItems::getColumns)
-            .orElse(this.gridColumns);
+        Optional.ofNullable(altenativeGridColumns).orElse(this.gridColumns);
 
     List<List<DimensionalItemObject>> actualGridRows =
-        Optional.ofNullable(alternativeGridItems)
-            .map(AlternativeGridItems::getRows)
-            .orElse(this.gridRows);
+        Optional.ofNullable(alternativeGridRows).orElse(this.gridRows);
 
     for (List<DimensionalItemObject> column : actualGridColumns) {
       grid.addHeader(
@@ -1547,7 +1545,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
       Map<String, Object> valueMap,
       final DisplayProperty displayProperty,
       final boolean reportParamColumns) {
-    return getGrid(grid, valueMap, null, displayProperty, reportParamColumns);
+    return getGrid(grid, valueMap, null, null, displayProperty, reportParamColumns);
   }
 
   /** Indicates whether this visualization is multi-dimensional. */
