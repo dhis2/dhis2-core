@@ -28,12 +28,8 @@
 package org.hisp.dhis.tracker.export.event;
 
 import java.util.Date;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.changelog.ChangeLogType;
 
-@Getter
-@RequiredArgsConstructor
 public final class EventChangeLogDto {
 
   private final String dataElementUid;
@@ -46,4 +42,67 @@ public final class EventChangeLogDto {
   private final String surname;
   private final String username;
   private final String userUid;
+
+  public EventChangeLogDto(
+      String dataElementUid,
+      String currentValue,
+      String previousValue,
+      ChangeLogType changeLogType,
+      Date created,
+      String createdBy,
+      String firstName,
+      String surname,
+      String username,
+      String userUid) {
+    this.dataElementUid = dataElementUid;
+    this.currentValue = currentValue;
+    this.previousValue = previousValue;
+    this.changeLogType = changeLogType;
+    this.created = created;
+    this.createdBy = createdBy;
+    this.firstName = firstName;
+    this.surname = surname;
+    this.username = username;
+    this.userUid = userUid;
+  }
+
+  public String getDataElementUid() {
+    return dataElementUid;
+  }
+
+  public String getCurrentValue() {
+    return currentValue;
+  }
+
+  public String getPreviousValue() {
+    return previousValue;
+  }
+
+  public ChangeLogType getChangeLogType() {
+    return changeLogType;
+  }
+
+  public Date getCreated() {
+    return created;
+  }
+
+  public String getCreatedBy() {
+    return createdBy;
+  }
+
+  public String getFirstName() {
+    return firstName;
+  }
+
+  public String getSurname() {
+    return surname;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public String getUserUid() {
+    return userUid;
+  }
 }
