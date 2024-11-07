@@ -31,18 +31,17 @@ import org.hisp.dhis.tracker.export.event.EventChangeLogDto;
 import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog;
 import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog.DataValueChange;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
-import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper
-public interface EventChangeLogMapper extends ViewMapper<EventChangeLogDto, EventChangeLog> {
+public interface EventChangeLogMapper {
 
   @Mapping(target = "createdBy", source = "dto")
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "type", source = "changeLogType")
   @Mapping(target = "change.dataValue", source = "dto")
-  EventChangeLog from(EventChangeLogDto dto);
+  EventChangeLog map(EventChangeLogDto dto);
 
   @Mapping(target = "uid", source = "userUid")
   @Mapping(target = "username", source = "username")

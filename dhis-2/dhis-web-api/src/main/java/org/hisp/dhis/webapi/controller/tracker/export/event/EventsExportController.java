@@ -72,6 +72,7 @@ import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.export.FileResourceRequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
+import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
@@ -335,10 +336,11 @@ class EventsExportController {
     org.hisp.dhis.tracker.export.Page<EventChangeLogDto> changeLogs =
         eventChangeLogService.getEventChangeLog(event, operationParams, pageParams);
 
+    List<EventChangeLog> eventChangeLogs =
+        changeLogs.getItems().stream().map(EVENT_CHANGE_LOG_MAPPER::map).toList();
+
     List<ObjectNode> objectNodes =
-        fieldFilterService.toObjectNodes(
-            EVENT_CHANGE_LOG_MAPPER.fromCollection(changeLogs.getItems()),
-            requestParams.getFields());
+        fieldFilterService.toObjectNodes(eventChangeLogs, requestParams.getFields());
 
     return ResponseEntity.ok()
         .contentType(MediaType.APPLICATION_JSON)
