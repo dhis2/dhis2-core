@@ -33,7 +33,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDataValueSet;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDataValueSetAsGrid;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.isTableLayout;
 import static org.hisp.dhis.commons.collection.ListUtils.removeEmptys;
-import static org.hisp.dhis.feedback.ErrorCode.E7146;
 import static org.hisp.dhis.feedback.ErrorCode.E7147;
 import static org.hisp.dhis.visualization.Visualization.addListIfEmpty;
 
