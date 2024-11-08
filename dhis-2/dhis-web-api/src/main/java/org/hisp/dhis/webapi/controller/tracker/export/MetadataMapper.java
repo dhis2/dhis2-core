@@ -25,66 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.mapstruct.Context;
+import org.mapstruct.Mapper;
+import org.mapstruct.Named;
 
-/** Representation of {@link org.hisp.dhis.webapi.controller.tracker.view.Event}. */
-public interface JsonEvent extends JsonObject {
-  default String getEvent() {
-    return getString("event").string();
+@Mapper
+public interface MetadataMapper {
+
+  @Named("programToString")
+  default String map(Program program, @Context TrackerIdSchemeParams idSchemeParams) {
+    return idSchemeParams.getProgramIdScheme().getIdentifier(program);
   }
 
-  default String getStatus() {
-    return getString("status").string();
+  @Named("programStageToString")
+  default String map(ProgramStage programStage, @Context TrackerIdSchemeParams idSchemeParams) {
+    return idSchemeParams.getProgramStageIdScheme().getIdentifier(programStage);
   }
 
-  default String getProgram() {
-    return getString("program").string();
-  }
-
-  default String getProgramStage() {
-    return getString("programStage").string();
-  }
-
-  default String getEnrollment() {
-    return getString("enrollment").string();
-  }
-
-  default String getTrackedEntity() {
-    return getString("trackedEntity").string();
-  }
-
-  default String getOrgUnit() {
-    return getString("orgUnit").string();
-  }
-
-  default String attributeOptionCombo() {
-    return getString("attributeOptionCombo").string();
-  }
-
-  default String attributeCategoryOptions() {
-    return getString("attributeCategoryOptions").string();
-  }
-
-  default Boolean getDeleted() {
-    return getBoolean("deleted").bool();
-  }
-
-  default JsonUser getAssignedUser() {
-    return get("assignedUser").as(JsonUser.class);
-  }
-
-  default JsonList<JsonRelationship> getRelationships() {
-    return get("relationships").asList(JsonRelationship.class);
-  }
-
-  default JsonList<JsonDataValue> getDataValues() {
-    return get("dataValues").asList(JsonDataValue.class);
-  }
-
-  default JsonList<JsonNote> getNotes() {
-    return get("notes").asList(JsonNote.class);
+  @Named("organisationUnitToString")
+  default String map(OrganisationUnit orgUnit, @Context TrackerIdSchemeParams idSchemeParams) {
+    return idSchemeParams.getOrgUnitIdScheme().getIdentifier(orgUnit);
   }
 }
