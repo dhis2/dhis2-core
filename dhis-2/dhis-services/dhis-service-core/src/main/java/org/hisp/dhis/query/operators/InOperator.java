@@ -82,10 +82,11 @@ public class InOperator<T extends Comparable<? super T>> extends Operator<T> {
                   getCollectionArgs().get(0)));
     }
     if (queryPath.haveAlias()) {
-      Optional<Join<Y, ?>> join =
+      Optional<Join> join =
           JpaQueryUtils.findJoinStatementByAlias(root, queryPath.getAlias()[0]);
       if (join.isPresent()) {
-        return join.get()
+        Join j = join.get();
+        return j
             .get(queryPath.getProperty().getFieldName())
             .in(getCollectionArgs().get(0));
       }

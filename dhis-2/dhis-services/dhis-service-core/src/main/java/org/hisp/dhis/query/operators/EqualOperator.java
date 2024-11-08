@@ -90,7 +90,7 @@ public class EqualOperator<T extends Comparable<? super T>> extends Operator<T> 
       return builder.equal(builder.size(root.get(queryPath.getPath())), value);
     }
     if (queryPath.haveAlias()) {
-      Optional<Join<Y, ?>> join =
+      Optional<Join> join =
           JpaQueryUtils.findJoinStatementByAlias(root, queryPath.getAlias()[0]);
       if (join.isPresent()) {
         return builder.equal(join.get().get(queryPath.getProperty().getFieldName()), args.get(0));
