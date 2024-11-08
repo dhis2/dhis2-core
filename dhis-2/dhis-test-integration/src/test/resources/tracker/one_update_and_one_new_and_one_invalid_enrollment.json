@@ -79,12 +79,12 @@
       "notes": []
     },
     {
-      "enrollment": "INVALIDUID-TOOLONG",
+      "enrollment": "XjRvstYX68A",
       "createdAtClient": "2017-01-26T13:48:13.363",
       "trackedEntity": "XjRvstYX689",
       "program": {
         "idScheme": "UID",
-        "identifier": "BFcipDERJnf"
+        "identifier": "invalid"
       },
       "status": "ACTIVE",
       "orgUnit": {

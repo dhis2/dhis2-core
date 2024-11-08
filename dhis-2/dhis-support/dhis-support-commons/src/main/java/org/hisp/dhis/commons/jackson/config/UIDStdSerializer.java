@@ -25,21 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports;
+package org.hisp.dhis.commons.jackson.config;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public enum TrackerIdScheme {
-  /** Preheat using UID identifiers. */
-  UID,
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import java.io.IOException;
+import org.hisp.dhis.common.UID;
 
-  /** Preheat using CODE identifiers. */
-  CODE,
+public class UIDStdSerializer extends StdSerializer<UID> {
+  public UIDStdSerializer() {
+    super(UID.class);
+  }
 
-  /** Preheat using NAME identifiers */
-  NAME,
-
-  /** Preheat using ATTRIBUTE identifiers */
-  ATTRIBUTE,
+  @Override
+  public void serialize(UID uid, JsonGenerator gen, SerializerProvider provider)
+      throws IOException {
+    gen.writeString(uid == null ? null : uid.toString());
+  }
 }

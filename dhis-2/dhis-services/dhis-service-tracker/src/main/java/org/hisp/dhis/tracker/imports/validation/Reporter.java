@@ -40,8 +40,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Value;
 import lombok.experimental.NonFinal;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 
 /**
@@ -66,7 +67,7 @@ public class Reporter {
    * least one Error in the Reporter) encountered during the validation
    * process.
    */
-  EnumMap<TrackerType, Set<String>> invalidDTOs;
+  EnumMap<TrackerType, Set<UID>> invalidDTOs;
 
   /**
    * Create a {@link Reporter} reporting all errors and warnings with identifiers in given
@@ -221,7 +222,7 @@ public class Reporter {
    * Checks if a TrackerDto with given type and uid is invalid (i.e. has at least one Error in the
    * Reporter).
    */
-  public boolean isInvalid(TrackerType trackerType, String uid) {
+  public boolean isInvalid(TrackerType trackerType, UID uid) {
     return this.invalidDTOs.getOrDefault(trackerType, new HashSet<>()).contains(uid);
   }
 }

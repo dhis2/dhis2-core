@@ -37,6 +37,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.RuntimeJsonMappingException;
 import io.github.classgraph.ClassGraph;
 import jakarta.persistence.PersistenceException;
 import jakarta.servlet.ServletException;
@@ -78,9 +79,9 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
 import org.hisp.dhis.system.util.HttpUtils;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateForbiddenException;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
@@ -327,7 +328,8 @@ public class CrudControllerAdvice {
         && (rootValue != null && rootValue.getClass().isArray())) {
       return "You likely repeated request parameter '"
           + field
-          + "' and used multiple comma-separated values within at least one of its values. Choose one of these approaches. "
+          + "' and used multiple comma-separated values within at least one of its values. Choose"
+          + " one of these approaches. "
           + ex.getCause().getMessage();
     }
 
@@ -513,6 +515,18 @@ public class CrudControllerAdvice {
   }
 
   /**
+   * Handles {@link RuntimeJsonMappingException} and logs the stack trace. {@link
+   * RuntimeJsonMappingException} is used in DHIS 2 application code but also by various frameworks
+   * to indicate parsing errors, so stack trace must be printed and not swallowed.
+   */
+  @ExceptionHandler(RuntimeJsonMappingException.class)
+  @ResponseBody
+  public WebMessage runtimeJsonMappingExceptionHandler(RuntimeJsonMappingException ex) {
+    log.error(RuntimeJsonMappingException.class.getName(), ex);
+    return badRequest(ex.getMessage());
+  }
+
+  /**
    * Handles {@link IllegalStateException} and logs the stack trace to standard error. {@link
    * IllegalStateException} is used in DHIS 2 application code but also by various frameworks to
    * indicate programming errors, so stack trace must be printed and not swallowed.
@@ -557,8 +571,7 @@ public class CrudControllerAdvice {
   @ResponseBody
   public WebMessage handleOAuth2AuthenticationException(OAuth2AuthenticationException ex) {
     OAuth2Error error = ex.getError();
-    if (error instanceof BearerTokenError) {
-      BearerTokenError bearerTokenError = (BearerTokenError) error;
+    if (error instanceof BearerTokenError bearerTokenError) {
       HttpStatus status = ((BearerTokenError) error).getHttpStatus();
 
       return createWebMessage(

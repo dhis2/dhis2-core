@@ -136,7 +136,6 @@ class EventOperationParamsMapper {
         .setEnrollmentOccurredAfter(operationParams.getEnrollmentOccurredAfter())
         .setEventStatus(operationParams.getEventStatus())
         .setCategoryOptionCombo(attributeOptionCombo)
-        .setIdSchemes(operationParams.getIdSchemes())
         .setIncludeAttributes(false)
         .setIncludeAllDataElements(false)
         .setEvents(operationParams.getEvents())

@@ -29,7 +29,7 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValues;
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -67,9 +67,9 @@ class UniqueAttributeSupplierTest extends TestBase {
 
   private static final String UNIQUE_VALUE = "unique value";
 
-  private static final String TE_UID = CodeGenerator.generateUid();
+  private static final UID TE_UID = UID.generate();
 
-  private static final String ANOTHER_TE_UID = CodeGenerator.generateUid();
+  private static final UID ANOTHER_TE_UID = UID.generate();
 
   @InjectMocks private UniqueAttributesSupplier supplier;
 
@@ -98,7 +98,7 @@ class UniqueAttributeSupplierTest extends TestBase {
     Program program = createProgram('A');
     Attribute attribute = createAttribute('A');
     trackedEntity = createTrackedEntity('A', orgUnit);
-    trackedEntity.setUid(TE_UID);
+    trackedEntity.setUid(TE_UID.getValue());
     trackedEntity.setAttributeValues(AttributeValues.of(Map.of(attribute.getUid(), UNIQUE_VALUE)));
     enrollment = createEnrollment(program, trackedEntity, orgUnit);
     enrollment.setAttributeValues(AttributeValues.of(Map.of(attribute.getUid(), UNIQUE_VALUE)));
@@ -196,7 +196,7 @@ class UniqueAttributeSupplierTest extends TestBase {
     this.supplier.preheatAdd(importParams, preheat);
 
     assertThat(preheat.getUniqueAttributeValues(), hasSize(1));
-    assertThat(preheat.getUniqueAttributeValues().get(0).getTeUid(), is(TE_UID));
+    assertEquals(TE_UID, preheat.getUniqueAttributeValues().get(0).getTe());
   }
 
   private List<org.hisp.dhis.tracker.imports.domain.TrackedEntity>
@@ -225,10 +225,10 @@ class UniqueAttributeSupplierTest extends TestBase {
         .build();
   }
 
-  private org.hisp.dhis.tracker.imports.domain.Enrollment enrollment(String teUid) {
+  private org.hisp.dhis.tracker.imports.domain.Enrollment enrollment(UID teUid) {
     return org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
         .trackedEntity(teUid)
-        .enrollment("ENROLLMENT")
+        .enrollment(UID.generate())
         .attributes(Collections.singletonList(uniqueAttribute()))
         .build();
   }

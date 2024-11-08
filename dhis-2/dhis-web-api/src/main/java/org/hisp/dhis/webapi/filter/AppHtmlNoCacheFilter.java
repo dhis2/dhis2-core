@@ -25,25 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
+package org.hisp.dhis.webapi.filter;
 
-import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.checkUidFormat;
-import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateNotesUid;
-
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.validation.Reporter;
-import org.hisp.dhis.tracker.imports.validation.Validator;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.springframework.http.HttpMethod;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Filter which enforces no cache for HTML pages like index pages to prevent stale versions being
+ * rendered in clients.
+ *
+ * @author Kai Vandivier
  */
-class UidValidator implements Validator<Enrollment> {
-  @Override
-  public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
-    checkUidFormat(
-        enrollment.getEnrollment(), reporter, enrollment, enrollment, enrollment.getEnrollment());
+@Component
+public class AppHtmlNoCacheFilter extends OncePerRequestFilter {
+  // Match paths with '/dhis-web-' or '/apps' that end with '.html' or '/'
+  // https://regex101.com/r/4QfxgS/1
+  public static final String HTML_PATH_REGEX = "\\/(dhis-web-|apps).*(\\.html|\\/)$";
+  public static final Pattern HTML_PATH_PATTERN = Pattern.compile(HTML_PATH_REGEX);
 
-    validateNotesUid(enrollment.getNotes(), reporter, enrollment);
+  @Override
+  protected void doFilterInternal(
+      HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+      throws IOException, ServletException {
+
+    String uri = request.getRequestURI();
+    Matcher m = HTML_PATH_PATTERN.matcher(uri);
+
+    if (m.find() && HttpMethod.GET.matches(request.getMethod())) {
+      ContextUtils.setNoStore(response);
+    }
+
+    chain.doFilter(request, response);
   }
 }

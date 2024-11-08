@@ -111,7 +111,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     manager.update(trackedEntityA1);
     TrackedEntity trackedEntityA = manager.get(TrackedEntity.class, trackedEntityA1.getUid());
     assertNotNull(trackedEntityA);
-    trackerObjectDeletionService.deleteTrackedEntities(List.of(trackedEntityA.getUid()));
+    trackerObjectDeletionService.deleteTrackedEntities(List.of(UID.of(trackedEntityA)));
     assertNull(manager.get(TrackedEntity.class, trackedEntityA.getUid()));
   }
 

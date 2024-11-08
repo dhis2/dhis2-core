@@ -25,26 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat;
+package org.hisp.dhis.webapi.controller.tracker.view;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import javax.annotation.CheckForNull;
+import org.hisp.dhis.common.UID;
+import org.mapstruct.Mapper;
 
-@Getter
-@RequiredArgsConstructor
-public class ReferenceTrackerEntity {
-  /**
-   * Reference uid: this correspond to the UID of a TE, PS or event from the tracker import payload
-   */
-  private final String uid;
-
-  /**
-   * Reference uid of the parent object of this Reference. This is only populated if uid references
-   * a ProgramStage or an Event
-   */
-  private final String parentUid;
-
-  public boolean isRoot() {
-    return this.parentUid.equals("ROOT");
+/**
+ * Converts a string representation of a UID to a {@link UID} object. If the provided string is
+ * {@code null}, the method returns {@code null}. Otherwise, it creates a new {@link UID} instance
+ * using {@code UID.of}.
+ */
+@Mapper
+public interface UIDMapper {
+  @CheckForNull
+  default UID fromString(@CheckForNull String uid) {
+    return uid == null ? null : UID.of(uid);
   }
 }

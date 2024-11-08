@@ -91,7 +91,7 @@ public class EventPersister
 
     return TrackerNotificationDataBundle.builder()
         .klass(Event.class)
-        .eventNotifications(bundle.getEventNotifications().get(UID.of(event.getUid())))
+        .eventNotifications(bundle.getEventNotifications().get(UID.of(event)))
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUser().getUsername())
@@ -160,7 +160,7 @@ public class EventPersister
       Event event,
       UserDetails user) {
     Map<String, EventDataValue> dataValueDBMap =
-        Optional.ofNullable(preheat.getEvent(event.getUid()))
+        Optional.ofNullable(event)
             .map(
                 a ->
                     a.getEventDataValues().stream()
