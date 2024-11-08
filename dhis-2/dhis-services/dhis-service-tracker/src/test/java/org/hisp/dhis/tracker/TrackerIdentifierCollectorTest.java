@@ -157,22 +157,6 @@ class TrackerIdentifierCollectorTest {
   }
 
   @Test
-  void collectEventsSkipsNotesWithoutAnId() {
-    Event event =
-        Event.builder()
-            .event(UID.generate())
-            .notes(List.of(Note.builder().value("nice day!").build()))
-            .build();
-
-    TrackerObjects trackerObjects = TrackerObjects.builder().events(singletonList(event)).build();
-
-    Map<Class<?>, Set<String>> ids = collector.collect(trackerObjects);
-
-    assertNotNull(ids);
-    assertNull(ids.get(org.hisp.dhis.note.Note.class));
-  }
-
-  @Test
   void collectEventsSkipsNotesWithoutAValue() {
     Event event =
         Event.builder()

@@ -29,17 +29,14 @@ package org.hisp.dhis.tracker.export.event;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
-import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.tracker.Assertions.assertHasTimeStamp;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.time.ZoneId;
@@ -52,7 +49,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
@@ -487,132 +483,6 @@ class EventExporterTest extends TrackerTest {
                                 () ->
                                     assertEquals(
                                         "cr89ebDZrac", e.getAttributeOptionCombo().getUid()),
-                                () ->
-                                    assertContainsOnly(
-                                        Set.of("xwZ2u3WyQR0", "M58XdOfhiJ7"),
-                                        e.getAttributeOptionCombo().getCategoryOptions().stream()
-                                            .map(CategoryOption::getUid)
-                                            .collect(Collectors.toSet()))))
-            .toList();
-    assertAll("all events should have the same category option combo and options", executables);
-  }
-
-  @Test
-  void shouldFailIfCategoryOptionComboOfGivenEventDoesNotHaveAValueForGivenIdScheme() {
-    IdSchemes idSchemes = new IdSchemes();
-    idSchemes.setCategoryOptionComboIdScheme("ATTRIBUTE:GOLswS44mh8");
-    EventOperationParams params =
-        operationParamsBuilder
-            .orgUnit(UID.of("DiszpKrYNg8"))
-            .orgUnitMode(SELECTED)
-            .idSchemes(idSchemes)
-            .events(Set.of(UID.of("kWjSezkXHVp")))
-            .build();
-
-    IllegalStateException ex =
-        assertThrows(IllegalStateException.class, () -> eventService.getEvents(params));
-    assertStartsWith("CategoryOptionCombo", ex.getMessage());
-    assertContains("not have a value assigned for idScheme ATTRIBUTE:GOLswS44mh8", ex.getMessage());
-  }
-
-  @Test
-  void shouldReturnEventsGivenIdSchemeCode() throws ForbiddenException, BadRequestException {
-    IdSchemes idSchemes = new IdSchemes();
-    idSchemes.setProgramIdScheme("code");
-    idSchemes.setProgramStageIdScheme("code");
-    idSchemes.setOrgUnitIdScheme("code");
-    idSchemes.setCategoryOptionComboIdScheme("code");
-
-    EventOperationParams params =
-        operationParamsBuilder
-            .orgUnit(UID.of("DiszpKrYNg8"))
-            .orgUnitMode(SELECTED)
-            .idSchemes(idSchemes)
-            .attributeCategoryCombo(UID.of("O4VaNks6tta"))
-            .attributeCategoryOptions(UID.of("xwZ2u3WyQR0", "M58XdOfhiJ7"))
-            .build();
-
-    List<Event> events = eventService.getEvents(params);
-
-    assertContainsOnly(List.of("kWjSezkXHVp", "OTmjvJDn0Fu"), uids(events));
-    List<Executable> executables =
-        events.stream()
-            .map(
-                e ->
-                    (Executable)
-                        () ->
-                            assertAll(
-                                "event " + e.getUid(),
-                                () ->
-                                    assertEquals(
-                                        "multi-program", e.getEnrollment().getProgram().getUid()),
-                                () -> assertEquals("multi-stage", e.getProgramStage().getUid()),
-                                () ->
-                                    assertEquals(
-                                        "DiszpKrYNg8",
-                                        e.getOrganisationUnit()
-                                            .getUid()), // TODO(DHIS2-14968): this might be a bug
-                                // caused by
-                                // https://github.com/dhis2/dhis2-core/pull/12518
-                                () ->
-                                    assertEquals(
-                                        "COC_1153452", e.getAttributeOptionCombo().getUid()),
-                                () ->
-                                    assertContainsOnly(
-                                        Set.of("xwZ2u3WyQR0", "M58XdOfhiJ7"),
-                                        e.getAttributeOptionCombo().getCategoryOptions().stream()
-                                            .map(CategoryOption::getUid)
-                                            .collect(Collectors.toSet()))))
-            .toList();
-    assertAll("all events should have the same category option combo and options", executables);
-  }
-
-  @Test
-  void shouldReturnEventsGivenIdSchemeAttribute() throws ForbiddenException, BadRequestException {
-    IdSchemes idSchemes = new IdSchemes();
-    idSchemes.setProgramIdScheme("ATTRIBUTE:j45AR9cBQKc");
-    idSchemes.setProgramStageIdScheme("ATTRIBUTE:j45AR9cBQKc");
-    idSchemes.setOrgUnitIdScheme("ATTRIBUTE:j45AR9cBQKc");
-    idSchemes.setCategoryOptionComboIdScheme("ATTRIBUTE:j45AR9cBQKc");
-    EventOperationParams params =
-        operationParamsBuilder
-            .orgUnit(UID.of("DiszpKrYNg8"))
-            .orgUnitMode(SELECTED)
-            .idSchemes(idSchemes)
-            .attributeCategoryCombo(UID.of("O4VaNks6tta"))
-            .attributeCategoryOptions(UID.of("xwZ2u3WyQR0", "M58XdOfhiJ7"))
-            .build();
-
-    List<Event> events = eventService.getEvents(params);
-
-    assertContainsOnly(List.of("kWjSezkXHVp", "OTmjvJDn0Fu"), uids(events));
-    List<Executable> executables =
-        events.stream()
-            .map(
-                e ->
-                    (Executable)
-                        () ->
-                            assertAll(
-                                "event " + e.getUid(),
-                                () ->
-                                    assertEquals(
-                                        "multi-program-attribute",
-                                        e.getEnrollment().getProgram().getUid()),
-                                () ->
-                                    assertEquals(
-                                        "multi-program-stage-attribute",
-                                        e.getProgramStage().getUid()),
-                                () ->
-                                    assertEquals(
-                                        "DiszpKrYNg8",
-                                        e.getOrganisationUnit()
-                                            .getUid()), // TODO(DHIS2-14968): this might be a bug
-                                // caused by
-                                // https://github.com/dhis2/dhis2-core/pull/12518
-                                () ->
-                                    assertEquals(
-                                        "COC_1153452-attribute",
-                                        e.getAttributeOptionCombo().getUid()),
                                 () ->
                                     assertContainsOnly(
                                         Set.of("xwZ2u3WyQR0", "M58XdOfhiJ7"),

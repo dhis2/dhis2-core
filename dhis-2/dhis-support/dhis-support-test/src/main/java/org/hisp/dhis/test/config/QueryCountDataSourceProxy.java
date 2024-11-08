@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,47 +25,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.supplier;
+package org.hisp.dhis.test.config;
 
-import java.util.List;
 import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodStore;
-import org.hisp.dhis.tracker.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.imports.preheat.cache.PreheatCacheService;
+import javax.sql.DataSource;
+import net.ttddyy.dsproxy.listener.ChainListener;
+import net.ttddyy.dsproxy.listener.DataSourceQueryCountListener;
+import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Luciano Fiandesio
+ * Test class that enhances the originalDatasource with the ability to count queries, and returns it
+ * as a proxy. This should only be used in tests. To use, simply add:
+ *
+ * <pre>{@code
+ * @ContextConfiguration(classes = {QueryCountDataSourceProxy.class})
+ * }</pre>
+ *
+ * on your test class and then use:
+ *
+ * <pre>{@code
+ * SQLStatementCountValidator.reset();
+ * }</pre>
+ *
+ * before the condition to test and then use asserts afterward e.g.
+ *
+ * <pre>{@code
+ * assertDeleteCount(1);
+ * }</pre>
  */
-@RequiredArgsConstructor
 @Component
-public class PeriodTypeSupplier extends AbstractPreheatSupplier {
-  @Nonnull private final PeriodStore periodStore;
-
-  @Nonnull private final PreheatCacheService cache;
+public class QueryCountDataSourceProxy implements BeanPostProcessor {
 
   @Override
-  public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
-    if (cache.hasKey(Period.class.getName())) {
-      preheat.put(TrackerIdSchemeParam.UID, cache.getAll(Period.class.getName()));
-    } else {
-      final List<Period> periods = periodStore.getAll();
-      addToCache(cache, periods);
-      addToPreheat(preheat, periods.stream().map(p -> (IdentifiableObject) p).toList());
-    }
-    // Period store can't be cached because it's not extending
-    // `IdentifiableObject`
-    periodStore
-        .getAllPeriodTypes()
-        .forEach(periodType -> preheat.getPeriodTypeMap().put(periodType.getName(), periodType));
+  public Object postProcessBeforeInitialization(@Nonnull Object bean, @Nonnull String beanName) {
+    return bean;
   }
 
-  private void addToPreheat(TrackerPreheat preheat, List<IdentifiableObject> periods) {
-    periods.forEach(p -> preheat.getPeriodMap().put(p.getName(), (Period) p));
+  @Override
+  public Object postProcessAfterInitialization(@Nonnull Object bean, @Nonnull String beanName)
+      throws BeansException {
+    if (bean instanceof DataSource originalDataSource && beanName.equals("actualDataSource")) {
+      ChainListener listener = new ChainListener();
+      listener.addListener(new DataSourceQueryCountListener());
+      return ProxyDataSourceBuilder.create(originalDataSource)
+          .name("query-count-datasource-proxy")
+          .listener(listener)
+          .build();
+    }
+    return bean;
   }
 }

@@ -25,17 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.imports;
+package org.hisp.dhis.commons.jackson.config;
 
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.hisp.dhis.webapi.controller.tracker.view.Note;
-import org.mapstruct.Context;
-import org.mapstruct.Mapper;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import java.io.IOException;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.UID;
 
-@Mapper(uses = {InstantMapper.class, UserMapper.class})
-public interface NoteMapper extends DomainMapper<Note, org.hisp.dhis.tracker.imports.domain.Note> {
-  org.hisp.dhis.tracker.imports.domain.Note from(
-      org.hisp.dhis.tracker.imports.domain.Note note,
-      @Context TrackerIdSchemeParams idSchemeParams);
+public class UIDStdDeserializer extends StdDeserializer<UID> {
+  public UIDStdDeserializer() {
+    super(UID.class);
+  }
+
+  @Override
+  public UID deserialize(JsonParser parser, DeserializationContext context) throws IOException {
+    String valueAsString = parser.getText();
+
+    if (StringUtils.isNotBlank(valueAsString)) {
+      try {
+        return UID.of(valueAsString);
+      } catch (Exception e) {
+        throw new JsonParseException(parser, e.getMessage());
+      }
+    }
+    return null;
+  }
 }

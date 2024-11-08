@@ -174,20 +174,4 @@ public class TrackerBundle {
   public TrackerImportStrategy getStrategy(TrackerDto dto) {
     return getResolvedStrategyMap().get(dto.getTrackerType()).get(dto.getUid());
   }
-
-  @SuppressWarnings("unchecked")
-  public <T extends TrackerDto> List<T> get(Class<T> type) {
-    Objects.requireNonNull(type);
-    if (type == TrackedEntity.class) {
-      return (List<T>) trackedEntities;
-    } else if (type == Enrollment.class) {
-      return (List<T>) enrollments;
-    } else if (type == Event.class) {
-      return (List<T>) events;
-    } else if (type == Relationship.class) {
-      return (List<T>) relationships;
-    }
-    // only reached if a new TrackerDto implementation is added
-    throw new IllegalStateException("TrackerType " + type.getName() + " not yet supported.");
-  }
 }

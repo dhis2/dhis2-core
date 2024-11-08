@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.imports.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
+import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -46,7 +47,7 @@ import org.hisp.dhis.common.UID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Note implements Serializable {
-  @JsonProperty private UID note;
+  @Nonnull @JsonProperty private UID note;
 
   @JsonProperty private String value;
 

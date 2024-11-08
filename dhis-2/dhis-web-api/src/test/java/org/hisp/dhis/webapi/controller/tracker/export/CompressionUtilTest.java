@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,8 +59,8 @@ class CompressionUtilTest {
 
   @BeforeEach
   void setUp() {
-    FIRST_EVENT.setEvent(CodeGenerator.generateUid());
-    SECOND_EVENT.setEvent(CodeGenerator.generateUid());
+    FIRST_EVENT.setEvent(UID.generate());
+    SECOND_EVENT.setEvent(UID.generate());
   }
 
   @Test

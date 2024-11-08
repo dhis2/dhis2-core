@@ -40,7 +40,6 @@ import lombok.Getter;
 import org.apache.commons.collections4.SetUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
-import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
@@ -102,8 +101,6 @@ class EventQueryParams {
   private Date enrollmentOccurredAfter;
 
   private CategoryOptionCombo categoryOptionCombo;
-
-  private IdSchemes idSchemes = new IdSchemes();
 
   private boolean includeRelationships;
 
@@ -376,15 +373,6 @@ class EventQueryParams {
     return this;
   }
 
-  public IdSchemes getIdSchemes() {
-    return idSchemes;
-  }
-
-  public EventQueryParams setIdSchemes(IdSchemes idSchemes) {
-    this.idSchemes = idSchemes;
-    return this;
-  }
-
   public boolean isIncludeAttributes() {
     return includeAttributes;
   }
@@ -560,7 +548,7 @@ class EventQueryParams {
 
   public boolean isPathOrganisationUnitMode() {
     return orgUnitMode != null
-        && (orgUnitMode.equals(OrganisationUnitSelectionMode.DESCENDANTS)
-            || orgUnitMode.equals(OrganisationUnitSelectionMode.CHILDREN));
+        && (OrganisationUnitSelectionMode.DESCENDANTS.equals(orgUnitMode)
+            || OrganisationUnitSelectionMode.CHILDREN.equals(orgUnitMode));
   }
 }

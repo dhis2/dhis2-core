@@ -138,6 +138,7 @@ class DataValuesValidatorTest {
 
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(dataValue()))
@@ -230,6 +231,7 @@ class DataValuesValidatorTest {
 
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(dataValue()))
@@ -345,6 +347,7 @@ class DataValuesValidatorTest {
     dataValue.setDataElement(MetadataIdentifier.ofCode("DE_424050"));
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
             .dataValues(Set.of(dataValue))
@@ -415,6 +418,7 @@ class DataValuesValidatorTest {
     dataValue.setDataElement(MetadataIdentifier.ofCode("DE_424050"));
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(dataValue))
@@ -468,6 +472,7 @@ class DataValuesValidatorTest {
     validDataValue.setValue(null);
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
             .dataValues(Set.of(validDataValue))
@@ -598,6 +603,7 @@ class DataValuesValidatorTest {
     validDataValue.setValue(null);
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(validDataValue))
@@ -723,6 +729,7 @@ class DataValuesValidatorTest {
     validDataValue.setValue(null);
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
             .dataValues(Set.of(validDataValue))
@@ -862,6 +869,7 @@ class DataValuesValidatorTest {
 
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(validDataValue, nullDataValue))
@@ -929,6 +937,7 @@ class DataValuesValidatorTest {
 
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(validDataValue, nullDataValue))
@@ -1016,6 +1025,7 @@ class DataValuesValidatorTest {
 
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(validDataValue))
