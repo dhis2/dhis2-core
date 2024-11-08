@@ -34,7 +34,10 @@
 
     <property name="created" type="timestamp" not-null="true"/>
 
-    <property name="createdBy" length="255" not-null="true"/>
+    <property name="createdByUsername" column="createdby" type="string"/>
 
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" insert="false" update="false" property-ref="username">
+      <column name="createdby" />
+    </many-to-one>
   </class>
 </hibernate-mapping>

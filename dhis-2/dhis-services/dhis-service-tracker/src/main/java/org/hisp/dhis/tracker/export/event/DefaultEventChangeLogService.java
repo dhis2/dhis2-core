@@ -56,7 +56,7 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
 
   @Override
   @Transactional(readOnly = true)
-  public Page<EventChangeLogDto> getEventChangeLog(
+  public Page<EventChangeLog> getEventChangeLog(
       UID event, EventChangeLogOperationParams operationParams, PageParams pageParams)
       throws NotFoundException, ForbiddenException {
     // check existence and access

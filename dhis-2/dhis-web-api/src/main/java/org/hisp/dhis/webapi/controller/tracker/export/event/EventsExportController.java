@@ -62,7 +62,6 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.tracker.export.event.EventChangeLogDto;
 import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
@@ -335,8 +334,8 @@ class EventsExportController {
     PageParams pageParams =
         new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
 
-    org.hisp.dhis.tracker.export.Page<EventChangeLogDto> changeLogs =
-        eventChangeLogService.getEventChangeLog(event, operationParams, pageParams);
+    org.hisp.dhis.tracker.export.Page<org.hisp.dhis.tracker.export.event.EventChangeLog>
+        changeLogs = eventChangeLogService.getEventChangeLog(event, operationParams, pageParams);
 
     List<EventChangeLog> eventChangeLogs =
         changeLogs.getItems().stream().map(EVENT_CHANGE_LOG_MAPPER::map).toList();

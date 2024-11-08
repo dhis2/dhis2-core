@@ -70,29 +70,38 @@ public class HibernateEventChangeLogStore {
     entityManager.unwrap(Session.class).save(eventChangeLog);
   }
 
-  public Page<EventChangeLogDto> getEventChangeLogs(
+  public Page<EventChangeLog> getEventChangeLogs(
       UID event, List<Order> order, PageParams pageParams) {
 
     String hql =
         String.format(
             """
-        select new org.hisp.dhis.tracker.export.event.EventChangeLogDto (de.uid, ecl.currentValue, ecl.previousValue, ecl.changeLogType, ecl.created, ecl.createdBy, ui.firstName, ui.surname, COALESCE(ui.username, ecl.createdBy), ui.uid)
-        from EventChangeLog ecl
-        join ecl.event e
-        left join ecl.dataElement de
-        left join User ui on ui.username = ecl.createdBy
-        where e.uid = :eventUid
-        order by %s
-        """
+          select new org.hisp.dhis.tracker.export.event.EventChangeLog(
+              ecl.event,
+              ecl.dataElement,
+              ecl.eventProperty,
+              ecl.currentValue,
+              ecl.previousValue,
+              ecl.changeLogType,
+              ecl.created,
+              ecl.createdByUsername,
+              ecl.createdBy
+          )
+          from EventChangeLog ecl
+          join ecl.event e
+          left join ecl.createdBy
+          where e.uid = :eventUid
+          order by %s
+      """
                 .formatted(sortExpressions(order)));
 
-    Query<EventChangeLogDto> query =
-        entityManager.unwrap(Session.class).createQuery(hql, EventChangeLogDto.class);
+    Query<EventChangeLog> query =
+        entityManager.unwrap(Session.class).createQuery(hql, EventChangeLog.class);
     query.setParameter("eventUid", event.getValue());
     query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
     query.setMaxResults(pageParams.getPageSize() + 1);
 
-    List<EventChangeLogDto> eventChangeLogs = query.getResultList();
+    List<EventChangeLog> eventChangeLogs = query.getResultList();
 
     Integer prevPage = pageParams.getPage() > 1 ? pageParams.getPage() - 1 : null;
     if (eventChangeLogs.size() > pageParams.getPageSize()) {

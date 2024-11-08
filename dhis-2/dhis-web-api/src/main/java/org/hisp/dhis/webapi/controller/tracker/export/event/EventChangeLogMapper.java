@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import org.hisp.dhis.tracker.export.event.EventChangeLogDto;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog;
 import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog.DataValueChange;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
@@ -37,20 +37,28 @@ import org.mapstruct.Mapping;
 @Mapper
 public interface EventChangeLogMapper {
 
-  @Mapping(target = "createdBy", source = "dto")
+  @Mapping(target = "createdBy", source = "eventChangeLog")
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "type", source = "changeLogType")
-  @Mapping(target = "change.dataValue", source = "dto")
-  EventChangeLog map(EventChangeLogDto dto);
+  @Mapping(target = "change.dataValue", source = "eventChangeLog")
+  EventChangeLog map(org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
 
-  @Mapping(target = "uid", source = "userUid")
-  @Mapping(target = "username", source = "username")
-  @Mapping(target = "firstName", source = "firstName")
-  @Mapping(target = "surname", source = "surname")
-  User mapUser(EventChangeLogDto dto);
+  @Mapping(target = "uid", source = "createdBy.uid")
+  @Mapping(target = "username", source = "createdByUsername")
+  @Mapping(target = "firstName", source = "createdBy.firstName")
+  @Mapping(target = "surname", source = "createdBy.surname")
+  User mapUser(org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
 
-  @Mapping(target = "dataElement", source = "dataElementUid")
+  @Mapping(target = "dataElement", source = "dataElement.uid")
   @Mapping(target = "previousValue", source = "previousValue")
   @Mapping(target = "currentValue", source = "currentValue")
-  DataValueChange mapDataValueChange(EventChangeLogDto dto);
+  DataValueChange mapDataValueChange(
+      org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
+
+  default UID mapStringToUID(String value) {
+    if (value == null) {
+      return null;
+    }
+    return UID.of(value);
+  }
 }
