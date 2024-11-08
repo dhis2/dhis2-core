@@ -141,7 +141,7 @@ class DataElementControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Changing a data element's value type is prohibited when it has associated data values - DataElement APi")
+      "Changing a data element's value type is prohibited when it has associated data values - DataElement API")
   void prohibitValueTypeChangeWhenHasDataDeApiTest() {
     // create metadata
     POST(
