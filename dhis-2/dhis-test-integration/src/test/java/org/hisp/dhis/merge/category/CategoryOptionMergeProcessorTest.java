@@ -30,6 +30,7 @@ package org.hisp.dhis.merge.category;
 import static io.hypersistence.utils.jdbc.validator.SQLStatementCountValidator.assertDeleteCount;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.hypersistence.utils.jdbc.validator.SQLStatementCountValidator;
@@ -266,6 +267,9 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
 
     // then
     assertDeleteCount(1);
+    assertNull(
+        categoryService.getCategoryOption(coSource1A.getUid()),
+        "source cat option should not exist");
   }
 
   @Test
