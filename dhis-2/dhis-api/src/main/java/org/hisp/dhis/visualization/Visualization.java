@@ -1367,7 +1367,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
    *
    * @param grid the grid, should be empty and not null.
    * @param valueMap the mapping of identifiers to aggregate values.
-   * @param displayProperty the display property to use for metadata.
+   * @param displayProperty the display property to use for meta data.
    * @param reportParamColumns whether to include report parameter columns.
    * @return a grid.
    */
