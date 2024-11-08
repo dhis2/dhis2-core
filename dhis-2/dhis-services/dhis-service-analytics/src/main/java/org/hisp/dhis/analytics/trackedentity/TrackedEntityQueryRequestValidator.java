@@ -41,7 +41,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class TrackedEntityQueryRequestValidator implements Validator<TrackedEntityRequestParams> {
-
   /**
    * Runs a validation on the given query request object {@link TrackedEntityRequestParams},
    * preventing basic syntax errors and inconsistencies.

@@ -51,7 +51,6 @@ public class TrackedEntityValidator implements Validator<TrackerBundle> {
         each(
             TrackerBundle::getTrackedEntities,
             seq(
-                new UidValidator(),
                 new ExistenceValidator(),
                 new MandatoryFieldsValidator(),
                 new MetaValidator(),

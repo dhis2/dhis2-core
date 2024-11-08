@@ -148,7 +148,8 @@ class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
     String endpoint = schema.getRelativeApiEndpoint();
     String uid = createdObjectIds.get(endpoint);
     @Language("json")
-    String json = """
+    String json =
+        """
     [{ "op": "add", "path": "/name", "value": "new_name_patch" }]""";
     assertStatus(HttpStatus.OK, PATCH(endpoint + "/" + uid, json));
   }

@@ -52,7 +52,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-@OpenApi.Document(domain = OrganisationUnit.class)
+@OpenApi.Document(
+    entity = OrganisationUnit.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @RestController
 @AllArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

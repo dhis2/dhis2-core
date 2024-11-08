@@ -65,6 +65,7 @@ import org.hisp.dhis.jsontree.Json;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.translation.Translatable;
 
 /**
  * {@link SystemSettings} or {@link UserSettings} represented by a set of keys and their values.
@@ -86,6 +87,8 @@ import org.hisp.dhis.jsontree.JsonValue;
 final class LazySettings implements SystemSettings, UserSettings {
 
   private static final Set<String> CONFIDENTIAL_KEYS = new HashSet<>();
+  private static final Set<String> TRANSLATABLE_KEYS = new HashSet<>();
+
   private static final Map<String, Serializable> DEFAULTS_SYSTEM_SETTINGS =
       extractDefaults(SystemSettings.class);
   private static final Map<String, Serializable> DEFAULTS_USER_SETTINGS =
@@ -104,6 +107,10 @@ final class LazySettings implements SystemSettings, UserSettings {
 
   static boolean isConfidential(@Nonnull String key) {
     return CONFIDENTIAL_KEYS.contains(key);
+  }
+
+  static boolean isTranslatable(@Nonnull String key) {
+    return TRANSLATABLE_KEYS.contains(key);
   }
 
   @Nonnull
@@ -243,12 +250,15 @@ final class LazySettings implements SystemSettings, UserSettings {
         .asMap(JsonMixed.class);
   }
 
+  private static final DateTimeFormatter ISO_DATE_TIME =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
+
   @Nonnull
   private JsonValue asJson(String key) {
     Serializable defaultValue = getDefault(key);
     if (defaultValue instanceof String s) return Json.of(asString(key, s));
     if (defaultValue instanceof Date d)
-      return Json.of(DateTimeFormatter.ISO_INSTANT.format(asDate(key, d).toInstant()));
+      return Json.of(ISO_DATE_TIME.format(asDate(key, d).toInstant()));
     if (defaultValue instanceof Double d) return Json.of(asDouble(key, d));
     if (defaultValue instanceof Number n) return Json.of(asInt(key, n.intValue()));
     if (defaultValue instanceof Boolean b) return Json.of(asBoolean(key, b));
@@ -260,6 +270,25 @@ final class LazySettings implements SystemSettings, UserSettings {
     if (value.matches("^[-+]?[0-9]+$")) return Json.of(parseLong(value));
     if (value.matches("^[-+]?[0-9]?\\.[0-9]+$")) return Json.of(Double.parseDouble(value));
     return Json.of(value);
+  }
+
+  @Override
+  public boolean isValid(String key, String value) {
+    Serializable defaultValue = getDefault(key);
+    if (defaultValue == null || defaultValue instanceof String) return true;
+    if (defaultValue instanceof Boolean) return "true".equals(value) || "false".equals(value);
+    try {
+      // Note: The != null is just a dummy test the parse yielded anything
+      if (defaultValue instanceof Double) return Double.valueOf(value) != null;
+      if (defaultValue instanceof Number) return Integer.valueOf(value) != null;
+      if (defaultValue instanceof Date) return parseDate(value) != null;
+      if (defaultValue instanceof Locale) return LocaleUtils.toLocale(value) != null;
+      if (defaultValue instanceof Enum<?>)
+        return Enum.valueOf(((Enum<?>) defaultValue).getDeclaringClass(), value) != null;
+      return true;
+    } catch (Exception ex) {
+      return false;
+    }
   }
 
   private int indexOf(String key) {
@@ -334,6 +363,8 @@ final class LazySettings implements SystemSettings, UserSettings {
                 defaults.put(key, defaultValue);
                 if (lastDefault[0].isAnnotationPresent(Confidential.class))
                   CONFIDENTIAL_KEYS.add(key);
+                if (lastDefault[0].isAnnotationPresent(Translatable.class))
+                  TRANSLATABLE_KEYS.add(key);
               }
               return args[1];
             });

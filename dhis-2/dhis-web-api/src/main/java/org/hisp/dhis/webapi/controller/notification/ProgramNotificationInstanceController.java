@@ -59,7 +59,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Zubair Asghar
  */
-@OpenApi.Document(domain = ProgramNotificationInstance.class)
+@OpenApi.Document(
+    entity = ProgramNotificationInstance.class,
+    classifiers = {"team:tracker", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/programNotificationInstances")
 @ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -114,7 +116,7 @@ public class ProgramNotificationInstanceController {
     Enrollment storedEnrollment = null;
     if (enrollmentUid != null) {
       storedEnrollment =
-          enrollmentService.getEnrollment(enrollmentUid.getValue(), EnrollmentParams.FALSE, false);
+          enrollmentService.getEnrollment(enrollmentUid, EnrollmentParams.FALSE, false);
     }
     ProgramNotificationInstanceParam params =
         ProgramNotificationInstanceParam.builder()

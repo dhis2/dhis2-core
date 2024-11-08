@@ -49,6 +49,7 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.LoginPageLayout;
+import org.hisp.dhis.translation.Translatable;
 
 /**
  * A complete set of system settings.
@@ -106,10 +107,15 @@ public non-sealed interface SystemSettings extends Settings {
     return LazySettings.isConfidential(key);
   }
 
-  /*
-  settings used in core
+  /**
+   * @param key a setting name
+   * @return true, if it can have a translation, false otherwise
    */
+  static boolean isTranslatable(@Nonnull String key) {
+    return LazySettings.isTranslatable(key);
+  }
 
+  /** Settings used in core */
   default Locale getUiLocale() {
     return asLocale("keyUiLocale", LocaleManager.DEFAULT_LOCALE);
   }
@@ -134,22 +140,27 @@ public non-sealed interface SystemSettings extends Settings {
     return asString("keyTrackerDashboardLayout", "");
   }
 
+  @Translatable
   default String getApplicationTitle() {
     return asString("applicationTitle", "DHIS 2");
   }
 
+  @Translatable
   default String getApplicationIntro() {
     return asString("keyApplicationIntro", "");
   }
 
+  @Translatable
   default String getApplicationNotification() {
     return asString("keyApplicationNotification", "");
   }
 
+  @Translatable
   default String getApplicationFooter() {
     return asString("keyApplicationFooter", "");
   }
 
+  @Translatable
   default String getApplicationRightFooter() {
     return asString("keyApplicationRightFooter", "");
   }
@@ -292,6 +303,10 @@ public non-sealed interface SystemSettings extends Settings {
 
   default boolean getIncludeZeroValuesInAnalytics() {
     return asBoolean("keyIncludeZeroValuesInAnalytics", false);
+  }
+
+  default boolean getEmbeddedDashboardsEnabled() {
+    return asBoolean("keyEmbeddedDashboardsEnabled", false);
   }
 
   default int getSqlViewMaxLimit() {
@@ -674,6 +689,7 @@ public non-sealed interface SystemSettings extends Settings {
     return asInt("KeyTrackedEntityMaxLimit", 50000);
   }
 
+  @Translatable
   default String getLoginPopup() {
     return asString("loginPopup", "");
   }
@@ -705,14 +721,9 @@ public non-sealed interface SystemSettings extends Settings {
     return asString("globalShellAppName", "global-app-shell");
   }
 
-  /*
-
-  Combinators based on several settings
-
-  */
-
+  /** Combinators based on several settings. */
   default boolean isEmailConfigured() {
-    return !getEmailHostName().isBlank() && getEmailUsername().isBlank();
+    return !getEmailHostName().isBlank() && !getEmailUsername().isBlank();
   }
 
   default boolean isHideUnapprovedDataInAnalytics() {

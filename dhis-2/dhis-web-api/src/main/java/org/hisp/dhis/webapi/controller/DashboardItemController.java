@@ -51,7 +51,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(domain = Dashboard.class)
+@OpenApi.Document(
+    entity = Dashboard.class,
+    classifiers = {"team:analytics", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/dashboardItems")
 public class DashboardItemController extends AbstractCrudController<DashboardItem> {

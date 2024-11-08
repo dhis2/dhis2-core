@@ -40,6 +40,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
@@ -57,7 +58,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -77,7 +77,9 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Document(domain = User.class)
+@OpenApi.Document(
+    entity = User.class,
+    classifiers = {"team:platform", "purpose:support"})
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -178,7 +180,7 @@ public class UserAccountController {
 
   @PostMapping("/registration")
   @ResponseStatus(HttpStatus.CREATED)
-  public WebMessageResponse registerUser(
+  public WebMessage registerUser(
       @RequestBody UserRegistrationParams params, HttpServletRequest request)
       throws BadRequestException, IOException {
     log.info("Self registration received");
@@ -192,7 +194,7 @@ public class UserAccountController {
 
   @PostMapping("/invite")
   @ResponseStatus(HttpStatus.OK)
-  public WebMessageResponse invite(@RequestBody UserInviteParams params, HttpServletRequest request)
+  public WebMessage invite(@RequestBody UserInviteParams params, HttpServletRequest request)
       throws BadRequestException, IOException {
     log.info("Invite registration received");
 

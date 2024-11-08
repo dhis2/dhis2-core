@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.deduplication;
 
-import static org.hisp.dhis.changelog.ChangeLogType.READ;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -36,10 +34,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -74,7 +72,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpStatusCodeException;
 
-@OpenApi.Document(domain = PotentialDuplicate.class)
+@OpenApi.Document(
+    entity = TrackedEntity.class,
+    classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping("/api/potentialDuplicates")
 @ApiVersion(include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
@@ -125,10 +125,10 @@ public class DeduplicationController {
     return Page.withoutPager("potentialDuplicates", objectNodes);
   }
 
-  @GetMapping(value = "/{id}")
-  public PotentialDuplicate getPotentialDuplicateById(@PathVariable String id)
+  @GetMapping(value = "/{uid}")
+  public PotentialDuplicate getPotentialDuplicateById(@PathVariable UID uid)
       throws NotFoundException, HttpStatusCodeException {
-    return getPotentialDuplicateBy(id);
+    return getPotentialDuplicateBy(uid);
   }
 
   @PostMapping
@@ -138,19 +138,19 @@ public class DeduplicationController {
       throws ForbiddenException,
           ConflictException,
           NotFoundException,
-          BadRequestException,
-          PotentialDuplicateConflictException {
+          PotentialDuplicateConflictException,
+          BadRequestException {
     validatePotentialDuplicate(potentialDuplicate);
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
     return potentialDuplicate;
   }
 
-  @PutMapping(value = "/{id}")
+  @PutMapping(value = "/{uid}")
   @ResponseStatus(value = HttpStatus.OK)
   public void updatePotentialDuplicate(
-      @PathVariable String id, @RequestParam(value = "status") DeduplicationStatus status)
+      @PathVariable UID uid, @RequestParam(value = "status") DeduplicationStatus status)
       throws NotFoundException, BadRequestException {
-    PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy(id);
+    PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy(uid);
 
     checkDbAndRequestStatus(potentialDuplicate, status);
 
@@ -158,17 +158,17 @@ public class DeduplicationController {
     deduplicationService.updatePotentialDuplicate(potentialDuplicate);
   }
 
-  @PostMapping(value = "/{id}/merge")
+  @PostMapping(value = "/{uid}/merge")
   @ResponseStatus(value = HttpStatus.OK)
   public void mergePotentialDuplicate(
-      @PathVariable String id,
+      @PathVariable UID uid,
       @RequestParam(defaultValue = "AUTO") MergeStrategy mergeStrategy,
       @RequestBody(required = false) MergeObject mergeObject)
       throws NotFoundException,
           PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
           ForbiddenException {
-    PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy(id);
+    PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy(uid);
 
     if (potentialDuplicate.getOriginal() == null || potentialDuplicate.getDuplicate() == null) {
       throw new PotentialDuplicateConflictException(
@@ -209,19 +209,17 @@ public class DeduplicationController {
               + DeduplicationStatus.MERGED.name());
   }
 
-  private PotentialDuplicate getPotentialDuplicateBy(String id) throws NotFoundException {
-    return Optional.ofNullable(deduplicationService.getPotentialDuplicateByUid(id))
-        .orElseThrow(
-            () ->
-                new NotFoundException("No potentialDuplicate records found with id '" + id + "'."));
+  private PotentialDuplicate getPotentialDuplicateBy(UID uid) throws NotFoundException {
+    return Optional.ofNullable(deduplicationService.getPotentialDuplicateByUid(uid))
+        .orElseThrow(() -> new NotFoundException(PotentialDuplicate.class, uid));
   }
 
   private void validatePotentialDuplicate(PotentialDuplicate potentialDuplicate)
       throws ForbiddenException,
           ConflictException,
           NotFoundException,
-          BadRequestException,
-          PotentialDuplicateConflictException {
+          PotentialDuplicateConflictException,
+          BadRequestException {
     checkValidTrackedEntity(potentialDuplicate.getOriginal(), "original");
 
     checkValidTrackedEntity(potentialDuplicate.getDuplicate(), "duplicate");
@@ -246,31 +244,19 @@ public class DeduplicationController {
     }
   }
 
-  private void checkValidTrackedEntity(String trackedEntity, String trackedEntityFieldName)
+  private void checkValidTrackedEntity(UID trackedEntity, String trackedEntityFieldName)
       throws BadRequestException {
     if (trackedEntity == null) {
       throw new BadRequestException(
           "Missing required input property '" + trackedEntityFieldName + "'");
     }
-
-    if (!CodeGenerator.isValidUid(trackedEntity)) {
-      throw new BadRequestException(
-          "'"
-              + trackedEntity
-              + "' is not valid value for property '"
-              + trackedEntityFieldName
-              + "'");
-    }
   }
 
-  private TrackedEntity getTrackedEntity(String trackedEntityUid) throws NotFoundException {
-    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, trackedEntityUid);
-    trackedEntityAuditService.addTrackedEntityAudit(trackedEntity, getCurrentUsername(), READ);
+  private TrackedEntity getTrackedEntity(UID uid) throws NotFoundException {
+    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, uid.getValue());
     // TODO(tracker) Do we need to apply ACL here?
     return Optional.ofNullable(trackedEntity)
-        .orElseThrow(
-            () ->
-                new NotFoundException("No tracked entity found with id '" + trackedEntity + "'."));
+        .orElseThrow(() -> new NotFoundException(TrackedEntity.class, uid));
   }
 
   private void canReadTrackedEntity(TrackedEntity trackedEntity) throws ForbiddenException {

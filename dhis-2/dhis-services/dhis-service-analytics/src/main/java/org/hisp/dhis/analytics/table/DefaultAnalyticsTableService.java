@@ -148,13 +148,14 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     tableUpdates += applyAggregationLevels(tableType, partitions, progress);
     clock.logTime("Applied aggregation levels");
 
-    List<Index> indexes = getIndexes(partitions);
-    int indexSize = indexes.size();
-
-    progress.startingStage(
-        "Creating " + indexSize + " indexes " + tableType, indexSize, SKIP_ITEM_OUTLIER);
-    createIndexes(indexes, progress);
-    clock.logTime("Created indexes");
+    if (sqlBuilder.requiresIndexesForAnalytics()) {
+      List<Index> indexes = getIndexes(partitions);
+      int indexSize = indexes.size();
+      progress.startingStage(
+          "Creating " + indexSize + " indexes " + tableType, indexSize, SKIP_ITEM_OUTLIER);
+      createIndexes(indexes, progress);
+      clock.logTime("Created indexes");
+    }
 
     if (tableUpdates > 0 && sqlBuilder.supportsVacuum()) {
       progress.startingStage("Vacuuming tables " + tableType, partitions.size());
@@ -162,9 +163,11 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       clock.logTime("Tables vacuumed");
     }
 
-    progress.startingStage("Analyzing analytics tables " + tableType, partitions.size());
-    analyzeTables(partitions, progress);
-    clock.logTime("Analyzed tables");
+    if (sqlBuilder.supportsAnalyze()) {
+      progress.startingStage("Analyzing analytics tables " + tableType, partitions.size());
+      analyzeTables(partitions, progress);
+      clock.logTime("Analyzed tables");
+    }
 
     if (params.isLatestUpdate()) {
       progress.startingStage("Removing updated and deleted data " + tableType, SKIP_STAGE);

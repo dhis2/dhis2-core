@@ -123,12 +123,12 @@ public class CommonParamsSecurityManager {
     Set<IdentifiableObject> objects = new HashSet<>();
     objects.addAll(extraObjects);
 
-    // DimensionalObjects from TrackedEntityQueryParams.
+    // DimensionalObjects from TrackedEntityQueryParams
     objects.addAll(
         commonParams.getDimensionIdentifiers().stream()
             .filter(not(OrgUnitQueryBuilder::isOu))
             .map(DimensionIdentifier::getDimension)
-            // TEAs/Program Attribute are not data shareable, so access depends on the program/TET.
+            // TEAs/Program Attribute are not data shareable, so access depends on the program/TET
             .filter(not(CommonParamsSecurityManager::shouldSkipCheck))
             .map(DimensionParam::getDimensionalObject)
             .filter(Objects::nonNull)
@@ -140,10 +140,10 @@ public class CommonParamsSecurityManager {
     objects.addAll(
         commonParams.getDimensionIdentifiers().stream()
             // We don't want to add the org units to the objects since they are
-            // already checked in the queryOrgUnits list.
+            // already checked in the queryOrgUnits list
             .filter(not(OrgUnitQueryBuilder::isOu))
             .map(DimensionIdentifier::getDimension)
-            // TEAs/Program Attribute are not data shareable, so access depends on the program/TET.
+            // TEAs/Program Attribute are not data shareable, so access depends on the program/TET
             .filter(not(CommonParamsSecurityManager::shouldSkipCheck))
             .map(DimensionParam::getQueryItem)
             .filter(Objects::nonNull)
@@ -241,7 +241,7 @@ public class CommonParamsSecurityManager {
             .filter(Objects::nonNull)
             .collect(toList());
 
-    // Categories the user is constrained to.
+    // Categories the user is constrained to
     List<Category> categories =
         currentUser.isSuper()
             ? List.of()
@@ -253,8 +253,7 @@ public class CommonParamsSecurityManager {
         Stream.concat(currentUser.getDimensionConstraints().stream(), categories.stream())
             .collect(toSet());
 
-    if (dimensionConstraints.isEmpty()) // if no constraints
-    {
+    if (dimensionConstraints.isEmpty()) {
       return; // Nothing to do - no filters added to the query.
     }
 
@@ -294,7 +293,7 @@ public class CommonParamsSecurityManager {
    * with items. False otherwise.
    *
    * @param commonParams the {@link CommonParams}.
-   * @param dimensionUid the dimension uid.
+   * @param dimensionUid the dimension identifier.
    * @return true if the given dimensionUid in the {@link CommonParams} has a dimension or filter.
    */
   private boolean hasDimensionOrFilterWithItems(

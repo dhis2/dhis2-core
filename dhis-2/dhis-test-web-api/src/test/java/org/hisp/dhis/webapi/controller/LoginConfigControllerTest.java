@@ -79,27 +79,27 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
     addGoogleProvider("testClientId");
 
     settingsService.put("applicationTitle", "DHIS2");
-    settingsTranslationService.saveSystemSettingTranslation(
+    settingsTranslationService.putSystemSettingTranslation(
         "applicationTitle", "no", "Distrikstshelsesinformasjonssystem versjon 2");
 
     settingsService.put("loginPopup", "<html>TEXT</html>");
-    settingsTranslationService.saveSystemSettingTranslation(
+    settingsTranslationService.putSystemSettingTranslation(
         "loginPopup", "no", "<html>tekst</html>");
 
     settingsService.put("keyApplicationFooter", "APPLICATION_FOOTER");
-    settingsTranslationService.saveSystemSettingTranslation(
+    settingsTranslationService.putSystemSettingTranslation(
         "keyApplicationFooter", "no", "Søknadsbunntekst");
 
     settingsService.put("keyApplicationRightFooter", "APPLICATION_RIGHT_FOOTER");
-    settingsTranslationService.saveSystemSettingTranslation(
+    settingsTranslationService.putSystemSettingTranslation(
         "keyApplicationRightFooter", "no", "Høyre søknadsbunntekst");
 
     settingsService.put("keyApplicationIntro", "APPLICATION_INTRO");
-    settingsTranslationService.saveSystemSettingTranslation(
+    settingsTranslationService.putSystemSettingTranslation(
         "keyApplicationIntro", "no", "Søknadsintroduksjon");
 
     settingsService.put("keyApplicationNotification", "APPLICATION_NOTIFICATION");
-    settingsTranslationService.saveSystemSettingTranslation(
+    settingsTranslationService.putSystemSettingTranslation(
         "keyApplicationNotification", "no", "Søknadsmelding");
 
     settingsService.put("keyFlag", "FLAG_IMAGE");

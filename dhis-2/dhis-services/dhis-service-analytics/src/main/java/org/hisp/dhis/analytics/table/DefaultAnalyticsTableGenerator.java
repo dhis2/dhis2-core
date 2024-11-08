@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.util.Map.entry;
 import static org.hisp.dhis.common.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
@@ -46,9 +45,9 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.cache.OutliersCache;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.setting.Settings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.stereotype.Service;
@@ -65,6 +64,8 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
   private final ResourceTableService resourceTableService;
 
   private final SystemSettingsService settingsService;
+
+  private final AnalyticsTableSettings settings;
 
   private final AnalyticsCache analyticsCache;
 
@@ -95,6 +96,11 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
     if (!params.isSkipResourceTables() && !params.isLatestUpdate()) {
       generateResourceTablesInternal(progress);
+
+      if (settings.isAnalyticsDatabaseConfigured()) {
+        log.info("Replicating resource tables in analytics database");
+        resourceTableService.replicateAnalyticsResourceTables();
+      }
     }
 
     Set<AnalyticsTableType> skipTypes = emptyIfNull(params.getSkipTableTypes());
@@ -118,19 +124,11 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
   private void updateLastSuccessfulSystemSettings(AnalyticsTableUpdateParams params, Clock clock) {
     if (params.isLatestUpdate()) {
-      settingsService.putAll(
-          Map.ofEntries(
-              entry(
-                  "keyLastSuccessfulLatestAnalyticsPartitionUpdate",
-                  Settings.valueOf(params.getStartTime())),
-              entry("keyLastSuccessfulLatestAnalyticsPartitionRuntime", clock.time())));
+      settingsService.put("keyLastSuccessfulLatestAnalyticsPartitionUpdate", params.getStartTime());
+      settingsService.put("keyLastSuccessfulLatestAnalyticsPartitionRuntime", clock.time());
     } else {
-      settingsService.putAll(
-          Map.ofEntries(
-              entry(
-                  "keyLastSuccessfulAnalyticsTablesUpdate",
-                  Settings.valueOf(params.getStartTime())),
-              entry("keyLastSuccessfulAnalyticsTablesRuntime", clock.time())));
+      settingsService.put("keyLastSuccessfulAnalyticsTablesUpdate", params.getStartTime());
+      settingsService.put("keyLastSuccessfulAnalyticsTablesRuntime", clock.time());
     }
   }
 

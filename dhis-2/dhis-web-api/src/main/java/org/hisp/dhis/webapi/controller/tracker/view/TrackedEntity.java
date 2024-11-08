@@ -51,7 +51,7 @@ import org.locationtech.jts.geom.Geometry;
 public class TrackedEntity {
   @OpenApi.Property({UID.class, org.hisp.dhis.trackedentity.TrackedEntity.class})
   @JsonProperty
-  private String trackedEntity;
+  private UID trackedEntity;
 
   @JsonProperty private String trackedEntityType;
 

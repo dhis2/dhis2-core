@@ -66,10 +66,10 @@
       "enrollments": []
     },
     {
-      "trackedEntity": "INVALIDTEI-UIDTOOLONG",
+      "trackedEntity": "ja8NY4PW7XF",
       "trackedEntityType": {
-        "idScheme": "UID",
-        "identifier": "ja8NY4PW7Xm"
+        "idScheme": "CODE",
+        "identifier": "invalid"
       },
       "orgUnit": {
         "idScheme": "UID",

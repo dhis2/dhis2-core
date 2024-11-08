@@ -137,7 +137,7 @@ class RelationshipRequestParamsMapperTest {
 
     RelationshipOperationParams operationParams = mapper.map(relationshipRequestParams);
 
-    assertEquals("Hq3Kc6HK4OZ", operationParams.getIdentifier());
+    assertEquals(UID.of("Hq3Kc6HK4OZ"), operationParams.getIdentifier());
   }
 
   @Test
@@ -157,7 +157,7 @@ class RelationshipRequestParamsMapperTest {
 
     RelationshipOperationParams operationParams = mapper.map(relationshipRequestParams);
 
-    assertEquals("Hq3Kc6HK4OZ", operationParams.getIdentifier());
+    assertEquals(UID.of("Hq3Kc6HK4OZ"), operationParams.getIdentifier());
   }
 
   @Test
@@ -177,7 +177,7 @@ class RelationshipRequestParamsMapperTest {
 
     RelationshipOperationParams operationParams = mapper.map(relationshipRequestParams);
 
-    assertEquals("Hq3Kc6HK4OZ", operationParams.getIdentifier());
+    assertEquals(UID.of("Hq3Kc6HK4OZ"), operationParams.getIdentifier());
   }
 
   @Test

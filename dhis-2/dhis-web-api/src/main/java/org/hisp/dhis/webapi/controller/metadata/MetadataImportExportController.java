@@ -94,7 +94,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(domain = Metadata.class)
+@OpenApi.Document(
+    entity = Metadata.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/metadata")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -132,7 +134,7 @@ public class MetadataImportExportController {
     ImportReport importReport =
         metadataImportService.importMetadata(params, new MetadataObjects(objects));
 
-    return importReport(importReport).withPlainResponseBefore(DhisApiVersion.V38);
+    return importReport(importReport);
   }
 
   @PostMapping(value = "", consumes = "application/csv")
@@ -165,7 +167,7 @@ public class MetadataImportExportController {
             params,
             new MetadataObjects().addMetadata(schemaService.getMetadataSchemas(), metadata));
 
-    return importReport(report).withPlainResponseBefore(DhisApiVersion.V38);
+    return importReport(report);
   }
 
   @PostMapping(value = "/gml", consumes = APPLICATION_XML_VALUE)
@@ -179,7 +181,7 @@ public class MetadataImportExportController {
     }
     ImportReport importReport =
         gmlImportService.importGml(request.getInputStream(), params, JobProgress.noop());
-    return importReport(importReport).withPlainResponseBefore(DhisApiVersion.V38);
+    return importReport(importReport);
   }
 
   @GetMapping("/csvImportClasses")

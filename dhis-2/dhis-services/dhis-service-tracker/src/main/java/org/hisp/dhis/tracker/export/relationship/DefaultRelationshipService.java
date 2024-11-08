@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -76,9 +77,9 @@ public class DefaultRelationshipService implements RelationshipService {
   }
 
   @Override
-  public Relationship getRelationship(@Nonnull String uid)
+  public Relationship getRelationship(@Nonnull UID uid)
       throws ForbiddenException, NotFoundException {
-    Relationship relationship = relationshipStore.getByUid(uid);
+    Relationship relationship = relationshipStore.getByUid(uid.getValue());
 
     if (relationship == null) {
       throw new NotFoundException(Relationship.class, uid);
@@ -94,10 +95,10 @@ public class DefaultRelationshipService implements RelationshipService {
   }
 
   @Override
-  public List<Relationship> getRelationships(@Nonnull List<String> uids)
+  public List<Relationship> getRelationships(@Nonnull Set<UID> uids)
       throws ForbiddenException, NotFoundException {
     List<Relationship> relationships = new ArrayList<>();
-    for (String uid : uids) {
+    for (UID uid : uids) {
       relationships.add(getRelationship(uid));
     }
     return relationships;
@@ -170,7 +171,6 @@ public class DefaultRelationshipService implements RelationshipService {
   }
 
   private List<Relationship> getRelationships(RelationshipQueryParams queryParams) {
-
     if (queryParams.getEntity() instanceof TrackedEntity te) {
       return getRelationshipsByTrackedEntity(te, queryParams);
     }
@@ -183,7 +183,7 @@ public class DefaultRelationshipService implements RelationshipService {
       return getRelationshipsByEvent(ev, queryParams);
     }
 
-    throw new IllegalArgumentException("Unkown type");
+    throw new IllegalArgumentException("Unknown type");
   }
 
   private Page<Relationship> getRelationships(
@@ -201,7 +201,7 @@ public class DefaultRelationshipService implements RelationshipService {
       return getRelationshipsByEvent(ev, queryParams, pageParams);
     }
 
-    throw new IllegalArgumentException("Unkown type");
+    throw new IllegalArgumentException("Unknown type");
   }
 
   private List<String> accessErrors(UserDetails user, Relationship relationship) {

@@ -859,20 +859,6 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testPutJsonObject_Pre38() {
-    JsonObject user = GET("/users/{uid}", peter.getUid()).content();
-    JsonImportSummary summary =
-        PUT("/37/users/" + peter.getUid(), user.toString())
-            .content(HttpStatus.OK)
-            .as(JsonImportSummary.class);
-    assertEquals("ImportReport", summary.getResponseType());
-    assertEquals("OK", summary.getStatus());
-    assertEquals(1, summary.getStats().getUpdated());
-    assertEquals(
-        peter.getUid(), summary.getTypeReports().get(0).getObjectReports().get(0).getUid());
-  }
-
-  @Test
   void testPutProperty_InvalidWhatsapp() {
     JsonWebMessage msg =
         assertWebMessage(

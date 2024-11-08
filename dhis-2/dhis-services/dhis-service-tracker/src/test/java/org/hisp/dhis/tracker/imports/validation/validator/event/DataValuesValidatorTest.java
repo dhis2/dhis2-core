@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -48,8 +48,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
@@ -58,7 +58,6 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
-import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -78,11 +77,11 @@ class DataValuesValidatorTest {
 
   @Mock TrackerPreheat preheat;
 
-  private static final String programStageUid = "programStageUid";
+  private static final String PROGRAM_STAGE_UID = "programStageUid";
 
-  private static final String dataElementUid = "dataElement";
+  private static final String DATA_ELEMENT_UID = "dataElement";
 
-  private static final String organisationUnitUid = "organisationUnitUid";
+  private static final String ORGANISATION_UNIT_UID = "organisationUnitUid";
 
   @Mock private TrackerBundle bundle;
 
@@ -130,14 +129,16 @@ class DataValuesValidatorTest {
   @Test
   void successValidationWhenDataElementIsValid() {
     DataElement dataElement = dataElement();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
+        .thenReturn(dataElement);
 
     ProgramStage programStage = programStage(dataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(dataValue()))
@@ -149,63 +150,17 @@ class DataValuesValidatorTest {
   }
 
   @Test
-  void successValidationWhenCreatedAtIsNull() {
-    DataElement dataElement = dataElement();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
-
-    ProgramStage programStage = programStage(dataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
-        .thenReturn(programStage);
-
-    DataValue validDataValue = dataValue();
-    validDataValue.setCreatedAt(null);
-    Event event =
-        Event.builder()
-            .programStage(idSchemes.toMetadataIdentifier(programStage))
-            .status(EventStatus.ACTIVE)
-            .dataValues(Set.of(validDataValue))
-            .build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
-  void failValidationWhenUpdatedAtIsNull() {
-    DataElement dataElement = dataElement();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
-
-    ProgramStage programStage = programStage(dataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
-        .thenReturn(programStage);
-
-    DataValue validDataValue = dataValue();
-    validDataValue.setUpdatedAt(null);
-    Event event =
-        Event.builder()
-            .programStage(idSchemes.toMetadataIdentifier(programStage))
-            .status(EventStatus.ACTIVE)
-            .dataValues(Set.of(validDataValue))
-            .build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
   void failValidationWhenDataElementIsInvalid() {
     DataElement dataElement = dataElement();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(null);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID))).thenReturn(null);
 
     ProgramStage programStage = programStage(dataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.SKIPPED)
             .dataValues(Set.of(dataValue()))
@@ -219,7 +174,8 @@ class DataValuesValidatorTest {
   @Test
   void shouldFailValidationWhenAMandatoryDataElementIsMissingAndStrategyIsCreate() {
     DataElement dataElement = dataElement();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
+        .thenReturn(dataElement);
 
     ProgramStage programStage = new ProgramStage();
     programStage.setAutoFields();
@@ -230,7 +186,7 @@ class DataValuesValidatorTest {
     mandatoryStageElement1.setCompulsory(true);
     ProgramStageDataElement mandatoryStageElement2 = new ProgramStageDataElement();
     DataElement mandatoryElement2 = new DataElement();
-    mandatoryElement2.setUid(dataElementUid);
+    mandatoryElement2.setUid(DATA_ELEMENT_UID);
     mandatoryStageElement2.setDataElement(mandatoryElement2);
     mandatoryStageElement2.setCompulsory(true);
     programStage.setProgramStageDataElements(
@@ -239,7 +195,7 @@ class DataValuesValidatorTest {
 
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
             .dataValues(Set.of(dataValue()))
@@ -253,7 +209,8 @@ class DataValuesValidatorTest {
   @Test
   void succeedsWhenMandatoryDataElementIsNotPresentButMandatoryValidationIsNotNeeded() {
     DataElement dataElement = dataElement();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
+        .thenReturn(dataElement);
 
     ProgramStage programStage = new ProgramStage();
     programStage.setAutoFields();
@@ -265,7 +222,7 @@ class DataValuesValidatorTest {
     mandatoryStageElement1.setCompulsory(true);
     ProgramStageDataElement mandatoryStageElement2 = new ProgramStageDataElement();
     DataElement mandatoryElement2 = new DataElement();
-    mandatoryElement2.setUid(dataElementUid);
+    mandatoryElement2.setUid(DATA_ELEMENT_UID);
     mandatoryStageElement2.setDataElement(mandatoryElement2);
     mandatoryStageElement2.setCompulsory(true);
     programStage.setProgramStageDataElements(
@@ -274,6 +231,7 @@ class DataValuesValidatorTest {
 
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(dataValue()))
@@ -289,8 +247,9 @@ class DataValuesValidatorTest {
   void shouldPassValidationWhenAMandatoryDataElementIsMissingAndDataValueIsAlreadyPresentInDB(
       EventStatus savedStatus, EventStatus newStatus) {
     DataElement dataElement = dataElement();
-    String eventUid = CodeGenerator.generateUid();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
+    UID eventUid = UID.generate();
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
+        .thenReturn(dataElement);
 
     ProgramStage programStage = new ProgramStage();
     programStage.setAutoFields();
@@ -302,14 +261,14 @@ class DataValuesValidatorTest {
     mandatoryStageElement1.setCompulsory(true);
     ProgramStageDataElement mandatoryStageElement2 = new ProgramStageDataElement();
     DataElement mandatoryElement2 = new DataElement();
-    mandatoryElement2.setUid(dataElementUid);
+    mandatoryElement2.setUid(DATA_ELEMENT_UID);
     mandatoryStageElement2.setDataElement(mandatoryElement2);
     mandatoryStageElement2.setCompulsory(true);
     programStage.setProgramStageDataElements(
         Set.of(mandatoryStageElement1, mandatoryStageElement2));
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
     when(preheat.getEvent(eventUid))
-        .thenReturn(event(eventUid, savedStatus, Set.of("MANDATORY_DE", dataElementUid)));
+        .thenReturn(event(eventUid, savedStatus, Set.of("MANDATORY_DE", DATA_ELEMENT_UID)));
 
     Event event =
         Event.builder()
@@ -329,8 +288,9 @@ class DataValuesValidatorTest {
   void shouldFailValidationWhenAMandatoryDataElementIsMissingAndDataValuesAreCreated(
       EventStatus savedStatus, EventStatus newStatus) {
     DataElement dataElement = dataElement();
-    String eventUid = CodeGenerator.generateUid();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
+    UID eventUid = UID.generate();
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
+        .thenReturn(dataElement);
 
     ProgramStage programStage = new ProgramStage();
     programStage.setAutoFields();
@@ -342,7 +302,7 @@ class DataValuesValidatorTest {
     mandatoryStageElement1.setCompulsory(true);
     ProgramStageDataElement mandatoryStageElement2 = new ProgramStageDataElement();
     DataElement mandatoryElement2 = new DataElement();
-    mandatoryElement2.setUid(dataElementUid);
+    mandatoryElement2.setUid(DATA_ELEMENT_UID);
     mandatoryStageElement2.setDataElement(mandatoryElement2);
     mandatoryStageElement2.setCompulsory(true);
     programStage.setProgramStageDataElements(
@@ -380,13 +340,14 @@ class DataValuesValidatorTest {
         .thenReturn(dataElement);
 
     ProgramStage programStage = programStage(dataElement, true);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     DataValue dataValue = dataValue();
     dataValue.setDataElement(MetadataIdentifier.ofCode("DE_424050"));
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
             .dataValues(Set.of(dataValue))
@@ -400,7 +361,8 @@ class DataValuesValidatorTest {
   @Test
   void failValidationWhenDataElementIsNotPresentInProgramStage() {
     DataElement dataElement = dataElement();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
+        .thenReturn(dataElement);
 
     DataElement notPresentDataElement = dataElement();
     notPresentDataElement.setUid("de_not_present_in_program_stage");
@@ -411,7 +373,7 @@ class DataValuesValidatorTest {
     programStage.setAutoFields();
     ProgramStageDataElement mandatoryStageElement1 = new ProgramStageDataElement();
     DataElement mandatoryElement1 = new DataElement();
-    mandatoryElement1.setUid(dataElementUid);
+    mandatoryElement1.setUid(DATA_ELEMENT_UID);
     mandatoryStageElement1.setDataElement(mandatoryElement1);
     mandatoryStageElement1.setCompulsory(true);
     programStage.setProgramStageDataElements(Set.of(mandatoryStageElement1));
@@ -421,7 +383,7 @@ class DataValuesValidatorTest {
     notPresentDataValue.setDataElement(MetadataIdentifier.ofUid("de_not_present_in_program_stage"));
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(dataValue(), notPresentDataValue))
@@ -449,13 +411,14 @@ class DataValuesValidatorTest {
         .thenReturn(dataElement);
 
     ProgramStage programStage = programStage(dataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     DataValue dataValue = dataValue();
     dataValue.setDataElement(MetadataIdentifier.ofCode("DE_424050"));
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(dataValue))
@@ -469,19 +432,19 @@ class DataValuesValidatorTest {
   @Test
   void failValidationWhenFileResourceIsNull() {
     DataElement validDataElement = dataElement(ValueType.FILE_RESOURCE);
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
         .thenReturn(validDataElement);
 
     DataValue validDataValue = dataValue("QX4LpiTZmUH");
     when(preheat.get(FileResource.class, validDataValue.getValue())).thenReturn(null);
 
     ProgramStage programStage = programStage(validDataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.SKIPPED)
             .dataValues(Set.of(validDataValue))
@@ -498,17 +461,18 @@ class DataValuesValidatorTest {
   @Test
   void successValidationWhenFileResourceValueIsNullAndDataElementIsNotCompulsory() {
     DataElement validDataElement = dataElement(ValueType.FILE_RESOURCE);
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
         .thenReturn(validDataElement);
 
     ProgramStage programStage = programStage(validDataElement, false);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     DataValue validDataValue = dataValue();
     validDataValue.setValue(null);
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
             .dataValues(Set.of(validDataValue))
@@ -522,18 +486,18 @@ class DataValuesValidatorTest {
   @Test
   void failValidationWhenFileResourceValueIsNullAndDataElementIsCompulsory() {
     DataElement validDataElement = dataElement(ValueType.FILE_RESOURCE);
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
         .thenReturn(validDataElement);
 
     ProgramStage programStage = programStage(validDataElement, true);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     DataValue validDataValue = dataValue();
     validDataValue.setValue(null);
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
             .dataValues(Set.of(validDataValue))
@@ -547,19 +511,19 @@ class DataValuesValidatorTest {
   @Test
   void shouldFailValidationWhenDataElementValueNullAndStrategyCreate() {
     DataElement validDataElement = dataElement();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
         .thenReturn(validDataElement);
 
     ProgramStage programStage = programStage(validDataElement, true);
     programStage.setValidationStrategy(ValidationStrategy.ON_UPDATE_AND_INSERT);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     DataValue validDataValue = dataValue();
     validDataValue.setValue(null);
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(validDataValue))
@@ -573,13 +537,13 @@ class DataValuesValidatorTest {
   @Test
   void shouldFailValidationWhenDataElementValueNullAndStrategyUpdate() {
     DataElement validDataElement = dataElement();
-    String eventUid = CodeGenerator.generateUid();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+    UID eventUid = UID.generate();
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
         .thenReturn(validDataElement);
 
     ProgramStage programStage = programStage(validDataElement, true);
     programStage.setValidationStrategy(ValidationStrategy.ON_UPDATE_AND_INSERT);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
     when(preheat.getEvent(eventUid)).thenReturn(new org.hisp.dhis.program.Event());
 
@@ -601,19 +565,19 @@ class DataValuesValidatorTest {
   @Test
   void failsOnCompletedEventWithDataElementValueNullAndValidationStrategyOnUpdate() {
     DataElement validDataElement = dataElement();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
         .thenReturn(validDataElement);
 
     ProgramStage programStage = programStage(validDataElement, true);
     programStage.setValidationStrategy(ValidationStrategy.ON_UPDATE_AND_INSERT);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     DataValue validDataValue = dataValue();
     validDataValue.setValue(null);
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
             .dataValues(Set.of(validDataValue))
@@ -627,18 +591,19 @@ class DataValuesValidatorTest {
   @Test
   void succeedsOnActiveEventWithDataElementValueIsNullAndValidationStrategyOnComplete() {
     DataElement validDataElement = dataElement();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
         .thenReturn(validDataElement);
 
     ProgramStage programStage = programStage(validDataElement, true);
     programStage.setValidationStrategy(ValidationStrategy.ON_COMPLETE);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     DataValue validDataValue = dataValue();
     validDataValue.setValue(null);
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(validDataValue))
@@ -652,19 +617,19 @@ class DataValuesValidatorTest {
   @Test
   void failsOnCompletedEventWithDataElementValueIsNullAndValidationStrategyOnComplete() {
     DataElement validDataElement = dataElement();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
         .thenReturn(validDataElement);
 
     ProgramStage programStage = programStage(validDataElement, true);
     programStage.setValidationStrategy(ValidationStrategy.ON_COMPLETE);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     DataValue validDataValue = dataValue();
     validDataValue.setValue(null);
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
             .dataValues(Set.of(validDataValue))
@@ -678,18 +643,18 @@ class DataValuesValidatorTest {
   @Test
   void shouldFailWhenScheduledEventHasDataValueDefined() {
     DataElement validDataElement = dataElement();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
         .thenReturn(validDataElement);
 
     ProgramStage programStage = programStage(validDataElement, true);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     DataValue validDataValue = dataValue();
     validDataValue.setValue("1");
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.SCHEDULE)
             .dataValues(Set.of(validDataValue))
@@ -703,18 +668,18 @@ class DataValuesValidatorTest {
   @Test
   void shouldFailValidationWhenSkippedEventHasDataValueDefined() {
     DataElement validDataElement = dataElement();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
         .thenReturn(validDataElement);
 
     ProgramStage programStage = programStage(validDataElement, true);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     DataValue validDataValue = dataValue();
     validDataValue.setValue("1");
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.SKIPPED)
             .dataValues(Set.of(validDataValue))
@@ -728,18 +693,18 @@ class DataValuesValidatorTest {
   @Test
   void shouldFailValidationWhenOverdueEventHasDataValueDefined() {
     DataElement validDataElement = dataElement();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
         .thenReturn(validDataElement);
 
     ProgramStage programStage = programStage(validDataElement, true);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     DataValue validDataValue = dataValue();
     validDataValue.setValue("1");
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.OVERDUE)
             .dataValues(Set.of(validDataValue))
@@ -753,17 +718,18 @@ class DataValuesValidatorTest {
   @Test
   void successValidationWhenDataElementIsNullAndDataElementIsNotCompulsory() {
     DataElement validDataElement = dataElement();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
         .thenReturn(validDataElement);
 
     ProgramStage programStage = programStage(validDataElement, false);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     DataValue validDataValue = dataValue();
     validDataValue.setValue(null);
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
             .dataValues(Set.of(validDataValue))
@@ -777,11 +743,11 @@ class DataValuesValidatorTest {
   @Test
   void failValidationWhenFileResourceIsAlreadyAssigned() {
     DataElement validDataElement = dataElement(ValueType.FILE_RESOURCE);
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
         .thenReturn(validDataElement);
 
     ProgramStage programStage = programStage(validDataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     FileResource fileResource = new FileResource();
@@ -790,7 +756,7 @@ class DataValuesValidatorTest {
     when(preheat.get(FileResource.class, validDataValue.getValue())).thenReturn(fileResource);
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(validDataValue))
@@ -814,11 +780,11 @@ class DataValuesValidatorTest {
   @Test
   void validateFileResourceOwner() {
     DataElement validDataElement = dataElement(ValueType.FILE_RESOURCE);
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
         .thenReturn(validDataElement);
 
     ProgramStage programStage = programStage(validDataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     FileResource fileResource = new FileResource();
@@ -827,7 +793,7 @@ class DataValuesValidatorTest {
     when(preheat.get(FileResource.class, validDataValue.getValue())).thenReturn(fileResource);
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(validDataValue))
@@ -839,8 +805,9 @@ class DataValuesValidatorTest {
 
     assertHasError(reporter, event, ValidationCode.E1009);
 
-    event.setEvent("XYZ");
-    fileResource.setFileResourceOwner("ABC");
+    event.setEvent(UID.generate());
+    UID uid = UID.generate();
+    fileResource.setFileResourceOwner(uid.getValue());
 
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
 
@@ -850,8 +817,8 @@ class DataValuesValidatorTest {
 
     assertHasError(reporter, event, ValidationCode.E1009);
 
-    event.setEvent("ABC");
-    fileResource.setFileResourceOwner("ABC");
+    event.setEvent(uid);
+    fileResource.setFileResourceOwner(uid.getValue());
 
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
 
@@ -893,14 +860,16 @@ class DataValuesValidatorTest {
 
     DataElement dataElement = dataElement();
     dataElement.setOptionSet(optionSet);
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
+        .thenReturn(dataElement);
 
     ProgramStage programStage = programStage(dataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(validDataValue, nullDataValue))
@@ -914,7 +883,7 @@ class DataValuesValidatorTest {
   @Test
   void failValidationDataElementOptionValueIsInValid() {
     DataValue validDataValue = dataValue("value");
-    validDataValue.setDataElement(MetadataIdentifier.ofUid(dataElementUid));
+    validDataValue.setDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID));
 
     OptionSet optionSet = new OptionSet();
     Option option = new Option();
@@ -925,15 +894,16 @@ class DataValuesValidatorTest {
 
     DataElement dataElement = dataElement();
     dataElement.setOptionSet(optionSet);
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
+        .thenReturn(dataElement);
 
     ProgramStage programStage = programStage(dataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.SKIPPED)
             .dataValues(Set.of(validDataValue))
@@ -958,14 +928,16 @@ class DataValuesValidatorTest {
 
     DataElement dataElement = dataElement(ValueType.MULTI_TEXT);
     dataElement.setOptionSet(optionSet);
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
+        .thenReturn(dataElement);
 
     ProgramStage programStage = programStage(dataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(validDataValue, nullDataValue))
@@ -979,7 +951,7 @@ class DataValuesValidatorTest {
   @Test
   void failValidationDataElementMultiTextOptionValueIsInValid() {
     DataValue validDataValue = dataValue("CODE1,CODE2");
-    validDataValue.setDataElement(MetadataIdentifier.ofUid(dataElementUid));
+    validDataValue.setDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID));
 
     OptionSet optionSet = new OptionSet();
     Option option = new Option();
@@ -990,15 +962,16 @@ class DataValuesValidatorTest {
 
     DataElement dataElement = dataElement(ValueType.MULTI_TEXT);
     dataElement.setOptionSet(optionSet);
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
+        .thenReturn(dataElement);
 
     ProgramStage programStage = programStage(dataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.SKIPPED)
             .dataValues(Set.of(validDataValue))
@@ -1012,19 +985,19 @@ class DataValuesValidatorTest {
   @Test
   void failValidationWhenOrgUnitValueIsInvalid() {
     DataElement validDataElement = dataElement(ValueType.ORGANISATION_UNIT);
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
         .thenReturn(validDataElement);
 
     DataValue invalidDataValue = dataValue("invlaid_org_unit");
     when(preheat.getOrganisationUnit(invalidDataValue.getValue())).thenReturn(null);
 
     ProgramStage programStage = programStage(validDataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(invalidDataValue))
@@ -1038,7 +1011,7 @@ class DataValuesValidatorTest {
   @Test
   void succeedsValidationWhenOrgUnitValueIsValid() {
     DataElement validDataElement = dataElement(ValueType.ORGANISATION_UNIT);
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
         .thenReturn(validDataElement);
 
     OrganisationUnit validOrgUnit = organisationUnit();
@@ -1047,11 +1020,12 @@ class DataValuesValidatorTest {
     when(preheat.getOrganisationUnit(validDataValue.getValue())).thenReturn(validOrgUnit);
 
     ProgramStage programStage = programStage(validDataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(validDataValue))
@@ -1064,19 +1038,19 @@ class DataValuesValidatorTest {
 
   private void runAndAssertValidationForDataValue(ValueType valueType, String value) {
     DataElement invalidDataElement = dataElement(valueType);
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
         .thenReturn(invalidDataElement);
 
     ProgramStage programStage = programStage(dataElement());
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
     DataValue validDataValue = dataValue();
-    validDataValue.setDataElement(MetadataIdentifier.ofUid(dataElementUid));
+    validDataValue.setDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID));
     validDataValue.setValue(value);
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.SKIPPED)
             .dataValues(Set.of(validDataValue))
@@ -1088,10 +1062,9 @@ class DataValuesValidatorTest {
     assertHasError(reporter, event, ValidationCode.E1302);
   }
 
-  private org.hisp.dhis.program.Event event(
-      String uid, EventStatus status, Set<String> dataElements) {
+  private org.hisp.dhis.program.Event event(UID uid, EventStatus status, Set<String> dataElements) {
     org.hisp.dhis.program.Event event = new org.hisp.dhis.program.Event();
-    event.setUid(uid);
+    event.setUid(uid.getValue());
     event.setStatus(status);
     event.setEventDataValues(
         dataElements.stream()
@@ -1100,9 +1073,9 @@ class DataValuesValidatorTest {
     return event;
   }
 
-  private org.hisp.dhis.program.Event event(String uid, EventStatus status) {
+  private org.hisp.dhis.program.Event event(UID uid, EventStatus status) {
     org.hisp.dhis.program.Event event = new org.hisp.dhis.program.Event();
-    event.setUid(uid);
+    event.setUid(uid.getValue());
     event.setStatus(status);
     return event;
   }
@@ -1116,7 +1089,7 @@ class DataValuesValidatorTest {
   private DataElement dataElement() {
     DataElement dataElement = new DataElement();
     dataElement.setValueType(ValueType.TEXT);
-    dataElement.setUid(dataElementUid);
+    dataElement.setUid(DATA_ELEMENT_UID);
     return dataElement;
   }
 
@@ -1128,10 +1101,8 @@ class DataValuesValidatorTest {
 
   private DataValue dataValue() {
     DataValue dataValue = new DataValue();
-    dataValue.setCreatedAt(DateUtils.instantFromDateAsString("2020-10-10"));
-    dataValue.setUpdatedAt(DateUtils.instantFromDateAsString("2020-10-10"));
     dataValue.setValue("text");
-    dataValue.setDataElement(MetadataIdentifier.ofUid(dataElementUid));
+    dataValue.setDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID));
     return dataValue;
   }
 
@@ -1141,7 +1112,7 @@ class DataValuesValidatorTest {
 
   private ProgramStage programStage(DataElement dataElement, boolean compulsory) {
     ProgramStage programStage = new ProgramStage();
-    programStage.setUid(programStageUid);
+    programStage.setUid(PROGRAM_STAGE_UID);
     programStage.setProgramStageDataElements(
         getProgramStageDataElements(dataElement, programStage, compulsory));
 
@@ -1158,7 +1129,7 @@ class DataValuesValidatorTest {
 
   private OrganisationUnit organisationUnit() {
     OrganisationUnit organisationUnit = new OrganisationUnit();
-    organisationUnit.setUid(organisationUnitUid);
+    organisationUnit.setUid(ORGANISATION_UNIT_UID);
     return organisationUnit;
   }
 }

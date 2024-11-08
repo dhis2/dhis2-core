@@ -61,7 +61,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Stian Sandvold
  */
-@OpenApi.Document(domain = DataSet.class)
+@OpenApi.Document(
+    entity = DataSet.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class DataSetReportController {
