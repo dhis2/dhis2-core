@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -56,7 +55,8 @@ public class CategoryOptionComboObjectBundleHook
 
     List<CategoryOptionCombo> categoryOptionCombos =
         categoryService.getAllCategoryOptionCombos().stream()
-            .filter(coc -> coc.getCategoryCombo().equals(categoryCombo)).toList();
+            .filter(coc -> coc.getCategoryCombo().equals(categoryCombo))
+            .toList();
 
     for (CategoryOptionCombo existingCategoryOptionCombo : categoryOptionCombos) {
       if (areEqual(categoryOptionCombo, existingCategoryOptionCombo)) {
