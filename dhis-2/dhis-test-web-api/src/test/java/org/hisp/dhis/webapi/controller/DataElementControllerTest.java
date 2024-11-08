@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.http.HttpStatus.OK;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
@@ -251,6 +252,9 @@ class DataElementControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(
         "Data element value type cannot be changed as it has associated data values",
         errorReport.getMessage());
+    JsonDataElement updatedDataElement =
+        GET("/dataElements/DeUid000001").content(OK).as(JsonDataElement.class);
+    assertEquals(NUMBER, updatedDataElement.getValueType(), "value type should be NUMBER");
   }
 
   @Test
@@ -370,6 +374,10 @@ class DataElementControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(
         "Data element value type cannot be changed as it has associated data values",
         errorReport.getMessage());
+
+    JsonDataElement updatedDataElement =
+        GET("/dataElements/DeUid000003").content(OK).as(JsonDataElement.class);
+    assertEquals(NUMBER, updatedDataElement.getValueType(), "value type should be NUMBER");
   }
 
   @Test
