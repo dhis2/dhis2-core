@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -38,6 +39,9 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonCategoryOptionCombo;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
@@ -114,5 +118,33 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
 
     assertFalse(
         catOptionComboNames.contains("default"), "default catOptionCombo is not in payload");
+  }
+
+  @Test
+  @DisplayName("Duplicate CategoryOptionCombos should not be allowed")
+  void catOptionCombosDuplicatedTest() {
+
+    JsonObject response =
+        GET("/categoryOptionCombos?filter=id:eq:CocUid0001&fields=id,categoryCombo[id],categoryOptions[id]")
+            .content();
+    JsonList<JsonCategoryOptionCombo> catOptionCombos =
+        response.getList("categoryOptionCombos", JsonCategoryOptionCombo.class);
+    String catOptionComboAOptions = catOptionCombos.get(0).getCategoryOptions().get(0).getId();
+    String catOptionComboACatComboId = catOptionCombos.get(0).getCategoryCombo().getId();
+
+    HttpResponse postResponse =
+        POST(
+            "/categoryOptionCombos",
+            """
+            { "name": "A_1",
+            "categoryOptions" : [{"id" : "%s"}],
+            "categoryCombo" : {"id" : "%s"} }
+            """
+                .formatted(catOptionComboAOptions, catOptionComboACatComboId));
+    assertStatus(HttpStatus.CONFLICT, postResponse);
+    JsonMixed postResponseContent = postResponse.content();
+    assertEquals(
+        "CategoryOptionCombo with name A_1 already exists",
+        postResponseContent.getString("message"));
   }
 }
