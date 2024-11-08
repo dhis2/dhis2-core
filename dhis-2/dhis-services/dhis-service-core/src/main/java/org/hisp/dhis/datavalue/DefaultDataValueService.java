@@ -348,11 +348,11 @@ public class DefaultDataValueService implements DataValueService {
   @Override
   @Transactional(readOnly = true)
   public boolean dataValueExists(CategoryCombo combo) {
-    return dataValueStore.dataValueExists(combo);
+    return dataValueStore.dataValueExistsWithDataElement(combo);
   }
 
   @Override
   public boolean dataValueExists(@Nonnull UID dataElementUid) {
-    return dataValueStore.dataValueExists(dataElementUid.getValue());
+    return dataValueStore.dataValueExistsWithDataElement(dataElementUid.getValue());
   }
 }
