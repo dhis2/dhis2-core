@@ -44,10 +44,6 @@ public class CategoryOptionComboObjectBundleHook
     extends AbstractObjectBundleHook<CategoryOptionCombo> {
   private final CategoryService categoryService;
 
-  static boolean areEqual(CategoryOptionCombo one, CategoryOptionCombo other) {
-    return one.equals(other);
-  }
-
   private void checkDuplicateCategoryOptionCombos(
       CategoryOptionCombo categoryOptionCombo, Consumer<ErrorReport> addReports) {
 
@@ -59,11 +55,11 @@ public class CategoryOptionComboObjectBundleHook
             .toList();
 
     for (CategoryOptionCombo existingCategoryOptionCombo : categoryOptionCombos) {
-      if (areEqual(categoryOptionCombo, existingCategoryOptionCombo)) {
+      if (categoryOptionCombo.equals(existingCategoryOptionCombo)) {
         addReports.accept(
             new ErrorReport(
                 CategoryOptionCombo.class,
-                ErrorCode.E1121,
+                ErrorCode.E1122,
                 categoryOptionCombo.getName(),
                 existingCategoryOptionCombo.getName()));
       }

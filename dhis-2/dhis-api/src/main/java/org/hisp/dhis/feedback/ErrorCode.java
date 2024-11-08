@@ -66,7 +66,7 @@ public enum ErrorCode {
   E1119("{0} already exists: `{1}`"),
   E1120("Update cannot be applied as it would make existing data values inaccessible"),
 
-  E1121("Category option combo {0} already exists for category combo {1}"),
+  E1122("Category option combo {0} already exists for category combo {1}"),
 
   /* Org unit merge */
   E1500("At least two source orgs unit must be specified"),
