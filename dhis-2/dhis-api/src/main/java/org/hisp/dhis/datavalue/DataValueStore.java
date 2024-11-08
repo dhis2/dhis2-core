@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -183,13 +184,13 @@ public interface DataValueStore {
    * @param combo the combo to check
    * @return true, if any value exist, otherwise false
    */
-  boolean dataValueExistsWithDataElement(CategoryCombo combo);
+  boolean dataValueExists(CategoryCombo combo);
 
   /**
-   * Checks if any data values exist for the provided {@link DataElement} uid.
+   * Checks if any data values exist for the provided {@link DataElement} {@link UID}.
    *
-   * @param dataElementUid the data element uid to check
+   * @param dataElementUid the {@link DataElement} {@link UID} to check
    * @return true, if any values exist, otherwise false
    */
-  boolean dataValueExistsWithDataElement(String dataElementUid);
+  boolean dataValueExistsForDataElement(String dataElementUid);
 }

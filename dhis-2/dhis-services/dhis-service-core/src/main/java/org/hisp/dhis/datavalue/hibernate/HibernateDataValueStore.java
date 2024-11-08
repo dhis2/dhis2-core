@@ -249,7 +249,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public boolean dataValueExistsWithDataElement(CategoryCombo combo) {
+  public boolean dataValueExists(CategoryCombo combo) {
     String cocIdsSql =
         "select distinct categoryoptioncomboid from categorycombos_optioncombos where categorycomboid = :cc";
     List<?> cocIds =
@@ -268,7 +268,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public boolean dataValueExistsWithDataElement(String dataElementUid) {
+  public boolean dataValueExistsForDataElement(String dataElementUid) {
     return !getQuery("select 1 from DataValue dv where dv.dataElement.uid = :dataElementUid")
         .setParameter("dataElementUid", dataElementUid)
         .setMaxResults(1)

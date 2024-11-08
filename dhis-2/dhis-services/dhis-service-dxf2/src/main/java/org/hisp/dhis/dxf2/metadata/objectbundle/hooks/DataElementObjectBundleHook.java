@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -47,7 +47,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DataElementObjectBundleHook extends AbstractObjectBundleHook<DataElement> {
 
-  private final DataElementService dataElementService;
   private final DataValueService dataValueService;
 
   @Override
@@ -72,35 +71,48 @@ public class DataElementObjectBundleHook extends AbstractObjectBundleHook<DataEl
     }
   }
 
+  /**
+   * Performs validation to check if the {@link ValueType} of a {@link DataElement} is being
+   * changed. <br>
+   * If the {@link ValueType} is not being changed, then no action taken <br>
+   * If the {@link ValueType} is being changed, a check for {@link DataValue}s for the {@link
+   * DataElement} is performed:
+   *
+   * <ul>
+   *   <li>If there are {@link DataValue}s for the {@link DataElement} then we prohibit the change
+   *   <li>If there are no {@link DataValue}s for the {@link DataElement} then the change of {@link
+   *       ValueType} is allowed
+   * </ul>
+   *
+   * @param dataElement {@link DataElement} to check
+   * @param bundle {@link ObjectBundle} to get existing {@link DataElement}
+   * @param addReports reports to add error if validation fails
+   */
   private void valueTypeChangeValidation(
       DataElement dataElement, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
-    // check value type being changed
-    // if no data for DE then allow, otherwise reject
-    log.info("checking data element value type validation");
+    log.debug("checking data element value type validation");
 
-    // preheat value
+    // existing value
     DataElement dePreheat = bundle.getPreheat().get(PreheatIdentifier.UID, dataElement);
     ValueType existingValueType = dePreheat.getValueType();
-    log.info("PREHEAT: data element value type: " + existingValueType);
-    log.info("PREHEAT: data element UID: " + dePreheat.getUid());
 
     // new value
     ValueType proposedNewValueType = dataElement.getValueType();
-    log.info("NEW: data element value type: " + proposedNewValueType);
-    log.info("NEW: data element UID: " + dataElement.getUid());
 
     if (existingValueType != proposedNewValueType) {
-      log.info(
-          "DataElement {} valueType is different from existing valueType, checking if any data associated with DataElement",
-          dataElement.getUid());
-      if (dataValueService.dataValueExists(UID.of(dataElement))) {
-        log.info(
+      log.debug(
+          "DataElement {} valueType {} is different from existing valueType {}, checking if any data associated with DataElement",
+          dataElement.getUid(),
+          proposedNewValueType,
+          existingValueType);
+      if (dataValueService.dataValueExistsForDataElement(UID.of(dataElement))) {
+        log.warn(
             "DataElement {} has associated data values, changing of valueType is prohibited",
             dataElement.getUid());
         addReports.accept(new ErrorReport(DataElement.class, ErrorCode.E1121));
       } else {
-        log.info(
-            "DataElement {} has no associated data values, allow changing of valueType",
+        log.debug(
+            "DataElement {} has no associated data values, changing of valueType is allowed",
             dataElement.getUid());
       }
     }

@@ -215,10 +215,10 @@ public interface DataValueService {
   boolean dataValueExists(CategoryCombo combo);
 
   /**
-   * Checks if any data values exist for the provided {@link DataElement} UID.
+   * Checks if any data values exist for the provided {@link DataElement} {@link UID}.
    *
-   * @param dataElementUid the data element to check
+   * @param dataElementUid the {@link DataElement} {@link UID} to check
    * @return true, if any values exist, otherwise false
    */
-  boolean dataValueExists(UID dataElementUid);
+  boolean dataValueExistsForDataElement(UID dataElementUid);
 }
