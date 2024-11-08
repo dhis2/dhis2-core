@@ -47,7 +47,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -71,12 +70,13 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -349,15 +349,21 @@ class JdbcEventStore implements EventStore {
               coc.setAttributeValues(
                   AttributeValues.of(
                       resultSet.getString(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_ATTRIBUTE_VALUES)));
-              Set<CategoryOption> options =
-                  Arrays.stream(resultSet.getString("co_uids").split(TextUtils.COMMA))
-                      .map(
-                          optionUid -> {
-                            CategoryOption option = new CategoryOption();
-                            option.setUid(optionUid);
-                            return option;
-                          })
-                      .collect(Collectors.toSet());
+
+              String cosString = resultSet.getString("co_values");
+              JsonMixed cosJson = JsonMixed.of(cosString);
+              JsonObject object = cosJson.asObject();
+              Set<CategoryOption> options = new HashSet<>(object.names().size());
+              for (String uid : object.names()) {
+                JsonObject categoryOptionJson = object.getObject(uid);
+                CategoryOption option = new CategoryOption();
+                option.setUid(uid);
+                option.setCode(categoryOptionJson.getString("code").string(""));
+                option.setName(categoryOptionJson.getString("name").string(""));
+                option.setAttributeValues(
+                    AttributeValues.of(categoryOptionJson.getObject("attributeValues").toJson()));
+                options.add(option);
+              }
               coc.setCategoryOptions(options);
               event.setAttributeOptionCombo(coc);
 
@@ -771,7 +777,7 @@ class JdbcEventStore implements EventStore {
             .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_NAME)
             .append(", coc_agg.attributevalues as ")
             .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_ATTRIBUTE_VALUES)
-            .append(", coc_agg.co_uids AS co_uids, coc_agg.co_count AS option_size, ");
+            .append(", coc_agg.co_values AS co_values, coc_agg.co_count AS option_size, ");
 
     for (Order order : params.getOrder()) {
       if (order.getField() instanceof TrackedEntityAttribute tea)
@@ -1459,8 +1465,16 @@ class JdbcEventStore implements EventStore {
   private String getCategoryOptionComboQuery(User user) {
     String joinCondition =
         """
- inner join (select coc.uid, coc.code, coc.name, coc.attributevalues, coc.categoryoptioncomboid as\
- id, string_agg(co.uid, ',') as co_uids, count(co.categoryoptionid) as co_count from\
+ inner join (select coc.uid, coc.code, coc.name, coc.attributevalues, coc.categoryoptioncomboid as id,\
+    jsonb_object_agg(
+        co.uid,
+        jsonb_build_object(
+            'name', co.name,
+            'code', co.code,
+            'attributeValues', co.attributevalues
+        )
+    ) AS co_values,
+ count(co.categoryoptionid) as co_count from\
  categoryoptioncombo coc  inner join categoryoptioncombos_categoryoptions cocco on\
  coc.categoryoptioncomboid = cocco.categoryoptioncomboid inner join categoryoption\
  co on cocco.categoryoptionid = co.categoryoptionid group by\
