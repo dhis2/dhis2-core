@@ -158,7 +158,7 @@ public class EventPersister
       Event event,
       UserDetails user) {
     Map<String, EventDataValue> dataValueDBMap =
-        Optional.ofNullable(preheat.getEvent(UID.of(event)))
+        Optional.ofNullable(event)
             .map(
                 a ->
                     a.getEventDataValues().stream()

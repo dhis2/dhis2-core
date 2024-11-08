@@ -53,7 +53,7 @@ import org.locationtech.jts.geom.Geometry;
 public class Enrollment {
   @OpenApi.Property({UID.class, org.hisp.dhis.program.Enrollment.class})
   @JsonProperty
-  private String enrollment;
+  private UID enrollment;
 
   @JsonProperty private Instant createdAt;
 
@@ -65,7 +65,7 @@ public class Enrollment {
 
   @OpenApi.Property({UID.class, TrackedEntity.class})
   @JsonProperty
-  private String trackedEntity;
+  private UID trackedEntity;
 
   @JsonProperty private String program;
 

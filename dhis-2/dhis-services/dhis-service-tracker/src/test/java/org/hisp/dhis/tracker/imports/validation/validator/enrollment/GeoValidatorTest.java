@@ -88,6 +88,7 @@ class GeoValidatorTest {
     // given
     Enrollment enrollment =
         Enrollment.builder()
+            .enrollment(UID.generate())
             .program(MetadataIdentifier.ofUid(PROGRAM))
             .geometry(new GeometryFactory().createPoint())
             .build();

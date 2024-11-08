@@ -25,17 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.imports;
+package org.hisp.dhis.commons.jackson.config;
 
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.hisp.dhis.webapi.controller.tracker.view.Note;
-import org.mapstruct.Context;
-import org.mapstruct.Mapper;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import java.io.IOException;
+import org.hisp.dhis.common.UID;
 
-@Mapper(uses = {InstantMapper.class, UserMapper.class})
-public interface NoteMapper extends DomainMapper<Note, org.hisp.dhis.tracker.imports.domain.Note> {
-  org.hisp.dhis.tracker.imports.domain.Note from(
-      org.hisp.dhis.tracker.imports.domain.Note note,
-      @Context TrackerIdSchemeParams idSchemeParams);
+public class UIDStdSerializer extends StdSerializer<UID> {
+  public UIDStdSerializer() {
+    super(UID.class);
+  }
+
+  @Override
+  public void serialize(UID uid, JsonGenerator gen, SerializerProvider provider)
+      throws IOException {
+    gen.writeString(uid == null ? null : uid.toString());
+  }
 }
