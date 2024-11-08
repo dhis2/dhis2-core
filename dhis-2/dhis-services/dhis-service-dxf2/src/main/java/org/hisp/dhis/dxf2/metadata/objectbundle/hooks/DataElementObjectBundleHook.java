@@ -109,7 +109,8 @@ public class DataElementObjectBundleHook extends AbstractObjectBundleHook<DataEl
         log.warn(
             "DataElement {} has associated data values, changing of valueType is prohibited",
             dataElement.getUid());
-        addReports.accept(new ErrorReport(DataElement.class, ErrorCode.E1121));
+        addReports.accept(
+            new ErrorReport(DataElement.class, ErrorCode.E1121, dataElement.getUid()));
       } else {
         log.debug(
             "DataElement {} has no associated data values, changing of valueType is allowed",

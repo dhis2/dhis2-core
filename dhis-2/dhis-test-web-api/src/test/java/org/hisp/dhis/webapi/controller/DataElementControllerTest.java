@@ -250,7 +250,7 @@ class DataElementControllerTest extends H2ControllerIntegrationTestBase {
             JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E1121);
     assertNotNull(errorReport);
     assertEquals(
-        "Data element value type cannot be changed as it has associated data values",
+        "Data element `DeUid000001` value type cannot be changed as it has associated data values",
         errorReport.getMessage());
     JsonDataElement updatedDataElement =
         GET("/dataElements/DeUid000001").content(OK).as(JsonDataElement.class);
@@ -372,7 +372,7 @@ class DataElementControllerTest extends H2ControllerIntegrationTestBase {
             JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E1121);
     assertNotNull(errorReport);
     assertEquals(
-        "Data element value type cannot be changed as it has associated data values",
+        "Data element `DeUid000003` value type cannot be changed as it has associated data values",
         errorReport.getMessage());
 
     JsonDataElement updatedDataElement =

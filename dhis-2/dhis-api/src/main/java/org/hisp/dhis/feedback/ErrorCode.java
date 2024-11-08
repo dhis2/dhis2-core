@@ -65,7 +65,7 @@ public enum ErrorCode {
       "Option set `{0}` of value type multi-text cannot have option codes with the separator character: `{1}`"),
   E1119("{0} already exists: `{1}`"),
   E1120("Update cannot be applied as it would make existing data values inaccessible"),
-  E1121("Data element value type cannot be changed as it has associated data values"),
+  E1121("Data element `{0}` value type cannot be changed as it has associated data values"),
 
   /* Org unit merge */
   E1500("At least two source orgs unit must be specified"),
