@@ -721,6 +721,13 @@ public non-sealed interface SystemSettings extends Settings {
     return asString("globalShellAppName", "global-app-shell");
   }
 
+  /**
+   * @return true if email verification is enforced for all users.
+   */
+  default boolean getEnforceVerifiedEmail() {
+    return asBoolean("enforceVerifiedEmail", false);
+  }
+
   /** Combinators based on several settings. */
   default boolean isEmailConfigured() {
     return !getEmailHostName().isBlank() && !getEmailUsername().isBlank();

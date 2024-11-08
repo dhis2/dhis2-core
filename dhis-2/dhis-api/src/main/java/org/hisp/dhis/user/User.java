@@ -41,6 +41,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -1190,6 +1191,12 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getVerifiedEmail() {
     return this.verifiedEmail;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isEmailVerified() {
+    return this.getEmail() != null && Objects.equals(this.getEmail(), this.getVerifiedEmail());
   }
 
   public void setVerifiedEmail(String verifiedEmail) {
