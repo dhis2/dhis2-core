@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.tracker.notification;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
@@ -46,8 +45,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class ProgramNotificationTemplateRequestParamsMapperTest {
-  private static UID PROGRAM = UID.of(CodeGenerator.generateUid());
-  private static UID PROGRAM_STAGE = UID.of(CodeGenerator.generateUid());
+  private static final UID PROGRAM = UID.generate();
+  private static final UID PROGRAM_STAGE = UID.generate();
 
   @InjectMocks private ProgramNotificationTemplateRequestParamsMapper mapper;
 

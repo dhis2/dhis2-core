@@ -52,7 +52,6 @@ class TrackedEntityRequestParamsMapperTest {
   private TrackedEntityQueryRequestMapper trackedEntityQueryRequestMapper;
 
   @BeforeEach
-  @SuppressWarnings("unchecked")
   public void setUp() {
     trackedEntityQueryRequestMapper =
         new TrackedEntityQueryRequestMapper(trackedEntityTypeService, programService);

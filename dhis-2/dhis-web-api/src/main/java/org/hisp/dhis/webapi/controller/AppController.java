@@ -87,7 +87,9 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = App.class)
+@OpenApi.Document(
+    entity = App.class,
+    classifiers = {"team:extensibility", "purpose:support"})
 @Controller
 @RequestMapping("/api/apps")
 @Slf4j

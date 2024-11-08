@@ -32,6 +32,7 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
+import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
@@ -90,25 +91,26 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
 
   private static final String EVENT_DATA_VALUE_REBUILDER =
       """
-            (select json_object_agg(l2.keys, l2.datavalue) as value
-             from (select l1.uid,
-                          l1.keys,
-                          json_strip_nulls(json_build_object(
-                                  'value', l1.eventdatavalues -> l1.keys ->> 'value',
-                                  'created', l1.eventdatavalues -> l1.keys ->> 'created',
-                                  'storedBy', l1.eventdatavalues -> l1.keys ->> 'storedBy',
-                                  'lastUpdated', l1.eventdatavalues -> l1.keys ->> 'lastUpdated',
-                                  'providedElsewhere', l1.eventdatavalues -> l1.keys -> 'providedElsewhere',
-                                  'value_name', (select ou.name
-                                                 from organisationunit ou
-                                                 where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'),
-                                  'value_code', (select ou.code
-                                                 from organisationunit ou
-                                                 where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'))) as datavalue
-                   from (select inner_evt.*, jsonb_object_keys(inner_evt.eventdatavalues) keys
-                         from event inner_evt) as l1) as l2
-             where l2.uid = ev.uid
-             group by l2.uid)::jsonb
+      (select json_object_agg(l2.keys, l2.datavalue) as value
+      from (
+          select l1.uid,
+          l1.keys,
+          json_strip_nulls(json_build_object(
+          'value', l1.eventdatavalues -> l1.keys ->> 'value',
+          'created', l1.eventdatavalues -> l1.keys ->> 'created',
+          'storedBy', l1.eventdatavalues -> l1.keys ->> 'storedBy',
+          'lastUpdated', l1.eventdatavalues -> l1.keys ->> 'lastUpdated',
+          'providedElsewhere', l1.eventdatavalues -> l1.keys -> 'providedElsewhere',
+          'value_name', (select ou.name
+              from organisationunit ou
+              where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'),
+          'value_code', (select ou.code
+              from organisationunit ou
+              where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'))) as datavalue
+          from (select inner_evt.*, jsonb_object_keys(inner_evt.eventdatavalues) keys
+          from event inner_evt) as l1) as l2
+      where l2.uid = ev.uid
+      group by l2.uid)::jsonb
       """;
 
   private static final List<AnalyticsTableColumn> FIXED_COLS =
@@ -324,14 +326,14 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params, TrackedEntityType tet) {
     StringBuilder sql = new StringBuilder();
     sql.append(
-        replace(
+        replaceQualify(
             """
             select temp.supportedyear from \
             (select distinct extract(year from ${eventDateExpression}) as supportedyear \
-            from trackedentity te \
-            inner join trackedentitytype tet on tet.trackedentitytypeid = te.trackedentitytypeid \
-            inner join enrollment en on en.trackedentityid = te.trackedentityid \
-            inner join event ev on ev.enrollmentid = en.enrollmentid \
+            from ${trackedentity} te \
+            inner join ${trackedentitytype} tet on tet.trackedentitytypeid = te.trackedentitytypeid \
+            inner join ${enrollment} en on en.trackedentityid = te.trackedentityid \
+            inner join ${event} ev on ev.enrollmentid = en.enrollmentid \
             where ev.lastupdated <= '${startTime}' \
             and tet.trackedentitytypeid = ${tetId} \
             and (${eventDateExpression}) is not null \
@@ -386,6 +388,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
    */
   @Override
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+    AnalyticsTable masterTable = partition.getMasterTable();
     String tableName = partition.getName();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
     String partitionClause = getPartitionClause(partition);
@@ -404,25 +407,21 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
 
     removeLastComma(sql)
         .append(
-            replace(
+            replaceQualify(
                 """
-                \s from event ev \
-                inner join enrollment en on en.enrollmentid = ev.enrollmentid \
-                and en.deleted = false \
-                inner join trackedentity te on te.trackedentityid = en.trackedentityid \
-                and te.deleted = false \
-                and te.trackedentitytypeid = ${tetId} \
-                and te.lastupdated < '${startTime}' \
-                left join programstage ps on ps.programstageid = ev.programstageid \
-                left join program p on p.programid = ps.programid \
-                left join organisationunit ou on ev.organisationunitid = ou.organisationunitid \
+                \s from ${event} ev \
+                inner join ${enrollment} en on en.enrollmentid = ev.enrollmentid and en.deleted = false \
+                inner join ${trackedentity} te on te.trackedentityid = en.trackedentityid \
+                and te.deleted = false and te.trackedentitytypeid = ${tetId} and te.lastupdated < '${startTime}' \
+                left join ${programstage} ps on ps.programstageid = ev.programstageid \
+                left join ${program} p on p.programid = ps.programid \
+                left join ${organisationunit} ou on ev.organisationunitid = ou.organisationunitid \
                 left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
                 where ev.status in (${statuses}) \
                 ${partitionClause} \
                 and ev.deleted = false\s""",
                 Map.of(
-                    "tetId",
-                        String.valueOf(partition.getMasterTable().getTrackedEntityType().getId()),
+                    "tetId", String.valueOf(masterTable.getTrackedEntityType().getId()),
                     "startTime", toLongDate(params.getStartTime()),
                     "statuses", join(",", EXPORTABLE_EVENT_STATUSES),
                     "partitionClause", partitionClause)));
@@ -448,6 +447,8 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
             eventDateExpression,
             end);
 
-    return partition.isLatestPartition() ? latestFilter : partitionFilter;
+    return partition.isLatestPartition()
+        ? latestFilter
+        : emptyIfTrue(partitionFilter, sqlBuilder.supportsDeclarativePartitioning());
   }
 }

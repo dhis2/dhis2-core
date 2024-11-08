@@ -47,69 +47,69 @@ class SystemSettingsTranslationServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testSaveSystemSettingTranslation_Add() throws Exception {
-    putTranslation("key1", "en", "text-en");
-    putTranslation("key1", "de", "text-de");
-    putTranslation("key2", "en", "text2-en");
-    putTranslation("key2", "it", "text2-it");
+    putTranslation("applicationTitle", "en", "text-en");
+    putTranslation("applicationTitle", "de", "text-de");
+    putTranslation("loginPopup", "en", "text2-en");
+    putTranslation("loginPopup", "it", "text2-it");
 
-    assertTranslation("key1", "en", "text-en");
-    assertTranslation("key1", "de", "text-de");
-    assertNoTranslation("key1", "it");
-    assertTranslation("key2", "en", "text2-en");
-    assertTranslation("key2", "it", "text2-it");
-    assertNoTranslation("key2", "de");
+    assertTranslation("applicationTitle", "en", "text-en");
+    assertTranslation("applicationTitle", "de", "text-de");
+    assertNoTranslation("applicationTitle", "it");
+    assertTranslation("loginPopup", "en", "text2-en");
+    assertTranslation("loginPopup", "it", "text2-it");
+    assertNoTranslation("loginPopup", "de");
   }
 
   @Test
   void testSaveSystemSettingTranslation_Update() throws Exception {
-    putTranslation("key1", "en", "text-en");
-    putTranslation("key1", "de", "text-de");
+    putTranslation("applicationTitle", "en", "text-en");
+    putTranslation("applicationTitle", "de", "text-de");
 
-    assertTranslation("key1", "en", "text-en");
-    assertTranslation("key1", "de", "text-de");
+    assertTranslation("applicationTitle", "en", "text-en");
+    assertTranslation("applicationTitle", "de", "text-de");
 
-    putTranslation("key1", "en", "new-text-en");
-    assertTranslation("key1", "en", "new-text-en");
-    assertTranslation("key1", "de", "text-de");
+    putTranslation("applicationTitle", "en", "new-text-en");
+    assertTranslation("applicationTitle", "en", "new-text-en");
+    assertTranslation("applicationTitle", "de", "text-de");
   }
 
   @Test
   void testSaveSystemSettingTranslation_DeleteNull() throws Exception {
-    putTranslation("key1", "en", "text-en");
-    putTranslation("key1", "de", "text-de");
+    putTranslation("applicationTitle", "en", "text-en");
+    putTranslation("applicationTitle", "de", "text-de");
 
-    putTranslation("key1", "en", null);
-    assertNoTranslation("key1", "en");
-    assertTranslation("key1", "de", "text-de");
+    putTranslation("applicationTitle", "en", null);
+    assertNoTranslation("applicationTitle", "en");
+    assertTranslation("applicationTitle", "de", "text-de");
 
-    putTranslation("key1", "de", null);
-    assertNoTranslation("key1", "en");
-    assertNoTranslation("key1", "de");
+    putTranslation("applicationTitle", "de", null);
+    assertNoTranslation("applicationTitle", "en");
+    assertNoTranslation("applicationTitle", "de");
 
-    putTranslation("key1", "it", null);
-    assertNoTranslation("key1", "it");
+    putTranslation("applicationTitle", "it", null);
+    assertNoTranslation("applicationTitle", "it");
   }
 
   @Test
   void testSaveSystemSettingTranslation_DeleteEmpty() throws Exception {
-    putTranslation("key1", "en", "text-en");
-    putTranslation("key1", "de", "text-de");
+    putTranslation("applicationTitle", "en", "text-en");
+    putTranslation("applicationTitle", "de", "text-de");
 
-    putTranslation("key1", "en", "");
-    assertNoTranslation("key1", "en");
-    assertTranslation("key1", "de", "text-de");
+    putTranslation("applicationTitle", "en", "");
+    assertNoTranslation("applicationTitle", "en");
+    assertTranslation("applicationTitle", "de", "text-de");
 
-    putTranslation("key1", "de", "");
-    assertNoTranslation("key1", "en");
-    assertNoTranslation("key1", "de");
+    putTranslation("applicationTitle", "de", "");
+    assertNoTranslation("applicationTitle", "en");
+    assertNoTranslation("applicationTitle", "de");
 
-    putTranslation("key1", "it", "");
-    assertNoTranslation("key1", "it");
+    putTranslation("applicationTitle", "it", "");
+    assertNoTranslation("applicationTitle", "it");
   }
 
   private void putTranslation(String key, String locale, String text)
       throws ForbiddenException, BadRequestException {
-    settingsTranslationService.saveSystemSettingTranslation(key, locale, text);
+    settingsTranslationService.putSystemSettingTranslation(key, locale, text);
   }
 
   private void assertTranslation(String key, String locale, String expected) {

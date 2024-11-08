@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.Enrollment;
@@ -111,7 +112,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
               return programRuleEngine.evaluateEnrollmentAndEvents(
                   enrollment,
-                  getEventsFromEnrollment(enrollment.getEnrollment(), bundle, preheat),
+                  getEventsFromEnrollment(e.getUid(), bundle, preheat),
                   preheat.getProgram(e.getProgram()),
                   bundle.getUser());
             })
@@ -132,11 +133,11 @@ class DefaultProgramRuleService implements ProgramRuleService {
         .map(
             e -> {
               List<RuleAttributeValue> attributes =
-                  getAttributes(e.getUid(), e.getTrackedEntity().getUid(), bundle, preheat);
+                  getAttributes(UID.of(e), UID.of(e.getTrackedEntity()), bundle, preheat);
               RuleEnrollment enrollment = RuleEngineMapper.mapSavedEnrollment(e, attributes);
               return programRuleEngine.evaluateEnrollmentAndEvents(
                   enrollment,
-                  getEventsFromEnrollment(e.getUid(), bundle, preheat),
+                  getEventsFromEnrollment(UID.of(e), bundle, preheat),
                   e.getProgram(),
                   bundle.getUser());
             })
@@ -166,7 +167,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
   // Get all the attributes linked to enrollment from the payload and the DB,
   // using the one from payload if they are present in both places
   private List<RuleAttributeValue> getAttributes(
-      String enrollmentUid, String teUid, TrackerBundle bundle, TrackerPreheat preheat) {
+      UID enrollmentUid, UID teUid, TrackerBundle bundle, TrackerPreheat preheat) {
     List<RuleAttributeValue> payloadProgramAttributes =
         bundle
             .findEnrollmentByUid(enrollmentUid)
@@ -202,7 +203,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
   // Get all the events linked to enrollment from the payload and the DB,
   // using the one from payload if they are present in both places
   private List<RuleEvent> getEventsFromEnrollment(
-      String enrollmentUid, TrackerBundle bundle, TrackerPreheat preheat) {
+      UID enrollmentUid, TrackerBundle bundle, TrackerPreheat preheat) {
     Stream<Event> events;
     try {
       events =
@@ -214,7 +215,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
                       .enrollments(Set.of(enrollmentUid))
                       .build())
               .stream()
-              .filter(e -> bundle.findEventByUid(e.getUid()).isEmpty());
+              .filter(e -> bundle.findEventByUid(UID.of(e)).isEmpty());
     } catch (BadRequestException | ForbiddenException e) {
       throw new RuntimeException(e);
     }

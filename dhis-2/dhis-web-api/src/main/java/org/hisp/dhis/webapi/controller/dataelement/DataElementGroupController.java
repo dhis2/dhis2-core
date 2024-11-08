@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -61,6 +62,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  */
 @Controller
 @RequestMapping("/api/dataElementGroups")
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class DataElementGroupController extends AbstractCrudController<DataElementGroup> {
   @Autowired private CategoryService dataElementCategoryService;
 

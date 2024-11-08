@@ -33,10 +33,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -102,8 +104,6 @@ public class TrackerIdentifierCollector {
           addIdentifier(identifiers, TrackedEntityType.class, trackedEntity.getTrackedEntityType());
           addIdentifier(identifiers, OrganisationUnit.class, trackedEntity.getOrgUnit());
 
-          collectEnrollments(identifiers, trackedEntity.getEnrollments());
-
           trackedEntity
               .getAttributes()
               .forEach(
@@ -123,7 +123,6 @@ public class TrackerIdentifierCollector {
           addIdentifier(identifiers, OrganisationUnit.class, enrollment.getOrgUnit());
 
           collectNotes(identifiers, enrollment.getNotes());
-          collectEvents(identifiers, enrollment.getEvents());
           enrollment
               .getAttributes()
               .forEach(
@@ -136,7 +135,7 @@ public class TrackerIdentifierCollector {
   private void collectNotes(Map<Class<?>, Set<String>> identifiers, List<Note> notes) {
     notes.forEach(
         note -> {
-          if (!StringUtils.isEmpty(note.getNote()) && !StringUtils.isEmpty(note.getValue())) {
+          if (note.getNote() != null && StringUtils.isNotEmpty(note.getValue())) {
             addIdentifier(identifiers, org.hisp.dhis.note.Note.class, note.getNote());
           }
         });
@@ -189,17 +188,28 @@ public class TrackerIdentifierCollector {
   }
 
   private <T> void addIdentifier(
-      Map<Class<?>, Set<String>> identifiers, Class<T> klass, MetadataIdentifier identifier) {
+      @Nonnull Map<Class<?>, Set<String>> identifiers,
+      @Nonnull Class<T> klass,
+      MetadataIdentifier identifier) {
     addIdentifier(
         identifiers, klass, identifier == null ? null : identifier.getIdentifierOrAttributeValue());
   }
 
   private <T> void addIdentifier(
-      Map<Class<?>, Set<String>> identifiers, Class<T> klass, String identifier) {
-    if (StringUtils.isEmpty(identifier) || identifiers == null || klass == null) {
+      @Nonnull Map<Class<?>, Set<String>> identifiers, @Nonnull Class<T> klass, String identifier) {
+    if (StringUtils.isEmpty(identifier)) {
       return;
     }
 
     identifiers.computeIfAbsent(klass, k -> new HashSet<>()).add(identifier);
+  }
+
+  private <T> void addIdentifier(
+      @Nonnull Map<Class<?>, Set<String>> identifiers, @Nonnull Class<T> klass, UID identifier) {
+    if (identifier == null) {
+      return;
+    }
+
+    identifiers.computeIfAbsent(klass, k -> new HashSet<>()).add(identifier.getValue());
   }
 }

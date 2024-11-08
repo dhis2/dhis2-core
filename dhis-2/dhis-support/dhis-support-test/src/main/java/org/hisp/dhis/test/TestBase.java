@@ -72,6 +72,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
@@ -107,6 +108,7 @@ import org.hisp.dhis.dataexchange.aggregate.Target;
 import org.hisp.dhis.dataexchange.aggregate.TargetRequest;
 import org.hisp.dhis.dataexchange.aggregate.TargetType;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationRecipient;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTrigger;
@@ -729,6 +731,19 @@ public abstract class TestBase {
   }
 
   /**
+   * Creates a {@see CategoryDimension} with name and uid.
+   *
+   * @param dimension desired category
+   * @return {@see CategoryDimension}
+   */
+  public static CategoryDimension createCategoryDimension(Category dimension) {
+    CategoryDimension categoryDimension = new CategoryDimension();
+    categoryDimension.setDimension(dimension);
+
+    return categoryDimension;
+  }
+
+  /**
    * @param uniqueIdentifier A unique character to identify the category option group.
    * @param categoryOptions the category options.
    * @return CategoryOptionGroup
@@ -901,6 +916,20 @@ public abstract class TestBase {
     groupSet.setName("IndicatorGroupSet" + uniqueCharacter);
 
     return groupSet;
+  }
+
+  /**
+   * @param uniqueCharacter A unique character to identify the object.
+   */
+  public static Section createSection(
+      char uniqueCharacter,
+      DataSet dataSet,
+      List<DataElement> dataElements,
+      List<Indicator> indicators) {
+    Section section = new Section("Section" + uniqueCharacter, dataSet, dataElements, Set.of());
+    section.setAutoFields();
+    section.getIndicators().addAll(indicators);
+    return section;
   }
 
   /**

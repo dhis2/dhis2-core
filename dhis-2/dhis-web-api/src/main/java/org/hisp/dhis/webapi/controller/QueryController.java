@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
 import lombok.Value;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.render.RenderService;
@@ -61,6 +62,7 @@ import org.springframework.web.servlet.view.RedirectView;
  */
 @RequestMapping("/api/query")
 @Controller
+@OpenApi.Document(classifiers = {"team:extensibility", "purpose:support"})
 public class QueryController {
 
   private static final String ALIAS_ROOT = "/api/query/alias";

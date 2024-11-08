@@ -197,7 +197,7 @@ public class DataElementMergeService implements MergeService {
    * @author david mackessy
    */
   @FunctionalInterface
-  public static interface DataElementAuditMergeHandler {
+  public interface DataElementAuditMergeHandler {
     void merge(@Nonnull List<DataElement> sources, @Nonnull MergeRequest mergeRequest);
   }
 
@@ -207,7 +207,7 @@ public class DataElementMergeService implements MergeService {
    * @author david mackessy
    */
   @FunctionalInterface
-  public static interface DataElementDataMergeHandler {
+  public interface DataElementDataMergeHandler {
     void merge(
         @Nonnull List<DataElement> sources,
         @Nonnull DataElement target,
@@ -220,7 +220,7 @@ public class DataElementMergeService implements MergeService {
    * @author david mackessy
    */
   @FunctionalInterface
-  public static interface DataElementMergeHandler {
+  public interface DataElementMergeHandler {
     void merge(List<DataElement> sources, DataElement target);
   }
 }

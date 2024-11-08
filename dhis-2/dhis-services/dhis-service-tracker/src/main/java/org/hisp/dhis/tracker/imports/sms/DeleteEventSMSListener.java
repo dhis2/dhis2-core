@@ -31,6 +31,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
@@ -90,7 +91,7 @@ public class DeleteEventSMSListener extends CompressionSMSListener {
   @Nonnull
   private static TrackerObjects map(@Nonnull DeleteSmsSubmission submission) {
     return TrackerObjects.builder()
-        .events(List.of(Event.builder().event(submission.getEvent().getUid()).build()))
+        .events(List.of(Event.builder().event(UID.of(submission.getEvent().getUid())).build()))
         .build();
   }
 

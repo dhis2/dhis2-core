@@ -81,7 +81,6 @@ import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.Dashboard;
@@ -105,7 +104,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(domain = User.class, group = OpenApi.Document.GROUP_QUERY)
+@OpenApi.Document(
+    entity = User.class,
+    group = OpenApi.Document.GROUP_QUERY,
+    classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequestMapping("/api/me")
@@ -132,8 +134,6 @@ public class MeController {
   @Nonnull private final InterpretationService interpretationService;
 
   @Nonnull private final NodeService nodeService;
-
-  @Nonnull private final UserSettingsService userSettingsService;
 
   @Nonnull private final PasswordValidationService passwordValidationService;
 
@@ -209,7 +209,7 @@ public class MeController {
 
   @GetMapping("/dataApprovalWorkflows")
   public ResponseEntity<ObjectNode> getCurrentUserDataApprovalWorkflows(
-      HttpServletResponse response, @CurrentUser(required = true) User user) {
+      @CurrentUser(required = true) User user) {
     ObjectNode objectNode = userControllerUtils.getUserDataApprovalWorkflows(user);
     return ResponseEntity.ok(objectNode);
   }
@@ -288,7 +288,7 @@ public class MeController {
 
   @GetMapping(value = "/settings/{key}", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody JsonValue getSetting(@PathVariable String key) {
-    return UserSettings.getCurrentSettings().toJson(false).get(key);
+    return UserSettings.getCurrentSettings().toJson(false, Set.of(key)).get(key);
   }
 
   @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
@@ -321,9 +321,7 @@ public class MeController {
   @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/verifyPassword", consumes = "text/*")
   public @ResponseBody RootNode verifyPasswordText(
-      @RequestBody String password,
-      HttpServletResponse response,
-      @CurrentUser(required = true) User currentUser)
+      @RequestBody String password, @CurrentUser(required = true) User currentUser)
       throws ConflictException {
     return verifyPasswordInternal(password, currentUser);
   }
@@ -331,9 +329,7 @@ public class MeController {
   @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/validatePassword", consumes = "text/*")
   public @ResponseBody RootNode validatePasswordText(
-      @RequestBody String password,
-      HttpServletResponse response,
-      @CurrentUser(required = true) User currentUser)
+      @RequestBody String password, @CurrentUser(required = true) User currentUser)
       throws ConflictException {
     return validatePasswordInternal(password, currentUser);
   }
@@ -341,16 +337,13 @@ public class MeController {
   @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/verifyPassword", consumes = APPLICATION_JSON_VALUE)
   public @ResponseBody RootNode verifyPasswordJson(
-      @RequestBody Map<String, String> body,
-      HttpServletResponse response,
-      @CurrentUser(required = true) User currentUser)
+      @RequestBody Map<String, String> body, @CurrentUser(required = true) User currentUser)
       throws ConflictException {
     return verifyPasswordInternal(body.get("password"), currentUser);
   }
 
   @GetMapping("/dashboard")
-  public @ResponseBody Dashboard getDashboard(
-      HttpServletResponse response, @CurrentUser(required = true) User currentUser) {
+  public @ResponseBody Dashboard getDashboard(HttpServletResponse response) {
     Dashboard dashboard = new Dashboard();
     dashboard.setUnreadMessageConversations(messageService.getUnreadMessageConversationCount());
     dashboard.setUnreadInterpretations(interpretationService.getNewInterpretationCount());

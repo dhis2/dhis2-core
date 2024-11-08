@@ -38,6 +38,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -71,17 +72,16 @@ class DefaultEnrollmentService implements EnrollmentService {
   private final EnrollmentOperationParamsMapper paramsMapper;
 
   @Override
-  public Enrollment getEnrollment(@Nonnull String uid)
-      throws ForbiddenException, NotFoundException {
+  public Enrollment getEnrollment(@Nonnull UID uid) throws ForbiddenException, NotFoundException {
     return getEnrollment(uid, EnrollmentParams.FALSE, false);
   }
 
   @Override
   public Enrollment getEnrollment(
-      @Nonnull String uid, @Nonnull EnrollmentParams params, boolean includeDeleted)
+      @Nonnull UID uid, @Nonnull EnrollmentParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
     UserDetails currentUser = getCurrentUserDetails();
-    Enrollment enrollment = enrollmentStore.getByUid(uid);
+    Enrollment enrollment = enrollmentStore.getByUid(uid.getValue());
 
     if (enrollment == null) {
       throw new NotFoundException(Enrollment.class, uid);
@@ -146,11 +146,11 @@ class DefaultEnrollmentService implements EnrollmentService {
 
   @Override
   public RelationshipItem getEnrollmentInRelationshipItem(
-      @Nonnull String uid, @Nonnull EnrollmentParams params, boolean includeDeleted)
+      @Nonnull UID uid, @Nonnull EnrollmentParams params, boolean includeDeleted)
       throws NotFoundException {
 
     RelationshipItem relationshipItem = new RelationshipItem();
-    Enrollment enrollment = enrollmentStore.getByUid(uid);
+    Enrollment enrollment = enrollmentStore.getByUid(uid.getValue());
 
     if (enrollment == null) {
       throw new NotFoundException(Enrollment.class, uid);
@@ -211,8 +211,8 @@ class DefaultEnrollmentService implements EnrollmentService {
   }
 
   @Override
-  public List<Enrollment> getEnrollments(@Nonnull List<String> uids) throws ForbiddenException {
-    List<Enrollment> enrollments = enrollmentStore.getByUid(uids);
+  public List<Enrollment> getEnrollments(@Nonnull Set<UID> uids) throws ForbiddenException {
+    List<Enrollment> enrollments = enrollmentStore.getByUid(UID.toValueList(uids));
     UserDetails user = getCurrentUserDetails();
     List<String> errors =
         enrollments.stream()
@@ -230,7 +230,7 @@ class DefaultEnrollmentService implements EnrollmentService {
 
   @Override
   public List<Enrollment> getEnrollments(@Nonnull EnrollmentOperationParams params)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
 
     return getEnrollments(
@@ -243,7 +243,7 @@ class DefaultEnrollmentService implements EnrollmentService {
   @Override
   public Page<Enrollment> getEnrollments(
       @Nonnull EnrollmentOperationParams params, PageParams pageParams)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
 
     Page<Enrollment> enrollmentsPage = enrollmentStore.getEnrollments(queryParams, pageParams);

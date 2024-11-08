@@ -186,4 +186,12 @@ public interface OrganisationUnitStore
   List<String> getOrganisationUnitUids(OrganisationUnitQueryParams params);
 
   int updateAllOrganisationUnitsGeometryToNull();
+
+  /**
+   * Get OrganisationUnits with refs to any of the CategoryOptions passed in
+   *
+   * @param categoryOptions categoryOptions refs
+   * @return OrganisationUnits with refs to any of the CategoryOptions passed in
+   */
+  List<OrganisationUnit> getByCategoryOption(Collection<String> categoryOptions);
 }

@@ -62,6 +62,30 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
   }
 
   @Test
+  void shouldReturnBadRequestWhenThereIsAnInvalidUidInThePayload() {
+    assertWebMessage(
+        "Bad Request",
+        400,
+        "ERROR",
+        "JSON parse error: Cannot construct instance of `org.hisp.dhis.common.UID`, problem: UID must be an alphanumeric string of 11 characters starting with a letter.",
+        POST(
+                "/tracker?async=false",
+                """
+
+                    {
+                    "trackedEntities": [
+                      {
+                        "trackedEntity": "invalid_uid",
+                        "trackedEntityType": "PrZMWi7rBga",
+                        "orgUnit": "PSeMWi7rBgb"
+                      }
+                    ]
+                  }
+                  """)
+            .content(HttpStatus.BAD_REQUEST));
+  }
+
+  @Test
   void shouldReturnBadRequestWhenEmptyIdSchemeArePassed() {
     assertWebMessage(
         "Bad Request",

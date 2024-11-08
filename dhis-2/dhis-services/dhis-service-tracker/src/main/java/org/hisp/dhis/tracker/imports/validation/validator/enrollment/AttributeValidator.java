@@ -41,13 +41,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
@@ -95,7 +96,7 @@ class AttributeValidator
 
         attributeValueMap.put(attribute.getAttribute(), attribute.getValue());
         validateAttributeValue(reporter, enrollment, teAttribute, attribute.getValue());
-        validateAttrValueType(reporter, bundle.getPreheat(), enrollment, attribute, teAttribute);
+        validateAttrValueType(reporter, bundle, enrollment, attribute, teAttribute);
         validateOptionSet(reporter, enrollment, teAttribute, attribute.getValue());
 
         validateAttributeUniqueness(
@@ -194,9 +195,9 @@ class AttributeValidator
                     enrollment.getEnrollment()));
   }
 
-  private MetadataIdentifier getOrgUnitUidFromTei(TrackerBundle bundle, String teUid) {
+  private MetadataIdentifier getOrgUnitUidFromTei(TrackerBundle bundle, UID te) {
     return bundle
-        .findTrackedEntityByUid(teUid)
+        .findTrackedEntityByUid(te)
         .map(org.hisp.dhis.tracker.imports.domain.TrackedEntity::getOrgUnit)
         .orElse(null);
   }

@@ -91,7 +91,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Halvdan Hoem Grelland <halvdan@dhis2.org>
  */
-@OpenApi.Document(domain = DataValue.class)
+@OpenApi.Document(
+    entity = DataValue.class,
+    classifiers = {"team:platform", "purpose:data"})
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequestMapping("/api/completeDataSetRegistrations")
@@ -155,7 +157,7 @@ public class CompleteDataSetRegistrationController {
         registrationExchangeService.saveCompleteDataSetRegistrationsXml(
             request.getInputStream(), importOptions);
     summary.setImportOptions(importOptions);
-    return importSummary(summary).withPlainResponseBefore(DhisApiVersion.V38);
+    return importSummary(summary);
   }
 
   @PostMapping(consumes = CONTENT_TYPE_JSON, produces = CONTENT_TYPE_JSON)
@@ -170,7 +172,7 @@ public class CompleteDataSetRegistrationController {
         registrationExchangeService.saveCompleteDataSetRegistrationsJson(
             request.getInputStream(), importOptions);
     summary.setImportOptions(importOptions);
-    return importSummary(summary).withPlainResponseBefore(DhisApiVersion.V38);
+    return importSummary(summary);
   }
 
   // -------------------------------------------------------------------------

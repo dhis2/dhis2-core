@@ -28,10 +28,9 @@
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import org.hisp.dhis.webapi.controller.tracker.view.User;
-import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
 
 @Mapper
-public interface UserMapper extends ViewMapper<User, org.hisp.dhis.tracker.imports.domain.User> {
-  org.hisp.dhis.tracker.imports.domain.User from(User user);
+public interface UserMapper {
+  org.hisp.dhis.tracker.imports.domain.User map(User user);
 }

@@ -91,6 +91,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author Lars Helge Overland
  */
 @OpenApi.EntityType(BaseDimensionalObject.class)
+@OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/dimensions")
 @RequiredArgsConstructor

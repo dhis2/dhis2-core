@@ -29,11 +29,11 @@ package org.hisp.dhis.jclouds;
 
 import static org.jclouds.Constants.PROPERTY_ENDPOINT;
 
-import jakarta.annotation.PreDestroy;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;

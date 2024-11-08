@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
@@ -39,7 +38,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
+import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -52,20 +51,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class EnrollmentPersister
     extends AbstractTrackerPersister<org.hisp.dhis.tracker.imports.domain.Enrollment, Enrollment> {
-  private final TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Enrollment, Enrollment>
-      enrollmentConverter;
-
   private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   public EnrollmentPersister(
       ReservedValueService reservedValueService,
-      TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Enrollment, Enrollment>
-          enrollmentConverter,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
       TrackedEntityChangeLogService trackedEntityChangeLogService) {
     super(reservedValueService, trackedEntityChangeLogService);
 
-    this.enrollmentConverter = enrollmentConverter;
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
   }
 
@@ -80,7 +73,7 @@ public class EnrollmentPersister
         entityManager,
         preheat,
         enrollment.getAttributes(),
-        preheat.getTrackedEntity(enrollmentToPersist.getTrackedEntity().getUid()),
+        preheat.getTrackedEntity(UID.of(enrollmentToPersist.getTrackedEntity())),
         user);
   }
 
@@ -96,16 +89,11 @@ public class EnrollmentPersister
 
   @Override
   protected void updatePreheat(TrackerPreheat preheat, Enrollment enrollment) {
-    preheat.putEnrollments(Collections.singletonList(enrollment));
+    preheat.putEnrollment(enrollment);
     preheat.addProgramOwner(
-        enrollment.getTrackedEntity().getUid(),
+        UID.of(enrollment.getTrackedEntity()),
         enrollment.getProgram().getUid(),
         enrollment.getOrganisationUnit());
-  }
-
-  @Override
-  protected boolean isNew(TrackerPreheat preheat, String uid) {
-    return preheat.getEnrollment(uid) == null;
   }
 
   @Override
@@ -114,8 +102,7 @@ public class EnrollmentPersister
 
     return TrackerNotificationDataBundle.builder()
         .klass(Enrollment.class)
-        .enrollmentNotifications(
-            bundle.getEnrollmentNotifications().get(UID.of(enrollment.getUid())))
+        .enrollmentNotifications(bundle.getEnrollmentNotifications().get(UID.of(enrollment)))
         .object(enrollment.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUser().getUsername())
@@ -153,7 +140,7 @@ public class EnrollmentPersister
   @Override
   protected Enrollment convert(
       TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Enrollment enrollment) {
-    return enrollmentConverter.from(bundle.getPreheat(), enrollment, bundle.getUser());
+    return TrackerObjectsMapper.map(bundle.getPreheat(), enrollment, bundle.getUser());
   }
 
   @Override
@@ -162,17 +149,20 @@ public class EnrollmentPersister
   }
 
   @Override
-  protected void persistOwnership(TrackerPreheat preheat, Enrollment entity) {
-    if (isNew(preheat, entity.getUid())) {
-      if (preheat.getProgramOwner().get(entity.getTrackedEntity().getUid()) == null
-          || preheat
-                  .getProgramOwner()
-                  .get(entity.getTrackedEntity().getUid())
-                  .get(entity.getProgram().getUid())
-              == null) {
-        trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
-            entity.getTrackedEntity(), entity.getProgram(), entity.getOrganisationUnit());
-      }
+  protected void persistOwnership(
+      TrackerBundle bundle,
+      org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto,
+      Enrollment entity) {
+    if (isNew(bundle, trackerDto)
+        && (bundle.getPreheat().getProgramOwner().get(UID.of(entity.getTrackedEntity())) == null
+            || bundle
+                    .getPreheat()
+                    .getProgramOwner()
+                    .get(UID.of(entity.getTrackedEntity()))
+                    .get(entity.getProgram().getUid())
+                == null)) {
+      trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+          entity.getTrackedEntity(), entity.getProgram(), entity.getOrganisationUnit());
     }
   }
 

@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.openapi;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.OpenApi;
@@ -225,8 +226,12 @@ public interface OpenApiObject extends JsonObject {
           : path.substring(1);
     }
 
-    default String x_package() {
-      return getString("x-package").string();
+    default Map<String, String> x_classifiers() {
+      return getMap("x-classifiers", JsonString.class).toMap(JsonString::string);
+    }
+
+    default String x_entity() {
+      return x_classifiers().get("entity");
     }
 
     default String x_group() {
@@ -472,6 +477,7 @@ public interface OpenApiObject extends JsonObject {
     }
 
     default boolean isShared() {
+      if (!exists()) return false;
       String path = node().getPath().toString();
       return path.substring(0, path.lastIndexOf('.')).equals(".components.schemas");
     }
@@ -500,6 +506,10 @@ public interface OpenApiObject extends JsonObject {
     @Validation(oneOfValues = {"string", "array", "integer", "number", "boolean", "object"})
     default String $type() {
       return getString("type").string();
+    }
+
+    default boolean isReadOnly() {
+      return getBoolean("readOnly").booleanValue(false);
     }
 
     default boolean isAnyType() {

@@ -45,6 +45,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -200,7 +201,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     UserDetails userDetails = UserDetails.fromUser(user);
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
     manager.update(trackedEntityType);
-    TrackedEntity te = trackedEntityService.getTrackedEntity(trackedEntityA.getUid());
+    TrackedEntity te = trackedEntityService.getTrackedEntity(UID.of(trackedEntityA));
     // Can read te
     assertNoErrors(trackerAccessManager.canRead(userDetails, te));
     // can write te
@@ -218,7 +219,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     UserDetails userDetails = UserDetails.fromUser(user);
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
     manager.update(trackedEntityType);
-    TrackedEntity te = trackedEntityService.getTrackedEntity(trackedEntityA.getUid());
+    TrackedEntity te = trackedEntityService.getTrackedEntity(UID.of(trackedEntityA));
     // Can Read
     assertNoErrors(trackerAccessManager.canRead(userDetails, te));
     // Can write
@@ -235,7 +236,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     UserDetails userDetails = UserDetails.fromUser(user);
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
     manager.update(trackedEntityType);
-    TrackedEntity te = trackedEntityService.getTrackedEntity(trackedEntityA.getUid());
+    TrackedEntity te = trackedEntityService.getTrackedEntity(UID.of(trackedEntityA));
     // Cannot Read
     assertHasError(trackerAccessManager.canRead(userDetails, te), OWNERSHIP_ACCESS_DENIED);
     // Cannot write
