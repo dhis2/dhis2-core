@@ -539,18 +539,26 @@
   "organisationUnits": [
     {
       "id": "h4w96yEMlzO",
-      "code": "test-orgunit-code",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "orgUnit h4w96yEMlzO"
+        }
+      ],
+      "code": "h4w96yEMlzO code",
       "created": "2020-05-31T08:56:15.922",
-      "description": "test-orgunit",
+      "description": "h4w96yEMlzO description",
       "lastUpdated": "2020-05-31T11:41:22.384",
       "lastUpdatedBy": {
         "id": "tTgjgobT1oS"
       },
       "level": 1,
-      "name": "test-orgunit",
+      "name": "h4w96yEMlzO name",
       "openingDate": "2020-05-31T00:00:00.000",
       "path": "/h4w96yEMlzO",
-      "shortName": "test-orgunit",
+      "shortName": "h4w96yEMlzO short name",
       "user": {
         "id": "tTgjgobT1oS"
       }
@@ -715,7 +723,16 @@
   "programStages": [
     {
       "id": "NpsdDv6kKSO",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "programStage NpsdDv6kKSO"
+        }
+      ],
       "autoGenerateEvent": true,
+      "code": "NpsdDv6kKSO code",
       "created": "2020-05-31T09:02:52.687",
       "description": "test-program-stage",
       "displayGenerateEventBox": true,
@@ -974,8 +991,7 @@
           "programStage": {
             "id": "NpsdDv6kKSg"
           },
-          "sharing": {
-          },
+          "sharing": {},
           "sortOrder": 1
         }
       ],
@@ -1024,8 +1040,7 @@
           "programStage": {
             "id": "qLZC0lvvxQH"
           },
-          "sharing": {
-          },
+          "sharing": {},
           "sortOrder": 1
         }
       ],
@@ -1225,10 +1240,19 @@
     {
       "id": "BFcipDERJnf",
       "accessLevel": "OPEN",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "programStage NpsdDv6kKSO"
+        }
+      ],
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
       "completeEventsExpiryDays": 0,
+      "code": "BFcipDERJnf code",
       "created": "2020-05-31T09:02:52.718",
       "displayIncidentDate": true,
       "expiryDays": 0,
@@ -1238,7 +1262,7 @@
       },
       "maxTeiCountToReturn": 0,
       "minAttributesRequiredToSearch": 1,
-      "name": "test-program",
+      "name": "BFcipDERJnf name",
       "organisationUnits": [
         {
           "id": "h4w96yEMlzO"
@@ -1273,8 +1297,7 @@
             "id": "BFcipDERJnf"
           },
           "searchable": true,
-          "sharing": {
-          },
+          "sharing": {},
           "sortOrder": 1,
           "trackedEntityAttribute": {
             "id": "dIVt4l5vIOa"
@@ -1301,8 +1324,7 @@
             "id": "BFcipDERJnf"
           },
           "searchable": true,
-          "sharing": {
-          },
+          "sharing": {},
           "sortOrder": 2,
           "trackedEntityAttribute": {
             "id": "fRGt4l6yIRb"

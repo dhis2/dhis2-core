@@ -73,7 +73,7 @@ public class EnrollmentPersister
         entityManager,
         preheat,
         enrollment.getAttributes(),
-        preheat.getTrackedEntity(UID.of(enrollmentToPersist.getTrackedEntity())),
+        enrollmentToPersist.getTrackedEntity(),
         user);
   }
 
