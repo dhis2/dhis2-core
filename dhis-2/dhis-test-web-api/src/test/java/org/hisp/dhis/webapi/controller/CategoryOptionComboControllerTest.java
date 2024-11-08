@@ -143,8 +143,9 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
                 .formatted(catOptionComboAOptions, catOptionComboACatComboId));
     assertStatus(HttpStatus.CONFLICT, postResponse);
     JsonMixed postResponseContent = postResponse.content();
+    String message = postResponseContent.getString("message").string();
     assertEquals(
         "CategoryOptionCombo with name A_1 already exists",
-        postResponseContent.getString("message"));
+        message);
   }
 }

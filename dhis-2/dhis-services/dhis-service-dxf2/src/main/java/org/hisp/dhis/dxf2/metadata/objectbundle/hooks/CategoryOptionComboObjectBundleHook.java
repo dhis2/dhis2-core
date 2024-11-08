@@ -56,8 +56,7 @@ public class CategoryOptionComboObjectBundleHook
 
     List<CategoryOptionCombo> categoryOptionCombos =
         categoryService.getAllCategoryOptionCombos().stream()
-            .filter(coc -> coc.getCategoryCombo().equals(categoryCombo))
-            .collect(Collectors.toList());
+            .filter(coc -> coc.getCategoryCombo().equals(categoryCombo)).toList();
 
     for (CategoryOptionCombo existingCategoryOptionCombo : categoryOptionCombos) {
       if (areEqual(categoryOptionCombo, existingCategoryOptionCombo)) {
