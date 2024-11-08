@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
@@ -297,7 +296,7 @@ public class DefaultAnalyticsService implements AnalyticsService {
 
   private List<List<DimensionalItemObject>> reorderItems(
       List<List<DimensionalItemObject>> alternateItems) {
-    return alternateItems.stream().sorted(this::compareItems).collect(Collectors.toList());
+    return alternateItems.stream().sorted(this::compareItems).toList();
   }
 
   private int compareItems(List<DimensionalItemObject> dio, List<DimensionalItemObject> other) {
@@ -337,7 +336,7 @@ public class DefaultAnalyticsService implements AnalyticsService {
           alternateItem[indexInColumn] = findValueInDimensionItem(dimensionItemsByDimension, value);
         }
       }
-      alternateItems.add(Arrays.stream(alternateItem).collect(Collectors.toList()));
+      alternateItems.add(Arrays.stream(alternateItem).toList());
     }
     return new ArrayList<>(alternateItems);
   }
