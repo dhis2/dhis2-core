@@ -108,6 +108,7 @@ import org.hisp.dhis.dataexchange.aggregate.Target;
 import org.hisp.dhis.dataexchange.aggregate.TargetRequest;
 import org.hisp.dhis.dataexchange.aggregate.TargetType;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationRecipient;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTrigger;
@@ -915,6 +916,20 @@ public abstract class TestBase {
     groupSet.setName("IndicatorGroupSet" + uniqueCharacter);
 
     return groupSet;
+  }
+
+  /**
+   * @param uniqueCharacter A unique character to identify the object.
+   */
+  public static Section createSection(
+      char uniqueCharacter,
+      DataSet dataSet,
+      List<DataElement> dataElements,
+      List<Indicator> indicators) {
+    Section section = new Section("Section" + uniqueCharacter, dataSet, dataElements, Set.of());
+    section.setAutoFields();
+    section.getIndicators().addAll(indicators);
+    return section;
   }
 
   /**

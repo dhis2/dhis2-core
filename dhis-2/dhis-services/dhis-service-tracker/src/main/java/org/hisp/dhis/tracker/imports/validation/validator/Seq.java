@@ -32,6 +32,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -228,7 +229,7 @@ public class Seq<T> implements Validator<T> {
     }
 
     @Override
-    public boolean isInvalid(TrackerType trackerType, String uid) {
+    public boolean isInvalid(TrackerType trackerType, UID uid) {
       return original.isInvalid(trackerType, uid);
     }
   }

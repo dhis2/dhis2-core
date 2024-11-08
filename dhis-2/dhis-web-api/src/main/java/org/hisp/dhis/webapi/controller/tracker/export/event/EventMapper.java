@@ -31,12 +31,15 @@ import static java.util.Map.entry;
 
 import java.util.Map;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.webapi.controller.tracker.export.DataValueMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.MetadataMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.relationship.RelationshipMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -45,12 +48,13 @@ import org.mapstruct.Mapping;
       DataValueMapper.class,
       CategoryOptionMapper.class,
       InstantMapper.class,
+      UIDMapper.class,
       NoteMapper.class,
       RelationshipMapper.class,
-      UserMapper.class
+      UserMapper.class,
+      MetadataMapper.class
     })
-public interface EventMapper
-    extends ViewMapper<Event, org.hisp.dhis.webapi.controller.tracker.view.Event> {
+public interface EventMapper {
 
   /**
    * Events can be ordered by given fields which correspond to fields on {@link
@@ -89,11 +93,17 @@ public interface EventMapper
           entry("updatedBy", "lastUpdatedBy"));
 
   @Mapping(target = "event", source = "uid")
-  @Mapping(target = "program", source = "enrollment.program.uid")
-  @Mapping(target = "programStage", source = "programStage.uid")
+  @Mapping(target = "program", source = "enrollment.program", qualifiedByName = "programToString")
+  @Mapping(
+      target = "programStage",
+      source = "programStage",
+      qualifiedByName = "programStageToString")
   @Mapping(target = "enrollment", source = "enrollment.uid")
   @Mapping(target = "trackedEntity", source = "enrollment.trackedEntity.uid")
-  @Mapping(target = "orgUnit", source = "organisationUnit.uid")
+  @Mapping(
+      target = "orgUnit",
+      source = "organisationUnit",
+      qualifiedByName = "organisationUnitToString")
   @Mapping(target = "occurredAt", source = "occurredDate")
   @Mapping(target = "scheduledAt", source = "scheduledDate")
   @Mapping(
@@ -114,5 +124,6 @@ public interface EventMapper
   @Mapping(target = "dataValues", source = "eventDataValues")
   @Mapping(target = "relationships", source = "relationshipItems")
   @Mapping(target = "notes", source = "notes")
-  org.hisp.dhis.webapi.controller.tracker.view.Event from(Event event);
+  org.hisp.dhis.webapi.controller.tracker.view.Event map(
+      Event event, @Context TrackerIdSchemeParams idSchemeParams);
 }

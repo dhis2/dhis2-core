@@ -51,9 +51,9 @@ class RuleEngineErrorExecutorTest extends TestBase {
 
   private static final String ENROLLMENT_ERROR_MESSAGE = "Enrollment error message";
 
-  private static final String ENROLLMENT_ID = "EnrollmentUid";
+  private static final UID ENROLLMENT_ID = UID.generate();
 
-  private static final String TE_ID = "TeiId";
+  private static final UID TE_ID = UID.generate();
 
   private final RuleEngineErrorExecutor executor =
       new RuleEngineErrorExecutor(RULE_UID, ENROLLMENT_ERROR_MESSAGE);

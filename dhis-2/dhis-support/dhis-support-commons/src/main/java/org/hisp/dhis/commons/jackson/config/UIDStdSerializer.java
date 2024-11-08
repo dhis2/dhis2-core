@@ -25,26 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.validation.validator.trackedentity;
+package org.hisp.dhis.commons.jackson.config;
 
-import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.checkUidFormat;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import java.io.IOException;
+import org.hisp.dhis.common.UID;
 
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
-import org.hisp.dhis.tracker.imports.validation.Reporter;
-import org.hisp.dhis.tracker.imports.validation.Validator;
+public class UIDStdSerializer extends StdSerializer<UID> {
+  public UIDStdSerializer() {
+    super(UID.class);
+  }
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-class UidValidator implements Validator<TrackedEntity> {
   @Override
-  public void validate(Reporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity) {
-    checkUidFormat(
-        trackedEntity.getTrackedEntity(),
-        reporter,
-        trackedEntity,
-        trackedEntity,
-        trackedEntity.getTrackedEntity());
+  public void serialize(UID uid, JsonGenerator gen, SerializerProvider provider)
+      throws IOException {
+    gen.writeString(uid == null ? null : uid.toString());
   }
 }

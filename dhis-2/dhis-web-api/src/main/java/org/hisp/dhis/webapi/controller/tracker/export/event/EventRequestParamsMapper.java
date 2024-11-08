@@ -161,7 +161,6 @@ class EventRequestParamsMapper {
             .eventStatus(eventRequestParams.getStatus())
             .attributeCategoryCombo(attributeCategoryCombo)
             .attributeCategoryOptions(attributeCategoryOptions)
-            .idSchemes(eventRequestParams.getIdSchemes())
             .includeAttributes(false)
             .includeAllDataElements(false)
             .dataElementFilters(dataElementFilters)
@@ -202,7 +201,8 @@ class EventRequestParamsMapper {
         && (eventRequestParams.getUpdatedAfter() != null
             || eventRequestParams.getUpdatedBefore() != null)) {
       throw new BadRequestException(
-          "Last updated from and/or to and last updated duration cannot be specified simultaneously");
+          "Last updated from and/or to and last updated duration cannot be specified"
+              + " simultaneously");
     }
 
     if (eventRequestParams.getUpdatedWithin() != null

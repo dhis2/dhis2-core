@@ -258,7 +258,7 @@ public interface PeriodService {
   PeriodType getPeriodType(int id);
 
   /**
-   * Returns a PeriodType with a given name.
+   * Returns a PeriodType with the given name.
    *
    * @param name the name of the PeriodType to return.
    * @return the PeriodType with the given name, or null if no match.
@@ -281,6 +281,16 @@ public interface PeriodService {
    * @return a Period.
    */
   PeriodType reloadPeriodType(PeriodType periodType);
+
+  /**
+   * Returns a PeriodType with the given {@link PeriodTypeEnum} value.
+   *
+   * @param periodType the {@link PeriodTypeEnum}.
+   * @return the PeriodType with the given name, or null if no match.
+   */
+  default PeriodType getPeriodType(PeriodTypeEnum periodType) {
+    return getPeriodTypeByName(periodType.getName());
+  }
 
   // -------------------------------------------------------------------------
   // RelativePeriods

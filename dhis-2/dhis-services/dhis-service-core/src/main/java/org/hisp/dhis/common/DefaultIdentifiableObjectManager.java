@@ -261,6 +261,19 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     return store.getByUid(uid);
   }
 
+  @CheckForNull
+  @Override
+  @Transactional(readOnly = true)
+  public <T extends IdentifiableObject> T get(@Nonnull Class<T> type, @Nonnull UID uid) {
+    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
+
+    if (store == null) {
+      return null;
+    }
+
+    return store.getByUid(uid.getValue());
+  }
+
   @Nonnull
   @Override
   public <T extends IdentifiableObject> T load(@Nonnull Class<T> type, @Nonnull String uid)

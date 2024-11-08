@@ -71,6 +71,9 @@
     <sonar.organization>dhis2</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <sonar.projectKey>dhis2_dhis2-core</sonar.projectKey>
+    <sonar.issue.ignore.multicriteria>S1117</sonar.issue.ignore.multicriteria>
+    <sonar.issue.ignore.multicriteria.S1117.ruleKey>java:S1117</sonar.issue.ignore.multicriteria.S1117.ruleKey>
+    <sonar.issue.ignore.multicriteria.S1117.resourceKey>**/src/test/**/*.java</sonar.issue.ignore.multicriteria.S1117.resourceKey>
 
     <surefireArgLine>-Xmx2024m</surefireArgLine>
 
@@ -83,7 +86,7 @@
 
     <!-- DHIS2 Rule Engine -->
     <dhis2-rule-engine.version>3.1.0</dhis2-rule-engine.version>
-    <kotlinx-datetime.version>0.6.0</kotlinx-datetime.version>
+    <kotlinx-datetime.version>0.6.1</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.4</dhis-hisp-quick.version>
@@ -95,13 +98,13 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.41.2</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>9.45</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
     <!-- Spring -->
     <spring.version>6.1.12</spring.version>
-    <spring-session-core.version>3.3.2</spring-session-core.version>
+    <spring-session-core.version>3.3.3</spring-session-core.version>
     <spring-data-redis.version>2.7.18</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -112,11 +115,11 @@
     <lettuce.version>6.4.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>10.18.2</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>10.20.1</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.10.8</ehcache3.version>
     <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
-    <hypersistence-utils.version>3.8.2</hypersistence-utils.version>
+    <hypersistence-utils.version>3.8.3</hypersistence-utils.version>
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.10.1</c3p0.version>
     <HikariCP.version>6.0.0</HikariCP.version>
@@ -140,7 +143,7 @@
     <!-- JAXB -->
     <jaxb-api.version>2.4.0-b180830.0359</jaxb-api.version>
     <jaxws-ri.version>2.3.2</jaxws-ri.version>
-    <jakarta.xml.bind.version>3.0.1</jakarta.xml.bind.version>
+    <jakarta.xml.bind.version>4.0.2</jakarta.xml.bind.version>
     <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
     <xercesImpl.version>2.12.2</xercesImpl.version>
 
@@ -157,15 +160,15 @@
     <itext.version>2.1.7</itext.version>
 
     <!-- GIS -->
-    <batik-transcoder.version>1.17</batik-transcoder.version>
+    <batik-transcoder.version>1.18</batik-transcoder.version>
     <fop.version>2.10</fop.version>
     <mapstruct.version>1.6.2</mapstruct.version>
     <geotools.version>29.6</geotools.version>
     <jts.version>1.20.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis-jakarta.version>2.37.0</artemis-jakarta.version>
-    <netty-all.version>4.1.113.Final</netty-all.version>
+    <artemis-jakarta.version>2.38.0</artemis-jakarta.version>
+    <netty-all.version>4.1.114.Final</netty-all.version>
     <classgraph.version>4.8.177</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -198,7 +201,7 @@
     <commons-email.version>1.6.0</commons-email.version>
     <httpcomponents-core.version>5.3.1</httpcomponents-core.version>
     <httpcomponents-client5.version>5.4.1</httpcomponents-client5.version>
-    <kafka.version>3.8.1</kafka.version>
+    <kafka.version>3.9.0</kafka.version>
 
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
@@ -210,7 +213,7 @@
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
-    <junit.version>5.11.1</junit.version>
+    <junit.version>5.11.3</junit.version>
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>3.0</hamcrest.version>
@@ -236,7 +239,7 @@
     <restrict-imports-enforcer.version>2.6.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.17.1</versions-maven-plugin.version>
     <dependency-check-maven.version>10.0.4</dependency-check-maven.version>
-    <spotbugs-maven-plugin.version>4.8.6.2</spotbugs-maven-plugin.version>
+    <spotbugs-maven-plugin.version>4.8.6.5</spotbugs-maven-plugin.version>
     <spotless.version>2.43.0</spotless.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>

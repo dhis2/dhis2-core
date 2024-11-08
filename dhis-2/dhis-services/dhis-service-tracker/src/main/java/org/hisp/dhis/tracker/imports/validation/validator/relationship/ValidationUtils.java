@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 
@@ -42,17 +42,17 @@ class ValidationUtils {
   }
 
   public static TrackerType relationshipItemValueType(RelationshipItem item) {
-    if (StringUtils.isNotEmpty(item.getTrackedEntity())) {
+    if (item.getTrackedEntity() != null) {
       return TrackerType.TRACKED_ENTITY;
-    } else if (StringUtils.isNotEmpty(item.getEnrollment())) {
+    } else if (item.getEnrollment() != null) {
       return TrackerType.ENROLLMENT;
-    } else if (StringUtils.isNotEmpty(item.getEvent())) {
+    } else if (item.getEvent() != null) {
       return TrackerType.EVENT;
     }
     return null;
   }
 
-  public static String getUidFromRelationshipItem(RelationshipItem item) {
+  public static UID getUidFromRelationshipItem(RelationshipItem item) {
     return ObjectUtils.firstNonNull(item.getTrackedEntity(), item.getEnrollment(), item.getEvent());
   }
 }

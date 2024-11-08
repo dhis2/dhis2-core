@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Value;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Enrico Colasante
@@ -44,14 +45,14 @@ public class Warning {
 
   String trackerType;
 
-  String uid;
+  UID uid;
 
   @JsonCreator
   public Warning(
       @JsonProperty("message") String warningMessage,
       @JsonProperty("errorCode") String warningCode,
       @JsonProperty("trackerType") String trackerType,
-      @JsonProperty("uid") String uid) {
+      @JsonProperty("uid") UID uid) {
     this.warningMessage = warningMessage;
     this.warningCode = warningCode;
     this.trackerType = trackerType;
@@ -74,7 +75,7 @@ public class Warning {
   }
 
   @JsonProperty
-  public String getUid() {
+  public UID getUid() {
     return uid;
   }
 

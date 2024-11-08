@@ -29,17 +29,16 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.Note;
-import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(uses = {InstantMapper.class, UserMapper.class})
-public interface NoteMapper extends ViewMapper<org.hisp.dhis.note.Note, Note> {
+@Mapper(uses = {InstantMapper.class, UIDMapper.class, UserMapper.class})
+public interface NoteMapper {
   @Mapping(target = "note", source = "uid")
   @Mapping(target = "storedAt", source = "created")
   @Mapping(target = "value", source = "noteText")
   @Mapping(target = "createdBy", source = "lastUpdatedBy")
   @Mapping(target = "storedBy", source = "creator")
-  @Override
-  Note from(org.hisp.dhis.note.Note note);
+  Note map(org.hisp.dhis.note.Note note);
 }

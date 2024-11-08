@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports;
+package org.hisp.dhis.tracker;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -112,5 +112,21 @@ public class TrackerIdSchemeParam implements Serializable {
       return MetadataIdentifier.ofAttribute(this.attributeUid, identifier);
     }
     return MetadataIdentifier.of(this.idScheme, identifier, null);
+  }
+
+  /**
+   * Returns this {@link TrackerIdSchemeParam} as expected in a request parameter which makes it
+   * usable in tests. It is also a more readable format than what lombok produces.
+   */
+  @Override
+  public String toString() {
+    if (this.idScheme == null) {
+      return "";
+    }
+    if (this.idScheme == TrackerIdScheme.ATTRIBUTE) {
+      return this.idScheme.name() + ":" + this.attributeUid;
+    }
+
+    return this.idScheme.name();
   }
 }

@@ -161,7 +161,7 @@ class DataValuesValidator implements Validator<Event> {
           () ->
               fileResource != null
                   && fileResource.getFileResourceOwner() != null
-                  && !fileResource.getFileResourceOwner().equals(event.getEvent()),
+                  && !fileResource.getFileResourceOwner().equals(event.getEvent().getValue()),
           event,
           E1009,
           value);

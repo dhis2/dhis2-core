@@ -25,20 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.view;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.mapstruct.Context;
+import org.mapstruct.Mapper;
+import org.mapstruct.Named;
 
-public interface ViewMapper<T, R> {
-  R from(T from);
+@Mapper
+public interface MetadataMapper {
 
-  default List<R> fromCollection(Collection<T> froms) {
-    return Optional.ofNullable(froms).orElse(Collections.emptySet()).stream()
-        .map(this::from)
-        .collect(Collectors.toList());
+  @Named("programToString")
+  default String map(Program program, @Context TrackerIdSchemeParams idSchemeParams) {
+    return idSchemeParams.getProgramIdScheme().getIdentifier(program);
+  }
+
+  @Named("programStageToString")
+  default String map(ProgramStage programStage, @Context TrackerIdSchemeParams idSchemeParams) {
+    return idSchemeParams.getProgramStageIdScheme().getIdentifier(programStage);
+  }
+
+  @Named("organisationUnitToString")
+  default String map(OrganisationUnit orgUnit, @Context TrackerIdSchemeParams idSchemeParams) {
+    return idSchemeParams.getOrgUnitIdScheme().getIdentifier(orgUnit);
   }
 }

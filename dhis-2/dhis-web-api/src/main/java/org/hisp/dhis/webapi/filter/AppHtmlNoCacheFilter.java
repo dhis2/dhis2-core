@@ -25,47 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.supplier;
+package org.hisp.dhis.webapi.filter;
 
-import java.util.List;
-import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodStore;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.imports.preheat.cache.PreheatCacheService;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * @author Luciano Fiandesio
+ * Filter which enforces no cache for HTML pages like index pages to prevent stale versions being
+ * rendered in clients.
+ *
+ * @author Kai Vandivier
  */
-@RequiredArgsConstructor
 @Component
-public class PeriodTypeSupplier extends AbstractPreheatSupplier {
-  @Nonnull private final PeriodStore periodStore;
-
-  @Nonnull private final PreheatCacheService cache;
+public class AppHtmlNoCacheFilter extends OncePerRequestFilter {
+  // Match paths with '/dhis-web-' or '/apps' that end with '.html' or '/'
+  // https://regex101.com/r/4QfxgS/1
+  public static final String HTML_PATH_REGEX = "\\/(dhis-web-|apps).*(\\.html|\\/)$";
+  public static final Pattern HTML_PATH_PATTERN = Pattern.compile(HTML_PATH_REGEX);
 
   @Override
-  public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
-    if (cache.hasKey(Period.class.getName())) {
-      preheat.put(TrackerIdSchemeParam.UID, cache.getAll(Period.class.getName()));
-    } else {
-      final List<Period> periods = periodStore.getAll();
-      addToCache(cache, periods);
-      addToPreheat(preheat, periods.stream().map(p -> (IdentifiableObject) p).toList());
-    }
-    // Period store can't be cached because it's not extending
-    // `IdentifiableObject`
-    periodStore
-        .getAllPeriodTypes()
-        .forEach(periodType -> preheat.getPeriodTypeMap().put(periodType.getName(), periodType));
-  }
+  protected void doFilterInternal(
+      HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+      throws IOException, ServletException {
 
-  private void addToPreheat(TrackerPreheat preheat, List<IdentifiableObject> periods) {
-    periods.forEach(p -> preheat.getPeriodMap().put(p.getName(), (Period) p));
+    String uri = request.getRequestURI();
+    Matcher m = HTML_PATH_PATTERN.matcher(uri);
+
+    if (m.find() && HttpMethod.GET.matches(request.getMethod())) {
+      ContextUtils.setNoStore(response);
+    }
+
+    chain.doFilter(request, response);
   }
 }
