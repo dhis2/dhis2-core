@@ -29,15 +29,37 @@ package org.hisp.dhis.tracker.export.event;
 
 import java.util.Date;
 import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.UID;
 
 public record EventChangeLogDto(
-    String dataElementUid,
+    UID dataElement,
     String currentValue,
     String previousValue,
     ChangeLogType changeLogType,
     Date created,
-    String createdBy,
     String firstName,
     String surname,
     String username,
-    String userUid) {}
+    UID user) {
+  public EventChangeLogDto(
+      String dataElement,
+      String currentValue,
+      String previousValue,
+      ChangeLogType changeLogType,
+      Date created,
+      String firstName,
+      String surname,
+      String username,
+      String user) {
+    this(
+        dataElement != null ? UID.of(dataElement) : null,
+        currentValue,
+        previousValue,
+        changeLogType,
+        created,
+        firstName,
+        surname,
+        username,
+        user != null ? UID.of(user) : null);
+  }
+}

@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.view;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
+import org.hisp.dhis.common.UID;
 
 public record EventChangeLog(
     @JsonProperty User createdBy,
@@ -39,7 +40,7 @@ public record EventChangeLog(
   public record Change(@JsonProperty DataValueChange dataValue) {}
 
   public record DataValueChange(
-      @JsonProperty String dataElement,
+      @JsonProperty UID dataElement,
       @JsonProperty String previousValue,
       @JsonProperty String currentValue) {}
 }
