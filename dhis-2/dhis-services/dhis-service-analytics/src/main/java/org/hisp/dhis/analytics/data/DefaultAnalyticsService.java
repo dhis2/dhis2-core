@@ -33,7 +33,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDataValueSet;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDataValueSetAsGrid;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.isTableLayout;
 import static org.hisp.dhis.commons.collection.ListUtils.removeEmptys;
-import static org.hisp.dhis.feedback.ErrorCode.E7146;
+import static org.hisp.dhis.feedback.ErrorCode.E7147;
 import static org.hisp.dhis.visualization.Visualization.addListIfEmpty;
 
 import java.util.ArrayList;
@@ -348,7 +348,7 @@ public class DefaultAnalyticsService implements AnalyticsService {
         .flatMap(List::stream)
         .filter(dio -> dio.getDimensionItem().equals(value))
         .findFirst()
-        .orElseThrow(() -> new IllegalQueryException(E7146, value));
+        .orElseThrow(() -> new IllegalQueryException(E7147, value));
   }
 
   private static boolean isDimension(
