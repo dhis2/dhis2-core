@@ -41,7 +41,6 @@ import lombok.Builder;
 import lombok.Getter;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
@@ -109,8 +108,6 @@ public class EventOperationParams {
   @Builder.Default private Set<UID> attributeCategoryOptions = Collections.emptySet();
 
   private CategoryOptionCombo categoryOptionCombo;
-
-  @Builder.Default private IdSchemes idSchemes = new IdSchemes();
 
   private boolean includeRelationships;
 
