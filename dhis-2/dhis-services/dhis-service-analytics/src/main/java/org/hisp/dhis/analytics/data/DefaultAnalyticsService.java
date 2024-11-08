@@ -33,14 +33,17 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDataValueSet;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDataValueSetAsGrid;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.isTableLayout;
 import static org.hisp.dhis.commons.collection.ListUtils.removeEmptys;
+import static org.hisp.dhis.feedback.ErrorCode.E7146;
 import static org.hisp.dhis.visualization.Visualization.addListIfEmpty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -272,9 +275,16 @@ public class DefaultAnalyticsService implements AnalyticsService {
     Map<String, Object> valueMap = AnalyticsUtils.getAggregatedDataValueMapping(grid);
 
     List<List<DimensionalItemObject>> alternativeGridColumns =
-        reorderItems(getGridItems(grid, columnsDimensionItemsByDimension, columns));
+        Optional.ofNullable(columns)
+            .map(cols -> getGridItems(grid, columnsDimensionItemsByDimension, cols))
+            .map(this::reorderItems)
+            .orElse(Collections.emptyList());
+
     List<List<DimensionalItemObject>> alternativeGridRows =
-        reorderItems(getGridItems(grid, rowsDimensionItemsByDimension, rows));
+        Optional.ofNullable(rows)
+            .map(rws -> getGridItems(grid, rowsDimensionItemsByDimension, rws))
+            .map(this::reorderItems)
+            .orElse(Collections.emptyList());
 
     return visualization.getGrid(
         new ListGrid(grid.getMetaData(), grid.getInternalMetaData()),
@@ -310,7 +320,6 @@ public class DefaultAnalyticsService implements AnalyticsService {
       Grid grid,
       Map<String, List<DimensionalItemObject>> dimensionItemsByDimension,
       List<String> dimensionIds) {
-
     Set<List<DimensionalItemObject>> alternateItems = new HashSet<>();
 
     // Last column is the value column.
@@ -334,12 +343,12 @@ public class DefaultAnalyticsService implements AnalyticsService {
   }
 
   private static DimensionalItemObject findValueInDimensionItem(
-      Map<String, List<DimensionalItemObject>> rowsDimensionItemsByDimension, String value) {
-    return rowsDimensionItemsByDimension.values().stream()
+      Map<String, List<DimensionalItemObject>> dimensionItemsByDimension, String value) {
+    return dimensionItemsByDimension.values().stream()
         .flatMap(List::stream)
-        .filter(dimensionalItemObject -> dimensionalItemObject.getDimensionItem().equals(value))
+        .filter(dio -> dio.getDimensionItem().equals(value))
         .findFirst()
-        .orElseThrow(() -> new IllegalQueryException("Dimensional item not found"));
+        .orElseThrow(() -> new IllegalQueryException(E7146, value));
   }
 
   private static boolean isDimension(

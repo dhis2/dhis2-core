@@ -28,41 +28,42 @@
 package org.hisp.dhis.analytics.data;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.Test;
 
 class DefaultAnalyticsServiceTest {
 
   @Test
   void testGetGridItems() {
+    Grid grid = new ListGrid();
 
-    Grid grid = mock(Grid.class);
+    List.of(
+            new GridHeader("R-A", false, false),
+            new GridHeader("R-B", false, false),
+            new GridHeader("R-C", false, false),
+            new GridHeader("C-A", false, false),
+            new GridHeader("C-B", false, false))
+        .forEach(grid::addHeader);
 
-    when(grid.getWidth()).thenReturn(6);
-    when(grid.getRows())
-        .thenReturn(
-            List.of(
-                List.of("R-A1", "R-B1", "R-C2", "C-A1", "C-B1", "v1"),
-                List.of("R-A1", "R-B2", "R-C1", "C-A1", "C-B3", "v2"),
-                List.of("R-A2", "R-B1", "R-C1", "C-A2", "C-B1", "v3")));
-    when(grid.getHeaders())
-        .thenReturn(
-            List.of(
-                new GridHeader("R-A", false, false),
-                new GridHeader("R-B", false, false),
-                new GridHeader("R-C", false, false),
-                new GridHeader("C-A", false, false),
-                new GridHeader("C-B", false, false)));
+    List.of(
+            List.of("R-A1", "R-B1", "R-C2", "C-A1", "C-B1", "v1"),
+            List.of("R-A1", "R-B2", "R-C1", "C-A1", "C-B3", "v2"),
+            List.of("R-A2", "R-B1", "R-C1", "C-A2", "C-B1", "v3"))
+        .forEach(
+            row -> {
+              grid.addRow();
+              row.forEach(grid::addValue);
+            });
 
     Map<String, List<DimensionalItemObject>> dimensionItemsByDimension =
         Map.of(
@@ -103,25 +104,33 @@ class DefaultAnalyticsServiceTest {
       assertEquals(grid.getWidth() - 1, gridItems.get(i).size());
     }
 
-    Set<String> fromGrid =
-        grid.getRows().stream()
-            .map(
-                row ->
-                    row.stream()
-                        .limit(row.size() - 1)
-                        .map(Object::toString)
-                        .collect(Collectors.joining()))
-            .collect(Collectors.toSet());
+    Set<List<String>> rowsFromGrid = getRowsFromGrid(grid);
+    Set<List<String>> rowsFromGridItems = getRowsFromGridItems(gridItems);
 
-    Set<String> fromGridItems =
-        gridItems.stream()
-            .map(
-                row ->
-                    row.stream()
-                        .map(DimensionalItemObject::getDimensionItem)
-                        .collect(Collectors.joining()))
-            .collect(Collectors.toSet());
+    assertEquals(rowsFromGrid, rowsFromGridItems);
+  }
 
-    assertEquals(fromGridItems, fromGrid);
+  private Set<List<String>> getRowsFromGrid(Grid grid) {
+    Set<List<String>> rowsFromGrid = new HashSet<>();
+    for (List<Object> gridRow : grid.getRows()) {
+      List<String> gridRowAsString = new ArrayList<>();
+      for (int j = 0; j < gridRow.size() - 1; j++) {
+        gridRowAsString.add(gridRow.get(j).toString());
+      }
+      rowsFromGrid.add(gridRowAsString);
+    }
+    return rowsFromGrid;
+  }
+
+  private Set<List<String>> getRowsFromGridItems(List<List<DimensionalItemObject>> gridItems) {
+    Set<List<String>> rowsFromGridItems = new HashSet<>();
+    for (List<DimensionalItemObject> gridItem : gridItems) {
+      List<String> gridItemAsString = new ArrayList<>();
+      for (DimensionalItemObject dimensionalItemObject : gridItem) {
+        gridItemAsString.add(dimensionalItemObject.getDimensionItem());
+      }
+      rowsFromGridItems.add(gridItemAsString);
+    }
+    return rowsFromGridItems;
   }
 }
