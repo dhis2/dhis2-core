@@ -31,13 +31,11 @@ import static java.util.stream.Collectors.joining;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
@@ -409,18 +407,6 @@ public class JpaQueryUtils {
             generateSQlQueryForSharingCheck(
                 tableName + ".sharing", access, userId, getGroupsIds(userGroupIds)))
         + ")";
-  }
-
-  public static <X> Optional<Join> findJoinStatementByAlias(Root<X> root, String alias) {
-    if (StringUtils.isEmpty(alias) || root.getJoins() == null || root.getJoins().isEmpty()) {
-      return Optional.empty();
-    }
-    for (Join join : root.getJoins()) {
-      if (join.getAlias().equals(alias)) {
-        return Optional.of(join);
-      }
-    }
-    return Optional.empty();
   }
 
   private static String getGroupsIds(UserDetails user) {

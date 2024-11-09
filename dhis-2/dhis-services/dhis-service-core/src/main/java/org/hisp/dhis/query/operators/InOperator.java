@@ -33,10 +33,8 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Optional;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
@@ -82,13 +80,10 @@ public class InOperator<T extends Comparable<? super T>> extends Operator<T> {
                   getCollectionArgs().get(0)));
     }
     if (queryPath.haveAlias()) {
-      Optional<Join> join =
-          JpaQueryUtils.findJoinStatementByAlias(root, queryPath.getAlias()[0]);
-      if (join.isPresent()) {
-        Join j = join.get();
-        return j
-            .get(queryPath.getProperty().getFieldName())
-            .in(getCollectionArgs().get(0));
+      for (Join<Y, ?> join : root.getJoins()) {
+        if (join.getAlias().equals(queryPath.getAlias()[0])) {
+          return join.get(queryPath.getProperty().getFieldName()).in(getCollectionArgs().get(0));
+        }
       }
     }
     return root.get(queryPath.getPath()).in(getCollectionArgs().get(0));

@@ -39,6 +39,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.hibernate.Session;
+import org.hibernate.stat.Statistics;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -621,15 +623,6 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
     assertEquals(3, objects.size());
   }
 
-  /**
-   * Hibernate should create a join to dataelement table and all the equal operators should use that
-   * join. Expected query generated: {@code select dataelement.* from dataelementgroup dataelemen0_
-   * inner join dataelementgroupmembers members1_ on
-   * dataelemen0_.dataelementgroupid=members1_.dataelementgroupid inner join dataelement
-   * dataelemen2_ on members1_.dataelementid=dataelemen2_.dataelementid where dataelemen2_.uid=? and
-   * dataelemen2_.uid=? and dataelemen2_.uid=? and dataelemen2_.uid=? and dataelemen2_.uid=? and
-   * dataelemen2_.uid=? limit ?}
-   */
   @Test
   void testCriteriaAndRootJunctionDEG() {
     Query query =
@@ -640,8 +633,22 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
     query.add(Restrictions.eq("dataElements.id", "deabcdefghD"));
     query.add(Restrictions.eq("dataElements.id", "deabcdefghE"));
     query.add(Restrictions.eq("dataElements.id", "deabcdefghF"));
+    Session session = entityManager.unwrap(Session.class);
+    Statistics statistics = session.getSessionFactory().getStatistics();
+    statistics.setStatisticsEnabled(true);
     List<? extends IdentifiableObject> objects = queryService.query(query);
+    String[] queries = statistics.getQueries();
+    boolean findQuery = false;
+    for (String q : queries) {
+      if (q.equals(
+          "select generatedAlias0 from DataElementGroup as generatedAlias0 inner join generatedAlias0.members as members where ( members.uid=:param0 ) and ( members.uid=:param1 ) and ( members.uid=:param2 ) and ( members.uid=:param3 ) and ( members.uid=:param4 ) and ( members.uid=:param5 )")) {
+        findQuery = true;
+        break;
+      }
+    }
+    assertTrue(findQuery);
     assertTrue(objects.isEmpty());
+    statistics.setStatisticsEnabled(false);
   }
 
   @Test

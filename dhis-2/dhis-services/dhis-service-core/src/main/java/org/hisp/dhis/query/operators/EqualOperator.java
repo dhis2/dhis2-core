@@ -34,10 +34,8 @@ import jakarta.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
-import java.util.Optional;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.query.Type;
@@ -90,10 +88,10 @@ public class EqualOperator<T extends Comparable<? super T>> extends Operator<T> 
       return builder.equal(builder.size(root.get(queryPath.getPath())), value);
     }
     if (queryPath.haveAlias()) {
-      Optional<Join> join =
-          JpaQueryUtils.findJoinStatementByAlias(root, queryPath.getAlias()[0]);
-      if (join.isPresent()) {
-        return builder.equal(join.get().get(queryPath.getProperty().getFieldName()), args.get(0));
+      for (Join<Y, ?> join : root.getJoins()) {
+        if (join.getAlias().equals(queryPath.getAlias()[0])) {
+          return builder.equal(join.get(queryPath.getProperty().getFieldName()), args.get(0));
+        }
       }
     }
     return builder.equal(root.get(queryPath.getPath()), args.get(0));
