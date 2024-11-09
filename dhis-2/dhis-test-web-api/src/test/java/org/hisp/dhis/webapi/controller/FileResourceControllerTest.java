@@ -68,6 +68,17 @@ class FileResourceControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  void testSaveBadOrgUnitImageData() {
+    MockMultipartFile image =
+        new MockMultipartFile(
+            "file", "OU_profile_image.png", "image/png", "<<png data>>".getBytes());
+    HttpResponse response = POST_MULTIPART("/fileResources?domain=ORG_UNIT", image);
+    JsonString errorMessage =
+        response.content(HttpStatus.INTERNAL_SERVER_ERROR).getString("message");
+    assertEquals("Failed to resize image: src cannot be null", errorMessage.string());
+  }
+
+  @Test
   void testSaveBadAvatarContentType() {
     MockMultipartFile image =
         new MockMultipartFile(
@@ -122,6 +133,13 @@ class FileResourceControllerTest extends DhisControllerConvenienceTest {
     JsonObject savedObject =
         response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
     assertEquals("OU_profile_image.png", savedObject.getString("name").string());
+
+    String uid = savedObject.getString("id").string();
+    JsonObject fr = GET("/fileResources/{uid}", uid).content();
+    assertEquals("ORG_UNIT", fr.getString("domain").string());
+
+    JsonObject large = GET("/fileResources/{uid}?dimension=LARGE", uid).content();
+    assertEquals("ORG_UNIT", large.getString("domain").string());
   }
 
   @Test

@@ -164,6 +164,12 @@ public class FileResourceController {
       fileResource =
           fileResourceUtils.saveFileResource(uid, resizeAvatarToDefaultSize(file), domain);
 
+    } else if (domain.equals(FileResourceDomain.ORG_UNIT)) {
+      fileResourceUtils.validateOrgUnitImage(file);
+      fileResource =
+          fileResourceUtils.saveFileResource(
+              uid, fileResourceUtils.resizeOrgToDefaultSize(file), domain);
+
     } else {
       fileResource = fileResourceUtils.saveFileResource(uid, file, domain);
     }
