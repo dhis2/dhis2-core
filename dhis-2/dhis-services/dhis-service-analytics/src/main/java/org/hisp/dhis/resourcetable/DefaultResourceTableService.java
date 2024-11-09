@@ -63,6 +63,7 @@ import org.hisp.dhis.resourcetable.table.CategoryResourceTable;
 import org.hisp.dhis.resourcetable.table.DataApprovalMinLevelResourceTable;
 import org.hisp.dhis.resourcetable.table.DataApprovalRemapLevelResourceTable;
 import org.hisp.dhis.resourcetable.table.DataElementGroupSetResourceTable;
+import org.hisp.dhis.resourcetable.table.DataElementOptionResourceTable;
 import org.hisp.dhis.resourcetable.table.DataElementResourceTable;
 import org.hisp.dhis.resourcetable.table.DataSetOrganisationUnitCategoryResourceTable;
 import org.hisp.dhis.resourcetable.table.DatePeriodResourceTable;
@@ -159,7 +160,8 @@ public class DefaultResourceTableService implements ResourceTableService {
         new DataElementResourceTable(logged, idObjectManager.getAllNoAcl(DataElement.class)),
         new DatePeriodResourceTable(logged, getAndValidateAvailableDataYears()),
         new PeriodResourceTable(logged, periodService.getAllPeriods()),
-        new CategoryOptionComboResourceTable(logged));
+        new CategoryOptionComboResourceTable(logged),
+        new DataElementOptionResourceTable(logged));
   }
 
   /**
