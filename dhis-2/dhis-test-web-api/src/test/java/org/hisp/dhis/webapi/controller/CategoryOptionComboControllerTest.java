@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,13 +37,14 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonCategoryOptionCombo;
+import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -132,18 +133,20 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
     String catOptionComboAOptions = catOptionCombos.get(0).getCategoryOptions().get(0).getId();
     String catOptionComboACatComboId = catOptionCombos.get(0).getCategoryCombo().getId();
 
-    HttpResponse postResponse =
+    JsonErrorReport error =
         POST(
-            "/categoryOptionCombos",
-            """
-            { "name": "A_1",
-            "categoryOptions" : [{"id" : "%s"}],
-            "categoryCombo" : {"id" : "%s"} }
-            """
-                .formatted(catOptionComboAOptions, catOptionComboACatComboId));
-    assertStatus(HttpStatus.CONFLICT, postResponse);
-    JsonMixed postResponseContent = postResponse.content();
-    String message = postResponseContent.getString("message").string();
-    assertEquals("CategoryOptionCombo with name A_1 already exists", message);
+                "/categoryOptionCombos/",
+                """
+                { "name": "A_1",
+                "categoryOptions" : [{"id" : "%s"}],
+                "categoryCombo" : {"id" : "%s"} }
+                """
+                    .formatted(catOptionComboAOptions, catOptionComboACatComboId))
+            .content(HttpStatus.CONFLICT)
+            .find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1122);
+    assertNotNull(error);
+    assertEquals(
+        "Category option combo A_1 already exists for category combo CatOptCombo A",
+        error.getMessage());
   }
 }

@@ -28,9 +28,10 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -44,18 +45,43 @@ public class CategoryOptionComboObjectBundleHook
     extends AbstractObjectBundleHook<CategoryOptionCombo> {
   private final CategoryService categoryService;
 
+  static boolean areEqual(CategoryOptionCombo one, CategoryOptionCombo other) {
+    if (one == null || other == null) {
+      return false;
+    }
+
+    if (one.getCategoryCombo() == null || other.getCategoryCombo() == null) {
+      return false;
+    }
+
+    if (!one.getCategoryCombo().getUid().equals(other.getCategoryCombo().getUid())) {
+      return false;
+    }
+
+    if (one.getCategoryOptions() == null || other.getCategoryOptions() == null) {
+      return false;
+    }
+
+    Set<String> oneCategoryOptionUids =
+        one.getCategoryOptions().stream()
+            .map(categoryOption -> categoryOption.getUid())
+            .collect(Collectors.toSet());
+
+    Set<String> otherCategoryOptionUids =
+        other.getCategoryOptions().stream()
+            .map(categoryOption -> categoryOption.getUid())
+            .collect(Collectors.toSet());
+
+    return oneCategoryOptionUids.equals(otherCategoryOptionUids);
+  }
+
   private void checkDuplicateCategoryOptionCombos(
       CategoryOptionCombo categoryOptionCombo, Consumer<ErrorReport> addReports) {
 
-    CategoryCombo categoryCombo = categoryOptionCombo.getCategoryCombo();
-
-    List<CategoryOptionCombo> categoryOptionCombos =
-        categoryService.getAllCategoryOptionCombos().stream()
-            .filter(coc -> coc.getCategoryCombo().equals(categoryCombo))
-            .toList();
+    List<CategoryOptionCombo> categoryOptionCombos = categoryService.getAllCategoryOptionCombos();
 
     for (CategoryOptionCombo existingCategoryOptionCombo : categoryOptionCombos) {
-      if (categoryOptionCombo.equals(existingCategoryOptionCombo)) {
+      if (areEqual(categoryOptionCombo, existingCategoryOptionCombo)) {
         addReports.accept(
             new ErrorReport(
                 CategoryOptionCombo.class,
