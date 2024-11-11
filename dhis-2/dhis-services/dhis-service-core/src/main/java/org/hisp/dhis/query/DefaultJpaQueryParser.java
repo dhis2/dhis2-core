@@ -28,12 +28,14 @@
 package org.hisp.dhis.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.query.QueryUtils.parseValue;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.schema.Property;
@@ -75,7 +77,7 @@ public class DefaultJpaQueryParser implements QueryParser {
       String path = split[0];
       String operator = split[1];
       if (split.length >= 3) {
-        String arg = split[2];
+        String arg = split.length == 3 ? split[2] : Stream.of(split).skip(2).collect(joining(":"));
         if ("mentions".equals(path) && "in".equals(operator)) {
           mentions.add(arg);
         } else if (path.equals(IDENTIFIABLE) && !schema.hasProperty(IDENTIFIABLE)) {

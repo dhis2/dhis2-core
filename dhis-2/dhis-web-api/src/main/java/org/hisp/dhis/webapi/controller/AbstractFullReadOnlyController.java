@@ -314,7 +314,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
           "You don't have the proper permissions to read objects of this type.");
     }
 
-    List<T> entities = getEntityList(options, filters, orders, null);
+    List<T> entities = getEntityList(options, filters, orders, List.of());
 
     try {
       String csv = applyCsvSteps(fields, entities, separator, arraySeparator, skipHeader);
