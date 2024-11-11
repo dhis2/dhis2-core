@@ -32,7 +32,6 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -46,7 +45,6 @@ import org.springframework.stereotype.Component;
 public class CategoryOptionComboObjectBundleHook
     extends AbstractObjectBundleHook<CategoryOptionCombo> {
   private final CategoryService categoryService;
-
 
   static boolean haveEqualCatComboCatOptionReferenceIds(
       CategoryOptionCombo one, CategoryOptionCombo other) {
@@ -81,6 +79,7 @@ public class CategoryOptionComboObjectBundleHook
       addReports.accept(new ErrorReport(CategoryOptionCombo.class, ErrorCode.E1123));
     }
   }
+
   private void checkDuplicateCategoryOptionCombos(
       CategoryOptionCombo categoryOptionCombo, Consumer<ErrorReport> addReports) {
 
@@ -101,8 +100,8 @@ public class CategoryOptionComboObjectBundleHook
 
   private void checkAlternativeDefaultCatOptionCombo(
       CategoryOptionCombo categoryOptionCombo, Consumer<ErrorReport> addReports) {
-    if (categoryOptionCombo.getCategoryCombo().isDefault() ) {
-        addReports.accept(new ErrorReport(CategoryOptionCombo.class, ErrorCode.E1124));
+    if (categoryOptionCombo.getCategoryCombo().isDefault()) {
+      addReports.accept(new ErrorReport(CategoryOptionCombo.class, ErrorCode.E1124));
     }
   }
 
