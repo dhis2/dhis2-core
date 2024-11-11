@@ -47,6 +47,7 @@ import java.util.stream.Stream;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -149,7 +150,9 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
             "attributeOptionCombo",
             "categoryOptionCombo",
             "attributeCategoryOptions",
-            "categoryOption");
+            "categoryOption",
+            "dataValues",
+            "dataElement");
     // maps JSON fields to expected metadata identifier in the requested idScheme and form. many
     // category options are mapped to a single string value in the event.attributeCategoryOptions
     Map<String, Function<JsonObject, Executable>> metadata =
@@ -213,6 +216,35 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
                                   field, json, idSchemeParam));
                       assertContainsOnly(
                           expected, Arrays.asList(json.getString(field).string().split(",")));
+                    }),
+            "dataValues",
+            json ->
+                ((Executable)
+                    () -> {
+                      String field = "dataValues";
+                      List<String> expected =
+                          event.getEventDataValues().stream()
+                              .map(
+                                  dv ->
+                                      idSchemeParam.getIdentifier(
+                                          get(DataElement.class, dv.getDataElement())))
+                              .toList();
+                      assertNotEmpty(
+                          expected,
+                          String.format(
+                              "metadata corresponding to field \"%s\" has no value in test data for"
+                                  + " idScheme '%s'",
+                              field, idSchemeParam));
+                      assertTrue(
+                          json.has(field),
+                          () ->
+                              String.format(
+                                  "field \"%s\" is not in response %s for idScheme '%s'",
+                                  field, json, idSchemeParam));
+                      List<String> actual =
+                          json.getList(field, JsonObject.class)
+                              .toList(el -> el.getString("dataElement").string(""));
+                      assertContainsOnly(expected, actual);
                     }));
     String fields = metadata.keySet().stream().collect(Collectors.joining(","));
     String idSchemes =
@@ -225,7 +257,7 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
             .content(HttpStatus.OK)
             .as(JsonEvent.class);
 
-    assertMetadataIdScheme(metadata, actual, "event");
+    assertMetadataIdScheme(metadata, actual, idSchemeParam, "event");
   }
 
   public static Stream<TrackerIdSchemeParam> shouldExportMetadataUsingGivenIdSchemeProvider() {
@@ -243,10 +275,11 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
   private void assertMetadataIdScheme(
       Map<String, Function<JsonObject, Executable>> expected,
       JsonObject actual,
+      TrackerIdSchemeParam idSchemeParam,
       String objectName) {
     List<Executable> assertions =
         expected.entrySet().stream().map(e -> e.getValue().apply(actual)).toList();
-    assertAll(objectName + " metadata assertions", assertions);
+    assertAll(objectName + " metadata assertions for idScheme=" + idSchemeParam, assertions);
   }
 
   private static void assertIdScheme(
