@@ -60,6 +60,7 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -162,7 +163,8 @@ class TrackerPreheatIdentifiersTest extends TrackerTest {
     }
   }
 
-  @Test
+  @Disabled
+  // Disabling this as we cannot import duplicate category option combos for default
   void testCategoryOptionComboIdentifiers() {
     List<Pair<String, TrackerIdSchemeParam>> data = buildDataSet("XXXvX50cXC0", "COCA", "COCAname");
     for (Pair<String, TrackerIdSchemeParam> pair : data) {

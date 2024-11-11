@@ -79,8 +79,8 @@ public class CategoryOptionComboObjectBundleHook
     List<CategoryOptionCombo> categoryOptionCombos = categoryService.getAllCategoryOptionCombos();
 
     for (CategoryOptionCombo existingCategoryOptionCombo : categoryOptionCombos) {
-      if (haveEqualCatComboCatOptionReferenceIds(
-          categoryOptionCombo, existingCategoryOptionCombo)) {
+      if (haveEqualCatComboCatOptionReferenceIds(categoryOptionCombo, existingCategoryOptionCombo)
+          && !categoryOptionCombo.getUid().equals(existingCategoryOptionCombo.getUid())) {
         addReports.accept(
             new ErrorReport(
                 CategoryOptionCombo.class,

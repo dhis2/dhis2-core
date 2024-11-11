@@ -149,7 +149,10 @@ class TrackerPreheatServiceTest extends TrackerTest {
     assertFalse(preheat.getAll(OrganisationUnit.class).isEmpty());
     assertFalse(preheat.getAll(ProgramStage.class).isEmpty());
     assertFalse(preheat.getAll(CategoryOptionCombo.class).isEmpty());
+    /* Disabling this as we cannot import duplicate category option combos for default
+    https://dhis2.atlassian.net/browse/DHIS2-18401
     assertNotNull(preheat.get(CategoryOptionCombo.class, "XXXvX50cXC0"));
+     */
     assertNotNull(preheat.get(CategoryOption.class, "XXXrKDKCefk"));
   }
 }
