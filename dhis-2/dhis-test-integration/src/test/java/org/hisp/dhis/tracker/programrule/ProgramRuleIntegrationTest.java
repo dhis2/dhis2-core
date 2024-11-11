@@ -195,7 +195,7 @@ class ProgramRuleIntegrationTest extends TrackerTest {
         trackerImportService.importTracker(fromJson("tracker/single_enrollment.json"));
 
     assertNoErrors(trackerImportEnrollmentReport);
-    assertEquals(2, trackerImportEnrollmentReport.getValidationReport().getWarnings().size());
+    assertEquals(3, trackerImportEnrollmentReport.getValidationReport().getWarnings().size());
   }
 
   @Test
@@ -207,12 +207,12 @@ class ProgramRuleIntegrationTest extends TrackerTest {
     assertNoErrors(trackerImportReport);
     List<TrackerWarningReport> warningReports =
         trackerImportReport.getValidationReport().getWarnings();
-    assertEquals(6, warningReports.size());
+    assertEquals(7, warningReports.size());
     assertEquals(
         4,
         warningReports.stream().filter(w -> w.getTrackerType().equals(TrackerType.EVENT)).count());
     assertEquals(
-        2,
+        3,
         warningReports.stream()
             .filter(w -> w.getTrackerType().equals(TrackerType.ENROLLMENT))
             .count());

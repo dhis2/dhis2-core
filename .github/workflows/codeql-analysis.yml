@@ -13,10 +13,10 @@ on:
     branches:
       - master
   schedule:
-    - cron: '0 12 * * *'
+    - cron: "0 12 * * *"
 concurrency:
-    group: ${{ github.workflow}}-${{ github.ref }}
-    cancel-in-progress: true
+  group: ${{ github.workflow}}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   analyze:
     name: Analyze
@@ -27,7 +27,7 @@ jobs:
       matrix:
         # Override automatic language detection by changing the below list
         # Supported options are ['csharp', 'cpp', 'go', 'java', 'javascript', 'python']
-        language: [ 'java' ]
+        language: ["java"]
         # Learn more...
         # https://docs.github.com/en/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#overriding-automatic-language-detection
 
@@ -58,9 +58,9 @@ jobs:
           config-file: ./.github/codeql/codeql-config.yml
 
       - name: Build core
-        run: mvn clean install -f ./dhis-2/pom.xml --batch-mode --no-transfer-progress -Pdev -DskipTests=true -Dmaven.javadoc.skip=true -V
+        run: mvn clean install -f ./dhis-2/pom.xml --batch-mode --no-transfer-progress -DskipTests=true -Dmaven.javadoc.skip=true -V
       - name: Build web
-        run: mvn clean install -f ./dhis-2/dhis-web/pom.xml --batch-mode --no-transfer-progress -Pdev -DskipTests=true -Dmaven.javadoc.skip=true -V
+        run: mvn clean install -f ./dhis-2/dhis-web/pom.xml --batch-mode --no-transfer-progress -DskipTests=true -Dmaven.javadoc.skip=true -V
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3

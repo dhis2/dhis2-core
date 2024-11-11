@@ -533,7 +533,9 @@ public enum ConfigurationKey {
   CSP_UPGRADE_INSECURE_ENABLED("csp.upgrade.insecure.enabled", Constants.OFF, true),
 
   /** CSP default header value/string. Enable or disable the feature. */
-  CSP_HEADER_VALUE("csp.header.value", CspConstants.SCRIPT_SOURCE_DEFAULT, false);
+  CSP_HEADER_VALUE("csp.header.value", CspConstants.SCRIPT_SOURCE_DEFAULT, false),
+
+  MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false);
 
   private final String key;
 

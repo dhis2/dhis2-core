@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeAvatarToDefaultSize;
 
 import com.google.common.base.MoreObjects;
 import java.io.IOException;
@@ -119,10 +120,12 @@ public class FileResourceController {
     }
 
     response.setContentType(fileResource.getContentType());
+
     response.setHeader(
         HttpHeaders.CONTENT_LENGTH,
         String.valueOf(fileResourceService.getFileResourceContentLength(fileResource)));
     response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName());
+
     HeaderUtils.setSecurityHeaders(
         response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
 
@@ -143,8 +146,25 @@ public class FileResourceController {
       @RequestParam MultipartFile file,
       @RequestParam(defaultValue = "DATA_VALUE") FileResourceDomain domain,
       @RequestParam(required = false) String uid)
-      throws WebMessageException, IOException {
-    FileResource fileResource = fileResourceUtils.saveFileResource(uid, file, domain);
+      throws IOException, WebMessageException {
+
+    FileResourceUtils.validateFileSize(
+        file, Long.parseLong(dhisConfig.getProperty(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES)));
+    FileResource fileResource;
+    if (domain.equals(FileResourceDomain.USER_AVATAR)) {
+      fileResourceUtils.validateUserAvatar(file);
+      fileResource =
+          fileResourceUtils.saveFileResource(uid, resizeAvatarToDefaultSize(file), domain);
+
+    } else if (domain.equals(FileResourceDomain.ORG_UNIT)) {
+      fileResourceUtils.validateOrgUnitImage(file);
+      fileResource =
+          fileResourceUtils.saveFileResource(
+              uid, fileResourceUtils.resizeOrgToDefaultSize(file), domain);
+
+    } else {
+      fileResource = fileResourceUtils.saveFileResource(uid, file, domain);
+    }
 
     WebMessage webMessage = new WebMessage(Status.OK, HttpStatus.ACCEPTED);
     webMessage.setResponse(new FileResourceWebMessageResponse(fileResource));
