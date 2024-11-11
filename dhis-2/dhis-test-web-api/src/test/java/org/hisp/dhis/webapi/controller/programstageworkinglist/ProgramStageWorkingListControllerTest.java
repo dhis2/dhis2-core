@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.programstageworkinglist;
 
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -319,6 +320,36 @@ class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTes
     assertEquals("APtutTb0nOY", displayColumnOrder.getString(2).string());
 
     assertTrue(programStageQueryCriteria.getFollowUp());
+  }
+
+  @Test
+  void shouldNotSaveFollowUpAsFalseWhenNotConfigured() {
+    String workingListId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programStageWorkingLists",
+                String.format(
+                    "{"
+                        + "'program': {'id': '%s'},"
+                        + "'programStage': {'id': '%s'},"
+                        + "'name':'workingListWithoutFollowUp',"
+                        + "'programStageQueryCriteria': {"
+                        + "'displayColumnOrder': ['w75KJ2mc4zz'],"
+                        + "'order': 'createdAt:desc'"
+                        + "}"
+                        + "}",
+                    programId, programStageId)));
+
+    JsonWorkingList workingList =
+        GET("/programStageWorkingLists/{id}", workingListId).content().as(JsonWorkingList.class);
+
+    assertFalse(workingList.isEmpty());
+
+    // Assert that the followUp is null (not saved as false)
+    JsonProgramStageQueryCriteria criteria = workingList.getProgramStageQueryCriteria();
+    assertFalse(criteria.isEmpty());
+    assertHasNoMember(criteria, "followUp");
   }
 
   private String createWorkingList(String workingListName) {

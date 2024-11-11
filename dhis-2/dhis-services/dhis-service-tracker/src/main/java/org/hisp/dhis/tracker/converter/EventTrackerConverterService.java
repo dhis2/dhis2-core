@@ -162,6 +162,10 @@ public class EventTrackerConverterService
     ProgramStageInstance psi = from(preheat, event, null);
     // merge data values from DB
     psi.getEventDataValues().addAll(getProgramStageInstanceDataValues(preheat, event));
+    ProgramStageInstance savedEvent = preheat.getEvent(event.getUid());
+    if (savedEvent != null) {
+      psi.setCreated(savedEvent.getCreated());
+    }
     return psi;
   }
 
@@ -260,7 +264,6 @@ public class EventTrackerConverterService
     for (DataValue dataValue : event.getDataValues()) {
       EventDataValue eventDataValue = new EventDataValue();
       eventDataValue.setValue(dataValue.getValue());
-      eventDataValue.setCreated(DateUtils.fromInstant(dataValue.getCreatedAt()));
       eventDataValue.setLastUpdated(new Date());
       eventDataValue.setProvidedElsewhere(dataValue.isProvidedElsewhere());
       // ensure dataElement is referred to by UID as multiple

@@ -96,6 +96,25 @@ class TrackedEntityInstanceFilterServiceTest extends SingleSetupIntegrationTestB
   }
 
   @Test
+  void testAddFilterWithAndWithoutFollowUp() {
+    TrackedEntityInstanceFilter filterWithOutFollowUp =
+        createTrackedEntityInstanceFilter('A', programA);
+    TrackedEntityInstanceFilter filterWithFollowUp =
+        createTrackedEntityInstanceFilter('B', programB);
+    filterWithFollowUp.getEntityQueryCriteria().setFollowUp(true);
+
+    long idA = trackedEntityInstanceFilterService.add(filterWithOutFollowUp);
+    long idB = trackedEntityInstanceFilterService.add(filterWithFollowUp);
+    TrackedEntityInstanceFilter fetchedA = trackedEntityInstanceFilterService.get(idA);
+    TrackedEntityInstanceFilter fetchedB = trackedEntityInstanceFilterService.get(idB);
+
+    assertEquals(filterWithOutFollowUp, fetchedA);
+    assertNull(fetchedA.getEntityQueryCriteria().getFollowUp());
+    assertEquals(filterWithFollowUp, trackedEntityInstanceFilterService.get(idB));
+    assertTrue(fetchedB.getEntityQueryCriteria().getFollowUp());
+  }
+
+  @Test
   void testDefaultPrivateAccess() {
     long idA =
         trackedEntityInstanceFilterService.add(createTrackedEntityInstanceFilter('A', programA));

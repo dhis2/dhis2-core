@@ -37,9 +37,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
+import org.hisp.dhis.dxf2.events.event.EventQueryParams;
+import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -76,6 +79,10 @@ class DefaultProgramRuleService implements ProgramRuleService {
   private final RuleActionEnrollmentMapper ruleActionEnrollmentMapper;
 
   private final RuleActionEventMapper ruleActionEventMapper;
+
+  private final EventService eventService;
+
+  private final ProgramStageInstanceService programStageInstanceService;
 
   @Override
   @Transactional(readOnly = true)
@@ -200,10 +207,13 @@ class DefaultProgramRuleService implements ProgramRuleService {
   // if they are present in both places
   private Set<ProgramStageInstance> getEventsFromEnrollment(
       String enrollmentUid, TrackerBundle bundle, TrackerPreheat preheat) {
+    EventQueryParams eventQueryParams = new EventQueryParams();
+    eventQueryParams.setProgramInstances(Set.of(enrollmentUid));
+    List<org.hisp.dhis.dxf2.events.event.Event> events =
+        eventService.getEvents(eventQueryParams).getEvents();
+
     Stream<ProgramStageInstance> programStageInstances =
-        preheat.getEvents().values().stream()
-            .filter(e -> e.getProgramInstance().getUid().equals(enrollmentUid))
-            .filter(e -> bundle.findEventByUid(e.getUid()).isEmpty());
+        events.stream().map(e -> programStageInstanceService.getProgramStageInstance(e.getUid()));
 
     Stream<ProgramStageInstance> bundleEvents =
         bundle.getEvents().stream()

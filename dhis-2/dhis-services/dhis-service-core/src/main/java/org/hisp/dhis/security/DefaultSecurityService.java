@@ -85,7 +85,7 @@ public class DefaultSecurityService implements SecurityService {
 
   private static final int RESTORE_TOKEN_LENGTH_BYTES = 32;
 
-  private static final int LOGIN_MAX_FAILED_ATTEMPTS = 4;
+  public static final int LOGIN_MAX_FAILED_ATTEMPTS = 4;
 
   public static final int RECOVERY_LOCKOUT_MINS = 15;
 
