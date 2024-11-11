@@ -269,6 +269,14 @@
     },
     {
       "id": "xwZ2u3WyQR0",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "categoryOption xwZ2u3WyQR0"
+        }
+      ],
       "code": "Unicef",
       "name": "Unicef",
       "sharing": {
@@ -290,6 +298,14 @@
     },
     {
       "id": "i4Nbp8S2G6A",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "categoryOption i4Nbp8S2G6A"
+        }
+      ],
       "code": "Project01",
       "description": "used to test sharing when owner is null",
       "name": "Improve access to clean water",
