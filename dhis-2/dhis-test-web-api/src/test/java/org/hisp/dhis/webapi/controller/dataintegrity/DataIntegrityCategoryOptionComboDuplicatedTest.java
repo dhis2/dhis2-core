@@ -135,26 +135,28 @@ class DataIntegrityCategoryOptionComboDuplicatedTest extends AbstractDataIntegri
             HttpStatus.CREATED,
             POST("/categoryOptions", "{ 'name': 'Blue', 'shortName': 'Blue' }"));
 
-    assertStatus(
-        HttpStatus.CREATED,
-        POST(
-            "/categoryOptionCombos",
-            """
-                { "name": "Color",
-                "categoryOptions" : [{"id" : "%s"} ] }
-                """
-                .formatted(categoryOptionRed)));
-    /*TODO: This test should not pass*/
-    assertStatus(
-        HttpStatus.CREATED,
-        POST(
-            "/categoryOptionCombos",
-            """
-                { "name": "Colour",
-                "categoryOptions" : [{"id" : "%s"} ] }
-                """
-                .formatted(categoryOptionBlue)));
+    String categoryColor =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories",
+                "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ,"
+                    + "'categoryOptions' : [{'id' : '"
+                    + categoryOptionRed
+                    + "'}, {'id' : '"
+                    + categoryOptionBlue
+                    + "'} ] }"));
 
+    String testCatCombo =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categoryCombos",
+                "{ 'name' : 'Color', "
+                    + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
+                    + "{'id' : '"
+                    + categoryColor
+                    + "'}]} "));
     assertHasNoDataIntegrityIssues("categoryOptionCombos", check, true);
   }
 
