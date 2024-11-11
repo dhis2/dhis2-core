@@ -46,7 +46,8 @@ public class CategoryOptionComboObjectBundleHook
     extends AbstractObjectBundleHook<CategoryOptionCombo> {
   private final CategoryService categoryService;
 
-  static boolean areEqual(CategoryOptionCombo one, CategoryOptionCombo other) {
+  static boolean haveEqualCatComboCatOptionReferenceIds(
+      CategoryOptionCombo one, CategoryOptionCombo other) {
     if (one == null || other == null) {
       return false;
     }
@@ -78,7 +79,8 @@ public class CategoryOptionComboObjectBundleHook
     List<CategoryOptionCombo> categoryOptionCombos = categoryService.getAllCategoryOptionCombos();
 
     for (CategoryOptionCombo existingCategoryOptionCombo : categoryOptionCombos) {
-      if (areEqual(categoryOptionCombo, existingCategoryOptionCombo)) {
+      if (haveEqualCatComboCatOptionReferenceIds(
+          categoryOptionCombo, existingCategoryOptionCombo)) {
         addReports.accept(
             new ErrorReport(
                 CategoryOptionCombo.class,
