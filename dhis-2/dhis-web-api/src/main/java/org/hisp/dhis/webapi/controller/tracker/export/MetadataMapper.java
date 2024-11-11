@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -51,5 +52,11 @@ public interface MetadataMapper {
   @Named("organisationUnitToString")
   default String map(OrganisationUnit orgUnit, @Context TrackerIdSchemeParams idSchemeParams) {
     return idSchemeParams.getOrgUnitIdScheme().getIdentifier(orgUnit);
+  }
+
+  @Named("categoryOptionComboToString")
+  default String map(
+      CategoryOptionCombo categoryOptionCombo, @Context TrackerIdSchemeParams idSchemeParams) {
+    return idSchemeParams.getCategoryOptionComboIdScheme().getIdentifier(categoryOptionCombo);
   }
 }
