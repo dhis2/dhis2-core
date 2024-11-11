@@ -89,7 +89,7 @@ public class EventPersister
 
     return TrackerNotificationDataBundle.builder()
         .klass(Event.class)
-        .eventNotifications(bundle.getEventNotifications().get(UID.of(event.getUid())))
+        .eventNotifications(bundle.getEventNotifications().get(UID.of(event)))
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUser().getUsername())

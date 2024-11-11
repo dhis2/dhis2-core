@@ -84,7 +84,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.ENROLLMENT);
 
     for (UID uid : enrollments) {
-      Entity objectReport = new Entity(TrackerType.ENROLLMENT, uid.getValue());
+      Entity objectReport = new Entity(TrackerType.ENROLLMENT, uid);
 
       Enrollment enrollment = manager.get(Enrollment.class, uid);
       if (enrollment == null) {
@@ -127,7 +127,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.EVENT);
     for (UID uid : events) {
-      Entity objectReport = new Entity(TrackerType.EVENT, uid.getValue());
+      Entity objectReport = new Entity(TrackerType.EVENT, uid);
 
       Event event = manager.get(Event.class, uid);
       event.setLastUpdatedByUserInfo(userInfoSnapshot);
@@ -176,7 +176,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.TRACKED_ENTITY);
 
     for (UID uid : trackedEntities) {
-      Entity objectReport = new Entity(TrackerType.TRACKED_ENTITY, uid.getValue());
+      Entity objectReport = new Entity(TrackerType.TRACKED_ENTITY, uid);
 
       TrackedEntity entity = manager.get(TrackedEntity.class, uid);
       if (entity == null) {
@@ -224,7 +224,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.RELATIONSHIP);
 
     for (UID uid : relationships) {
-      Entity objectReport = new Entity(TrackerType.RELATIONSHIP, uid.getValue());
+      Entity objectReport = new Entity(TrackerType.RELATIONSHIP, uid);
 
       Relationship relationship = manager.get(Relationship.class, uid);
       if (relationship == null) {

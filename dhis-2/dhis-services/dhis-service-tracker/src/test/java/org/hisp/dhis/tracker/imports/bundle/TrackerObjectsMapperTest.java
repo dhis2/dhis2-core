@@ -78,7 +78,7 @@ class TrackerObjectsMapperTest extends TestBase {
 
   private static final UID RELATIONSHIP_UID = UID.generate();
 
-  private static final String NOTE_UID = CodeGenerator.generateUid();
+  private static final UID NOTE_UID = UID.generate();
 
   private static final String PROGRAM_STAGE_UID = CodeGenerator.generateUid();
 
@@ -521,7 +521,7 @@ class TrackerObjectsMapperTest extends TestBase {
       TrackedEntity actual,
       UserDetails createdBy,
       UserDetails updatedBy) {
-    assertEquals(trackedEntity.getStringUid(), actual.getUid());
+    assertEqualUids(trackedEntity.getTrackedEntity(), actual);
     assertEquals(trackedEntity.getOrgUnit().getIdentifier(), actual.getOrganisationUnit().getUid());
     assertEquals(
         trackedEntity.getTrackedEntityType().getIdentifier(),
@@ -543,7 +543,7 @@ class TrackerObjectsMapperTest extends TestBase {
       Enrollment actual,
       UserDetails createdBy,
       UserDetails updatedBy) {
-    assertEquals(enrollment.getStringUid(), actual.getUid());
+    assertEqualUids(enrollment.getEnrollment(), actual);
     assertEqualUids(enrollment.getTrackedEntity(), actual.getTrackedEntity());
     assertEquals(enrollment.getOrgUnit().getIdentifier(), actual.getOrganisationUnit().getUid());
     assertEquals(enrollment.getProgram().getIdentifier(), actual.getProgram().getUid());
@@ -587,7 +587,7 @@ class TrackerObjectsMapperTest extends TestBase {
       org.hisp.dhis.tracker.imports.domain.Relationship relationship,
       Relationship actual,
       UserDetails createdBy) {
-    assertEquals(relationship.getStringUid(), actual.getUid());
+    assertEqualUids(relationship.getRelationship(), actual);
     assertEquals(createdBy.getUid(), actual.getLastUpdatedBy().getUid());
     assertEquals(
         DateUtils.fromInstant(relationship.getCreatedAtClient()), actual.getCreatedAtClient());
@@ -625,7 +625,10 @@ class TrackerObjectsMapperTest extends TestBase {
       UserDetails updatedBy) {
     for (org.hisp.dhis.tracker.imports.domain.Note note : notes) {
       Note dbNote =
-          dbNotes.stream().filter(n -> n.getUid().equals(note.getNote())).findFirst().orElse(null);
+          dbNotes.stream()
+              .filter(n -> n.getUid().equals(note.getNote().getValue()))
+              .findFirst()
+              .orElse(null);
       assertNotNull(dbNote);
       assertEquals(note.getValue(), dbNote.getNoteText());
       assertEquals(note.getStoredBy(), dbNote.getCreator());
