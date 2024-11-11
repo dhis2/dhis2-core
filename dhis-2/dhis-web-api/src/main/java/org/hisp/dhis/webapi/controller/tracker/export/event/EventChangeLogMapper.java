@@ -44,7 +44,7 @@ public interface EventChangeLogMapper {
   EventChangeLog map(org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
 
   @Mapping(target = "uid", source = "createdBy.uid")
-  @Mapping(target = "username", source = "createdByUsername")
+  @Mapping(target = "username", source = "createdBy.username")
   @Mapping(target = "firstName", source = "createdBy.firstName")
   @Mapping(target = "surname", source = "createdBy.surname")
   User mapUser(org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);

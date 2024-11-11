@@ -369,12 +369,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   private static void assertUser(User user, EventChangeLog changeLog) {
     assertAll(
-        () ->
-            assertEquals(
-                user.getUsername(),
-                changeLog.getCreatedBy() == null
-                    ? changeLog.getCreatedByUsername()
-                    : changeLog.getCreatedBy().getUsername()),
+        () -> assertEquals(user.getUsername(), changeLog.getCreatedBy().getUsername()),
         () ->
             assertEquals(
                 user.getFirstName(),
