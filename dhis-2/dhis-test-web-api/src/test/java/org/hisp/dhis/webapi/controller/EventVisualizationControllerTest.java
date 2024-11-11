@@ -152,6 +152,27 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  void testDelete() {
+    // Given
+    String eventDateDimension = "eventDate";
+    String eventDate = "2021-07-21_2021-08-01";
+    String dimensionBody =
+        "{'dimension': '" + eventDateDimension + "', 'items': [{'id': '" + eventDate + "'}]}";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN','eventRepetitions':null, 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': ["
+            + dimensionBody
+            + "]}";
+
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+
+    // Then
+    DELETE("/eventVisualizations/" + uid).content(OK);
+  }
+
+  @Test
   void testPostForMultiEventDates() {
     // Given
     String eventDateDimension = "eventDate";
