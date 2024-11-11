@@ -189,8 +189,8 @@ public interface DataValueStore {
   /**
    * Checks if any data values exist for the provided {@link DataElement} {@link UID}.
    *
-   * @param dataElementUid the {@link DataElement} {@link UID} to check
+   * @param uid the {@link DataElement} {@link UID} to check
    * @return true, if any values exist, otherwise false
    */
-  boolean dataValueExistsForDataElement(String dataElementUid);
+  boolean dataValueExistsForDataElement(String uid);
 }

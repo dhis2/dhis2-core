@@ -352,7 +352,7 @@ public class DefaultDataValueService implements DataValueService {
   }
 
   @Override
-  public boolean dataValueExistsForDataElement(@Nonnull UID dataElementUid) {
-    return dataValueStore.dataValueExistsForDataElement(dataElementUid.getValue());
+  public boolean dataValueExistsForDataElement(@Nonnull UID uid) {
+    return dataValueStore.dataValueExistsForDataElement(uid.getValue());
   }
 }
