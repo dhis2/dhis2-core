@@ -55,7 +55,7 @@ public class CategoryOptionComboObjectBundleHook
       return false;
     }
 
-    if (!(one.getCategoryCombo().getId() == other.getCategoryCombo().getId())) {
+    if (!one.getCategoryCombo().getUid().equals(other.getCategoryCombo().getUid())) {
       return false;
     }
 
@@ -63,13 +63,13 @@ public class CategoryOptionComboObjectBundleHook
       return false;
     }
 
-    Set<Long> oneCategoryOptionIds =
-        one.getCategoryOptions().stream().map(CategoryOption::getId).collect(Collectors.toSet());
+    Set<String> oneCategoryOptionUids =
+        one.getCategoryOptions().stream().map(CategoryOption::getUid).collect(Collectors.toSet());
 
-    Set<Long> otherCategoryOptionIds =
-        other.getCategoryOptions().stream().map(CategoryOption::getId).collect(Collectors.toSet());
+    Set<String> otherCategoryOptionUids =
+        other.getCategoryOptions().stream().map(CategoryOption::getUid).collect(Collectors.toSet());
 
-    return oneCategoryOptionIds.equals(otherCategoryOptionIds);
+    return oneCategoryOptionUids.equals(otherCategoryOptionUids);
   }
 
   private void checkDuplicateCategoryOptionCombos(
