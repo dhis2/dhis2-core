@@ -62,7 +62,7 @@ public class UserRoleController extends AbstractCrudController<UserRole> {
   protected List<UID> getSpecialFilterMatches(WebOptions options) {
     if (!"true".equals(options.get("canIssue"))) return null;
     // TODO make actual filter
-    return userService.filteredByCanIssue().stream().map(UID::of).toList();
+    return userService.getRolesCurrentUserCanIssue().stream().map(UID::of).toList();
   }
 
   @RequestMapping(

@@ -150,7 +150,7 @@ public class Query extends Criteria {
   }
 
   @Override
-  public Query add(Collection<Criterion> criterions) {
+  public Query add(Collection<? extends Criterion> criterions) {
     super.add(criterions);
     return this;
   }

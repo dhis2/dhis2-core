@@ -29,9 +29,15 @@ package org.hisp.dhis.webapi.controller.organisationunit;
 
 import static java.lang.Math.max;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.query.Restrictions.eq;
+import static org.hisp.dhis.query.Restrictions.in;
+import static org.hisp.dhis.query.Restrictions.le;
+import static org.hisp.dhis.query.Restrictions.like;
+import static org.hisp.dhis.query.Restrictions.or;
 import static org.hisp.dhis.security.Authorities.F_ORGANISATION_UNIT_MERGE;
 import static org.hisp.dhis.security.Authorities.F_ORGANISATION_UNIT_SPLIT;
 import static org.hisp.dhis.system.util.GeoUtils.getCoordinatesFromGeometry;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.core.JsonFactory;
@@ -39,13 +45,11 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -58,9 +62,10 @@ import org.hisp.dhis.merge.orgunit.OrgUnitMergeQuery;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.organisationunit.comparator.OrganisationUnitByLevelComparator;
+import org.hisp.dhis.query.Criterion;
+import org.hisp.dhis.query.Restrictions;
+import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitQuery;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitService;
@@ -145,10 +150,11 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
     OrganisationUnit parent = getEntity(uid);
-    Function<WebOptions, List<UID>> getSpecialFilterMatches =
-        (options) ->
-            Stream.concat(Stream.of(parent), parent.getChildren().stream()).map(UID::of).toList();
-    return getObjectList(rpParameters, orderParams, response, currentUser, getSpecialFilterMatches);
+    List<Criterion> children =
+        List.of(
+            in("level", List.of(parent.getLevel(), parent.getLevel() + 1)),
+            like("path", uid, MatchMode.ANYWHERE));
+    return getObjectListInternal(rpParameters, orderParams, response, currentUser, children);
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
@@ -181,14 +187,10 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
     OrganisationUnit parent = getEntity(uid);
-    Function<WebOptions, List<UID>> getSpecialFilterMatches =
-        (options) ->
-            organisationUnitService
-                .getOrganisationUnitsAtLevel(parent.getLevel() + max(0, level), parent)
-                .stream()
-                .map(UID::of)
-                .toList();
-    return getObjectList(rpParameters, orderParams, response, currentUser, getSpecialFilterMatches);
+    List<Criterion> childrenWithLevel = List.of(like("path", parent.getPath(), MatchMode.START));
+    rpParameters.put("parentLevel", parent.getLevel() + "");
+    return getObjectListInternal(
+        rpParameters, orderParams, response, currentUser, childrenWithLevel);
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
@@ -218,13 +220,9 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
-    OrganisationUnit parent = getEntity(uid);
-    Function<WebOptions, List<UID>> getSpecialFilterMatches =
-        (options) ->
-            organisationUnitService.getOrganisationUnitWithChildren(parent.getUid()).stream()
-                .map(UID::of)
-                .toList();
-    return getObjectList(rpParameters, orderParams, response, currentUser, getSpecialFilterMatches);
+    Criterion descendants = like("path", uid, MatchMode.ANYWHERE);
+    return getObjectListInternal(
+        rpParameters, orderParams, response, currentUser, List.of(descendants));
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
@@ -254,15 +252,15 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
-    OrganisationUnit parent = getEntity(uid);
-    Function<WebOptions, List<UID>> getSpecialFilterMatches =
-        (options) -> {
-          List<OrganisationUnit> objects = new ArrayList<>(parent.getAncestors());
-          Collections.reverse(objects);
-          objects.add(0, parent);
-          return objects.stream().map(UID::of).toList();
-        };
-    return getObjectList(rpParameters, orderParams, response, currentUser, getSpecialFilterMatches);
+    OrganisationUnit root = getEntity(uid);
+    List<String> ancestorsIds = List.of(root.getPath().split("/"));
+    List<Criterion> ancestorPaths = new ArrayList<>();
+    for (int i = 0; i < ancestorsIds.size(); i++)
+      ancestorPaths.add(Restrictions.eq("path", String.join("/", ancestorsIds.subList(0, i + 1))));
+    Criterion ancestors = or(getSchema(), ancestorPaths);
+    // TODO add default order level:asc
+    return getObjectListInternal(
+        rpParameters, orderParams, response, currentUser, List.of(ancestors));
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
@@ -278,17 +276,15 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
     OrganisationUnit root = getEntity(uid);
-    Function<WebOptions, List<UID>> getSpecialFilterMatches =
-        (options) -> {
-          OrganisationUnit parent = root.getParent();
-          List<OrganisationUnit> objects = new ArrayList<>();
-          while (parent != null) {
-            objects.add(parent);
-            parent = parent.getParent();
-          }
-          return objects.stream().map(UID::of).toList();
-        };
-    return getObjectList(rpParameters, orderParams, response, currentUser, getSpecialFilterMatches);
+    List<String> ancestorsIds = List.of(root.getPath().split("/"));
+    // TODO check if root is level 1 => no matches
+    List<Criterion> parentPaths = new ArrayList<>();
+    for (int i = 0; i < ancestorsIds.size() - 1; i++)
+      parentPaths.add(Restrictions.eq("path", String.join("/", ancestorsIds.subList(0, i + 1))));
+    Criterion parents = or(getSchema(), parentPaths);
+    // TODO add default order level:asc
+    return getObjectListInternal(
+        rpParameters, orderParams, response, currentUser, List.of(parents));
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
@@ -301,14 +297,11 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       @RequestParam Map<String, String> rpParameters,
       OrderParams orderParams,
       HttpServletResponse response,
-      @CurrentUser User currentUser)
+      @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException {
-    return getObjectList(
-        rpParameters,
-        orderParams,
-        response,
-        UserDetails.fromUser(currentUser),
-        options -> currentUser.getOrganisationUnits().stream().map(UID::of).toList());
+    Criterion userUnits = in("id", currentUser.getUserOrgUnitIds());
+    return getObjectListInternal(
+        rpParameters, orderParams, response, currentUser, List.of(userUnits));
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
@@ -322,14 +315,11 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
           @RequestParam Map<String, String> rpParameters,
           OrderParams orderParams,
           HttpServletResponse response,
-          @CurrentUser User currentUser)
+          @CurrentUser UserDetails currentUser)
           throws ForbiddenException, BadRequestException {
-    return getObjectList(
-        rpParameters,
-        orderParams,
-        response,
-        UserDetails.fromUser(currentUser),
-        options -> currentUser.getDataViewOrganisationUnits().stream().map(UID::of).toList());
+    Criterion userDataUnits = in("id", currentUser.getUserDataOrgUnitIds());
+    return getObjectListInternal(
+        rpParameters, orderParams, response, currentUser, List.of(userDataUnits));
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
@@ -343,20 +333,12 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
           @RequestParam Map<String, String> rpParameters,
           OrderParams orderParams,
           HttpServletResponse response,
-          @CurrentUser User currentUser)
+          @CurrentUser UserDetails currentUser)
           throws ForbiddenException, BadRequestException {
-    Function<WebOptions, List<UID>> getSpecialFilterMatches =
-        options ->
-            (currentUser.hasDataViewOrganisationUnit()
-                    ? currentUser.getDataViewOrganisationUnits()
-                    : organisationUnitService.getOrganisationUnitsAtLevel(1))
-                .stream().map(UID::of).toList();
-    return getObjectList(
-        rpParameters,
-        orderParams,
-        response,
-        UserDetails.fromUser(currentUser),
-        getSpecialFilterMatches);
+    Set<String> ouIds = currentUser.getUserDataOrgUnitIds();
+    Criterion userDataUnits = ouIds.isEmpty() ? eq("level", 1) : in("id", ouIds);
+    return getObjectListInternal(
+        rpParameters, orderParams, response, currentUser, List.of(userDataUnits));
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
@@ -372,79 +354,43 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
           HttpServletResponse response,
           @CurrentUser UserDetails currentUser)
           throws ForbiddenException, BadRequestException {
-    return getObjectList(
-        rpParameters,
-        orderParams,
-        response,
-        currentUser,
-        options ->
-            manager.getAll(getEntityClass()).stream()
-                .sorted(OrganisationUnitByLevelComparator.INSTANCE)
-                .map(UID::of)
-                .toList());
+    // TODO sort by level asc?
+    // or implement this as a special thing when constructing orders in general?
+    return getObjectListInternal(rpParameters, orderParams, response, currentUser, List.of());
   }
 
   @Override
-  @OpenApi.Ignore
-  @GetMapping(
-      params =
-          "getObjectList") // overridden and over-specified to effectively remove the @GetMapping
-  public ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getObjectList(
-      Map<String, String> rpParameters,
-      OrderParams orderParams,
-      HttpServletResponse response,
-      UserDetails currentUser) {
-    return null;
-  }
-
-  @OpenApi.Param(name = "fields", value = String[].class)
-  @OpenApi.Param(name = "filter", value = String[].class)
-  @OpenApi.Param(name = "memberObject", value = String.class)
-  @OpenApi.Param(name = "memberCollection", value = String.class)
-  @OpenApi.Params(WebOptions.class)
-  @OpenApi.Response(ObjectListResponse.class)
-  @GetMapping
-  public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getObjectList(
-      @RequestParam(required = false) String query,
-      @RequestParam(required = false) Integer level,
-      @RequestParam(required = false) Integer maxLevel,
-      @RequestParam(required = false) Boolean withinUserHierarchy,
-      @RequestParam(required = false) Boolean withinUserSearchHierarchy,
-      @RequestParam Map<String, String> rpParameters,
-      OrderParams orderParams,
-      HttpServletResponse response,
-      @CurrentUser User currentUser)
-      throws ForbiddenException, BadRequestException {
-    if (query == null
-        && level == null
-        && maxLevel == null
-        && withinUserHierarchy == null
-        && withinUserSearchHierarchy == null) {
-
-      return super.getObjectList(
-          rpParameters, orderParams, response, UserDetails.fromUser(currentUser));
+  protected List<Criterion> getSpecialFilters(WebOptions options) {
+    List<Criterion> specialFilters = super.getSpecialFilters(options);
+    Integer parentLevel = options.getInt("parentLevel");
+    Integer level = options.getInt("level");
+    if (level != null)
+      specialFilters.add(
+          parentLevel != null ? eq("level", parentLevel + max(0, level)) : eq("level", level));
+    Integer maxLevel = options.getInt("maxLevel");
+    if (maxLevel != null) specialFilters.add(le("level", maxLevel));
+    Set<String> parents = null;
+    if ("true".equals(options.get("withinUserHierarchy", "false")))
+      parents = getCurrentUserDetails().getUserOrgUnitIds();
+    if ("true".equals(options.get("withinUserSearchHierarchy", "false"))) {
+      UserDetails currentUser = getCurrentUserDetails();
+      Set<String> searchIds = currentUser.getUserSearchOrgUnitIds();
+      if (searchIds.isEmpty()) {
+        if (parents == null) parents = currentUser.getUserOrgUnitIds();
+      } else if (parents == null) {
+        parents = searchIds;
+      } else {
+        parents = new HashSet<>(parents);
+        parents.addAll(searchIds);
+      }
     }
-    OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
-    params.setQuery(query);
-    params.setLevel(level);
-    params.setMaxLevels(maxLevel);
-
-    params.setParents(
-        withinUserHierarchy == Boolean.TRUE
-            ? currentUser.getOrganisationUnits()
-            : withinUserSearchHierarchy == Boolean.TRUE
-                ? currentUser.getTeiSearchOrganisationUnitsWithFallback()
-                : Set.of());
-
-    return getObjectList(
-        rpParameters,
-        orderParams,
-        response,
-        UserDetails.fromUser(currentUser),
-        options ->
-            organisationUnitService.getOrganisationUnitsByQuery(params).stream()
-                .map(UID::of)
-                .toList());
+    if (parents != null) {
+      specialFilters.add(
+          or(
+              getSchema(),
+              parents.stream().map(id -> like("path", id, MatchMode.ANYWHERE)).toList()));
+    }
+    return specialFilters;
   }
 
   @Override

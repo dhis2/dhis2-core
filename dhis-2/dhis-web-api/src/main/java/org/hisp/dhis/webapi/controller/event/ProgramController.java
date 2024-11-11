@@ -77,6 +77,7 @@ public class ProgramController extends AbstractCrudController<Program> {
 
   @Override
   protected List<UID> getSpecialFilterMatches(WebOptions options) {
+    // TODO wouldn't the query engine apply a user filter anyhow?
     boolean userFilter = Boolean.parseBoolean(options.get("userFilter"));
     if (!userFilter) return null;
     return programService.getCurrentUserPrograms().stream()

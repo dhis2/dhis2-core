@@ -185,16 +185,35 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException {
-    return getObjectList(
-        rpParameters, orderParams, response, currentUser, this::getSpecialFilterMatches);
+    return getObjectListInternal(
+        rpParameters, orderParams, response, currentUser, this::getSpecialFilters);
   }
 
-  protected final @ResponseBody ResponseEntity<StreamingJsonRoot<T>> getObjectList(
-      @RequestParam Map<String, String> rpParameters,
+  protected final ResponseEntity<StreamingJsonRoot<T>> getObjectListInternal(
+      Map<String, String> rpParameters,
       OrderParams orderParams,
       HttpServletResponse response,
-      @CurrentUser UserDetails currentUser,
-      Function<WebOptions, List<UID>> getSpecialFilterMatches)
+      UserDetails currentUser,
+      List<Criterion> additionalSpecialFilters)
+      throws ForbiddenException, BadRequestException {
+    return getObjectListInternal(
+        rpParameters,
+        orderParams,
+        response,
+        currentUser,
+        options -> {
+          List<Criterion> filters = getSpecialFilters(options);
+          filters.addAll(additionalSpecialFilters);
+          return filters;
+        });
+  }
+
+  protected final ResponseEntity<StreamingJsonRoot<T>> getObjectListInternal(
+      Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      UserDetails currentUser,
+      Function<WebOptions, List<Criterion>> getSpecialFilters)
       throws ForbiddenException, BadRequestException {
     List<Order> orders = orderParams.getOrders(getSchema());
     List<String> fields = new ArrayList<>(contextService.getParameterValues("fields"));
@@ -213,22 +232,19 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     forceFiltering(options, filters);
 
-    List<UID> specialFilterMatches = getSpecialFilterMatches.apply(options);
-    List<T> entities = List.of();
-    long totalCount = 0L;
-    Pager pager = null;
     // Note: null = no special filters, empty = no matches for special filters
-    if (specialFilterMatches == null || !specialFilterMatches.isEmpty()) {
-      Criterion inIds = createIdInMatchesRestriction(specialFilterMatches);
+    List<Criterion> specialFilters = getSpecialFilters.apply(options);
 
-      entities = getEntityList(options, filters, orders, inIds);
-      postProcessResponseEntities(entities, options, rpParameters);
-      handleLinksAndAccess(entities, fields, false);
+    List<T> entities = getEntityList(options, filters, orders, specialFilters);
+    postProcessResponseEntities(entities, options, rpParameters);
+    handleLinksAndAccess(entities, fields, false);
 
-      if (options.hasPaging()) totalCount = countTotal(options, filters, orders, inIds);
-    }
+    Pager pager = null;
     if (options.hasPaging())
-      pager = new Pager(options.getPage(), totalCount, options.getPageSize());
+      if (options.hasPaging()) {
+        long totalCount = countTotal(options, filters, orders, specialFilters);
+        pager = new Pager(options.getPage(), totalCount, options.getPageSize());
+      }
 
     linkService.generatePagerLinks(pager, getEntityClass());
 
@@ -246,8 +262,16 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     return null; // no special filters used
   }
 
-  private Criterion createIdInMatchesRestriction(List<UID> specialFilterMatches) {
-    if (specialFilterMatches == null) return null;
+  protected List<Criterion> getSpecialFilters(WebOptions options) {
+    List<Criterion> filters = new ArrayList<>();
+    if (options.getOptions().containsKey("query"))
+      filters.add(Restrictions.query(getSchema(), options.getOptions().get("query")));
+    List<UID> matches = getSpecialFilterMatches(options);
+    if (matches != null) filters.add(createIdInFilter(matches));
+    return filters;
+  }
+
+  protected final Criterion createIdInFilter(@Nonnull List<UID> specialFilterMatches) {
     return Restrictions.in("id", UID.toValueList(specialFilterMatches));
   }
 
@@ -528,7 +552,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
   }
 
   private List<T> getEntityList(
-      WebOptions options, List<String> filters, List<Order> orders, Criterion specialFilterMatches)
+      WebOptions options, List<String> filters, List<Order> orders, List<Criterion> specialFilters)
       throws BadRequestException {
     Query query =
         BadRequestException.on(
@@ -540,16 +564,11 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
                     orders,
                     getPaginationData(options),
                     options.getRootJunction()));
-    if (specialFilterMatches != null) query.add(specialFilterMatches);
+    query.add(specialFilters);
 
     query.setDefaultOrder();
     query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
 
-    if (options.getOptions().containsKey("query")) {
-      // set the result as starting point of in-memory post filtering
-      // TODO this then is still inconsistent with counting so we should replace this
-      query.setObjects(manager.filter(getEntityClass(), options.getOptions().get("query")));
-    }
     @SuppressWarnings("unchecked")
     List<T> res = (List<T>) queryService.query(query);
     getEntityListPostProcess(options, res);
@@ -559,7 +578,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
   protected void getEntityListPostProcess(WebOptions options, List<T> entities) {}
 
   private long countTotal(
-      WebOptions options, List<String> filters, List<Order> orders, Criterion specialFilterMatches)
+      WebOptions options, List<String> filters, List<Order> orders, List<Criterion> specialFilters)
       throws BadRequestException {
     Query query =
         BadRequestException.on(
@@ -571,7 +590,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
                     orders,
                     new Pagination(),
                     options.getRootJunction()));
-    if (specialFilterMatches != null) query.add(specialFilterMatches);
+    query.add(specialFilters);
     return queryService.count(query);
   }
 
