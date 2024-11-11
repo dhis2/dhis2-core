@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -54,7 +55,7 @@ public class CategoryOptionComboObjectBundleHook
       return false;
     }
 
-    if (!one.getCategoryCombo().getUid().equals(other.getCategoryCombo().getUid())) {
+    if (!(one.getCategoryCombo().getId() == other.getCategoryCombo().getId())) {
       return false;
     }
 
@@ -62,17 +63,13 @@ public class CategoryOptionComboObjectBundleHook
       return false;
     }
 
-    Set<String> oneCategoryOptionUids =
-        one.getCategoryOptions().stream()
-            .map(categoryOption -> categoryOption.getUid())
-            .collect(Collectors.toSet());
+    Set<Long> oneCategoryOptionIds =
+        one.getCategoryOptions().stream().map(CategoryOption::getId).collect(Collectors.toSet());
 
-    Set<String> otherCategoryOptionUids =
-        other.getCategoryOptions().stream()
-            .map(categoryOption -> categoryOption.getUid())
-            .collect(Collectors.toSet());
+    Set<Long> otherCategoryOptionIds =
+        other.getCategoryOptions().stream().map(CategoryOption::getId).collect(Collectors.toSet());
 
-    return oneCategoryOptionUids.equals(otherCategoryOptionUids);
+    return oneCategoryOptionIds.equals(otherCategoryOptionIds);
   }
 
   private void checkDuplicateCategoryOptionCombos(
