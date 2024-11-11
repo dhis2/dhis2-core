@@ -42,6 +42,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -98,6 +99,7 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
   private OrganisationUnit orgUnit;
   private ProgramStage programStage;
   private Program program;
+  private CategoryOptionCombo categoryOptionCombo;
 
   private User importUser;
 
@@ -130,9 +132,10 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
     assertNoErrors(
         trackerImportService.importTracker(params, fromJson("tracker/event_and_enrollment.json")));
     get(Attribute.class, METADATA_ATTRIBUTE); // ensure this is created in setup
-    orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
-    program = get(Program.class, "BFcipDERJnf");
-    programStage = get(ProgramStage.class, "NpsdDv6kKSO");
+    orgUnit = get(OrganisationUnit.class, "DiszpKrYNg8");
+    program = get(Program.class, "iS7eutanDry");
+    programStage = get(ProgramStage.class, "qLZC0lvvxQH");
+    categoryOptionCombo = get(CategoryOptionCombo.class, "SeWJkpLAyLt");
 
     manager.flush();
     manager.clear();
@@ -143,20 +146,39 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
   void shouldExportMetadataUsingGivenIdScheme(TrackerIdSchemeParam idSchemeParam) {
     switchContextToUser(importUser);
 
+    // maps JSON fields to idScheme request parameters
+    Map<String, String> idSchemeRequestParams =
+        Map.of(
+            "orgUnit",
+            "orgUnit",
+            "program",
+            "program",
+            "programStage",
+            "programStage",
+            "attributeOptionCombo",
+            "categoryOptionCombo");
     // maps JSON fields to metadata
     Map<String, IdentifiableObject> metadata =
-        Map.of("orgUnit", orgUnit, "program", program, "programStage", programStage);
+        Map.of(
+            "orgUnit",
+            orgUnit,
+            "program",
+            program,
+            "programStage",
+            programStage,
+            "attributeOptionCombo",
+            categoryOptionCombo);
     String fields = metadata.keySet().stream().collect(Collectors.joining(","));
     String idSchemes =
         metadata.keySet().stream()
-            .map(m -> m + "IdScheme=" + idSchemeParam)
+            .map(m -> idSchemeRequestParams.get(m) + "IdScheme=" + idSchemeParam)
             .collect(Collectors.joining("&"));
-    Event d9PbzJY8bJM = get(Event.class, "D9PbzJY8bJM");
+    Event qRYjLTiJTrA = get(Event.class, "QRYjLTiJTrA");
 
     JsonEvent actual =
         GET(
                 "/tracker/events/{id}?fields={fields}&{idSchemes}",
-                d9PbzJY8bJM.getUid(),
+                qRYjLTiJTrA.getUid(),
                 fields,
                 idSchemes)
             .content(HttpStatus.OK)
