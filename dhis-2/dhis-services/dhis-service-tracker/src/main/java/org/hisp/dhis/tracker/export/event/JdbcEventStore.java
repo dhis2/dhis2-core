@@ -42,7 +42,6 @@ import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -74,7 +73,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
-import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.note.Note;
@@ -176,6 +174,7 @@ class JdbcEventStore implements EventStore {
   private static final String COLUMN_ENROLLMENT_FOLLOWUP = "en_followup";
   private static final String COLUMN_EVENT_STATUS = "ev_status";
   private static final String COLUMN_EVENT_SCHEDULED_DATE = "ev_scheduleddate";
+  private static final String COLUMN_EVENT_DATAVALUES = "ev_eventdatavalues";
   private static final String COLUMN_EVENT_STORED_BY = "ev_storedby";
   private static final String COLUMN_EVENT_LAST_UPDATED_BY = "ev_lastupdatedbyuserinfo";
   private static final String COLUMN_EVENT_CREATED_BY = "ev_createdbyuserinfo";
@@ -405,10 +404,33 @@ class JdbcEventStore implements EventStore {
                 event.setAssignedUser(eventUser);
               }
 
-              if (!StringUtils.isEmpty(resultSet.getString("ev_eventdatavalues"))) {
+              String dataValuesResult = resultSet.getString("ev_eventdatavalues");
+              if (!StringUtils.isEmpty(dataValuesResult)) {
+                JsonMixed dataValuesJson = JsonMixed.of(dataValuesResult);
+                JsonObject dataValuesObject = dataValuesJson.asObject();
                 Set<EventDataValue> eventDataValues =
-                    convertEventDataValueJsonIntoSet(resultSet.getString("ev_eventdatavalues"));
-
+                    new HashSet<>(dataValuesObject.names().size());
+                for (String uid : dataValuesObject.names()) {
+                  JsonObject dataValueJson = dataValuesObject.getObject(uid);
+                  EventDataValue eventDataValue = new EventDataValue();
+                  // TODO(ivo) EventDataValues are different than other data. It has no reference to
+                  // metadata but only a String field. To support idSchemes on export we can either
+                  // set the String to uid, code, name or the attribute value of given attribute:uid
+                  // or we need to refactor the type to use either a reference to DataElement or to
+                  // use the MedatadataIdentifier. I assume String was chosen to allow storing this
+                  // as JSONB
+                  eventDataValue.setDataElement(uid);
+                  eventDataValue.setValue(dataValueJson.getString("value").string(""));
+                  eventDataValue.setProvidedElsewhere(
+                      dataValueJson.getBoolean("providedElsewhere").booleanValue(false));
+                  eventDataValue.setStoredBy(dataValueJson.getString("storedBy").string(""));
+                  // TODO(ivo) I also need to map these
+                  // @Mapping(target = "createdAt", source = "created")
+                  // @Mapping(target = "updatedAt", source = "lastUpdated")
+                  // @Mapping(target = "createdBy", source = "createdByUserInfo")
+                  // @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
+                  eventDataValues.add(eventDataValue);
+                }
                 event.getEventDataValues().addAll(eventDataValues);
               }
 
@@ -738,8 +760,26 @@ class JdbcEventStore implements EventStore {
             .append(COLUMN_EVENT_STATUS)
             .append(", ev.occurreddate as ")
             .append(COLUMN_EVENT_OCCURRED_DATE)
-            .append(", ev.eventdatavalues as ev_eventdatavalues, ev.scheduleddate as ")
+            .append(", ev.scheduleddate as ")
             .append(COLUMN_EVENT_SCHEDULED_DATE)
+            // .append(
+            //     """
+            //     , jsonb_object_agg(
+            //         de.uid,
+            //         jsonb_build_object(
+            //             'value', eventdatavalue.value->>'value',
+            //             'created', eventdatavalue.value->>'created',
+            //             'storedBy', eventdatavalue.value->>'storedBy',
+            //             'lastUpdated', eventdatavalue.value->>'lastUpdated',
+            //             'providedElsewhere', eventdatavalue.value->>'providedElsewhere',
+            //             'dataElementCode', de.code,
+            //             'dataElementName', de.name
+            //             'dataElementAttributeValues', de.attributevalues
+            //         )
+            //     ) as
+            //     """)
+            .append(", ev.eventdatavalues as ")
+            .append(COLUMN_EVENT_DATAVALUES)
             .append(", ev.completedby as ")
             .append(COLUMN_EVENT_COMPLETED_BY)
             .append(", ev.storedby as ")
@@ -860,6 +900,15 @@ class JdbcEventStore implements EventStore {
     fromBuilder.append(getCategoryOptionComboQuery(user));
 
     fromBuilder.append(dataElementAndFiltersSql);
+
+    //     fromBuilder.append(
+    //         """
+    // left join
+    //     lateral jsonb_each(coalesce(ev.eventdatavalues, '{}')) as eventdatavalue(dataelement_uid,
+    // value) on true
+    // left join
+    //     dataelement de on de.uid = eventdatavalue.dataelement_uid
+    // """);
 
     if (params.getTrackedEntity() != null) {
       mapSqlParameterSource.addValue("trackedentityid", params.getTrackedEntity().getId());
@@ -1540,16 +1589,6 @@ class JdbcEventStore implements EventStore {
 
   private boolean isSuper(User user) {
     return user == null || user.isSuper();
-  }
-
-  private Set<EventDataValue> convertEventDataValueJsonIntoSet(String jsonString) {
-    try {
-      Map<String, EventDataValue> data = eventDataValueJsonReader.readValue(jsonString);
-      return JsonEventDataValueSetBinaryType.convertEventDataValuesMapIntoSet(data);
-    } catch (IOException e) {
-      log.error("Parsing EventDataValues json string failed, string value: '{}'", jsonString);
-      throw new IllegalArgumentException(e);
-    }
   }
 
   private void setAccessiblePrograms(User user, EventQueryParams params) {
