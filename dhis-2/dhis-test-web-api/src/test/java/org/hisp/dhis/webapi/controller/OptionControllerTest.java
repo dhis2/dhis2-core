@@ -31,6 +31,8 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
+import org.hibernate.Session;
+import org.hibernate.stat.Statistics;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
@@ -139,5 +141,41 @@ class OptionControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(
         List.of("this-is-a", "this-is-b"),
         set.getOptions().toList(JsonIdentifiableObject::getDescription));
+  }
+
+  @Test
+  void testQueryOptionsByOptionSetIds() {
+    Session session = entityManager.unwrap(Session.class);
+
+    String id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/optionSets/",
+                "{'name': 'test', 'version': 2, 'valueType': 'TEXT', 'description':'desc' }"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/options/",
+            "{'optionSet': { 'id':'"
+                + id
+                + "'}, 'id':'Uh4HvjK6zg3', 'code': 'A', 'name': 'Anna', 'description': 'this-is-a'}"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/options/",
+            "{'optionSet': { 'id':'"
+                + id
+                + "'},'id':'BQMei56UBl6','code': 'B', 'name': 'Betta', 'description': 'this-is-b'}"));
+    Statistics statistics = session.getSessionFactory().getStatistics();
+    statistics.setStatisticsEnabled(true);
+    assertEquals(0, statistics.getQueryExecutionCount());
+    JsonOptionSet set =
+        GET(String.format("/options?filter=optionSet.id:in:[%s,%s]", id, "TESTUIDA"))
+            .content()
+            .as(JsonOptionSet.class);
+    assertEquals(2, statistics.getQueryExecutionCount());
+    assertEquals(2, set.getOptions().size());
+    statistics.setStatisticsEnabled(false);
   }
 }
