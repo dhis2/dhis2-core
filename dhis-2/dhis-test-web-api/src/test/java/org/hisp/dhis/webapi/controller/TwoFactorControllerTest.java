@@ -130,6 +130,37 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest {
             .getMessage());
   }
 
+  @Test
+  void testDisable2FaTooManyTimes() {
+    User user = makeUser("X", List.of("TEST"));
+    user.setEmail("valid.x@email.com");
+    userService.addUser(user);
+    userService.generateTwoFactorOtpSecretForApproval(user);
+
+    switchToNewUser(user);
+
+    String code = getCode(user);
+    assertStatus(HttpStatus.OK, POST("/2fa/enabled", "{'code':'" + code + "'}"));
+
+    assertStatus(HttpStatus.UNAUTHORIZED, POST("/2fa/disabled", "{'code':'333333'}"));
+
+    for (int i = 0; i < 3; i++) {
+      assertWebMessage(
+          "Unauthorized",
+          401,
+          "ERROR",
+          "Invalid 2FA code",
+          POST("/2fa/disabled", "{'code':'333333'}").content(HttpStatus.UNAUTHORIZED));
+    }
+
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Too many failed disable attempts. Please try again later",
+        POST("/2fa/disabled", "{'code':'333333'}").content(HttpStatus.CONFLICT));
+  }
+
   private static String replaceApprovalPartOfTheSecret(User user) {
     return user.getSecret().replace(TWO_FACTOR_CODE_APPROVAL_PREFIX, "");
   }

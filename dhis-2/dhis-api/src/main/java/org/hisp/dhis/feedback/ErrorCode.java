@@ -206,6 +206,7 @@ public enum ErrorCode {
   E3032("User `{0}` does not have access to user role"),
   E3040("Could not resolve JwsAlgorithm from the JWK. Can not write a valid JWKSet"),
   E3041("User `{0}` is not allowed to change a user having the ALL authority"),
+  E3042("Too many failed disable attempts. Please try again later"),
 
   /* Metadata Validation */
   E4000("Missing required property `{0}`"),
@@ -446,6 +447,7 @@ public enum ErrorCode {
       "Query failed because a referenced table does not exist. Please ensure analytics job was run"),
   E7145("Query failed because of a syntax error"),
   E7146("A {0} date was not specified in periods, dimensions, filters"),
+  E7147("Query failed because of a missing column: `{0}`"),
 
   /* Analytics outliers */
 

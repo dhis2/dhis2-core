@@ -29,6 +29,7 @@ package org.hisp.dhis.sms;
 
 import java.util.concurrent.ScheduledFuture;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.user.AuthenticationService;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
@@ -41,12 +42,24 @@ public class SmsPublisher {
 
   private final TaskScheduler taskScheduler;
 
+  private final AuthenticationService authenticationService;
+
   private ScheduledFuture<?> future;
 
   public void start() {
     messageQueue.initialize();
 
-    future = taskScheduler.scheduleWithFixedDelay(smsConsumer::spawnSmsConsumer, 5000);
+    future =
+        taskScheduler.scheduleWithFixedDelay(
+            () -> {
+              try {
+                authenticationService.obtainSystemAuthentication();
+                smsConsumer.spawnSmsConsumer();
+              } finally {
+                authenticationService.clearAuthentication();
+              }
+            },
+            5000);
   }
 
   public void stop() {
