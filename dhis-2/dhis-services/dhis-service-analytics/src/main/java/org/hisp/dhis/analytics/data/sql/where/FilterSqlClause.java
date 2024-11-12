@@ -31,7 +31,6 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 
 import java.util.List;
 import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.DimensionalObject;

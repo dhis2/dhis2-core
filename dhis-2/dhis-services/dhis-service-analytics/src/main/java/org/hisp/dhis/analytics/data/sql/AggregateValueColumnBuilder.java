@@ -39,7 +39,6 @@ import static org.hisp.dhis.analytics.data.sql.SqlAggregationTemplate.NUMERIC_AV
 import static org.hisp.dhis.analytics.data.sql.SqlAggregationTemplate.SIMPLE_AGGREGATION;
 
 import java.util.EnumSet;
-import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -50,7 +49,7 @@ public class AggregateValueColumnBuilder {
   private final String valueColumn;
 
   private static final EnumSet<AggregationType> SIMPLE_AGGREGATION_TYPES =
-          EnumSet.of(COUNT, STDDEV, VARIANCE, MIN, MAX);
+      EnumSet.of(COUNT, STDDEV, VARIANCE, MIN, MAX);
 
   public AggregateValueColumnBuilder(DataQueryParams params) {
     this.params = params;
