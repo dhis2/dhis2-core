@@ -428,7 +428,7 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
   private String quoteIdentifier(String identifier) {
     // Remove any existing quotes first
-    identifier = identifier.replaceAll("\"", "");
+    identifier = identifier.replace("\"", "");
     return "\"" + identifier + "\"";
   }
 }

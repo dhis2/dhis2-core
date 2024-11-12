@@ -50,9 +50,10 @@ class FirstLastValueTest {
   private Date startDate;
   private Date endDate;
 
-  private static final String expectedColumns =
+  private static final String EXPECTED_COLUMNS =
       "\"year\",\"pestartdate\",\"peenddate\",\"oulevel\",\"daysxvalue\",\"daysno\",\"value\",\"textvalue\",cast('202411' as text) as \"pe\"";
-  private static final String expectedPartitionColumns = "ax.\"dx\",ax.\"ou\",ax.\"co\",ax.\"ao\"";
+  private static final String EXPECTED_PARTITION_COLUMNS =
+      "ax.\"dx\",ax.\"ou\",ax.\"co\",ax.\"ao\"";
 
   @BeforeEach
   void setUp() {
@@ -88,8 +89,8 @@ class FirstLastValueTest {
             ax."peenddate" <= '%s' and
             (ax."value" is not null or ax."textvalue" is not null))
         """,
-            expectedColumns,
-            expectedPartitionColumns,
+            EXPECTED_COLUMNS,
+            EXPECTED_PARTITION_COLUMNS,
             toMediumDate(startDate),
             toMediumDate(endDate));
 
@@ -126,8 +127,8 @@ class FirstLastValueTest {
             ax."peenddate" <= '%s' and
             (ax."value" is not null or ax."textvalue" is not null))
         """,
-            expectedColumns,
-            expectedPartitionColumns,
+            EXPECTED_COLUMNS,
+            EXPECTED_PARTITION_COLUMNS,
             toMediumDate(startDate),
             toMediumDate(endDate));
 
@@ -164,8 +165,8 @@ class FirstLastValueTest {
             ax."peenddate" <= '%s' and
             (ax."value" is not null or ax."textvalue" is not null))
         """,
-            expectedColumns,
-            expectedPartitionColumns,
+            EXPECTED_COLUMNS,
+            EXPECTED_PARTITION_COLUMNS,
             toMediumDate(startDate),
             toMediumDate(endDate));
 
