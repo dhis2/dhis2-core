@@ -342,7 +342,11 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
   private String getSelectClause(DataQueryParams params) {
     String sql = "select " + getCommaDelimitedQuotedDimensionColumns(params.getDimensions()) + ", ";
 
+    sql += getOptionSetItemsClause(params);
+
     sql += getValueClause(params);
+
+    sql += getAggregatedOptionValueClause(params);
 
     return sql;
   }
@@ -364,6 +368,29 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
     return sql + " as value ";
   }
+
+  protected String getAggregatedOptionValueClause(DataQueryParams params) {
+    String sql = "";
+
+    if (params.hasOptionSetAggregatedSelectionMode() && params.hasOptionSetInDimensionItems()) {
+      sql += ", count(" + params.getValueColumn() + ") as valuecount ";
+      return sql;
+    }
+
+    return sql;
+  }
+
+  protected String getOptionSetItemsClause(DataQueryParams params) {
+    String sql = "";
+
+    if (params.hasOptionSetInDimensionItems()) {
+      sql += "optionsetuid, optionvalueuid, ";
+      return sql;
+    }
+
+    return sql;
+  }
+
 
   /**
    * Returns an aggregate clause for the numeric value column.
@@ -646,6 +673,8 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
     if (params.isAggregation()) {
       sql = "group by " + getCommaDelimitedQuotedDimensionColumns(params.getDimensions()) + " ";
+    }else if (params.hasOptionSetInDimensionItems()) {
+      sql = "group by " + getCommaDelimitedQuotedDimensionColumns(params.getDimensions()) + ", optionsetuid, optionvalueuid, " + params.getValueColumn() + " ";
     }
 
     return sql;
@@ -953,8 +982,13 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       StringBuilder key = new StringBuilder();
 
       for (DimensionalObject dim : params.getDimensions()) {
+
         String value =
-            dim.isFixed() ? dim.getDimensionName() : rowSet.getString(dim.getDimensionName());
+            dim.isFixed() ? dim.getDimensionName()
+                    : rowSet.getString(dim.getDimensionName());
+        if(!dim.isFixed() && dim.getDimensionType() == DimensionType.DATA_X && params.hasOptionSetInDimensionItems()){
+          value += "." + rowSet.getString("optionsetuid") + "." + rowSet.getString("optionvalueuid");
+        }
 
         String queryModsId = params.getQueryModsId(dim);
 
@@ -966,7 +1000,11 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       if (params.isDataType(TEXT)) {
         String value = rowSet.getString(VALUE_ID);
 
-        map.put(key.toString(), value);
+        if(params.hasOptionSetInDimensionItems() && params.hasOptionSetAggregatedSelectionMode()){
+          map.put(key + DIMENSION_SEP + value, rowSet.getString("valuecount"));
+        }else{
+          map.put(key.toString(), value);
+        }
       } else // NUMERIC
       {
         Double value = rowSet.getDouble(VALUE_ID);

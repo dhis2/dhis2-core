@@ -87,6 +87,7 @@ import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionItemObjectValue;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -233,6 +234,9 @@ public class DataQueryParams {
 
   /** The aggregation type. */
   protected AnalyticsAggregationType aggregationType;
+
+  /** The option set selection mode. */
+  protected OptionSetSelectionMode optionSetSelectionMode;
 
   /** The measure criteria, which is measure filters and corresponding values. */
   protected Map<MeasureFilter, Double> measureCriteria = new HashMap<>();
@@ -498,6 +502,7 @@ public class DataQueryParams {
     params.dimensions = DimensionalObjectUtils.getCopies(this.dimensions);
     params.filters = DimensionalObjectUtils.getCopies(this.filters);
     params.aggregationType = this.aggregationType != null ? this.aggregationType.instance() : null;
+    params.optionSetSelectionMode = this.optionSetSelectionMode;
     params.measureCriteria = new HashMap<>(this.measureCriteria);
     params.preAggregateMeasureCriteria = new HashMap<>(this.preAggregateMeasureCriteria);
     params.skipMeta = this.skipMeta;
@@ -591,6 +596,7 @@ public class DataQueryParams {
         (k, v) -> key.add("preAggregateMeasureCriteria", (String.valueOf(k) + v)));
 
     return key.add("aggregationType", aggregationType)
+        .add("optionSetSelectionMode", optionSetSelectionMode)
         .add("skipMeta", skipMeta)
         .add("skipData", skipData)
         .add("skipHeaders", skipHeaders)
@@ -861,6 +867,14 @@ public class DataQueryParams {
     return this.outputFormat != null && this.outputFormat == format;
   }
 
+  public boolean hasOptionSetInDimensionItems() {
+    return dimensions.stream().anyMatch( d -> d.getItems().stream().anyMatch(it -> it.getDimensionItemType() == DimensionItemType.DATA_ELEMENT
+            && ((DataElement)it).getOptionSet() != null));
+  }
+
+  public boolean hasOptionSetAggregatedSelectionMode(){
+    return optionSetSelectionMode == OptionSetSelectionMode.AGGREGATED;
+  }
   /**
    * Creates a mapping between the data periods, based on the data period type for this query, and
    * the aggregation periods for this query.
@@ -1952,6 +1966,10 @@ public class DataQueryParams {
     return aggregationType;
   }
 
+  public OptionSetSelectionMode getOptionSetSelectionMode() {
+    return optionSetSelectionMode;
+  }
+
   public Map<MeasureFilter, Double> getMeasureCriteria() {
     return measureCriteria;
   }
@@ -2793,6 +2811,11 @@ public class DataQueryParams {
 
     public Builder withAggregationType(AnalyticsAggregationType aggregationType) {
       this.params.aggregationType = aggregationType;
+      return this;
+    }
+
+    public Builder withOptionSetSelectionMode(OptionSetSelectionMode optionSetSelectionMode) {
+      this.params.optionSetSelectionMode = optionSetSelectionMode;
       return this;
     }
 

@@ -32,6 +32,7 @@ import java.util.Set;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.OptionSetSelectionMode;
 import org.hisp.dhis.analytics.SortOrder;
 
 /**
@@ -49,6 +50,9 @@ public class AggregateAnalyticsQueryCriteria {
 
   /** The {@link AggregationType} */
   private AggregationType aggregationType;
+
+  /** The {@link org.hisp.dhis.analytics.OptionSetSelectionMode} */
+  private OptionSetSelectionMode optionSetSelectionMode = OptionSetSelectionMode.AGGREGATED;
 
   /** Filters for the data/measures (options: EQ | GT | GE | LT | LE). */
   private String measureCriteria;

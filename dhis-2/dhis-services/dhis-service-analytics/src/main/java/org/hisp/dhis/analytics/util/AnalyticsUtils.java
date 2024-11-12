@@ -105,6 +105,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.FinancialPeriodType;
 import org.hisp.dhis.period.Period;
@@ -822,6 +823,14 @@ public final class AnalyticsUtils {
                 new MetadataItem(
                     coc.getDisplayProperty(params.getDisplayProperty()),
                     includeMetadataDetails ? coc : null));
+          }
+
+          OptionSet optionSet = dataElement.getOptionSet();
+          if(optionSet != null) {
+            map.put(dataElement.getUid() + "." + optionSet.getUid(),
+                    includeMetadataDetails?
+                            new MetadataItem(optionSet.getName(), optionSet, new HashSet<>(optionSet.getOptions()))
+                            : new MetadataItem(optionSet.getName()));
           }
         }
       }
