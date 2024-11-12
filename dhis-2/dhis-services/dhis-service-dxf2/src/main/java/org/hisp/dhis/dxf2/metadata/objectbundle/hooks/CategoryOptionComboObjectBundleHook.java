@@ -52,8 +52,14 @@ public class CategoryOptionComboObjectBundleHook
       return false;
     }
 
+    //One default and one not default
     if (one.getCategoryCombo() == null || other.getCategoryCombo() == null) {
       return false;
+    }
+
+    //Both default
+    if (one.getCategoryCombo() == null && other.getCategoryCombo() == null){
+      return true;
     }
 
     if (!one.getCategoryCombo().getUid().equals(other.getCategoryCombo().getUid())) {
@@ -71,13 +77,6 @@ public class CategoryOptionComboObjectBundleHook
         other.getCategoryOptions().stream().map(CategoryOption::getUid).collect(Collectors.toSet());
 
     return oneCategoryOptionUids.equals(otherCategoryOptionUids);
-  }
-
-  private void checkNullCategoryComboReference(
-      CategoryOptionCombo categoryOptionCombo, Consumer<ErrorReport> addReports) {
-    if (categoryOptionCombo.getCategoryCombo() == null) {
-      addReports.accept(new ErrorReport(CategoryOptionCombo.class, ErrorCode.E1123));
-    }
   }
 
   private void checkDuplicateCategoryOptionCombos(
@@ -98,20 +97,11 @@ public class CategoryOptionComboObjectBundleHook
     }
   }
 
-  private void checkAlternativeDefaultCatOptionCombo(
-      CategoryOptionCombo categoryOptionCombo, Consumer<ErrorReport> addReports) {
-    if (categoryOptionCombo.getCategoryCombo().isDefault()) {
-      addReports.accept(new ErrorReport(CategoryOptionCombo.class, ErrorCode.E1124));
-    }
-  }
-
   @Override
   public void validate(
       CategoryOptionCombo categoryOptionCombo,
       ObjectBundle bundle,
       Consumer<ErrorReport> addReports) {
-    checkNullCategoryComboReference(categoryOptionCombo, addReports);
-    checkAlternativeDefaultCatOptionCombo(categoryOptionCombo, addReports);
     checkDuplicateCategoryOptionCombos(categoryOptionCombo, addReports);
   }
 }
