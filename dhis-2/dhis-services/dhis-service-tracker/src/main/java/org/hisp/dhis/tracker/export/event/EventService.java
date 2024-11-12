@@ -37,6 +37,8 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
@@ -66,23 +68,58 @@ public interface EventService {
   Event getEvent(UID uid) throws NotFoundException, ForbiddenException;
 
   /**
+   * Get event matching given {@code UID} under the privileges of the currently authenticated user.
+   * Use {@link #getEvent(UID, EventParams)} instead to also get the events relationships.
+   */
+  Event getEvent(UID uid, @Nonnull TrackerIdSchemeParams idSchemeParams)
+      throws NotFoundException, ForbiddenException;
+
+  /**
    * Get event matching given {@code UID} and params under the privileges of the currently
    * authenticated user.
    */
   Event getEvent(UID uid, EventParams eventParams) throws NotFoundException, ForbiddenException;
 
   /**
+   * Get event matching given {@code UID} and params under the privileges of the currently
+   * authenticated user.
+   */
+  Event getEvent(UID uid, @Nonnull TrackerIdSchemeParams idSchemeParams, EventParams eventParams)
+      throws NotFoundException, ForbiddenException;
+
+  /**
    * Get all events matching given params under the privileges of the currently authenticated user.
+   * Metadata identifiers will use the {@code idScheme} {@link TrackerIdScheme#UID}. Use {@link
+   * #getEvents(EventOperationParams, TrackerIdSchemeParams)} to specify other {@code idSchemes}.
    */
   @Nonnull
-  List<Event> getEvents(EventOperationParams params) throws BadRequestException, ForbiddenException;
+  List<Event> getEvents(@Nonnull EventOperationParams params)
+      throws BadRequestException, ForbiddenException;
 
+  /**
+   * Get all events matching given params under the privileges of the currently authenticated user.
+   * Metadata identifiers will use the {@code idScheme} defined by {@link TrackerIdSchemeParams}.
+   */
+  @Nonnull
+  List<Event> getEvents(
+      @Nonnull EventOperationParams params, @Nonnull TrackerIdSchemeParams idSchemeParams)
+      throws BadRequestException, ForbiddenException;
+
+  // TODO(ivo) add TrackerIdSchemeParams. Do we even need to provide variants without
+  // TrackerIdSchemeParams?
   /**
    * Get a page of events matching given params under the privileges of the currently authenticated
    * user.
    */
   @Nonnull
-  Page<Event> getEvents(EventOperationParams params, PageParams pageParams)
+  Page<Event> getEvents(@Nonnull EventOperationParams params, @Nonnull PageParams pageParams)
+      throws BadRequestException, ForbiddenException;
+
+  @Nonnull
+  Page<Event> getEvents(
+      @Nonnull EventOperationParams params,
+      @Nonnull TrackerIdSchemeParams idSchemeParams,
+      @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException;
 
   RelationshipItem getEventInRelationshipItem(UID uid, EventParams eventParams)

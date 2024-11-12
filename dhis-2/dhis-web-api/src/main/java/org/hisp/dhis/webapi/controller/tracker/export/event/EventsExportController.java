@@ -164,7 +164,7 @@ class EventsExportController {
               requestParams.getPage(), requestParams.getPageSize(), requestParams.getTotalPages());
 
       org.hisp.dhis.tracker.export.Page<Event> eventsPage =
-          eventService.getEvents(eventOperationParams, pageParams);
+          eventService.getEvents(eventOperationParams, idSchemeParams, pageParams);
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
           eventsPage.getItems().stream().map(ev -> EVENTS_MAPPER.map(ev, idSchemeParams)).toList();
       List<ObjectNode> objectNodes =
@@ -176,7 +176,7 @@ class EventsExportController {
     }
 
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
-        eventService.getEvents(eventOperationParams).stream()
+        eventService.getEvents(eventOperationParams, idSchemeParams).stream()
             .map(ev -> EVENTS_MAPPER.map(ev, idSchemeParams))
             .toList();
     List<ObjectNode> objectNodes =
@@ -198,7 +198,7 @@ class EventsExportController {
     EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
 
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
-        eventService.getEvents(eventOperationParams).stream()
+        eventService.getEvents(eventOperationParams, idSchemeParams).stream()
             .map(ev -> EVENTS_MAPPER.map(ev, idSchemeParams))
             .toList();
 
@@ -224,7 +224,7 @@ class EventsExportController {
     EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
 
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
-        eventService.getEvents(eventOperationParams).stream()
+        eventService.getEvents(eventOperationParams, idSchemeParams).stream()
             .map(ev -> EVENTS_MAPPER.map(ev, idSchemeParams))
             .toList();
 
@@ -252,7 +252,7 @@ class EventsExportController {
     EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
 
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
-        eventService.getEvents(eventOperationParams).stream()
+        eventService.getEvents(eventOperationParams, idSchemeParams).stream()
             .map(ev -> EVENTS_MAPPER.map(ev, idSchemeParams))
             .toList();
 
@@ -272,7 +272,7 @@ class EventsExportController {
     EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
 
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
-        eventService.getEvents(eventOperationParams).stream()
+        eventService.getEvents(eventOperationParams, idSchemeParams).stream()
             .map(ev -> EVENTS_MAPPER.map(ev, idSchemeParams))
             .toList();
 
@@ -293,7 +293,7 @@ class EventsExportController {
     EventOperationParams eventOperationParams = eventParamsMapper.map(eventRequestParams);
 
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
-        eventService.getEvents(eventOperationParams).stream()
+        eventService.getEvents(eventOperationParams, idSchemeParams).stream()
             .map(ev -> EVENTS_MAPPER.map(ev, idSchemeParams))
             .toList();
 
@@ -314,7 +314,7 @@ class EventsExportController {
       throws NotFoundException, ForbiddenException {
     EventParams eventParams = eventsMapper.map(fields);
     org.hisp.dhis.webapi.controller.tracker.view.Event event =
-        EVENTS_MAPPER.map(eventService.getEvent(uid, eventParams), idSchemeParams);
+        EVENTS_MAPPER.map(eventService.getEvent(uid, idSchemeParams, eventParams), idSchemeParams);
 
     return ResponseEntity.ok(fieldFilterService.toObjectNode(event, fields));
   }

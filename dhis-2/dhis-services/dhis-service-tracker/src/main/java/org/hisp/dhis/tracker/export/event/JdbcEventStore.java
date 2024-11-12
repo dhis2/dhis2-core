@@ -115,7 +115,7 @@ import org.springframework.stereotype.Repository;
 @Slf4j
 @Repository("org.hisp.dhis.tracker.export.event.EventStore")
 @RequiredArgsConstructor
-class JdbcEventStore implements EventStore {
+class JdbcEventStore {
   private static final String RELATIONSHIP_IDS_QUERY =
       " left join (select ri.eventid as ri_ev_id, json_agg(ri.relationshipid) as ev_rl from"
           + " relationshipitem ri group by ri_ev_id) as fgh on fgh.ri_ev_id=event.ev_id ";
@@ -248,12 +248,10 @@ class JdbcEventStore implements EventStore {
 
   private final RelationshipStore relationshipStore;
 
-  @Override
   public List<Event> getEvents(EventQueryParams queryParams) {
     return fetchEvents(queryParams, null);
   }
 
-  @Override
   public Page<Event> getEvents(EventQueryParams queryParams, PageParams pageParams) {
     List<Event> events = fetchEvents(queryParams, pageParams);
     LongSupplier eventCount = () -> getEventCount(queryParams);
@@ -404,7 +402,7 @@ class JdbcEventStore implements EventStore {
                 event.setAssignedUser(eventUser);
               }
 
-              String dataValuesResult = resultSet.getString("ev_eventdatavalues");
+              String dataValuesResult = resultSet.getString("ev_eventdatavalues_idschemes");
               if (!StringUtils.isEmpty(dataValuesResult)) {
                 JsonMixed dataValuesJson = JsonMixed.of(dataValuesResult);
                 JsonObject dataValuesObject = dataValuesJson.asObject();
@@ -419,7 +417,9 @@ class JdbcEventStore implements EventStore {
                   // or we need to refactor the type to use either a reference to DataElement or to
                   // use the MedatadataIdentifier. I assume String was chosen to allow storing this
                   // as JSONB
-                  eventDataValue.setDataElement(uid);
+                  eventDataValue.setDataElement(
+                      dataValueJson.getString("dataElementCode").string(""));
+                  // eventDataValue.setDataElement(uid);
                   eventDataValue.setValue(dataValueJson.getString("value").string(""));
                   eventDataValue.setProvidedElsewhere(
                       dataValueJson.getBoolean("providedElsewhere").booleanValue(false));
@@ -503,7 +503,6 @@ class JdbcEventStore implements EventStore {
     return Page.withoutTotals(events, pageParams.getPage(), pageParams.getPageSize());
   }
 
-  @Override
   public Set<String> getOrderableFields() {
     return ORDERABLE_FIELDS.keySet();
   }
@@ -762,24 +761,11 @@ class JdbcEventStore implements EventStore {
             .append(COLUMN_EVENT_OCCURRED_DATE)
             .append(", ev.scheduleddate as ")
             .append(COLUMN_EVENT_SCHEDULED_DATE)
-            // .append(
-            //     """
-            //     , jsonb_object_agg(
-            //         de.uid,
-            //         jsonb_build_object(
-            //             'value', eventdatavalue.value->>'value',
-            //             'created', eventdatavalue.value->>'created',
-            //             'storedBy', eventdatavalue.value->>'storedBy',
-            //             'lastUpdated', eventdatavalue.value->>'lastUpdated',
-            //             'providedElsewhere', eventdatavalue.value->>'providedElsewhere',
-            //             'dataElementCode', de.code,
-            //             'dataElementName', de.name
-            //             'dataElementAttributeValues', de.attributevalues
-            //         )
-            //     ) as
-            //     """)
             .append(", ev.eventdatavalues as ")
             .append(COLUMN_EVENT_DATAVALUES)
+            // TODO(ivo) use case to use the same 'ev_eventdatavalues' alias if idScheme!=UID and
+            // when UID and subquery is not present
+            .append(", eventdatavalues.eventdatavalues_idschemes as ev_eventdatavalues_idschemes")
             .append(", ev.completedby as ")
             .append(COLUMN_EVENT_COMPLETED_BY)
             .append(", ev.storedby as ")
@@ -901,14 +887,45 @@ class JdbcEventStore implements EventStore {
 
     fromBuilder.append(dataElementAndFiltersSql);
 
-    //     fromBuilder.append(
-    //         """
-    // left join
-    //     lateral jsonb_each(coalesce(ev.eventdatavalues, '{}')) as eventdatavalue(dataelement_uid,
-    // value) on true
-    // left join
-    //     dataelement de on de.uid = eventdatavalue.dataelement_uid
-    // """);
+    fromBuilder.append(
+        """
+left join
+    (
+        select
+            ev_eventdatavalues.eventid,
+            jsonb_object_agg(
+                de.uid,
+                jsonb_build_object(
+                    'value',
+                    eventdatavalue.value ->> 'value',
+                    'created',
+                    eventdatavalue.value ->> 'created',
+                    'storedBy',
+                    eventdatavalue.value ->> 'storedBy',
+                    'lastUpdated',
+                    eventdatavalue.value ->> 'lastUpdated',
+                    'providedElsewhere',
+                    eventdatavalue.value -> 'providedElsewhere',
+                    'dataElementCode',
+                    coalesce(de.code, ''),
+                    'dataElementName',
+                    coalesce(de.name, ''),
+                    'dataElementAttributeValues',
+                    coalesce(de.attributevalues, '{}')
+                )
+            ) as eventdatavalues_idschemes
+        from event ev_eventdatavalues
+        left join
+            lateral jsonb_each(
+                coalesce(ev_eventdatavalues.eventdatavalues, '{}')
+            ) as eventdatavalue(dataelement_uid, value)
+            on true
+        left join dataelement de on de.uid = eventdatavalue.dataelement_uid
+        where eventdatavalue.dataelement_uid is not null
+        group by ev_eventdatavalues.eventid
+    ) eventdatavalues
+    on ev.eventid = eventdatavalues.eventid
+""");
 
     if (params.getTrackedEntity() != null) {
       mapSqlParameterSource.addValue("trackedentityid", params.getTrackedEntity().getId());

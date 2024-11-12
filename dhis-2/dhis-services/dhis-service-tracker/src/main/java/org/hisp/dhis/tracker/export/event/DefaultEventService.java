@@ -50,6 +50,7 @@ import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
@@ -67,7 +68,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 class DefaultEventService implements EventService {
 
-  private final EventStore eventStore;
+  private final JdbcEventStore eventStore;
 
   private final TrackerAccessManager trackerAccessManager;
 
@@ -148,17 +149,37 @@ class DefaultEventService implements EventService {
 
   @Override
   public Event getEvent(@Nonnull UID event) throws ForbiddenException, NotFoundException {
-    return getEvent(event, EventParams.FALSE, getCurrentUserDetails());
+    return getEvent(
+        event, TrackerIdSchemeParams.builder().build(), EventParams.FALSE, getCurrentUserDetails());
+  }
+
+  @Override
+  public Event getEvent(@Nonnull UID event, @Nonnull TrackerIdSchemeParams idSchemeParams)
+      throws ForbiddenException, NotFoundException {
+    return getEvent(event, idSchemeParams, EventParams.FALSE, getCurrentUserDetails());
   }
 
   @Override
   public Event getEvent(@Nonnull UID event, @Nonnull EventParams eventParams)
       throws ForbiddenException, NotFoundException {
-    return getEvent(event, eventParams, getCurrentUserDetails());
+    return getEvent(
+        event, TrackerIdSchemeParams.builder().build(), eventParams, getCurrentUserDetails());
+  }
+
+  @Override
+  public Event getEvent(
+      @Nonnull UID event,
+      @Nonnull TrackerIdSchemeParams idSchemeParams,
+      @Nonnull EventParams eventParams)
+      throws ForbiddenException, NotFoundException {
+    return getEvent(event, idSchemeParams, eventParams, getCurrentUserDetails());
   }
 
   private Event getEvent(
-      @Nonnull UID eventUid, @Nonnull EventParams eventParams, @Nonnull UserDetails user)
+      @Nonnull UID eventUid,
+      @Nonnull TrackerIdSchemeParams idSchemeParams,
+      @Nonnull EventParams eventParams,
+      @Nonnull UserDetails user)
       throws NotFoundException, ForbiddenException {
     Page<Event> events;
     try {
@@ -179,64 +200,31 @@ class DefaultEventService implements EventService {
     }
     Event event = events.getItems().get(0);
 
-    return getEvent(event, eventParams, user);
-  }
-
-  private Event getEvent(
-      @Nonnull Event event, @Nonnull EventParams eventParams, @Nonnull UserDetails user) {
-    Event result = new Event();
-    result.setId(event.getId());
-    result.setUid(event.getUid());
-
-    result.setStatus(event.getStatus());
-    result.setOccurredDate(event.getOccurredDate());
-    result.setScheduledDate(event.getScheduledDate());
-    result.setStoredBy(event.getStoredBy());
-    result.setCompletedBy(event.getCompletedBy());
-    result.setCompletedDate(event.getCompletedDate());
-    result.setCreated(event.getCreated());
-    result.setCreatedByUserInfo(event.getCreatedByUserInfo());
-    result.setLastUpdatedByUserInfo(event.getLastUpdatedByUserInfo());
-    result.setCreatedAtClient(event.getCreatedAtClient());
-    result.setLastUpdated(event.getLastUpdated());
-    result.setLastUpdatedAtClient(event.getLastUpdatedAtClient());
-    result.setGeometry(event.getGeometry());
-    result.setDeleted(event.isDeleted());
-    result.setAssignedUser(event.getAssignedUser());
-
-    result.setEnrollment(event.getEnrollment());
-    result.setProgramStage(event.getProgramStage());
-
-    result.setOrganisationUnit(event.getOrganisationUnit());
-    result.setProgramStage(event.getProgramStage());
-
-    result.setAttributeOptionCombo(event.getAttributeOptionCombo());
-
-    for (EventDataValue dataValue : event.getEventDataValues()) {
-      if (dataElementService.getDataElement(dataValue.getDataElement())
-          != null) // check permissions
-      {
-        EventDataValue value = new EventDataValue();
-        value.setCreated(dataValue.getCreated());
-        value.setCreatedByUserInfo(dataValue.getCreatedByUserInfo());
-        value.setLastUpdated(dataValue.getLastUpdated());
-        value.setLastUpdatedByUserInfo(dataValue.getLastUpdatedByUserInfo());
-        value.setDataElement(dataValue.getDataElement());
-        value.setValue(dataValue.getValue());
-        value.setProvidedElsewhere(dataValue.getProvidedElsewhere());
-        value.setStoredBy(dataValue.getStoredBy());
-
-        result.getEventDataValues().add(value);
-      } else {
-        log.info("Cannot find data element with UID {}", dataValue.getDataElement());
-      }
-    }
-
-    result.getNotes().addAll(event.getNotes());
+    // TODO(ivo) do do ACL checks on data elements/relationships in query, how is that done on for
+    // the
+    // collections?
+    // for (EventDataValue dataValue : event.getEventDataValues()) {
+    //   if (dataElementService.getDataElement(dataValue.getDataElement())
+    //       != null) // check permissions
+    //   {
+    //     EventDataValue value = new EventDataValue();
+    //     value.setCreated(dataValue.getCreated());
+    //     value.setCreatedByUserInfo(dataValue.getCreatedByUserInfo());
+    //     value.setLastUpdated(dataValue.getLastUpdated());
+    //     value.setLastUpdatedByUserInfo(dataValue.getLastUpdatedByUserInfo());
+    //     value.setDataElement(dataValue.getDataElement());
+    //     value.setValue(dataValue.getValue());
+    //     value.setProvidedElsewhere(dataValue.getProvidedElsewhere());
+    //     value.setStoredBy(dataValue.getStoredBy());
+    //
+    //     result.getEventDataValues().add(value);
+    //   } else {
+    //     log.info("Cannot find data element with UID {}", dataValue.getDataElement());
+    //   }
+    // }
 
     if (eventParams.isIncludeRelationships()) {
       Set<RelationshipItem> relationshipItems = new HashSet<>();
-
       for (RelationshipItem relationshipItem : event.getRelationshipItems()) {
         Relationship daoRelationship = relationshipItem.getRelationship();
         if (trackerAccessManager.canRead(user, daoRelationship).isEmpty()
@@ -245,24 +233,41 @@ class DefaultEventService implements EventService {
         }
       }
 
-      result.setRelationshipItems(relationshipItems);
+      event.setRelationshipItems(relationshipItems);
     }
 
-    return result;
+    return event;
   }
 
   @Override
   public List<Event> getEvents(@Nonnull EventOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
-    EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
+    return getEvents(operationParams, TrackerIdSchemeParams.builder().build());
+  }
+
+  @Override
+  public List<Event> getEvents(
+      @Nonnull EventOperationParams operationParams, @Nonnull TrackerIdSchemeParams idSchemeParams)
+      throws BadRequestException, ForbiddenException {
+    EventQueryParams queryParams =
+        paramsMapper.map(operationParams, idSchemeParams, getCurrentUserDetails());
     return eventStore.getEvents(queryParams);
   }
 
   @Override
-  public Page<Event> getEvents(
-      @Nonnull EventOperationParams operationParams, @Nonnull PageParams pageParams)
+  public Page<Event> getEvents(EventOperationParams params, PageParams pageParams)
       throws BadRequestException, ForbiddenException {
-    EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
+    return getEvents(params, TrackerIdSchemeParams.builder().build(), pageParams);
+  }
+
+  @Override
+  public Page<Event> getEvents(
+      @Nonnull EventOperationParams operationParams,
+      @Nonnull TrackerIdSchemeParams idSchemeParams,
+      @Nonnull PageParams pageParams)
+      throws BadRequestException, ForbiddenException {
+    EventQueryParams queryParams =
+        paramsMapper.map(operationParams, idSchemeParams, getCurrentUserDetails());
     return eventStore.getEvents(queryParams, pageParams);
   }
 

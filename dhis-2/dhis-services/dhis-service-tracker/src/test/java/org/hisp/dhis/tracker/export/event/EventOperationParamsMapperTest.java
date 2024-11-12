@@ -76,6 +76,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
@@ -129,6 +130,8 @@ class EventOperationParamsMapperTest {
   private EventOperationParams.EventOperationParamsBuilder eventBuilder =
       EventOperationParams.builder();
 
+  private TrackerIdSchemeParams idSchemeParams;
+
   @BeforeEach
   public void setUp() {
     OrganisationUnit orgUnit = createOrgUnit("orgUnit");
@@ -146,6 +149,8 @@ class EventOperationParamsMapperTest {
     // set because its validation is in the EventRequestParamsMapper.
     eventBuilder = eventBuilder.orgUnitMode(ACCESSIBLE).eventParams(EventParams.FALSE);
 
+    idSchemeParams = TrackerIdSchemeParams.builder().build();
+
     userMap.put("admin", createUserWithAuthority(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS));
     userMap.put("superuser", createUserWithAuthority(Authorities.ALL));
   }
@@ -154,24 +159,26 @@ class EventOperationParamsMapperTest {
   void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToProgramStage() {
     ProgramStage programStage = new ProgramStage();
     programStage.setUid("PlZSBEN7iZd");
-    EventOperationParams eventOperationParams = eventBuilder.programStage(programStage).build();
+    EventOperationParams operationParams = eventBuilder.programStage(programStage).build();
 
     when(aclService.canDataRead(user, programStage)).thenReturn(false);
     when(programStageService.getProgramStage("PlZSBEN7iZd")).thenReturn(programStage);
 
     Exception exception =
-        assertThrows(ForbiddenException.class, () -> mapper.map(eventOperationParams, user));
+        assertThrows(
+            ForbiddenException.class, () -> mapper.map(operationParams, idSchemeParams, user));
     assertEquals(
         "User has no access to program stage: " + programStage.getUid(), exception.getMessage());
   }
 
   @Test
   void shouldFailWithBadRequestExceptionWhenMappingWithUnknownProgramStage() {
-    EventOperationParams eventOperationParams =
+    EventOperationParams operationParams =
         EventOperationParams.builder().programStage(UID.of("NeU85luyD4w")).build();
 
     Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(eventOperationParams, user));
+        assertThrows(
+            BadRequestException.class, () -> mapper.map(operationParams, idSchemeParams, user));
     assertEquals(
         "Program stage is specified but does not exist: NeU85luyD4w", exception.getMessage());
   }
@@ -179,7 +186,7 @@ class EventOperationParamsMapperTest {
   @Test
   void
       shouldFailWithForbiddenExceptionWhenUserHasNoAccessToCategoryComboGivenAttributeCategoryOptions() {
-    EventOperationParams eventOperationParams =
+    EventOperationParams operationParams =
         eventBuilder
             .attributeCategoryCombo(UID.of("NeU85luyD4w"))
             .attributeCategoryOptions(UID.of("tqrzUqNMHib", "bT6OSf4qnnk"))
@@ -193,7 +200,8 @@ class EventOperationParamsMapperTest {
         .thenReturn(false);
 
     Exception exception =
-        assertThrows(ForbiddenException.class, () -> mapper.map(eventOperationParams, user));
+        assertThrows(
+            ForbiddenException.class, () -> mapper.map(operationParams, idSchemeParams, user));
 
     assertEquals(
         "User has no access to attribute category option combo: " + combo.getUid(),
@@ -216,7 +224,7 @@ class EventOperationParamsMapperTest {
     when(aclService.canDataRead(any(UserDetails.class), any(CategoryOptionCombo.class)))
         .thenReturn(true);
 
-    EventQueryParams queryParams = mapper.map(operationParams, user);
+    EventQueryParams queryParams = mapper.map(operationParams, idSchemeParams, user);
 
     assertEquals(combo, queryParams.getCategoryOptionCombo());
   }
@@ -229,7 +237,7 @@ class EventOperationParamsMapperTest {
             .assignedUserMode(AssignedUserSelectionMode.PROVIDED)
             .build();
 
-    EventQueryParams queryParams = mapper.map(operationParams, user);
+    EventQueryParams queryParams = mapper.map(operationParams, idSchemeParams, user);
 
     assertContainsOnly(
         UID.of("IsdLBTOBzMi", "l5ab8q5skbB"),
@@ -257,7 +265,7 @@ class EventOperationParamsMapperTest {
                     List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
             .build();
 
-    EventQueryParams queryParams = mapper.map(operationParams, user);
+    EventQueryParams queryParams = mapper.map(operationParams, idSchemeParams, user);
 
     Map<TrackedEntityAttribute, List<QueryFilter>> attributes = queryParams.getAttributes();
     assertNotNull(attributes);
@@ -280,7 +288,8 @@ class EventOperationParamsMapperTest {
         .thenReturn(null);
 
     Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams, user));
+        assertThrows(
+            BadRequestException.class, () -> mapper.map(operationParams, idSchemeParams, user));
 
     assertContains(
         "Tracked entity attribute '" + filterName + "' does not exist", exception.getMessage());
@@ -306,7 +315,7 @@ class EventOperationParamsMapperTest {
             .orderBy("scheduledDate", SortDirection.ASC)
             .build();
 
-    EventQueryParams params = mapper.map(operationParams, user);
+    EventQueryParams params = mapper.map(operationParams, idSchemeParams, user);
 
     assertEquals(
         List.of(
@@ -332,7 +341,8 @@ class EventOperationParamsMapperTest {
         eventBuilder.orderBy(UID.of(TEA_1_UID), SortDirection.ASC).build();
 
     Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams, user));
+        assertThrows(
+            BadRequestException.class, () -> mapper.map(operationParams, idSchemeParams, user));
     assertStartsWith("Cannot order by '" + TEA_1_UID, exception.getMessage());
   }
 
@@ -347,7 +357,8 @@ class EventOperationParamsMapperTest {
         eventBuilder.orderBy(UID.of("lastUpdated"), SortDirection.ASC).build();
 
     Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams, user));
+        assertThrows(
+            BadRequestException.class, () -> mapper.map(operationParams, idSchemeParams, user));
     assertStartsWith("Cannot order by 'lastUpdated'", exception.getMessage());
   }
 
@@ -370,7 +381,7 @@ class EventOperationParamsMapperTest {
                     List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
             .build();
 
-    EventQueryParams queryParams = mapper.map(operationParams, user);
+    EventQueryParams queryParams = mapper.map(operationParams, idSchemeParams, user);
 
     Map<DataElement, List<QueryFilter>> dataElements = queryParams.getDataElements();
     assertNotNull(dataElements);
@@ -392,7 +403,8 @@ class EventOperationParamsMapperTest {
     when(dataElementService.getDataElement(filterName.getValue())).thenReturn(null);
 
     Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams, user));
+        assertThrows(
+            BadRequestException.class, () -> mapper.map(operationParams, idSchemeParams, user));
 
     assertContains("Data element '" + filterName + "' does not exist", exception.getMessage());
   }
@@ -442,7 +454,8 @@ class EventOperationParamsMapperTest {
             .orgUnitMode(orgUnitMode)
             .build();
 
-    EventQueryParams queryParams = mapper.map(operationParams, UserDetails.fromUser(user));
+    EventQueryParams queryParams =
+        mapper.map(operationParams, idSchemeParams, UserDetails.fromUser(user));
     assertEquals(searchScopeChildOrgUnit, queryParams.getOrgUnit());
   }
 
@@ -473,7 +486,8 @@ class EventOperationParamsMapperTest {
     EventOperationParams operationParams =
         eventBuilder.program(program).orgUnit(searchScopeChildOrgUnit).orgUnitMode(ALL).build();
 
-    EventQueryParams queryParams = mapper.map(operationParams, UserDetails.fromUser(user));
+    EventQueryParams queryParams =
+        mapper.map(operationParams, idSchemeParams, UserDetails.fromUser(user));
     assertEquals(searchScopeChildOrgUnit, queryParams.getOrgUnit());
   }
 
@@ -489,7 +503,7 @@ class EventOperationParamsMapperTest {
     ForbiddenException exception =
         assertThrows(
             ForbiddenException.class,
-            () -> mapper.map(operationParams, UserDetails.fromUser(new User())));
+            () -> mapper.map(operationParams, idSchemeParams, UserDetails.fromUser(new User())));
     assertEquals(
         "Organisation unit is not part of your search scope: " + orgUnit.getUid(),
         exception.getMessage());
@@ -505,7 +519,8 @@ class EventOperationParamsMapperTest {
 
     EventOperationParams operationParams = eventBuilder.orgUnitMode(ALL).build();
 
-    EventQueryParams params = mapper.map(operationParams, UserDetails.fromUser(mappedUser));
+    EventQueryParams params =
+        mapper.map(operationParams, idSchemeParams, UserDetails.fromUser(mappedUser));
     assertNull(params.getOrgUnit());
     assertEquals(ALL, params.getOrgUnitMode());
   }
@@ -519,7 +534,8 @@ class EventOperationParamsMapperTest {
 
     EventOperationParams operationParams =
         eventBuilder.orgUnitMode(ALL).eventParams(EventParams.TRUE).build();
-    EventQueryParams params = mapper.map(operationParams, UserDetails.fromUser(mappedUser));
+    EventQueryParams params =
+        mapper.map(operationParams, idSchemeParams, UserDetails.fromUser(mappedUser));
     assertTrue(params.isIncludeRelationships());
   }
 
@@ -532,7 +548,8 @@ class EventOperationParamsMapperTest {
 
     EventOperationParams operationParams =
         eventBuilder.orgUnitMode(ALL).eventParams(EventParams.FALSE).build();
-    EventQueryParams params = mapper.map(operationParams, UserDetails.fromUser(mappedUser));
+    EventQueryParams params =
+        mapper.map(operationParams, idSchemeParams, UserDetails.fromUser(mappedUser));
     assertFalse(params.isIncludeRelationships());
   }
 

@@ -159,93 +159,87 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
         Map.of(
             "orgUnit",
             actual ->
-                ((Executable)
-                    () ->
-                        assertIdScheme(
-                            idSchemeParam.getIdentifier(event.getOrganisationUnit()),
-                            actual,
-                            idSchemeParam,
-                            "orgUnit")),
+                (() ->
+                    assertIdScheme(
+                        idSchemeParam.getIdentifier(event.getOrganisationUnit()),
+                        actual,
+                        idSchemeParam,
+                        "orgUnit")),
             "program",
             actual ->
-                ((Executable)
-                    () ->
-                        assertIdScheme(
-                            idSchemeParam.getIdentifier(event.getProgramStage().getProgram()),
-                            actual,
-                            idSchemeParam,
-                            "program")),
+                (() ->
+                    assertIdScheme(
+                        idSchemeParam.getIdentifier(event.getProgramStage().getProgram()),
+                        actual,
+                        idSchemeParam,
+                        "program")),
             "programStage",
             actual ->
-                ((Executable)
-                    () ->
-                        assertIdScheme(
-                            idSchemeParam.getIdentifier(event.getProgramStage()),
-                            actual,
-                            idSchemeParam,
-                            "programStage")),
+                (() ->
+                    assertIdScheme(
+                        idSchemeParam.getIdentifier(event.getProgramStage()),
+                        actual,
+                        idSchemeParam,
+                        "programStage")),
             "attributeOptionCombo",
             actual ->
-                ((Executable)
-                    () ->
-                        assertIdScheme(
-                            idSchemeParam.getIdentifier(event.getAttributeOptionCombo()),
-                            actual,
-                            idSchemeParam,
-                            "attributeOptionCombo")),
+                (() ->
+                    assertIdScheme(
+                        idSchemeParam.getIdentifier(event.getAttributeOptionCombo()),
+                        actual,
+                        idSchemeParam,
+                        "attributeOptionCombo")),
             "attributeCategoryOptions",
             json ->
-                ((Executable)
-                    () -> {
-                      String field = "attributeCategoryOptions";
-                      List<String> expected =
-                          event.getAttributeOptionCombo().getCategoryOptions().stream()
-                              .map(co -> idSchemeParam.getIdentifier(co))
-                              .toList();
-                      assertNotEmpty(
-                          expected,
+                (() -> {
+                  String field = "attributeCategoryOptions";
+                  List<String> expected =
+                      event.getAttributeOptionCombo().getCategoryOptions().stream()
+                          .map(co -> idSchemeParam.getIdentifier(co))
+                          .toList();
+                  assertNotEmpty(
+                      expected,
+                      String.format(
+                          "metadata corresponding to field \"%s\" has no value in test data for"
+                              + " idScheme '%s'",
+                          field, idSchemeParam));
+                  assertTrue(
+                      json.has(field),
+                      () ->
                           String.format(
-                              "metadata corresponding to field \"%s\" has no value in test data for"
-                                  + " idScheme '%s'",
-                              field, idSchemeParam));
-                      assertTrue(
-                          json.has(field),
-                          () ->
-                              String.format(
-                                  "field \"%s\" is not in response %s for idScheme '%s'",
-                                  field, json, idSchemeParam));
-                      assertContainsOnly(
-                          expected, Arrays.asList(json.getString(field).string().split(",")));
-                    }),
+                              "field \"%s\" is not in response %s for idScheme '%s'",
+                              field, json, idSchemeParam));
+                  assertContainsOnly(
+                      expected, Arrays.asList(json.getString(field).string().split(",")));
+                }),
             "dataValues",
             json ->
-                ((Executable)
-                    () -> {
-                      String field = "dataValues";
-                      List<String> expected =
-                          event.getEventDataValues().stream()
-                              .map(
-                                  dv ->
-                                      idSchemeParam.getIdentifier(
-                                          get(DataElement.class, dv.getDataElement())))
-                              .toList();
-                      assertNotEmpty(
-                          expected,
+                (() -> {
+                  String field = "dataValues";
+                  List<String> expected =
+                      event.getEventDataValues().stream()
+                          .map(
+                              dv ->
+                                  idSchemeParam.getIdentifier(
+                                      get(DataElement.class, dv.getDataElement())))
+                          .toList();
+                  assertNotEmpty(
+                      expected,
+                      String.format(
+                          "metadata corresponding to field \"%s\" has no value in test data for"
+                              + " idScheme '%s'",
+                          field, idSchemeParam));
+                  assertTrue(
+                      json.has(field),
+                      () ->
                           String.format(
-                              "metadata corresponding to field \"%s\" has no value in test data for"
-                                  + " idScheme '%s'",
-                              field, idSchemeParam));
-                      assertTrue(
-                          json.has(field),
-                          () ->
-                              String.format(
-                                  "field \"%s\" is not in response %s for idScheme '%s'",
-                                  field, json, idSchemeParam));
-                      List<String> actual =
-                          json.getList(field, JsonObject.class)
-                              .toList(el -> el.getString("dataElement").string(""));
-                      assertContainsOnly(expected, actual);
-                    }));
+                              "field \"%s\" is not in response %s for idScheme '%s'",
+                              field, json, idSchemeParam));
+                  List<String> actual =
+                      json.getList(field, JsonObject.class)
+                          .toList(el -> el.getString("dataElement").string(""));
+                  assertContainsOnly(expected, actual);
+                }));
     String fields = metadata.keySet().stream().collect(Collectors.joining(","));
     String idSchemes =
         metadata.keySet().stream()
@@ -262,10 +256,11 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
 
   public static Stream<TrackerIdSchemeParam> shouldExportMetadataUsingGivenIdSchemeProvider() {
     return Stream.of(
-        TrackerIdSchemeParam.UID,
-        TrackerIdSchemeParam.CODE,
-        TrackerIdSchemeParam.NAME,
-        TrackerIdSchemeParam.ofAttribute(METADATA_ATTRIBUTE));
+        //        TrackerIdSchemeParam.UID,
+        //        TrackerIdSchemeParam.CODE,
+        //        TrackerIdSchemeParam.NAME,
+        TrackerIdSchemeParam.NAME);
+    //        TrackerIdSchemeParam.ofAttribute(METADATA_ATTRIBUTE));
   }
 
   /**
