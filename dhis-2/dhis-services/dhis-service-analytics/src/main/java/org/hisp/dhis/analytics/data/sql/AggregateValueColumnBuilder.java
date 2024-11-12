@@ -38,6 +38,7 @@ import static org.hisp.dhis.analytics.data.sql.SqlAggregationTemplate.DEFAULT_SU
 import static org.hisp.dhis.analytics.data.sql.SqlAggregationTemplate.NUMERIC_AVERAGE;
 import static org.hisp.dhis.analytics.data.sql.SqlAggregationTemplate.SIMPLE_AGGREGATION;
 
+import java.util.EnumSet;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -48,8 +49,8 @@ public class AggregateValueColumnBuilder {
   private final AnalyticsAggregationType aggType;
   private final String valueColumn;
 
-  private static final Set<AggregationType> SIMPLE_AGGREGATION_TYPES =
-      Set.of(COUNT, STDDEV, VARIANCE, MIN, MAX);
+  private static final EnumSet<AggregationType> SIMPLE_AGGREGATION_TYPES =
+          EnumSet.of(COUNT, STDDEV, VARIANCE, MIN, MAX);
 
   public AggregateValueColumnBuilder(DataQueryParams params) {
     this.params = params;

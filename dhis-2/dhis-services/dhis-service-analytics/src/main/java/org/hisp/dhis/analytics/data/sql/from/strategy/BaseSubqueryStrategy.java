@@ -50,11 +50,13 @@ public abstract class BaseSubqueryStrategy implements SubqueryStrategy {
   }
 
   private String getUnionPartitionSourceClause() {
-    String sql = "(";
+    StringBuilder sql = new StringBuilder("(");
     for (Integer partition : params.getPartitions().getPartitions()) {
       String partitionName = PartitionUtils.getPartitionName(params.getTableName(), partition);
-      sql += "select ap.* from " + partitionName + " as ap union all ";
+      sql.append("select ap.* from ")
+              .append(partitionName)
+              .append(" as ap union all ");
     }
-    return TextUtils.removeLast(sql, "union all") + ")";
+    return TextUtils.removeLast(sql.toString(), "union all") + ")";
   }
 }

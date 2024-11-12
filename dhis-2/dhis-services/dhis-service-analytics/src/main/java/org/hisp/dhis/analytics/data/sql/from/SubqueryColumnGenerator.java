@@ -139,7 +139,7 @@ public class SubqueryColumnGenerator {
                         "cast('%s' as text) as %s",
                         period.getDimensionItem(), sqlBuilder.quote(dim.getDimensionName()))
                     : sqlBuilder.quote(dim.getDimensionName()))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private String getDimensionColumnsForNonPeriodDimensions() {
@@ -174,7 +174,7 @@ public class SubqueryColumnGenerator {
    * @return a list of quoted relations.
    */
   protected List<String> toQuotedList(List<String> relations) {
-    return relations.stream().map(this::quote).collect(Collectors.toList());
+    return relations.stream().map(this::quote).toList();
   }
 
   /**

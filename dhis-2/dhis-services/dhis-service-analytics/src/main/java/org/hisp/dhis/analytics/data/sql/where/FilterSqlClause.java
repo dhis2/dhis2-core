@@ -30,6 +30,8 @@ package org.hisp.dhis.analytics.data.sql.where;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 
 import java.util.List;
+import java.util.Map;
+
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.DimensionalObject;
@@ -47,8 +49,8 @@ public class FilterSqlClause implements SqlClauseAppender {
   public void appendTo(StringBuilder sql, SqlHelper sqlHelper) {
     ListMap<String, DimensionalObject> filterMap = params.getDimensionFilterMap();
 
-    for (String dimension : filterMap.keySet()) {
-      List<DimensionalObject> filters = filterMap.get(dimension);
+    for (Map.Entry<String, List<DimensionalObject>> entry : filterMap.entrySet()) {
+      List<DimensionalObject> filters = entry.getValue();
 
       if (DimensionalObjectUtils.anyDimensionHasItems(filters)) {
         appendFilterGroup(sql, sqlHelper, filters);

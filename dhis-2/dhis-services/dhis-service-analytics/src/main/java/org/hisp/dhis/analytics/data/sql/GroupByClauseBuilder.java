@@ -39,6 +39,7 @@ public class GroupByClauseBuilder implements SqlClauseBuilder {
     this.dimensionsUtils = new DimensionsUtils(sqlBuilder);
   }
 
+  @Override
   public String buildForPostgres() {
     String sql = "";
 

@@ -62,7 +62,7 @@ public abstract class TimeFieldSqlRenderer {
 
   protected final StatementBuilder statementBuilder = new PostgreSqlStatementBuilder();
 
-  public TimeFieldSqlRenderer(SqlBuilder sqlBuilder) {
+  protected TimeFieldSqlRenderer(SqlBuilder sqlBuilder) {
     this.sqlBuilder = sqlBuilder;
   }
 

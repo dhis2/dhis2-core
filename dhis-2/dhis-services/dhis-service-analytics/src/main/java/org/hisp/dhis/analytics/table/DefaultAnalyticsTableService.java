@@ -78,7 +78,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
 
   @PostConstruct
   void postConstruct() {
-    // TODO we can use a standard constructor as well (@Maikel preferences?)
+    // we can use a standard constructor as well (@Maikel preferences?)
     this.parallelJobs = getParallelJobs();
     this.analyticsTableStrategy = getTableStrategy(parallelJobs);
   }
@@ -292,7 +292,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   }
 
   // Generic wrapper method
-  private static <T> void withClock(
+  private static void withClock(
       Clock clock, String message, Supplier<TableStrategyOpResult> operation) {
     TableStrategyOpResult result = operation.get();
     if (result.equals(TableStrategyOpResult.EXECUTED)) {
