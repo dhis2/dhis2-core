@@ -52,7 +52,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.UserDetails;
@@ -83,9 +82,7 @@ class EventOperationParamsMapper {
 
   @Transactional(readOnly = true)
   public EventQueryParams map(
-      @Nonnull EventOperationParams operationParams,
-      @Nonnull TrackerIdSchemeParams idSchemeParams,
-      @Nonnull UserDetails user)
+      @Nonnull EventOperationParams operationParams, @Nonnull UserDetails user)
       throws BadRequestException, ForbiddenException {
     Program program = paramsValidator.validateProgramAccess(operationParams.getProgram(), user);
     ProgramStage programStage =
@@ -145,7 +142,7 @@ class EventOperationParamsMapper {
         .setEnrollments(operationParams.getEnrollments())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setIncludeRelationships(operationParams.getEventParams().isIncludeRelationships())
-        .setIdSchemeParams(idSchemeParams);
+        .setIdSchemeParams(operationParams.getIdSchemeParams());
   }
 
   private ProgramStage validateProgramStage(String programStageUid, UserDetails user)

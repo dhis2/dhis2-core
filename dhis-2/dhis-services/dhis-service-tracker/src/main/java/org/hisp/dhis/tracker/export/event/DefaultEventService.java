@@ -242,32 +242,14 @@ class DefaultEventService implements EventService {
   @Override
   public List<Event> getEvents(@Nonnull EventOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
-    return getEvents(operationParams, TrackerIdSchemeParams.builder().build());
-  }
-
-  @Override
-  public List<Event> getEvents(
-      @Nonnull EventOperationParams operationParams, @Nonnull TrackerIdSchemeParams idSchemeParams)
-      throws BadRequestException, ForbiddenException {
-    EventQueryParams queryParams =
-        paramsMapper.map(operationParams, idSchemeParams, getCurrentUserDetails());
+    EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
     return eventStore.getEvents(queryParams);
   }
 
   @Override
-  public Page<Event> getEvents(EventOperationParams params, PageParams pageParams)
+  public Page<Event> getEvents(EventOperationParams operationParams, PageParams pageParams)
       throws BadRequestException, ForbiddenException {
-    return getEvents(params, TrackerIdSchemeParams.builder().build(), pageParams);
-  }
-
-  @Override
-  public Page<Event> getEvents(
-      @Nonnull EventOperationParams operationParams,
-      @Nonnull TrackerIdSchemeParams idSchemeParams,
-      @Nonnull PageParams pageParams)
-      throws BadRequestException, ForbiddenException {
-    EventQueryParams queryParams =
-        paramsMapper.map(operationParams, idSchemeParams, getCurrentUserDetails());
+    EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
     return eventStore.getEvents(queryParams, pageParams);
   }
 
