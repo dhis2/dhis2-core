@@ -300,11 +300,9 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     return DataQueryParams.newBuilder(params).withPartitions(offsetParitions).build();
   }
 
-  // luciano: entry point
   private String getSql2(DataQueryParams params, AnalyticsTableType tableType) {
-    // TODO AnalyticsQueryBuilder could also be a Spring Bean
-    // TODO this must be behind a factory, that returns the correct implementation for the database
-    // similar to SqlBuilderProvider
+
+    // Currently only PostgresAnalyticsQueryBuilder is supported
     AnalyticsQueryBuilder queryBuilder = new PostgresAnalyticsQueryBuilder(sqlBuilder);
 
     if (params.hasSubexpressions()) {
