@@ -38,7 +38,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.MergeReport;
-import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
