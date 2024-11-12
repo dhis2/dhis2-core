@@ -58,8 +58,7 @@ class DataElementMergeValidatorTest extends TestBase {
     // when
     DataElementMergeValidator validator = new DataElementMergeValidator();
     MergeReport report =
-        validator.validateValueType(
-            target, List.of(source1, source2, source3), new MergeReport(MergeType.DATA_ELEMENT));
+        validator.validateValueType(target, List.of(source1, source2, source3), new MergeReport());
 
     // then
     assertFalse(report.hasErrorMessages());
@@ -78,8 +77,7 @@ class DataElementMergeValidatorTest extends TestBase {
     // when
     DataElementMergeValidator validator = new DataElementMergeValidator();
     MergeReport report =
-        validator.validateValueType(
-            target, List.of(source1, source2, source3), new MergeReport(MergeType.DATA_ELEMENT));
+        validator.validateValueType(target, List.of(source1, source2, source3), new MergeReport());
 
     // then
     assertTrue(report.hasErrorMessages());
@@ -102,8 +100,7 @@ class DataElementMergeValidatorTest extends TestBase {
     // when
     DataElementMergeValidator validator = new DataElementMergeValidator();
     MergeReport report =
-        validator.validateValueType(
-            target, List.of(source1, source2, source3), new MergeReport(MergeType.DATA_ELEMENT));
+        validator.validateValueType(target, List.of(source1, source2, source3), new MergeReport());
 
     // then
     assertTrue(report.hasErrorMessages());
@@ -130,8 +127,7 @@ class DataElementMergeValidatorTest extends TestBase {
     // when
     DataElementMergeValidator validator = new DataElementMergeValidator();
     MergeReport report =
-        validator.validateDomainType(
-            target, List.of(source1, source2, source3), new MergeReport(MergeType.DATA_ELEMENT));
+        validator.validateDomainType(target, List.of(source1, source2, source3), new MergeReport());
 
     // then
     assertFalse(report.hasErrorMessages());
@@ -154,8 +150,7 @@ class DataElementMergeValidatorTest extends TestBase {
     // when
     DataElementMergeValidator validator = new DataElementMergeValidator();
     MergeReport report =
-        validator.validateDomainType(
-            target, List.of(source1, source2, source3), new MergeReport(MergeType.DATA_ELEMENT));
+        validator.validateDomainType(target, List.of(source1, source2, source3), new MergeReport());
 
     // then
     assertTrue(report.hasErrorMessages());
