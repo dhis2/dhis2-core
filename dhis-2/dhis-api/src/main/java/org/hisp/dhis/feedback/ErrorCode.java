@@ -65,6 +65,7 @@ public enum ErrorCode {
       "Option set `{0}` of value type multi-text cannot have option codes with the separator character: `{1}`"),
   E1119("{0} already exists: `{1}`"),
   E1120("Update cannot be applied as it would make existing data values inaccessible"),
+  E1121("Data element `{0}` value type cannot be changed as it has associated data values"),
 
   /* Org unit merge */
   E1500("At least two source orgs unit must be specified"),
@@ -466,6 +467,7 @@ public enum ErrorCode {
       "Query failed because a referenced table does not exist. Please ensure analytics job was run"),
   E7145("Query failed because of a syntax error"),
   E7146("A {0} date was not specified in periods, dimensions, filters"),
+  E7147("Query failed because of a missing column: `{0}`"),
 
   /* Analytics outliers */
 
