@@ -411,15 +411,31 @@ class JdbcEventStore {
                 for (String uid : dataValuesObject.names()) {
                   JsonObject dataValueJson = dataValuesObject.getObject(uid);
                   EventDataValue eventDataValue = new EventDataValue();
-                  // TODO(ivo) EventDataValues are different than other data. It has no reference to
-                  // metadata but only a String field. To support idSchemes on export we can either
-                  // set the String to uid, code, name or the attribute value of given attribute:uid
-                  // or we need to refactor the type to use either a reference to DataElement or to
-                  // use the MedatadataIdentifier. I assume String was chosen to allow storing this
-                  // as JSONB
-                  eventDataValue.setDataElement(
-                      dataValueJson.getString("dataElementCode").string(""));
-                  // eventDataValue.setDataElement(uid);
+                  switch (queryParams.getIdSchemeParams().getDataElementIdScheme().getIdScheme()) {
+                    case CODE:
+                      eventDataValue.setDataElement(
+                          dataValueJson.getString("dataElementCode").string(""));
+                      break;
+                    case NAME:
+                      eventDataValue.setDataElement(
+                          dataValueJson.getString("dataElementName").string(""));
+                      break;
+                    case ATTRIBUTE:
+                      String attributeUid =
+                          queryParams
+                              .getIdSchemeParams()
+                              .getDataElementIdScheme()
+                              .getAttributeUid();
+                      JsonObject attributeValue =
+                          dataValueJson
+                              .getObject("dataElementAttributeValues")
+                              .getObject(attributeUid);
+                      eventDataValue.setDataElement(attributeValue.getString("value").string(""));
+                      break;
+                    default:
+                      eventDataValue.setDataElement(uid);
+                      break;
+                  }
                   eventDataValue.setValue(dataValueJson.getString("value").string(""));
                   eventDataValue.setProvidedElsewhere(
                       dataValueJson.getBoolean("providedElsewhere").booleanValue(false));
@@ -877,16 +893,6 @@ class JdbcEventStore {
         .append("left join trackedentity te on te.trackedentityid=en.trackedentityid ")
         .append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
 
-    // JOIN attributes we need to filter on.
-    fromBuilder.append(joinAttributeValue(params, mapSqlParameterSource));
-
-    // LEFT JOIN not filterable attributes we need to sort on.
-    fromBuilder.append(getFromSubQueryJoinOrderByAttributes(params));
-
-    fromBuilder.append(getCategoryOptionComboQuery(user));
-
-    fromBuilder.append(dataElementAndFiltersSql);
-
     fromBuilder.append(
         """
 left join
@@ -926,6 +932,16 @@ left join
     ) eventdatavalues
     on ev.eventid = eventdatavalues.eventid
 """);
+
+    // JOIN attributes we need to filter on.
+    fromBuilder.append(joinAttributeValue(params, mapSqlParameterSource));
+
+    // LEFT JOIN not filterable attributes we need to sort on.
+    fromBuilder.append(getFromSubQueryJoinOrderByAttributes(params));
+
+    fromBuilder.append(getCategoryOptionComboQuery(user));
+
+    fromBuilder.append(dataElementAndFiltersSql);
 
     if (params.getTrackedEntity() != null) {
       mapSqlParameterSource.addValue("trackedentityid", params.getTrackedEntity().getId());

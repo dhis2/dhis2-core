@@ -256,11 +256,10 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
 
   public static Stream<TrackerIdSchemeParam> shouldExportMetadataUsingGivenIdSchemeProvider() {
     return Stream.of(
-        //        TrackerIdSchemeParam.UID,
-        //        TrackerIdSchemeParam.CODE,
-        //        TrackerIdSchemeParam.NAME,
-        TrackerIdSchemeParam.NAME);
-    //        TrackerIdSchemeParam.ofAttribute(METADATA_ATTRIBUTE));
+        TrackerIdSchemeParam.UID,
+        TrackerIdSchemeParam.CODE,
+        TrackerIdSchemeParam.NAME,
+        TrackerIdSchemeParam.ofAttribute(METADATA_ATTRIBUTE));
   }
 
   /**

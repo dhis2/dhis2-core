@@ -188,6 +188,7 @@ class DefaultEventService implements EventService {
               .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
               .events(Set.of(eventUid))
               .eventParams(eventParams)
+              .idSchemeParams(idSchemeParams)
               .build();
       events = getEvents(operationParams, new PageParams(1, 1, false));
     } catch (BadRequestException e) {
@@ -247,7 +248,8 @@ class DefaultEventService implements EventService {
   }
 
   @Override
-  public Page<Event> getEvents(EventOperationParams operationParams, PageParams pageParams)
+  public Page<Event> getEvents(
+      @Nonnull EventOperationParams operationParams, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException {
     EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
     return eventStore.getEvents(queryParams, pageParams);

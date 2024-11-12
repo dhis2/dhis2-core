@@ -68,6 +68,7 @@ public interface EventService {
 
   /**
    * Get event matching given {@code UID} under the privileges of the currently authenticated user.
+   * Metadata identifiers will use the {@code idScheme} defined by {@link TrackerIdSchemeParams}.
    * Use {@link #getEvent(UID, EventParams)} instead to also get the events relationships.
    */
   Event getEvent(UID uid, @Nonnull TrackerIdSchemeParams idSchemeParams)
@@ -81,14 +82,14 @@ public interface EventService {
 
   /**
    * Get event matching given {@code UID} and params under the privileges of the currently
-   * authenticated user.
+   * authenticated user. Metadata identifiers will use the {@code idScheme} defined by {@link
+   * TrackerIdSchemeParams}.
    */
   Event getEvent(UID uid, @Nonnull TrackerIdSchemeParams idSchemeParams, EventParams eventParams)
       throws NotFoundException, ForbiddenException;
 
   /**
    * Get all events matching given params under the privileges of the currently authenticated user.
-   * Metadata identifiers will use the {@code idScheme} defined by {@link TrackerIdSchemeParams}.
    */
   @Nonnull
   List<Event> getEvents(@Nonnull EventOperationParams params)
