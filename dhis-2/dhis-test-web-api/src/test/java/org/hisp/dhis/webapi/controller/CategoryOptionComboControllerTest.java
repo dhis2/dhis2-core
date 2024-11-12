@@ -154,64 +154,81 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
   }
 
   @Test
-  @DisplayName( "Duplicate default category option combos should not be allowed" )
-  void catOptionCombosDuplicatedDefaultTest()
-  {
-    JsonObject response = GET(
-        "/categoryOptionCombos?filter=name:eq:default&fields=id,categoryCombo[id],categoryOptions[id]" ).content();
-    JsonList<JsonCategoryOptionCombo> catOptionCombos = response.getList( "categoryOptionCombos",
-        JsonCategoryOptionCombo.class );
-    String defaultCatOptionComboOptions = catOptionCombos.get( 0 ).getCategoryOptions().get( 0 ).getId();
-    String defaultCatOptionComboCatComboId = catOptionCombos.get( 0 ).getCategoryCombo().getId();
-    response =     POST( "/categoryOptionCombos/", """
+  @DisplayName("Duplicate default category option combos should not be allowed")
+  void catOptionCombosDuplicatedDefaultTest() {
+    JsonObject response =
+        GET("/categoryOptionCombos?filter=name:eq:default&fields=id,categoryCombo[id],categoryOptions[id]")
+            .content();
+    JsonList<JsonCategoryOptionCombo> catOptionCombos =
+        response.getList("categoryOptionCombos", JsonCategoryOptionCombo.class);
+    String defaultCatOptionComboOptions =
+        catOptionCombos.get(0).getCategoryOptions().get(0).getId();
+    String defaultCatOptionComboCatComboId = catOptionCombos.get(0).getCategoryCombo().getId();
+    response =
+        POST(
+                "/categoryOptionCombos/",
+                """
         { "name": "Not default",
         "categoryOptions" : [{"id" : "%s"}],
         "categoryCombo" : {"id" : "%s"} }
-        """.formatted( defaultCatOptionComboOptions, defaultCatOptionComboCatComboId ) ).content( HttpStatus.CONFLICT );
+        """
+                    .formatted(defaultCatOptionComboOptions, defaultCatOptionComboCatComboId))
+            .content(HttpStatus.CONFLICT);
 
-
-    JsonErrorReport error = response.find( JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1122 );
-    assertNotNull( error );
-    assertEquals( "Category option combo Not default already exists for category combo default", error.getMessage() );
-
+    JsonErrorReport error =
+        response.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1122);
+    assertNotNull(error);
+    assertEquals(
+        "Category option combo Not default already exists for category combo default",
+        error.getMessage());
   }
 
   @Disabled("This test is not working as expected")
-  @DisplayName( "Default category option combos with non-default category options should not be allowed" )
-  void catOptionComboDefaultWithNonDefaultOptionsNotAllowedTest()
-  {
-    JsonObject response = GET(
-        "/categoryOptionCombos?filter=name:eq:default&fields=id,categoryCombo[id],categoryOptions[id]" ).content();
-    JsonList<JsonCategoryOptionCombo> catOptionCombos = response.getList( "categoryOptionCombos",
-        JsonCategoryOptionCombo.class );
-    String defaultCategoryComboId = catOptionCombos.get( 0 ).getCategoryCombo().getId();
+  @DisplayName(
+      "Default category option combos with non-default category options should not be allowed")
+  void catOptionComboDefaultWithNonDefaultOptionsNotAllowedTest() {
+    JsonObject response =
+        GET("/categoryOptionCombos?filter=name:eq:default&fields=id,categoryCombo[id],categoryOptions[id]")
+            .content();
+    JsonList<JsonCategoryOptionCombo> catOptionCombos =
+        response.getList("categoryOptionCombos", JsonCategoryOptionCombo.class);
+    String defaultCategoryComboId = catOptionCombos.get(0).getCategoryCombo().getId();
 
-    String categoryOptionRed = assertStatus(
-        HttpStatus.CREATED, POST("/categoryOptions", "{ 'name': 'Red', 'shortName': 'Red' }"));
+    String categoryOptionRed =
+        assertStatus(
+            HttpStatus.CREATED, POST("/categoryOptions", "{ 'name': 'Red', 'shortName': 'Red' }"));
 
-
-    JsonMixed response2 = POST( "/categoryOptionCombos/", """
+    JsonMixed response2 =
+        POST(
+                "/categoryOptionCombos/",
+                """
         { "name": "Not default",
         "categoryOptions" : [{"id" : "%s"}],
         "categoryCombo" : {"id" : "%s"} }
-        """.formatted( categoryOptionRed, defaultCategoryComboId ) ).content();
+        """
+                    .formatted(categoryOptionRed, defaultCategoryComboId))
+            .content();
 
-    JsonErrorReport error = response.find( JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1124 );
-    assertNotNull( error );
-    assertEquals( "Category option combo Not default already exists for category combo default", error.getMessage() );
-
+    JsonErrorReport error =
+        response.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1124);
+    assertNotNull(error);
+    assertEquals(
+        "Category option combo Not default already exists for category combo default",
+        error.getMessage());
   }
 
   @Test
-  @DisplayName( "Empty catcombo for a category option combo not allowed" )
-  void catOptionComboEmptyCatComboTest()
-  {
-    JsonMixed response = POST( "/categoryOptionCombos/", """
+  @DisplayName("Empty catcombo for a category option combo not allowed")
+  void catOptionComboEmptyCatComboTest() {
+    JsonMixed response =
+        POST(
+                "/categoryOptionCombos/",
+                """
         { "name": "Empty catcombo",
         "categoryOptions" : [{"id" : "CocUid0001"}],
         "categoryCombo" : {} }
-        """ ).content( HttpStatus.CONFLICT );
-    assertEquals( "\"Post-condition was null\"", response.get( "message" ).toString()  );
+        """)
+            .content(HttpStatus.CONFLICT);
+    assertEquals("\"Post-condition was null\"", response.get("message").toString());
   }
-
 }

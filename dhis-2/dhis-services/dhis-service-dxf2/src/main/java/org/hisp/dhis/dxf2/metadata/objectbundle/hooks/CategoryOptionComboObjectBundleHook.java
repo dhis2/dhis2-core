@@ -52,13 +52,13 @@ public class CategoryOptionComboObjectBundleHook
       return false;
     }
 
-    //One default and one not default
+    // One default and one not default
     if (one.getCategoryCombo() == null || other.getCategoryCombo() == null) {
       return false;
     }
 
-    //Both default
-    if (one.getCategoryCombo() == null && other.getCategoryCombo() == null){
+    // Both default
+    if (one.getCategoryCombo() == null && other.getCategoryCombo() == null) {
       return true;
     }
 
