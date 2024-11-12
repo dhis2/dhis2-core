@@ -458,6 +458,22 @@ class PostgreSqlBuilderTest {
     // Test with trailing/leading spaces
     assertEquals("\"column_name\"", sqlBuilder.fixQuote("  column_name  "));
     assertEquals("alias.\"column_name\"", sqlBuilder.fixQuote("  alias.column_name  "));
+
+    // Test with alias
+    assertEquals("alias.\"column_name\" as ou", sqlBuilder.fixQuote("alias.\"column_name\" as ou"));
+  }
+
+  @Test
+  public void testWithFunctions() {
+    // Test with SQL functions
+    assertEquals("coalesce(own.\"ou\",ax.\"ou\") as ou",
+            sqlBuilder.fixQuote("coalesce(own.\"ou\",ax.\"ou\") as ou"));
+    assertEquals("count(*) as count",
+            sqlBuilder.fixQuote("count(*) as count"));
+    assertEquals("max(\"column_name\") as max_val",
+            sqlBuilder.fixQuote("max(\"column_name\") as max_val"));
+    assertEquals("substring(\"name\", 1, 10) as short_name",
+            sqlBuilder.fixQuote("substring(\"name\", 1, 10) as short_name"));
   }
 
   @Test

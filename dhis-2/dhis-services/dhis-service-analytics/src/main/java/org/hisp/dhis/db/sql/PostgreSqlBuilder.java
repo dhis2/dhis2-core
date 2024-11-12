@@ -373,6 +373,19 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     // Trim the entire input first
     column = column.trim();
 
+    // If it contains a function call (contains '(' and ')'), return as is
+    if (column.contains("(") && column.contains(")")) {
+      return column;
+    }
+
+    // If there's an AS clause, handle it separately
+    int asIndex = column.toLowerCase().indexOf(" as ");
+    if (asIndex != -1) {
+      String beforeAs = column.substring(0, asIndex);
+      String afterAs = column.substring(asIndex);
+      return fixQuote(beforeAs) + afterAs;
+    }
+
     // If it's already properly quoted, return as is
     if (isProperlyQuoted(column)) {
       return column;
