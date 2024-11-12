@@ -785,9 +785,6 @@ class JdbcEventStore implements EventStore {
         .append("te.trackedentityid as te_id, te.uid as ")
         .append(COLUMN_TRACKEDENTITY_UID)
         .append(
-            ", teou.uid as te_ou, teou.name as te_ou_name, te.created as te_created, te.inactive as"
-                + " te_inactive ")
-        .append(
             getFromWhereClause(
                 params,
                 mapSqlParameterSource,
@@ -834,8 +831,6 @@ class JdbcEventStore implements EventStore {
 
     fromBuilder
         .append("left join trackedentity te on te.trackedentityid=en.trackedentityid ")
-        .append(
-            "left join organisationunit teou on (te.organisationunitid=teou.organisationunitid) ")
         .append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
 
     // JOIN attributes we need to filter on.
