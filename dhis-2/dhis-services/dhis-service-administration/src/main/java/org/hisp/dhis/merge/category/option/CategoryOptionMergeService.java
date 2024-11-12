@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.category;
+package org.hisp.dhis.merge.category.option;
 
 import jakarta.persistence.EntityManager;
 import java.util.HashSet;
@@ -43,6 +43,7 @@ import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeService;
+import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.merge.MergeValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,18 +65,23 @@ public class CategoryOptionMergeService implements MergeService {
   private List<MetadataMergeHandler> metadataMergeHandlers;
 
   @Override
+  public MergeType getMergeType() {
+    return MergeType.CATEGORY_OPTION;
+  }
+
+  @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
-    log.info("Validating CategoryOption merge request");
+    log.info("Validating {} merge request", getMergeType().getName());
+    mergeReport.setMergeType(getMergeType());
 
     // sources
     Set<UID> sources = new HashSet<>();
-    validator.verifySources(params.getSources(), sources, mergeReport, CategoryOption.class);
+    validator.verifySources(params.getSources(), sources, mergeReport, getMergeType());
 
     // target
-    validator.checkIsTargetInSources(
-        sources, params.getTarget(), mergeReport, CategoryOption.class);
+    validator.checkIsTargetInSources(sources, params.getTarget(), mergeReport, getMergeType());
 
-    return validator.verifyTarget(mergeReport, sources, params, CategoryOption.class);
+    return validator.verifyTarget(mergeReport, sources, params, getMergeType());
   }
 
   @Override

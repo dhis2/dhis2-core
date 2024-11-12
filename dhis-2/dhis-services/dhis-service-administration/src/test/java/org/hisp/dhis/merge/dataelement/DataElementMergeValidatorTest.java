@@ -83,7 +83,7 @@ class DataElementMergeValidatorTest extends TestBase {
 
     // then
     assertTrue(report.hasErrorMessages());
-    assertEquals(ErrorCode.E1554, report.getMergeErrors().get(0).getErrorCode());
+    assertEquals(ErrorCode.E1550, report.getMergeErrors().get(0).getErrorCode());
     assertEquals(
         "All source ValueTypes must match target ValueType: `TEXT`. Other ValueTypes found: `[NUMBER]`",
         report.getMergeErrors().get(0).getMessage());
@@ -107,7 +107,7 @@ class DataElementMergeValidatorTest extends TestBase {
 
     // then
     assertTrue(report.hasErrorMessages());
-    assertEquals(ErrorCode.E1554, report.getMergeErrors().get(0).getErrorCode());
+    assertEquals(ErrorCode.E1550, report.getMergeErrors().get(0).getErrorCode());
     assertEquals(
         "All source ValueTypes must match target ValueType: `TEXT`. Other ValueTypes found: `[NUMBER, DATE]`",
         report.getMergeErrors().get(0).getMessage());
@@ -159,7 +159,7 @@ class DataElementMergeValidatorTest extends TestBase {
 
     // then
     assertTrue(report.hasErrorMessages());
-    assertEquals(ErrorCode.E1555, report.getMergeErrors().get(0).getErrorCode());
+    assertEquals(ErrorCode.E1551, report.getMergeErrors().get(0).getErrorCode());
     assertEquals(
         "All source DataElementDomains must match target DataElementDomain: `AGGREGATE`. Other DataElementDomains found: `[TRACKER]`",
         report.getMergeErrors().get(0).getMessage());

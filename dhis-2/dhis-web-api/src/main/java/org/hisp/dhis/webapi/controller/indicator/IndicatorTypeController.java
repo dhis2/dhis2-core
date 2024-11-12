@@ -39,7 +39,6 @@ import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeProcessor;
-import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
@@ -67,7 +66,6 @@ public class IndicatorTypeController extends AbstractCrudController<IndicatorTyp
   public @ResponseBody WebMessage mergeIndicatorTypes(@RequestBody MergeParams params)
       throws ConflictException {
     log.info("Indicator type merge received");
-    params.setMergeType(MergeType.INDICATOR_TYPE);
 
     MergeReport report = indicatorTypeMergeProcessor.processMerge(params);
 

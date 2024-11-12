@@ -46,7 +46,6 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeService;
-import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -96,7 +95,7 @@ class IndicatorTypeMergeServiceTest extends PostgresIntegrationTestBase {
     params.setSources(Set.of(uidA, uidB));
     params.setTarget(uidC);
     params.setDeleteSources(true);
-    MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
+    MergeReport mergeReport = new MergeReport();
 
     // when
     MergeRequest request = indicatorTypeMergeService.validate(params, mergeReport);
@@ -115,7 +114,7 @@ class IndicatorTypeMergeServiceTest extends PostgresIntegrationTestBase {
   void testGetFromParamsWithErrors() {
     // given
     MergeParams params = new MergeParams();
-    MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
+    MergeReport mergeReport = new MergeReport();
 
     // when
     MergeRequest request = indicatorTypeMergeService.validate(params, mergeReport);
@@ -139,7 +138,7 @@ class IndicatorTypeMergeServiceTest extends PostgresIntegrationTestBase {
     MergeParams params = new MergeParams();
     params.setSources(Set.of(uidA, uidX));
     params.setTarget(uidC);
-    MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
+    MergeReport mergeReport = new MergeReport();
 
     // when
     MergeRequest request = indicatorTypeMergeService.validate(params, mergeReport);
@@ -161,7 +160,7 @@ class IndicatorTypeMergeServiceTest extends PostgresIntegrationTestBase {
     MergeParams params = new MergeParams();
     params.setSources(Set.of(uidA, uidB));
     params.setTarget(uidX);
-    MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
+    MergeReport mergeReport = new MergeReport();
 
     // when
     MergeRequest request = indicatorTypeMergeService.validate(params, mergeReport);
@@ -197,7 +196,7 @@ class IndicatorTypeMergeServiceTest extends PostgresIntegrationTestBase {
     params.setDeleteSources(true);
 
     // when an indicator merge request is validated
-    MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
+    MergeReport mergeReport = new MergeReport();
     indicatorTypeMergeService.validate(params, mergeReport);
 
     // then
@@ -226,7 +225,7 @@ class IndicatorTypeMergeServiceTest extends PostgresIntegrationTestBase {
     params.setDeleteSources(true);
 
     // when an indicator merge request is validated
-    MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
+    MergeReport mergeReport = new MergeReport();
     MergeRequest validatedRequest = indicatorTypeMergeService.validate(params, mergeReport);
 
     // then
@@ -262,7 +261,7 @@ class IndicatorTypeMergeServiceTest extends PostgresIntegrationTestBase {
     params.setDeleteSources(true);
 
     // when an indicator merge request is validated
-    MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
+    MergeReport mergeReport = new MergeReport();
     MergeRequest validatedRequest = indicatorTypeMergeService.validate(params, mergeReport);
 
     // then
@@ -298,7 +297,7 @@ class IndicatorTypeMergeServiceTest extends PostgresIntegrationTestBase {
         MergeRequest.builder().sources(Set.of(uidA, uidB)).target(uidC).deleteSources(true).build();
 
     // when an indicator merge request is merged
-    MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
+    MergeReport mergeReport = new MergeReport();
     MergeReport completeReport = indicatorTypeMergeService.merge(request, mergeReport);
 
     // then
@@ -345,7 +344,7 @@ class IndicatorTypeMergeServiceTest extends PostgresIntegrationTestBase {
             .build();
 
     // when an indicator merge request is merged
-    MergeReport mergeReport = new MergeReport(MergeType.INDICATOR_TYPE);
+    MergeReport mergeReport = new MergeReport();
     MergeReport completeReport = indicatorTypeMergeService.merge(request, mergeReport);
 
     // then

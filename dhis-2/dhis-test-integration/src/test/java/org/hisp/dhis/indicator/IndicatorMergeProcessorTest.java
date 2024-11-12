@@ -50,7 +50,6 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeProcessor;
-import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -91,7 +90,6 @@ class IndicatorMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams params = new MergeParams();
     params.setSources(Set.of());
     params.setTarget(UID.of(validTarget.getUid()));
-    params.setMergeType(MergeType.INDICATOR);
 
     // when a merge request is processed
     ConflictException conflictException =
@@ -117,7 +115,6 @@ class IndicatorMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams params = new MergeParams();
     params.setSources(Set.of(UID.of(validSource1.getUid())));
     params.setTarget(UID.of("Uid00000011"));
-    params.setMergeType(MergeType.INDICATOR);
 
     // when a merge request is processed
     ConflictException conflictException =
@@ -145,7 +142,6 @@ class IndicatorMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams params = new MergeParams();
     params.setSources(UID.of(validSource1.getUid(), "Uid00000011"));
     params.setTarget(UID.of(validTarget.getUid()));
-    params.setMergeType(MergeType.INDICATOR);
 
     // when a merge request is processed
     ConflictException conflictException =
@@ -171,7 +167,6 @@ class IndicatorMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams params = new MergeParams();
     params.setSources(Set.of(UID.of(validTarget.getUid())));
     params.setTarget(UID.of(validTarget.getUid()));
-    params.setMergeType(MergeType.INDICATOR);
 
     // when a merge request is processed
     ConflictException conflictException =
@@ -198,7 +193,6 @@ class IndicatorMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams params = new MergeParams();
     params.setSources(Set.of(UID.of(validTarget.getUid())));
     params.setTarget(null);
-    params.setMergeType(MergeType.INDICATOR);
 
     // when a merge request is processed
     ConflictException conflictException =
@@ -222,7 +216,6 @@ class IndicatorMergeProcessorTest extends PostgresIntegrationTestBase {
     params.setSources(UID.of(validSource1.getUid(), validSource2.getUid()));
     params.setTarget(UID.of(validTarget.getUid()));
     params.setDeleteSources(true);
-    params.setMergeType(MergeType.INDICATOR);
 
     // when a merge request is processed
     MergeReport report = indicatorMergeProcessor.processMerge(params);

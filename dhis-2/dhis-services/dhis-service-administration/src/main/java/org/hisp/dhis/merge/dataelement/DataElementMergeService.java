@@ -47,6 +47,7 @@ import org.hisp.dhis.merge.MergeHandler;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeService;
+import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.merge.MergeValidator;
 import org.hisp.dhis.merge.dataelement.handler.AnalyticalDataElementMergeHandler;
 import org.hisp.dhis.merge.dataelement.handler.DataDataElementMergeHandler;
@@ -80,20 +81,27 @@ public class DataElementMergeService implements MergeService {
   private ImmutableList<DataElementAuditMergeHandler> auditMergeHandlers;
 
   @Override
+  public MergeType getMergeType() {
+    return MergeType.DATA_ELEMENT;
+  }
+
+  @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
-    log.info("Validating DataElement merge request");
+    log.info("Validating {} merge request", getMergeType().getName());
+    mergeReport.setMergeType(getMergeType());
+
     if (params.getDataMergeStrategy() == null) {
-      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1556));
+      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1534));
       return null;
     }
 
     // sources
     Set<UID> sources = new HashSet<>();
-    validator.verifySources(params.getSources(), sources, mergeReport, DataElement.class);
+    validator.verifySources(params.getSources(), sources, mergeReport, getMergeType());
 
     // target
-    validator.checkIsTargetInSources(sources, params.getTarget(), mergeReport, DataElement.class);
-    MergeRequest request = validator.verifyTarget(mergeReport, sources, params, DataElement.class);
+    validator.checkIsTargetInSources(sources, params.getTarget(), mergeReport, getMergeType());
+    MergeRequest request = validator.verifyTarget(mergeReport, sources, params, getMergeType());
 
     if (mergeReport.hasErrorMessages()) return request;
 

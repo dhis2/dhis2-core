@@ -34,6 +34,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.indicator.Indicator;
@@ -43,6 +44,7 @@ import org.hisp.dhis.merge.MergeHandler;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeService;
+import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.merge.MergeValidator;
 import org.hisp.dhis.merge.indicator.handler.IndicatorMergeHandler;
 import org.springframework.stereotype.Service;
@@ -53,6 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author david mackessy
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class IndicatorMergeService implements MergeService {
@@ -65,15 +68,23 @@ public class IndicatorMergeService implements MergeService {
   private ImmutableList<org.hisp.dhis.merge.indicator.IndicatorMergeHandler> mergeHandlers;
 
   @Override
+  public MergeType getMergeType() {
+    return MergeType.INDICATOR;
+  }
+
+  @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
+    log.info("Validating {} merge request", getMergeType().getName());
+    mergeReport.setMergeType(getMergeType());
+
     // sources
     Set<UID> sources = new HashSet<>();
-    validator.verifySources(params.getSources(), sources, mergeReport, Indicator.class);
+    validator.verifySources(params.getSources(), sources, mergeReport, getMergeType());
 
     // target
-    validator.checkIsTargetInSources(sources, params.getTarget(), mergeReport, Indicator.class);
+    validator.checkIsTargetInSources(sources, params.getTarget(), mergeReport, getMergeType());
 
-    return validator.verifyTarget(mergeReport, sources, params, Indicator.class);
+    return validator.verifyTarget(mergeReport, sources, params, getMergeType());
   }
 
   @Override
