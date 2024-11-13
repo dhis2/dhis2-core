@@ -34,6 +34,7 @@ import java.util.List;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 import lombok.AllArgsConstructor;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.query.Conjunction;
 import org.hisp.dhis.query.Criterion;
@@ -200,12 +201,12 @@ public class DefaultQueryPlanner implements QueryPlanner {
         Restriction restriction = (Restriction) criterion;
         restriction.setQueryPath(getQueryPath(query.getSchema(), restriction.getPath()));
 
-        if (restriction.getQueryPath().isPersisted() && !restriction.getQueryPath().haveAlias()) {
-          pQuery
-              .getAliases()
-              .addAll(Arrays.asList(((Restriction) criterion).getQueryPath().getAlias()));
+        if (restriction.getQueryPath().isPersisted() && !isAttributeFilter(query, restriction)) {
           pQuery.getCriterions().add(criterion);
           iterator.remove();
+          if (restriction.getQueryPath().haveAlias()) {
+            pQuery.getAliases().addAll(Arrays.asList(restriction.getQueryPath().getAlias()));
+          }
         }
       }
     }
@@ -245,10 +246,12 @@ public class DefaultQueryPlanner implements QueryPlanner {
         Restriction restriction = (Restriction) criterion;
         restriction.setQueryPath(getQueryPath(query.getSchema(), restriction.getPath()));
 
-        if (restriction.getQueryPath().isPersisted() && !restriction.getQueryPath().haveAlias(1)) {
-          criteriaJunction
-              .getAliases()
-              .addAll(Arrays.asList(((Restriction) criterion).getQueryPath().getAlias()));
+        if (restriction.getQueryPath().isPersisted() && !isAttributeFilter(query, restriction)) {
+          if (restriction.getQueryPath().haveAlias()) {
+            criteriaJunction
+                .getAliases()
+                .addAll(Arrays.asList(restriction.getQueryPath().getAlias()));
+          }
           criteriaJunction.getCriterions().add(criterion);
           iterator.remove();
         } else if (persistedOnly) {
@@ -265,5 +268,15 @@ public class DefaultQueryPlanner implements QueryPlanner {
 
   private boolean isFilterByAttributeId(Property curProperty, String propertyName) {
     return curProperty == null && CodeGenerator.isValidUid(propertyName);
+  }
+
+  /**
+   * Handle attribute filter such as /attributes?fields=id,name&filter=userAttribute:eq:true
+   *
+   * @return true if attribute filter
+   */
+  private boolean isAttributeFilter(Query query, Restriction restriction) {
+    return query.getSchema().getKlass().isAssignableFrom(Attribute.class)
+           && Attribute.ObjectType.isValidType(restriction.getQueryPath().getPath());
   }
 }
