@@ -59,7 +59,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -98,6 +97,7 @@ import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -193,7 +193,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       if (params.analyzeOnly()) {
         withExceptionHandling(
             () -> executionPlanStore.addExecutionPlan(immutableParams.getExplainOrderId(), sql));
-        return CompletableFuture.completedFuture(Maps.newHashMap());
+        return new AsyncResult<>(Maps.newHashMap());
       }
 
       Map<String, Object> map;
@@ -207,12 +207,12 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
           throw ex;
         }
         log.warn(ERR_MSG_SILENT_FALLBACK, ex);
-        return CompletableFuture.completedFuture(Maps.newHashMap());
+        return new AsyncResult<>(Maps.newHashMap());
       }
 
       replaceDataPeriodsWithAggregationPeriods(map, params, dataPeriodAggregationPeriodMap);
 
-      return CompletableFuture.completedFuture(map);
+      return new AsyncResult<>(map);
     } catch (DataAccessResourceFailureException ex) {
       throw new QueryRuntimeException(ErrorCode.E7131);
     } catch (RuntimeException ex) {
