@@ -39,6 +39,11 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+/**
+ * Base for parameters supported by CRUD {@code CRUD.getObjectList}.
+ *
+ * @author Jan Bernitt
+ */
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)

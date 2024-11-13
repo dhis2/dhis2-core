@@ -40,7 +40,7 @@ import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
 
 /**
- * Base for parameters used by both {@code CRUD.getObject} and {@code CRUD.getObjectList}.
+ * Base for parameters supported by CRUD {@code CRUD.getObject}.
  *
  * @author Jan Bernitt
  */
