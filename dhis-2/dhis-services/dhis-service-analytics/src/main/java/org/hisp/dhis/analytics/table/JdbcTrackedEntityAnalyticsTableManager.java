@@ -96,158 +96,6 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-  private static final List<AnalyticsTableColumn> FIXED_GROUP_BY_COLS =
-      List.of(
-          AnalyticsTableColumn.builder()
-              .name("trackedentity")
-              .dataType(CHARACTER_11)
-              .nullable(NOT_NULL)
-              .selectExpression("te.uid")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("trackedentityid")
-              .dataType(INTEGER)
-              .nullable(NOT_NULL)
-              .selectExpression("te.trackedentityid")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("created")
-              .dataType(TIMESTAMP)
-              .selectExpression("te.created")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("lastupdated")
-              .dataType(TIMESTAMP)
-              .selectExpression("te.lastupdated")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("inactive")
-              .dataType(BOOLEAN)
-              .selectExpression("te.inactive")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("createdatclient")
-              .dataType(TIMESTAMP)
-              .selectExpression("te.createdatclient")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("lastupdatedatclient")
-              .dataType(TIMESTAMP)
-              .selectExpression("te.lastupdatedatclient")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("lastsynchronized")
-              .dataType(TIMESTAMP)
-              .selectExpression("te.lastsynchronized")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("geometry")
-              .dataType(GEOMETRY)
-              .selectExpression("te.geometry")
-              .indexType(IndexType.GIST)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("longitude")
-              .dataType(DOUBLE)
-              .selectExpression(
-                  "case when 'POINT' = GeometryType(te.geometry) then ST_X(te.geometry) else null end")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("latitude")
-              .dataType(DOUBLE)
-              .selectExpression(
-                  "case when 'POINT' = GeometryType(te.geometry) then ST_Y(te.geometry) else null end")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("featuretype")
-              .dataType(VARCHAR_255)
-              .selectExpression("te.featuretype")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("coordinates")
-              .dataType(TEXT)
-              .selectExpression("te.coordinates")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("storedby")
-              .dataType(VARCHAR_255)
-              .selectExpression("te.storedby")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("potentialduplicate")
-              .dataType(BOOLEAN)
-              .selectExpression("te.potentialduplicate")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("ou")
-              .dataType(CHARACTER_11)
-              .selectExpression("ous.organisationunituid")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("ouname")
-              .dataType(VARCHAR_255)
-              .selectExpression("ous.name")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("oucode")
-              .dataType(VARCHAR_50)
-              .selectExpression("ous.code")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("oulevel")
-              .dataType(INTEGER)
-              .selectExpression("ous.level")
-              .build());
-
-  private static final List<AnalyticsTableColumn> FIXED_NON_GROUP_BY_COLS =
-      List.of(
-          AnalyticsTableColumn.builder()
-              .name("createdbyusername")
-              .dataType(VARCHAR_255)
-              .selectExpression("te.createdbyuserinfo ->> 'username' as createdbyusername")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("createdbyname")
-              .dataType(VARCHAR_255)
-              .selectExpression("te.createdbyuserinfo ->> 'firstName' as createdbyname")
-              .skipIndex(Skip.SKIP)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("createdbylastname")
-              .dataType(VARCHAR_255)
-              .selectExpression("te.createdbyuserinfo ->> 'surname' as createdbylastname")
-              .skipIndex(Skip.SKIP)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("createdbydisplayname")
-              .dataType(VARCHAR_255)
-              .selectExpression(getDisplayName("createdbyuserinfo", "te", "createdbydisplayname"))
-              .skipIndex(Skip.SKIP)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("lastupdatedbyusername")
-              .dataType(VARCHAR_255)
-              .selectExpression("te.lastupdatedbyuserinfo ->> 'username' as lastupdatedbyusername")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("lastupdatedbyname")
-              .dataType(VARCHAR_255)
-              .selectExpression("te.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname")
-              .skipIndex(Skip.SKIP)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("lastupdatedbylastname")
-              .dataType(VARCHAR_255)
-              .selectExpression("te.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname")
-              .skipIndex(Skip.SKIP)
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("lastupdatedbydisplayname")
-              .dataType(VARCHAR_255)
-              .selectExpression(
-                  getDisplayName("lastupdatedbyuserinfo", "te", "lastupdatedbydisplayname"))
-              .skipIndex(Skip.SKIP)
-              .build());
 
   public JdbcTrackedEntityAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -414,7 +262,10 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
    */
   private String castBasedOnType(ValueType valueType, String columnName) {
     if (valueType.isDecimal()) {
-      return replace(" cast(${columnName} as double precision)", Map.of("columnName", columnName));
+
+      return replace(" cast(${columnName} as ${type})", Map.of(
+              "columnName", columnName,
+              "type", sqlBuilder.dataTypeDouble()));
     }
     if (valueType.isInteger()) {
       return replace(" cast(${columnName} as bigint)", Map.of("columnName", columnName));
@@ -424,8 +275,11 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
           " case when ${columnName} = 'true' then 1 when ${columnName} = 'false' then 0 end ",
           Map.of("columnName", columnName));
     }
+
     if (valueType.isDate()) {
-      return replace(" cast(${columnName} as timestamp)", Map.of("columnName", columnName));
+      return replace(" cast(${columnName} as ${type})", Map.of(
+              "columnName", columnName,
+              "type", sqlBuilder.dataTypeTimestamp()));
     }
     if (valueType.isGeo() && isSpatialSupport()) {
       return replace(
@@ -467,10 +321,10 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
    */
   private List<AnalyticsTableColumn> getFixedColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-    columns.addAll(FIXED_GROUP_BY_COLS);
+    columns.addAll(getFixedGroupByColumns());
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(getOrganisationUnitNameHierarchyColumn());
-    columns.addAll(FIXED_NON_GROUP_BY_COLS);
+    columns.addAll(getFixedNonGroupByColumns());
 
     return columns;
   }
@@ -549,5 +403,185 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
                 "statuses", join(",", EXPORTABLE_EVENT_STATUSES))));
 
     invokeTimeAndLog(sql.toString(), "Populating table: '{}'", tableName);
+  }
+
+  private List<AnalyticsTableColumn> getFixedGroupByColumns() {
+    List<AnalyticsTableColumn> columns =
+        new ArrayList<>(
+            List.of(
+                AnalyticsTableColumn.builder()
+                    .name("trackedentity")
+                    .dataType(CHARACTER_11)
+                    .nullable(NOT_NULL)
+                    .selectExpression("te.uid")
+                    .build(),
+                AnalyticsTableColumn.builder()
+                    .name("trackedentityid")
+                    .dataType(INTEGER)
+                    .nullable(NOT_NULL)
+                    .selectExpression("te.trackedentityid")
+                    .build(),
+                AnalyticsTableColumn.builder()
+                    .name("created")
+                    .dataType(TIMESTAMP)
+                    .selectExpression("te.created")
+                    .build(),
+                AnalyticsTableColumn.builder()
+                    .name("lastupdated")
+                    .dataType(TIMESTAMP)
+                    .selectExpression("te.lastupdated")
+                    .build(),
+                AnalyticsTableColumn.builder()
+                    .name("inactive")
+                    .dataType(BOOLEAN)
+                    .selectExpression("te.inactive")
+                    .build(),
+                AnalyticsTableColumn.builder()
+                    .name("createdatclient")
+                    .dataType(TIMESTAMP)
+                    .selectExpression("te.createdatclient")
+                    .build(),
+                AnalyticsTableColumn.builder()
+                    .name("lastupdatedatclient")
+                    .dataType(TIMESTAMP)
+                    .selectExpression("te.lastupdatedatclient")
+                    .build(),
+                AnalyticsTableColumn.builder()
+                    .name("lastsynchronized")
+                    .dataType(TIMESTAMP)
+                    .selectExpression("te.lastsynchronized")
+                    .build(),
+                AnalyticsTableColumn.builder()
+                    .name("featuretype")
+                    .dataType(VARCHAR_255)
+                    .selectExpression("te.featuretype")
+                    .build(),
+                AnalyticsTableColumn.builder()
+                    .name("coordinates")
+                    .dataType(TEXT)
+                    .selectExpression("te.coordinates")
+                    .build(),
+                AnalyticsTableColumn.builder()
+                    .name("storedby")
+                    .dataType(VARCHAR_255)
+                    .selectExpression("te.storedby")
+                    .build(),
+                AnalyticsTableColumn.builder()
+                    .name("potentialduplicate")
+                    .dataType(BOOLEAN)
+                    .selectExpression("te.potentialduplicate")
+                    .build(),
+                AnalyticsTableColumn.builder()
+                    .name("ou")
+                    .dataType(CHARACTER_11)
+                    .selectExpression("ou.uid")
+                    .build(),
+                AnalyticsTableColumn.builder()
+                    .name("ouname")
+                    .dataType(VARCHAR_255)
+                    .selectExpression("ou.name")
+                    .build(),
+                AnalyticsTableColumn.builder()
+                    .name("oucode")
+                    .dataType(VARCHAR_50)
+                    .selectExpression("ou.code")
+                    .build(),
+                AnalyticsTableColumn.builder()
+                    .name("oulevel")
+                    .dataType(INTEGER)
+                    .selectExpression("ous.level")
+                    .build()));
+
+    if (sqlBuilder.supportsGeospatialData()) {
+      columns.addAll(
+          List.of(
+              AnalyticsTableColumn.builder()
+                  .name("geometry")
+                  .dataType(GEOMETRY)
+                  .selectExpression("te.geometry")
+                  .indexType(IndexType.GIST)
+                  .build(),
+              AnalyticsTableColumn.builder()
+                  .name("longitude")
+                  .dataType(DOUBLE)
+                  .selectExpression(
+                      "case when 'POINT' = GeometryType(te.geometry) then ST_X(te.geometry) else null end")
+                  .build(),
+              AnalyticsTableColumn.builder()
+                  .name("latitude")
+                  .dataType(DOUBLE)
+                  .selectExpression(
+                      "case when 'POINT' = GeometryType(te.geometry) then ST_Y(te.geometry) else null end")
+                  .build()));
+    }
+
+    return columns;
+  }
+
+  private List<AnalyticsTableColumn> getFixedNonGroupByColumns() {
+
+      return new ArrayList<>(
+          List.of(
+              AnalyticsTableColumn.builder()
+                  .name("createdbyusername")
+                  .dataType(VARCHAR_255)
+                  .selectExpression(
+                      sqlBuilder.jsonExtract("te.createdbyuserinfo", "username")
+                          + " as createdbyusername")
+                  .build(),
+              AnalyticsTableColumn.builder()
+                  .name("createdbyname")
+                  .dataType(VARCHAR_255)
+                  .selectExpression(
+                      sqlBuilder.jsonExtract("te.createdbyuserinfo", "firstName")
+                          + " as createdbyname")
+                  .skipIndex(Skip.SKIP)
+                  .build(),
+              AnalyticsTableColumn.builder()
+                  .name("createdbylastname")
+                  .dataType(VARCHAR_255)
+                  .selectExpression(
+                      sqlBuilder.jsonExtract("te.createdbyuserinfo", "surname")
+                          + " as createdbylastname")
+                  .skipIndex(Skip.SKIP)
+                  .build(),
+              AnalyticsTableColumn.builder()
+                  .name("createdbydisplayname")
+                  .dataType(VARCHAR_255)
+                  .selectExpression(
+                      getDisplayName(
+                          "createdbyuserinfo", "te", "createdbydisplayname", sqlBuilder))
+                  .skipIndex(Skip.SKIP)
+                  .build(),
+              AnalyticsTableColumn.builder()
+                  .name("lastupdatedbyusername")
+                  .dataType(VARCHAR_255)
+                  .selectExpression(sqlBuilder.jsonExtract("te.lastupdatedbyuserinfo", "username")
+                      + " as lastupdatedbyusername")
+                  .build(),
+              AnalyticsTableColumn.builder()
+                  .name("lastupdatedbyname")
+                  .dataType(VARCHAR_255)
+                  .selectExpression(
+                      sqlBuilder.jsonExtract("te.lastupdatedbyuserinfo", "firstName")
+                          + " as lastupdatedbyname")
+                  .skipIndex(Skip.SKIP)
+                  .build(),
+              AnalyticsTableColumn.builder()
+                  .name("lastupdatedbylastname")
+                  .dataType(VARCHAR_255)
+                  .selectExpression(
+                      sqlBuilder.jsonExtract("te.lastupdatedbyuserinfo", "surname")
+                          + " as lastupdatedbylastname")
+                  .skipIndex(Skip.SKIP)
+                  .build(),
+              AnalyticsTableColumn.builder()
+                  .name("lastupdatedbydisplayname")
+                  .dataType(VARCHAR_255)
+                  .selectExpression(
+                      getDisplayName(
+                          "lastupdatedbyuserinfo", "te", "lastupdatedbydisplayname", sqlBuilder))
+                  .skipIndex(Skip.SKIP)
+                  .build()));
   }
 }

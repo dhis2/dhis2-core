@@ -51,7 +51,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -103,41 +102,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   static final String[] EXPORTABLE_EVENT_STATUSES = {"'COMPLETED'", "'ACTIVE'", "'SCHEDULE'"};
 
-  protected static final List<AnalyticsTableColumn> FIXED_COLS =
-      List.of(
-          EventAnalyticsColumn.EVENT,
-          EventAnalyticsColumn.ENROLLMENT,
-          EventAnalyticsColumn.PS,
-          EventAnalyticsColumn.AO,
-          EventAnalyticsColumn.ENROLLMENT_DATE,
-          EventAnalyticsColumn.ENROLLMENT_OCCURRED_DATE,
-          EventAnalyticsColumn.OCCURRED_DATE,
-          EventAnalyticsColumn.SCHEDULED_DATE,
-          EventAnalyticsColumn.COMPLETED_DATE,
-          EventAnalyticsColumn.CREATED,
-          EventAnalyticsColumn.LAST_UPDATED,
-          EventAnalyticsColumn.STOREDBY,
-          EventAnalyticsColumn.CREATED_BY_USERNAME,
-          EventAnalyticsColumn.CREATED_BY_NAME,
-          EventAnalyticsColumn.CREATED_BY_LASTNAME,
-          EventAnalyticsColumn.CREATED_BY_DISPLAYNAME,
-          EventAnalyticsColumn.LAST_UPDATED_BY_USERNAME,
-          EventAnalyticsColumn.LAST_UPDATED_BY_NAME,
-          EventAnalyticsColumn.LAST_UPDATED_BY_LASTNAME,
-          EventAnalyticsColumn.LAST_UPDATED_BY_DISPLAYNAME,
-          EventAnalyticsColumn.EVENT_STATUS,
-          EventAnalyticsColumn.ENROLLMENT_STATUS,
-          EventAnalyticsColumn.EVENT_GEOMETRY,
-          EventAnalyticsColumn.LONGITUDE,
-          EventAnalyticsColumn.LATITUDE,
-          EventAnalyticsColumn.OU,
-          EventAnalyticsColumn.OU_NAME,
-          EventAnalyticsColumn.OU_CODE,
-          EventAnalyticsColumn.OU_LEVEL,
-          EventAnalyticsColumn.OU_GEOMETRY,
-          EventAnalyticsColumn.ENROLLMENT_GEOMETRY,
-          EventAnalyticsColumn.REGISTRATION_OU,
-          EventAnalyticsColumn.ENROLLMENT_OU);
+  protected static List<AnalyticsTableColumn> FIXED_COLS;
 
   public JdbcEventAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -167,6 +132,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         analyticsExportSettings,
         periodDataProvider,
         sqlBuilder);
+    FIXED_COLS = EventAnalyticsColumn.getColumns(sqlBuilder);
   }
 
   @Override
@@ -434,8 +400,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @return a list of {@link AnalyticsTableColumn}.
    */
   private List<AnalyticsTableColumn> getColumns(Program program) {
-    List<AnalyticsTableColumn> columns = new ArrayList<>();
-    columns.addAll(FIXED_COLS);
+    List<AnalyticsTableColumn> columns = new ArrayList<>(FIXED_COLS);
 
     if (program.hasNonDefaultCategoryCombo()) {
       List<Category> categories = program.getCategoryCombo().getCategories();
@@ -464,13 +429,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         program.getAnalyticsDataElements().stream()
             .map(de -> getColumnFromDataElement(de, false))
             .flatMap(Collection::stream)
-            .collect(Collectors.toList()));
+            .toList());
 
     columns.addAll(
         program.getAnalyticsDataElementsWithLegendSet().stream()
             .map(de -> getColumnFromDataElement(de, true))
             .flatMap(Collection::stream)
-            .collect(Collectors.toList()));
+            .toList());
 
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributes().stream()
@@ -479,7 +444,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                     getColumnFromTrackedEntityAttribute(
                         tea, getNumericClause(), getDateClause(), false))
             .flatMap(Collection::stream)
-            .collect(Collectors.toList()));
+            .toList());
 
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
@@ -488,11 +453,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                     getColumnFromTrackedEntityAttribute(
                         tea, getNumericClause(), getDateClause(), true))
             .flatMap(Collection::stream)
-            .collect(Collectors.toList()));
+            .toList());
 
     if (program.isRegistration()) {
       columns.add(EventAnalyticsColumn.TRACKED_ENTITY);
-      columns.add(EventAnalyticsColumn.TRACKED_ENTITY_GEOMETRY);
+      if (sqlBuilder.supportsGeospatialData()) {
+        columns.add(EventAnalyticsColumn.TRACKED_ENTITY_GEOMETRY);
+      }
     }
 
     return filterDimensionColumns(columns);

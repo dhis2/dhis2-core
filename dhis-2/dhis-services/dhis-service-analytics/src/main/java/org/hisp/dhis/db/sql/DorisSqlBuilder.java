@@ -43,6 +43,7 @@ import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.TablePartition;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.sql.functions.DorisDateDiff;
+import org.hisp.dhis.db.sql.functions.Functions;
 
 @RequiredArgsConstructor
 public class DorisSqlBuilder extends AbstractSqlBuilder {
@@ -437,6 +438,32 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String regexpMatch(String pattern) {
     return "REGEXP " + pattern;
+  }
+
+  @Override
+  public String jsonExtract(String column, String property) {
+    return "json_unquote(json_extract(" + column + ", '$." + property + "'))";
+  }
+
+  @Override
+  public String jsonExtract(String tablePrefix, String column, String jsonPath) {
+    return String.format(
+        "json_unquote(json_extract(%s.%s, '$.%s'))", tablePrefix, column, jsonPath);
+  }
+
+  @Override
+  public SqlFunction concat(String... columns) {
+    return Functions.concat(columns);
+  }
+
+  @Override
+  public SqlFunction trim(String expression) {
+    return Functions.trim(expression);
+  }
+
+  @Override
+  public SqlFunction coalesce(String expression, String defaultExpression) {
+    return Functions.coalesce(expression, defaultExpression);
   }
 
   @Override

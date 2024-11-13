@@ -36,6 +36,7 @@ import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
+import org.hisp.dhis.db.sql.functions.Functions;
 import org.hisp.dhis.db.sql.functions.PostgresDateDiff;
 
 /**
@@ -411,8 +412,33 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public String jsonExtract(String column, String property) {
+    return column + " ->> '" + property + "'";
+  }
+
+  @Override
+  public String jsonExtract(String tablePrefix, String column, String jsonPath) {
+    return String.format("%s.%s ->> '%s'", tablePrefix, column, jsonPath);
+  }
+
+  @Override
   public Database getDatabase() {
     return Database.POSTGRESQL;
+  }
+
+  @Override
+  public SqlFunction concat(String... columns) {
+    return Functions.concat(columns);
+  }
+
+  @Override
+  public SqlFunction trim(String expression) {
+    return Functions.trim(expression);
+  }
+
+  @Override
+  public SqlFunction coalesce(String expression, String defaultExpression) {
+    return Functions.coalesce(expression, defaultExpression);
   }
 
   private boolean isProperlyQuoted(String identifier) {

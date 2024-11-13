@@ -379,6 +379,12 @@ public interface SqlBuilder {
    */
   SqlFunction getDateDiffInDays(String date1, String date2);
 
+  SqlFunction concat(String... columns);
+
+  SqlFunction trim(String expression);
+
+  SqlFunction coalesce(String expression, String defaultExpression);
+
   /**
    * Properly quotes identifiers (column names) according to the specific SQL dialect rules. For
    * PostgreSQL, double quotes (") are used. For Doris/MySQL, backticks (`) are used.
@@ -409,6 +415,10 @@ public interface SqlBuilder {
    *     column_name") → alias . `column_name`
    */
   String fixQuote(String column);
+
+  String jsonExtract(String column, String property);
+
+  String jsonExtract(String tablePrefix, String column, String jsonPath);
 
   Database getDatabase();
 }
