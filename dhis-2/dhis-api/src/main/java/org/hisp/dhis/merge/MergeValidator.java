@@ -55,15 +55,11 @@ public interface MergeValidator {
    * - If any are not valid then the {@link MergeReport} is updated with an error.
    *
    * @param paramSources {@link UID}s
-   * @param verifiedSources set to add verified source {@link UID}s
    * @param mergeReport to update if any error
    * @param mergeType {@link MergeType}
+   * @return verified source {@link UID}s
    */
-  void verifySources(
-      Set<UID> paramSources,
-      Set<UID> verifiedSources,
-      MergeReport mergeReport,
-      MergeType mergeType);
+  Set<UID> verifySources(Set<UID> paramSources, MergeReport mergeReport, MergeType mergeType);
 
   /**
    * Checks whether the target is referenced in the sources collection <br>

@@ -40,17 +40,17 @@ import org.hisp.dhis.indicator.IndicatorType;
  * @author david mackessy
  */
 public enum MergeType {
-  INDICATOR_TYPE(IndicatorType.class, IndicatorType.class.getSimpleName()),
-  INDICATOR(Indicator.class, Indicator.class.getSimpleName()),
-  DATA_ELEMENT(DataElement.class, DataElement.class.getSimpleName()),
-  CATEGORY_OPTION(CategoryOption.class, CategoryOption.class.getSimpleName());
+  INDICATOR_TYPE(IndicatorType.class),
+  INDICATOR(Indicator.class),
+  DATA_ELEMENT(DataElement.class),
+  CATEGORY_OPTION(CategoryOption.class);
 
   private final Class<? extends IdentifiableObject> clazz;
   private final String name;
 
-  MergeType(Class<? extends IdentifiableObject> clazz, String name) {
+  MergeType(Class<? extends IdentifiableObject> clazz) {
     this.clazz = clazz;
-    this.name = name;
+    this.name = clazz.getSimpleName();
   }
 
   public Class<? extends IdentifiableObject> getClazz() {
