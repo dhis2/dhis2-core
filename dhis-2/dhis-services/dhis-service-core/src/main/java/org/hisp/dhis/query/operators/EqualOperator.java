@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.hibernate.criterion.Criterion;
@@ -85,6 +86,13 @@ public class EqualOperator<T extends Comparable<? super T>> extends Operator<T> 
       }
 
       return builder.equal(builder.size(root.get(queryPath.getPath())), value);
+    }
+    if (queryPath.haveAlias()) {
+      for (Join<Y, ?> join : root.getJoins()) {
+        if (join.getAlias().equals(queryPath.getAlias()[0])) {
+          return builder.equal(join.get(queryPath.getProperty().getFieldName()), args.get(0));
+        }
+      }
     }
     return builder.equal(root.get(queryPath.getPath()), args.get(0));
   }

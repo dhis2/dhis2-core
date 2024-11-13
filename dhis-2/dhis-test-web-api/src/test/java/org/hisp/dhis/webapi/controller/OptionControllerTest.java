@@ -31,14 +31,21 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.stat.Statistics;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonOptionSet;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 class OptionControllerTest extends DhisControllerConvenienceTest {
+
+  @Autowired private SessionFactory sessionFactory;
+
   @Test
   void testUpdateOptionWithSortOrderGap() {
     // Create OptionSet with two Options
@@ -137,5 +144,48 @@ class OptionControllerTest extends DhisControllerConvenienceTest {
     assertEquals(
         List.of("this-is-a", "this-is-b"),
         set.getOptions().toList(JsonIdentifiableObject::getDescription));
+  }
+
+  @Test
+  void testQueryOptionsByOptionSetIds() {
+    Session session = sessionFactory.getCurrentSession();
+    String id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/optionSets/",
+                "{'name': 'test', 'version': 2, 'valueType': 'TEXT', 'description':'desc' }"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/options/",
+            "{'optionSet': { 'id':'"
+                + id
+                + "'}, 'id':'Uh4HvjK6zg3', 'code': 'A', 'name': 'Anna', 'description': 'this-is-a'}"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/options/",
+            "{'optionSet': { 'id':'"
+                + id
+                + "'},'id':'BQMei56UBl6','code': 'B', 'name': 'Betta', 'description': 'this-is-b'}"));
+    Statistics statistics = session.getSessionFactory().getStatistics();
+    statistics.setStatisticsEnabled(true);
+    assertEquals(0, statistics.getQueryExecutionCount());
+    JsonOptionSet set =
+        GET(String.format("/options?filter=optionSet.id:in:[%s,%s]", id, "TESTUIDA"))
+            .content()
+            .as(JsonOptionSet.class);
+    assertEquals(2, set.getOptions().size());
+
+    // Verify that there is no n+1 queries to Option table
+    int count = 0;
+    for (String q : statistics.getQueries()) {
+      if (q.contains("from Option")) {
+        count++;
+      }
+    }
+    assertEquals(2, count);
+    statistics.setStatisticsEnabled(false);
   }
 }
