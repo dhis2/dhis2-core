@@ -36,6 +36,14 @@ import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.scheduling.JobProgress;
 
+/**
+ * Interface for analytics table generation.
+ *
+ * <p>The interface provides a set of methods that can be implemented to generate analytics tables,
+ * indexes, and perform other operations related to analytics tables.
+ *
+ * <p>
+ */
 public interface AnalyticsTableStrategy {
 
   /**
