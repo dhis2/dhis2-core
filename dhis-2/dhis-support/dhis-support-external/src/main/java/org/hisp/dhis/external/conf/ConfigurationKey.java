@@ -684,8 +684,8 @@ public enum ConfigurationKey {
 
   /**
    * Confidential means that the system setting will be encrypted and not visible through the API.
-   * The system setting will be used internally in the backend, but cannot be used by web apps 
-   * and clients.
+   * The system setting will be used internally in the backend, but cannot be used by web apps and
+   * clients.
    */
   private final boolean confidential;
 
