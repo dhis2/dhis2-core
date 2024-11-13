@@ -908,8 +908,9 @@ class JdbcEventStore {
         .append("left join trackedentity te on te.trackedentityid=en.trackedentityid ")
         .append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
 
-    fromBuilder.append(
-        """
+    if (TrackerIdScheme.UID != params.getIdSchemeParams().getDataElementIdScheme().getIdScheme()) {
+      fromBuilder.append(
+          """
 left join
     (
         select
@@ -937,6 +938,7 @@ left join
     ) eventdatavalues
     on ev.eventid = eventdatavalues.eventid
 """);
+    }
 
     // JOIN attributes we need to filter on.
     fromBuilder.append(joinAttributeValue(params, mapSqlParameterSource));
