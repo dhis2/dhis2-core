@@ -59,8 +59,18 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   // Utilities
 
   @Override
+  public String quote(String alias, String relation) {
+    return alias + DOT + quote(relation);
+  }
+
+  @Override
   public String quoteAx(String relation) {
     return ALIAS_AX + DOT + quote(relation);
+  }
+
+  @Override
+  public String singleQuote(String value) {
+    return SINGLE_QUOTE + escape(value) + SINGLE_QUOTE;
   }
 
   @Override
@@ -101,6 +111,28 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   @Override
   public String countRows(Table table) {
     return String.format("select count(*) as row_count from %s;", quote(table.getName()));
+  }
+
+  // Table
+
+  @Override
+  public String analyzeTable(String name) {
+    return notSupported();
+  }
+
+  @Override
+  public String vacuumTable(Table table) {
+    return notSupported();
+  }
+
+  @Override
+  public String setParentTable(Table table, String parentName) {
+    return notSupported();
+  }
+
+  @Override
+  public String removeParentTable(Table table, String parentName) {
+    return notSupported();
   }
 
   // Mapping
