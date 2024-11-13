@@ -58,25 +58,15 @@ public class DefaultMergeValidator implements MergeValidator {
 
   private final IdentifiableObjectManager manager;
 
-  /**
-   * Validates the UIDs passed in the params. Generic validation used by most merges.
-   *
-   * @param params
-   * @param mergeReport
-   * @param mergeType
-   * @return
-   */
   @Override
   public MergeRequest validateUIDs(
       @Nonnull MergeParams params, @Nonnull MergeReport mergeReport, @Nonnull MergeType mergeType) {
     log.info("Validating {} merge request", mergeType);
     mergeReport.setMergeType(mergeType);
 
-    // sources
     Set<UID> sources = new HashSet<>();
     verifySources(params.getSources(), sources, mergeReport, mergeType);
 
-    // target
     checkIsTargetInSources(sources, params.getTarget(), mergeReport, mergeType);
 
     return verifyTarget(mergeReport, sources, params, mergeType);
@@ -110,10 +100,10 @@ public class DefaultMergeValidator implements MergeValidator {
       MergeReport mergeReport, Set<UID> sources, MergeParams params, MergeType mergeType) {
     return getAndVerify(params.getTarget(), mergeReport, MergeObjectType.TARGET, mergeType)
         .map(
-            t ->
+            uid ->
                 MergeRequest.builder()
                     .sources(sources)
-                    .target(t)
+                    .target(uid)
                     .deleteSources(params.isDeleteSources())
                     .dataMergeStrategy(params.getDataMergeStrategy())
                     .build())

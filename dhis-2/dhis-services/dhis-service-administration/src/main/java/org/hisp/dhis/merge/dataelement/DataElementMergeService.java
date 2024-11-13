@@ -85,17 +85,15 @@ public class DataElementMergeService implements MergeService {
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
-    // generic validation
     MergeRequest request = validator.validateUIDs(params, mergeReport, getMergeType());
     if (mergeReport.hasErrorMessages()) return request;
 
-    // merge specific validation
+    // data element-specific validation
     if (params.getDataMergeStrategy() == null) {
       mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1534));
-      return null;
+      return request;
     }
 
-    // get DEs for further type-specific validation
     DataElement deTarget = dataElementService.getDataElement(request.getTarget().getValue());
     List<DataElement> deSources =
         dataElementService.getDataElementsByUid(

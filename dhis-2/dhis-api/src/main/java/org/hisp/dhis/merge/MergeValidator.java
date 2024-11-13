@@ -38,6 +38,14 @@ import org.hisp.dhis.feedback.MergeReport;
  */
 public interface MergeValidator {
 
+  /**
+   * Validates source & target {@link UID}s passed in the params. Validation used by all merges.
+   *
+   * @param params {@link MergeParams} that contain {@link UID}s to validate
+   * @param mergeReport {@link MergeReport} to update
+   * @param mergeType {@link MergeType}
+   * @return {@link MergeRequest} to process
+   */
   MergeRequest validateUIDs(
       @Nonnull MergeParams params, @Nonnull MergeReport mergeReport, @Nonnull MergeType mergeType);
 
