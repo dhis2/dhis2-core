@@ -242,22 +242,22 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     if (table.hasPartitions()) {
       String partitions = toCommaSeparated(table.getPartitions(), this::toPartitionString);
       sql.append("partition by range(year) ("); // Make configurable
+
+
+      removeLastComma(sql).append(") ");
       // TODO this can fail if the partition values are not integers!!!
       List<TablePartition> partitions =
           table.getPartitions().stream()
               .sorted(Comparator.comparingInt(p -> Integer.parseInt(p.getValue().toString())))
               .toList();
 
-      sql.append("partition by range(year) (").append(partitions).append(") "); // Make configurable
-      for (TablePartition partition : table.getPartitions()) {
-        sql.append("partition ")
-            .append(quote(partition.getName()))
-            .append(" values less than(\"")
-            .append(partition.getValue()) // Set last partition to max value
-            .append("\"),");
+      try {
+        partitions = table.getPartitions().stream()
+                .sorted(Comparator.comparingInt(p -> Integer.parseInt(p.getValue().toString())))
+                .toList();
+      } catch (NumberFormatException e) {
+        partitions = table.getPartitions();
       }
-
-      removeLastComma(sql).append(") ");
       for (int i = 0; i < partitions.size(); i++) {
         TablePartition partition = partitions.get(i);
         sql.append("partition ").append(quote(partition.getName())).append(" values less than(");
@@ -441,17 +441,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   @Override
   public Database getDatabase() {
     return Database.DORIS;
-  }
-
-  private boolean isProperlyQuoted(String identifier) {
-    return identifier.startsWith("`")
-        && identifier.endsWith("`")
-        &&
-        // Make sure it's not just a single word with quotes
-        (identifier.length() > 2)
-        &&
-        // Check for proper escape of internal backticks
-        !identifier.substring(1, identifier.length() - 1).contains("`");
   }
 
   private String quoteIdentifier(String identifier) {

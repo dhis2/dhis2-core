@@ -42,11 +42,10 @@ public interface AnalyticsTableStrategy {
    * Execute some sanity checks to ensure that the database is in a valid state for analytics table
    * generation. The checks are dependent on the table type.
    *
-   * @param progress the job progress object
    * @param tableType the table type
    * @return true if the state is valid, false otherwise
    */
-  default boolean validateState(JobProgress progress, AnalyticsTableType tableType) {
+  default boolean validateState(AnalyticsTableType tableType) {
     return true;
   }
 

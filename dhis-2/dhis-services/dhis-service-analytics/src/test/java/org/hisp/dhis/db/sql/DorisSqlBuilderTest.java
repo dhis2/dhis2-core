@@ -407,6 +407,24 @@ class DorisSqlBuilderTest {
     // Test with multiple dots
     assertEquals("schema.table.`column`", sqlBuilder.fixQuote("schema.table.column"));
     assertEquals("db.schema.table.`column`", sqlBuilder.fixQuote("db.schema.table.column"));
+
+    // Test with alias
+    assertEquals("alias.`column_name` as ou", sqlBuilder.fixQuote("alias.\"column_name\" as ou"));
+    assertEquals("alias.`column_name` as ou", sqlBuilder.fixQuote("alias.`column_name` as ou"));
+  }
+
+  @Test
+  public void testWithFunctions() {
+    // Test with SQL functions
+    assertEquals(
+            "coalesce(own.\"ou\",ax.\"ou\") as ou",
+            sqlBuilder.fixQuote("coalesce(own.\"ou\",ax.\"ou\") as ou"));
+    assertEquals("count(*) as count", sqlBuilder.fixQuote("count(*) as count"));
+    assertEquals(
+            "max(\"column_name\") as max_val", sqlBuilder.fixQuote("max(\"column_name\") as max_val"));
+    assertEquals(
+            "substring(\"name\", 1, 10) as short_name",
+            sqlBuilder.fixQuote("substring(\"name\", 1, 10) as short_name"));
   }
 
   @Test

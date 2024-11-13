@@ -53,7 +53,7 @@ public class DorisAnalyticsTableStrategy implements AnalyticsTableStrategy {
   private final int parallelJobs;
 
   @Override
-  public boolean validateState(JobProgress progress, AnalyticsTableType tableType) {
+  public boolean validateState(AnalyticsTableType tableType) {
     return tableManager.validState();
   }
 
