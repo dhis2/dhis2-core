@@ -440,11 +440,21 @@ class JdbcEventStore {
                   eventDataValue.setProvidedElsewhere(
                       dataValueJson.getBoolean("providedElsewhere").booleanValue(false));
                   eventDataValue.setStoredBy(dataValueJson.getString("storedBy").string(""));
-                  // TODO(ivo) I also need to map these
-                  // @Mapping(target = "createdAt", source = "created")
-                  // @Mapping(target = "updatedAt", source = "lastUpdated")
-                  // @Mapping(target = "createdBy", source = "createdByUserInfo")
-                  // @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
+                  if (dataValueJson.has("createdByUserInfo")) {
+                    eventDataValue.setCreatedByUserInfo(
+                        EventUtils.jsonToUserInfo(
+                            dataValueJson.getObject("createdByUserInfo").toJson(), jsonMapper));
+                  }
+                  if (dataValueJson.has("lastUpdatedByUserInfo")) {
+                    eventDataValue.setLastUpdatedByUserInfo(
+                        EventUtils.jsonToUserInfo(
+                            dataValueJson.getObject("lastUpdatedByUserInfo").toJson(), jsonMapper));
+                  }
+
+                  eventDataValue.setCreated(
+                      DateUtils.parseDate(dataValueJson.getString("created").string("")));
+                  eventDataValue.setLastUpdated(
+                      DateUtils.parseDate(dataValueJson.getString("lastUpdated").string("")));
                   eventDataValues.add(eventDataValue);
                 }
                 event.getEventDataValues().addAll(eventDataValues);
@@ -901,17 +911,7 @@ left join
             ev_eventdatavalues.eventid,
             jsonb_object_agg(
                 de.uid,
-                jsonb_build_object(
-                    'value',
-                    eventdatavalue.value ->> 'value',
-                    'created',
-                    eventdatavalue.value ->> 'created',
-                    'storedBy',
-                    eventdatavalue.value ->> 'storedBy',
-                    'lastUpdated',
-                    eventdatavalue.value ->> 'lastUpdated',
-                    'providedElsewhere',
-                    eventdatavalue.value -> 'providedElsewhere',
+                eventdatavalue.value || jsonb_build_object(
                     'dataElementCode',
                     coalesce(de.code, ''),
                     'dataElementName',
