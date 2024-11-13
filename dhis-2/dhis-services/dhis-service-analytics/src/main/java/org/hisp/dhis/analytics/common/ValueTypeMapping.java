@@ -71,7 +71,7 @@ public enum ValueTypeMapping {
   @Getter private final UnaryOperator<String> argumentTransformer;
   @Getter private final String postgresCast;
 
-  ValueTypeMapping(Function<String, Object> converter, Class... classes) {
+  ValueTypeMapping(Function<String, Object> converter, Class<?>... classes) {
     this.converter = converter;
     this.valueTypes = fromClasses(classes);
     this.selectTransformer = UnaryOperator.identity();
@@ -86,7 +86,7 @@ public enum ValueTypeMapping {
    * @param classes the classes to be converted
    * @return the respective {@link ValueType} array
    */
-  private ValueType[] fromClasses(Class... classes) {
+  private ValueType[] fromClasses(Class<?>... classes) {
     return stream(ValueType.values())
         .filter(valueType -> isAssignableFrom(classes, valueType))
         .toArray(ValueType[]::new);
@@ -99,14 +99,14 @@ public enum ValueTypeMapping {
    * @param valueType the {@link ValueType} to be checked
    * @return true if the {@link ValueType} is assignable from the given classes, false otherwise
    */
-  private static boolean isAssignableFrom(Class[] classes, ValueType valueType) {
+  private static boolean isAssignableFrom(Class<?>[] classes, ValueType valueType) {
     return stream(classes).anyMatch(valueType.getJavaClass()::isAssignableFrom);
   }
 
   ValueTypeMapping(
       Function<String, Object> converter,
       UnaryOperator<String> selectTransformer,
-      Class... classes) {
+      Class<?>... classes) {
     this.converter = converter;
     this.valueTypes = fromClasses(classes);
     this.selectTransformer = s -> Objects.isNull(s) ? null : selectTransformer.apply(s);

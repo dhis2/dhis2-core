@@ -102,7 +102,7 @@ public class AnalyticsTableSettings {
   }
 
   /**
-   * Returns the configured analytics {@link Database}. Default is {@link Database#POSTGRESQL}.
+   * Returns the configured analytics {@link Database}. The default is {@link Database#POSTGRESQL}.
    *
    * @return the analytics {@link Database}.
    */
