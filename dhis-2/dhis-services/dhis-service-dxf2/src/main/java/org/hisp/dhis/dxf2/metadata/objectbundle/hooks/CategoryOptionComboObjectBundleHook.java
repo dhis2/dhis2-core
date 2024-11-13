@@ -52,17 +52,15 @@ public class CategoryOptionComboObjectBundleHook
       return false;
     }
 
-    // One default and one not default
     if (one.getCategoryCombo() == null || other.getCategoryCombo() == null) {
       return false;
     }
 
-    // Both default
-    if (one.getCategoryCombo() == null && other.getCategoryCombo() == null) {
-      return true;
+    if (one.getCategoryOptions() == null || other.getCategoryOptions() == null) {
+      return false;
     }
 
-    if (one.getCategoryOptions() == null || other.getCategoryOptions() == null) {
+    if (!one.getCategoryCombo().getUid().equals( other.getCategoryCombo().getUid())) {
       return false;
     }
 
@@ -78,10 +76,22 @@ public class CategoryOptionComboObjectBundleHook
   private void checkDuplicateCategoryOptionCombos(
       CategoryOptionCombo categoryOptionCombo, Consumer<ErrorReport> addReports) {
 
-    List<CategoryOptionCombo> categoryOptionCombos = categoryService.getAllCategoryOptionCombos().stream()
-        .filter(coc -> coc.getCategoryCombo().getUid().equals(categoryOptionCombo.getCategoryCombo().getUid()))
-        .collect(Collectors.toList());
+    List<CategoryOptionCombo> categoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos().stream()
+            .filter(
+                coc ->
+                    coc.getCategoryCombo()
+                        .getUid()
+                        .equals(categoryOptionCombo.getCategoryCombo().getUid()))
+            .collect(Collectors.toList());
 
+    // Check if the categoryOptionCombo is already in the list. This could be an update or re-import
+    // of the same object.
+    if (categoryOptionCombos.stream().anyMatch(coc -> coc.getUid().equals(categoryOptionCombo.getUid()))) {
+      return;
+    }
+    //Check to see if the COC already exists in the list of COCs
+    //If it does, then it is a duplicate
     for (CategoryOptionCombo existingCategoryOptionCombo : categoryOptionCombos) {
       if (haveEqualCatComboCatOptionReferenceIds(categoryOptionCombo, existingCategoryOptionCombo)
           && !categoryOptionCombo.getUid().equals(existingCategoryOptionCombo.getUid())) {
