@@ -436,6 +436,7 @@ public class DataHandler {
               .withSkipMeta(true)
               .build();
 
+      //TODO split EventQueryParams (aggregated, disaggregated)
       //Grid eventGrid = eventAggregatedService.getAggregatedData(eventQueryParams);
       Grid eventGrid = eventQueryService.getEvents(eventQueryParams);
       grid.addRows(eventGrid);
