@@ -90,7 +90,11 @@ public class AssignDataValueExecutor implements RuleActionExecutor<Event> {
         || isEqual(value, payloadDataValue.getValue(), dataElement.getValueType())) {
       addOrOverwriteDataValue(event, bundle, dataElement, payloadDataValue);
       return Optional.of(
-          warning(ruleUid, ValidationCode.E1308, dataElementUid.getValue(), event.getEvent()));
+          warning(
+              ruleUid,
+              ValidationCode.E1308,
+              dataElementUid.getValue(),
+              event.getEvent().getValue()));
     }
     return Optional.of(error(ruleUid, ValidationCode.E1307, dataElementUid.getValue(), value));
   }
@@ -99,13 +103,21 @@ public class AssignDataValueExecutor implements RuleActionExecutor<Event> {
       DataValue payloadDataValue, Boolean canOverwrite, Event event) {
     if (payloadDataValue == null || payloadDataValue.getValue() == null) {
       return Optional.of(
-          warning(ruleUid, ValidationCode.E1308, dataElementUid.getValue(), event.getEvent()));
+          warning(
+              ruleUid,
+              ValidationCode.E1308,
+              dataElementUid.getValue(),
+              event.getEvent().getValue()));
     }
 
     if (Boolean.TRUE.equals(canOverwrite)) {
       payloadDataValue.setValue(null);
       return Optional.of(
-          warning(ruleUid, ValidationCode.E1308, dataElementUid.getValue(), event.getEvent()));
+          warning(
+              ruleUid,
+              ValidationCode.E1308,
+              dataElementUid.getValue(),
+              event.getEvent().getValue()));
     }
 
     return Optional.of(error(ruleUid, ValidationCode.E1307, dataElementUid.getValue(), ""));

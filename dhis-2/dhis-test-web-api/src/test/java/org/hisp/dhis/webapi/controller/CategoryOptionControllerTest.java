@@ -122,10 +122,10 @@ class CategoryOptionControllerTest extends H2ControllerIntegrationTestBase {
     JsonObject error1 = errors.getObject(0);
     JsonObject error2 = errors.getObject(1);
     assertEquals(
-        "SOURCE category option does not exist: `Uid00000010`",
+        "SOURCE CategoryOption does not exist: `Uid00000010`",
         error1.getString("message").string());
     assertEquals(
-        "TARGET category option does not exist: `Uid00000012`",
+        "TARGET CategoryOption does not exist: `Uid00000012`",
         error2.getString("message").string());
   }
 

@@ -33,7 +33,6 @@ import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.Enrollme
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -44,6 +43,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
@@ -114,21 +114,24 @@ class EnrollmentsExportController {
 
       org.hisp.dhis.tracker.export.Page<org.hisp.dhis.program.Enrollment> enrollmentsPage =
           enrollmentService.getEnrollments(operationParams, pageParams);
+      List<Enrollment> enrollments =
+          enrollmentsPage.getItems().stream()
+              .map(en -> ENROLLMENT_MAPPER.map(en, TrackerIdSchemeParams.builder().build()))
+              .toList();
       List<ObjectNode> objectNodes =
-          fieldFilterService.toObjectNodes(
-              ENROLLMENT_MAPPER.fromCollection(enrollmentsPage.getItems()),
-              requestParams.getFields());
+          fieldFilterService.toObjectNodes(enrollments, requestParams.getFields());
 
       return ResponseEntity.ok()
           .contentType(MediaType.APPLICATION_JSON)
           .body(Page.withPager(ENROLLMENTS, enrollmentsPage.withItems(objectNodes)));
     }
 
-    Collection<org.hisp.dhis.program.Enrollment> enrollments =
-        enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments =
+        enrollmentService.getEnrollments(operationParams).stream()
+            .map(en -> ENROLLMENT_MAPPER.map(en, TrackerIdSchemeParams.builder().build()))
+            .toList();
     List<ObjectNode> objectNodes =
-        fieldFilterService.toObjectNodes(
-            ENROLLMENT_MAPPER.fromCollection(enrollments), requestParams.getFields());
+        fieldFilterService.toObjectNodes(enrollments, requestParams.getFields());
 
     return ResponseEntity.ok()
         .contentType(MediaType.APPLICATION_JSON)
@@ -144,7 +147,9 @@ class EnrollmentsExportController {
       throws NotFoundException, ForbiddenException {
     EnrollmentParams enrollmentParams = fieldsMapper.map(fields);
     Enrollment enrollment =
-        ENROLLMENT_MAPPER.from(enrollmentService.getEnrollment(uid, enrollmentParams, false));
+        ENROLLMENT_MAPPER.map(
+            enrollmentService.getEnrollment(uid, enrollmentParams, false),
+            TrackerIdSchemeParams.builder().build());
     return ResponseEntity.ok(fieldFilterService.toObjectNode(enrollment, fields));
   }
 }

@@ -25,21 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports;
+package org.hisp.dhis.commons.jackson.config;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public enum TrackerIdScheme {
-  /** Preheat using UID identifiers. */
-  UID,
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import java.io.IOException;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.UID;
 
-  /** Preheat using CODE identifiers. */
-  CODE,
+public class UIDStdDeserializer extends StdDeserializer<UID> {
+  public UIDStdDeserializer() {
+    super(UID.class);
+  }
 
-  /** Preheat using NAME identifiers */
-  NAME,
+  @Override
+  public UID deserialize(JsonParser parser, DeserializationContext context) throws IOException {
+    String valueAsString = parser.getText();
 
-  /** Preheat using ATTRIBUTE identifiers */
-  ATTRIBUTE,
+    if (StringUtils.isNotBlank(valueAsString)) {
+      try {
+        return UID.of(valueAsString);
+      } catch (Exception e) {
+        throw new JsonParseException(parser, e.getMessage());
+      }
+    }
+    return null;
+  }
 }

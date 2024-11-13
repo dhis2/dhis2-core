@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.domain;
 
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerType;
 
 /**
@@ -34,7 +35,7 @@ import org.hisp.dhis.tracker.TrackerType;
  */
 public interface TrackerDto {
 
-  String getUid();
+  UID getUid();
 
   TrackerType getTrackerType();
 }

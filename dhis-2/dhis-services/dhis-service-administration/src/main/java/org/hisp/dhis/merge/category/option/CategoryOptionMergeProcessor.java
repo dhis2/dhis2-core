@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.view;
+package org.hisp.dhis.merge.category.option;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.merge.MergeProcessor;
+import org.hisp.dhis.merge.MergeService;
+import org.springframework.stereotype.Component;
 
-public interface ViewMapper<T, R> {
-  R from(T from);
+/**
+ * Implementation of {@link MergeProcessor} that currently only uses its default method.
+ *
+ * @author david mackessy
+ */
+@Component
+@RequiredArgsConstructor
+public class CategoryOptionMergeProcessor implements MergeProcessor {
 
-  default List<R> fromCollection(Collection<T> froms) {
-    return Optional.ofNullable(froms).orElse(Collections.emptySet()).stream()
-        .map(this::from)
-        .collect(Collectors.toList());
+  /**
+   * Spring injects the correct service based on the variable name (when there are multiple
+   * implementations to choose from). So The {@link CategoryOptionMergeService} gets injected here.
+   */
+  private final MergeService categoryOptionMergeService;
+
+  @Override
+  public MergeService getMergeService() {
+    return categoryOptionMergeService;
   }
 }

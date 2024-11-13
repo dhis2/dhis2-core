@@ -44,6 +44,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.time.Instant;
 import java.util.Date;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.jackson.config.geometry.GeometrySerializer;
 import org.hisp.dhis.commons.jackson.config.geometry.JtsXmlModule;
 import org.hisp.dhis.dataexchange.aggregate.Api;
@@ -198,10 +199,11 @@ public class JacksonObjectMapperConfig {
     mapper.registerModule(
         new SimpleModule()
             .addSerializer(Date.class, new WriteDateStdSerializer())
-            .addSerializer(Instant.class, new WriteInstantStdSerializer()));
+            .addSerializer(Instant.class, new WriteInstantStdSerializer())
+            .addSerializer(UID.class, new UIDStdSerializer())
+            .addDeserializer(UID.class, new UIDStdDeserializer()));
 
     mapper.registerModule(new Jdk8Module());
-
     return mapper;
   }
 }

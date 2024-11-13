@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -56,7 +57,7 @@ class DataIntegrityYamlReaderTest {
 
     List<DataIntegrityCheck> checks = new ArrayList<>();
     readYaml(checks, "data-integrity-checks.yaml", "data-integrity-checks", CLASS_PATH);
-    assertEquals(79, checks.size());
+    assertEquals(82, checks.size());
 
     // Names should be unique
     List<String> allNames = checks.stream().map(DataIntegrityCheck::getName).toList();
@@ -139,6 +140,29 @@ class DataIntegrityYamlReaderTest {
     readYaml(
         checks, "test-data-integrity-checks.yaml", "test-data-integrity-checks.yaml", FILE_SYSTEM);
     assertEquals(0, checks.size());
+  }
+
+  @Test
+  void testChecksHaveTranslations() {
+    ResourceBundle resourceBundle = ResourceBundle.getBundle("i18n_global");
+
+    List<String> translationsSuffix = new ArrayList<>();
+    /* Require the name only for now, but we can add the other translations strings later when needed.
+    e.g. description, introduction, recommendation, section
+     */
+    translationsSuffix.add("name");
+
+    List<DataIntegrityCheck> checks = new ArrayList<>();
+    readYaml(checks, "data-integrity-checks.yaml", "data-integrity-checks", CLASS_PATH);
+    // Check for names
+    for (DataIntegrityCheck check : checks) {
+      for (String suffix : translationsSuffix) {
+        String translationKey = "data_integrity." + check.getName() + "." + suffix;
+        assertTrue(
+            resourceBundle.containsKey(translationKey),
+            "data integrity check translations should contain " + translationKey);
+      }
+    }
   }
 
   private void readYaml(

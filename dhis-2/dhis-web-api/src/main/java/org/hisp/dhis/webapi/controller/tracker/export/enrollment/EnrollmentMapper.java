@@ -31,13 +31,15 @@ import static java.util.Map.entry;
 
 import java.util.Map;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.relationship.RelationshipMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -46,13 +48,12 @@ import org.mapstruct.Mapping;
       AttributeMapper.class,
       EventMapper.class,
       InstantMapper.class,
+      UIDMapper.class,
       NoteMapper.class,
       RelationshipMapper.class,
       UserMapper.class
     })
-public interface EnrollmentMapper
-    extends ViewMapper<Enrollment, org.hisp.dhis.webapi.controller.tracker.view.Enrollment> {
-
+public interface EnrollmentMapper {
   /**
    * Enrollments can be ordered by given fields which correspond to fields on {@link
    * org.hisp.dhis.program.Enrollment}.
@@ -83,6 +84,6 @@ public interface EnrollmentMapper
   @Mapping(target = "relationships", source = "relationshipItems")
   @Mapping(target = "attributes", source = "trackedEntity.trackedEntityAttributeValues")
   @Mapping(target = "notes", source = "notes")
-  @Override
-  org.hisp.dhis.webapi.controller.tracker.view.Enrollment from(Enrollment enrollment);
+  org.hisp.dhis.webapi.controller.tracker.view.Enrollment map(
+      Enrollment enrollment, @Context TrackerIdSchemeParams idSchemeParams);
 }

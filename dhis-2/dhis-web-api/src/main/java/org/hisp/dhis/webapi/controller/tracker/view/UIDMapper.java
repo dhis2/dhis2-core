@@ -25,26 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.validation.validator.trackedentity;
+package org.hisp.dhis.webapi.controller.tracker.view;
 
-import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.checkUidFormat;
-
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
-import org.hisp.dhis.tracker.imports.validation.Reporter;
-import org.hisp.dhis.tracker.imports.validation.Validator;
+import javax.annotation.CheckForNull;
+import org.hisp.dhis.common.UID;
+import org.mapstruct.Mapper;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Converts a string representation of a UID to a {@link UID} object. If the provided string is
+ * {@code null}, the method returns {@code null}. Otherwise, it creates a new {@link UID} instance
+ * using {@code UID.of}.
  */
-class UidValidator implements Validator<TrackedEntity> {
-  @Override
-  public void validate(Reporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity) {
-    checkUidFormat(
-        trackedEntity.getTrackedEntity(),
-        reporter,
-        trackedEntity,
-        trackedEntity,
-        trackedEntity.getTrackedEntity());
+@Mapper
+public interface UIDMapper {
+  @CheckForNull
+  default UID fromString(@CheckForNull String uid) {
+    return uid == null ? null : UID.of(uid);
   }
 }
