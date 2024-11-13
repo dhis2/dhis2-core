@@ -64,20 +64,17 @@ public class DefaultMergeValidator implements MergeValidator {
     log.info("Validating {} merge request", mergeType);
     mergeReport.setMergeType(mergeType);
 
-    Set<UID> sources = new HashSet<>();
-    verifySources(params.getSources(), sources, mergeReport, mergeType);
+    Set<UID> verifiedSources = verifySources(params.getSources(), mergeReport, mergeType);
 
-    checkIsTargetInSources(sources, params.getTarget(), mergeReport, mergeType);
+    checkIsTargetInSources(verifiedSources, params.getTarget(), mergeReport, mergeType);
 
-    return verifyTarget(mergeReport, sources, params, mergeType);
+    return verifyTarget(mergeReport, verifiedSources, params, mergeType);
   }
 
   @Override
-  public void verifySources(
-      Set<UID> paramSources,
-      Set<UID> verifiedSources,
-      MergeReport mergeReport,
-      MergeType mergeType) {
+  public Set<UID> verifySources(
+      Set<UID> paramSources, MergeReport mergeReport, MergeType mergeType) {
+    Set<UID> verifiedSources = new HashSet<>();
     Optional.ofNullable(paramSources)
         .filter(CollectionUtils::isNotEmpty)
         .ifPresentOrElse(
@@ -85,6 +82,7 @@ public class DefaultMergeValidator implements MergeValidator {
             () ->
                 mergeReport.addErrorMessage(
                     new ErrorMessage(ErrorCode.E1530, mergeType.getName())));
+    return verifiedSources;
   }
 
   @Override
