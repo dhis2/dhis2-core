@@ -43,7 +43,6 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeProcessor;
-import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
@@ -73,7 +72,6 @@ public class DataElementController extends AbstractCrudController<DataElement> {
   public @ResponseBody WebMessage mergeDataElements(@RequestBody MergeParams params)
       throws ConflictException {
     log.info("Data element merge received");
-    params.setMergeType(MergeType.DATA_ELEMENT);
 
     MergeReport report;
     try {

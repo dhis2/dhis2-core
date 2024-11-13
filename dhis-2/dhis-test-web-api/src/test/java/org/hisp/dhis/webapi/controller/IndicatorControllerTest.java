@@ -92,9 +92,9 @@ class IndicatorControllerTest extends H2ControllerIntegrationTestBase {
     JsonObject error1 = errors.getObject(0);
     JsonObject error2 = errors.getObject(1);
     assertEquals(
-        "SOURCE indicator does not exist: `Uid00000010`", error1.getString("message").string());
+        "SOURCE Indicator does not exist: `Uid00000010`", error1.getString("message").string());
     assertEquals(
-        "TARGET indicator does not exist: `Uid00000012`", error2.getString("message").string());
+        "TARGET Indicator does not exist: `Uid00000012`", error2.getString("message").string());
   }
 
   @Test
