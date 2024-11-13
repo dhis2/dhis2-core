@@ -123,26 +123,23 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
         params);
     progress.startingStage("Performing pre-create table work");
 
-    //
     // Perform pre-create tables
-    //
+
     withClock(
         clock,
         "Performed pre-create table work " + tableType,
         () -> analyticsTableStrategy.preCreateTables(params, progress));
 
-    //
     // Drop staging tables
-    //
+
     progress.startingStage("Dropping staging tables (if any) " + tableType, tables.size());
     withClock(
         clock,
         "Dropped staging tables " + tableType,
         () -> analyticsTableStrategy.dropStagingTables(tables, progress));
 
-    //
     // Create analytics tables
-    //
+
     progress.startingStage("Creating analytics tables " + tableType, tables.size());
     withClock(
         clock,
@@ -152,9 +149,8 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     List<AnalyticsTablePartition> partitions = getTablePartitions(tables);
     int partitionSize = partitions.size();
 
-    //
     // Populate analytics tables
-    //
+
     progress.startingStage(
         "Populating " + partitionSize + " analytics tables " + tableType, partitionSize);
     withClock(
@@ -167,15 +163,13 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
 
     clock.logTime("Invoked analytics table hooks");
 
-    //
     // Apply aggregation levels
-    //
+
     tableUpdates += analyticsTableStrategy.applyAggregationLevels(tableType, partitions, progress);
     clock.logTime("Applied aggregation levels");
 
-    //
     // Create indexes
-    //
+
     withClock(
         clock,
         "Created indexes",
@@ -187,9 +181,8 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
           clock, "Optimized tables", () -> analyticsTableStrategy.optimizeTables(tables, progress));
     }
 
-    //
     // Analyze tables
-    //
+
     progress.startingStage("Analyzing analytics tables " + tableType, partitions.size());
     withClock(
         clock, "Analyzed tables", () -> analyticsTableStrategy.analyzeTables(tables, progress));
@@ -200,9 +193,8 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       clock.logTime("Removed updated and deleted data");
     }
 
-    //
     // Swap tables
-    //
+
     analyticsTableStrategy.swapTables(params, tables, progress, tableType);
 
     clock.logTime("Table update done: '{}'", tableType.getTableName());
