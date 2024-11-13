@@ -229,6 +229,6 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
         "categoryCombo" : {} }
         """)
             .content(HttpStatus.CONFLICT);
-    assertEquals("\"Post-condition was null\"", response.get("message").toString());
+    assertEquals("\"One or more errors occurred, please see full details in import report.\"", response.get("message").toString());
   }
 }

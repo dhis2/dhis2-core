@@ -62,10 +62,6 @@ public class CategoryOptionComboObjectBundleHook
       return true;
     }
 
-    if (!one.getCategoryCombo().getUid().equals(other.getCategoryCombo().getUid())) {
-      return false;
-    }
-
     if (one.getCategoryOptions() == null || other.getCategoryOptions() == null) {
       return false;
     }
@@ -82,7 +78,9 @@ public class CategoryOptionComboObjectBundleHook
   private void checkDuplicateCategoryOptionCombos(
       CategoryOptionCombo categoryOptionCombo, Consumer<ErrorReport> addReports) {
 
-    List<CategoryOptionCombo> categoryOptionCombos = categoryService.getAllCategoryOptionCombos();
+    List<CategoryOptionCombo> categoryOptionCombos = categoryService.getAllCategoryOptionCombos().stream()
+        .filter(coc -> coc.getCategoryCombo().getUid().equals(categoryOptionCombo.getCategoryCombo().getUid()))
+        .collect(Collectors.toList());
 
     for (CategoryOptionCombo existingCategoryOptionCombo : categoryOptionCombos) {
       if (haveEqualCatComboCatOptionReferenceIds(categoryOptionCombo, existingCategoryOptionCombo)
