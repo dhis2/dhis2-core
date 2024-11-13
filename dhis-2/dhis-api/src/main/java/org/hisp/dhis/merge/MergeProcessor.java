@@ -57,7 +57,7 @@ public interface MergeProcessor {
    * @return updated {@link MergeReport} with any errors
    */
   default MergeReport processMerge(@Nonnull MergeParams mergeParams) throws ConflictException {
-    MergeReport mergeReport = new MergeReport(mergeParams.getMergeType());
+    MergeReport mergeReport = new MergeReport();
 
     MergeRequest mergeRequest = getMergeService().validate(mergeParams, mergeReport);
     if (mergeReport.hasErrorMessages())

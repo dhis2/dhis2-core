@@ -89,33 +89,17 @@ public enum ErrorCode {
   E1522("User `{0}` is not allowed to move organisation `{1}` unit from parent `{2}`"),
   E1523("User `{0}` is not allowed to move organisation `{1}` unit to parent `{2}`"),
 
-  /* Indicator Type merge */
-  E1530("At least one source indicator type must be specified"),
-  E1531("Target indicator type must be specified"),
-  E1532("Target indicator type cannot be a source indicator type"),
-  E1533("{0} indicator type does not exist: `{1}`"),
-
-  /* Indicator merge */
-  E1540("At least one source indicator must be specified"),
-  E1541("Target indicator must be specified"),
-  E1542("Target indicator cannot be a source indicator"),
-  E1543("{0} indicator does not exist: `{1}`"),
+  /* Generic merge errors */
+  E1530("At least one source {0} must be specified"),
+  E1531("Target {0} must be specified"),
+  E1532("Target {0} cannot be a source {1}"),
+  E1533("{0} {1} does not exist: `{2}`"),
+  E1534("dataMergeStrategy field must be specified. With value `DISCARD` or `LAST_UPDATED`"),
 
   /* DataElement merge */
-  E1550("At least one source data element must be specified"),
-  E1551("Target data element must be specified"),
-  E1552("Target data element cannot be a source data element"),
-  E1553("{0} data element does not exist: `{1}`"),
-  E1554("All source ValueTypes must match target ValueType: `{0}`. Other ValueTypes found: `{1}`"),
-  E1555(
+  E1550("All source ValueTypes must match target ValueType: `{0}`. Other ValueTypes found: `{1}`"),
+  E1551(
       "All source DataElementDomains must match target DataElementDomain: `{0}`. Other DataElementDomains found: `{1}`"),
-  E1556("dataMergeStrategy field must be specified. With value `DISCARD` or `LAST_UPDATED`"),
-
-  /* CategoryOption merge */
-  E1650("At least one source category option must be specified"),
-  E1651("Target category option must be specified"),
-  E1652("Target category option cannot be a source category option"),
-  E1653("{0} category option does not exist: `{1}`"),
 
   /* Data */
   E2000("Query parameters cannot be null"),
