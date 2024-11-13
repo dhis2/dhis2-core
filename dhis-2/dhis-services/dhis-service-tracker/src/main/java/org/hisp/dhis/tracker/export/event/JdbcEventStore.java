@@ -90,6 +90,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
@@ -402,7 +403,7 @@ class JdbcEventStore {
                 event.setAssignedUser(eventUser);
               }
 
-              String dataValuesResult = resultSet.getString("ev_eventdatavalues_idschemes");
+              String dataValuesResult = resultSet.getString(COLUMN_EVENT_DATAVALUES);
               if (!StringUtils.isEmpty(dataValuesResult)) {
                 JsonMixed dataValuesJson = JsonMixed.of(dataValuesResult);
                 JsonObject dataValuesObject = dataValuesJson.asObject();
@@ -786,50 +787,54 @@ class JdbcEventStore {
             .append(", ev.occurreddate as ")
             .append(COLUMN_EVENT_OCCURRED_DATE)
             .append(", ev.scheduleddate as ")
-            .append(COLUMN_EVENT_SCHEDULED_DATE)
-            .append(", ev.eventdatavalues as ")
-            .append(COLUMN_EVENT_DATAVALUES)
-            // TODO(ivo) use case to use the same 'ev_eventdatavalues' alias if idScheme!=UID and
-            // when UID and subquery is not present
-            .append(", eventdatavalues.eventdatavalues_idschemes as ev_eventdatavalues_idschemes")
-            .append(", ev.completedby as ")
-            .append(COLUMN_EVENT_COMPLETED_BY)
-            .append(", ev.storedby as ")
-            .append(COLUMN_EVENT_STORED_BY)
-            .append(", ev.created as ")
-            .append(COLUMN_EVENT_CREATED)
-            .append(", ev.createdatclient as ")
-            .append(COLUMN_EVENT_CREATED_AT_CLIENT)
-            .append(", ev.createdbyuserinfo as ")
-            .append(COLUMN_EVENT_CREATED_BY)
-            .append(", ev.lastupdated as ")
-            .append(COLUMN_EVENT_LAST_UPDATED)
-            .append(", ev.lastupdatedatclient as ")
-            .append(COLUMN_EVENT_LAST_UPDATED_AT_CLIENT)
-            .append(", ev.lastupdatedbyuserinfo as ")
-            .append(COLUMN_EVENT_LAST_UPDATED_BY)
-            .append(", ev.completeddate as ")
-            .append(COLUMN_EVENT_COMPLETED_DATE)
-            .append(", ev.deleted as ")
-            .append(COLUMN_EVENT_DELETED)
-            .append(
-                ", ST_AsText( ev.geometry ) as ev_geometry, au.uid as user_assigned, (au.firstName"
-                    + " || ' ' || au.surName) as ")
-            .append(COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME)
-            .append(",")
-            .append(
-                "au.firstName as user_assigned_first_name, au.surName as user_assigned_surname, ")
-            .append("au.username as ")
-            .append(COLUMN_EVENT_ASSIGNED_USER_USERNAME)
-            .append(", coc_agg.uid as ")
-            .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID)
-            .append(", coc_agg.code as ")
-            .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_CODE)
-            .append(", coc_agg.name as ")
-            .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_NAME)
-            .append(", coc_agg.attributevalues as ")
-            .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_ATTRIBUTE_VALUES)
-            .append(", coc_agg.co_values AS co_values, coc_agg.co_count AS option_size, ");
+            .append(COLUMN_EVENT_SCHEDULED_DATE);
+
+    if (TrackerIdScheme.UID == params.getIdSchemeParams().getDataElementIdScheme().getIdScheme()) {
+      selectBuilder.append(", ev.eventdatavalues as ").append(COLUMN_EVENT_DATAVALUES);
+    } else {
+      selectBuilder
+          .append(", eventdatavalues.eventdatavalues_idschemes as ")
+          .append(COLUMN_EVENT_DATAVALUES);
+    }
+
+    selectBuilder
+        .append(", ev.completedby as ")
+        .append(COLUMN_EVENT_COMPLETED_BY)
+        .append(", ev.storedby as ")
+        .append(COLUMN_EVENT_STORED_BY)
+        .append(", ev.created as ")
+        .append(COLUMN_EVENT_CREATED)
+        .append(", ev.createdatclient as ")
+        .append(COLUMN_EVENT_CREATED_AT_CLIENT)
+        .append(", ev.createdbyuserinfo as ")
+        .append(COLUMN_EVENT_CREATED_BY)
+        .append(", ev.lastupdated as ")
+        .append(COLUMN_EVENT_LAST_UPDATED)
+        .append(", ev.lastupdatedatclient as ")
+        .append(COLUMN_EVENT_LAST_UPDATED_AT_CLIENT)
+        .append(", ev.lastupdatedbyuserinfo as ")
+        .append(COLUMN_EVENT_LAST_UPDATED_BY)
+        .append(", ev.completeddate as ")
+        .append(COLUMN_EVENT_COMPLETED_DATE)
+        .append(", ev.deleted as ")
+        .append(COLUMN_EVENT_DELETED)
+        .append(
+            ", ST_AsText( ev.geometry ) as ev_geometry, au.uid as user_assigned, (au.firstName"
+                + " || ' ' || au.surName) as ")
+        .append(COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME)
+        .append(",")
+        .append("au.firstName as user_assigned_first_name, au.surName as user_assigned_surname, ")
+        .append("au.username as ")
+        .append(COLUMN_EVENT_ASSIGNED_USER_USERNAME)
+        .append(", coc_agg.uid as ")
+        .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID)
+        .append(", coc_agg.code as ")
+        .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_CODE)
+        .append(", coc_agg.name as ")
+        .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_NAME)
+        .append(", coc_agg.attributevalues as ")
+        .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_ATTRIBUTE_VALUES)
+        .append(", coc_agg.co_values AS co_values, coc_agg.co_count AS option_size, ");
 
     for (Order order : params.getOrder()) {
       if (order.getField() instanceof TrackedEntityAttribute tea)
