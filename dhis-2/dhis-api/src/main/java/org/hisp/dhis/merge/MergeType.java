@@ -27,13 +27,6 @@
  */
 package org.hisp.dhis.merge;
 
-import com.fasterxml.jackson.annotation.JsonValue;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.indicator.IndicatorType;
-
 /**
  * Enum for merge type.
  *
