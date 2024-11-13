@@ -39,7 +39,7 @@ import org.hisp.dhis.db.sql.SqlBuilderProvider;
  * <ul>
  *   <li>Value to this {@link Database}.
  *   <li>Implementation class of {@link SqlBuilder}.
- *   <li>Register new {@link SqlBuilder} implementation in {@link SqlBuilderProvider}.
+ *   <li>Register {@link SqlBuilder} implementation in {@link SqlBuilderProvider}.
  *   <li>Method to {@link AnalyticsDatabaseInit} (optional).
  *   <li>JDBC driver in <code>pom.xml</code> (if required).
  * </ul>
