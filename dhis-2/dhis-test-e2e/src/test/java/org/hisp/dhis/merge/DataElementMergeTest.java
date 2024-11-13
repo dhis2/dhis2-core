@@ -125,7 +125,7 @@ class DataElementMergeTest extends ApiTest {
 
   @Test
   @Disabled(
-      "setup started failing on GitHub only 409 response, reason not know, e2e all passing locally")
+      "setup started failing on GitHub only 409 response, reason not known, e2e all passing locally")
   @DisplayName("DataElement merge fails when min max DE DB unique key constraint met")
   void dbConstraintMinMaxTest() {
     // given
@@ -231,13 +231,13 @@ class DataElementMergeTest extends ApiTest {
         .validate()
         .statusCode(409)
         .body("httpStatus", equalTo("Conflict"))
-        .body("response.mergeReport.message", equalTo("DATA_ELEMENT merge has errors"))
+        .body("response.mergeReport.message", equalTo("DataElement merge has errors"))
         .body(
             "response.mergeReport.mergeErrors.message",
             allOf(
                 hasItem(
                     "All source ValueTypes must match target ValueType: `TEXT`. Other ValueTypes found: `[NUMBER]`")))
-        .body("response.mergeReport.mergeErrors.errorCode", allOf(hasItem("E1554")));
+        .body("response.mergeReport.mergeErrors.errorCode", allOf(hasItem("E1550")));
   }
 
   @Test
@@ -262,13 +262,13 @@ class DataElementMergeTest extends ApiTest {
         .validate()
         .statusCode(409)
         .body("httpStatus", equalTo("Conflict"))
-        .body("response.mergeReport.message", equalTo("DATA_ELEMENT merge has errors"))
+        .body("response.mergeReport.message", equalTo("DataElement merge has errors"))
         .body(
             "response.mergeReport.mergeErrors.message",
             allOf(
                 hasItem(
                     "All source DataElementDomains must match target DataElementDomain: `AGGREGATE`. Other DataElementDomains found: `[TRACKER]`")))
-        .body("response.mergeReport.mergeErrors.errorCode", allOf(hasItem("E1555")));
+        .body("response.mergeReport.mergeErrors.errorCode", allOf(hasItem("E1551")));
   }
 
   @Test

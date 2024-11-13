@@ -282,10 +282,10 @@ class IndicatorTypeMergeTest extends ApiTest {
         .statusCode(409)
         .body("httpStatus", equalTo("Conflict"))
         .body("status", equalTo("WARNING"))
-        .body("response.mergeReport.message", equalTo("INDICATOR_TYPE merge has errors"))
+        .body("response.mergeReport.message", equalTo("IndicatorType merge has errors"))
         .body(
             "response.mergeReport.mergeErrors[0].message",
-            equalTo("At least one source indicator type must be specified"))
+            equalTo("At least one source IndicatorType must be specified"))
         .body("response.mergeReport.mergeErrors[0].errorCode", equalTo("E1530"))
         .body("response.mergeReport.mergeType", equalTo("INDICATOR_TYPE"))
         .body("response.mergeReport.sourcesDeleted", empty());
@@ -313,10 +313,10 @@ class IndicatorTypeMergeTest extends ApiTest {
         .statusCode(409)
         .body("httpStatus", equalTo("Conflict"))
         .body("status", equalTo("WARNING"))
-        .body("response.mergeReport.message", equalTo("INDICATOR_TYPE merge has errors"))
+        .body("response.mergeReport.message", equalTo("IndicatorType merge has errors"))
         .body(
             "response.mergeReport.mergeErrors[0].message",
-            equalTo("Target indicator type must be specified"))
+            equalTo("Target IndicatorType must be specified"))
         .body("response.mergeReport.mergeErrors[0].errorCode", equalTo("E1531"))
         .body("response.mergeReport.mergeType", equalTo("INDICATOR_TYPE"))
         .body("response.mergeReport.sourcesDeleted", empty());
@@ -354,10 +354,10 @@ class IndicatorTypeMergeTest extends ApiTest {
         .statusCode(409)
         .body("httpStatus", equalTo("Conflict"))
         .body("status", equalTo("WARNING"))
-        .body("response.mergeReport.message", equalTo("INDICATOR_TYPE merge has errors"))
+        .body("response.mergeReport.message", equalTo("IndicatorType merge has errors"))
         .body(
             "response.mergeReport.mergeErrors[0].message",
-            equalTo("Target indicator type cannot be a source indicator type"))
+            equalTo("Target IndicatorType cannot be a source IndicatorType"))
         .body("response.mergeReport.mergeErrors[0].errorCode", equalTo("E1532"))
         .body("response.mergeReport.mergeType", equalTo("INDICATOR_TYPE"))
         .body("response.mergeReport.sourcesDeleted", empty());
@@ -378,9 +378,9 @@ class IndicatorTypeMergeTest extends ApiTest {
         .statusCode(409)
         .body("httpStatus", equalTo("Conflict"))
         .body("status", equalTo("WARNING"))
-        .body("response.mergeReport.message", equalTo("INDICATOR_TYPE merge has errors"))
+        .body("response.mergeReport.message", equalTo("IndicatorType merge has errors"))
         .body("response.mergeReport.mergeErrors.size()", equalTo(3))
-        .body("response.mergeReport.mergeType", equalTo("INDICATOR_TYPE"))
+        .body("response.mergeReport.mergeType", equalTo("IndicatorType"))
         .body("response.mergeReport.sourcesDeleted", empty());
   }
 
