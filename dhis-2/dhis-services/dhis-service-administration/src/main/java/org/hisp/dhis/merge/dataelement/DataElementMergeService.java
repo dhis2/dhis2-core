@@ -29,9 +29,7 @@ package org.hisp.dhis.merge.dataelement;
 
 import com.google.common.collect.ImmutableList;
 import jakarta.persistence.EntityManager;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -87,23 +85,15 @@ public class DataElementMergeService implements MergeService {
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
-    log.info("Validating {} merge request", getMergeType().getName());
-    mergeReport.setMergeType(getMergeType());
+    // generic validation
+    MergeRequest request = validator.validateUIDs(params, mergeReport, getMergeType());
+    if (mergeReport.hasErrorMessages()) return request;
 
+    // merge specific validation
     if (params.getDataMergeStrategy() == null) {
       mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1534));
       return null;
     }
-
-    // sources
-    Set<UID> sources = new HashSet<>();
-    validator.verifySources(params.getSources(), sources, mergeReport, getMergeType());
-
-    // target
-    validator.checkIsTargetInSources(sources, params.getTarget(), mergeReport, getMergeType());
-    MergeRequest request = validator.verifyTarget(mergeReport, sources, params, getMergeType());
-
-    if (mergeReport.hasErrorMessages()) return request;
 
     // get DEs for further type-specific validation
     DataElement deTarget = dataElementService.getDataElement(request.getTarget().getValue());

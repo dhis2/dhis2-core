@@ -27,10 +27,13 @@
  */
 package org.hisp.dhis.merge;
 
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
@@ -48,11 +51,36 @@ import org.springframework.stereotype.Component;
  *
  * @author david mackessy
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class DefaultMergeValidator implements MergeValidator {
 
   private final IdentifiableObjectManager manager;
+
+  /**
+   * Validates the UIDs passed in the params. Generic validation used by most merges.
+   *
+   * @param params
+   * @param mergeReport
+   * @param mergeType
+   * @return
+   */
+  @Override
+  public MergeRequest validateUIDs(
+      @Nonnull MergeParams params, @Nonnull MergeReport mergeReport, @Nonnull MergeType mergeType) {
+    log.info("Validating {} merge request", mergeType);
+    mergeReport.setMergeType(mergeType);
+
+    // sources
+    Set<UID> sources = new HashSet<>();
+    verifySources(params.getSources(), sources, mergeReport, mergeType);
+
+    // target
+    checkIsTargetInSources(sources, params.getTarget(), mergeReport, mergeType);
+
+    return verifyTarget(mergeReport, sources, params, mergeType);
+  }
 
   @Override
   public void verifySources(

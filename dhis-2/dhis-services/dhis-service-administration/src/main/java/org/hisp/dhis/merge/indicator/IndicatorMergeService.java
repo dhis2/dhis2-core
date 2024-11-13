@@ -28,9 +28,7 @@
 package org.hisp.dhis.merge.indicator;
 
 import com.google.common.collect.ImmutableList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -74,17 +72,7 @@ public class IndicatorMergeService implements MergeService {
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
-    log.info("Validating {} merge request", getMergeType().getName());
-    mergeReport.setMergeType(getMergeType());
-
-    // sources
-    Set<UID> sources = new HashSet<>();
-    validator.verifySources(params.getSources(), sources, mergeReport, getMergeType());
-
-    // target
-    validator.checkIsTargetInSources(sources, params.getTarget(), mergeReport, getMergeType());
-
-    return validator.verifyTarget(mergeReport, sources, params, getMergeType());
+    return validator.validateUIDs(params, mergeReport, getMergeType());
   }
 
   @Override

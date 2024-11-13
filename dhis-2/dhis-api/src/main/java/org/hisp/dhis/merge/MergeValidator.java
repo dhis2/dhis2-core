@@ -28,6 +28,7 @@
 package org.hisp.dhis.merge;
 
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.MergeReport;
@@ -36,6 +37,9 @@ import org.hisp.dhis.feedback.MergeReport;
  * @author david mackessy
  */
 public interface MergeValidator {
+
+  MergeRequest validateUIDs(
+      @Nonnull MergeParams params, @Nonnull MergeReport mergeReport, @Nonnull MergeType mergeType);
 
   /**
    * Verifies whether the source {@link UID}s map to valid {@link IdentifiableObject}s. <br>
