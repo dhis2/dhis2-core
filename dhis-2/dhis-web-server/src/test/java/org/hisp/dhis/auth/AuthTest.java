@@ -42,17 +42,18 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Base64;
 import org.hisp.dhis.system.util.HttpHeadersBuilder;
 import org.hisp.dhis.test.IntegrationTest;
 import org.hisp.dhis.webapi.controller.security.LoginRequest;
 import org.hisp.dhis.webapi.controller.security.LoginResponse;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -66,8 +67,8 @@ import org.testcontainers.utility.DockerImageName;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Disabled(
-    "fails to build in CI with Connections could not be acquired from the underlying database!")
+// @Disabled(
+//    "fails to build in CI with Connections could not be acquired from the underlying database!")
 @Slf4j
 @IntegrationTest
 @ActiveProfiles(profiles = {"test-postgres"})
@@ -253,12 +254,65 @@ class AuthTest {
   }
 
   @Test
+  void testRedirectAccountWhenVerifiedEmailEnforced() {
+    changeSystemSetting("enforceVerifiedEmail", "true");
+    testRedirectUrl("/dhis-web-dashboard/", "/dhis-web-user-profile/#/account");
+    changeSystemSetting("enforceVerifiedEmail", "false");
+  }
+
+  @Test
   void testRedirectMissingEndingSlash() {
     testRedirectWhenLoggedIn("/dhis-web-dashboard/", "/dhis-web-dashboard/");
   }
 
   private static void testRedirectUrl(String url) {
     testRedirectUrl(url, url);
+  }
+
+  private static RestTemplate createRestTemplateWithHeader() {
+    RestTemplate restTemplate = new RestTemplate();
+
+    // Create the authentication header
+    String auth = "admin:district";
+    byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(StandardCharsets.UTF_8));
+    String authHeader = "Basic " + new String(encodedAuth);
+
+    // Add header to every request
+    restTemplate
+        .getInterceptors()
+        .add(
+            (request, body, execution) -> {
+              request.getHeaders().add(HttpHeaders.AUTHORIZATION, authHeader);
+              return execution.execute(request, body);
+            });
+
+    return restTemplate;
+  }
+
+  private static void changeSystemSetting(String key, String value) {
+    String port = Integer.toString(availablePort);
+
+    // Create headers
+    HttpHeaders headers = new HttpHeaders();
+
+    // Set 'Content-Type' header
+    headers.setContentType(MediaType.TEXT_PLAIN);
+
+    RestTemplate restTemplate = createRestTemplateWithHeader();
+    // Body of the request
+    String body = value;
+    // Combine headers and body into a HttpEntity
+    HttpEntity<String> requestEntity = new HttpEntity<>(body, headers);
+
+    // Send the POST request
+    ResponseEntity<String> response =
+        restTemplate.exchange(
+            "http://localhost:" + port + "/api/systemSettings/" + key,
+            HttpMethod.POST,
+            requestEntity,
+            String.class);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 
   private static void testRedirectUrl(String url, String redirectUrl) {
@@ -340,6 +394,6 @@ class AuthTest {
     List<String> location = respHeaders.get("Location");
     assertNotNull(location);
     assertEquals(1, location.size());
-    assertEquals("/dhis-web-dashboard/", location.get(0));
+    assertEquals(redirectUrl, location.get(0));
   }
 }
