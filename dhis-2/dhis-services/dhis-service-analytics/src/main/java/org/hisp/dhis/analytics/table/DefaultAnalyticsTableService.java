@@ -100,7 +100,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     Clock clock = startClock(tableType, parallelJobs);
 
     progress.startingStage("Validating analytics table: {}", tableType);
-    boolean validState = analyticsTableStrategy.validateState(progress, tableType);
+    boolean validState = analyticsTableStrategy.validateState(tableType);
     progress.completedStage("Validated analytics tables with outcome: {}", validState);
 
     if (!validState || progress.isCancelled()) {
