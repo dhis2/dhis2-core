@@ -60,7 +60,7 @@ public class CategoryOptionComboObjectBundleHook
       return false;
     }
 
-    if (!one.getCategoryCombo().getUid().equals( other.getCategoryCombo().getUid())) {
+    if (!one.getCategoryCombo().getUid().equals(other.getCategoryCombo().getUid())) {
       return false;
     }
 
@@ -87,11 +87,12 @@ public class CategoryOptionComboObjectBundleHook
 
     // Check if the categoryOptionCombo is already in the list. This could be an update or re-import
     // of the same object.
-    if (categoryOptionCombos.stream().anyMatch(coc -> coc.getUid().equals(categoryOptionCombo.getUid()))) {
+    if (categoryOptionCombos.stream()
+        .anyMatch(coc -> coc.getUid().equals(categoryOptionCombo.getUid()))) {
       return;
     }
-    //Check to see if the COC already exists in the list of COCs
-    //If it does, then it is a duplicate
+    // Check to see if the COC already exists in the list of COCs
+    // If it does, then it is a duplicate
     for (CategoryOptionCombo existingCategoryOptionCombo : categoryOptionCombos) {
       if (haveEqualCatComboCatOptionReferenceIds(categoryOptionCombo, existingCategoryOptionCombo)
           && !categoryOptionCombo.getUid().equals(existingCategoryOptionCombo.getUid())) {
