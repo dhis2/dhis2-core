@@ -89,13 +89,13 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     AnalyticsTableType tableType = getAnalyticsTableType();
 
     Clock clock =
-            new Clock(log)
-                    .startClock()
-                    .logTime(
-                            "Starting update of type: {}, table name: '{}', parallel jobs: {}",
-                            tableType,
-                            tableType.getTableName(),
-                            parallelJobs);
+        new Clock(log)
+            .startClock()
+            .logTime(
+                "Starting update of type: {}, table name: '{}', parallel jobs: {}",
+                tableType,
+                tableType.getTableName(),
+                parallelJobs);
 
     progress.startingStage("Validating analytics table: {}", tableType);
     boolean validState = tableManager.validState();
@@ -115,10 +115,10 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     }
 
     clock.logTime(
-            "Table update start: {}, earliest: {}, parameters: {}",
-            tableType.getTableName(),
-            toLongDate(params.getFromDate()),
-            params);
+        "Table update start: {}, earliest: {}, parameters: {}",
+        tableType.getTableName(),
+        toLongDate(params.getFromDate()),
+        params);
     progress.startingStage("Performing pre-create table work");
     progress.runStage(() -> tableManager.preCreateTables(params));
     clock.logTime("Performed pre-create table work " + tableType);
@@ -135,7 +135,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     int partitionSize = partitions.size();
 
     progress.startingStage(
-            "Populating " + partitionSize + " analytics tables " + tableType, partitionSize);
+        "Populating " + partitionSize + " analytics tables " + tableType, partitionSize);
     populateTables(params, partitions, progress);
     clock.logTime("Populated analytics tables");
 
@@ -150,7 +150,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       List<Index> indexes = getIndexes(partitions);
       int indexSize = indexes.size();
       progress.startingStage(
-              "Creating " + indexSize + " indexes " + tableType, indexSize, SKIP_ITEM_OUTLIER);
+          "Creating " + indexSize + " indexes " + tableType, indexSize, SKIP_ITEM_OUTLIER);
       createIndexes(indexes, progress);
       clock.logTime("Created indexes");
     }
@@ -229,17 +229,17 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
    * @param progress the {@link JobProgress}.
    */
   private void populateTables(
-          AnalyticsTableUpdateParams params,
-          List<AnalyticsTablePartition> partitions,
-          JobProgress progress) {
+      AnalyticsTableUpdateParams params,
+      List<AnalyticsTablePartition> partitions,
+      JobProgress progress) {
     int parallelism = Math.min(getParallelJobs(), partitions.size());
     log.info("Populate table task number: " + parallelism);
 
     progress.runStageInParallel(
-            parallelism,
-            partitions,
-            AnalyticsTablePartition::getName,
-            partition -> tableManager.populateTable(params, partition));
+        parallelism,
+        partitions,
+        AnalyticsTablePartition::getName,
+        partition -> tableManager.populateTable(params, partition));
   }
 
   /**
@@ -251,7 +251,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
    * @return the number of aggregation levels applied for data elements.
    */
   private int applyAggregationLevels(
-          AnalyticsTableType tableType, List<? extends Table> tables, JobProgress progress) {
+      AnalyticsTableType tableType, List<? extends Table> tables, JobProgress progress) {
     int maxLevels = organisationUnitService.getNumberOfOrganisationalLevels();
 
     int aggLevels = 0;
@@ -260,17 +260,17 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       int level = maxLevels - i;
 
       List<String> dataElements =
-              IdentifiableObjectUtils.getUids(
-                      dataElementService.getDataElementsByAggregationLevel(level));
+          IdentifiableObjectUtils.getUids(
+              dataElementService.getDataElementsByAggregationLevel(level));
 
       if (!dataElements.isEmpty()) {
         progress.startingStage(
-                "Applying aggregation level " + level + " " + tableType, tables.size());
+            "Applying aggregation level " + level + " " + tableType, tables.size());
         progress.runStageInParallel(
-                getParallelJobs(),
-                tables,
-                Table::getName,
-                partition -> tableManager.applyAggregationLevels(partition, dataElements, level));
+            getParallelJobs(),
+            tables,
+            Table::getName,
+            partition -> tableManager.applyAggregationLevels(partition, dataElements, level));
 
         aggLevels += dataElements.size();
       }
@@ -287,7 +287,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
    */
   private void createIndexes(List<Index> indexes, JobProgress progress) {
     progress.runStageInParallel(
-            getParallelJobs(), indexes, index -> index.getName(), tableManager::createIndex);
+        getParallelJobs(), indexes, index -> index.getName(), tableManager::createIndex);
   }
 
   /**
@@ -298,7 +298,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
    */
   private void vacuumTables(List<? extends Table> tables, JobProgress progress) {
     progress.runStageInParallel(
-            getParallelJobs(), tables, Table::getName, tableManager::vacuumTable);
+        getParallelJobs(), tables, Table::getName, tableManager::vacuumTable);
   }
 
   /**
@@ -309,7 +309,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
    */
   private void analyzeTables(List<? extends Table> tables, JobProgress progress) {
     progress.runStageInParallel(
-            getParallelJobs(), tables, Table::getName, tableManager::analyzeTable);
+        getParallelJobs(), tables, Table::getName, tableManager::analyzeTable);
   }
 
   /**
@@ -320,12 +320,12 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
    * @param progress the {@link JobProgress}.
    */
   private void swapTables(
-          AnalyticsTableUpdateParams params, List<AnalyticsTable> tables, JobProgress progress) {
+      AnalyticsTableUpdateParams params, List<AnalyticsTable> tables, JobProgress progress) {
     resourceTableService.dropAllSqlViews(progress);
 
     progress.startingStage("Swapping analytics tables " + getAnalyticsTableType(), tables.size());
     progress.runStage(
-            tables, AnalyticsTable::getName, table -> tableManager.swapTable(params, table));
+        tables, AnalyticsTable::getName, table -> tableManager.swapTable(params, table));
 
     resourceTableService.createAllSqlViews(progress);
   }

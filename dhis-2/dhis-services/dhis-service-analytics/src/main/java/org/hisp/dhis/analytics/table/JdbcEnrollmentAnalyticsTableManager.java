@@ -176,7 +176,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
 
     if (program.isRegistration()) {
       columns.add(EnrollmentAnalyticsColumn.TRACKED_ENTITY);
-      if(sqlBuilder.supportsGeospatialData()) {
+      if (sqlBuilder.supportsGeospatialData()) {
         columns.add(EnrollmentAnalyticsColumn.TRACKED_ENTITY_GEOMETRY);
       }
     }

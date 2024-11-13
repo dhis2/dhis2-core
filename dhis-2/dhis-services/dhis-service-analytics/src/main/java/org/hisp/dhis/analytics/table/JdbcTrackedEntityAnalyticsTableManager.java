@@ -263,9 +263,9 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
   private String castBasedOnType(ValueType valueType, String columnName) {
     if (valueType.isDecimal()) {
 
-      return replace(" cast(${columnName} as ${type})", Map.of(
-              "columnName", columnName,
-              "type", sqlBuilder.dataTypeDouble()));
+      return replace(
+          " cast(${columnName} as ${type})",
+          Map.of("columnName", columnName, "type", sqlBuilder.dataTypeDouble()));
     }
     if (valueType.isInteger()) {
       return replace(" cast(${columnName} as bigint)", Map.of("columnName", columnName));
@@ -277,9 +277,9 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
     }
 
     if (valueType.isDate()) {
-      return replace(" cast(${columnName} as ${type})", Map.of(
-              "columnName", columnName,
-              "type", sqlBuilder.dataTypeTimestamp()));
+      return replace(
+          " cast(${columnName} as ${type})",
+          Map.of("columnName", columnName, "type", sqlBuilder.dataTypeTimestamp()));
     }
     if (valueType.isGeo() && isSpatialSupport()) {
       return replace(
@@ -520,68 +520,68 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
 
   private List<AnalyticsTableColumn> getFixedNonGroupByColumns() {
 
-      return new ArrayList<>(
-          List.of(
-              AnalyticsTableColumn.builder()
-                  .name("createdbyusername")
-                  .dataType(VARCHAR_255)
-                  .selectExpression(
-                      sqlBuilder.jsonExtract("te.createdbyuserinfo", "username")
-                          + " as createdbyusername")
-                  .build(),
-              AnalyticsTableColumn.builder()
-                  .name("createdbyname")
-                  .dataType(VARCHAR_255)
-                  .selectExpression(
-                      sqlBuilder.jsonExtract("te.createdbyuserinfo", "firstName")
-                          + " as createdbyname")
-                  .skipIndex(Skip.SKIP)
-                  .build(),
-              AnalyticsTableColumn.builder()
-                  .name("createdbylastname")
-                  .dataType(VARCHAR_255)
-                  .selectExpression(
-                      sqlBuilder.jsonExtract("te.createdbyuserinfo", "surname")
-                          + " as createdbylastname")
-                  .skipIndex(Skip.SKIP)
-                  .build(),
-              AnalyticsTableColumn.builder()
-                  .name("createdbydisplayname")
-                  .dataType(VARCHAR_255)
-                  .selectExpression(
-                      getDisplayName(
-                          "createdbyuserinfo", "te", "createdbydisplayname", sqlBuilder))
-                  .skipIndex(Skip.SKIP)
-                  .build(),
-              AnalyticsTableColumn.builder()
-                  .name("lastupdatedbyusername")
-                  .dataType(VARCHAR_255)
-                  .selectExpression(sqlBuilder.jsonExtract("te.lastupdatedbyuserinfo", "username")
-                      + " as lastupdatedbyusername")
-                  .build(),
-              AnalyticsTableColumn.builder()
-                  .name("lastupdatedbyname")
-                  .dataType(VARCHAR_255)
-                  .selectExpression(
-                      sqlBuilder.jsonExtract("te.lastupdatedbyuserinfo", "firstName")
-                          + " as lastupdatedbyname")
-                  .skipIndex(Skip.SKIP)
-                  .build(),
-              AnalyticsTableColumn.builder()
-                  .name("lastupdatedbylastname")
-                  .dataType(VARCHAR_255)
-                  .selectExpression(
-                      sqlBuilder.jsonExtract("te.lastupdatedbyuserinfo", "surname")
-                          + " as lastupdatedbylastname")
-                  .skipIndex(Skip.SKIP)
-                  .build(),
-              AnalyticsTableColumn.builder()
-                  .name("lastupdatedbydisplayname")
-                  .dataType(VARCHAR_255)
-                  .selectExpression(
-                      getDisplayName(
-                          "lastupdatedbyuserinfo", "te", "lastupdatedbydisplayname", sqlBuilder))
-                  .skipIndex(Skip.SKIP)
-                  .build()));
+    return new ArrayList<>(
+        List.of(
+            AnalyticsTableColumn.builder()
+                .name("createdbyusername")
+                .dataType(VARCHAR_255)
+                .selectExpression(
+                    sqlBuilder.jsonExtract("te.createdbyuserinfo", "username")
+                        + " as createdbyusername")
+                .build(),
+            AnalyticsTableColumn.builder()
+                .name("createdbyname")
+                .dataType(VARCHAR_255)
+                .selectExpression(
+                    sqlBuilder.jsonExtract("te.createdbyuserinfo", "firstName")
+                        + " as createdbyname")
+                .skipIndex(Skip.SKIP)
+                .build(),
+            AnalyticsTableColumn.builder()
+                .name("createdbylastname")
+                .dataType(VARCHAR_255)
+                .selectExpression(
+                    sqlBuilder.jsonExtract("te.createdbyuserinfo", "surname")
+                        + " as createdbylastname")
+                .skipIndex(Skip.SKIP)
+                .build(),
+            AnalyticsTableColumn.builder()
+                .name("createdbydisplayname")
+                .dataType(VARCHAR_255)
+                .selectExpression(
+                    getDisplayName("createdbyuserinfo", "te", "createdbydisplayname", sqlBuilder))
+                .skipIndex(Skip.SKIP)
+                .build(),
+            AnalyticsTableColumn.builder()
+                .name("lastupdatedbyusername")
+                .dataType(VARCHAR_255)
+                .selectExpression(
+                    sqlBuilder.jsonExtract("te.lastupdatedbyuserinfo", "username")
+                        + " as lastupdatedbyusername")
+                .build(),
+            AnalyticsTableColumn.builder()
+                .name("lastupdatedbyname")
+                .dataType(VARCHAR_255)
+                .selectExpression(
+                    sqlBuilder.jsonExtract("te.lastupdatedbyuserinfo", "firstName")
+                        + " as lastupdatedbyname")
+                .skipIndex(Skip.SKIP)
+                .build(),
+            AnalyticsTableColumn.builder()
+                .name("lastupdatedbylastname")
+                .dataType(VARCHAR_255)
+                .selectExpression(
+                    sqlBuilder.jsonExtract("te.lastupdatedbyuserinfo", "surname")
+                        + " as lastupdatedbylastname")
+                .skipIndex(Skip.SKIP)
+                .build(),
+            AnalyticsTableColumn.builder()
+                .name("lastupdatedbydisplayname")
+                .dataType(VARCHAR_255)
+                .selectExpression(
+                    getDisplayName(
+                        "lastupdatedbyuserinfo", "te", "lastupdatedbydisplayname", sqlBuilder))
+                .skipIndex(Skip.SKIP)
+                .build()));
   }
 }
