@@ -100,7 +100,7 @@ class IndicatorMergeProcessorTest extends PostgresIntegrationTestBase {
     List<String> list =
         mergeReport.getMergeErrors().stream().map(ErrorMessage::getMessage).toList();
     assertEquals(1, list.size());
-    assertTrue(list.contains("At least one source indicator must be specified"));
+    assertTrue(list.contains("At least one source Indicator must be specified"));
   }
 
   @Test
@@ -125,7 +125,7 @@ class IndicatorMergeProcessorTest extends PostgresIntegrationTestBase {
     List<String> list =
         mergeReport.getMergeErrors().stream().map(ErrorMessage::getMessage).toList();
     assertEquals(1, list.size());
-    assertTrue(list.contains("TARGET indicator does not exist: `Uid00000011`"));
+    assertTrue(list.contains("TARGET Indicator does not exist: `Uid00000011`"));
   }
 
   @Test
@@ -152,7 +152,7 @@ class IndicatorMergeProcessorTest extends PostgresIntegrationTestBase {
     List<String> list =
         mergeReport.getMergeErrors().stream().map(ErrorMessage::getMessage).toList();
     assertEquals(1, list.size());
-    assertTrue(list.contains("SOURCE indicator does not exist: `Uid00000011`"));
+    assertTrue(list.contains("SOURCE Indicator does not exist: `Uid00000011`"));
   }
 
   @Test
@@ -178,7 +178,7 @@ class IndicatorMergeProcessorTest extends PostgresIntegrationTestBase {
         mergeReport.getMergeErrors().stream().map(ErrorMessage::getMessage).toList();
     assertEquals(1, list.size());
 
-    assertTrue(list.contains("Target indicator cannot be a source indicator"));
+    assertTrue(list.contains("Target Indicator cannot be a source Indicator"));
   }
 
   @Test
@@ -203,7 +203,7 @@ class IndicatorMergeProcessorTest extends PostgresIntegrationTestBase {
     List<String> list =
         mergeReport.getMergeErrors().stream().map(ErrorMessage::getMessage).toList();
     assertEquals(1, list.size());
-    assertTrue(list.contains("Target indicator must be specified"));
+    assertTrue(list.contains("Target Indicator must be specified"));
   }
 
   @Test

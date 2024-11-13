@@ -111,9 +111,9 @@ class DataElementMergeTest extends ApiTest {
         .validate()
         .statusCode(200)
         .body("httpStatus", equalTo("OK"))
-        .body("response.mergeReport.message", equalTo("DATA_ELEMENT merge complete"))
+        .body("response.mergeReport.message", equalTo("DataElement merge complete"))
         .body("response.mergeReport.mergeErrors", empty())
-        .body("response.mergeReport.mergeType", equalTo("DATA_ELEMENT"))
+        .body("response.mergeReport.mergeType", equalTo("DataElement"))
         .body("response.mergeReport.sourcesDeleted", hasItems(sourceUid1, sourceUid2));
 
     // and all the following source data element references have been handled appropriately

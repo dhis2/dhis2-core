@@ -140,7 +140,7 @@ public class DefaultMergeValidator implements MergeValidator {
       UID uid, MergeReport mergeReport, MergeObjectType mergeObjectType, MergeType mergeType) {
     return () -> {
       mergeReport.addErrorMessage(
-          new ErrorMessage(ErrorCode.E1533, mergeObjectType.name(), mergeType.getName(), uid));
+          new ErrorMessage(ErrorCode.E1533, mergeObjectType.toString(), mergeType.getName(), uid));
       return Optional.empty();
     };
   }

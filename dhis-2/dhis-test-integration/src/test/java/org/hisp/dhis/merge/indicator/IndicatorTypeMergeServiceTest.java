@@ -126,8 +126,8 @@ class IndicatorTypeMergeServiceTest extends PostgresIntegrationTestBase {
     assertMatchesErrorMessages(
         mergeReport,
         Set.of(
-            "At least one source indicator type must be specified",
-            "Target indicator type must be specified"));
+            "At least one source IndicatorType must be specified",
+            "Target IndicatorType must be specified"));
   }
 
   @Test
@@ -149,7 +149,7 @@ class IndicatorTypeMergeServiceTest extends PostgresIntegrationTestBase {
     assertTrue(mergeReport.hasErrorMessages());
     assertMatchesErrorCodes(mergeReport, Set.of(ErrorCode.E1533));
     assertMatchesErrorMessages(
-        mergeReport, Set.of("SOURCE indicator type does not exist: `IntY123abgX`"));
+        mergeReport, Set.of("SOURCE IndicatorType does not exist: `IntY123abgX`"));
   }
 
   @Test
@@ -170,7 +170,7 @@ class IndicatorTypeMergeServiceTest extends PostgresIntegrationTestBase {
     assertTrue(mergeReport.hasErrorMessages());
     assertMatchesErrorCodes(mergeReport, Set.of(ErrorCode.E1533));
     assertMatchesErrorMessages(
-        mergeReport, Set.of("TARGET indicator type does not exist: `IntY123abgX`"));
+        mergeReport, Set.of("TARGET IndicatorType does not exist: `IntY123abgX`"));
   }
 
   @Test
@@ -239,7 +239,7 @@ class IndicatorTypeMergeServiceTest extends PostgresIntegrationTestBase {
     assertTrue(validatedRequest.isDeleteSources());
     assertMatchesErrorCodes(mergeReport, Set.of(ErrorCode.E1530));
     assertMatchesErrorMessages(
-        mergeReport, Set.of("At least one source indicator type must be specified"));
+        mergeReport, Set.of("At least one source IndicatorType must be specified"));
   }
 
   @Test
@@ -273,7 +273,7 @@ class IndicatorTypeMergeServiceTest extends PostgresIntegrationTestBase {
     assertTrue(mergeReport.hasErrorMessages());
     assertRequestIsEmpty(validatedRequest);
     assertMatchesErrorCodes(mergeReport, Set.of(ErrorCode.E1531));
-    assertMatchesErrorMessages(mergeReport, Set.of("Target indicator type must be specified"));
+    assertMatchesErrorMessages(mergeReport, Set.of("Target IndicatorType must be specified"));
   }
 
   @Test

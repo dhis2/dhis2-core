@@ -150,9 +150,9 @@ class IndicatorTypeMergeTest extends ApiTest {
         .validate()
         .statusCode(200)
         .body("httpStatus", equalTo("OK"))
-        .body("response.mergeReport.message", equalTo("INDICATOR_TYPE merge complete"))
+        .body("response.mergeReport.message", equalTo("IndicatorType merge complete"))
         .body("response.mergeReport.mergeErrors", empty())
-        .body("response.mergeReport.mergeType", equalTo("INDICATOR_TYPE"))
+        .body("response.mergeReport.mergeType", equalTo("IndicatorType"))
         .body("response.mergeReport.sourcesDeleted", empty());
 
     // and sources & target exist
@@ -230,9 +230,9 @@ class IndicatorTypeMergeTest extends ApiTest {
         .validate()
         .statusCode(200)
         .body("httpStatus", equalTo("OK"))
-        .body("response.mergeReport.message", equalTo("INDICATOR_TYPE merge complete"))
+        .body("response.mergeReport.message", equalTo("IndicatorType merge complete"))
         .body("response.mergeReport.mergeErrors", empty())
-        .body("response.mergeReport.mergeType", equalTo("INDICATOR_TYPE"))
+        .body("response.mergeReport.mergeType", equalTo("IndicatorType"))
         .body("response.mergeReport.sourcesDeleted", hasItems(indTypeUid1, indTypeUid2));
 
     // and sources are deleted & target exists
