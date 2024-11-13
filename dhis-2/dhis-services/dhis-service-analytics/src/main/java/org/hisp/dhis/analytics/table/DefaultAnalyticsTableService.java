@@ -369,11 +369,17 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   int getParallelJobs() {
     SystemSettings settings = settingsProvider.getCurrentSettings();
     int parallelJobs = settings.getParallelJobsInAnalyticsTableExport();
-    if (parallelJobs > 0) return parallelJobs;
+    if (parallelJobs > 0) {
+      return parallelJobs;
+    }
     int databaseCpus = settings.getDatabaseServerCpus();
-    if (databaseCpus > 0) return databaseCpus;
+    if (databaseCpus > 0) {
+      return databaseCpus;
+    }
     int serverCpus = SystemUtils.getCpuCores();
-    if (serverCpus > 2) return serverCpus - 1;
+    if (serverCpus > 2) {
+      return serverCpus - 1;
+    }
     return serverCpus;
   }
 }
