@@ -108,9 +108,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     List<AnalyticsTable> tables = tableManager.getAnalyticsTables(params);
 
     if (tables.isEmpty()) {
-      clock.logTime(
-          "Table update aborted, no table or partitions to be updated: '{}'",
-          tableType.getTableName());
+      clock.logTime("Table update aborted, nothing to update: '{}'", tableType.getTableName());
       progress.startingStage("Table updates " + tableType);
       progress.completedStage("Table updated aborted, no table or partitions to be updated");
       return;
