@@ -68,7 +68,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  private final SqlBuilder analyticsSqlBuilder;
+  private final SqlBuilder analyticsDatabaseSqlBuilder;
 
   @Override
   public void generateResourceTable(ResourceTable resourceTable) {
@@ -105,11 +105,11 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     final Table table = resourceTable.getMainTable();
     final String tableName = table.getName();
 
-    dropAnalyticsTable(table);
+    dropAnalyticsDatabaseTable(table);
 
-    createAnalyticsTable(table);
+    createAnalyticsDatabaseTable(table);
 
-    replicateAnalyticsTable(table);
+    replicateAnalyticsDatabaseTable(table);
 
     log.info("Analytics resource table replication done: '{}' '{}'", tableName, clock.time());
   }
@@ -119,8 +119,8 @@ public class JdbcResourceTableStore implements ResourceTableStore {
    *
    * @param table the {@link Table}.
    */
-  private void dropAnalyticsTable(Table table) {
-    String sql = analyticsSqlBuilder.dropTableIfExists(table);
+  private void dropAnalyticsDatabaseTable(Table table) {
+    String sql = analyticsDatabaseSqlBuilder.dropTableIfExists(table);
     log.info("Drop table SQL: '{}'", sql);
     analyticsJdbcTemplate.execute(sql);
   }
@@ -130,8 +130,8 @@ public class JdbcResourceTableStore implements ResourceTableStore {
    *
    * @param table the {@link Table}.
    */
-  private void createAnalyticsTable(Table table) {
-    String sql = analyticsSqlBuilder.createTable(table);
+  private void createAnalyticsDatabaseTable(Table table) {
+    String sql = analyticsDatabaseSqlBuilder.createTable(table);
     log.info("Create table SQL: '{}'", sql);
     analyticsJdbcTemplate.execute(sql);
   }
@@ -141,12 +141,12 @@ public class JdbcResourceTableStore implements ResourceTableStore {
    *
    * @param table the {@link Table}.
    */
-  private void replicateAnalyticsTable(Table table) {
+  private void replicateAnalyticsDatabaseTable(Table table) {
     String sql =
         format(
             "insert into %s select * from %s",
-            analyticsSqlBuilder.quote(table.getName()),
-            analyticsSqlBuilder.qualifyTable(table.getName()));
+            analyticsDatabaseSqlBuilder.quote(table.getName()),
+            analyticsDatabaseSqlBuilder.qualifyTable(table.getName()));
     log.info("Replicate table SQL: '{}'", sql);
     analyticsJdbcTemplate.execute(sql);
   }
