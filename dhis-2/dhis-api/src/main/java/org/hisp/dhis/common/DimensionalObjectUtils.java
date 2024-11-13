@@ -87,7 +87,8 @@ public class DimensionalObjectUtils {
    */
   // Luqe6ps5KZ9.uTLkjHWtSL8.R0jROOT3zni-AGGREGATED
   private static final Pattern COMPOSITE_DIM_OBJECT_PATTERN =
-      Pattern.compile("(?<id1>[A-Za-z0-9]{11})\\.(?<id2>[A-Za-z0-9]{11}|\\*)(\\.(?<id3>[A-Za-z0-9]{11}|\\*))?(-?(?<suffix>AGGREGATED|DISAGGREGATED|ABSOLUTE)?)?");
+      Pattern.compile(
+          "(?<id1>[A-Za-z0-9]{11})\\.(?<id2>[A-Za-z0-9]{11}|\\*)(\\.(?<id3>[A-Za-z0-9]{11}|\\*))?(-?(?<suffix>AGGREGATED|DISAGGREGATED|ABSOLUTE)?)?");
 
   private static final Set<QueryOperator> IGNORED_OPERATORS =
       Set.of(QueryOperator.LIKE, QueryOperator.IN, QueryOperator.SW, QueryOperator.EW);

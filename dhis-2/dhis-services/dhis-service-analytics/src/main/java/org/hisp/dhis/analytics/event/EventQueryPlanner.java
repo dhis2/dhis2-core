@@ -49,7 +49,6 @@ public interface EventQueryPlanner {
    */
   List<EventQueryParams> planQuery(EventQueryParams params);
 
-
   /**
    * Plans the given parameters and returns a list of parameters.
    *

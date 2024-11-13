@@ -826,11 +826,13 @@ public final class AnalyticsUtils {
           }
 
           OptionSet optionSet = dataElement.getOptionSet();
-          if(optionSet != null) {
-            map.put(dataElement.getUid() + "." + optionSet.getUid(),
-                    includeMetadataDetails?
-                            new MetadataItem(optionSet.getName(), optionSet, new HashSet<>(optionSet.getOptions()))
-                            : new MetadataItem(optionSet.getName()));
+          if (optionSet != null) {
+            map.put(
+                dataElement.getUid() + "." + optionSet.getUid(),
+                includeMetadataDetails
+                    ? new MetadataItem(
+                        optionSet.getName(), optionSet, new HashSet<>(optionSet.getOptions()))
+                    : new MetadataItem(optionSet.getName()));
           }
         }
       }

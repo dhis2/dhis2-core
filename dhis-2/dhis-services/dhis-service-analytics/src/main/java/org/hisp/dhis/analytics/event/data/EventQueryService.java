@@ -133,9 +133,7 @@ public class EventQueryService {
     List<Keyword> keywords = getDimensionsKeywords(params);
 
     // Set periods.
-    params = new EventQueryParams.Builder(params)
-            .withStartEndDatesForPeriods()
-            .build();
+    params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
     // Set program if null.
     params = getEventQueryParamsWithProgram(params);
@@ -163,17 +161,17 @@ public class EventQueryService {
   }
 
   private static EventQueryParams getEventQueryParamsWithProgram(EventQueryParams params) {
-    if(!params.hasProgram()){
-      Optional<QueryItem> itemWithProgram = params.getItems().stream().filter(QueryItem::hasProgram).findFirst();
-      if(itemWithProgram.isPresent()){
-        EventQueryParams.Builder builder = new EventQueryParams.Builder(params)
-                .withProgram(itemWithProgram.get().getProgram());
+    if (!params.hasProgram()) {
+      Optional<QueryItem> itemWithProgram =
+          params.getItems().stream().filter(QueryItem::hasProgram).findFirst();
+      if (itemWithProgram.isPresent()) {
+        EventQueryParams.Builder builder =
+            new EventQueryParams.Builder(params).withProgram(itemWithProgram.get().getProgram());
         params = builder.build();
       }
     }
     return params;
   }
-
 
   /**
    * Returns a list of event clusters matching the given query.

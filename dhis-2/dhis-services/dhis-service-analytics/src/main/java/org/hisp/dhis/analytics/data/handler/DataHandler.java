@@ -133,9 +133,6 @@ import org.hisp.dhis.analytics.event.data.EventAggregateService;
 import org.hisp.dhis.analytics.event.data.EventQueryService;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
 import org.hisp.dhis.analytics.resolver.ExpressionResolvers;
-import org.hisp.dhis.analytics.table.model.AnalyticsTable;
-import org.hisp.dhis.analytics.table.model.Partitions;
-import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.analytics.util.PeriodOffsetUtils;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionItemObjectValue;
@@ -145,7 +142,6 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -159,7 +155,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Component;
@@ -436,8 +431,8 @@ public class DataHandler {
               .withSkipMeta(true)
               .build();
 
-      //TODO split EventQueryParams (aggregated, disaggregated)
-      //Grid eventGrid = eventAggregatedService.getAggregatedData(eventQueryParams);
+      // TODO split EventQueryParams (aggregated, disaggregated)
+      // Grid eventGrid = eventAggregatedService.getAggregatedData(eventQueryParams);
       Grid eventGrid = eventQueryService.getEvents(eventQueryParams);
       grid.addRows(eventGrid);
 

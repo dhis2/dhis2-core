@@ -126,7 +126,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   }
 
   @Override
-  public Grid  getEvents(EventQueryParams params, Grid grid, int maxLimit) {
+  public Grid getEvents(EventQueryParams params, Grid grid, int maxLimit) {
     String sql = getAggregatedEnrollmentsSql(params, maxLimit);
 
     if (params.analyzeOnly()) {

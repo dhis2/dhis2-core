@@ -391,7 +391,6 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     return sql;
   }
 
-
   /**
    * Returns an aggregate clause for the numeric value column.
    *
@@ -673,8 +672,13 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
     if (params.isAggregation()) {
       sql = "group by " + getCommaDelimitedQuotedDimensionColumns(params.getDimensions()) + " ";
-    }else if (params.hasOptionSetInDimensionItems()) {
-      sql = "group by " + getCommaDelimitedQuotedDimensionColumns(params.getDimensions()) + ", optionsetuid, optionvalueuid, " + params.getValueColumn() + " ";
+    } else if (params.hasOptionSetInDimensionItems()) {
+      sql =
+          "group by "
+              + getCommaDelimitedQuotedDimensionColumns(params.getDimensions())
+              + ", optionsetuid, optionvalueuid, "
+              + params.getValueColumn()
+              + " ";
     }
 
     return sql;
@@ -984,10 +988,12 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       for (DimensionalObject dim : params.getDimensions()) {
 
         String value =
-            dim.isFixed() ? dim.getDimensionName()
-                    : rowSet.getString(dim.getDimensionName());
-        if(!dim.isFixed() && dim.getDimensionType() == DimensionType.DATA_X && params.hasOptionSetInDimensionItems()){
-          value += "." + rowSet.getString("optionsetuid") + "." + rowSet.getString("optionvalueuid");
+            dim.isFixed() ? dim.getDimensionName() : rowSet.getString(dim.getDimensionName());
+        if (!dim.isFixed()
+            && dim.getDimensionType() == DimensionType.DATA_X
+            && params.hasOptionSetInDimensionItems()) {
+          value +=
+              "." + rowSet.getString("optionsetuid") + "." + rowSet.getString("optionvalueuid");
         }
 
         String queryModsId = params.getQueryModsId(dim);
@@ -1000,9 +1006,9 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       if (params.isDataType(TEXT)) {
         String value = rowSet.getString(VALUE_ID);
 
-        if(params.hasOptionSetInDimensionItems() && params.hasOptionSetAggregatedSelectionMode()){
+        if (params.hasOptionSetInDimensionItems() && params.hasOptionSetAggregatedSelectionMode()) {
           map.put(key + DIMENSION_SEP + value, rowSet.getString("valuecount"));
-        }else{
+        } else {
           map.put(key.toString(), value);
         }
       } else // NUMERIC

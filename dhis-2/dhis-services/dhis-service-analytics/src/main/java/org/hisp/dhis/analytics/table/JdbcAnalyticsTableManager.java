@@ -130,17 +130,17 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
               .indexColumns(List.of("dx", "ao"))
               .build(),
           AnalyticsTableColumn.builder()
-                      .name("optionsetuid")
-                      .dataType(CHARACTER_11)
-                      .nullable(NULL)
-                      .selectExpression("deo.optionsetuid as optionsetuid")
-                      .build(),
-              AnalyticsTableColumn.builder()
-                      .name("optionvalueuid")
-                      .dataType(CHARACTER_11)
-                      .nullable(NULL)
-                      .selectExpression("deo.optionvalueuid as optionvalueuid")
-                      .build(),
+              .name("optionsetuid")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("deo.optionsetuid as optionsetuid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("optionvalueuid")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("deo.optionvalueuid as optionvalueuid")
+              .build(),
           AnalyticsTableColumn.builder()
               .name("pestartdate")
               .dataType(DATE)

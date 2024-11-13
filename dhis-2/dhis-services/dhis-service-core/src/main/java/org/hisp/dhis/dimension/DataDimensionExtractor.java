@@ -55,7 +55,6 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
@@ -265,7 +264,11 @@ public class DataDimensionExtractor {
    */
   @Transactional(readOnly = true)
   public ProgramDataElementDimensionItem getProgramDataElementDimensionItem(
-      IdScheme idScheme, String programId, String dataElementId, String optionSetUid, String optionSetSelectionMode) {
+      IdScheme idScheme,
+      String programId,
+      String dataElementId,
+      String optionSetUid,
+      String optionSetSelectionMode) {
     Program program = idObjectManager.getObject(Program.class, idScheme, programId);
     DataElement dataElement = idObjectManager.getObject(DataElement.class, idScheme, dataElementId);
     addOptionSetSelectionMode(dataElement, optionSetUid, optionSetSelectionMode);
@@ -279,18 +282,24 @@ public class DataDimensionExtractor {
 
   /**
    * Add OptionSetSelectionMode if option set exists
+   *
    * @param optionSetUid
    * @param optionSetSelectionMode
    */
-  private void addOptionSetSelectionMode(DataElement dataElement, String optionSetUid, String optionSetSelectionMode) {
-    if(dataElement == null || optionSetUid == null || optionSetSelectionMode == null || dataElement.getOptionSet() == null) {
+  private void addOptionSetSelectionMode(
+      DataElement dataElement, String optionSetUid, String optionSetSelectionMode) {
+    if (dataElement == null
+        || optionSetUid == null
+        || optionSetSelectionMode == null
+        || dataElement.getOptionSet() == null) {
       return;
     }
-    if(optionSetUid.equals(dataElement.getOptionSet().getUid())){
+    if (optionSetUid.equals(dataElement.getOptionSet().getUid())) {
       try {
-        dataElement.getOptionSet().setOptionSetSelectionMode(OptionSetSelectionMode.valueOf(optionSetSelectionMode));
-      }
-      catch (IllegalArgumentException ignored) {
+        dataElement
+            .getOptionSet()
+            .setOptionSetSelectionMode(OptionSetSelectionMode.valueOf(optionSetSelectionMode));
+      } catch (IllegalArgumentException ignored) {
         throw new IllegalQueryException(new ErrorMessage(ErrorCode.E1121, optionSetSelectionMode));
       }
     }

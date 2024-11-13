@@ -468,11 +468,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .toList());
 
     columns.addAll(
-            program.getAnalyticsDataElements().stream()
-                    .filter(DataElement::hasOptionSet)
-                    .map(this::getColumnFromDataElementOptionSet)
-                    .flatMap(Collection::stream)
-                    .toList());
+        program.getAnalyticsDataElements().stream()
+            .filter(DataElement::hasOptionSet)
+            .map(this::getColumnFromDataElementOptionSet)
+            .flatMap(Collection::stream)
+            .toList());
 
     columns.addAll(
         program.getAnalyticsDataElementsWithLegendSet().stream()
@@ -600,11 +600,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         : columns;
   }
 
-  private List<AnalyticsTableColumn> getColumnFromDataElementOptionSet(
-          DataElement dataElement) {
+  private List<AnalyticsTableColumn> getColumnFromDataElementOptionSet(DataElement dataElement) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    if(!dataElement.hasOptionSet()){
+    if (!dataElement.hasOptionSet()) {
       return columns;
     }
 
@@ -614,13 +613,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String sql = selectOptionValueCodeForInsert(dataElement, select, dataClause);
 
     columns.add(
-            AnalyticsTableColumn.builder()
-                    .name(dataElement.getUid() + ".optionvalueuid")
-                    .columnType(AnalyticsColumnType.DYNAMIC)
-                    .dataType(DataType.VARCHAR_255)
-                    .selectExpression(sql)
-                    .skipIndex(Skip.INCLUDE)
-                    .build());
+        AnalyticsTableColumn.builder()
+            .name(dataElement.getUid() + ".optionvalueuid")
+            .columnType(AnalyticsColumnType.DYNAMIC)
+            .dataType(DataType.VARCHAR_255)
+            .selectExpression(sql)
+            .skipIndex(Skip.INCLUDE)
+            .build());
 
     return columns;
   }
@@ -713,30 +712,36 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             quote(dataElement.getUid())));
   }
 
-  private String selectOptionValueCodeForInsert(DataElement dataElement, String fromType, String dataClause) {
-    String innerSql = replaceQualify(
+  private String selectOptionValueCodeForInsert(
+      DataElement dataElement, String fromType, String dataClause) {
+    String innerSql =
+        replaceQualify(
             """
             (select ${fromType} from ${event} \
             where eventid=ev.eventid ${dataClause})${closingParentheses}""",
             Map.of(
-                    "fromType",
-                    fromType,
-                    "dataClause",
-                    dataClause,
-                    "closingParentheses",
-                    getClosingParentheses(fromType),
-                    "dataElementUid",
-                    quote(dataElement.getUid())));
+                "fromType",
+                fromType,
+                "dataClause",
+                dataClause,
+                "closingParentheses",
+                getClosingParentheses(fromType),
+                "dataElementUid",
+                quote(dataElement.getUid())));
 
     return replaceQualify(
-            """
+        """
             (select optionvalueuid \
              from analytics_rs_dataelementoption \
              where dataelementuid = ${dataElementUid} \
              and optionvaluecode = ${selectForInsert}::varchar) as ${alias}""",
-            Map.of("dataElementUid", singleQuote(dataElement.getUid()),
-                    "selectForInsert", innerSql,
-                    "alias", quote(dataElement.getUid()+".optionvalueuid")));
+        Map.of(
+            "dataElementUid",
+            singleQuote(dataElement.getUid()),
+            "selectForInsert",
+            innerSql,
+            "alias",
+            quote(dataElement.getUid() + ".optionvalueuid")));
   }
 
   private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet(

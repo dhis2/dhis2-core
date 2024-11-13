@@ -868,13 +868,20 @@ public class DataQueryParams {
   }
 
   public boolean hasOptionSetInDimensionItems() {
-    return dimensions.stream().anyMatch( d -> d.getItems().stream().anyMatch(it -> it.getDimensionItemType() == DimensionItemType.DATA_ELEMENT
-            && ((DataElement)it).getOptionSet() != null));
+    return dimensions.stream()
+        .anyMatch(
+            d ->
+                d.getItems().stream()
+                    .anyMatch(
+                        it ->
+                            it.getDimensionItemType() == DimensionItemType.DATA_ELEMENT
+                                && ((DataElement) it).getOptionSet() != null));
   }
 
-  public boolean hasOptionSetAggregatedSelectionMode(){
+  public boolean hasOptionSetAggregatedSelectionMode() {
     return optionSetSelectionMode == OptionSetSelectionMode.AGGREGATED;
   }
+
   /**
    * Creates a mapping between the data periods, based on the data period type for this query, and
    * the aggregation periods for this query.

@@ -94,7 +94,6 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
   public List<EventQueryParams> planQuery(EventQueryParams params) {
     List<EventQueryParams> queries = Lists.newArrayList(params);
 
-
     return withTableNameAndPartitions(queries);
   }
 

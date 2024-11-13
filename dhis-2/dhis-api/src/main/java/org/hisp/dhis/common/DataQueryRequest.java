@@ -140,7 +140,8 @@ public class DataQueryRequest {
       return this;
     }
 
-    public DataQueryRequestBuilder optionSetSelectionMode(OptionSetSelectionMode optionSetSelectionMode) {
+    public DataQueryRequestBuilder optionSetSelectionMode(
+        OptionSetSelectionMode optionSetSelectionMode) {
       this.request.optionSetSelectionMode = optionSetSelectionMode;
       return this;
     }

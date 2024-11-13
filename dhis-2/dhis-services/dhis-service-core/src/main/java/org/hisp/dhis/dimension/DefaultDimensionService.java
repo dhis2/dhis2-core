@@ -363,7 +363,8 @@ public class DefaultDimensionService implements DimensionService {
         return reportingRate;
       }
       if ((programDataElement =
-              dataDimensionExtractor.getProgramDataElementDimensionItem(idScheme, id0, id1, id2, optionSetSelectionMode))
+              dataDimensionExtractor.getProgramDataElementDimensionItem(
+                  idScheme, id0, id1, id2, optionSetSelectionMode))
           != null) {
         return programDataElement;
       }
