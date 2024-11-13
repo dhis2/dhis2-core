@@ -252,7 +252,8 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
               .toList();
 
       try {
-        partitions = table.getPartitions().stream()
+        partitions =
+            table.getPartitions().stream()
                 .sorted(Comparator.comparingInt(p -> Integer.parseInt(p.getValue().toString())))
                 .toList();
       } catch (NumberFormatException e) {
