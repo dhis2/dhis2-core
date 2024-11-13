@@ -40,6 +40,7 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
+import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
@@ -464,7 +465,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         program.getAnalyticsDataElements().stream()
             .map(de -> getColumnFromDataElement(de, false))
             .flatMap(Collection::stream)
-            .collect(Collectors.toList()));
+            .toList());
+
+    columns.addAll(
+            program.getAnalyticsDataElements().stream()
+                    .filter(DataElement::hasOptionSet)
+                    .map(this::getColumnFromDataElementOptionSet)
+                    .flatMap(Collection::stream)
+                    .toList());
 
     columns.addAll(
         program.getAnalyticsDataElementsWithLegendSet().stream()
@@ -592,6 +600,31 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         : columns;
   }
 
+  private List<AnalyticsTableColumn> getColumnFromDataElementOptionSet(
+          DataElement dataElement) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+    if(!dataElement.hasOptionSet()){
+      return columns;
+    }
+
+    String dataClause = getDataClause(dataElement.getUid(), dataElement.getValueType());
+    String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
+    String select = getSelectClause(dataElement.getValueType(), columnName);
+    String sql = selectOptionValueCodeForInsert(dataElement, select, dataClause);
+
+    columns.add(
+            AnalyticsTableColumn.builder()
+                    .name(dataElement.getUid() + ".optionvalueuid")
+                    .columnType(AnalyticsColumnType.DYNAMIC)
+                    .dataType(DataType.VARCHAR_255)
+                    .selectExpression(sql)
+                    .skipIndex(Skip.INCLUDE)
+                    .build());
+
+    return columns;
+  }
+
   private List<AnalyticsTableColumn> getColumnsFromOrgUnitTrackedEntityAttribute(
       TrackedEntityAttribute attribute, String dataClause) {
     final List<AnalyticsTableColumn> columns = new ArrayList<>();
@@ -678,6 +711,32 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             getClosingParentheses(fromType),
             "dataElementUid",
             quote(dataElement.getUid())));
+  }
+
+  private String selectOptionValueCodeForInsert(DataElement dataElement, String fromType, String dataClause) {
+    String innerSql = replaceQualify(
+            """
+            (select ${fromType} from ${event} \
+            where eventid=ev.eventid ${dataClause})${closingParentheses}""",
+            Map.of(
+                    "fromType",
+                    fromType,
+                    "dataClause",
+                    dataClause,
+                    "closingParentheses",
+                    getClosingParentheses(fromType),
+                    "dataElementUid",
+                    quote(dataElement.getUid())));
+
+    return replaceQualify(
+            """
+            (select optionvalueuid \
+             from analytics_rs_dataelementoption \
+             where dataelementuid = ${dataElementUid} \
+             and optionvaluecode = ${selectForInsert}::varchar) as ${alias}""",
+            Map.of("dataElementUid", singleQuote(dataElement.getUid()),
+                    "selectForInsert", innerSql,
+                    "alias", quote(dataElement.getUid()+".optionvalueuid")));
   }
 
   private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet(

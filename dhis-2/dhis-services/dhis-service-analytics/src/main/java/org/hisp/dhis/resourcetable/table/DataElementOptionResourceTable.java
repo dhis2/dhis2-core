@@ -37,6 +37,7 @@ public class DataElementOptionResourceTable implements ResourceTable {
                 new Column("dataelementid", DataType.BIGINT, Nullable.NOT_NULL),
                 new Column("optionsetid", DataType.BIGINT, Nullable.NOT_NULL),
                 new Column("optionvalueid", DataType.BIGINT, Nullable.NOT_NULL),
+                new Column("dataelementuid", DataType.CHARACTER_11, Nullable.NOT_NULL),
                 new Column("optionsetuid", DataType.CHARACTER_11, Nullable.NOT_NULL),
                 new Column("optionvalueuid", DataType.CHARACTER_11, Nullable.NOT_NULL),
                 new Column("optionvaluecode", DataType.VARCHAR_255, Nullable.NOT_NULL));
@@ -52,7 +53,12 @@ public class DataElementOptionResourceTable implements ResourceTable {
                 Index.builder()
                         .name(appendRandom("in_optionsetoptionvalue"))
                         .tableName(toStaging(TABLE_NAME))
-                        .columns(List.of("optionsetuid", "optionvalueuid"))
+                        .columns(List.of("dataelementuid", "optionsetuid", "optionvalueuid"))
+                        .build(),
+                Index.builder()
+                        .name(appendRandom("in_dataelementoptioncode"))
+                        .tableName(toStaging(TABLE_NAME))
+                        .columns(List.of("dataelementuid", "optionvaluecode"))
                         .build());
     }
 
@@ -67,9 +73,9 @@ public class DataElementOptionResourceTable implements ResourceTable {
                 replace(
                         """
                         insert into ${tableName} \
-                        (dataelementid, optionsetid, optionvalueid, optionsetuid, optionvalueuid, optionvaluecode) \
+                        (dataelementid, optionsetid, optionvalueid, dataelementuid, optionsetuid, optionvalueuid, optionvaluecode) \
                         select de.dataelementid, os.optionsetid as optionsetid, ov.optionvalueid as optionvalueid, \
-                        os.uid as optionsetuid, ov.uid as optionvalueuid, ov.code as optionvaluecode from optionvalue ov \
+                        de.uid as dataelementuid, os.uid as optionsetuid, ov.uid as optionvalueuid, ov.code as optionvaluecode from optionvalue ov \
                         inner join optionset os on ov.optionsetid = os.optionsetid \
                         inner join dataelement de on os.optionsetid = de.optionsetid;""",
                         "tableName",
