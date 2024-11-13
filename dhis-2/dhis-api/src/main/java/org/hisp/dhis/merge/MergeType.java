@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.merge;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
@@ -56,6 +57,7 @@ public enum MergeType {
     return this.clazz;
   }
 
+  @JsonValue
   public String getName() {
     return this.name;
   }

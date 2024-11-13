@@ -287,7 +287,7 @@ class IndicatorTypeMergeTest extends ApiTest {
             "response.mergeReport.mergeErrors[0].message",
             equalTo("At least one source IndicatorType must be specified"))
         .body("response.mergeReport.mergeErrors[0].errorCode", equalTo("E1530"))
-        .body("response.mergeReport.mergeType", equalTo("INDICATOR_TYPE"))
+        .body("response.mergeReport.mergeType", equalTo("IndicatorType"))
         .body("response.mergeReport.sourcesDeleted", empty());
   }
 
@@ -318,7 +318,7 @@ class IndicatorTypeMergeTest extends ApiTest {
             "response.mergeReport.mergeErrors[0].message",
             equalTo("Target IndicatorType must be specified"))
         .body("response.mergeReport.mergeErrors[0].errorCode", equalTo("E1531"))
-        .body("response.mergeReport.mergeType", equalTo("INDICATOR_TYPE"))
+        .body("response.mergeReport.mergeType", equalTo("IndicatorType"))
         .body("response.mergeReport.sourcesDeleted", empty());
   }
 
@@ -359,7 +359,7 @@ class IndicatorTypeMergeTest extends ApiTest {
             "response.mergeReport.mergeErrors[0].message",
             equalTo("Target IndicatorType cannot be a source IndicatorType"))
         .body("response.mergeReport.mergeErrors[0].errorCode", equalTo("E1532"))
-        .body("response.mergeReport.mergeType", equalTo("INDICATOR_TYPE"))
+        .body("response.mergeReport.mergeType", equalTo("IndicatorType"))
         .body("response.mergeReport.sourcesDeleted", empty());
   }
 
