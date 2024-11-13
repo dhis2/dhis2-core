@@ -41,7 +41,7 @@ import org.hisp.dhis.db.sql.SqlBuilderProvider;
  *   <li>Implementation class of {@link SqlBuilder}.
  *   <li>Register {@link SqlBuilder} implementation in {@link SqlBuilderProvider}.
  *   <li>Method to {@link AnalyticsDatabaseInit} (optional).
- *   <li>JDBC driver in <code>pom.xml</code> (if required).
+ *   <li>JDBC driver in <code>pom.xml</code>.
  * </ul>
  *
  * @author Lars Helge Overland
