@@ -31,15 +31,15 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.copy.CopyService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -49,8 +49,9 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
+import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.query.Query;
+import org.hisp.dhis.webapi.controller.AbstractParameterizedCrudController;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -70,19 +71,26 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequestMapping("/api/programs")
 @RequiredArgsConstructor
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
-public class ProgramController extends AbstractCrudController<Program> {
+public class ProgramController
+    extends AbstractParameterizedCrudController<
+        Program, ProgramController.GetProgramObjectListParams> {
+
+  @Data
+  @EqualsAndHashCode(callSuper = true)
+  public static class GetProgramObjectListParams extends GetObjectListParams {
+    boolean userFilter;
+  }
+
   private final ProgramService programService;
 
   private final CopyService copyService;
 
   @Override
-  protected List<UID> getSpecialFilterMatches(WebOptions options) {
-    // TODO wouldn't the query engine apply a user filter anyhow?
-    boolean userFilter = Boolean.parseBoolean(options.get("userFilter"));
-    if (!userFilter) return null;
-    return programService.getCurrentUserPrograms().stream()
-        .map(obj -> UID.of(obj.getUid()))
-        .toList();
+  protected void modifyGetObjectList(GetProgramObjectListParams params, Query query) {
+    if (params.isUserFilter()) {
+      query.setSkipSharing(true);
+      query.setDataSharing(true);
+    }
   }
 
   @GetMapping("/{uid}/metadata")

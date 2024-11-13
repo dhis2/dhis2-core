@@ -32,6 +32,9 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -41,10 +44,10 @@ import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
+import org.hisp.dhis.webapi.controller.AbstractParameterizedCrudController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -58,19 +61,27 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @Controller
 @RequestMapping("/api/validationRules")
-public class ValidationRuleController extends AbstractCrudController<ValidationRule> {
+public class ValidationRuleController
+    extends AbstractParameterizedCrudController<
+        ValidationRule, ValidationRuleController.GetValidationRuleObjectListParams> {
+
   @Autowired private DataSetService dataSetService;
-
   @Autowired private ValidationRuleService validationRuleService;
-
   @Autowired private ExpressionService expressionService;
-
   @Autowired private I18nManager i18nManager;
 
+  @Data
+  @EqualsAndHashCode(callSuper = true)
+  public static final class GetValidationRuleObjectListParams extends GetObjectListParams {
+    @OpenApi.Property({UID.class, DataSet.class})
+    String dataSet;
+  }
+
   @Override
-  protected List<UID> getSpecialFilterMatches(WebOptions options) {
-    if (!options.contains("dataSet")) return null;
-    DataSet ds = dataSetService.getDataSet(options.get("dataSet"));
+  protected List<UID> getSpecialFilterMatches(GetValidationRuleObjectListParams params) {
+    if (params.getDataSet() == null) return null;
+    DataSet ds = dataSetService.getDataSet(params.getDataSet());
+    // TODO can we make this a filter instead? dataSet.id:eq:...
     List<ValidationRule> res =
         ds == null
             ? List.of()

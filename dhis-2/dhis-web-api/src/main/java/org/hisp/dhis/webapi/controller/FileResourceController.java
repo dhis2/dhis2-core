@@ -37,7 +37,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -56,6 +55,7 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceOwner;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
+import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -95,12 +95,12 @@ public class FileResourceController extends AbstractFullReadOnlyController<FileR
   @GetMapping(value = "/{uid}", params = "fields")
   public ResponseEntity<?> getObject(
       @PathVariable String uid,
-      Map<String, String> rpParameters,
+      GetObjectParams params,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
-    return super.getObject(uid, rpParameters, currentUser, request, response);
+    return super.getObject(uid, params, currentUser, request, response);
   }
 
   @GetMapping(value = "/{uid}")

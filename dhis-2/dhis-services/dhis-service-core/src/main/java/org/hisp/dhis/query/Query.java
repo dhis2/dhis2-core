@@ -58,6 +58,8 @@ public class Query extends Criteria {
 
   private boolean skipSharing;
 
+  private boolean dataSharing;
+
   private Integer firstResult = 0;
 
   private Integer maxResults = Integer.MAX_VALUE;

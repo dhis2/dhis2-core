@@ -132,6 +132,7 @@ class DataElementOperandControllerTest {
         new DefaultQueryService(
             new DefaultJpaQueryParser(schemaService),
             new DefaultQueryPlanner(schemaService, settingsService),
+            schemaService,
             mock(JpaCriteriaQueryEngine.class),
             new InMemoryQueryEngine<>(schemaService, mock(AclService.class)));
     // Use "spy" on queryService, because we want a partial mock: we only
@@ -142,13 +143,7 @@ class DataElementOperandControllerTest {
     // Controller under test
     final DataElementOperandController controller =
         new DataElementOperandController(
-            manager,
-            queryService,
-            fieldFilterService,
-            linkService,
-            contextService,
-            schemaService,
-            dataElementCategoryService);
+            manager, queryService, fieldFilterService, linkService, dataElementCategoryService);
 
     // Set custom Node Message converter //
     Jackson2JsonNodeSerializer serializer = new Jackson2JsonNodeSerializer(staticJsonMapper());

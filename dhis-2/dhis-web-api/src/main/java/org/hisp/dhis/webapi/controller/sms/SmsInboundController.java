@@ -40,19 +40,18 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
@@ -104,12 +103,11 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms> {
   @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @GetMapping
   public @ResponseBody ResponseEntity<StreamingJsonRoot<IncomingSms>> getObjectList(
-      @RequestParam Map<String, String> rpParameters,
-      OrderParams orderParams,
+      GetObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException {
-    return getObjectList(rpParameters, orderParams, response, currentUser);
+    return getObjectList(params, response, currentUser);
   }
 
   @PostMapping(produces = APPLICATION_JSON_VALUE)

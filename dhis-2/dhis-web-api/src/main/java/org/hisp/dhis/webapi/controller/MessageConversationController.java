@@ -31,6 +31,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.security.Authorities.F_METADATA_IMPORT;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
@@ -39,12 +40,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -69,13 +70,13 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.query.Junction;
-import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.schema.descriptors.MessageConversationSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
@@ -83,7 +84,6 @@ import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.webdomain.MessageConversation;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -107,7 +107,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequiredArgsConstructor
 @OpenApi.Document(classifiers = {"team:platform", "purpose:support"})
 public class MessageConversationController
-    extends AbstractCrudController<org.hisp.dhis.message.MessageConversation> {
+    extends AbstractParameterizedCrudController<
+        org.hisp.dhis.message.MessageConversation,
+        MessageConversationController.GetMessageConversationObjectListParams> {
+
   private final MessageService messageService;
   private final OrganisationUnitService organisationUnitService;
   private final UserGroupService userGroupService;
@@ -116,30 +119,29 @@ public class MessageConversationController
   private final FileResourceService fileResourceService;
   private final DhisConfigurationProvider dhisConfig;
 
+  @Data
+  @EqualsAndHashCode(callSuper = true)
+  public static final class GetMessageConversationObjectListParams extends GetObjectListParams {
+    String queryString;
+    String queryOperator;
+  }
+
   @Override
   protected void postProcessResponseEntity(
-      org.hisp.dhis.message.MessageConversation entity,
-      WebOptions options,
-      Map<String, String> parameters) {
+      org.hisp.dhis.message.MessageConversation entity, GetObjectParams params) {
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    if (!messageService.hasAccessToManageFeedbackMessages(UserDetails.fromUser(currentUser))) {
+    if (!messageService.hasAccessToManageFeedbackMessages(getCurrentUserDetails())) {
       entity.setMessages(
           entity.getMessages().stream().filter(message -> !message.isInternal()).toList());
-    }
-
-    boolean markRead = Boolean.parseBoolean(parameters.get("markRead"));
-
-    if (markRead) {
-      entity.markRead(currentUser);
-      manager.update(entity);
     }
   }
 
   @Override
+  @OpenApi.Param(name = "markRead", value = boolean.class)
+  @GetMapping("/{uid:[a-zA-Z0-9]{11}}")
   public ResponseEntity<?> getObject(
       @PathVariable String uid,
-      Map<String, String> rpParameters,
+      GetObjectParams params,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
@@ -161,30 +163,37 @@ public class MessageConversationController
       throw new ForbiddenException("Not authorized to access this conversation.");
     }
 
-    return super.getObject(uid, rpParameters, currentUser, request, response);
+    boolean markRead = "true".equals(request.getParameter("markRead"));
+
+    if (markRead) {
+      messageConversation.markRead(UID.of(currentUser.getUid()));
+      manager.update(messageConversation);
+    }
+
+    return super.getObject(uid, params, currentUser, request, response);
   }
 
   @Override
-  protected List<UID> getSpecialFilterMatches(WebOptions options) {
-    if (options.get("queryString") == null) return null;
+  protected List<UID> getSpecialFilterMatches(GetMessageConversationObjectListParams params) {
+    String queryString = params.getQueryString();
+    if (queryString == null) return null;
 
-    String queryOperator = "token";
-    if (options.get("queryOperator") != null) {
-      queryOperator = options.get("queryOperator");
-    }
+    String queryOperator = params.getQueryOperator();
+    if (queryOperator == null) queryOperator = "token";
 
     List<String> queryFilter =
         List.of(
-            "subject:" + queryOperator + ":" + options.get("queryString"),
-            "messages.text:" + queryOperator + ":" + options.get("queryString"),
-            "messages.sender.displayName:" + queryOperator + ":" + options.get("queryString"));
-    Query subQuery =
-        queryService.getQueryFromUrl(
-            getEntityClass(),
-            queryFilter,
-            Collections.emptyList(),
-            new Pagination(),
-            Junction.Type.OR);
+            "subject:" + queryOperator + ":" + queryString,
+            "messages.text:" + queryOperator + ":" + queryString,
+            "messages.sender.displayName:" + queryOperator + ":" + queryString);
+
+    // TODO can this be made into a main query filter?
+    GetObjectListParams subQueryParams =
+        new GetObjectListParams()
+            .setPaging(false)
+            .setRootJunction(Junction.Type.OR)
+            .setFilters(queryFilter);
+    Query subQuery = queryService.getQueryFromUrl(getEntityClass(), subQueryParams);
     return queryService.query(subQuery).stream().map(UID::of).toList();
   }
 
@@ -1006,7 +1015,10 @@ public class MessageConversationController
 
     for (org.hisp.dhis.message.MessageConversation conversation : messageConversations) {
 
-      boolean success = (readValue ? conversation.markRead(user) : conversation.markUnread(user));
+      boolean success =
+          (readValue
+              ? conversation.markRead(UID.of(user.getUid()))
+              : conversation.markUnread(user));
       if (success) {
         messageService.updateMessageConversation(conversation);
         marked.addChild(new SimpleNode("uid", conversation.getUid()));

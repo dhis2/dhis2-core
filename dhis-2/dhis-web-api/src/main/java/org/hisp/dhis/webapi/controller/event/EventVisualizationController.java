@@ -44,7 +44,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
@@ -65,6 +64,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.ChartService;
@@ -72,7 +72,6 @@ import org.hisp.dhis.visualization.PlotData;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.springframework.stereotype.Controller;
@@ -161,7 +160,7 @@ public class EventVisualizationController extends AbstractCrudController<EventVi
 
   @Override
   protected void postProcessResponseEntity(
-      EventVisualization eventVisualization, WebOptions options, Map<String, String> parameters) {
+      EventVisualization eventVisualization, GetObjectParams params) {
     eventVisualization.populateAnalyticalProperties();
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());

@@ -36,7 +36,6 @@ import static org.hisp.dhis.dxf2.Constants.SYSTEM_VERSION;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -69,7 +68,6 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.document.Document;
-import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.eventvisualization.EventVisualization;
@@ -97,6 +95,7 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.report.Report;
@@ -177,12 +176,12 @@ public class DefaultMetadataExportService implements MetadataExportService {
       if (params.getQuery(klass) != null) {
         query = params.getQuery(klass);
       } else {
-        OrderParams orderParams = new OrderParams(Sets.newHashSet(params.getDefaultOrder()));
-        query =
-            queryService.getQueryFromUrl(
-                klass,
-                params.getDefaultFilter(),
-                orderParams.getOrders(schemaService.getDynamicSchema(klass)));
+        GetObjectListParams queryParams =
+            new GetObjectListParams()
+                .setPaging(false)
+                .setOrders(params.getDefaultOrder())
+                .setFilters(params.getDefaultFilter());
+        query = queryService.getQueryFromUrl(klass, queryParams);
       }
 
       if (query.getCurrentUserDetails() == null && params.getCurrentUserDetails() != null) {
@@ -495,32 +494,17 @@ public class DefaultMetadataExportService implements MetadataExportService {
     for (Map.Entry<Class<? extends IdentifiableObject>, Map<String, List<String>>> entry :
         map.entrySet()) {
       Map<String, List<String>> classMap = entry.getValue();
-      Schema schema = schemaService.getDynamicSchema(entry.getKey());
+      Class<? extends IdentifiableObject> objectType = entry.getKey();
+      if (classMap.containsKey("fields")) params.addFields(objectType, classMap.get("fields"));
 
-      if (classMap.containsKey("fields")) params.addFields(entry.getKey(), classMap.get("fields"));
-
-      if (classMap.containsKey("filter") && classMap.containsKey("order")) {
-        OrderParams orderParams = new OrderParams(Sets.newHashSet(classMap.get("order")));
-        Query query =
-            queryService.getQueryFromUrl(
-                entry.getKey(), classMap.get("filter"), orderParams.getOrders(schema));
-        query.setDefaultOrder();
-        params.addQuery(query);
-      } else if (classMap.containsKey("filter")) {
-        Query query =
-            queryService.getQueryFromUrl(entry.getKey(), classMap.get("filter"), new ArrayList<>());
-        query.setDefaultOrder();
-        params.addQuery(query);
-      } else if (classMap.containsKey("order")) {
-        OrderParams orderParams = new OrderParams();
-        orderParams.setOrder(Sets.newHashSet(classMap.get("order")));
-
-        Query query =
-            queryService.getQueryFromUrl(
-                entry.getKey(), new ArrayList<>(), orderParams.getOrders(schema));
-        query.setDefaultOrder();
-        params.addQuery(query);
-      }
+      GetObjectListParams queryParams =
+          new GetObjectListParams()
+              .setPaging(false)
+              .setFilters(classMap.get("filter"))
+              .setOrders(classMap.get("order"));
+      Query query = queryService.getQueryFromUrl(objectType, queryParams);
+      query.setDefaultOrder();
+      params.addQuery(query);
     }
 
     return params;

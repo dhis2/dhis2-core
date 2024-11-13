@@ -47,13 +47,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -64,6 +65,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.Criterion;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -73,9 +75,8 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.version.VersionService;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.AbstractParameterizedCrudController;
 import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -95,7 +96,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequestMapping("/api/organisationUnits")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class OrganisationUnitController extends AbstractCrudController<OrganisationUnit> {
+public class OrganisationUnitController
+    extends AbstractParameterizedCrudController<
+        OrganisationUnit, OrganisationUnitController.GetOrganisationUnitObjectListParams> {
+
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private VersionService versionService;
@@ -113,6 +117,20 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
     return ok("Organisation unit split");
   }
 
+  @Data
+  @EqualsAndHashCode(callSuper = true)
+  public static final class GetOrganisationUnitObjectListParams extends GetObjectListParams {
+    @OpenApi.Property(UID.class)
+    String memberObject;
+
+    String memberCollection;
+    Integer parentLevel;
+    Integer level;
+    Integer maxLevel;
+    boolean withinUserHierarchy;
+    boolean withinUserSearchHierarchy;
+  }
+
   @ResponseStatus(HttpStatus.OK)
   @RequiresAuthority(anyOf = F_ORGANISATION_UNIT_MERGE)
   @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
@@ -122,30 +140,22 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
     return ok("Organisation units merged");
   }
 
-  @OpenApi.Param(name = "fields", value = String[].class)
-  @OpenApi.Param(name = "filter", value = String[].class)
-  @OpenApi.Params(WebOptions.class)
   @OpenApi.Response(ObjectListResponse.class)
   @GetMapping(value = "/{uid}", params = "includeChildren=true")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getIncludeChildren(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
-      @RequestParam Map<String, String> rpParameters,
-      OrderParams orderParams,
+      GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
-    return getChildren(uid, rpParameters, orderParams, response, currentUser);
+    return getChildren(uid, params, response, currentUser);
   }
 
-  @OpenApi.Param(name = "fields", value = String[].class)
-  @OpenApi.Param(name = "filter", value = String[].class)
-  @OpenApi.Params(WebOptions.class)
   @OpenApi.Response(ObjectListResponse.class)
   @GetMapping("/{uid}/children")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getChildren(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
-      @RequestParam Map<String, String> rpParameters,
-      OrderParams orderParams,
+      GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
@@ -154,101 +164,75 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
         List.of(
             in("level", List.of(parent.getLevel(), parent.getLevel() + 1)),
             like("path", uid, MatchMode.ANYWHERE));
-    return getObjectListInternal(rpParameters, orderParams, response, currentUser, children);
+    return getObjectListInternal(params, response, currentUser, children);
   }
 
-  @OpenApi.Param(name = "fields", value = String[].class)
-  @OpenApi.Param(name = "filter", value = String[].class)
-  @OpenApi.Params(WebOptions.class)
   @OpenApi.Response(ObjectListResponse.class)
   @GetMapping(value = "/{uid}", params = "level")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getObjectWithLevel(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
       @RequestParam int level,
-      @RequestParam Map<String, String> rpParameters,
-      OrderParams orderParams,
+      GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
-    return getChildrenWithLevel(uid, level, rpParameters, orderParams, response, currentUser);
+    return getChildrenWithLevel(uid, level, params, response, currentUser);
   }
 
-  @OpenApi.Param(name = "fields", value = String[].class)
-  @OpenApi.Param(name = "filter", value = String[].class)
-  @OpenApi.Params(WebOptions.class)
   @OpenApi.Response(ObjectListResponse.class)
   @GetMapping(value = "/{uid}/children", params = "level")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getChildrenWithLevel(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
       @RequestParam int level,
-      @RequestParam Map<String, String> rpParameters,
-      OrderParams orderParams,
+      GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
     OrganisationUnit parent = getEntity(uid);
     List<Criterion> childrenWithLevel = List.of(like("path", parent.getPath(), MatchMode.START));
-    rpParameters.put("parentLevel", parent.getLevel() + "");
-    return getObjectListInternal(
-        rpParameters, orderParams, response, currentUser, childrenWithLevel);
+    params.setParentLevel(parent.getLevel());
+    return getObjectListInternal(params, response, currentUser, childrenWithLevel);
   }
 
-  @OpenApi.Param(name = "fields", value = String[].class)
-  @OpenApi.Param(name = "filter", value = String[].class)
-  @OpenApi.Params(WebOptions.class)
   @OpenApi.Response(ObjectListResponse.class)
   @GetMapping(value = "/{uid}", params = "includeDescendants=true")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getIncludeDescendants(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
-      @RequestParam Map<String, String> rpParameters,
-      OrderParams orderParams,
+      GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
-    return getDescendants(uid, rpParameters, orderParams, response, currentUser);
+    return getDescendants(uid, params, response, currentUser);
   }
 
-  @OpenApi.Param(name = "fields", value = String[].class)
-  @OpenApi.Param(name = "filter", value = String[].class)
-  @OpenApi.Params(WebOptions.class)
   @OpenApi.Response(ObjectListResponse.class)
   @GetMapping("/{uid}/descendants")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getDescendants(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
-      @RequestParam Map<String, String> rpParameters,
-      OrderParams orderParams,
+      GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
     Criterion descendants = like("path", uid, MatchMode.ANYWHERE);
-    return getObjectListInternal(
-        rpParameters, orderParams, response, currentUser, List.of(descendants));
+    return getObjectListInternal(params, response, currentUser, List.of(descendants));
   }
 
-  @OpenApi.Param(name = "fields", value = String[].class)
-  @OpenApi.Param(name = "filter", value = String[].class)
-  @OpenApi.Params(WebOptions.class)
   @OpenApi.Response(ObjectListResponse.class)
   @GetMapping(value = "/{uid}", params = "includeAncestors=true")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getIncludeAncestors(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
-      @RequestParam Map<String, String> rpParameters,
-      OrderParams orderParams,
+      GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
-    return getAncestors(uid, rpParameters, orderParams, response, currentUser);
+    return getAncestors(uid, params, response, currentUser);
   }
 
-  @OpenApi.Param(name = "fields", value = String[].class)
-  @OpenApi.Param(name = "filter", value = String[].class)
-  @OpenApi.Params(WebOptions.class)
   @OpenApi.Response(ObjectListResponse.class)
   @GetMapping("/{uid}/ancestors")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getAncestors(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
-      @RequestParam Map<String, String> rpParameters,
-      OrderParams orderParams,
+      GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
@@ -259,19 +243,14 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       ancestorPaths.add(Restrictions.eq("path", String.join("/", ancestorsIds.subList(0, i + 1))));
     Criterion ancestors = or(getSchema(), ancestorPaths);
     // TODO add default order level:asc
-    return getObjectListInternal(
-        rpParameters, orderParams, response, currentUser, List.of(ancestors));
+    return getObjectListInternal(params, response, currentUser, List.of(ancestors));
   }
 
-  @OpenApi.Param(name = "fields", value = String[].class)
-  @OpenApi.Param(name = "filter", value = String[].class)
-  @OpenApi.Params(WebOptions.class)
   @OpenApi.Response(ObjectListResponse.class)
   @GetMapping("/{uid}/parents")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getParents(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
-      @RequestParam Map<String, String> rpParameters,
-      OrderParams orderParams,
+      GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException {
@@ -283,96 +262,76 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       parentPaths.add(Restrictions.eq("path", String.join("/", ancestorsIds.subList(0, i + 1))));
     Criterion parents = or(getSchema(), parentPaths);
     // TODO add default order level:asc
-    return getObjectListInternal(
-        rpParameters, orderParams, response, currentUser, List.of(parents));
+    return getObjectListInternal(params, response, currentUser, List.of(parents));
   }
 
-  @OpenApi.Param(name = "fields", value = String[].class)
-  @OpenApi.Param(name = "filter", value = String[].class)
-  @OpenApi.Params(WebOptions.class)
   @OpenApi.Response(ObjectListResponse.class)
   @GetMapping(params = "userOnly=true")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getUserOrganisationUnits(
       @RequestParam boolean userOnly,
-      @RequestParam Map<String, String> rpParameters,
-      OrderParams orderParams,
+      GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException {
     Criterion userUnits = in("id", currentUser.getUserOrgUnitIds());
-    return getObjectListInternal(
-        rpParameters, orderParams, response, currentUser, List.of(userUnits));
+    return getObjectListInternal(params, response, currentUser, List.of(userUnits));
   }
 
-  @OpenApi.Param(name = "fields", value = String[].class)
-  @OpenApi.Param(name = "filter", value = String[].class)
-  @OpenApi.Params(WebOptions.class)
   @OpenApi.Response(ObjectListResponse.class)
   @GetMapping(params = "userDataViewOnly=true")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>>
       getUserDataViewOrganisationUnits(
           @RequestParam boolean userDataViewOnly,
-          @RequestParam Map<String, String> rpParameters,
-          OrderParams orderParams,
+          GetOrganisationUnitObjectListParams params,
           HttpServletResponse response,
           @CurrentUser UserDetails currentUser)
           throws ForbiddenException, BadRequestException {
     Criterion userDataUnits = in("id", currentUser.getUserDataOrgUnitIds());
-    return getObjectListInternal(
-        rpParameters, orderParams, response, currentUser, List.of(userDataUnits));
+    return getObjectListInternal(params, response, currentUser, List.of(userDataUnits));
   }
 
-  @OpenApi.Param(name = "fields", value = String[].class)
-  @OpenApi.Param(name = "filter", value = String[].class)
-  @OpenApi.Params(WebOptions.class)
   @OpenApi.Response(ObjectListResponse.class)
   @GetMapping(params = "userDataViewFallback=true")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>>
       getUserDataViewOrganisationUnitsWithFallback(
           @RequestParam boolean userDataViewFallback,
-          @RequestParam Map<String, String> rpParameters,
-          OrderParams orderParams,
+          GetOrganisationUnitObjectListParams params,
           HttpServletResponse response,
           @CurrentUser UserDetails currentUser)
           throws ForbiddenException, BadRequestException {
     Set<String> ouIds = currentUser.getUserDataOrgUnitIds();
     Criterion userDataUnits = ouIds.isEmpty() ? eq("level", 1) : in("id", ouIds);
-    return getObjectListInternal(
-        rpParameters, orderParams, response, currentUser, List.of(userDataUnits));
+    return getObjectListInternal(params, response, currentUser, List.of(userDataUnits));
   }
 
-  @OpenApi.Param(name = "fields", value = String[].class)
-  @OpenApi.Param(name = "filter", value = String[].class)
-  @OpenApi.Params(WebOptions.class)
   @OpenApi.Response(ObjectListResponse.class)
   @GetMapping(params = "levelSorted=true")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>>
       getAllOrganisationUnitsByLevel(
           @RequestParam boolean levelSorted,
-          @RequestParam Map<String, String> rpParameters,
-          OrderParams orderParams,
+          GetOrganisationUnitObjectListParams params,
           HttpServletResponse response,
           @CurrentUser UserDetails currentUser)
           throws ForbiddenException, BadRequestException {
     // TODO sort by level asc?
     // or implement this as a special thing when constructing orders in general?
-    return getObjectListInternal(rpParameters, orderParams, response, currentUser, List.of());
+    return getObjectListInternal(params, response, currentUser, List.of());
   }
 
+  @Nonnull
   @Override
-  protected List<Criterion> getSpecialFilters(WebOptions options) {
-    List<Criterion> specialFilters = super.getSpecialFilters(options);
-    Integer parentLevel = options.getInt("parentLevel");
-    Integer level = options.getInt("level");
+  protected List<Criterion> getSpecialFilters(GetOrganisationUnitObjectListParams params) {
+    List<Criterion> specialFilters = super.getSpecialFilters(params);
+    Integer parentLevel = params.getParentLevel();
+    Integer level = params.getLevel();
     if (level != null)
       specialFilters.add(
           parentLevel != null ? eq("level", parentLevel + max(0, level)) : eq("level", level));
-    Integer maxLevel = options.getInt("maxLevel");
+    Integer maxLevel = params.getMaxLevel();
     if (maxLevel != null) specialFilters.add(le("level", maxLevel));
     Set<String> parents = null;
-    if ("true".equals(options.get("withinUserHierarchy", "false")))
-      parents = getCurrentUserDetails().getUserOrgUnitIds();
-    if ("true".equals(options.get("withinUserSearchHierarchy", "false"))) {
+    if (params.isWithinUserHierarchy()) parents = getCurrentUserDetails().getUserOrgUnitIds();
+    if (params.isWithinUserSearchHierarchy()) {
       UserDetails currentUser = getCurrentUserDetails();
       Set<String> searchIds = currentUser.getUserSearchOrgUnitIds();
       if (searchIds.isEmpty()) {
@@ -394,9 +353,10 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
   }
 
   @Override
-  protected void getEntityListPostProcess(WebOptions options, List<OrganisationUnit> entities) {
-    String memberObject = options.get("memberObject");
-    String memberCollection = options.get("memberCollection");
+  protected void getEntityListPostProcess(
+      GetOrganisationUnitObjectListParams params, List<OrganisationUnit> entities) {
+    String memberObject = params.getMemberObject();
+    String memberCollection = params.getMemberCollection();
     if (memberObject != null && memberCollection != null) {
       Optional<? extends IdentifiableObject> member = manager.find(memberObject);
       if (member.isPresent()) {

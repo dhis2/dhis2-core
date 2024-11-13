@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,32 +27,60 @@
  */
 package org.hisp.dhis.query;
 
+import static java.lang.Math.max;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.Schema;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface QueryParser {
+@Data
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
+public class GetObjectListParams extends GetObjectParams {
+
+  @JsonProperty("filter")
+  @CheckForNull
+  List<String> filters;
+
+  @JsonProperty("order")
+  @CheckForNull
+  List<String> orders;
+
+  @JsonProperty Junction.Type rootJunction = Junction.Type.AND;
+
+  @JsonProperty boolean paging = true;
+  @JsonProperty int page = 1;
+  @JsonProperty int pageSize = 50;
+
   /**
-   * Parses filter expressions, need 2 or 3 components depending on operator. i.e. for null you can
-   * use "name:null" which checks to see if property name is null i.e. for eq you can use
-   * "name:eq:ANC" which check to see if property name is equal to ANC
-   *
-   * <p>The general syntax is "propertyName:operatorName:<Value to check against if needed>"
-   *
-   * @param klass Class type to query for
-   * @param filters List of filters to add to Query
-   * @param rootJunction Root junction to use (defaults to AND)
-   * @return Query instance based on Schema of klass and filters list
-   * @throws QueryParserException
+   * A special filter that matches the query term against the ID and code (equals) and against name
+   * (contains). Can be used in combination with regular filters.
    */
-  Query parse(Class<?> klass, @Nonnull List<String> filters, Junction.Type rootJunction)
-      throws QueryParserException;
+  @JsonProperty String query;
 
-  Query parse(Class<?> klass, @Nonnull List<String> filters) throws QueryParserException;
+  @Nonnull
+  @JsonIgnore
+  public Pagination getPagination() {
+    if (!paging) return new Pagination();
+    // ignore if page < 0
+    return new Pagination((max(page, 1) - 1) * pageSize, pageSize);
+  }
 
-  Property getProperty(Schema schema, String path) throws QueryParserException;
+  public GetObjectListParams addFilter(String filter) {
+    if (filters == null) filters = new ArrayList<>();
+    filters.add(filter);
+    return this;
+  }
+
+  public GetObjectListParams addOrder(String order) {
+    if (orders == null) orders = new ArrayList<>();
+    orders.add(order);
+    return this;
+  }
 }

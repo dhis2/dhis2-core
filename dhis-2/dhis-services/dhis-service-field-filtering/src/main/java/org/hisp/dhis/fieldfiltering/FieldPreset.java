@@ -52,7 +52,7 @@ public enum FieldPreset {
 
   FieldPreset(String name, List<String> fields) {
     this.name = name;
-    this.fields = fields;
+    this.fields = List.copyOf(fields);
   }
 
   public String getName() {

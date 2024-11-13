@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.query;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -509,9 +507,9 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
   @Test
   void testUnicodeSearch() {
     addDataElement('U', "Кириллица", ValueType.NUMBER, "2021");
-    Query query =
-        queryService.getQueryFromUrl(
-            DataElement.class, singletonList("identifiable:token:Кири"), emptyList());
+    GetObjectListParams params =
+        new GetObjectListParams().setPaging(false).setFilters(List.of("identifiable:token:Кири"));
+    Query query = queryService.getQueryFromUrl(DataElement.class, params);
     List<? extends IdentifiableObject> matches = queryService.query(query);
     assertEquals(1, matches.size());
     assertEquals("Кириллица", matches.get(0).getName());

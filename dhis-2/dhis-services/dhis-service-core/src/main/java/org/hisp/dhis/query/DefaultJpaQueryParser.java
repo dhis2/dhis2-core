@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.schema.Property;
@@ -56,12 +57,12 @@ public class DefaultJpaQueryParser implements QueryParser {
   }
 
   @Override
-  public Query parse(Class<?> klass, List<String> filters) throws QueryParserException {
+  public Query parse(Class<?> klass, @Nonnull List<String> filters) throws QueryParserException {
     return parse(klass, filters, Junction.Type.AND);
   }
 
   @Override
-  public Query parse(Class<?> klass, List<String> filters, Junction.Type rootJunction)
+  public Query parse(Class<?> klass, @Nonnull List<String> filters, Junction.Type rootJunction)
       throws QueryParserException {
     Schema schema = schemaService.getDynamicSchema(klass);
     Query query = Query.from(schema, rootJunction);

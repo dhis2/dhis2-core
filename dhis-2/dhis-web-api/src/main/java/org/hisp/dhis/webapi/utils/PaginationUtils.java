@@ -30,8 +30,8 @@ package org.hisp.dhis.webapi.utils;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.Pagination;
-import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 
 /**
@@ -63,21 +63,21 @@ public class PaginationUtils {
    * Method to add paging if enabled. If enabled it will apply the correct paging field values e.g.
    * page, total, pageSize, pageCount
    *
-   * @param metadata {@link WebMetadata} to get the pager from
-   * @param options {@link WebOptions} to get paging information
+   * @param params paging parameters
    * @param entities to page
    * @return {@link PagedEntities} record which contains the {@link Pager} and the paged entities
    * @param <T> generic param list to page
    */
   public static <T> PagedEntities<T> addPagingIfEnabled(
-      @Nonnull WebMetadata metadata, @Nonnull WebOptions options, @Nonnull List<T> entities) {
-    Pager pager = metadata.getPager();
-
-    if (options.hasPaging() && pager == null) {
+      GetObjectListParams params, @Nonnull List<T> entities) {
+    Pager pager = null;
+    if (params.isPaging()) {
       long totalCount = entities.size();
-      long skip = (long) (options.getPage() - 1) * options.getPageSize();
-      entities = entities.stream().skip(skip).limit(options.getPageSize()).toList();
-      pager = new Pager(options.getPage(), totalCount, options.getPageSize());
+      int page = params.getPage();
+      int pageSize = params.getPageSize();
+      long skip = (long) (page - 1) * pageSize;
+      entities = entities.stream().skip(skip).limit(pageSize).toList();
+      pager = new Pager(page, totalCount, pageSize);
     }
     return new PagedEntities<>(pager, entities);
   }

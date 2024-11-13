@@ -29,18 +29,20 @@ package org.hisp.dhis.webapi.controller.user;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.webapi.controller.AbstractParameterizedCrudController;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -53,14 +55,24 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/api/userRoles")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class UserRoleController extends AbstractCrudController<UserRole> {
-  @Autowired private UserService userService;
+public class UserRoleController
+    extends AbstractParameterizedCrudController<
+        UserRole, UserRoleController.GetUserRoleObjectListParams> {
+
+  private final UserService userService;
+
+  @Data
+  @EqualsAndHashCode(callSuper = true)
+  public static final class GetUserRoleObjectListParams extends GetObjectListParams {
+    boolean canIssue;
+  }
 
   @Override
-  protected List<UID> getSpecialFilterMatches(WebOptions options) {
-    if (!"true".equals(options.get("canIssue"))) return null;
+  protected List<UID> getSpecialFilterMatches(GetUserRoleObjectListParams params) {
+    if (!params.isCanIssue()) return null;
     // TODO make actual filter
     return userService.getRolesCurrentUserCanIssue().stream().map(UID::of).toList();
   }

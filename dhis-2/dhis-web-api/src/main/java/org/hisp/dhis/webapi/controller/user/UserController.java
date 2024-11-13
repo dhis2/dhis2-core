@@ -46,13 +46,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -68,7 +68,6 @@ import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -86,7 +85,9 @@ import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.Order;
+import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -104,9 +105,8 @@ import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.Users;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.AbstractParameterizedCrudController;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -129,7 +129,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Slf4j
 @Controller
 @RequestMapping("/api/users")
-public class UserController extends AbstractCrudController<User> {
+public class UserController
+    extends AbstractParameterizedCrudController<User, UserController.GetUserObjectListParams> {
+
   public static final String INVITE_PATH = "/invite";
 
   public static final String BULK_INVITE_PATH = "/invites";
@@ -148,56 +150,73 @@ public class UserController extends AbstractCrudController<User> {
   // GET
   // -------------------------------------------------------------------------
 
-  @Override
-  protected List<UID> getSpecialFilterMatches(WebOptions options) {
-    UserQueryParams params = makeUserQueryParams(options);
-
-    String ou = options.get("ou");
-
-    if (ou != null) {
-      params.addOrganisationUnit(organisationUnitService.getOrganisationUnit(ou));
-    }
-
-    if (options.isManage()) {
-      params.setCanManage(true);
-      params.setAuthSubset(true);
-    }
-
-    List<String> filters = new ArrayList<>(contextService.getParameterValues("filter"));
-    Set<String> orders = new LinkedHashSet<>(contextService.getParameterValues("order"));
-    List<Order> orderParams = new OrderParams(orders).getOrders(getSchema());
-    boolean hasUserGroupFilter = filters.stream().anyMatch(f -> f.startsWith("userGroups."));
-    params.setPrefetchUserGroups(hasUserGroupFilter);
-
-    List<String> ordersAsString =
-        (orderParams == null)
-            ? null
-            : orderParams.stream().map(Order::toOrderString).collect(Collectors.toList());
-
-    return userService.getUsers(params, ordersAsString).stream().map(UID::of).toList();
+  @Data
+  @EqualsAndHashCode(callSuper = true)
+  public static final class GetUserObjectListParams extends GetObjectListParams {
+    String phoneNumber;
+    boolean canManage;
+    boolean authSubset;
+    Date lastLogin;
+    Integer inactiveMonths;
+    Date inactiveSince;
+    boolean selfRegistered;
+    UserInvitationStatus invitationStatus;
+    boolean userOrgUnits;
+    boolean includeChildren;
+    UserOrgUnitType orgUnitBoundary;
+    String ou;
+    boolean manage;
   }
 
-  private UserQueryParams makeUserQueryParams(WebOptions options) {
-    UserQueryParams params = new UserQueryParams();
-    params.setQuery(StringUtils.trimToNull(options.get("query")));
-    params.setPhoneNumber(StringUtils.trimToNull(options.get("phoneNumber")));
-    params.setCanManage(options.isTrue("canManage"));
-    params.setAuthSubset(options.isTrue("authSubset"));
-    params.setLastLogin(options.getDate("lastLogin"));
-    params.setInactiveMonths(options.getInt("inactiveMonths"));
-    params.setInactiveSince(options.getDate("inactiveSince"));
-    params.setSelfRegistered(options.isTrue("selfRegistered"));
-    params.setInvitationStatus(UserInvitationStatus.fromValue(options.get("invitationStatus")));
-    params.setUserOrgUnits(options.isTrue("userOrgUnits"));
-    params.setIncludeOrgUnitChildren(options.isTrue("includeChildren"));
-    params.setOrgUnitBoundary(UserOrgUnitType.fromValue(options.get("orgUnitBoundary")));
+  @Override
+  protected List<UID> getSpecialFilterMatches(GetUserObjectListParams params) {
+    UserQueryParams queryParams = makeUserQueryParams(params);
 
-    return params;
+    String ou = params.getOu();
+
+    if (ou != null) {
+      queryParams.addOrganisationUnit(organisationUnitService.getOrganisationUnit(ou));
+    }
+
+    if (params.isManage()) {
+      queryParams.setCanManage(true);
+      queryParams.setAuthSubset(true);
+    }
+
+    List<String> filters = params.getFilters();
+    List<String> orders = params.getOrders();
+    List<Order> orderParams = QueryUtils.convertOrderStrings(orders, getSchema());
+    boolean hasUserGroupFilter =
+        filters != null && filters.stream().anyMatch(f -> f.startsWith("userGroups."));
+    queryParams.setPrefetchUserGroups(hasUserGroupFilter);
+
+    List<String> ordersAsString =
+        orderParams.stream().map(Order::toOrderString).collect(Collectors.toList());
+
+    return userService.getUsers(queryParams, ordersAsString).stream().map(UID::of).toList();
+  }
+
+  private UserQueryParams makeUserQueryParams(GetUserObjectListParams params) {
+    UserQueryParams res = new UserQueryParams();
+    res.setQuery(StringUtils.trimToNull(params.getQuery()));
+    res.setPhoneNumber(StringUtils.trimToNull(params.getPhoneNumber()));
+    res.setCanManage(params.isCanManage());
+    res.setAuthSubset(params.isAuthSubset());
+    res.setLastLogin(params.getLastLogin());
+    res.setInactiveMonths(params.getInactiveMonths());
+    res.setInactiveSince(params.getInactiveSince());
+    res.setSelfRegistered(params.isSelfRegistered());
+    res.setInvitationStatus(params.getInvitationStatus());
+    res.setUserOrgUnits(params.isUserOrgUnits());
+    res.setIncludeOrgUnitChildren(params.isIncludeChildren());
+    res.setOrgUnitBoundary(params.getOrgUnitBoundary());
+
+    return res;
   }
 
   @Override
   @Nonnull
-  protected User getEntity(String uid, WebOptions options) throws NotFoundException {
+  protected User getEntity(String uid) throws NotFoundException {
     User user = userService.getUser(uid);
     if (user == null) {
       throw new NotFoundException(User.class, uid);
@@ -211,12 +230,12 @@ public class UserController extends AbstractCrudController<User> {
   public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
       @OpenApi.Param(OpenApi.PropertyNames.class) @PathVariable("property") String pvProperty,
-      @RequestParam Map<String, String> rpParameters,
+      @RequestParam List<String> fields,
       @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
     if (!"dataApprovalWorkflows".equals(pvProperty)) {
-      return super.getObjectProperty(pvUid, pvProperty, rpParameters, currentUser, response);
+      return super.getObjectProperty(pvUid, pvProperty, fields, currentUser, response);
     }
 
     User user = userService.getUser(pvUid);
