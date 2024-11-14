@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.merge.indicator;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.MergeReport;
@@ -41,6 +40,7 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeService;
+import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.merge.MergeValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author david mackessy
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class IndicatorTypeMergeService implements MergeService {
@@ -59,15 +60,13 @@ public class IndicatorTypeMergeService implements MergeService {
   private final MergeValidator validator;
 
   @Override
+  public MergeType getMergeType() {
+    return MergeType.INDICATOR_TYPE;
+  }
+
+  @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
-    // sources
-    Set<UID> sources = new HashSet<>();
-    validator.verifySources(params.getSources(), sources, mergeReport, IndicatorType.class);
-
-    // target
-    validator.checkIsTargetInSources(sources, params.getTarget(), mergeReport, IndicatorType.class);
-
-    return validator.verifyTarget(mergeReport, sources, params, IndicatorType.class);
+    return validator.validateUIDs(params, mergeReport, getMergeType());
   }
 
   @Override

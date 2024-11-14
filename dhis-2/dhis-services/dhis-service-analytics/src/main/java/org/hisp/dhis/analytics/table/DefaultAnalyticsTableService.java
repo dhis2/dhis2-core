@@ -108,9 +108,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     List<AnalyticsTable> tables = tableManager.getAnalyticsTables(params);
 
     if (tables.isEmpty()) {
-      clock.logTime(
-          "Table update aborted, no table or partitions to be updated: '{}'",
-          tableType.getTableName());
+      clock.logTime("Table update aborted, nothing to update: '{}'", tableType.getTableName());
       progress.startingStage("Table updates " + tableType);
       progress.completedStage("Table updated aborted, no table or partitions to be updated");
       return;
@@ -369,11 +367,17 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   int getParallelJobs() {
     SystemSettings settings = settingsProvider.getCurrentSettings();
     int parallelJobs = settings.getParallelJobsInAnalyticsTableExport();
-    if (parallelJobs > 0) return parallelJobs;
+    if (parallelJobs > 0) {
+      return parallelJobs;
+    }
     int databaseCpus = settings.getDatabaseServerCpus();
-    if (databaseCpus > 0) return databaseCpus;
+    if (databaseCpus > 0) {
+      return databaseCpus;
+    }
     int serverCpus = SystemUtils.getCpuCores();
-    if (serverCpus > 2) return serverCpus - 1;
+    if (serverCpus > 2) {
+      return serverCpus - 1;
+    }
     return serverCpus;
   }
 }

@@ -199,16 +199,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String quote(String alias, String relation) {
-    return alias + DOT + quote(relation);
-  }
-
-  @Override
-  public String singleQuote(String value) {
-    return SINGLE_QUOTE + escape(value) + SINGLE_QUOTE;
-  }
-
-  @Override
   public String escape(String value) {
     return value
         .replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE))

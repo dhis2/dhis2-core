@@ -50,7 +50,6 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeProcessor;
-import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
@@ -95,7 +94,6 @@ public class CategoryOptionController extends AbstractCrudController<CategoryOpt
   public @ResponseBody WebMessage mergeCategoryOptions(@RequestBody MergeParams params)
       throws ConflictException {
     log.info("CategoryOption merge received");
-    params.setMergeType(MergeType.CATEGORY_OPTION);
 
     MergeReport report;
     try {
