@@ -72,8 +72,6 @@ import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
-import org.hisp.dhis.analytics.data.sql.AnalyticsQueryBuilder;
-import org.hisp.dhis.analytics.data.sql.PostgresAnalyticsQueryBuilder;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
@@ -298,25 +296,6 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         queryPlanner.assignPartitionsFromQueryPeriods(paramsWithOffsetPeriods, tableType);
     Partitions offsetParitions = paramsWithOffsetPartitions.getPartitions();
     return DataQueryParams.newBuilder(params).withPartitions(offsetParitions).build();
-  }
-
-  private String getSql2(DataQueryParams params, AnalyticsTableType tableType) {
-
-    // Currently only PostgresAnalyticsQueryBuilder is supported
-    AnalyticsQueryBuilder queryBuilder = new PostgresAnalyticsQueryBuilder(sqlBuilder);
-
-    if (params.hasSubexpressions()) {
-      return new JdbcSubexpressionQueryGenerator(this, params, tableType).getSql();
-    }
-
-    String select = queryBuilder.buildSelectClause(params);
-    String from = queryBuilder.buildFromClause(params, tableType);
-    String where =
-        params.getAggregationType().isMinOrMaxInPeriodAggregationType()
-            ? ""
-            : queryBuilder.buildWhereClause(params, tableType);
-    String groupBy = queryBuilder.buildGroupByClause(params);
-    return "%s %s %s %s ".formatted(select, from, where, groupBy);
   }
 
   /**
