@@ -29,9 +29,11 @@ package org.hisp.dhis.tracker.export.event;
 
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -48,7 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultEventChangeLogService implements EventChangeLogService {
 
   private final EventService eventService;
-  private final JdbcEventChangeLogStore jdbcEventChangeLogStore;
+  private final HibernateEventChangeLogStore hibernateEventChangeLogStore;
   private final HibernateTrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore;
   private final TrackerAccessManager trackerAccessManager;
 
@@ -60,7 +62,20 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
     // check existence and access
     eventService.getEvent(event);
 
-    return jdbcEventChangeLogStore.getEventChangeLog(event, operationParams.getOrder(), pageParams);
+    return hibernateEventChangeLogStore.getEventChangeLogs(
+        event, operationParams.getOrder(), pageParams);
+  }
+
+  @Transactional
+  @Override
+  public void deleteEventChangeLog(Event event) {
+    hibernateEventChangeLogStore.deleteEventChangeLog(event);
+  }
+
+  @Transactional
+  @Override
+  public void deleteEventChangeLog(DataElement dataElement) {
+    hibernateEventChangeLogStore.deleteEventChangeLog(dataElement);
   }
 
   @Override
@@ -90,6 +105,30 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   }
 
   @Override
+  @Transactional
+  public void addDataValueChangeLog(
+      Event event,
+      DataElement dataElement,
+      String currentValue,
+      String previousValue,
+      ChangeLogType changeLogType,
+      String userName) {
+
+    EventChangeLog eventChangeLog =
+        new EventChangeLog(
+            event,
+            dataElement,
+            null,
+            previousValue,
+            currentValue,
+            changeLogType,
+            new Date(),
+            userName);
+
+    hibernateEventChangeLogStore.addEventChangeLog(eventChangeLog);
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public int countTrackedEntityDataValueChangeLogs(
       TrackedEntityDataValueChangeLogQueryParams params) {
@@ -111,6 +150,6 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   @Override
   @Transactional(readOnly = true)
   public Set<String> getOrderableFields() {
-    return jdbcEventChangeLogStore.getOrderableFields();
+    return hibernateEventChangeLogStore.getOrderableFields();
   }
 }

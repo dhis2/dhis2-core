@@ -122,14 +122,13 @@ public abstract class AbstractTrackerPersister<
         //
         persistOwnership(bundle, trackerDto, convertedDto);
 
-        updateDataValues(
-            entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
-
         //
         // Save or update the entity
         //
         if (isNew(bundle, trackerDto)) {
           entityManager.persist(convertedDto);
+          updateDataValues(
+              entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
           typeReport.getStats().incCreated();
           typeReport.addEntity(objectReport);
           updateAttributes(
@@ -139,6 +138,8 @@ public abstract class AbstractTrackerPersister<
             typeReport.getStats().incIgnored();
             // Relationships are not updated. A warning was already added to the report
           } else {
+            updateDataValues(
+                entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
             updateAttributes(
                 entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
             entityManager.merge(convertedDto);

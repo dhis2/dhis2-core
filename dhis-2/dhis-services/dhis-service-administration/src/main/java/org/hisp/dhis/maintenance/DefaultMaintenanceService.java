@@ -78,7 +78,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
 
   private final ApplicationEventPublisher eventPublisher;
 
-  private final EventChangeLogService trackedEntityDataValueChangelogService;
+  private final EventChangeLogService eventChangeLogService;
 
   // -------------------------------------------------------------------------
   // MaintenanceService implementation
@@ -169,7 +169,8 @@ public class DefaultMaintenanceService implements MaintenanceService {
       return false;
     }
 
-    trackedEntityDataValueChangelogService.deleteTrackedEntityDataValueChangeLog(dataElement);
+    eventChangeLogService.deleteTrackedEntityDataValueChangeLog(dataElement);
+    eventChangeLogService.deleteEventChangeLog(dataElement);
     dataValueAuditService.deleteDataValueAudits(dataElement);
     dataValueService.deleteDataValues(dataElement);
 

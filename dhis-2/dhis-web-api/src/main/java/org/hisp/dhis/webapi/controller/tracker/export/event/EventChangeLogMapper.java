@@ -25,30 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.dataelement;
+package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.merge.MergeProcessor;
-import org.hisp.dhis.merge.MergeService;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog;
+import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog.DataValueChange;
+import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.User;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-/**
- * Implementation of {@link MergeProcessor} that currently only uses its default method.
- *
- * @author david mackessy
- */
-@Component
-@RequiredArgsConstructor
-public class DataElementMergeProcessor implements MergeProcessor {
+@Mapper(uses = {UIDMapper.class})
+public interface EventChangeLogMapper {
 
-  /**
-   * Spring injects the correct service based on the variable name (when there are multiple
-   * implementations to choose from). So The {@link DataElementMergeService} gets injected here.
-   */
-  private final MergeService dataElementMergeService;
+  @Mapping(target = "createdBy", source = "eventChangeLog")
+  @Mapping(target = "createdAt", source = "created")
+  @Mapping(target = "type", source = "changeLogType")
+  @Mapping(target = "change.dataValue", source = "eventChangeLog")
+  EventChangeLog map(org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
 
-  @Override
-  public MergeService getMergeService() {
-    return dataElementMergeService;
-  }
+  @Mapping(target = "uid", source = "createdBy.uid")
+  @Mapping(target = "username", source = "createdBy.username")
+  @Mapping(target = "firstName", source = "createdBy.firstName")
+  @Mapping(target = "surname", source = "createdBy.surname")
+  User mapUser(org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
+
+  @Mapping(target = "dataElement", source = "dataElement.uid")
+  @Mapping(target = "previousValue", source = "previousValue")
+  @Mapping(target = "currentValue", source = "currentValue")
+  DataValueChange mapDataValueChange(
+      org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
 }

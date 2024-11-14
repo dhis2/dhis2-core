@@ -27,24 +27,79 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
 
-public record EventChangeLog(
-    /**
-     * Ideally we would reuse {@code org.hisp.dhis.webapi.controller.tracker.view.User} so our
-     * responses stay consistent.
-     */
-    @JsonProperty UserInfoSnapshot createdBy,
-    @JsonProperty Date createdAt,
-    @JsonProperty String type,
-    @JsonProperty Change change) {
+@NoArgsConstructor
+@Getter
+@Setter
+public class EventChangeLog {
+  private long id;
 
-  public record Change(@JsonProperty DataValueChange dataValue) {}
+  private Event event;
 
-  public record DataValueChange(
-      @JsonProperty String dataElement,
-      @JsonProperty String previousValue,
-      @JsonProperty String currentValue) {}
+  private DataElement dataElement;
+
+  private String eventProperty;
+
+  private String previousValue;
+
+  private String currentValue;
+
+  private ChangeLogType changeLogType;
+
+  private Date created;
+
+  private String createdByUsername;
+
+  private UserInfoSnapshot createdBy;
+
+  public EventChangeLog(
+      Event event,
+      DataElement dataElement,
+      String eventProperty,
+      String previousValue,
+      String currentValue,
+      ChangeLogType changeLogType,
+      Date created,
+      String createdByUsername) {
+    this(event, dataElement, eventProperty, previousValue, currentValue, changeLogType, created);
+    this.createdByUsername = createdByUsername;
+  }
+
+  public EventChangeLog(
+      Event event,
+      DataElement dataElement,
+      String eventProperty,
+      String previousValue,
+      String currentValue,
+      ChangeLogType changeLogType,
+      Date created,
+      UserInfoSnapshot createdBy) {
+    this(event, dataElement, eventProperty, previousValue, currentValue, changeLogType, created);
+    this.createdBy = createdBy;
+  }
+
+  private EventChangeLog(
+      Event event,
+      DataElement dataElement,
+      String eventProperty,
+      String previousValue,
+      String currentValue,
+      ChangeLogType changeLogType,
+      Date created) {
+    this.event = event;
+    this.dataElement = dataElement;
+    this.eventProperty = eventProperty;
+    this.previousValue = previousValue;
+    this.currentValue = currentValue;
+    this.changeLogType = changeLogType;
+    this.created = created;
+  }
 }
