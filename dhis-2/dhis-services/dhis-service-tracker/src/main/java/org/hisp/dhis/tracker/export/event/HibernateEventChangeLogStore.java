@@ -83,8 +83,8 @@ public class HibernateEventChangeLogStore {
           select ecl.event,
                  ecl.dataElement,
                  ecl.eventProperty,
-                 ecl.currentValue,
                  ecl.previousValue,
+                 ecl.currentValue,
                  ecl.changeLogType,
                  ecl.created,
                  ecl.createdByUsername,
@@ -112,8 +112,8 @@ public class HibernateEventChangeLogStore {
                   Event e = (Event) row[0];
                   DataElement dataElement = (DataElement) row[1];
                   String eventProperty = (String) row[2];
-                  String currentValue = (String) row[3];
-                  String previousValue = (String) row[4];
+                  String previousValue = (String) row[3];
+                  String currentValue = (String) row[4];
                   ChangeLogType changeLogType = (ChangeLogType) row[5];
                   Date created = (Date) row[6];
 
@@ -125,8 +125,8 @@ public class HibernateEventChangeLogStore {
                       e,
                       dataElement,
                       eventProperty,
-                      currentValue,
                       previousValue,
+                      currentValue,
                       changeLogType,
                       created,
                       createdBy);

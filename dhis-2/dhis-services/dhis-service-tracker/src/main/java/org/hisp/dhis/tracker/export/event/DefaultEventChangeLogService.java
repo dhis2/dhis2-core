@@ -119,8 +119,8 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
             event,
             dataElement,
             null,
-            currentValue,
             previousValue,
+            currentValue,
             changeLogType,
             new Date(),
             userName);

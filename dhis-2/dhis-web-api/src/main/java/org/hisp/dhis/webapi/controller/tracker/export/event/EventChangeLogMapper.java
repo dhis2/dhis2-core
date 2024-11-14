@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog;
 import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog.DataValueChange;
+import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper
+@Mapper(uses = {UIDMapper.class})
 public interface EventChangeLogMapper {
 
   @Mapping(target = "createdBy", source = "eventChangeLog")
@@ -54,11 +54,4 @@ public interface EventChangeLogMapper {
   @Mapping(target = "currentValue", source = "currentValue")
   DataValueChange mapDataValueChange(
       org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
-
-  default UID mapStringToUID(String value) {
-    if (value == null) {
-      return null;
-    }
-    return UID.of(value);
-  }
 }

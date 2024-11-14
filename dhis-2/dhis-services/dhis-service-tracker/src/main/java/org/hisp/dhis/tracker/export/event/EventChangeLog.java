@@ -48,9 +48,9 @@ public class EventChangeLog {
 
   private String eventProperty;
 
-  private String currentValue;
-
   private String previousValue;
+
+  private String currentValue;
 
   private ChangeLogType changeLogType;
 
@@ -64,12 +64,12 @@ public class EventChangeLog {
       Event event,
       DataElement dataElement,
       String eventProperty,
-      String currentValue,
       String previousValue,
+      String currentValue,
       ChangeLogType changeLogType,
       Date created,
       String createdByUsername) {
-    this(event, dataElement, eventProperty, currentValue, previousValue, changeLogType, created);
+    this(event, dataElement, eventProperty, previousValue, currentValue, changeLogType, created);
     this.createdByUsername = createdByUsername;
   }
 
@@ -77,12 +77,12 @@ public class EventChangeLog {
       Event event,
       DataElement dataElement,
       String eventProperty,
-      String currentValue,
       String previousValue,
+      String currentValue,
       ChangeLogType changeLogType,
       Date created,
       UserInfoSnapshot createdBy) {
-    this(event, dataElement, eventProperty, currentValue, previousValue, changeLogType, created);
+    this(event, dataElement, eventProperty, previousValue, currentValue, changeLogType, created);
     this.createdBy = createdBy;
   }
 
@@ -90,15 +90,15 @@ public class EventChangeLog {
       Event event,
       DataElement dataElement,
       String eventProperty,
-      String currentValue,
       String previousValue,
+      String currentValue,
       ChangeLogType changeLogType,
       Date created) {
     this.event = event;
     this.dataElement = dataElement;
     this.eventProperty = eventProperty;
-    this.currentValue = currentValue;
     this.previousValue = previousValue;
+    this.currentValue = currentValue;
     this.changeLogType = changeLogType;
     this.created = created;
   }
