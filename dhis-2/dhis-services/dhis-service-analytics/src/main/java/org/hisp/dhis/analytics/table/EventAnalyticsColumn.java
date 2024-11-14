@@ -245,6 +245,8 @@ public final class EventAnalyticsColumn {
           OCCURRED_DATE,
           SCHEDULED_DATE,
           COMPLETED_DATE,
+          CREATED,
+          LAST_UPDATED,
           STOREDBY,
           EVENT_STATUS,
           ENROLLMENT_STATUS,
@@ -261,13 +263,40 @@ public final class EventAnalyticsColumn {
           EVENT_GEOMETRY,
           OU_GEOMETRY,
           ENROLLMENT_GEOMETRY,
-          TRACKED_ENTITY_GEOMETRY,
           LONGITUDE,
           LATITUDE);
 
   // JSON-specific columns (might vary by database)
   private static List<AnalyticsTableColumn> createJsonColumns(SqlBuilder sqlBuilder) {
     return List.of(
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.CREATED_BY_USERNAME_COLUMN_NAME)
+            .dataType(VARCHAR_255)
+            .selectExpression(
+                sqlBuilder.jsonExtract("ev.createdbyuserinfo", "username")
+                    + " as createdbyusername")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.CREATED_BY_NAME_COLUMN_NAME)
+            .dataType(VARCHAR_255)
+            .selectExpression(
+                sqlBuilder.jsonExtract("ev.createdbyuserinfo", "firstName") + " as createdbyname")
+            .skipIndex(Skip.SKIP)
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.CREATED_BY_LASTNAME_COLUMN_NAME)
+            .dataType(VARCHAR_255)
+            .selectExpression(
+                sqlBuilder.jsonExtract("ev.createdbyuserinfo", "surname") + " as createdbylastname")
+            .skipIndex(Skip.SKIP)
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.CREATED_BY_DISPLAYNAME_COLUMN_NAME)
+            .dataType(VARCHAR_255)
+            .selectExpression(
+                getDisplayName("createdbyuserinfo", "ev", "createdbydisplayname", sqlBuilder))
+            .skipIndex(Skip.SKIP)
+            .build(),
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.LAST_UPDATED_BY_USERNAME_COLUMN_NAME)
             .dataType(VARCHAR_255)
