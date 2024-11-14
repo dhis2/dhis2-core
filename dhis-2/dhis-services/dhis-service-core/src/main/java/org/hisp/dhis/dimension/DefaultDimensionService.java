@@ -41,6 +41,7 @@ import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_ESCAPED_SEP;
+import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.splitSafe;
 import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
@@ -102,6 +103,7 @@ import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -338,7 +340,7 @@ public class DefaultDimensionService implements DimensionService {
   @Override
   @Transactional(readOnly = true)
   public DimensionalItemObject getDataDimensionalItemObject(String dimensionItem) {
-    return getDataDimensionalItemObject(IdScheme.UID, dimensionItem);
+    return getDataDimensionalItemObject(UID, dimensionItem);
   }
 
   @Override
@@ -532,13 +534,14 @@ public class DefaultDimensionService implements DimensionService {
         List<String> uids = getUids(items);
 
         if (DATA_X.equals(type)) {
-          for (String uid : uids) {
-            DimensionalItemObject dimItemObject = getDataDimensionalItemObject(IdScheme.UID, uid);
+          for (DimensionalItemObject item : items) {
+            DimensionalItemObject dimItemObject = getDataDimensionalItemObject(UID, item.getUid());
 
             if (dimItemObject != null) {
-              DataDimensionItem item = DataDimensionItem.create(dimItemObject);
+              DataDimensionItem dataItem = DataDimensionItem.create(dimItemObject);
+              addOptionSetToDataItem(dataItem, item.getOptionSet());
 
-              object.getDataDimensionItems().add(item);
+              object.getDataDimensionItems().add(dataItem);
             }
           }
         } else if (PERIOD.equals(type)) {
@@ -560,7 +563,6 @@ public class DefaultDimensionService implements DimensionService {
           }
 
           object.setRawRelativePeriods(new ArrayList<>(relativePeriods));
-          // object.setRelatives(new RelativePeriods().setRelativePeriodsFromEnums(enums));
           object.setPeriods(periodService.reloadPeriods(new ArrayList<>(periods)));
         } else if (ORGANISATION_UNIT.equals(type)) {
           for (String ou : uids) {
@@ -675,6 +677,12 @@ public class DefaultDimensionService implements DimensionService {
           object.getProgramIndicatorDimensions().add(programIndicatorDimension);
         }
       }
+    }
+  }
+
+  private void addOptionSetToDataItem(DataDimensionItem dataItem, OptionSet optionSet) {
+    if (dataItem.getProgramAttribute() != null) {
+      dataItem.getProgramAttribute().setOptionSet(optionSet);
     }
   }
 }

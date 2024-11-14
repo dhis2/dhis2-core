@@ -33,6 +33,10 @@
     <param name="clazz">org.hisp.dhis.visualization.VisualizationFontStyle</param>
   </typedef>
 
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbOptionSet">
+    <param name="clazz">org.hisp.dhis.option.OptionSet</param>
+  </typedef>
+
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jbAxes">
     <param name="clazz">org.hisp.dhis.visualization.AxisV2</param>
   </typedef>

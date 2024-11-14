@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Objects;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.OptionSet;
 
 /**
  * @author Lars Helge Overland
@@ -50,6 +51,9 @@ public class BaseDimensionalItemObject extends BaseNameableObject implements Dim
 
   /** The aggregation type for this dimension. */
   protected AggregationType aggregationType;
+
+  /** The option set for this dimension. */
+  protected OptionSet optionSet;
 
   /** Query modifiers for this object. */
   protected transient QueryModifiers queryMods;
@@ -90,6 +94,17 @@ public class BaseDimensionalItemObject extends BaseNameableObject implements Dim
     return (queryMods != null && queryMods.getAggregationType() != null)
         ? queryMods.getAggregationType()
         : aggregationType;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public OptionSet getOptionSet() {
+    return optionSet;
+  }
+
+  public void setOptionSet(OptionSet optionSet) {
+    this.optionSet = optionSet;
   }
 
   // -------------------------------------------------------------------------

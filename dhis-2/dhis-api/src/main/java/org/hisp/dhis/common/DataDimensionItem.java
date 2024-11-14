@@ -201,7 +201,7 @@ public class DataDimensionItem {
     } else if (expressionDimensionItem != null) {
       return expressionDimensionItem;
     } else if (subexpressionDimensionItem != null) {
-      return expressionDimensionItem;
+      return subexpressionDimensionItem;
     }
 
     return null;
