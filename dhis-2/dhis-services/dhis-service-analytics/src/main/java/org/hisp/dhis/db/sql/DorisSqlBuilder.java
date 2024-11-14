@@ -34,6 +34,13 @@ import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.db.model.Column;
@@ -44,6 +51,10 @@ import org.hisp.dhis.db.model.TablePartition;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.sql.functions.DorisDateDiff;
 import org.hisp.dhis.db.sql.functions.Functions;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 public class DorisSqlBuilder extends AbstractSqlBuilder {
@@ -214,7 +225,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     Validate.isTrue(table.hasPrimaryKey() || table.hasColumns());
 
     StringBuilder sql =
-        new StringBuilder("create table ").append(quote(table.getName())).append(" ");
+            new StringBuilder("create table ").append(quote(table.getName())).append(" ");
 
     // Columns
 
@@ -239,42 +250,8 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     }
 
     // Partitions
-
     if (table.hasPartitions()) {
-      String partitions = toCommaSeparated(table.getPartitions(), this::toPartitionString);
-      sql.append("partition by range(year) ("); // Make configurable
-
-
-      removeLastComma(sql).append(") ");
-      // TODO this can fail if the partition values are not integers!!!
-      List<TablePartition> partitions =
-          table.getPartitions().stream()
-              .sorted(Comparator.comparingInt(p -> Integer.parseInt(p.getValue().toString())))
-              .toList();
-
-      try {
-        partitions =
-            table.getPartitions().stream()
-                .sorted(Comparator.comparingInt(p -> Integer.parseInt(p.getValue().toString())))
-                .toList();
-      } catch (NumberFormatException e) {
-        partitions = table.getPartitions();
-      }
-      for (int i = 0; i < partitions.size(); i++) {
-        TablePartition partition = partitions.get(i);
-        sql.append("partition ").append(quote(partition.getName())).append(" values less than(");
-
-        // If it's the last partition, use MAXVALUE
-        if (i == partitions.size() - 1) {
-          sql.append("MAXVALUE");
-        } else {
-          sql.append("\"").append(partition.getValue()).append("\"");
-        }
-
-        sql.append("),");
-      }
-
-      removeLastComma(sql).append(") ");
+      sql.append(generatePartitionClause(table.getPartitions()));
     }
 
     // Distribution
@@ -283,15 +260,47 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
       String distKey = getDistKey(table);
 
       sql.append("distributed by hash(")
-          .append(quote(distKey))
-          .append(") ")
-          .append("buckets 10 "); // Verify this
+              .append(quote(distKey))
+              .append(") ")
+              .append("buckets 10 "); // Verify this
     }
 
     // Properties
 
     sql.append("properties (\"replication_num\" = \"1\")");
+
     return sql.append(";").toString();
+  }
+
+  /**
+   * Generates the partition clause for the table creation SQL.
+   *
+   * @param partitions the list of table partitions
+   * @return the partition clause string
+   */
+  private String generatePartitionClause(List<TablePartition> partitions) {
+    StringBuilder partitionClause = new StringBuilder("partition by range(year) ("); // Make configurable
+
+    List<TablePartition> sortedPartitions;
+    try {
+      sortedPartitions = partitions.stream()
+              .sorted(Comparator.comparingInt(p -> Integer.parseInt(p.getValue().toString())))
+              .toList();
+    } catch (NumberFormatException e) {
+      sortedPartitions = partitions;
+    }
+
+    for (int i = 0; i < sortedPartitions.size(); i++) {
+      if (i == sortedPartitions.size() - 1) {
+        // Handle last partition with MAXVALUE
+        partitionClause.append("partition ")
+                .append(quote(sortedPartitions.get(i).getName()))
+                .append(" values less than(MAXVALUE),");
+      } else {
+        partitionClause.append(toPartitionString(sortedPartitions.get(i))).append(",");
+      }
+    }
+    return partitionClause.substring(0, partitionClause.length() - 1) + ") ";
   }
 
   /**
