@@ -34,6 +34,7 @@ import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_CATALOG;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_DRIVER_FILENAME;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_NAMED_COLLECTION;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_COLUMN;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
@@ -128,6 +129,15 @@ public class AnalyticsTableSettings {
    */
   public String getAnalyticsDatabaseDriverFilename() {
     return config.getProperty(ANALYTICS_DATABASE_DRIVER_FILENAME);
+  }
+
+  /**
+   * Returns the analytics database JDBC catalog name.
+   *
+   * @return the analytics database JDBC catalog name.
+   */
+  public String getAnalyticsDatabaseNamedCollection() {
+    return config.getProperty(ANALYTICS_DATABASE_NAMED_COLLECTION);
   }
 
   /**

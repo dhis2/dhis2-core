@@ -62,6 +62,7 @@ public class SqlBuilderProvider {
     Database database = config.getAnalyticsDatabase();
     String catalog = config.getAnalyticsDatabaseCatalog();
     String driverFilename = config.getAnalyticsDatabaseDriverFilename();
+    String namedCollection = config.getAnalyticsDatabaseNamedCollection();
 
     Objects.requireNonNull(database);
 
