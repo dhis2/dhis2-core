@@ -205,10 +205,6 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
 
     criteriaQuery.where(predicate);
 
-    if (!query.getOrders().isEmpty()) {
-      criteriaQuery.orderBy(getOrders(query, builder, root));
-    }
-
     TypedQuery<Long> typedQuery = entityManager.createQuery(criteriaQuery);
 
     return typedQuery.getSingleResult();
@@ -221,8 +217,8 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
         .map(
             o ->
                 o.isAscending()
-                    ? builder.asc(root.get(o.getProperty().getName()))
-                    : builder.desc(root.get(o.getProperty().getName())))
+                    ? builder.asc(root.get(o.getProperty().getFieldName()))
+                    : builder.desc(root.get(o.getProperty().getFieldName())))
         .toList();
   }
 
