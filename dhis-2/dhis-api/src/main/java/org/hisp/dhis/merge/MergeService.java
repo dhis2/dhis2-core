@@ -54,11 +54,11 @@ public interface MergeService {
     if (mergeReport.hasErrorMessages())
       throw new ConflictException("Merge validation error").setMergeReport(mergeReport);
 
-    MergeReport report = merge(mergeRequest, mergeReport);
-    if (report.hasErrorMessages())
+    merge(mergeRequest, mergeReport);
+    if (mergeReport.hasErrorMessages())
       throw new ConflictException("Merge error").setMergeReport(mergeReport);
 
-    return report;
+    return mergeReport;
   }
 
   /**
