@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.db.sql;
 
-import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
@@ -123,23 +121,6 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     return "JSON";
   }
 
-  // Index types
-
-  @Override
-  public String indexTypeBtree() {
-    return notSupported();
-  }
-
-  @Override
-  public String indexTypeGist() {
-    return notSupported();
-  }
-
-  @Override
-  public String indexTypeGin() {
-    return notSupported();
-  }
-
   // Index functions
 
   @Override
@@ -214,15 +195,9 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     // Columns
 
     if (table.hasColumns()) {
-      sql.append("(");
-      for (Column column : table.getColumns()) {
-        String dataType = getDataTypeName(column.getDataType());
-        String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
+      String columns = toCommaSeparated(table.getColumns(), this::toColumnString);
 
-        sql.append(quote(column.getName()) + " ").append(dataType).append(nullable).append(", ");
-      }
-
-      removeLastComma(sql).append(") engine = MergeTree() ");
+      sql.append("(").append(columns).append(") engine = MergeTree() ");
     }
 
     // Order by
@@ -230,6 +205,18 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     sql.append(getOrderByClause(table));
 
     return sql.append(";").toString();
+  }
+
+  /**
+   * Returns a column definition string.
+   *
+   * @param column the {@link Column}.
+   * @return a column clause.
+   */
+  private String toColumnString(Column column) {
+    String dataType = getDataTypeName(column.getDataType());
+    String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
+    return quote(column.getName()) + " " + dataType + nullable;
   }
 
   /**
@@ -246,16 +233,10 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     // TODO sort key
 
     if (table.hasPrimaryKey()) {
-      sql.append("order by (");
-
-      for (String columnName : table.getPrimaryKey()) {
-        sql.append(quote(columnName) + ", ");
-      }
-
-      removeLastComma(sql).append(") ");
+      String keys = toCommaSeparated(table.getPrimaryKey(), this::quote);
+      sql.append("order by (").append(keys).append(") ");
     } else {
       String firstColumn = quote(table.getColumns().get(0).getName());
-
       sql.append("order by (").append(firstColumn).append(")");
     }
 
