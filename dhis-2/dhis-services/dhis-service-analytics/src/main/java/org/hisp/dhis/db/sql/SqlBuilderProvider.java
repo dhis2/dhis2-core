@@ -68,6 +68,7 @@ public class SqlBuilderProvider {
 
     return switch (database) {
       case DORIS -> new DorisSqlBuilder(catalog, driverFilename);
+      case CLICKHOUSE -> new ClickHouseSqlBuilder(namedCollection);
       default -> new PostgreSqlBuilder();
     };
   }

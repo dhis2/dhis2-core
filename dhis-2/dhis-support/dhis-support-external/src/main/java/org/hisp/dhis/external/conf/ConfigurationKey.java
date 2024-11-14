@@ -32,6 +32,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import java.util.Arrays;
 import java.util.Optional;
 import lombok.Getter;
+import org.hibernate.boot.model.relational.Database;
 import org.hisp.dhis.security.utils.CspConstants;
 
 /**
@@ -90,13 +91,13 @@ public enum ConfigurationKey {
   /** Analytics database platform. */
   ANALYTICS_DATABASE("analytics.database", "POSTGRESQL", false),
 
-  /** Analytics database JDBC catalog name. */
+  /** Analytics database JDBC catalog name. Applies to {@link Database#DORIS}. */
   ANALYTICS_DATABASE_CATALOG("analytics.database.catalog", "pg_dhis", false),
 
-  /** Analytics database JDBC driver filename. */
+  /** Analytics database JDBC driver filename. Applies to {@link Database#DORIS}. */
   ANALYTICS_DATABASE_DRIVER_FILENAME("analytics.database.driver_filename", "postgresql.jar", false),
 
-  /** Analytics database JDBC catalog name. */
+  /** Analytics database JDBC catalog name. Applies to {@link Database#CLICKHOUSE}. */
   ANALYTICS_DATABASE_NAMED_COLLECTION("analytics.database.named_collection", "pg_dhis", false),
 
   /** JDBC driver class. */
