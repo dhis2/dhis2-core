@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import java.util.Map;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog;
+import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog.DataValueChange;
+import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.User;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-/**
- * @author Zubair Asghar
- */
-@Component
-@RequiredArgsConstructor
-public class TrackedEntityDataValueChangeLogDeletionHandler extends JdbcDeletionHandler {
+@Mapper(uses = {UIDMapper.class})
+public interface EventChangeLogMapper {
 
-  @Override
-  protected void register() {
-    whenDeleting(DataElement.class, this::deleteDataElement);
-  }
+  @Mapping(target = "createdBy", source = "eventChangeLog")
+  @Mapping(target = "createdAt", source = "created")
+  @Mapping(target = "type", source = "changeLogType")
+  @Mapping(target = "change.dataValue", source = "eventChangeLog")
+  EventChangeLog map(org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
 
-  private void deleteDataElement(DataElement dataElement) {
-    delete(
-        "delete from trackedentitydatavalueaudit where dataelementid = :id",
-        Map.of("id", dataElement.getId()));
-    delete(
-        "delete from eventchangelog where dataelementid = :id", Map.of("id", dataElement.getId()));
-  }
+  @Mapping(target = "uid", source = "createdBy.uid")
+  @Mapping(target = "username", source = "createdBy.username")
+  @Mapping(target = "firstName", source = "createdBy.firstName")
+  @Mapping(target = "surname", source = "createdBy.surname")
+  User mapUser(org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
+
+  @Mapping(target = "dataElement", source = "dataElement.uid")
+  @Mapping(target = "previousValue", source = "previousValue")
+  @Mapping(target = "currentValue", source = "currentValue")
+  DataValueChange mapDataValueChange(
+      org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
 }

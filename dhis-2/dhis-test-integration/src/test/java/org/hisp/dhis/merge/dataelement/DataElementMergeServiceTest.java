@@ -166,7 +166,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataDimensionItemStore dataDimensionItemStore;
   @Autowired private DataValueStore dataValueStore;
   @Autowired private DataValueAuditStore dataValueAuditStore;
-  @Autowired private EventChangeLogService teDataValueChangeLogService;
+  @Autowired private EventChangeLogService eventChangeLogService;
 
   private DataElement deSource1;
   private DataElement deSource2;
@@ -2565,11 +2565,11 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     TrackedEntityDataValueChangeLog tedvcl4 = createTrackedEntityDataValueAudit(e, deSource2, "2");
     TrackedEntityDataValueChangeLog tedvcl5 = createTrackedEntityDataValueAudit(e, deTarget, "1");
 
-    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl1);
-    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl2);
-    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl3);
-    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl4);
-    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl5);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl1);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl2);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl3);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl4);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl5);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -2584,9 +2584,9 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
         getTeQueryParams(e, List.of(deTarget));
 
     List<TrackedEntityDataValueChangeLog> sourceAudits =
-        teDataValueChangeLogService.getTrackedEntityDataValueChangeLogs(sourceTeDvChangeLogQuery);
+        eventChangeLogService.getTrackedEntityDataValueChangeLogs(sourceTeDvChangeLogQuery);
     List<TrackedEntityDataValueChangeLog> targetAudits =
-        teDataValueChangeLogService.getTrackedEntityDataValueChangeLogs(targeteDvChangeLogQuery);
+        eventChangeLogService.getTrackedEntityDataValueChangeLogs(targeteDvChangeLogQuery);
 
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
@@ -2618,11 +2618,11 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     TrackedEntityDataValueChangeLog tedvcl4 = createTrackedEntityDataValueAudit(e, deSource2, "2");
     TrackedEntityDataValueChangeLog tedvcl5 = createTrackedEntityDataValueAudit(e, deTarget, "1");
 
-    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl1);
-    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl2);
-    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl3);
-    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl4);
-    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl5);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl1);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl2);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl3);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl4);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl5);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -2638,9 +2638,9 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
         getTeQueryParams(e, List.of(deTarget));
 
     List<TrackedEntityDataValueChangeLog> sourceAudits =
-        teDataValueChangeLogService.getTrackedEntityDataValueChangeLogs(sourceTeDvChangeLogQuery);
+        eventChangeLogService.getTrackedEntityDataValueChangeLogs(sourceTeDvChangeLogQuery);
     List<TrackedEntityDataValueChangeLog> targetAudits =
-        teDataValueChangeLogService.getTrackedEntityDataValueChangeLogs(targeteDvChangeLogQuery);
+        eventChangeLogService.getTrackedEntityDataValueChangeLogs(targeteDvChangeLogQuery);
 
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
