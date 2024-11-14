@@ -286,11 +286,8 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
    * @return a partition definition string.
    */
   private String toPartitionString(TablePartition partition) {
-    return "partition "
-        + quote(partition.getName())
-        + " values less than(\""
-        + partition.getValue()
-        + "\")";
+    String condition = "values less than(\"" + partition.getValue() + "\")";
+    return "partition " + quote(partition.getName()) + " " + condition;
   }
 
   /**
