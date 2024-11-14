@@ -43,6 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -60,7 +61,6 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
-import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.message.Message;
 import org.hisp.dhis.message.MessageConversationPriority;
 import org.hisp.dhis.message.MessageConversationStatus;
@@ -151,6 +151,7 @@ public class MessageConversationController
       HttpServletRequest request,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
+
     org.hisp.dhis.message.MessageConversation messageConversation =
         messageService.getMessageConversation(uid);
 
@@ -365,7 +366,8 @@ public class MessageConversationController
       @RequestParam(value = "internal", defaultValue = "false") boolean internal,
       @RequestParam(value = "attachments", required = false) Set<String> attachments,
       @CurrentUser UserDetails currentUser,
-      HttpServletRequest request) {
+      HttpServletRequest request)
+      throws ForbiddenException {
     String metaData =
         MessageService.META_USER_AGENT + request.getHeader(ContextUtils.HEADER_USER_AGENT);
 
@@ -378,6 +380,10 @@ public class MessageConversationController
 
     if (internal && !messageService.hasAccessToManageFeedbackMessages(currentUser)) {
       throw new AccessDeniedException("Not authorized to send internal messages");
+    }
+
+    if (!hasAccessToMessageConversation(currentUser, conversation)) {
+      throw new ForbiddenException("Not authorized to send messages to this conversation.");
     }
 
     Set<FileResource> fileResources = new HashSet<>();
@@ -415,13 +421,20 @@ public class MessageConversationController
   @PostMapping("/{uid}/recipients")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void addRecipientsToMessageConversation(
-      @PathVariable("uid") String uid, @RequestBody MessageConversation messageConversation)
-      throws WebMessageException, ConflictException, NotFoundException {
+      @PathVariable("uid") String uid,
+      @RequestBody MessageConversation messageConversation,
+      @CurrentUser UserDetails currentUser)
+      throws WebMessageException, ConflictException, NotFoundException, ForbiddenException {
+
     org.hisp.dhis.message.MessageConversation conversation =
         messageService.getMessageConversation(uid);
 
     if (conversation == null) {
       throw new WebMessageException(notFound("Message conversation does not exist: " + uid));
+    }
+
+    if (!hasAccessToMessageConversation(currentUser, conversation)) {
+      throw new ForbiddenException("Not authorized to change recipients in this conversation.");
     }
 
     Set<User> additionalUsers =
@@ -450,9 +463,13 @@ public class MessageConversationController
     String metaData =
         MessageService.META_USER_AGENT + request.getHeader(ContextUtils.HEADER_USER_AGENT);
 
-    messageService.sendTicketMessage(subject, body, metaData);
+    long id = messageService.sendTicketMessage(subject, body, metaData);
+    org.hisp.dhis.message.MessageConversation conversation =
+        messageService.getMessageConversation(id);
 
-    return created("Feedback created");
+    return created("Feedback created")
+        .setLocation(
+            MessageConversationSchemaDescriptor.API_ENDPOINT + "/" + conversation.getUid());
   }
 
   // --------------------------------------------------------------------------
@@ -466,13 +483,9 @@ public class MessageConversationController
       @PathVariable String uid,
       @RequestParam MessageConversationPriority messageConversationPriority,
       @CurrentUser UserDetails currentUser,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("response");
-
-    if (!canModifyUserConversation(currentUser, currentUser)
-        && (messageService.hasAccessToManageFeedbackMessages(currentUser))) {
-      throw new UpdateAccessDeniedException("Not authorized to modify this object.");
-    }
 
     org.hisp.dhis.message.MessageConversation messageConversation =
         messageService.getMessageConversation(uid);
@@ -482,6 +495,10 @@ public class MessageConversationController
       responseNode.addChild(
           new SimpleNode("message", "No MessageConversation found for the given ID."));
       return responseNode;
+    }
+
+    if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
+      throw new ForbiddenException("Not authorized to change priority in this conversation.");
     }
 
     CollectionNode marked =
@@ -507,13 +524,9 @@ public class MessageConversationController
       @PathVariable String uid,
       @RequestParam MessageConversationStatus messageConversationStatus,
       @CurrentUser UserDetails currentUser,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("response");
-
-    if (!canModifyUserConversation(currentUser, currentUser)
-        && (messageService.hasAccessToManageFeedbackMessages(currentUser))) {
-      throw new UpdateAccessDeniedException("Not authorized to modify this object.");
-    }
 
     org.hisp.dhis.message.MessageConversation messageConversation =
         messageService.getMessageConversation(uid);
@@ -523,6 +536,10 @@ public class MessageConversationController
       responseNode.addChild(
           new SimpleNode("message", "No MessageConversation found for the given ID."));
       return responseNode;
+    }
+
+    if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
+      throw new ForbiddenException("Not authorized to change status in this conversation.");
     }
 
     CollectionNode marked =
@@ -548,13 +565,9 @@ public class MessageConversationController
       @PathVariable String uid,
       @RequestParam(required = false) String userId,
       @CurrentUser UserDetails currentUser,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("response");
-
-    if (!canModifyUserConversation(currentUser, currentUser)
-        && (messageService.hasAccessToManageFeedbackMessages(currentUser))) {
-      throw new UpdateAccessDeniedException("Not authorized to modify this object.");
-    }
 
     org.hisp.dhis.message.MessageConversation messageConversation =
         messageService.getMessageConversation(uid);
@@ -564,6 +577,10 @@ public class MessageConversationController
       responseNode.addChild(
           new SimpleNode("message", "No MessageConversation found for the given ID."));
       return responseNode;
+    }
+
+    if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
+      throw new ForbiddenException("Not authorized to assign a user to this conversation.");
     }
 
     User userToAssign;
@@ -601,15 +618,9 @@ public class MessageConversationController
       value = "/{uid}/assign",
       produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public @ResponseBody RootNode removeUserAssigned(
-      @PathVariable String uid,
-      @CurrentUser UserDetails currentUser,
-      HttpServletResponse response) {
+      @PathVariable String uid, @CurrentUser UserDetails currentUser, HttpServletResponse response)
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("response");
-
-    if (!canModifyUserConversation(currentUser, currentUser)
-        && (messageService.hasAccessToManageFeedbackMessages(currentUser))) {
-      throw new UpdateAccessDeniedException("Not authorized to modify this object.");
-    }
 
     org.hisp.dhis.message.MessageConversation messageConversation =
         messageService.getMessageConversation(uid);
@@ -619,6 +630,11 @@ public class MessageConversationController
       responseNode.addChild(
           new SimpleNode("message", "No MessageConversation found for the given ID."));
       return responseNode;
+    }
+
+    if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
+      throw new ForbiddenException(
+          "Not authorized to remove the assigned user to this conversation.");
     }
 
     messageConversation.setAssignee(null);
@@ -640,7 +656,8 @@ public class MessageConversationController
       @PathVariable String uid,
       @RequestParam(required = false) String userUid,
       HttpServletResponse response,
-      @CurrentUser UserDetails currentUser) {
+      @CurrentUser UserDetails currentUser)
+      throws ForbiddenException {
     return modifyMessageConversationRead(
         userUid, Lists.newArrayList(uid), response, true, currentUser);
   }
@@ -652,7 +669,8 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       @RequestBody List<String> uids,
       HttpServletResponse response,
-      @CurrentUser UserDetails currentUser) {
+      @CurrentUser UserDetails currentUser)
+      throws ForbiddenException {
     return modifyMessageConversationRead(userUid, uids, response, true, currentUser);
   }
 
@@ -667,7 +685,8 @@ public class MessageConversationController
       @PathVariable String uid,
       @RequestParam(required = false) String userUid,
       HttpServletResponse response,
-      @CurrentUser UserDetails currentUser) {
+      @CurrentUser UserDetails currentUser)
+      throws ForbiddenException {
     return modifyMessageConversationRead(
         userUid, Lists.newArrayList(uid), response, false, currentUser);
   }
@@ -679,7 +698,8 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       @RequestBody List<String> uids,
       HttpServletResponse response,
-      @CurrentUser UserDetails currentUser) {
+      @CurrentUser UserDetails currentUser)
+      throws ForbiddenException {
     return modifyMessageConversationRead(userUid, uids, response, false, currentUser);
   }
 
@@ -708,10 +728,6 @@ public class MessageConversationController
       return responseNode;
     }
 
-    if (!canModifyUserConversation(currentUser, UserDetails.fromUser(user))) {
-      throw new UpdateAccessDeniedException("Not authorized to modify this object.");
-    }
-
     Collection<org.hisp.dhis.message.MessageConversation> messageConversations =
         messageService.getMessageConversations(user, uids);
 
@@ -720,6 +736,12 @@ public class MessageConversationController
       responseNode.addChild(
           new SimpleNode("message", "No MessageConversations found for the given UIDs"));
       return responseNode;
+    }
+
+    for (org.hisp.dhis.message.MessageConversation messageConversation : messageConversations) {
+      if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
+        throw new AccessDeniedException("Not authorized to change followups in this conversation.");
+      }
     }
 
     CollectionNode marked = responseNode.addChild(new CollectionNode("markedFollowup"));
@@ -749,7 +771,8 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       @RequestBody List<String> uids,
       HttpServletResponse response,
-      @CurrentUser UserDetails currentUser) {
+      @CurrentUser UserDetails currentUser)
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("response");
 
     User user =
@@ -763,10 +786,6 @@ public class MessageConversationController
       return responseNode;
     }
 
-    if (!canModifyUserConversation(currentUser, UserDetails.fromUser(user))) {
-      throw new UpdateAccessDeniedException("Not authorized to modify this object.");
-    }
-
     Collection<org.hisp.dhis.message.MessageConversation> messageConversations =
         messageService.getMessageConversations(user, uids);
 
@@ -775,6 +794,12 @@ public class MessageConversationController
       responseNode.addChild(
           new SimpleNode("message", "No MessageConversations found for the given UIDs"));
       return responseNode;
+    }
+
+    for (org.hisp.dhis.message.MessageConversation messageConversation : messageConversations) {
+      if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
+        throw new ForbiddenException("Not authorized to change unfollowups in this conversation.");
+      }
     }
 
     CollectionNode marked = responseNode.addChild(new CollectionNode("unmarkedFollowup"));
@@ -814,6 +839,18 @@ public class MessageConversationController
           ConflictException,
           NotFoundException,
           HttpRequestMethodNotSupportedException {
+
+    org.hisp.dhis.message.MessageConversation messageConversation =
+        messageService.getMessageConversation(uid);
+
+    if (messageConversation == null) {
+      return notFound("Message conversation does not exist: " + uid);
+    }
+
+    if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
+      throw new ForbiddenException("Not authorized to delete this conversation.");
+    }
+
     return super.deleteObject(uid, currentUser, request, response);
   }
 
@@ -830,7 +867,7 @@ public class MessageConversationController
       @PathVariable(value = "user-uid") String userUid,
       @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
-      throws DeleteAccessDeniedException {
+      throws DeleteAccessDeniedException, ForbiddenException {
     RootNode responseNode = new RootNode("reply");
 
     User user = userService.getUser(userUid);
@@ -841,11 +878,6 @@ public class MessageConversationController
       return responseNode;
     }
 
-    if (!canModifyUserConversation(currentUser, UserDetails.fromUser(user))) {
-
-      throw new DeleteAccessDeniedException("Not authorized to modify user: " + user.getUid());
-    }
-
     org.hisp.dhis.message.MessageConversation messageConversation =
         messageService.getMessageConversation(mcUid);
 
@@ -853,6 +885,10 @@ public class MessageConversationController
       responseNode.addChild(new SimpleNode("message", "No messageConversation with uid: " + mcUid));
       response.setStatus(HttpServletResponse.SC_NOT_FOUND);
       return responseNode;
+    }
+
+    if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
+      throw new ForbiddenException("Not authorized to remove assigned users to this conversation.");
     }
 
     CollectionNode removed = responseNode.addChild(new CollectionNode("removed"));
@@ -877,7 +913,7 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
-      throws DeleteAccessDeniedException {
+      throws DeleteAccessDeniedException, ForbiddenException {
     RootNode responseNode = new RootNode("response");
 
     User user =
@@ -891,10 +927,6 @@ public class MessageConversationController
       return responseNode;
     }
 
-    if (!canModifyUserConversation(currentUser, UserDetails.fromUser(user))) {
-      throw new DeleteAccessDeniedException("Not authorized to modify user: " + user.getUid());
-    }
-
     Collection<org.hisp.dhis.message.MessageConversation> messageConversations =
         messageService.getMessageConversations(user, mcUids);
 
@@ -903,6 +935,13 @@ public class MessageConversationController
       responseNode.addChild(
           new SimpleNode("message", "No MessageConversations found for the given UIDs."));
       return responseNode;
+    }
+
+    for (org.hisp.dhis.message.MessageConversation messageConversation : messageConversations) {
+      if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
+        throw new ForbiddenException(
+            "Not authorized to remove assigned users to this conversation.");
+      }
     }
 
     CollectionNode removed = responseNode.addChild(new CollectionNode("removed"));
@@ -926,21 +965,11 @@ public class MessageConversationController
       @PathVariable(value = "fileUid") String fileUid,
       @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
-      throws WebMessageException {
+      throws WebMessageException, ForbiddenException {
 
     Message message = getMessage(mcUid, msgUid, currentUser);
 
     FileResource fr = fileResourceService.getFileResource(fileUid);
-
-    if (message == null) {
-      throw new WebMessageException(
-          notFound(
-              "No message found with id '"
-                  + msgUid
-                  + "' for message conversation with id '"
-                  + mcUid
-                  + "'"));
-    }
 
     boolean attachmentExists =
         message.getAttachments().stream().filter(att -> att.getUid().equals(fileUid)).count() == 1;
@@ -962,25 +991,6 @@ public class MessageConversationController
   // --------------------------------------------------------------------------
 
   /**
-   * Determines whether the current user has permission to modify the given user in a
-   * MessageConversation.
-   *
-   * <p>The modification is either marking a conversation read/unread for the user or removing the
-   * user from the MessageConversation.
-   *
-   * <p>Since there are no per-conversation authorities provided the permission is given if the
-   * current user equals the user or if the current user has update-permission to User objects.
-   *
-   * @param currentUser the current user to check authorization for.
-   * @param user the user to remove from a conversation.
-   * @return true if the current user is allowed to remove the user from a conversation, false
-   *     otherwise.
-   */
-  private boolean canModifyUserConversation(UserDetails currentUser, UserDetails user) {
-    return currentUser.equals(user) || currentUser.isSuper();
-  }
-
-  /**
    * Determines whether the given user has permission to read the MessageConversation.
    *
    * @param userDetails the user to check permission for.
@@ -994,6 +1004,24 @@ public class MessageConversationController
     return list.contains(userDetails.getUsername()) || userDetails.isSuper();
   }
 
+  private boolean hasAccessToMessageConversation(
+      UserDetails user, @Nonnull org.hisp.dhis.message.MessageConversation conversation) {
+
+    if (hasConversationAccess(user, conversation)) {
+      return true;
+    }
+
+    return conversation.getMessageType() == MessageType.TICKET
+        && messageService.hasAccessToManageFeedbackMessages(user);
+  }
+
+  private static boolean hasConversationAccess(
+      UserDetails user, org.hisp.dhis.message.MessageConversation conversation) {
+    return conversation.getUsers().stream()
+            .anyMatch(u -> u.getUsername().equals(user.getUsername()))
+        || user.isSuper();
+  }
+
   /**
    * Internal handler for setting the read property of MessageConversation.
    *
@@ -1004,7 +1032,8 @@ public class MessageConversationController
       List<String> uids,
       HttpServletResponse response,
       boolean readValue,
-      UserDetails currentUser) {
+      UserDetails currentUser)
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("response");
 
     User user =
@@ -1018,10 +1047,6 @@ public class MessageConversationController
       return responseNode;
     }
 
-    if (!canModifyUserConversation(currentUser, UserDetails.fromUser(user))) {
-      throw new UpdateAccessDeniedException("Not authorized to modify this object.");
-    }
-
     Collection<org.hisp.dhis.message.MessageConversation> messageConversations =
         messageService.getMessageConversations(user, uids);
 
@@ -1032,12 +1057,18 @@ public class MessageConversationController
       return responseNode;
     }
 
+    for (org.hisp.dhis.message.MessageConversation messageConversation : messageConversations) {
+      if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
+        throw new ForbiddenException(
+            "Not authorized to change read property of this conversation.");
+      }
+    }
+
     CollectionNode marked =
         responseNode.addChild(new CollectionNode(readValue ? "markedRead" : "markedUnread"));
     marked.setWrapping(false);
 
     for (org.hisp.dhis.message.MessageConversation conversation : messageConversations) {
-
       boolean success = (readValue ? conversation.markRead(user) : conversation.markUnread(user));
       if (success) {
         messageService.updateMessageConversation(conversation);
@@ -1060,7 +1091,7 @@ public class MessageConversationController
    * @throws WebMessageException exception
    */
   private Message getMessage(String mcUid, String msgUid, UserDetails userDetails)
-      throws WebMessageException {
+      throws WebMessageException, ForbiddenException {
     org.hisp.dhis.message.MessageConversation conversation =
         messageService.getMessageConversation(mcUid);
 
@@ -1070,7 +1101,7 @@ public class MessageConversationController
     }
 
     if (!canReadMessageConversation(userDetails, conversation)) {
-      throw new AccessDeniedException("Not authorized to access this conversation.");
+      throw new ForbiddenException("Not authorized to access this conversation.");
     }
 
     List<Message> messages =

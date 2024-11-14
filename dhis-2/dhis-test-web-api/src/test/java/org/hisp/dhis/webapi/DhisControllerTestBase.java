@@ -72,6 +72,10 @@ public class DhisControllerTestBase extends DhisMockMvcControllerTest {
     return superUser;
   }
 
+  protected final String getAdminUid() {
+    return superUser.getUid();
+  }
+
   protected final User switchToSuperuser() {
     switchContextToUser(userService.getUser(superUser.getUid()));
     return superUser;
