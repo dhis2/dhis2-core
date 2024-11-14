@@ -230,7 +230,7 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   private String getOrderByClause(Table table) {
     StringBuilder sql = new StringBuilder();
 
-    // TODO sort key
+    // TO DO sort key
 
     if (table.hasPrimaryKey()) {
       String keys = toCommaSeparated(table.getPrimaryKey(), this::quote);
