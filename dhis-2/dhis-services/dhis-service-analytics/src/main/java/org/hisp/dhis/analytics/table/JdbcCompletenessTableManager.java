@@ -298,17 +298,17 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     String sql =
         replaceQualify(
             """
-            select distinct(extract(year from pe.startdate)) \
+            select distinct(extract(year from ps.startdate)) \
             from ${completedatasetregistration} cdr \
-            inner join period pe on cdr.periodid=pe.periodid \
-            where pe.startdate is not null \
+            inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid \
+            where ps.startdate is not null \
             and cdr.date < '${startTime}'""",
             Map.of("startTime", toLongDate(params.getStartTime())));
 
     if (params.getFromDate() != null) {
       sql +=
           replace(
-              "and pe.startdate >= '${fromDate}'",
+              "and ps.startdate >= '${fromDate}'",
               Map.of("fromDate", DateUtils.toLongDate(params.getFromDate())));
     }
 

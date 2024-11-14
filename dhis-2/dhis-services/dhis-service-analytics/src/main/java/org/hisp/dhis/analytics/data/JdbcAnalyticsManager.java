@@ -59,6 +59,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -95,7 +96,6 @@ import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -191,7 +191,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       if (params.analyzeOnly()) {
         withExceptionHandling(
             () -> executionPlanStore.addExecutionPlan(immutableParams.getExplainOrderId(), sql));
-        return new AsyncResult<>(Maps.newHashMap());
+        return CompletableFuture.completedFuture(Maps.newHashMap());
       }
 
       Map<String, Object> map;
@@ -205,12 +205,12 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
           throw ex;
         }
         log.warn(ERR_MSG_SILENT_FALLBACK, ex);
-        return new AsyncResult<>(Maps.newHashMap());
+        return CompletableFuture.completedFuture(Maps.newHashMap());
       }
 
       replaceDataPeriodsWithAggregationPeriods(map, params, dataPeriodAggregationPeriodMap);
 
-      return new AsyncResult<>(map);
+      return CompletableFuture.completedFuture(map);
     } catch (DataAccessResourceFailureException ex) {
       throw new QueryRuntimeException(ErrorCode.E7131);
     } catch (RuntimeException ex) {
@@ -955,9 +955,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       for (DimensionalObject dim : params.getDimensions()) {
         String value =
             dim.isFixed() ? dim.getDimensionName() : rowSet.getString(dim.getDimensionName());
-
         String queryModsId = params.getQueryModsId(dim);
-
         key.append(value).append(queryModsId).append(DIMENSION_SEP);
       }
 
@@ -965,12 +963,10 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
       if (params.isDataType(TEXT)) {
         String value = rowSet.getString(VALUE_ID);
-
         map.put(key.toString(), value);
       } else // NUMERIC
       {
         Double value = rowSet.getDouble(VALUE_ID);
-
         map.put(key.toString(), value);
       }
     }

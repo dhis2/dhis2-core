@@ -29,7 +29,6 @@ package org.hisp.dhis.db.sql;
 
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
-import java.util.stream.Collectors;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
@@ -199,16 +198,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String quote(String alias, String relation) {
-    return alias + DOT + quote(relation);
-  }
-
-  @Override
-  public String singleQuote(String value) {
-    return SINGLE_QUOTE + escape(value) + SINGLE_QUOTE;
-  }
-
-  @Override
   public String escape(String value) {
     return value
         .replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE))
@@ -340,12 +329,7 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     String unique = index.getUnique() == Unique.UNIQUE ? "unique " : "";
     String tableName = index.getTableName();
     String typeName = getIndexTypeName(index.getIndexType());
-
-    String columns =
-        index.getColumns().stream()
-            .map(col -> toIndexColumn(index, col))
-            .collect(Collectors.joining(COMMA));
-
+    String columns = toCommaSeparated(index.getColumns(), col -> toIndexColumn(index, col));
     String sortOrder = index.getSortOrder();
 
     return sortOrder == null
