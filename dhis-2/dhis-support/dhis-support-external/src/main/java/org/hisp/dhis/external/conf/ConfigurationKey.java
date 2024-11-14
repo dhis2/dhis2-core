@@ -682,6 +682,11 @@ public enum ConfigurationKey {
 
   private final String defaultValue;
 
+  /**
+   * Confidential means that the system setting will be encrypted and not visible through the API.
+   * The system setting will be used internally in the backend, but cannot be used by web apps and
+   * clients.
+   */
   private final boolean confidential;
 
   private final String[] aliases;

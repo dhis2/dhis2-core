@@ -125,8 +125,8 @@
     <HikariCP.version>6.1.0</HikariCP.version>
     <postgresql-driver.version>42.7.4</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
-    <datasource-proxy.version>1.10</datasource-proxy.version>
-    <mysql-connector-j.version>8.3.0</mysql-connector-j.version>
+    <datasource-proxy.version>1.10.1</datasource-proxy.version>
+    <mysql-connector-j.version>9.1.0</mysql-connector-j.version>
 
     <!-- Servlet -->
     <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
@@ -168,7 +168,7 @@
 
     <!-- Apache Artemis -->
     <artemis-jakarta.version>2.38.0</artemis-jakarta.version>
-    <netty-all.version>4.1.114.Final</netty-all.version>
+    <netty-all.version>4.1.115.Final</netty-all.version>
     <classgraph.version>4.8.177</classgraph.version>
 
     <!-- SMS/SMPP -->

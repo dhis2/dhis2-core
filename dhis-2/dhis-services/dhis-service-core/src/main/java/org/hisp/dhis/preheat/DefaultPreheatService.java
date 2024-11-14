@@ -766,7 +766,13 @@ public class DefaultPreheatService implements PreheatService {
           }
 
           objects.forEach(
-              o -> list.addAll(ReflectionUtils.invokeMethod(o, property.getGetterMethod())));
+              o -> {
+                Collection<Object> propertyValue =
+                    ReflectionUtils.invokeMethod(o, property.getGetterMethod());
+                if (!org.apache.commons.collections4.CollectionUtils.isEmpty(propertyValue)) {
+                  list.addAll(propertyValue);
+                }
+              });
           targets.put(property.getItemKlass(), list);
         } else {
           List<Object> list = new ArrayList<>();
@@ -776,7 +782,12 @@ public class DefaultPreheatService implements PreheatService {
           }
 
           objects.forEach(
-              o -> list.add(ReflectionUtils.invokeMethod(o, property.getGetterMethod())));
+              o -> {
+                Object item = ReflectionUtils.invokeMethod(o, property.getGetterMethod());
+                if (item != null) {
+                  list.add(item);
+                }
+              });
           targets.put(property.getKlass(), list);
         }
       }

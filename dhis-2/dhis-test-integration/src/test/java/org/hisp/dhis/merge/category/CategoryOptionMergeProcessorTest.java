@@ -50,6 +50,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.MergeParams;
+import org.hisp.dhis.merge.category.option.CategoryOptionMergeProcessor;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.config.QueryCountDataSourceProxy;
