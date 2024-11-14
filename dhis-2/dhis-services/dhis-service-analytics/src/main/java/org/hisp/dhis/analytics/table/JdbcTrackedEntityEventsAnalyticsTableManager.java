@@ -370,6 +370,11 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(FIXED_COLS);
+
+    if (sqlBuilder.supportsDeclarativePartitioning()) {
+      columns.add(getPartitionColumn());
+    }
+
     columns.add(getOrganisationUnitNameHierarchyColumn());
 
     return columns;
