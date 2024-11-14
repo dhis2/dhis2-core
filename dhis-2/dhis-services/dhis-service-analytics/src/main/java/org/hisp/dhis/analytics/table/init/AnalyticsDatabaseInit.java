@@ -76,11 +76,17 @@ public class AnalyticsDatabaseInit {
     Database database = settings.getAnalyticsDatabase();
 
     switch (database) {
-      case DORIS -> initDoris();
       case POSTGRESQL -> initPostgreSql();
+      case DORIS -> initDoris();
+      case CLICKHOUSE -> initClickHouse();
     }
 
     log.info("Initialized analytics database: '{}'", database);
+  }
+
+  /** Work for initializing a PostgreSQL analytics database. */
+  private void initPostgreSql() {
+    // No work at this point
   }
 
   /**
@@ -97,8 +103,8 @@ public class AnalyticsDatabaseInit {
     jdbcTemplate.execute(sqlBuilder.createCatalog(connectionUrl, username, password));
   }
 
-  /** Work for initializing a PostgreSQL analytics database. */
-  private void initPostgreSql() {
+  /** Work for initializing a ClickHouse analytics database. */
+  private void initClickHouse() {
     // No work at this point
   }
 }

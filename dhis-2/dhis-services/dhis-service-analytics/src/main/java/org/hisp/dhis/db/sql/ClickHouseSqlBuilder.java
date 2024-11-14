@@ -29,106 +29,98 @@ package org.hisp.dhis.db.sql;
 
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
-import java.util.Map;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
-import org.hisp.dhis.db.model.TablePartition;
 import org.hisp.dhis.db.model.constraint.Nullable;
 
-@RequiredArgsConstructor
-public class DorisSqlBuilder extends AbstractSqlBuilder {
-
-  private final String catalog;
-
-  private final String driverFilename;
+public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   // Constants
 
-  private static final String QUOTE = "`";
+  private static final String QUOTE = "\"";
 
   // Data types
 
   @Override
   public String dataTypeSmallInt() {
-    return "smallint";
+    return "Int16";
   }
 
   @Override
   public String dataTypeInteger() {
-    return "int";
+    return "Int32";
   }
 
   @Override
   public String dataTypeBigInt() {
-    return "bigint";
+    return "Int64";
   }
 
   @Override
   public String dataTypeDecimal() {
-    return "decimal(18,6)";
+    return "Decimal(10,6)";
   }
 
   @Override
   public String dataTypeFloat() {
-    return "float";
+    return "Float32";
   }
 
   @Override
   public String dataTypeDouble() {
-    return "double";
+    return "Float64";
   }
 
   @Override
   public String dataTypeBoolean() {
-    return "boolean";
+    return "Bool";
   }
 
   @Override
   public String dataTypeCharacter(int length) {
-    return String.format("char(%d)", length);
+    return "String";
   }
 
   @Override
   public String dataTypeVarchar(int length) {
-    return String.format("varchar(%d)", length);
+    return "String";
   }
 
   @Override
   public String dataTypeText() {
-    return "string";
+    return "String";
   }
 
   @Override
   public String dataTypeDate() {
-    return "date";
+    return "Date";
   }
 
   @Override
   public String dataTypeTimestamp() {
-    return "datetime";
+    return "DateTime64(3)";
   }
 
   @Override
   public String dataTypeTimestampTz() {
-    return "datetime";
+    return "DateTime64(3)";
   }
 
   @Override
   public String dataTypeGeometry() {
-    return "string";
+    return "String";
   }
 
   @Override
   public String dataTypeGeometryPoint() {
-    return "string";
+    return "String";
   }
 
   @Override
   public String dataTypeJson() {
-    return "json";
+    return "JSON";
   }
 
   // Index types
@@ -197,14 +189,12 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String escape(String value) {
-    return value
-        .replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE))
-        .replace(BACKSLASH, (BACKSLASH + BACKSLASH));
+    return value.replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE));
   }
 
   @Override
   public String qualifyTable(String name) {
-    return String.format("%s.%s.%s", catalog, SCHEMA, quote(name));
+    return String.format("%s.%s", SCHEMA, quote(name));
   }
 
   @Override
@@ -216,7 +206,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String createTable(Table table) {
-    Validate.isTrue(table.hasPrimaryKey() || table.hasColumns());
+    Validate.notEmpty(table.getColumns());
 
     StringBuilder sql =
         new StringBuilder("create table ").append(quote(table.getName())).append(" ");
@@ -225,7 +215,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
     if (table.hasColumns()) {
       sql.append("(");
-
       for (Column column : table.getColumns()) {
         String dataType = getDataTypeName(column.getDataType());
         String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
@@ -233,80 +222,49 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
         sql.append(quote(column.getName()) + " ").append(dataType).append(nullable).append(", ");
       }
 
-      removeLastComma(sql).append(") engine = olap ");
+      removeLastComma(sql).append(") engine = MergeTree() ");
     }
 
-    // Primary key
+    // Order by
+
+    sql.append(getOrderByClause(table));
+
+    return sql.append(";").toString();
+  }
+
+  /**
+   * Returns an order by clause. The primary key columns will be used for ordering. ClickHouse will
+   * use order by columns as primary key when the primary key clause is omitted. The primary key
+   * does not have to uniquely identify each row.
+   *
+   * @param table the {@link Table}.
+   * @return the order by clause.
+   */
+  private String getOrderByClause(Table table) {
+    StringBuilder sql = new StringBuilder();
+
+    // TODO sort key
 
     if (table.hasPrimaryKey()) {
-      // If primary key exists, use it as keys with the unique model
-      sql.append("unique key (");
+      sql.append("order by (");
 
       for (String columnName : table.getPrimaryKey()) {
         sql.append(quote(columnName) + ", ");
       }
 
       removeLastComma(sql).append(") ");
-    } else if (table.hasColumns()) {
-      // If columns exist, use first as key with the duplicate model
-      String key = quote(table.getFirstColumn().getName());
+    } else {
+      String firstColumn = quote(table.getColumns().get(0).getName());
 
-      sql.append("duplicate key (").append(key).append(") ");
+      sql.append("order by (").append(firstColumn).append(")");
     }
 
-    // Partitions
-
-    if (table.hasPartitions()) {
-      sql.append("partition by range(year) ("); // Make configurable
-
-      for (TablePartition partition : table.getPartitions()) {
-        sql.append("partition ")
-            .append(quote(partition.getName()))
-            .append(" values less than(\"")
-            .append(partition.getValue()) // Set last partition to max value
-            .append("\"),");
-      }
-
-      removeLastComma(sql).append(") ");
-    }
-
-    // Distribution
-
-    if (table.hasPrimaryKey() || table.hasColumns()) {
-      String distKey = getDistKey(table);
-
-      sql.append("distributed by hash(")
-          .append(quote(distKey))
-          .append(") ")
-          .append("buckets 10 "); // Verify this
-    }
-
-    // Properties
-
-    sql.append("properties (\"replication_num\" = \"1\")");
-
-    return sql.append(";").toString();
-  }
-
-  /**
-   * Returns the distribution key. Uses the first primary key column name if any exists, or the
-   * first column name if any exists, otherwise null.
-   *
-   * @param table {@link Table}.
-   */
-  private String getDistKey(Table table) {
-    if (table.hasPrimaryKey()) {
-      return table.getFirstPrimaryKey();
-    } else if (table.hasColumns()) {
-      return table.getFirstColumn().getName();
-    }
-
-    return null;
+    return sql.toString();
   }
 
   @Override
   public String renameTable(Table table, String newName) {
-    return String.format("alter table %s rename %s;", quote(table.getName()), quote(newName));
+    return String.format("rename table %s to %s;", quote(table.getName()), quote(newName));
   }
 
   @Override
@@ -328,16 +286,14 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   public String tableExists(String name) {
     return String.format(
         """
-        select t.table_name from information_schema.tables t \
-        where t.table_schema = 'public' \
-        and t.table_name = %s;""",
+        select t.name as table_name \
+        from system.tables t \
+        where t.database = 'default' \
+        and t.name = %s \
+        and engine not in ('View', 'Materialized View')""",
         singleQuote(name));
   }
 
-  /**
-   * Doris supports indexes but relies on concurrency and compression for query performance instead
-   * of indexes on arbitrary columns. Read more at {@link https://t.ly/uNK5T}.
-   */
   @Override
   public String createIndex(Index index) {
     return notSupported();
@@ -345,27 +301,11 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String createCatalog(String connectionUrl, String username, String password) {
-    return replace(
-        """
-        create catalog ${catalog} \
-        properties (
-        "type" = "jdbc", \
-        "user" = "${username}", \
-        "password" = "${password}", \
-        "jdbc_url" = "${connection_url}", \
-        "driver_url" = "${driver_filename}", \
-        "driver_class" = "org.postgresql.Driver"
-        );""",
-        Map.of(
-            "catalog", quote(catalog),
-            "username", username,
-            "password", password,
-            "connection_url", connectionUrl,
-            "driver_filename", driverFilename));
+    return notSupported();
   }
 
   @Override
   public String dropCatalogIfExists() {
-    return String.format("drop catalog if exists %s;", quote(catalog));
+    return notSupported();
   }
 }
