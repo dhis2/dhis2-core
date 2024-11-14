@@ -432,7 +432,7 @@ public abstract class AbstractParameterizedFullReadOnlyController<
   public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
       @OpenApi.Param(PropertyNames.class) @PathVariable("property") String pvProperty,
-      @RequestParam List<String> fields,
+      @RequestParam(required = false) List<String> fields,
       @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
@@ -442,8 +442,8 @@ public abstract class AbstractParameterizedFullReadOnlyController<
           "You don't have the proper permissions to read objects of this type.");
     }
 
-    if (fields.isEmpty()) {
-      fields.add(":all");
+    if (fields == null || fields.isEmpty()) {
+      fields = List.of(":all");
     }
 
     String fieldFilter = "[" + Joiner.on(',').join(fields) + "]";
@@ -545,8 +545,6 @@ public abstract class AbstractParameterizedFullReadOnlyController<
   // --------------------------------------------------------------------------
   // Reflection helpers
   // --------------------------------------------------------------------------
-
-  private String entityName;
 
   private String entitySimpleName;
 

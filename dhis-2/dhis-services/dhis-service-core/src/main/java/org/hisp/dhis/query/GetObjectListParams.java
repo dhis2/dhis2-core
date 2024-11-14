@@ -88,4 +88,16 @@ public class GetObjectListParams extends GetObjectParams {
     orders.add(order);
     return this;
   }
+
+  /*
+   * spring currently does not consider @JsonProperty names and only goes by the field name
+   */
+
+  public void setFilter(List<String> filters) {
+    this.filters = filters;
+  }
+
+  public void setOrder(List<String> orders) {
+    this.orders = orders;
+  }
 }

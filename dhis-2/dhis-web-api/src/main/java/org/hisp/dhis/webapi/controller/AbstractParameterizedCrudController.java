@@ -456,12 +456,9 @@ public abstract class AbstractParameterizedCrudController<
   @ResponseBody
   public WebMessage replaceTranslations(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @RequestParam Map<String, String> rpParameters,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
       throws NotFoundException, ForbiddenException, IOException {
-    WebOptions options = new WebOptions(rpParameters);
-
     BaseIdentifiableObject persistedObject = (BaseIdentifiableObject) getEntity(pvUid);
 
     if (!aclService.canUpdate(currentUser, persistedObject)) {

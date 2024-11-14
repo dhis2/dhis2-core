@@ -230,7 +230,7 @@ public class UserController
   public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
       @OpenApi.Param(OpenApi.PropertyNames.class) @PathVariable("property") String pvProperty,
-      @RequestParam List<String> fields,
+      @RequestParam(required = false) List<String> fields,
       @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
