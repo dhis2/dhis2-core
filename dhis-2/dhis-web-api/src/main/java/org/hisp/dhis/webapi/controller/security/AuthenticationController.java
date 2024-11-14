@@ -235,8 +235,8 @@ public class AuthenticationController {
     if (savedRequest != null) {
       DefaultSavedRequest defaultSavedRequest = (DefaultSavedRequest) savedRequest;
       // Check saved request to avoid redirecting to non-html pages, e.g. images.
-      // If the saved request is not filtered, the user will be redirected to the saved request as
-      // normal.
+      // If the saved request is not filtered, the user will be redirected to the saved request,
+      // otherwise the default redirect URL is used.
       if (!filterSavedRequest(defaultSavedRequest)) {
         if (defaultSavedRequest.getQueryString() != null) {
           redirectUrl =
