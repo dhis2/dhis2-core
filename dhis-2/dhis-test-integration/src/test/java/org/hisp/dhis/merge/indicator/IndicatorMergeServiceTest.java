@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.indicator;
+package org.hisp.dhis.merge.indicator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -48,8 +48,11 @@ import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorGroup;
+import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.merge.MergeParams;
-import org.hisp.dhis.merge.MergeProcessor;
+import org.hisp.dhis.merge.MergeService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -61,8 +64,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author david mackessy
  */
-class IndicatorMergeProcessorTest extends PostgresIntegrationTestBase {
-  @Autowired private MergeProcessor indicatorMergeProcessor;
+class IndicatorMergeServiceTest extends PostgresIntegrationTestBase {
+  @Autowired private MergeService indicatorMergeService;
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private ConfigurationService configService;
 
@@ -93,7 +96,7 @@ class IndicatorMergeProcessorTest extends PostgresIntegrationTestBase {
 
     // when a merge request is processed
     ConflictException conflictException =
-        assertThrows(ConflictException.class, () -> indicatorMergeProcessor.processMerge(params));
+        assertThrows(ConflictException.class, () -> indicatorMergeService.processMerge(params));
 
     // then the merge report has the correct error info
     MergeReport mergeReport = conflictException.getMergeReport();
@@ -118,7 +121,7 @@ class IndicatorMergeProcessorTest extends PostgresIntegrationTestBase {
 
     // when a merge request is processed
     ConflictException conflictException =
-        assertThrows(ConflictException.class, () -> indicatorMergeProcessor.processMerge(params));
+        assertThrows(ConflictException.class, () -> indicatorMergeService.processMerge(params));
 
     // then the merge report has the correct error info
     MergeReport mergeReport = conflictException.getMergeReport();
@@ -145,7 +148,7 @@ class IndicatorMergeProcessorTest extends PostgresIntegrationTestBase {
 
     // when a merge request is processed
     ConflictException conflictException =
-        assertThrows(ConflictException.class, () -> indicatorMergeProcessor.processMerge(params));
+        assertThrows(ConflictException.class, () -> indicatorMergeService.processMerge(params));
 
     // then the merge report has the correct error info
     MergeReport mergeReport = conflictException.getMergeReport();
@@ -170,7 +173,7 @@ class IndicatorMergeProcessorTest extends PostgresIntegrationTestBase {
 
     // when a merge request is processed
     ConflictException conflictException =
-        assertThrows(ConflictException.class, () -> indicatorMergeProcessor.processMerge(params));
+        assertThrows(ConflictException.class, () -> indicatorMergeService.processMerge(params));
 
     // then the merge report has the correct error info
     MergeReport mergeReport = conflictException.getMergeReport();
@@ -196,7 +199,7 @@ class IndicatorMergeProcessorTest extends PostgresIntegrationTestBase {
 
     // when a merge request is processed
     ConflictException conflictException =
-        assertThrows(ConflictException.class, () -> indicatorMergeProcessor.processMerge(params));
+        assertThrows(ConflictException.class, () -> indicatorMergeService.processMerge(params));
 
     // then the merge report has the correct error info
     MergeReport mergeReport = conflictException.getMergeReport();
@@ -218,7 +221,7 @@ class IndicatorMergeProcessorTest extends PostgresIntegrationTestBase {
     params.setDeleteSources(true);
 
     // when a merge request is processed
-    MergeReport report = indicatorMergeProcessor.processMerge(params);
+    MergeReport report = indicatorMergeService.processMerge(params);
 
     // then the merge report has the correct error info
     assertFalse(report.hasErrorMessages());
