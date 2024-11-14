@@ -27,15 +27,12 @@
  */
 package org.hisp.dhis.db.sql;
 
-import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
-import org.hisp.dhis.db.model.TablePartition;
 import org.hisp.dhis.db.model.constraint.Nullable;
 
 @RequiredArgsConstructor
@@ -224,29 +221,18 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     // Columns
 
     if (table.hasColumns()) {
-      sql.append("(");
+      String columns = toCommaSeparated(table.getColumns(), this::getColumnClause);
 
-      for (Column column : table.getColumns()) {
-        String dataType = getDataTypeName(column.getDataType());
-        String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
-
-        sql.append(quote(column.getName()) + " ").append(dataType).append(nullable).append(", ");
-      }
-
-      removeLastComma(sql).append(") engine = olap ");
+      sql.append("(").append(columns).append(") engine = olap ");
     }
 
     // Primary key
 
     if (table.hasPrimaryKey()) {
       // If primary key exists, use it as keys with the unique model
-      sql.append("unique key (");
+      String keys = toCommaSeparated(table.getPrimaryKey(), colName -> quote(colName));
 
-      for (String columnName : table.getPrimaryKey()) {
-        sql.append(quote(columnName) + ", ");
-      }
-
-      removeLastComma(sql).append(") ");
+      sql.append("unique key (").append(keys).append(") ");
     } else if (table.hasColumns()) {
       // If columns exist, use first as key with the duplicate model
       String key = quote(table.getFirstColumn().getName());
@@ -257,17 +243,17 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     // Partitions
 
     if (table.hasPartitions()) {
-      sql.append("partition by range(year) ("); // Make configurable
+      String partitions =
+          toCommaSeparated(
+              table.getPartitions(),
+              partition ->
+                  "partition "
+                      + quote(partition.getName())
+                      + " values less than(\""
+                      + partition.getValue()
+                      + "\")");
 
-      for (TablePartition partition : table.getPartitions()) {
-        sql.append("partition ")
-            .append(quote(partition.getName()))
-            .append(" values less than(\"")
-            .append(partition.getValue()) // Set last partition to max value
-            .append("\"),");
-      }
-
-      removeLastComma(sql).append(") ");
+      sql.append("partition by range(year) (").append(partitions).append(") "); // Make configurable
     }
 
     // Distribution
@@ -286,6 +272,18 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     sql.append("properties (\"replication_num\" = \"1\")");
 
     return sql.append(";").toString();
+  }
+
+  /**
+   * Returns the column clause.
+   *
+   * @param column the {@link Column}.
+   * @return a column clause.
+   */
+  private String getColumnClause(Column column) {
+    String dataType = getDataTypeName(column.getDataType());
+    String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
+    return quote(column.getName()) + " " + dataType + nullable;
   }
 
   /**
