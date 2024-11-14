@@ -33,6 +33,7 @@ import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.TablePartition;
 import org.hisp.dhis.db.model.constraint.Nullable;
 
 @RequiredArgsConstructor
@@ -221,7 +222,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     // Columns
 
     if (table.hasColumns()) {
-      String columns = toCommaSeparated(table.getColumns(), this::getColumnClause);
+      String columns = toCommaSeparated(table.getColumns(), this::toColumnString);
 
       sql.append("(").append(columns).append(") engine = olap ");
     }
@@ -243,15 +244,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     // Partitions
 
     if (table.hasPartitions()) {
-      String partitions =
-          toCommaSeparated(
-              table.getPartitions(),
-              partition ->
-                  "partition "
-                      + quote(partition.getName())
-                      + " values less than(\""
-                      + partition.getValue()
-                      + "\")");
+      String partitions = toCommaSeparated(table.getPartitions(), this::toPartitionString);
 
       sql.append("partition by range(year) (").append(partitions).append(") "); // Make configurable
     }
@@ -275,15 +268,29 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   /**
-   * Returns the column clause.
+   * Returns a column definition string.
    *
    * @param column the {@link Column}.
    * @return a column clause.
    */
-  private String getColumnClause(Column column) {
+  private String toColumnString(Column column) {
     String dataType = getDataTypeName(column.getDataType());
     String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
     return quote(column.getName()) + " " + dataType + nullable;
+  }
+
+  /**
+   * Returns a partition definition string.
+   *
+   * @param partition the {@link TablePartition}.
+   * @return a partition definition string.
+   */
+  private String toPartitionString(TablePartition partition) {
+    return "partition "
+        + quote(partition.getName())
+        + " values less than(\""
+        + partition.getValue()
+        + "\")";
   }
 
   /**
