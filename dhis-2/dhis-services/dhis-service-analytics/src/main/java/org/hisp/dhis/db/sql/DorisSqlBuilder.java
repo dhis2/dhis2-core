@@ -129,23 +129,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return "json";
   }
 
-  // Index types
-
-  @Override
-  public String indexTypeBtree() {
-    return notSupported();
-  }
-
-  @Override
-  public String indexTypeGist() {
-    return notSupported();
-  }
-
-  @Override
-  public String indexTypeGin() {
-    return notSupported();
-  }
-
   // Index functions
 
   @Override

@@ -81,6 +81,23 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
         : items.stream().map(this::singleQuote).collect(Collectors.joining(COMMA));
   }
 
+  // Index types
+
+  @Override
+  public String indexTypeBtree() {
+    return notSupported();
+  }
+
+  @Override
+  public String indexTypeGist() {
+    return notSupported();
+  }
+
+  @Override
+  public String indexTypeGin() {
+    return notSupported();
+  }
+
   // Statements
 
   @Override
