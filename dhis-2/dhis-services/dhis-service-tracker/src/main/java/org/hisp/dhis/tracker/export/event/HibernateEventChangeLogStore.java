@@ -35,7 +35,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.hibernate.Session;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.SortDirection;
@@ -131,7 +130,7 @@ public class HibernateEventChangeLogStore {
                       created,
                       createdBy);
                 })
-            .collect(Collectors.toList());
+            .toList();
 
     Integer prevPage = pageParams.getPage() > 1 ? pageParams.getPage() - 1 : null;
     if (eventChangeLogs.size() > pageParams.getPageSize()) {
