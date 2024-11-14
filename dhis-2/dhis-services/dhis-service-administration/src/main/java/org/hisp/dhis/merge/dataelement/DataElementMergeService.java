@@ -52,7 +52,6 @@ import org.hisp.dhis.merge.dataelement.handler.DataDataElementMergeHandler;
 import org.hisp.dhis.merge.dataelement.handler.MetadataDataElementMergeHandler;
 import org.hisp.dhis.merge.dataelement.handler.TrackerDataElementMergeHandler;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Main class for a {@link org.hisp.dhis.dataelement.DataElement} merge.
@@ -109,7 +108,6 @@ public class DataElementMergeService implements MergeService {
   }
 
   @Override
-  @Transactional
   public MergeReport merge(@Nonnull MergeRequest request, @Nonnull MergeReport mergeReport) {
     log.info("Performing DataElement merge");
 

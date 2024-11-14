@@ -40,6 +40,13 @@ import org.springframework.transaction.annotation.Transactional;
  */
 public interface MergeService {
 
+  /**
+   * Processes a merge in full.
+   *
+   * @param mergeParams {@link MergeParams} to process
+   * @return updated {@link MergeReport} with any errors
+   */
+  @Transactional
   default MergeReport processMerge(@Nonnull MergeParams mergeParams) throws ConflictException {
     MergeReport mergeReport = new MergeReport();
 
@@ -72,7 +79,6 @@ public interface MergeService {
    * @param mergeReport report to be updated if any issues/errors with the {@link MergeRequest}
    * @return {@link MergeReport}
    */
-  @Transactional
   MergeReport merge(@Nonnull MergeRequest request, @Nonnull MergeReport mergeReport);
 
   /**

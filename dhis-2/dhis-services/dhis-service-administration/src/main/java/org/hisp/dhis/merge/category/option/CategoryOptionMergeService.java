@@ -44,7 +44,6 @@ import org.hisp.dhis.merge.MergeService;
 import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.merge.MergeValidator;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Main class for a {@link CategoryOption} merge.
@@ -73,7 +72,6 @@ public class CategoryOptionMergeService implements MergeService {
   }
 
   @Override
-  @Transactional
   public MergeReport merge(@Nonnull MergeRequest request, @Nonnull MergeReport mergeReport) {
     log.info("Performing CategoryOption merge");
 
