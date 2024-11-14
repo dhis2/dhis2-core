@@ -94,7 +94,6 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.user.UserSettingsService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -118,8 +117,6 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   private final TrackedEntityAttributeService attributeService;
 
   private final DataQueryService dataQueryService;
-
-  private final UserSettingsService userSettingsService;
 
   @Override
   public EventQueryParams getFromRequest(EventDataQueryRequest request) {

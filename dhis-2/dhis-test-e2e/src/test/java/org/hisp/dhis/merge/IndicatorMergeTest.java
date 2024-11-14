@@ -130,9 +130,9 @@ class IndicatorMergeTest extends ApiTest {
         .validate()
         .statusCode(200)
         .body("httpStatus", equalTo("OK"))
-        .body("response.mergeReport.message", equalTo("INDICATOR merge complete"))
+        .body("response.mergeReport.message", equalTo("Indicator merge complete"))
         .body("response.mergeReport.mergeErrors", empty())
-        .body("response.mergeReport.mergeType", equalTo("INDICATOR"))
+        .body("response.mergeReport.mergeType", equalTo("Indicator"))
         .body("response.mergeReport.sourcesDeleted", hasItems(sourceUid1, sourceUid2));
 
     // and all the following source indicator references have been handled appropriately

@@ -65,11 +65,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class ProgramRuleTest extends TrackerTest {
-  private static final String ENROLLMENT_UID = "TvctPPhpD8u";
+  private static final UID ENROLLMENT_UID = UID.of("TvctPPhpD8u");
 
   private static final UID EVENT_UID = UID.of("D9PbzJY8bJO");
 
-  private static final String PROGRAM_EVENT_UID = "PEVENT12345";
+  private static final UID PROGRAM_EVENT_UID = UID.of("PEVENT12345");
 
   @Autowired private TrackerImportService trackerImportService;
 
@@ -236,7 +236,7 @@ class ProgramRuleTest extends TrackerTest {
 
     assertAll(
         () -> assertHasError(report, E1300, ENROLLMENT_UID),
-        () -> assertHasError(report, ValidationCode.E5000, EVENT_UID.getValue()));
+        () -> assertHasError(report, ValidationCode.E5000, EVENT_UID));
   }
 
   @Test
@@ -266,7 +266,7 @@ class ProgramRuleTest extends TrackerTest {
 
     assertAll(
         () -> assertHasError(report, E1300, ENROLLMENT_UID),
-        () -> assertHasError(report, E1300, EVENT_UID.getValue()),
+        () -> assertHasError(report, E1300, EVENT_UID),
         () -> assertHasError(report, E1300, PROGRAM_EVENT_UID));
   }
 

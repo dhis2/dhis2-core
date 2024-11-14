@@ -80,31 +80,27 @@ public class RelationshipTypeJoinGenerator {
 
   private static String getToJoin(RelationshipEntity relationshipEntity) {
     String sql = "LEFT JOIN ";
-    switch (relationshipEntity) {
-      case TRACKED_ENTITY_INSTANCE:
-        return sql + "trackedentity te on te.trackedentityid = ri2.trackedentityid";
-      case PROGRAM_STAGE_INSTANCE:
-        return sql + "event ev on ev.eventid = ri2.eventid";
-      case PROGRAM_INSTANCE:
-        return sql + "enrollment en on en.enrollmentid = ri2.enrollmentid";
-      default:
-        throw new IllegalQueryException(
-            new ErrorMessage(ErrorCode.E7227, relationshipEntity.name()));
-    }
+    return switch (relationshipEntity) {
+      case TRACKED_ENTITY_INSTANCE ->
+          sql + "trackedentity te on te.trackedentityid = ri2.trackedentityid";
+      case PROGRAM_STAGE_INSTANCE -> sql + "event ev on ev.eventid = ri2.eventid";
+      case PROGRAM_INSTANCE -> sql + "enrollment en on en.enrollmentid = ri2.enrollmentid";
+      default ->
+          throw new IllegalQueryException(
+              new ErrorMessage(ErrorCode.E7227, relationshipEntity.name()));
+    };
   }
 
   private static String getFromRelationshipEntity(
       String alias, RelationshipEntity relationshipEntity, AnalyticsType programIndicatorType) {
-    switch (relationshipEntity) {
-      case TRACKED_ENTITY_INSTANCE:
-        return getTei(alias);
-      case PROGRAM_STAGE_INSTANCE:
-      case PROGRAM_INSTANCE:
-        return (programIndicatorType.equals(AnalyticsType.EVENT)
-            ? getEvent(alias)
-            : getEnrollment(alias));
-    }
-    throw new IllegalQueryException(new ErrorMessage(ErrorCode.E7227, relationshipEntity.name()));
+    return switch (relationshipEntity) {
+      case TRACKED_ENTITY_INSTANCE -> getTei(alias);
+      case PROGRAM_STAGE_INSTANCE, PROGRAM_INSTANCE ->
+          programIndicatorType.equals(AnalyticsType.EVENT) ? getEvent(alias) : getEnrollment(alias);
+      default ->
+          throw new IllegalQueryException(
+              new ErrorMessage(ErrorCode.E7227, relationshipEntity.name()));
+    };
   }
 
   private static String getTei(String alias) {

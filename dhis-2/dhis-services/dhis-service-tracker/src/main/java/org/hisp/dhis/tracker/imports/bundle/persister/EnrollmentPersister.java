@@ -73,7 +73,7 @@ public class EnrollmentPersister
         entityManager,
         preheat,
         enrollment.getAttributes(),
-        preheat.getTrackedEntity(UID.of(enrollmentToPersist.getTrackedEntity())),
+        enrollmentToPersist.getTrackedEntity(),
         user);
   }
 
@@ -102,8 +102,7 @@ public class EnrollmentPersister
 
     return TrackerNotificationDataBundle.builder()
         .klass(Enrollment.class)
-        .enrollmentNotifications(
-            bundle.getEnrollmentNotifications().get(UID.of(enrollment.getUid())))
+        .enrollmentNotifications(bundle.getEnrollmentNotifications().get(UID.of(enrollment)))
         .object(enrollment.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUser().getUsername())

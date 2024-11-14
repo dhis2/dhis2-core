@@ -196,16 +196,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String quote(String alias, String relation) {
-    return alias + DOT + quote(relation);
-  }
-
-  @Override
-  public String singleQuote(String value) {
-    return SINGLE_QUOTE + escape(value) + SINGLE_QUOTE;
-  }
-
-  @Override
   public String escape(String value) {
     return value
         .replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE))
@@ -315,16 +305,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String analyzeTable(String name) {
-    return notSupported();
-  }
-
-  @Override
-  public String vacuumTable(Table table) {
-    return notSupported();
-  }
-
-  @Override
   public String renameTable(Table table, String newName) {
     return String.format("alter table %s rename %s;", quote(table.getName()), quote(newName));
   }
@@ -342,16 +322,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String dropTableIfExistsCascade(String name) {
     return dropTableIfExists(name);
-  }
-
-  @Override
-  public String setParentTable(Table table, String parentName) {
-    return notSupported();
-  }
-
-  @Override
-  public String removeParentTable(Table table, String parentName) {
-    return notSupported();
   }
 
   @Override

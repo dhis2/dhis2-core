@@ -32,6 +32,7 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -48,7 +49,7 @@ import org.locationtech.jts.geom.Geometry;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TrackedEntity implements TrackerDto, Serializable {
-  @JsonProperty private UID trackedEntity;
+  @Nonnull @JsonProperty private UID trackedEntity;
 
   @JsonProperty private MetadataIdentifier trackedEntityType;
 
@@ -71,11 +72,6 @@ public class TrackedEntity implements TrackerDto, Serializable {
   @Override
   public UID getUid() {
     return trackedEntity;
-  }
-
-  @Override
-  public String getStringUid() {
-    return trackedEntity.getValue();
   }
 
   @Override

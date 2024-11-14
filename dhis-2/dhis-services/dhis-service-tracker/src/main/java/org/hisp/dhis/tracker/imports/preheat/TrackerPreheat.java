@@ -57,8 +57,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -92,12 +90,6 @@ public class TrackerPreheat {
   /** Internal map of all default object (like category option combo, etc). */
   private final Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults =
       new HashMap<>();
-
-  /** All periods available. */
-  @Getter private final Map<String, Period> periodMap = new HashMap<>();
-
-  /** All periodTypes available. */
-  @Getter private final Map<String, PeriodType> periodTypeMap = new HashMap<>();
 
   /**
    * Internal map of category combo + category options (key) to category option combo (value).
@@ -228,7 +220,7 @@ public class TrackerPreheat {
   private final Set<String> existingRelationships = new HashSet<>();
 
   /** Internal set of all preheated notes uids (events and enrollments) */
-  private final Set<String> notes = new HashSet<>();
+  private final Set<UID> notes = new HashSet<>();
 
   /**
    * Internal map of all existing TrackedEntityProgramOwner. Used for ownership validations and
@@ -471,11 +463,11 @@ public class TrackerPreheat {
     events.put(UID.of(event), event);
   }
 
-  public void addNotes(Set<String> notes) {
+  public void addNotes(Set<UID> notes) {
     this.notes.addAll(notes);
   }
 
-  public boolean hasNote(String uid) {
+  public boolean hasNote(UID uid) {
     return notes.contains(uid);
   }
 

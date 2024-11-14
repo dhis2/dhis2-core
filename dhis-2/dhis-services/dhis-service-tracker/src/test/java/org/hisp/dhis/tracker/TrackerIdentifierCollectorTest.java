@@ -117,7 +117,7 @@ class TrackerIdentifierCollectorTest {
     Map<Class<?>, Set<String>> ids = collector.collect(trackerObjects);
 
     assertNotNull(ids);
-    assertContainsOnly(Set.of(enrollment.getStringUid()), ids.get(Enrollment.class));
+    assertContainsOnly(Set.of(enrollment.getUid().getValue()), ids.get(Enrollment.class));
     assertContainsOnly(
         Set.of(enrollment.getTrackedEntity().getValue()), ids.get(TrackedEntity.class));
     assertContainsOnly(Set.of("sunshine"), ids.get(Program.class));
@@ -137,7 +137,7 @@ class TrackerIdentifierCollectorTest {
             .dataValues(dataValues("VohJnvWfvyo", "qv9xOw8fBzy"))
             .attributeOptionCombo(ofCode("rgb"))
             .attributeCategoryOptions(Set.of(ofCode("red"), ofCode("green"), ofCode("blue")))
-            .notes(List.of(Note.builder().note("i1vviSlidJE").value("nice day!").build()))
+            .notes(List.of(Note.builder().note(UID.of("i1vviSlidJE")).value("nice day!").build()))
             .build();
 
     TrackerObjects trackerObjects = TrackerObjects.builder().events(singletonList(event)).build();
@@ -145,7 +145,7 @@ class TrackerIdentifierCollectorTest {
     Map<Class<?>, Set<String>> ids = collector.collect(trackerObjects);
 
     assertNotNull(ids);
-    assertContainsOnly(Set.of(event.getStringUid()), ids.get(Event.class));
+    assertContainsOnly(Set.of(event.getUid().getValue()), ids.get(Event.class));
     assertContainsOnly(Set.of(event.getEnrollment().getValue()), ids.get(Enrollment.class));
     assertContainsOnly(Set.of("sunshine"), ids.get(Program.class));
     assertContainsOnly(Set.of("flowers"), ids.get(ProgramStage.class));
@@ -157,27 +157,11 @@ class TrackerIdentifierCollectorTest {
   }
 
   @Test
-  void collectEventsSkipsNotesWithoutAnId() {
-    Event event =
-        Event.builder()
-            .event(UID.generate())
-            .notes(List.of(Note.builder().value("nice day!").build()))
-            .build();
-
-    TrackerObjects trackerObjects = TrackerObjects.builder().events(singletonList(event)).build();
-
-    Map<Class<?>, Set<String>> ids = collector.collect(trackerObjects);
-
-    assertNotNull(ids);
-    assertNull(ids.get(org.hisp.dhis.note.Note.class));
-  }
-
-  @Test
   void collectEventsSkipsNotesWithoutAValue() {
     Event event =
         Event.builder()
             .event(UID.generate())
-            .notes(List.of(Note.builder().note("i1vviSlidJE").build()))
+            .notes(List.of(Note.builder().note(UID.of("i1vviSlidJE")).build()))
             .build();
 
     TrackerObjects trackerObjects = TrackerObjects.builder().events(singletonList(event)).build();

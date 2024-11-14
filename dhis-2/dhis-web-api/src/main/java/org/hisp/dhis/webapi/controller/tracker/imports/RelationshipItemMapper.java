@@ -29,12 +29,11 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
-import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(uses = UIDMapper.class)
+@Mapper
 interface RelationshipItemMapper
     extends DomainMapper<RelationshipItem, org.hisp.dhis.tracker.imports.domain.RelationshipItem> {
   @Mapping(target = "trackedEntity", source = "trackedEntity.trackedEntity")
