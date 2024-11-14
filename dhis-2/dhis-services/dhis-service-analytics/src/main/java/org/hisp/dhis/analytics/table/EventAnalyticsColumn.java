@@ -259,12 +259,7 @@ public final class EventAnalyticsColumn {
 
   // Geometry-specific columns
   private static final List<AnalyticsTableColumn> GEOMETRY_COLUMNS =
-      List.of(
-          EVENT_GEOMETRY,
-          OU_GEOMETRY,
-          ENROLLMENT_GEOMETRY,
-          LONGITUDE,
-          LATITUDE);
+      List.of(EVENT_GEOMETRY, OU_GEOMETRY, ENROLLMENT_GEOMETRY, LONGITUDE, LATITUDE);
 
   // JSON-specific columns (might vary by database)
   private static List<AnalyticsTableColumn> createJsonColumns(SqlBuilder sqlBuilder) {
