@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.db.sql;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.db.model.Column;
@@ -34,6 +35,7 @@ import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 
+@Getter
 @RequiredArgsConstructor
 public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
