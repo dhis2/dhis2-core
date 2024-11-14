@@ -59,13 +59,8 @@ public class IndicatorTypeMergeService implements MergeService {
   private final MergeValidator validator;
 
   @Override
-  public MergeType getMergeType() {
-    return MergeType.INDICATOR_TYPE;
-  }
-
-  @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
-    return validator.validateUIDs(params, mergeReport, getMergeType());
+    return validator.validateUIDs(params, mergeReport, MergeType.INDICATOR_TYPE);
   }
 
   @Override

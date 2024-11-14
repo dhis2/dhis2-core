@@ -65,13 +65,8 @@ public class IndicatorMergeService implements MergeService {
   private ImmutableList<org.hisp.dhis.merge.indicator.IndicatorMergeHandler> mergeHandlers;
 
   @Override
-  public MergeType getMergeType() {
-    return MergeType.INDICATOR;
-  }
-
-  @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
-    return validator.validateUIDs(params, mergeReport, getMergeType());
+    return validator.validateUIDs(params, mergeReport, MergeType.INDICATOR);
   }
 
   @Override

@@ -80,11 +80,4 @@ public interface MergeService {
    * @return {@link MergeReport}
    */
   MergeReport merge(@Nonnull MergeRequest request, @Nonnull MergeReport mergeReport);
-
-  /**
-   * Gets the {@link MergeType} used by the service.
-   *
-   * @return {@link MergeType}
-   */
-  MergeType getMergeType();
 }

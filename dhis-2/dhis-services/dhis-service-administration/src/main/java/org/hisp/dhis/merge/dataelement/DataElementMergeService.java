@@ -78,13 +78,8 @@ public class DataElementMergeService implements MergeService {
   private ImmutableList<DataElementAuditMergeHandler> auditMergeHandlers;
 
   @Override
-  public MergeType getMergeType() {
-    return MergeType.DATA_ELEMENT;
-  }
-
-  @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
-    MergeRequest request = validator.validateUIDs(params, mergeReport, getMergeType());
+    MergeRequest request = validator.validateUIDs(params, mergeReport, MergeType.DATA_ELEMENT);
     if (mergeReport.hasErrorMessages()) return request;
 
     // data element-specific validation

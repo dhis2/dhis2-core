@@ -62,13 +62,8 @@ public class CategoryOptionMergeService implements MergeService {
   private List<MetadataMergeHandler> metadataMergeHandlers;
 
   @Override
-  public MergeType getMergeType() {
-    return MergeType.CATEGORY_OPTION;
-  }
-
-  @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
-    return validator.validateUIDs(params, mergeReport, getMergeType());
+    return validator.validateUIDs(params, mergeReport, MergeType.CATEGORY_OPTION);
   }
 
   @Override
