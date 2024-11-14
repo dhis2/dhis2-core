@@ -214,7 +214,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
     if (table.hasPrimaryKey()) {
       // If primary key exists, use it as keys with the unique model
-      String keys = toCommaSeparated(table.getPrimaryKey(), colName -> quote(colName));
+      String keys = toCommaSeparated(table.getPrimaryKey(), this::quote);
 
       sql.append("unique key (").append(keys).append(") ");
     } else if (table.hasColumns()) {
