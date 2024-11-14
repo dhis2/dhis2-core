@@ -30,15 +30,18 @@ package org.hisp.dhis.tracker.export.event;
 import static java.util.Map.entry;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hibernate.Session;
-import org.hibernate.query.Query;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
@@ -70,29 +73,64 @@ public class HibernateEventChangeLogStore {
     entityManager.unwrap(Session.class).save(eventChangeLog);
   }
 
-  public Page<EventChangeLogDto> getEventChangeLogs(
+  public Page<EventChangeLog> getEventChangeLogs(
       UID event, List<Order> order, PageParams pageParams) {
 
     String hql =
         String.format(
             """
-        select new org.hisp.dhis.tracker.export.event.EventChangeLogDto (de.uid, ecl.eventProperty, ecl.currentValue, ecl.previousValue, ecl.changeLogType, ecl.created, ecl.createdBy, ui.firstName, ui.surname, COALESCE(ui.username, ecl.createdBy), ui.uid)
-        from EventChangeLog ecl
-        join ecl.event e
-        left join ecl.dataElement de
-        left join User ui on ui.username = ecl.createdBy
-        where e.uid = :eventUid
-        order by %s
-        """
+          select ecl.event,
+                 ecl.dataElement,
+                 ecl.eventProperty,
+                 ecl.previousValue,
+                 ecl.currentValue,
+                 ecl.changeLogType,
+                 ecl.created,
+                 ecl.createdByUsername,
+                 u.firstName,
+                 u.surname,
+                 u.uid
+          from EventChangeLog ecl
+          join ecl.event e
+          left join ecl.createdBy u
+          where e.uid = :eventUid
+          order by %s
+      """
                 .formatted(sortExpressions(order)));
 
-    Query<EventChangeLogDto> query =
-        entityManager.unwrap(Session.class).createQuery(hql, EventChangeLogDto.class);
+    Query query = entityManager.createQuery(hql);
     query.setParameter("eventUid", event.getValue());
     query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
     query.setMaxResults(pageParams.getPageSize() + 1);
 
-    List<EventChangeLogDto> eventChangeLogs = query.getResultList();
+    List<Object[]> results = query.getResultList();
+    List<EventChangeLog> eventChangeLogs =
+        results.stream()
+            .map(
+                row -> {
+                  Event e = (Event) row[0];
+                  DataElement dataElement = (DataElement) row[1];
+                  String eventProperty = (String) row[2];
+                  String previousValue = (String) row[3];
+                  String currentValue = (String) row[4];
+                  ChangeLogType changeLogType = (ChangeLogType) row[5];
+                  Date created = (Date) row[6];
+
+                  UserInfoSnapshot createdBy =
+                      new UserInfoSnapshot((String) row[7], (String) row[8], (String) row[9]);
+                  createdBy.setUid((String) row[10]);
+
+                  return new EventChangeLog(
+                      e,
+                      dataElement,
+                      eventProperty,
+                      previousValue,
+                      currentValue,
+                      changeLogType,
+                      created,
+                      createdBy);
+                })
+            .toList();
 
     Integer prevPage = pageParams.getPage() > 1 ? pageParams.getPage() - 1 : null;
     if (eventChangeLogs.size() > pageParams.getPageSize()) {

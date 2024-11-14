@@ -373,7 +373,7 @@ class PostgreSqlBuilderTest {
     List<Index> indexes = getIndexesA();
 
     String expected =
-        "create index \"in_immunization_period_created\" on \"immunization\" using btree(\"period\", \"created\");";
+        "create index \"in_immunization_period_created\" on \"immunization\" using btree(\"period\",\"created\");";
 
     assertEquals(expected, sqlBuilder.createIndex(indexes.get(1)));
   }
@@ -393,7 +393,7 @@ class PostgreSqlBuilderTest {
     List<Index> indexes = getIndexesA();
 
     String expected =
-        "create index \"in_immunization_data_period\" on \"immunization\" using btree(lower(\"data\"), lower(\"period\"));";
+        "create index \"in_immunization_data_period\" on \"immunization\" using btree(lower(\"data\"),lower(\"period\"));";
 
     assertEquals(expected, sqlBuilder.createIndex(indexes.get(3)));
   }

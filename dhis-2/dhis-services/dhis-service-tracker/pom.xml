@@ -54,6 +54,10 @@
       <artifactId>dhis-support-system</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>json-tree</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.hisp.dhis.rules</groupId>
       <artifactId>rule-engine-jvm</artifactId>
     </dependency>

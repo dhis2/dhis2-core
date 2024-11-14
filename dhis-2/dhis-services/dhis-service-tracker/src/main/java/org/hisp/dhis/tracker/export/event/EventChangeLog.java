@@ -34,6 +34,7 @@ import lombok.Setter;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.UserInfoSnapshot;
 
 @NoArgsConstructor
 @Getter
@@ -47,32 +48,58 @@ public class EventChangeLog {
 
   private String eventProperty;
 
-  private String currentValue;
-
   private String previousValue;
+
+  private String currentValue;
 
   private ChangeLogType changeLogType;
 
   private Date created;
 
-  private String createdBy;
+  private String createdByUsername;
+
+  private UserInfoSnapshot createdBy;
 
   public EventChangeLog(
       Event event,
       DataElement dataElement,
       String eventProperty,
-      String currentValue,
       String previousValue,
+      String currentValue,
       ChangeLogType changeLogType,
       Date created,
-      String createdBy) {
+      String createdByUsername) {
+    this(event, dataElement, eventProperty, previousValue, currentValue, changeLogType, created);
+    this.createdByUsername = createdByUsername;
+  }
+
+  public EventChangeLog(
+      Event event,
+      DataElement dataElement,
+      String eventProperty,
+      String previousValue,
+      String currentValue,
+      ChangeLogType changeLogType,
+      Date created,
+      UserInfoSnapshot createdBy) {
+    this(event, dataElement, eventProperty, previousValue, currentValue, changeLogType, created);
+    this.createdBy = createdBy;
+  }
+
+  private EventChangeLog(
+      Event event,
+      DataElement dataElement,
+      String eventProperty,
+      String previousValue,
+      String currentValue,
+      ChangeLogType changeLogType,
+      Date created) {
     this.event = event;
     this.dataElement = dataElement;
     this.eventProperty = eventProperty;
-    this.currentValue = currentValue;
     this.previousValue = previousValue;
+    this.currentValue = currentValue;
     this.changeLogType = changeLogType;
     this.created = created;
-    this.createdBy = createdBy;
   }
 }

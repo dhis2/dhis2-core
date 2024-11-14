@@ -245,13 +245,13 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             """
             delete from ${tableName} ax \
             where ax.id in ( \
-            select concat(de.uid,'-',ps.iso,'-',ou.uid,'-',co.uid,'-',ao.uid) as id \
+            select concat(des.dataelementuid,'-',ps.iso,'-',ous.organisationunituid,'-',dcs.categoryoptioncombouid,'-',acs.categoryoptioncombouid) as id \
             from ${datavalue} dv \
-            inner join ${dataelement} de on dv.dataelementid=de.dataelementid \
+            inner join analytics_rs_dataelementstructure des on dv.dataelementid=des.dataelementid \
             inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
-            inner join ${organisationunit} ou on dv.sourceid=ou.organisationunitid \
-            inner join ${categoryoptioncombo} co on dv.categoryoptioncomboid=co.categoryoptioncomboid \
-            inner join ${categoryoptioncombo} ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid \
+            inner join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
+            inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
+            inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
             where dv.lastupdated >= '${startDate}'and dv.lastupdated < '${endDate}');""",
             Map.of(
                 "tableName", qualify(getAnalyticsTableType().getTableName()),
@@ -666,17 +666,17 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         new StringBuilder(
             replaceQualify(
                 """
-                select distinct(extract(year from pe.startdate)) \
+                select distinct(extract(year from pes.startdate)) \
                 from ${datavalue} dv \
-                inner join ${period} pe on dv.periodid=pe.periodid \
-                where pe.startdate is not null \
+                inner join analytics_rs_periodstructure pes on dv.periodid=pes.periodid \
+                where pes.startdate is not null \
                 and dv.lastupdated < '${startTime}'\s""",
                 Map.of("startTime", toLongDate(params.getStartTime()))));
 
-    if (params.getFromDate() != null) {
+    if (params.hasFromDate()) {
       sql.append(
           replace(
-              "and pe.startdate >= '${fromDate}'",
+              "and pes.startdate >= '${fromDate}'",
               Map.of("fromDate", DateUtils.toMediumDate(params.getFromDate()))));
     }
 

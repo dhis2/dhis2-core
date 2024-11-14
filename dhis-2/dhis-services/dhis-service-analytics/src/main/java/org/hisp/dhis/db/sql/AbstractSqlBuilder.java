@@ -31,6 +31,7 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.db.model.DataType;
@@ -59,8 +60,18 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   // Utilities
 
   @Override
+  public String quote(String alias, String relation) {
+    return alias + DOT + quote(relation);
+  }
+
+  @Override
   public String quoteAx(String relation) {
     return ALIAS_AX + DOT + quote(relation);
+  }
+
+  @Override
+  public String singleQuote(String value) {
+    return SINGLE_QUOTE + escape(value) + SINGLE_QUOTE;
   }
 
   @Override
@@ -68,6 +79,23 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
     return isEmpty(items)
         ? EMPTY
         : items.stream().map(this::singleQuote).collect(Collectors.joining(COMMA));
+  }
+
+  // Index types
+
+  @Override
+  public String indexTypeBtree() {
+    return notSupported();
+  }
+
+  @Override
+  public String indexTypeGist() {
+    return notSupported();
+  }
+
+  @Override
+  public String indexTypeGin() {
+    return notSupported();
   }
 
   // Statements
@@ -101,6 +129,28 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   @Override
   public String countRows(Table table) {
     return String.format("select count(*) as row_count from %s;", quote(table.getName()));
+  }
+
+  // Table
+
+  @Override
+  public String analyzeTable(String name) {
+    return notSupported();
+  }
+
+  @Override
+  public String vacuumTable(Table table) {
+    return notSupported();
+  }
+
+  @Override
+  public String setParentTable(Table table, String parentName) {
+    return notSupported();
+  }
+
+  @Override
+  public String removeParentTable(Table table, String parentName) {
+    return notSupported();
   }
 
   // Mapping
@@ -205,5 +255,18 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
    */
   protected String notSupported() {
     throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Converts the given collection to a comma-separated string, using the given mapping function to
+   * convert each item in the collection to a string.
+   *
+   * @param <T>
+   * @param collection the {@link Collection}.
+   * @param mapper the string mapping {@link Function}.
+   * @return a comma-separated string.
+   */
+  protected <T> String toCommaSeparated(Collection<T> collection, Function<T, String> mapper) {
+    return collection.stream().map(mapper).collect(Collectors.joining(","));
   }
 }

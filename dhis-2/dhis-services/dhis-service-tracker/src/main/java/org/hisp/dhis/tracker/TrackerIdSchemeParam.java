@@ -113,4 +113,20 @@ public class TrackerIdSchemeParam implements Serializable {
     }
     return MetadataIdentifier.of(this.idScheme, identifier, null);
   }
+
+  /**
+   * Returns this {@link TrackerIdSchemeParam} as expected in a request parameter which makes it
+   * usable in tests. It is also a more readable format than what lombok produces.
+   */
+  @Override
+  public String toString() {
+    if (this.idScheme == null) {
+      return "";
+    }
+    if (this.idScheme == TrackerIdScheme.ATTRIBUTE) {
+      return this.idScheme.name() + ":" + this.attributeUid;
+    }
+
+    return this.idScheme.name();
+  }
 }

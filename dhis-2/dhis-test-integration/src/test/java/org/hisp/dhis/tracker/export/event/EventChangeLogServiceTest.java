@@ -326,6 +326,29 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldReturnOnlyUserNameWhenUserDoesNotExistInDatabase()
+      throws ForbiddenException, NotFoundException {
+    Event event = getEvent("QRYjLTiJTrA");
+    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
+    DataElement dataElement = manager.get(DataElement.class, dataElementUid);
+    User deletedUser = new User();
+    deletedUser.setUsername("deletedUsername");
+    eventChangeLogService.addDataValueChangeLog(
+        event, dataElement, "current", "previous", UPDATE, deletedUser.getUsername());
+
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(
+            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
+
+    assertNumberOfChanges(2, changeLogs.getItems());
+    assertAll(
+        () ->
+            assertUpdate(
+                dataElementUid, "previous", "current", changeLogs.getItems().get(0), deletedUser),
+        () -> assertCreate(dataElementUid, "15", changeLogs.getItems().get(1)));
+  }
+
+  @Test
   void shouldReturnEventPropertiesChangeLogWhenExistingDatePropertyUpdated()
       throws IOException, ForbiddenException, NotFoundException {
     UID event = UID.of("QRYjLTiJTrA");
@@ -637,10 +660,19 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   private static void assertUser(User user, EventChangeLogDto changeLog) {
     assertAll(
-        () -> assertEquals(user.getUsername(), changeLog.username()),
-        () -> assertEquals(user.getFirstName(), changeLog.firstName()),
-        () -> assertEquals(user.getSurname(), changeLog.surname()),
-        () -> assertEquals(user.getUid(), changeLog.userUid()));
+        () -> assertEquals(user.getUsername(), changeLog.getCreatedBy().getUsername()),
+        () ->
+            assertEquals(
+                user.getFirstName(),
+                changeLog.getCreatedBy() == null ? null : changeLog.getCreatedBy().getFirstName()),
+        () ->
+            assertEquals(
+                user.getSurname(),
+                changeLog.getCreatedBy() == null ? null : changeLog.getCreatedBy().getSurname()),
+        () ->
+            assertEquals(
+                user.getUid(),
+                changeLog.getCreatedBy() == null ? null : changeLog.getCreatedBy().getUid()));
   }
 
   private void setUpMetadata(String path) throws IOException {

@@ -63,16 +63,16 @@ public interface EventChangeLogService {
   void addDataValueChangeLog(
       Event event,
       DataElement dataElement,
-      String currentValue,
       String previousValue,
+      String currentValue,
       ChangeLogType changeLogType,
       String userName);
 
   void addEventPropertyChangeLog(
       Event event,
       String eventProperty,
-      String currentValue,
       String previousValue,
+      String currentValue,
       ChangeLogType changeLogType,
       String userName);
 

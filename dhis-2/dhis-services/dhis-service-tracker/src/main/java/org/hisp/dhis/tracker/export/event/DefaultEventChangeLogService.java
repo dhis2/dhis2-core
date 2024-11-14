@@ -109,8 +109,8 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   public void addDataValueChangeLog(
       Event event,
       DataElement dataElement,
-      String currentValue,
       String previousValue,
+      String currentValue,
       ChangeLogType changeLogType,
       String userName) {
 
@@ -119,8 +119,8 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
             event,
             dataElement,
             null,
-            currentValue,
             previousValue,
+            currentValue,
             changeLogType,
             new Date(),
             userName);
@@ -143,8 +143,8 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
             event,
             null,
             eventProperty,
-            currentValue,
             previousValue,
+            currentValue,
             changeLogType,
             new Date(),
             userName);

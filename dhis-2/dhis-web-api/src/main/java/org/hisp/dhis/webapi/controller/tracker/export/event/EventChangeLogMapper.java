@@ -27,58 +27,39 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import org.hisp.dhis.tracker.export.event.EventChangeLogDto;
 import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog;
 import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog.DataValueChange;
 import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog.EventPropertyChange;
+import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper
+@Mapper(uses = {UIDMapper.class})
 public interface EventChangeLogMapper {
 
-  @Mapping(target = "createdBy", source = "dto")
+  @Mapping(target = "createdBy", source = "eventChangeLog")
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "type", source = "changeLogType")
-  @Mapping(
-      target = "change.dataValue",
-      expression =
-          "java(mapDataValueIfNotNull(eventChangeLogDto, eventChangeLogDto.dataElementUid()))")
-  @Mapping(
-      target = "change.eventProperty",
-      expression =
-          "java(mapEventPropertyIfNotNull(eventChangeLogDto, eventChangeLogDto.eventProperty()))")
-  EventChangeLog map(EventChangeLogDto dto);
+  @Mapping(target = "change.dataValue", source = "eventChangeLog")
+  @Mapping(target = "change.dataValue", source = "eventChangeLog")
+  EventChangeLog map(org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
 
-  @Mapping(target = "uid", source = "userUid")
-  @Mapping(target = "username", source = "username")
-  @Mapping(target = "firstName", source = "firstName")
-  @Mapping(target = "surname", source = "surname")
-  User mapUser(EventChangeLogDto dto);
+  @Mapping(target = "uid", source = "createdBy.uid")
+  @Mapping(target = "username", source = "createdBy.username")
+  @Mapping(target = "firstName", source = "createdBy.firstName")
+  @Mapping(target = "surname", source = "createdBy.surname")
+  User mapUser(org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
 
-  @Mapping(target = "dataElement", source = "dataElementUid")
+  @Mapping(target = "dataElement", source = "dataElement.uid")
   @Mapping(target = "previousValue", source = "previousValue")
   @Mapping(target = "currentValue", source = "currentValue")
-  DataValueChange mapDataValueChange(EventChangeLogDto dto);
+  DataValueChange mapDataValueChange(
+      org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
 
   @Mapping(target = "property", source = "eventProperty")
   @Mapping(target = "previousValue", source = "previousValue")
   @Mapping(target = "currentValue", source = "currentValue")
-  EventPropertyChange mapEventPropertyChange(EventChangeLogDto dto);
-
-  default DataValueChange mapDataValueIfNotNull(EventChangeLogDto dto, String dataElementUid) {
-    if (dataElementUid == null) {
-      return null;
-    }
-    return mapDataValueChange(dto);
-  }
-
-  default EventPropertyChange mapEventPropertyIfNotNull(
-      EventChangeLogDto dto, String eventProperty) {
-    if (eventProperty == null) {
-      return null;
-    }
-    return mapEventPropertyChange(dto);
-  }
+  EventPropertyChange mapEventPropertyChange(
+      org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
 }

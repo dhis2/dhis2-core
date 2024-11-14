@@ -215,6 +215,11 @@ public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, Oidc
   }
 
   @Override
+  public boolean isEmailVerified() {
+    return user.isEmailVerified();
+  }
+
+  @Override
   public boolean hasAnyRestrictions(Collection<String> restrictions) {
     return user.hasAnyRestrictions(restrictions);
   }

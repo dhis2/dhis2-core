@@ -5,7 +5,7 @@
       "categoryOptionAttribute": true,
       "categoryOptionComboAttribute": true,
       "dataElementAttribute": true,
-      "name": "some attribute",
+      "name": "idScheme related attribute",
       "organisationUnitAttribute": true,
       "programAttribute": true,
       "programStageAttribute": true,
@@ -221,6 +221,14 @@
     },
     {
       "id": "SeWJkpLAyLt",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "categoryOptionCombo SeWJkpLAyLt"
+        }
+      ],
       "categoryCombo": {
         "id": "O4VaNks6tta"
       },
@@ -261,6 +269,14 @@
     },
     {
       "id": "xwZ2u3WyQR0",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "categoryOption xwZ2u3WyQR0"
+        }
+      ],
       "code": "Unicef",
       "name": "Unicef",
       "sharing": {
@@ -282,6 +298,14 @@
     },
     {
       "id": "i4Nbp8S2G6A",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "categoryOption i4Nbp8S2G6A"
+        }
+      ],
       "code": "Project01",
       "description": "used to test sharing when owner is null",
       "name": "Improve access to clean water",
@@ -539,18 +563,26 @@
   "organisationUnits": [
     {
       "id": "h4w96yEMlzO",
-      "code": "test-orgunit-code",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "orgUnit h4w96yEMlzO"
+        }
+      ],
+      "code": "h4w96yEMlzO code",
       "created": "2020-05-31T08:56:15.922",
-      "description": "test-orgunit",
+      "description": "h4w96yEMlzO description",
       "lastUpdated": "2020-05-31T11:41:22.384",
       "lastUpdatedBy": {
         "id": "tTgjgobT1oS"
       },
       "level": 1,
-      "name": "test-orgunit",
+      "name": "h4w96yEMlzO name",
       "openingDate": "2020-05-31T00:00:00.000",
       "path": "/h4w96yEMlzO",
-      "shortName": "test-orgunit",
+      "shortName": "h4w96yEMlzO short name",
       "user": {
         "id": "tTgjgobT1oS"
       }
@@ -664,21 +696,21 @@
           "attribute": {
             "id": "j45AR9cBQKc"
           },
-          "value": "multi-org-attribute"
+          "value": "orgUnit DiszpKrYNg8"
         }
       ],
-      "code": "org3",
+      "code": "DiszpKrYNg8 code",
       "created": "2020-05-31T08:56:15.922",
-      "description": "test-orgunit-3",
+      "description": "DiszpKrYNg8 description",
       "lastUpdated": "2020-05-31T11:41:22.384",
       "lastUpdatedBy": {
         "id": "tTgjgobT1oS"
       },
       "level": 1,
-      "name": "test-orgunit-3",
+      "name": "DiszpKrYNg8 name",
       "openingDate": "2020-05-31T00:00:00.000",
       "path": "/DiszpKrYNg8",
-      "shortName": "test-orgunit-3",
+      "shortName": "DiszpKrYNg8 shortName",
       "user": {
         "id": "tTgjgobT1oS"
       }
@@ -715,7 +747,16 @@
   "programStages": [
     {
       "id": "NpsdDv6kKSO",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "programStage NpsdDv6kKSO"
+        }
+      ],
       "autoGenerateEvent": true,
+      "code": "NpsdDv6kKSO code",
       "created": "2020-05-31T09:02:52.687",
       "description": "test-program-stage",
       "displayGenerateEventBox": true,
@@ -974,8 +1015,7 @@
           "programStage": {
             "id": "NpsdDv6kKSg"
           },
-          "sharing": {
-          },
+          "sharing": {},
           "sortOrder": 1
         }
       ],
@@ -993,7 +1033,7 @@
           "attribute": {
             "id": "j45AR9cBQKc"
           },
-          "value": "multi-program-stage-attribute"
+          "value": "programStage qLZC0lvvxQH"
         }
       ],
       "autoGenerateEvent": true,
@@ -1024,8 +1064,7 @@
           "programStage": {
             "id": "qLZC0lvvxQH"
           },
-          "sharing": {
-          },
+          "sharing": {},
           "sortOrder": 1
         }
       ],
@@ -1232,10 +1271,19 @@
     {
       "id": "BFcipDERJnf",
       "accessLevel": "OPEN",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "programStage NpsdDv6kKSO"
+        }
+      ],
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
       "completeEventsExpiryDays": 0,
+      "code": "BFcipDERJnf code",
       "created": "2020-05-31T09:02:52.718",
       "displayIncidentDate": true,
       "expiryDays": 0,
@@ -1245,7 +1293,7 @@
       },
       "maxTeiCountToReturn": 0,
       "minAttributesRequiredToSearch": 1,
-      "name": "test-program",
+      "name": "BFcipDERJnf name",
       "organisationUnits": [
         {
           "id": "h4w96yEMlzO"
@@ -1280,8 +1328,7 @@
             "id": "BFcipDERJnf"
           },
           "searchable": true,
-          "sharing": {
-          },
+          "sharing": {},
           "sortOrder": 1,
           "trackedEntityAttribute": {
             "id": "dIVt4l5vIOa"
@@ -1308,8 +1355,7 @@
             "id": "BFcipDERJnf"
           },
           "searchable": true,
-          "sharing": {
-          },
+          "sharing": {},
           "sortOrder": 2,
           "trackedEntityAttribute": {
             "id": "fRGt4l6yIRb"
@@ -1406,13 +1452,13 @@
           "attribute": {
             "id": "j45AR9cBQKc"
           },
-          "value": "multi-program-attribute"
+          "value": "program iS7eutanDry"
         }
       ],
       "categoryCombo": {
         "id": "O4VaNks6tta"
       },
-      "code": "multi-program",
+      "code": "iS7eutanDry code",
       "completeEventsExpiryDays": 0,
       "created": "2022-04-22T05:57:48.409",
       "displayIncidentDate": true,

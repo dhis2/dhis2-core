@@ -29,6 +29,7 @@ package org.hisp.dhis.merge;
 
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.MergeReport;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +39,27 @@ import org.springframework.transaction.annotation.Transactional;
  * @author david mackessy
  */
 public interface MergeService {
+
+  /**
+   * Processes a merge in full.
+   *
+   * @param mergeParams {@link MergeParams} to process
+   * @return updated {@link MergeReport} with any errors
+   */
+  @Transactional
+  default MergeReport processMerge(@Nonnull MergeParams mergeParams) throws ConflictException {
+    MergeReport mergeReport = new MergeReport();
+
+    MergeRequest mergeRequest = validate(mergeParams, mergeReport);
+    if (mergeReport.hasErrorMessages())
+      throw new ConflictException("Merge validation error").setMergeReport(mergeReport);
+
+    merge(mergeRequest, mergeReport);
+    if (mergeReport.hasErrorMessages())
+      throw new ConflictException("Merge error").setMergeReport(mergeReport);
+
+    return mergeReport;
+  }
 
   /**
    * This method transforms a {@link MergeParams} to a {@link MergeRequest}. If there are any
@@ -57,6 +79,5 @@ public interface MergeService {
    * @param mergeReport report to be updated if any issues/errors with the {@link MergeRequest}
    * @return {@link MergeReport}
    */
-  @Transactional
   MergeReport merge(@Nonnull MergeRequest request, @Nonnull MergeReport mergeReport);
 }

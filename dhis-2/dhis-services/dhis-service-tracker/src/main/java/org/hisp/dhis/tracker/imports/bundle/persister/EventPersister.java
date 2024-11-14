@@ -184,7 +184,7 @@ public class EventPersister
       Event event,
       UserDetails user) {
     Map<String, EventDataValue> dataValueDBMap =
-        Optional.ofNullable(preheat.getEvent(UID.of(event)))
+        Optional.ofNullable(event)
             .map(
                 a ->
                     a.getEventDataValues().stream()
@@ -205,15 +205,15 @@ public class EventPersister
             eventChangeLogService.addDataValueChangeLog(
                 event,
                 dataElement,
-                dataValue.getValue(),
                 dbDataValue.getValue(),
+                dataValue.getValue(),
                 UPDATE,
                 user.getUsername());
             updateDataValue(
                 dbDataValue, dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isDeletion(dbDataValue, dataValue)) {
             eventChangeLogService.addDataValueChangeLog(
-                event, dataElement, null, dbDataValue.getValue(), DELETE, user.getUsername());
+                event, dataElement, dbDataValue.getValue(), null, DELETE, user.getUsername());
             deleteDataValue(dbDataValue, event, dataElement, entityManager, preheat);
           }
         });
@@ -243,7 +243,7 @@ public class EventPersister
       ChangeLogType changeLogType = getChangeLogType(originalEvent, event, valueExtractor);
 
       eventChangeLogService.addEventPropertyChangeLog(
-          event, propertyName, newValue, originalValue, changeLogType, user.getUsername());
+          event, propertyName, originalValue, newValue, changeLogType, user.getUsername());
     }
   }
 
