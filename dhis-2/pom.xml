@@ -2068,7 +2068,6 @@ jasperreports.version=${jasperreports.version}
           <configuration>
             <failOnWarning>true</failOnWarning>
             <ignoredUnusedDeclaredDependencies>
-              <ignoredUnusedDeclaredDependency>commons-codec:commons-codec</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.geotools:gt-main</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.geotools:gt-epsg-hsql</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.geotools:gt-cql</ignoredUnusedDeclaredDependency>
@@ -2120,7 +2119,6 @@ jasperreports.version=${jasperreports.version}
               <ignoredUnusedDeclaredDependency>org.apache.activemq:artemis-jakarta-server</ignoredUnusedDeclaredDependency>
             </ignoredUnusedDeclaredDependencies>
             <ignoredUsedUndeclaredDependencies>
-              <ignoredUnusedDeclaredDependency>commons-codec:commons-codec</ignoredUnusedDeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.flywaydb:flyway-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.antlr:antlr4-runtime</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.junit.jupiter:junit-jupiter-api</ignoredUsedUndeclaredDependency>
@@ -2136,7 +2134,6 @@ jasperreports.version=${jasperreports.version}
             </ignoredUsedUndeclaredDependencies>
             <ignoredNonTestScopedDependencies>
               <!-- Setting the scope to test makes the build fail -->
-              <ignoredUnusedDeclaredDependency>commons-codec:commons-codec</ignoredUnusedDeclaredDependency>
               <ignoredNonTestScopedDependency>org.springframework:spring-beans</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>io.debezium:debezium-connector-postgres</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>org.springframework.security:spring-security-core</ignoredNonTestScopedDependency>

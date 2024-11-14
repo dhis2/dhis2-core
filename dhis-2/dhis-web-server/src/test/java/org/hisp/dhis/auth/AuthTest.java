@@ -39,10 +39,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.Base64;
 import org.hisp.dhis.system.util.HttpHeadersBuilder;
 import org.hisp.dhis.test.IntegrationTest;
 import org.hisp.dhis.webapi.controller.security.LoginRequest;
@@ -175,8 +175,6 @@ class AuthTest {
     assertEquals(LoginResponse.STATUS.SUCCESS, body.getLoginStatus());
     HttpHeaders headers = loginResponse.getHeaders();
 
-    log.info("Headers: " + headers);
-
     assertEquals("/dhis-web-dashboard/", body.getRedirectUrl());
 
     assertNotNull(headers);
@@ -270,20 +268,19 @@ class AuthTest {
     testRedirectUrl(url, url);
   }
 
-  private static RestTemplate createRestTemplateWithHeader() {
+  private static RestTemplate createRestTemplateWithBasicAuthHeader() {
     RestTemplate restTemplate = new RestTemplate();
 
     // Create the authentication header
-    String auth = "admin:district";
-    byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(StandardCharsets.UTF_8));
-    String authHeader = "Basic " + new String(encodedAuth);
+    String authHeader =
+        Base64.getUrlEncoder().encodeToString("admin:district".getBytes(StandardCharsets.UTF_8));
 
     // Add header to every request
     restTemplate
         .getInterceptors()
         .add(
             (request, body, execution) -> {
-              request.getHeaders().add(HttpHeaders.AUTHORIZATION, authHeader);
+              request.getHeaders().add(HttpHeaders.AUTHORIZATION, "Basic " + authHeader);
               return execution.execute(request, body);
             });
 
@@ -293,19 +290,12 @@ class AuthTest {
   private static void changeSystemSetting(String key, String value) {
     String port = Integer.toString(availablePort);
 
-    // Create headers
     HttpHeaders headers = new HttpHeaders();
-
-    // Set 'Content-Type' header
     headers.setContentType(MediaType.TEXT_PLAIN);
 
-    RestTemplate restTemplate = createRestTemplateWithHeader();
-    // Body of the request
-    String body = value;
-    // Combine headers and body into a HttpEntity
-    HttpEntity<String> requestEntity = new HttpEntity<>(body, headers);
+    RestTemplate restTemplate = createRestTemplateWithBasicAuthHeader();
+    HttpEntity<String> requestEntity = new HttpEntity<>(value, headers);
 
-    // Send the POST request
     ResponseEntity<String> response =
         restTemplate.exchange(
             "http://localhost:" + port + "/api/systemSettings/" + key,
