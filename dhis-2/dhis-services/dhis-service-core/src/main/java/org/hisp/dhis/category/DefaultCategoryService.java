@@ -669,6 +669,11 @@ public class DefaultCategoryService implements CategoryService {
         UID.toValueList(categoryOptionsUids));
   }
 
+  @Override
+  public List<CategoryOptionCombo> getCategoryOptionCombosByUid(Collection<UID> uids) {
+    return List.of();
+  }
+
   // -------------------------------------------------------------------------
   // DataElementOperand
   // -------------------------------------------------------------------------

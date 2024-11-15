@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,11 +38,16 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonCategoryOptionCombo;
+import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -67,11 +74,11 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
     categoryService.addCategoryOption(catOptC);
 
     CategoryOptionCombo cocA =
-        createCategoryOptionCombo("CatOptCombo A", "CocUid0001", catComboA, catOptA);
+        createCategoryOptionCombo("CatOptCombo A", "CocUid00001", catComboA, catOptA);
     CategoryOptionCombo cocB =
-        createCategoryOptionCombo("CatOptCombo B", "CocUid0002", catComboB, catOptB);
+        createCategoryOptionCombo("CatOptCombo B", "CocUid00002", catComboB, catOptB);
     CategoryOptionCombo cocC =
-        createCategoryOptionCombo("CatOptCombo C", "CocUid0003", catComboC, catOptC);
+        createCategoryOptionCombo("CatOptCombo C", "CocUid00003", catComboC, catOptC);
     categoryService.addCategoryOptionCombo(cocA);
     categoryService.addCategoryOptionCombo(cocB);
     categoryService.addCategoryOptionCombo(cocC);
@@ -114,5 +121,87 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
 
     assertFalse(
         catOptionComboNames.contains("default"), "default catOptionCombo is not in payload");
+  }
+
+  @Test
+  @DisplayName("Invalid merge with source and target missing")
+  void testInvalidMerge() {
+    JsonMixed mergeResponse =
+        POST(
+                "/categoryOptionCombos/merge",
+                """
+            {
+                "sources": ["Uid00000010"],
+                "target": "Uid00000012",
+                "deleteSources": true,
+                "dataMergeStrategy": "DISCARD"
+            }""")
+            .content(HttpStatus.CONFLICT);
+    assertEquals("Conflict", mergeResponse.getString("httpStatus").string());
+    assertEquals("WARNING", mergeResponse.getString("status").string());
+    assertEquals(
+        "One or more errors occurred, please see full details in merge report.",
+        mergeResponse.getString("message").string());
+
+    JsonArray errors =
+        mergeResponse.getObject("response").getObject("mergeReport").getArray("mergeErrors");
+    JsonObject error1 = errors.getObject(0);
+    JsonObject error2 = errors.getObject(1);
+    assertEquals(
+        "SOURCE CategoryOptionCombo does not exist: `Uid00000010`",
+        error1.getString("message").string());
+    assertEquals(
+        "TARGET CategoryOptionCombo does not exist: `Uid00000012`",
+        error2.getString("message").string());
+  }
+
+  @Test
+  @DisplayName("invalid merge, missing required auth")
+  void testMergeNoAuth() {
+    switchToNewUser("noAuth", "NoAuth");
+    JsonMixed mergeResponse =
+        POST(
+                "/categoryOptionCombos/merge",
+                """
+            {
+                "sources": ["Uid00000010"],
+                "target": "Uid00000012",
+                "deleteSources": true,
+                "dataMergeStrategy": "DISCARD"
+            }""")
+            .content(HttpStatus.FORBIDDEN);
+    assertEquals("Forbidden", mergeResponse.getString("httpStatus").string());
+    assertEquals("ERROR", mergeResponse.getString("status").string());
+    assertEquals(
+        "Access is denied, requires one Authority from [F_CATEGORY_OPTION_COMBO_MERGE]",
+        mergeResponse.getString("message").string());
+  }
+
+  @Test
+  @DisplayName("invalid merge, missing dataMergeStrategy")
+  void mergeMissingDataMergeStrategyTest() {
+    JsonWebMessage validationErrorMsg =
+        assertWebMessage(
+            "Conflict",
+            409,
+            "WARNING",
+            "One or more errors occurred, please see full details in merge report.",
+            POST(
+                    "/categoryOptionCombos/merge",
+                    """
+                    {
+                        "sources": ["CocUid00001"],
+                        "target": "CocUid00002",
+                        "deleteSources": true
+                    }""")
+                .content(HttpStatus.CONFLICT));
+
+    JsonErrorReport errorReport =
+        validationErrorMsg.find(
+            JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E1534);
+    assertNotNull(errorReport);
+    assertEquals(
+        "dataMergeStrategy field must be specified. With value `DISCARD` or `LAST_UPDATED`",
+        errorReport.getMessage());
   }
 }

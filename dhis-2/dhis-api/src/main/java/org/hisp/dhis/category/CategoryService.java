@@ -479,6 +479,14 @@ public interface CategoryService {
   List<CategoryOptionCombo> getCategoryOptionCombosByCategoryOption(
       Collection<UID> categoryOptions);
 
+  /**
+   * Retrieves all CategoryOptionCombos by {@link UID}.
+   *
+   * @param uids {@link UID}s to search for
+   * @return categoryOptionCombos with refs to {@link UID}s
+   */
+  List<CategoryOptionCombo> getCategoryOptionCombosByUid(Collection<UID> uids);
+
   // -------------------------------------------------------------------------
   // DataElementOperand
   // -------------------------------------------------------------------------
