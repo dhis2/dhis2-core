@@ -29,7 +29,6 @@ package org.hisp.dhis.db.sql;
 
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
@@ -305,9 +304,7 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
    * @return a create named collection statement.
    */
   public String createNamedCollection(String name, Map<String, Object> keyValues) {
-    String pairs =
-        keyValues.entrySet().stream().map(this::toPairString).collect(Collectors.joining(","));
-
+    String pairs = toCommaSeparated(keyValues.entrySet(), this::toPairString);
     return String.format("create named collection %s as %s;", quote(name), pairs);
   }
 
