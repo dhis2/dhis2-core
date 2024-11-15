@@ -296,7 +296,7 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   /**
    * @param name the collection name.
-   * @param keyValuePairs the map of key value pairs.
+   * @param keyValues the map of key value pairs.
    * @return a create named collection statement.
    */
   public String createNamedCollection(String name, Map<String, Object> keyValues) {
