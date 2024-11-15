@@ -290,11 +290,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String dropTableIfExists(String name) {
-    return String.format("drop table if exists %s;", quote(name));
-  }
-
-  @Override
   public String dropTableIfExistsCascade(Table table) {
     return dropTableIfExistsCascade(table.getName());
   }

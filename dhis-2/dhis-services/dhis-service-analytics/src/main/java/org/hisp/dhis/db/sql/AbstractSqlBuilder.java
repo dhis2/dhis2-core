@@ -134,6 +134,11 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   // Table
 
   @Override
+  public String dropTableIfExists(String name) {
+    return String.format("drop table if exists %s;", quote(name));
+  }
+
+  @Override
   public String analyzeTable(String name) {
     return notSupported();
   }
