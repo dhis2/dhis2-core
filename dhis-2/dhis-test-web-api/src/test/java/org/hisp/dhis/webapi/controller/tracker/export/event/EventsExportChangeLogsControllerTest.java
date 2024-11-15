@@ -34,6 +34,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -459,7 +460,11 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
         () ->
             assertEquals(dataElement.getUid(), actual.getChange().getDataValue().getDataElement()),
         () -> assertEquals(previousValue, actual.getChange().getDataValue().getPreviousValue()),
-        () -> assertEquals(currentValue, actual.getChange().getDataValue().getCurrentValue()));
+        () -> assertEquals(currentValue, actual.getChange().getDataValue().getCurrentValue()),
+        () ->
+            assertFalse(
+                actual.getChange().has("eventProperty"),
+                "Event property not expected to be present, but it was"));
   }
 
   private static void assertPagerLink(String actual, int page, int pageSize, String start) {
@@ -471,14 +476,17 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
   }
 
   private static void assertPropertyCreateExists(
-      String property, String currentValue, List<JsonEventChangeLog> logs) {
+      String property, String currentValue, List<JsonEventChangeLog> changeLogs) {
     assertTrue(
-        logs.stream().anyMatch(log -> isEventPropertyCreate(log, property, currentValue)),
+        changeLogs.stream().anyMatch(cl -> isEventPropertyCreate(cl, property, currentValue)),
         "Expected a "
             + property
             + " change with value "
             + currentValue
             + " among the change log entries.");
+    assertTrue(
+        changeLogs.stream().noneMatch(cl -> cl.getChange().has("dataValue")),
+        "Data value change not expected to be present, but it was");
   }
 
   private static boolean isEventPropertyCreate(
