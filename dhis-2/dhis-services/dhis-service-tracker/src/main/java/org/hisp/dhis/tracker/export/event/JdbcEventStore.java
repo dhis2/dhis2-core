@@ -636,7 +636,6 @@ class JdbcEventStore {
     sqlBuilder.append(COLUMN_EVENT_ID);
     sqlBuilder.append("=cm.evn_id ");
 
-    // TODO(ivo) use constant to refer to ev_eventdatavalues
     if (TrackerIdScheme.UID
         != queryParams.getIdSchemeParams().getDataElementIdScheme().getIdScheme()) {
       sqlBuilder.append(
@@ -647,7 +646,7 @@ left join
     ) as eventdatavalue(dataelement_uid, value)
     on true
 left join dataelement de on de.uid = eventdatavalue.dataelement_uid
-where eventdatavalue.dataelement_uid is not null -- why is this necessary? how can there be empty keys?
+where eventdatavalue.dataelement_uid is not null
 """);
     }
 
