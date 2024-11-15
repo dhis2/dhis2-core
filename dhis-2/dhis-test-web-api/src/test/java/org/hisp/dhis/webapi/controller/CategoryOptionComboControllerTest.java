@@ -163,12 +163,12 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
         POST(
                 "/categoryOptionCombos/merge",
                 """
-            {
-                "sources": ["Uid00000010"],
-                "target": "Uid00000012",
-                "deleteSources": true,
-                "dataMergeStrategy": "DISCARD"
-            }""")
+                {
+                    "sources": ["Uid00000010"],
+                    "target": "Uid00000012",
+                    "deleteSources": true,
+                    "dataMergeStrategy": "DISCARD"
+                }""")
             .content(HttpStatus.FORBIDDEN);
     assertEquals("Forbidden", mergeResponse.getString("httpStatus").string());
     assertEquals("ERROR", mergeResponse.getString("status").string());
@@ -203,5 +203,33 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
     assertEquals(
         "dataMergeStrategy field must be specified. With value `DISCARD` or `LAST_UPDATED`",
         errorReport.getMessage());
+  }
+
+  @Test
+  @DisplayName("invalid merge, UID is for type other than CategoryOptionCombo")
+  void mergeIncorrectTypeTest() {
+    JsonWebMessage validationErrorMsg =
+        assertWebMessage(
+            "Conflict",
+            409,
+            "WARNING",
+            "One or more errors occurred, please see full details in merge report.",
+            POST(
+                    "/categoryOptionCombos/merge",
+                    """
+                {
+                    "sources": ["bjDvmb4bfuf"],
+                    "target": "CocUid00002",
+                    "deleteSources": true,
+                    "dataMergeStrategy": "DISCARD"
+                }""")
+                .content(HttpStatus.CONFLICT));
+
+    JsonErrorReport errorReport =
+        validationErrorMsg.find(
+            JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E1533);
+    assertNotNull(errorReport);
+    assertEquals(
+        "SOURCE CategoryOptionCombo does not exist: `bjDvmb4bfuf`", errorReport.getMessage());
   }
 }
