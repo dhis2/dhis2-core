@@ -90,7 +90,7 @@ public class AnalyticsDatabaseInit {
 
   /** Work for initializing a PostgreSQL analytics database. */
   private void initPostgreSql() {
-    // Create PostgreSQL engine tables
+    // No work at this point
   }
 
   /**
