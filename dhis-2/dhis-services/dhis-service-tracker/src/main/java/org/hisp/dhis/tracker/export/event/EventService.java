@@ -37,6 +37,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
@@ -62,23 +63,11 @@ public interface EventService {
 
   /**
    * Get event matching given {@code UID} under the privileges of the currently authenticated user.
-   * Use {@link #getEvent(UID, EventParams)} instead to also get the events relationships.
+   * Metadata identifiers will use the {@code idScheme} {@link TrackerIdSchemeParam#UID}. Use {@link
+   * #getEvent(UID, TrackerIdSchemeParams, EventParams)} instead to also get the events
+   * relationships and specify different {@code idSchemes}.
    */
   Event getEvent(UID uid) throws NotFoundException, ForbiddenException;
-
-  /**
-   * Get event matching given {@code UID} under the privileges of the currently authenticated user.
-   * Metadata identifiers will use the {@code idScheme} defined by {@link TrackerIdSchemeParams}.
-   * Use {@link #getEvent(UID, EventParams)} instead to also get the events relationships.
-   */
-  Event getEvent(UID uid, @Nonnull TrackerIdSchemeParams idSchemeParams)
-      throws NotFoundException, ForbiddenException;
-
-  /**
-   * Get event matching given {@code UID} and params under the privileges of the currently
-   * authenticated user.
-   */
-  Event getEvent(UID uid, EventParams eventParams) throws NotFoundException, ForbiddenException;
 
   /**
    * Get event matching given {@code UID} and params under the privileges of the currently

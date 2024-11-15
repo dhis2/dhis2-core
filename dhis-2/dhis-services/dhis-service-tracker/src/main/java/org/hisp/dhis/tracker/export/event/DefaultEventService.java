@@ -154,19 +154,6 @@ class DefaultEventService implements EventService {
   }
 
   @Override
-  public Event getEvent(@Nonnull UID event, @Nonnull TrackerIdSchemeParams idSchemeParams)
-      throws ForbiddenException, NotFoundException {
-    return getEvent(event, idSchemeParams, EventParams.FALSE, getCurrentUserDetails());
-  }
-
-  @Override
-  public Event getEvent(@Nonnull UID event, @Nonnull EventParams eventParams)
-      throws ForbiddenException, NotFoundException {
-    return getEvent(
-        event, TrackerIdSchemeParams.builder().build(), eventParams, getCurrentUserDetails());
-  }
-
-  @Override
   public Event getEvent(
       @Nonnull UID event,
       @Nonnull TrackerIdSchemeParams idSchemeParams,
@@ -260,7 +247,7 @@ class DefaultEventService implements EventService {
       @Nonnull UID uid, @Nonnull EventParams eventParams) {
     Event event;
     try {
-      event = getEvent(uid, eventParams);
+      event = getEvent(uid, TrackerIdSchemeParams.builder().build(), eventParams);
     } catch (NotFoundException | ForbiddenException e) {
       // events are not shown in relationships if the user has no access to them
       return null;
