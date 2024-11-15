@@ -5,7 +5,7 @@
       "categoryOptionAttribute": true,
       "categoryOptionComboAttribute": true,
       "dataElementAttribute": true,
-      "name": "some attribute",
+      "name": "idScheme related attribute",
       "organisationUnitAttribute": true,
       "programAttribute": true,
       "programStageAttribute": true,
@@ -221,6 +221,14 @@
     },
     {
       "id": "SeWJkpLAyLt",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "categoryOptionCombo SeWJkpLAyLt"
+        }
+      ],
       "categoryCombo": {
         "id": "O4VaNks6tta"
       },
@@ -261,6 +269,14 @@
     },
     {
       "id": "xwZ2u3WyQR0",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "categoryOption xwZ2u3WyQR0"
+        }
+      ],
       "code": "Unicef",
       "name": "Unicef",
       "sharing": {
@@ -282,6 +298,14 @@
     },
     {
       "id": "i4Nbp8S2G6A",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "categoryOption i4Nbp8S2G6A"
+        }
+      ],
       "code": "Project01",
       "description": "used to test sharing when owner is null",
       "name": "Improve access to clean water",
@@ -672,21 +696,21 @@
           "attribute": {
             "id": "j45AR9cBQKc"
           },
-          "value": "multi-org-attribute"
+          "value": "orgUnit DiszpKrYNg8"
         }
       ],
-      "code": "org3",
+      "code": "DiszpKrYNg8 code",
       "created": "2020-05-31T08:56:15.922",
-      "description": "test-orgunit-3",
+      "description": "DiszpKrYNg8 description",
       "lastUpdated": "2020-05-31T11:41:22.384",
       "lastUpdatedBy": {
         "id": "tTgjgobT1oS"
       },
       "level": 1,
-      "name": "test-orgunit-3",
+      "name": "DiszpKrYNg8 name",
       "openingDate": "2020-05-31T00:00:00.000",
       "path": "/DiszpKrYNg8",
-      "shortName": "test-orgunit-3",
+      "shortName": "DiszpKrYNg8 shortName",
       "user": {
         "id": "tTgjgobT1oS"
       }
@@ -1009,7 +1033,7 @@
           "attribute": {
             "id": "j45AR9cBQKc"
           },
-          "value": "multi-program-stage-attribute"
+          "value": "programStage qLZC0lvvxQH"
         }
       ],
       "autoGenerateEvent": true,
@@ -1421,13 +1445,13 @@
           "attribute": {
             "id": "j45AR9cBQKc"
           },
-          "value": "multi-program-attribute"
+          "value": "program iS7eutanDry"
         }
       ],
       "categoryCombo": {
         "id": "O4VaNks6tta"
       },
-      "code": "multi-program",
+      "code": "iS7eutanDry code",
       "completeEventsExpiryDays": 0,
       "created": "2022-04-22T05:57:48.409",
       "displayIncidentDate": true,

@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
+import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
+import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
+
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,7 +45,6 @@ import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -51,7 +54,6 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
-import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
@@ -172,32 +174,22 @@ public class EventPersister
           EventDataValue dbDataValue = dataValueDBMap.get(dataElement.getUid());
 
           if (isNewDataValue(dbDataValue, dataValue)) {
-            logDataValueChange(
-                user.getUsername(),
-                dataElement,
-                event,
-                dataValue.getValue(),
-                dataValue.isProvidedElsewhere(),
-                ChangeLogType.CREATE);
+            eventChangeLogService.addDataValueChangeLog(
+                event, dataElement, dataValue.getValue(), null, CREATE, user.getUsername());
             saveDataValue(dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isUpdate(dbDataValue, dataValue)) {
-            logDataValueChange(
-                user.getUsername(),
-                dataElement,
+            eventChangeLogService.addDataValueChangeLog(
                 event,
+                dataElement,
+                dataValue.getValue(),
                 dbDataValue.getValue(),
-                dbDataValue.getProvidedElsewhere(),
-                ChangeLogType.UPDATE);
+                UPDATE,
+                user.getUsername());
             updateDataValue(
                 dbDataValue, dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isDeletion(dbDataValue, dataValue)) {
-            logDataValueChange(
-                user.getUsername(),
-                dataElement,
-                event,
-                dbDataValue.getValue(),
-                dbDataValue.getProvidedElsewhere(),
-                ChangeLogType.DELETE);
+            eventChangeLogService.addDataValueChangeLog(
+                event, dataElement, null, dbDataValue.getValue(), DELETE, user.getUsername());
             deleteDataValue(dbDataValue, event, dataElement, entityManager, preheat);
           }
         });
@@ -260,26 +252,6 @@ public class EventPersister
     }
 
     event.getEventDataValues().remove(eventDataValue);
-  }
-
-  private void logDataValueChange(
-      String userName,
-      DataElement de,
-      Event event,
-      String value,
-      boolean providedElsewhere,
-      ChangeLogType changeLogType) {
-
-    TrackedEntityDataValueChangeLog changeLog = new TrackedEntityDataValueChangeLog();
-    changeLog.setEvent(event);
-    changeLog.setValue(value);
-    changeLog.setAuditType(changeLogType);
-    changeLog.setDataElement(de);
-    changeLog.setModifiedBy(userName);
-    changeLog.setProvidedElsewhere(providedElsewhere);
-    changeLog.setCreated(new Date());
-
-    eventChangeLogService.addTrackedEntityDataValueChangeLog(changeLog);
   }
 
   @Override

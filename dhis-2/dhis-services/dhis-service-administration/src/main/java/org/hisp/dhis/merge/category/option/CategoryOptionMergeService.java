@@ -25,12 +25,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.category;
+package org.hisp.dhis.merge.category.option;
 
 import jakarta.persistence.EntityManager;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -43,9 +41,9 @@ import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeService;
+import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.merge.MergeValidator;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Main class for a {@link CategoryOption} merge.
@@ -65,21 +63,10 @@ public class CategoryOptionMergeService implements MergeService {
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
-    log.info("Validating CategoryOption merge request");
-
-    // sources
-    Set<UID> sources = new HashSet<>();
-    validator.verifySources(params.getSources(), sources, mergeReport, CategoryOption.class);
-
-    // target
-    validator.checkIsTargetInSources(
-        sources, params.getTarget(), mergeReport, CategoryOption.class);
-
-    return validator.verifyTarget(mergeReport, sources, params, CategoryOption.class);
+    return validator.validateUIDs(params, mergeReport, MergeType.CATEGORY_OPTION);
   }
 
   @Override
-  @Transactional
   public MergeReport merge(@Nonnull MergeRequest request, @Nonnull MergeReport mergeReport) {
     log.info("Performing CategoryOption merge");
 

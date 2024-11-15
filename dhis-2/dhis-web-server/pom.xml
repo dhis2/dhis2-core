@@ -207,6 +207,7 @@
             <APPS>./apps-to-bundle.json</APPS>
             <DEFAULT_BRANCH>master</DEFAULT_BRANCH>
           </environmentVariables>
+          <skip>${skip.bundle.apps}</skip>
         </configuration>
         <executions>
           <execution>

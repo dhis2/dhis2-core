@@ -49,5 +49,7 @@ public class TrackedEntityDataValueChangeLogDeletionHandler extends JdbcDeletion
     delete(
         "delete from trackedentitydatavalueaudit where dataelementid = :id",
         Map.of("id", dataElement.getId()));
+    delete(
+        "delete from eventchangelog where dataelementid = :id", Map.of("id", dataElement.getId()));
   }
 }

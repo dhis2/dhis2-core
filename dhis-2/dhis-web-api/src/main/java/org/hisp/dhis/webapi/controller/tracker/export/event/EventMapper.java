@@ -46,7 +46,6 @@ import org.mapstruct.Mapping;
 @Mapper(
     uses = {
       DataValueMapper.class,
-      CategoryOptionMapper.class,
       InstantMapper.class,
       UIDMapper.class,
       NoteMapper.class,
@@ -116,8 +115,14 @@ public interface EventMapper {
   @Mapping(target = "createdAtClient", source = "createdAtClient")
   @Mapping(target = "updatedAt", source = "lastUpdated")
   @Mapping(target = "updatedAtClient", source = "lastUpdatedAtClient")
-  @Mapping(target = "attributeOptionCombo", source = "attributeOptionCombo.uid")
-  @Mapping(target = "attributeCategoryOptions", source = "attributeOptionCombo.categoryOptions")
+  @Mapping(
+      target = "attributeOptionCombo",
+      source = "attributeOptionCombo",
+      qualifiedByName = "categoryOptionComboToString")
+  @Mapping(
+      target = "attributeCategoryOptions",
+      source = "attributeOptionCombo.categoryOptions",
+      qualifiedByName = "categoryOptionsToString")
   @Mapping(target = "completedAt", source = "completedDate")
   @Mapping(target = "createdBy", source = "createdByUserInfo")
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")

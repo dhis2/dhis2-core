@@ -28,6 +28,7 @@
 package org.hisp.dhis.query.operators;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.Collection;
@@ -85,6 +86,13 @@ public class EqualOperator<T extends Comparable<? super T>> extends Operator<T> 
       }
 
       return builder.equal(builder.size(root.get(queryPath.getPath())), value);
+    }
+    if (queryPath.haveAlias()) {
+      for (Join<Y, ?> join : root.getJoins()) {
+        if (join.getAlias().equals(queryPath.getAlias()[0])) {
+          return builder.equal(join.get(queryPath.getProperty().getFieldName()), args.get(0));
+        }
+      }
     }
     return builder.equal(root.get(queryPath.getPath()), args.get(0));
   }

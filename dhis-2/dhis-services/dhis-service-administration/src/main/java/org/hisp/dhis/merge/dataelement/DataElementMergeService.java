@@ -29,9 +29,7 @@ package org.hisp.dhis.merge.dataelement;
 
 import com.google.common.collect.ImmutableList;
 import jakarta.persistence.EntityManager;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -47,13 +45,13 @@ import org.hisp.dhis.merge.MergeHandler;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeService;
+import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.merge.MergeValidator;
 import org.hisp.dhis.merge.dataelement.handler.AnalyticalDataElementMergeHandler;
 import org.hisp.dhis.merge.dataelement.handler.DataDataElementMergeHandler;
 import org.hisp.dhis.merge.dataelement.handler.MetadataDataElementMergeHandler;
 import org.hisp.dhis.merge.dataelement.handler.TrackerDataElementMergeHandler;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Main class for a {@link org.hisp.dhis.dataelement.DataElement} merge.
@@ -81,23 +79,15 @@ public class DataElementMergeService implements MergeService {
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
-    log.info("Validating DataElement merge request");
-    if (params.getDataMergeStrategy() == null) {
-      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1556));
-      return null;
-    }
-
-    // sources
-    Set<UID> sources = new HashSet<>();
-    validator.verifySources(params.getSources(), sources, mergeReport, DataElement.class);
-
-    // target
-    validator.checkIsTargetInSources(sources, params.getTarget(), mergeReport, DataElement.class);
-    MergeRequest request = validator.verifyTarget(mergeReport, sources, params, DataElement.class);
-
+    MergeRequest request = validator.validateUIDs(params, mergeReport, MergeType.DATA_ELEMENT);
     if (mergeReport.hasErrorMessages()) return request;
 
-    // get DEs for further type-specific validation
+    // data element-specific validation
+    if (params.getDataMergeStrategy() == null) {
+      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1534));
+      return request;
+    }
+
     DataElement deTarget = dataElementService.getDataElement(request.getTarget().getValue());
     List<DataElement> deSources =
         dataElementService.getDataElementsByUid(
@@ -113,7 +103,6 @@ public class DataElementMergeService implements MergeService {
   }
 
   @Override
-  @Transactional
   public MergeReport merge(@Nonnull MergeRequest request, @Nonnull MergeReport mergeReport) {
     log.info("Performing DataElement merge");
 
