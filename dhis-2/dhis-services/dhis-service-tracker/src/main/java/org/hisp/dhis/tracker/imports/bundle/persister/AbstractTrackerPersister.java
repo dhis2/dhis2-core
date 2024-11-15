@@ -129,9 +129,13 @@ public abstract class AbstractTrackerPersister<
         //
         if (isNew(bundle, trackerDto)) {
           entityManager.persist(convertedDto);
-          updateDataValues(
-              entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
-          logPropertyChanges(originalEntity, convertedDto, bundle.getUser());
+          updateEventValueChanges(
+              entityManager,
+              bundle.getPreheat(),
+              trackerDto,
+              convertedDto,
+              originalEntity,
+              bundle.getUser());
           typeReport.getStats().incCreated();
           typeReport.addEntity(objectReport);
           updateAttributes(
@@ -141,11 +145,15 @@ public abstract class AbstractTrackerPersister<
             typeReport.getStats().incIgnored();
             // Relationships are not updated. A warning was already added to the report
           } else {
-            updateDataValues(
-                entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
+            updateEventValueChanges(
+                entityManager,
+                bundle.getPreheat(),
+                trackerDto,
+                convertedDto,
+                originalEntity,
+                bundle.getUser());
             updateAttributes(
                 entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
-            logPropertyChanges(originalEntity, convertedDto, bundle.getUser());
             entityManager.merge(convertedDto);
             typeReport.getStats().incUpdated();
             typeReport.addEntity(objectReport);
@@ -219,17 +227,13 @@ public abstract class AbstractTrackerPersister<
   protected abstract void persistOwnership(TrackerBundle bundle, T trackerDto, V entity);
 
   /** Execute the persistence of Data values linked to the entity being processed */
-  protected void updateDataValues(
+  protected void updateEventValueChanges(
       EntityManager entityManager,
       TrackerPreheat preheat,
       T trackerDto,
       V hibernateEntity,
+      V originalEntity,
       UserDetails user) {
-    // Nothing to do by default
-  }
-
-  /** Records changes to event properties in the change log */
-  protected void logPropertyChanges(V originalEvent, V event, UserDetails user) {
     // Nothing to do by default
   }
 
