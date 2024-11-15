@@ -243,7 +243,7 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
     if (table.hasPrimaryKey()) {
       String keys = toCommaSeparated(table.getPrimaryKey(), this::quote);
-      sql.append("order by (").append(keys).append(") ");
+      sql.append("order by (").append(keys).append(")");
     } else {
       String firstColumn = quote(table.getColumns().get(0).getName());
       sql.append("order by (").append(firstColumn).append(")");
@@ -275,7 +275,7 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
         from system.tables t \
         where t.database = 'default' \
         and t.name = %s \
-        and engine not in ('View', 'Materialized View')""",
+        and engine not in ('View', 'Materialized View');""",
         singleQuote(name));
   }
 
