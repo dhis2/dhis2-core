@@ -41,6 +41,8 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   // Constants
 
+  public static final String NAMED_COLLECTION = "pg_dhis";
+
   private static final String QUOTE = "\"";
 
   // Data types
