@@ -385,7 +385,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     enrollmentB =
         enrollmentService.enrollTrackedEntity(
-            trackedEntityA, programB, new Date(), new Date(), orgUnitA);
+            trackedEntityA, programB, new Date(), new Date(), orgUnitB);
     eventB = new Event();
     eventB.setEnrollment(enrollmentB);
     eventB.setProgramStage(programStageB1);
@@ -652,6 +652,43 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
                 trackedEntities.get(0).getProgramOwners().stream()
                     .map(po -> po.getProgram().getUid())
                     .collect(Collectors.toSet())));
+  }
+
+  @Test
+  void shouldReturnTrackedEntityIncludingAllEnrollments()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .trackedEntityParams(TrackedEntityParams.TRUE)
+            .user(user)
+            .build();
+
+    final List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityA.getUid()), uids(trackedEntities));
+    assertContainsOnly(
+        Set.of(enrollmentA.getUid(), enrollmentB.getUid()),
+        uids(trackedEntities.get(0).getEnrollments()));
+    assertEquals(
+        orgUnitA.getUid(),
+        trackedEntities.get(0).getEnrollments().stream()
+            .filter(e -> e.getUid().equals(enrollmentA.getUid()))
+            .findFirst()
+            .get()
+            .getOrganisationUnit()
+            .getUid());
+    assertEquals(
+        orgUnitB.getUid(),
+        trackedEntities.get(0).getEnrollments().stream()
+            .filter(e -> e.getUid().equals(enrollmentB.getUid()))
+            .findFirst()
+            .get()
+            .getOrganisationUnit()
+            .getUid());
   }
 
   @Test
