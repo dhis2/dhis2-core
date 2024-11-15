@@ -76,11 +76,16 @@ public class AnalyticsDatabaseInit {
     Database database = settings.getAnalyticsDatabase();
 
     switch (database) {
-      case DORIS -> initDoris();
       case POSTGRESQL -> initPostgreSql();
+      case DORIS -> initDoris();
     }
 
     log.info("Initialized analytics database: '{}'", database);
+  }
+
+  /** Work for initializing a PostgreSQL analytics database. */
+  private void initPostgreSql() {
+    // No work at this point
   }
 
   /**
@@ -95,10 +100,5 @@ public class AnalyticsDatabaseInit {
 
     jdbcTemplate.execute(sqlBuilder.dropCatalogIfExists());
     jdbcTemplate.execute(sqlBuilder.createCatalog(connectionUrl, username, password));
-  }
-
-  /** Work for initializing a PostgreSQL analytics database. */
-  private void initPostgreSql() {
-    // No work at this point
   }
 }

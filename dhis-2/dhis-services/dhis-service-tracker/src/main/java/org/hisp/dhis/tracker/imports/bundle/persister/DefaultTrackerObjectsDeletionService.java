@@ -141,6 +141,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       // This is needed until deprecated method
       // eventChangeLogService.getTrackedEntityDataValueChangeLogs is removed.
       eventChangeLogService.deleteTrackedEntityDataValueChangeLog(event);
+      eventChangeLogService.deleteEventChangeLog(event);
 
       List<ProgramNotificationInstance> notificationInstances =
           programNotificationInstanceService.getProgramNotificationInstances(

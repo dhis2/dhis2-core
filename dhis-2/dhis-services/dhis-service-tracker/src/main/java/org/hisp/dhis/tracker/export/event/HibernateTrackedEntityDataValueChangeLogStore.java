@@ -59,7 +59,7 @@ class HibernateTrackedEntityDataValueChangeLogStore {
   // Dependencies
   // -------------------------------------------------------------------------
 
-  private EntityManager entityManager;
+  private final EntityManager entityManager;
 
   public HibernateTrackedEntityDataValueChangeLogStore(EntityManager entityManager) {
     this.entityManager = entityManager;

@@ -46,7 +46,6 @@ import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.merge.MergeValidator;
 import org.hisp.dhis.merge.indicator.handler.IndicatorMergeHandler;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Main class for indicator merge.
@@ -66,17 +65,11 @@ public class IndicatorMergeService implements MergeService {
   private ImmutableList<org.hisp.dhis.merge.indicator.IndicatorMergeHandler> mergeHandlers;
 
   @Override
-  public MergeType getMergeType() {
-    return MergeType.INDICATOR;
-  }
-
-  @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
-    return validator.validateUIDs(params, mergeReport, getMergeType());
+    return validator.validateUIDs(params, mergeReport, MergeType.INDICATOR);
   }
 
   @Override
-  @Transactional
   public MergeReport merge(@Nonnull MergeRequest request, @Nonnull MergeReport mergeReport) {
     List<Indicator> sources =
         indicatorService.getIndicatorsByUid(UID.toValueList(request.getSources()));

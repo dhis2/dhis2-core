@@ -246,7 +246,9 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(FIXED_COLS);
     columns.add(getOrganisationUnitNameHierarchyColumn());
-
+    if (sqlBuilder.supportsDeclarativePartitioning()) {
+      columns.add(getPartitionColumn());
+    }
     return columns;
   }
 

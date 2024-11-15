@@ -54,6 +54,7 @@ public class UserDetailsImpl implements UserDetails {
   private final boolean externalAuth;
   private final boolean isTwoFactorEnabled;
   private final String twoFactorType;
+  private final boolean isEmailVerified;
   private final boolean enabled;
   private final boolean accountNonExpired;
   private final boolean accountNonLocked;
@@ -81,6 +82,11 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     return auths.containsAll(other.getAllAuthorities());
+  }
+
+  @Override
+  public boolean isEmailVerified() {
+    return this.isEmailVerified;
   }
 
   @Override

@@ -188,9 +188,9 @@ class DorisSqlBuilderTest {
 
     String expected =
         """
-        create table `immunization` (`id` bigint not null, \
-        `data` char(11) not null, `period` varchar(50) not null, \
-        `created` datetime null, `user` json null, `value` double null) \
+        create table `immunization` (`id` bigint not null,\
+        `data` char(11) not null,`period` varchar(50) not null,\
+        `created` datetime null,`user` json null,`value` double null) \
         engine = olap \
         unique key (`id`) \
         distributed by hash(`id`) buckets 10 \
@@ -205,8 +205,8 @@ class DorisSqlBuilderTest {
 
     String expected =
         """
-        create table `vaccination` (`id` int not null, \
-        `facility_type` varchar(255) null, `bcg_doses` double null) \
+        create table `vaccination` (`id` int not null,\
+        `facility_type` varchar(255) null,`bcg_doses` double null) \
         engine = olap \
         duplicate key (`id`) \
         distributed by hash(`id`) buckets 10 \
@@ -223,8 +223,8 @@ class DorisSqlBuilderTest {
 
     String expected =
         """
-        create table `nutrition` (`id` bigint not null, \
-        `vitamin_a` bigint null, `vitamin_d` bigint null) \
+        create table `nutrition` (`id` bigint not null,\
+        `vitamin_a` bigint null,`vitamin_d` bigint null) \
         engine = olap \
         unique key (`id`) \
         distributed by hash(`id`) buckets 10 \

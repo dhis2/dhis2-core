@@ -48,5 +48,5 @@ import org.hisp.dhis.db.sql.SqlBuilderProvider;
  */
 public enum Database {
   POSTGRESQL,
-  DORIS;
+  DORIS
 }

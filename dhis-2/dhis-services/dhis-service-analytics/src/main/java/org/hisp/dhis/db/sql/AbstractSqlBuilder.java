@@ -31,6 +31,7 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.db.model.DataType;
@@ -78,6 +79,23 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
     return isEmpty(items)
         ? EMPTY
         : items.stream().map(this::singleQuote).collect(Collectors.joining(COMMA));
+  }
+
+  // Index types
+
+  @Override
+  public String indexTypeBtree() {
+    return notSupported();
+  }
+
+  @Override
+  public String indexTypeGist() {
+    return notSupported();
+  }
+
+  @Override
+  public String indexTypeGin() {
+    return notSupported();
   }
 
   // Statements
@@ -237,5 +255,18 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
    */
   protected String notSupported() {
     throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Converts the given collection to a comma-separated string, using the given mapping function to
+   * convert each item in the collection to a string.
+   *
+   * @param <T>
+   * @param collection the {@link Collection}.
+   * @param mapper the string mapping {@link Function}.
+   * @return a comma-separated string.
+   */
+  protected <T> String toCommaSeparated(Collection<T> collection, Function<T, String> mapper) {
+    return collection.stream().map(mapper).collect(Collectors.joining(","));
   }
 }

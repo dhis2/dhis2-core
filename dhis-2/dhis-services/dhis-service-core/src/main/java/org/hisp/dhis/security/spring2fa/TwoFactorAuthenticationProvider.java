@@ -52,6 +52,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author Henning Håkonsen
+ * @author Morten Svanæs
  */
 @Slf4j
 @Component
