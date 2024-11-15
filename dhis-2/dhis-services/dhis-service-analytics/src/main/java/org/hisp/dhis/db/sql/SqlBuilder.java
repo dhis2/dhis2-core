@@ -28,7 +28,6 @@
 package org.hisp.dhis.db.sql;
 
 import java.util.Collection;
-import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 
@@ -379,10 +378,30 @@ public interface SqlBuilder {
    */
   SqlFunction getDateDiffInDays(String date1, String date2);
 
+  /**
+   * Creates a SQL concatenation function that combines multiple columns or expressions.
+   *
+   * @param columns the column names or expressions to concatenate
+   * @return the SQL function for concatenation
+   */
   SqlFunction concat(String... columns);
 
+  /**
+   * Creates a SQL trim function that removes leading and trailing spaces from an expression.
+   *
+   * @param expression the expression to trim
+   * @return the SQL function for trimming
+   */
   SqlFunction trim(String expression);
 
+  /**
+   * Creates a SQL COALESCE function that returns the first non-null expression from the provided
+   * expressions. If the first expression is null, it returns the default expression.
+   *
+   * @param expression the expression to check for null
+   * @param defaultExpression the expression to return if the first expression is null
+   * @return the SQL function for coalescing
+   */
   SqlFunction coalesce(String expression, String defaultExpression);
 
   /**
@@ -391,34 +410,52 @@ public interface SqlBuilder {
    *
    * <p>This method is meant to be used for quoting column names in SQL queries, in cases where the
    * system is already quoting identifiers, but the quoting takes place where SqlBuilder is not
-   * available. (for instance, in the static methods of utility classes).
+   * available (for instance, in the static methods of utility classes).
    *
-   * <p>The method handles various input formats: - Simple column names: "column_name" or
-   * column_name - Qualified names: "schema"."table"."column" or schema.table.column - Aliased
-   * columns: alias.column_name or alias."column_name"
+   * <p>The method handles various input formats:
    *
-   * @param column The identifier to be quoted. Can be: - null or empty string (returns empty
-   *     string) - a simple column name (e.g., "column_name" or column_name) - a qualified name
-   *     (e.g., "schema"."table"."column" or schema.table.column) - an aliased column (e.g.,
-   *     alias.column_name or alias."column_name")
-   * @return The properly quoted identifier according to the SQL dialect. - For PostgreSQL: Returns
-   *     the identifier wrapped in double quotes (") - For Doris/MySQL: Returns the identifier
-   *     wrapped in backticks (`) - Returns empty string if input is null or empty - Preserves
-   *     existing correct quoting - Preserves intentional spaces around dots in qualified names
-   *     <p>Examples for PostgreSQL: - fixQuote("column_name") → "column_name" -
-   *     fixQuote("alias.column_name") → alias."column_name" - fixQuote("schema.table.column") →
-   *     schema.table."column" - fixQuote("\"column_name\"") → "column_name" - fixQuote("alias .
-   *     column_name") → alias . "column_name"
-   *     <p>Examples for MySQL/Doris: - fixQuote("column_name") → `column_name` -
-   *     fixQuote("alias.column_name") → alias.`column_name` - fixQuote("schema.table.column") →
-   *     schema.table.`column` - fixQuote("`column_name`") → `column_name` - fixQuote("alias .
-   *     column_name") → alias . `column_name`
+   * <ul>
+   *   <li>Simple column names: "column_name" or column_name
+   *   <li>Qualified names: "schema"."table"."column" or schema.table.column
+   *   <li>Aliased columns: alias.column_name or alias."column_name"
+   * </ul>
+   *
+   * @param column The identifier to be quoted. Can be:
+   *     <ul>
+   *       <li>null or empty string (returns empty string)
+   *       <li>a simple column name (e.g., "column_name" or column_name)
+   *       <li>a qualified name (e.g., "schema"."table"."column" or schema.table.column)
+   *       <li>an aliased column (e.g., alias.column_name or alias."column_name")
+   *     </ul>
+   *
+   * @return The properly quoted identifier according to the SQL dialect:
+   *     <ul>
+   *       <li>For PostgreSQL: Returns the identifier wrapped in double quotes (")
+   *       <li>For Doris/MySQL: Returns the identifier wrapped in backticks (`)
+   *       <li>Returns empty string if input is null or empty
+   *       <li>Preserves existing correct quoting
+   *       <li>Preserves intentional spaces around dots in qualified names
+   *     </ul>
    */
   String fixQuote(String column);
 
+  /**
+   * Extracts a value from a JSON column using a specified property path.
+   *
+   * @param column the JSON column name to extract from
+   * @param property the JSON property path to extract
+   * @return the SQL function for JSON value extraction
+   */
   String jsonExtract(String column, String property);
 
+  /**
+   * Extracts a value from a JSON column using a specified JSON path expression, with support for
+   * table prefix qualification.
+   *
+   * @param tablePrefix the prefix/alias of the table containing the JSON column
+   * @param column the JSON column name to extract from
+   * @param jsonPath the JSON path expression to extract the value
+   * @return the SQL function for JSON value extraction
+   */
   String jsonExtract(String tablePrefix, String column, String jsonPath);
-
-  Database getDatabase();
 }

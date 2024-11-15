@@ -47,13 +47,12 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.db.model.Column;
-import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.TablePartition;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.sql.functions.DorisDateDiff;
-import org.hisp.dhis.db.sql.functions.Functions;
+import org.hisp.dhis.db.sql.functions.SqlFunctions;
 
 @RequiredArgsConstructor
 public class DorisSqlBuilder extends AbstractSqlBuilder {
@@ -464,22 +463,17 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public SqlFunction concat(String... columns) {
-    return Functions.concat(columns);
+    return SqlFunctions.concat(columns);
   }
 
   @Override
   public SqlFunction trim(String expression) {
-    return Functions.trim(expression);
+    return SqlFunctions.trim(expression);
   }
 
   @Override
   public SqlFunction coalesce(String expression, String defaultExpression) {
-    return Functions.coalesce(expression, defaultExpression);
-  }
-
-  @Override
-  public Database getDatabase() {
-    return Database.DORIS;
+    return SqlFunctions.coalesce(expression, defaultExpression);
   }
 
   private String quoteIdentifier(String identifier) {

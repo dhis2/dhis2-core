@@ -32,7 +32,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.db.sql.SqlFunction;
-import org.hisp.dhis.db.sql.functions.Functions;
+import org.hisp.dhis.db.sql.functions.SqlFunctions;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DisplayNameUtils {
@@ -153,6 +153,6 @@ public final class DisplayNameUtils {
   }
 
   private static SqlFunction formatNames(String... elements) {
-    return Functions.concat(elements);
+    return SqlFunctions.concat(elements);
   }
 }

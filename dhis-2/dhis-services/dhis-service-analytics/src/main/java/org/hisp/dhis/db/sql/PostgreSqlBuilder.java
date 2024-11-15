@@ -31,13 +31,12 @@ import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
-import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
-import org.hisp.dhis.db.sql.functions.Functions;
 import org.hisp.dhis.db.sql.functions.PostgresDateDiff;
+import org.hisp.dhis.db.sql.functions.SqlFunctions;
 
 /**
  * Implementation of {@link SqlBuilder} for PostgreSQL.
@@ -422,23 +421,18 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public Database getDatabase() {
-    return Database.POSTGRESQL;
-  }
-
-  @Override
   public SqlFunction concat(String... columns) {
-    return Functions.concat(columns);
+    return SqlFunctions.concat(columns);
   }
 
   @Override
   public SqlFunction trim(String expression) {
-    return Functions.trim(expression);
+    return SqlFunctions.trim(expression);
   }
 
   @Override
   public SqlFunction coalesce(String expression, String defaultExpression) {
-    return Functions.coalesce(expression, defaultExpression);
+    return SqlFunctions.coalesce(expression, defaultExpression);
   }
 
   private boolean isProperlyQuoted(String identifier) {

@@ -29,7 +29,7 @@ package org.hisp.dhis.db.sql.functions;
 
 import org.hisp.dhis.db.sql.SqlFunction;
 
-public class Functions {
+public class SqlFunctions {
 
   public static SqlFunction trim(String expression) {
     return () -> "trim(" + expression + ")";
