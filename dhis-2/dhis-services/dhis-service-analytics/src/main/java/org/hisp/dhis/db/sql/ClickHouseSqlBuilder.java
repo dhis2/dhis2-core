@@ -39,8 +39,6 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 @RequiredArgsConstructor
 public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
-  private final String namedCollection;
-
   // Constants
 
   private static final String QUOTE = "\"";

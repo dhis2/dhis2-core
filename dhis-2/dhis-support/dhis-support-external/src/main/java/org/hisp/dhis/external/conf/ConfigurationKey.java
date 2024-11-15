@@ -97,9 +97,6 @@ public enum ConfigurationKey {
   /** Analytics database JDBC driver filename. Applies to {@link Database#DORIS}. */
   ANALYTICS_DATABASE_DRIVER_FILENAME("analytics.database.driver_filename", "postgresql.jar", false),
 
-  /** Analytics database JDBC catalog name. Applies to {@link Database#CLICKHOUSE}. */
-  ANALYTICS_DATABASE_NAMED_COLLECTION("analytics.database.named_collection", "pg_dhis", false),
-
   /** JDBC driver class. */
   CONNECTION_DRIVER_CLASS("connection.driver_class", "org.postgresql.Driver", false),
 
