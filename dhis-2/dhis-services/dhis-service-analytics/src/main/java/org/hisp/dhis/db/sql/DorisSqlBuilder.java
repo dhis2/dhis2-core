@@ -51,7 +51,6 @@ import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.TablePartition;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.sql.functions.DorisDateDiff;
 import org.hisp.dhis.db.sql.functions.SqlFunctions;
 
 @RequiredArgsConstructor
@@ -405,7 +404,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public SqlFunction getDateDiffInDays(String date1, String date2) {
-    return new DorisDateDiff(date1, date2);
+    return () -> "DATEDIFF(" + date1 + ", " + date2 + ")";
   }
 
   @Override

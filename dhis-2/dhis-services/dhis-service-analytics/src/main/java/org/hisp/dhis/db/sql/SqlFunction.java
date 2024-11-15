@@ -27,7 +27,12 @@
  */
 package org.hisp.dhis.db.sql;
 
+/** Marker interface for SQL functions. */
 public interface SqlFunction {
-
+  /**
+   * Returns the SQL representation of the function.
+   *
+   * @return the SQL representation of the function.
+   */
   String toSql();
 }

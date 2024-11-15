@@ -35,8 +35,8 @@ import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
-import org.hisp.dhis.db.sql.functions.PostgresDateDiff;
 import org.hisp.dhis.db.sql.functions.SqlFunctions;
+import org.hisp.dhis.util.DateUtils;
 
 /**
  * Implementation of {@link SqlBuilder} for PostgreSQL.
@@ -360,7 +360,8 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public SqlFunction getDateDiffInDays(String date1, String date2) {
-    return new PostgresDateDiff(date1, date2);
+    return () ->
+        "extract(epoch from (" + date1 + " - " + date2 + ")) / " + DateUtils.SECONDS_PER_DAY;
   }
 
   @Override
