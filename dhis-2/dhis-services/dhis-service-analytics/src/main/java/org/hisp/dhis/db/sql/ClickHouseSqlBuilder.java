@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.db.sql;
 
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
@@ -294,5 +297,36 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String dropCatalogIfExists() {
     return notSupported();
+  }
+
+  /**
+   * @param name the collection name.
+   * @param keyValuePairs the map of key value pairs.
+   * @return a create named collection statement.
+   */
+  public String createNamedCollection(String name, Map<String, Object> keyValues) {
+    String pairs =
+        keyValues.entrySet().stream().map(this::toPairString).collect(Collectors.joining(","));
+
+    return String.format("create named collection %s as %s;", quote(name), pairs);
+  }
+
+  /**
+   * @param name the collection name.
+   * @return a drop named collection if exists statement.
+   */
+  public String dropNamedCollectionIfExists(String name) {
+    return String.format("drop named collection if exists %s;", quote(name));
+  }
+
+  /**
+   * Converts the given {@link Map} {@link Entry} to a key value pair string.
+   *
+   * @param pair the {@link Entry}.
+   * @return a key value pair string.
+   */
+  private String toPairString(Entry<String, Object> pair) {
+    return String.format(
+        "%s = %s", quote(pair.getKey()), singleQuote(String.valueOf(pair.getValue())));
   }
 }

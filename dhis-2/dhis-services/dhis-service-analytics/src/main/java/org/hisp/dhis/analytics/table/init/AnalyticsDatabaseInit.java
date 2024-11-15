@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.analytics.table.init;
 
+import java.util.Map;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.db.sql.ClickHouseSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilderProvider;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -105,6 +107,20 @@ public class AnalyticsDatabaseInit {
 
   /** Work for initializing a ClickHouse analytics database. */
   private void initClickHouse() {
-    // No work at this point
+    Map<String, Object> keyValues =
+        Map.of(
+            "host", config.getProperty(ConfigurationKey.CONNECTION_HOST),
+            "port", config.getIntProperty(ConfigurationKey.CONNECTION_PORT),
+            "database", config.getProperty(ConfigurationKey.CONNECTION_DATABASE),
+            "username", config.getProperty(ConfigurationKey.CONNECTION_USERNAME),
+            "password", config.getProperty(ConfigurationKey.CONNECTION_PASSWORD));
+
+    ClickHouseSqlBuilder clickHouseSqlBuilder = new ClickHouseSqlBuilder();
+
+    jdbcTemplate.execute(
+        clickHouseSqlBuilder.dropNamedCollectionIfExists(ClickHouseSqlBuilder.NAMED_COLLECTION));
+    jdbcTemplate.execute(
+        clickHouseSqlBuilder.createNamedCollection(
+            ClickHouseSqlBuilder.NAMED_COLLECTION, keyValues));
   }
 }

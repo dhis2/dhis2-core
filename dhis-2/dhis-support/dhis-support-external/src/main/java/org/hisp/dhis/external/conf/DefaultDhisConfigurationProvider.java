@@ -51,6 +51,7 @@ import javax.annotation.PostConstruct;
 import javax.crypto.Cipher;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.model.GoogleAccessToken;
@@ -149,6 +150,12 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
   @Override
   public String getProperty(ConfigurationKey key) {
     return getPropertyOrDefault(key, key.getDefaultValue());
+  }
+
+  @Override
+  public int getIntProperty(ConfigurationKey key) {
+    String value = getPropertyOrDefault(key, key.getDefaultValue());
+    return NumberUtils.isParsable(value) ? Integer.parseInt(value) : -1;
   }
 
   @Override
