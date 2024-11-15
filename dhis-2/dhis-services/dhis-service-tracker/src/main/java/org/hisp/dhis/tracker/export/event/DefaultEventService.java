@@ -36,6 +36,9 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
@@ -50,6 +53,8 @@ import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.FileResourceStream;
@@ -69,6 +74,8 @@ import org.springframework.transaction.annotation.Transactional;
 class DefaultEventService implements EventService {
 
   private final JdbcEventStore eventStore;
+
+  private final IdentifiableObjectManager manager;
 
   private final TrackerAccessManager trackerAccessManager;
 
@@ -188,28 +195,32 @@ class DefaultEventService implements EventService {
     }
     Event event = events.getItems().get(0);
 
-    // TODO(ivo) do do ACL checks on data elements/relationships in query, how is that done on for
-    // the
-    // collections?
-    // for (EventDataValue dataValue : event.getEventDataValues()) {
-    //   if (dataElementService.getDataElement(dataValue.getDataElement())
-    //       != null) // check permissions
-    //   {
-    //     EventDataValue value = new EventDataValue();
-    //     value.setCreated(dataValue.getCreated());
-    //     value.setCreatedByUserInfo(dataValue.getCreatedByUserInfo());
-    //     value.setLastUpdated(dataValue.getLastUpdated());
-    //     value.setLastUpdatedByUserInfo(dataValue.getLastUpdatedByUserInfo());
-    //     value.setDataElement(dataValue.getDataElement());
-    //     value.setValue(dataValue.getValue());
-    //     value.setProvidedElsewhere(dataValue.getProvidedElsewhere());
-    //     value.setStoredBy(dataValue.getStoredBy());
-    //
-    //     result.getEventDataValues().add(value);
-    //   } else {
-    //     log.info("Cannot find data element with UID {}", dataValue.getDataElement());
-    //   }
-    // }
+    Set<EventDataValue> dataValues = new HashSet<>(event.getEventDataValues().size());
+    for (EventDataValue dataValue : event.getEventDataValues()) {
+      DataElement dataElement = null;
+      TrackerIdSchemeParam dataElementIdScheme = idSchemeParams.getDataElementIdScheme();
+      if (TrackerIdScheme.UID == dataElementIdScheme.getIdScheme()) {
+        dataElement = dataElementService.getDataElement(dataValue.getDataElement());
+      } else if (TrackerIdScheme.CODE == dataElementIdScheme.getIdScheme()) {
+        dataElement = manager.getByCode(DataElement.class, dataValue.getDataElement());
+      } else if (TrackerIdScheme.NAME == dataElementIdScheme.getIdScheme()) {
+        dataElement = manager.getByName(DataElement.class, dataValue.getDataElement());
+      } else if (TrackerIdScheme.ATTRIBUTE == dataElementIdScheme.getIdScheme()) {
+        dataElement =
+            manager.getObject(
+                DataElement.class,
+                new IdScheme(IdentifiableProperty.ATTRIBUTE, dataElementIdScheme.getAttributeUid()),
+                dataValue.getDataElement());
+      }
+
+      if (dataElement != null) // check permissions
+      {
+        dataValues.add(dataValue);
+      } else {
+        log.info("Cannot find data element with UID {}", dataValue.getDataElement());
+      }
+    }
+    event.setEventDataValues(dataValues);
 
     if (eventParams.isIncludeRelationships()) {
       Set<RelationshipItem> relationshipItems = new HashSet<>();
