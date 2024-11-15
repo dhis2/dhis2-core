@@ -42,7 +42,7 @@ public interface EventChangeLogMapper {
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "type", source = "changeLogType")
   @Mapping(target = "change.dataValue", source = "eventChangeLog")
-  @Mapping(target = "change.dataValue", source = "eventChangeLog")
+  @Mapping(target = "change.eventProperty", source = "eventChangeLog")
   EventChangeLog map(org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
 
   @Mapping(target = "uid", source = "createdBy.uid")

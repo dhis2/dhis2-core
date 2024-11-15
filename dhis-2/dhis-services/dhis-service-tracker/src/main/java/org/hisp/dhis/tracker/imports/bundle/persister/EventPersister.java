@@ -199,7 +199,7 @@ public class EventPersister
 
           if (isNewDataValue(dbDataValue, dataValue)) {
             eventChangeLogService.addDataValueChangeLog(
-                event, dataElement, dataValue.getValue(), null, CREATE, user.getUsername());
+                event, dataElement, null, dataValue.getValue(), CREATE, user.getUsername());
             saveDataValue(dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isUpdate(dbDataValue, dataValue)) {
             eventChangeLogService.addDataValueChangeLog(

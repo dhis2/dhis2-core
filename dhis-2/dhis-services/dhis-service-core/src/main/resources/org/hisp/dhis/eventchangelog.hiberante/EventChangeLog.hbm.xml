@@ -20,9 +20,9 @@
 
     <property name="eventProperty" length="100" />
 
-    <property name="currentValue" length="50000" />
-
     <property name="previousValue" length="50000" />
+
+    <property name="currentValue" length="50000" />
 
     <property name="changeLogType" column="changelogtype" length="100" not-null="true">
       <type name="org.hibernate.type.EnumType">
