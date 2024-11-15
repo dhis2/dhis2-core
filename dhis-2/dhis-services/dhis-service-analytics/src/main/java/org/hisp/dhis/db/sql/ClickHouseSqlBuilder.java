@@ -29,13 +29,13 @@ package org.hisp.dhis.db.sql;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
@@ -181,12 +181,10 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     return value.replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE));
   }
 
-  /**
-   * Uses the <code>postgresql</code> table function to query DHIS 2 PostgreSQL server.
-   */
+  /** Uses the <code>postgresql</code> table function to query DHIS 2 PostgreSQL server. */
   @Override
   public String qualifyTable(String name) {
-    return String.format("postgresql.%s", SCHEMA, quote(name));
+    return String.format("postgresql(%s, table=%s", quote(NAMED_COLLECTION), singleQuote(name));
   }
 
   @Override
