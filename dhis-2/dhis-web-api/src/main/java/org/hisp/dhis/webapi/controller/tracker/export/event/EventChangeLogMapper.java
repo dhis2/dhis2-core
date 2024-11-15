@@ -34,6 +34,7 @@ import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 @Mapper(uses = {UIDMapper.class})
 public interface EventChangeLogMapper {
@@ -41,8 +42,14 @@ public interface EventChangeLogMapper {
   @Mapping(target = "createdBy", source = "eventChangeLog")
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "type", source = "changeLogType")
-  @Mapping(target = "change.dataValue", source = "eventChangeLog")
-  @Mapping(target = "change.eventProperty", source = "eventChangeLog")
+  @Mapping(
+      target = "change.dataValue",
+      source = "eventChangeLog",
+      qualifiedByName = "mapIfDataValueChangeExists")
+  @Mapping(
+      target = "change.eventProperty",
+      source = "eventChangeLog",
+      qualifiedByName = "mapIfEventPropertyChangeExists")
   EventChangeLog map(org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
 
   @Mapping(target = "uid", source = "createdBy.uid")
@@ -57,9 +64,27 @@ public interface EventChangeLogMapper {
   DataValueChange mapDataValueChange(
       org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
 
+  @Named("mapIfDataValueChangeExists")
+  default DataValueChange mapIfDataValueChangeExists(
+      org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog) {
+    if (eventChangeLog.getDataElement() == null) {
+      return null;
+    }
+    return mapDataValueChange(eventChangeLog);
+  }
+
   @Mapping(target = "property", source = "eventProperty")
   @Mapping(target = "previousValue", source = "previousValue")
   @Mapping(target = "currentValue", source = "currentValue")
   EventPropertyChange mapEventPropertyChange(
       org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
+
+  @Named("mapIfEventPropertyChangeExists")
+  default EventPropertyChange mapIfEventPropertyExists(
+      org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog) {
+    if (eventChangeLog.getEventProperty() == null) {
+      return null;
+    }
+    return mapEventPropertyChange(eventChangeLog);
+  }
 }

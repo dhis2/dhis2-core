@@ -168,13 +168,15 @@ public class EventPersister
   }
 
   @Override
-  protected void updateDataValues(
+  protected void updateEventValueChanges(
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Event event,
       Event hibernateEntity,
+      Event originalEntity,
       UserDetails user) {
     handleDataValues(entityManager, preheat, event.getDataValues(), hibernateEntity, user);
+    logEventPropertyChanges(originalEntity, hibernateEntity, user);
   }
 
   private void handleDataValues(
@@ -219,13 +221,23 @@ public class EventPersister
         });
   }
 
-  @Override
-  protected void logPropertyChanges(Event originalEvent, Event event, UserDetails user) {
+  private void logEventPropertyChanges(Event originalEvent, Event payloadEvent, UserDetails user) {
     logIfChanged(
-        "occurredDate", Event::getOccurredDate, this::formatDate, originalEvent, event, user);
+        "occurredDate",
+        Event::getOccurredDate,
+        this::formatDate,
+        originalEvent,
+        payloadEvent,
+        user);
     logIfChanged(
-        "scheduledDate", Event::getScheduledDate, this::formatDate, originalEvent, event, user);
-    logIfChanged("geometry", Event::getGeometry, this::formatGeometry, originalEvent, event, user);
+        "scheduledDate",
+        Event::getScheduledDate,
+        this::formatDate,
+        originalEvent,
+        payloadEvent,
+        user);
+    logIfChanged(
+        "geometry", Event::getGeometry, this::formatGeometry, originalEvent, payloadEvent, user);
   }
 
   private <T> void logIfChanged(
@@ -233,17 +245,17 @@ public class EventPersister
       Function<Event, T> valueExtractor,
       Function<T, String> formatter,
       Event originalEvent,
-      Event event,
+      Event payloadEvent,
       UserDetails user) {
 
     String originalValue = formatter.apply(valueExtractor.apply(originalEvent));
-    String newValue = formatter.apply(valueExtractor.apply(event));
+    String newValue = formatter.apply(valueExtractor.apply(payloadEvent));
 
     if (!Objects.equals(originalValue, newValue)) {
-      ChangeLogType changeLogType = getChangeLogType(originalEvent, event, valueExtractor);
+      ChangeLogType changeLogType = getChangeLogType(originalEvent, payloadEvent, valueExtractor);
 
       eventChangeLogService.addEventPropertyChangeLog(
-          event, propertyName, originalValue, newValue, changeLogType, user.getUsername());
+          payloadEvent, propertyName, originalValue, newValue, changeLogType, user.getUsername());
     }
   }
 
@@ -337,21 +349,6 @@ public class EventPersister
         && !StringUtils.equals(dv.getValue(), eventDataValue.getValue());
   }
 
-  private String formatDate(Date date) {
-    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-    return date != null ? formatter.format(date) : null;
-  }
-
-  private String formatGeometry(Geometry geometry) {
-    if (geometry == null) {
-      return null;
-    }
-
-    return Stream.of(geometry.getCoordinates())
-        .map(c -> String.format("(%f, %f)", c.x, c.y))
-        .collect(Collectors.joining(", "));
-  }
-
   private <V> boolean isNewProperty(
       Event originalEvent, Event payloadEvent, Function<Event, V> valueExtractor) {
     V dbValue = valueExtractor.apply(originalEvent);
@@ -366,6 +363,21 @@ public class EventPersister
     V payloadValue = valueExtractor.apply(payloadEvent);
 
     return dbValue != null && payloadValue != null;
+  }
+
+  private String formatDate(Date date) {
+    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    return date != null ? formatter.format(date) : null;
+  }
+
+  private String formatGeometry(Geometry geometry) {
+    if (geometry == null) {
+      return null;
+    }
+
+    return Stream.of(geometry.getCoordinates())
+        .map(c -> String.format("(%f, %f)", c.x, c.y))
+        .collect(Collectors.joining(", "));
   }
 
   private <V> ChangeLogType getChangeLogType(
