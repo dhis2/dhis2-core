@@ -29,6 +29,7 @@ package org.hisp.dhis.external.conf;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_URL;
+import static org.hisp.dhis.external.conf.DhisConfigurationProvider.toInt;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,7 +52,6 @@ import javax.annotation.PostConstruct;
 import javax.crypto.Cipher;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.model.GoogleAccessToken;
@@ -154,8 +154,7 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
 
   @Override
   public int getIntProperty(ConfigurationKey key) {
-    String value = getPropertyOrDefault(key, key.getDefaultValue());
-    return NumberUtils.isParsable(value) ? Integer.parseInt(value) : -1;
+    return toInt(getProperty(key));
   }
 
   @Override

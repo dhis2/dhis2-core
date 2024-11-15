@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.model.GoogleAccessToken;
 
@@ -61,6 +62,10 @@ public interface DhisConfigurationProvider {
 
   static boolean isOff(String value) {
     return !isOn(value);
+  }
+
+  static int toInt(String value) {
+    return NumberUtils.isParsable(value) ? Integer.parseInt(value) : -1;
   }
 
   /**
