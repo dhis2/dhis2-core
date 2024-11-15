@@ -28,7 +28,6 @@
 package org.hisp.dhis.db.sql;
 
 import java.util.Map;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.db.model.Column;
@@ -37,7 +36,6 @@ import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.TablePartition;
 import org.hisp.dhis.db.model.constraint.Nullable;
 
-@Getter
 @RequiredArgsConstructor
 public class DorisSqlBuilder extends AbstractSqlBuilder {
 
