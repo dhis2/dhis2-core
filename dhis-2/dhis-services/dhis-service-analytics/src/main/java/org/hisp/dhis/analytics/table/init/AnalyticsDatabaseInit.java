@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.table.init;
 
+import static org.hisp.dhis.db.sql.ClickHouseSqlBuilder.NAMED_COLLECTION;
+
 import java.util.Map;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -117,10 +119,7 @@ public class AnalyticsDatabaseInit {
 
     ClickHouseSqlBuilder clickHouseSqlBuilder = new ClickHouseSqlBuilder();
 
-    jdbcTemplate.execute(
-        clickHouseSqlBuilder.dropNamedCollectionIfExists(ClickHouseSqlBuilder.NAMED_COLLECTION));
-    jdbcTemplate.execute(
-        clickHouseSqlBuilder.createNamedCollection(
-            ClickHouseSqlBuilder.NAMED_COLLECTION, keyValues));
+    jdbcTemplate.execute(clickHouseSqlBuilder.dropNamedCollectionIfExists(NAMED_COLLECTION));
+    jdbcTemplate.execute(clickHouseSqlBuilder.createNamedCollection(NAMED_COLLECTION, keyValues));
   }
 }
