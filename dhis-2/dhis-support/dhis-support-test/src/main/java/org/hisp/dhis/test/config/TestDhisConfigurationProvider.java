@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.test.config;
 
-import static org.hisp.dhis.external.conf.DhisConfigurationProvider.toInt;
-
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import java.io.IOException;
 import java.io.Serializable;
@@ -71,11 +69,6 @@ public class TestDhisConfigurationProvider implements DhisConfigurationProvider 
   @Override
   public String getProperty(ConfigurationKey key) {
     return getPropertyOrDefault(key, key.getDefaultValue());
-  }
-
-  @Override
-  public int getIntProperty(ConfigurationKey key) {
-    return toInt(getProperty(key));
   }
 
   @Override

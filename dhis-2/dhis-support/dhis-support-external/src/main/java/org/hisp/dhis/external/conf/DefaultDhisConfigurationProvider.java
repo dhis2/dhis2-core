@@ -29,7 +29,6 @@ package org.hisp.dhis.external.conf;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_URL;
-import static org.hisp.dhis.external.conf.DhisConfigurationProvider.toInt;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -150,11 +149,6 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
   @Override
   public String getProperty(ConfigurationKey key) {
     return getPropertyOrDefault(key, key.getDefaultValue());
-  }
-
-  @Override
-  public int getIntProperty(ConfigurationKey key) {
-    return toInt(getProperty(key));
   }
 
   @Override
