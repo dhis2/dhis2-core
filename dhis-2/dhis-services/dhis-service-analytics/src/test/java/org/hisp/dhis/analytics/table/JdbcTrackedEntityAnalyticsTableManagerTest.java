@@ -114,20 +114,24 @@ class JdbcTrackedEntityAnalyticsTableManagerTest {
     when(sqlBuilder.jsonExtract(anyString(), anyString())).thenReturn("jsonExtract");
 
     when(sqlBuilder.coalesce(anyString(), anyString()))
-        .thenAnswer(inv -> new SqlFunction() {
-          @Override
-          public String toSql() {
-            return "coalesce(" + inv.getArgument(0) + ", " + inv.getArgument(1) + ")";
-          }
-        });
+        .thenAnswer(
+            inv ->
+                new SqlFunction() {
+                  @Override
+                  public String toSql() {
+                    return "coalesce(" + inv.getArgument(0) + ", " + inv.getArgument(1) + ")";
+                  }
+                });
 
     when(sqlBuilder.trim(anyString()))
-        .thenAnswer(inv -> new SqlFunction() {
-          @Override
-          public String toSql() {
-            return "trim(" + inv.getArgument(0) + ")";
-          }
-        });
+        .thenAnswer(
+            inv ->
+                new SqlFunction() {
+                  @Override
+                  public String toSql() {
+                    return "trim(" + inv.getArgument(0) + ")";
+                  }
+                });
 
     when(tet.getTrackedEntityAttributes()).thenReturn(List.of(nonConfidentialTea, confidentialTea));
 
