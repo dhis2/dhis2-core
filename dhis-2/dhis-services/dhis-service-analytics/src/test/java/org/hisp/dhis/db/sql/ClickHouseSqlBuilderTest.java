@@ -30,8 +30,10 @@ package org.hisp.dhis.db.sql;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
@@ -300,6 +302,18 @@ class ClickHouseSqlBuilderTest {
   }
 
   // Named collection
+
+  @Test
+  void testCreateNamedCollection() {
+    String expected =
+        """
+        create named collection "pg_dhis" as """;
+
+    assertTrue(
+        sqlBuilder
+            .createNamedCollection("pg_dhis", Map.of("host", "mydomain.org"))
+            .startsWith(expected));
+  }
 
   @Test
   void testDropNamedCollectionIfExists() {
