@@ -47,6 +47,7 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.db.sql.SqlFunction;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
@@ -108,6 +109,25 @@ class JdbcTrackedEntityAnalyticsTableManagerTest {
 
     when(sqlBuilder.qualifyTable(anyString()))
         .thenAnswer(inv -> SqlUtils.quote(inv.getArgument(0)));
+
+    when(sqlBuilder.jsonExtract(anyString(), anyString(), anyString())).thenReturn("jsonExtract");
+    when(sqlBuilder.jsonExtract(anyString(), anyString())).thenReturn("jsonExtract");
+
+    when(sqlBuilder.coalesce(anyString(), anyString()))
+        .thenAnswer(inv -> new SqlFunction() {
+          @Override
+          public String toSql() {
+            return "coalesce(" + inv.getArgument(0) + ", " + inv.getArgument(1) + ")";
+          }
+        });
+
+    when(sqlBuilder.trim(anyString()))
+        .thenAnswer(inv -> new SqlFunction() {
+          @Override
+          public String toSql() {
+            return "trim(" + inv.getArgument(0) + ")";
+          }
+        });
 
     when(tet.getTrackedEntityAttributes()).thenReturn(List.of(nonConfidentialTea, confidentialTea));
 
