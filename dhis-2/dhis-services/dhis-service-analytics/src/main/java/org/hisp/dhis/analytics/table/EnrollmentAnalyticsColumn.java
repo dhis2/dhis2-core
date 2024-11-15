@@ -162,22 +162,17 @@ public final class EnrollmentAnalyticsColumn {
   private static final List<AnalyticsTableColumn> COMMON_COLUMNS =
       List.of(
           ENROLLMENT,
-          TRACKED_ENTITY,
           ENROLLMENT_DATE,
           OCCURRED_DATE,
           COMPLETED_DATE,
           LAST_UPDATED,
           STORED_BY,
           ENROLLMENT_STATUS,
-          LONGITUDE,
-          LATITUDE,
           OU,
           OU_NAME,
           OU_CODE,
           OU_LEVEL,
-          ENROLLMENT_GEOMETRY,
-          REGISTRATION_OU,
-          TRACKED_ENTITY_GEOMETRY);
+          REGISTRATION_OU);
 
   // Geometry-specific columns
   private static final List<AnalyticsTableColumn> GEOMETRY_COLUMNS =
@@ -189,7 +184,6 @@ public final class EnrollmentAnalyticsColumn {
         AnalyticsTableColumn.builder()
             .name(EnrollmentAnalyticsColumnName.CREATED_BY_USERNAME_COLUMN_NAME)
             .dataType(VARCHAR_255)
-            .selectExpression("en.createdbyuserinfo ->> 'username' as createdbyusername")
             .selectExpression(
                 sqlBuilder.jsonExtract("en.createdbyuserinfo", "username")
                     + " as createdbyusername")
@@ -250,6 +244,7 @@ public final class EnrollmentAnalyticsColumn {
 
   public static List<AnalyticsTableColumn> getColumns(SqlBuilder sqlBuilder) {
     List<AnalyticsTableColumn> columns = new ArrayList<>(COMMON_COLUMNS);
+    columns.addAll(createJsonColumns(sqlBuilder));
     // Add database-specific columns based on SqlBuilder capabilities
     if (sqlBuilder.supportsGeospatialData()) {
       columns.addAll(GEOMETRY_COLUMNS);
