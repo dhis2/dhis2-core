@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.model.GoogleAccessToken;
 
@@ -63,6 +64,10 @@ public interface DhisConfigurationProvider {
     return !isOn(value);
   }
 
+  static int toInt(String value) {
+    return NumberUtils.isParsable(value) ? Integer.parseInt(value) : -1;
+  }
+
   /**
    * Indicates whether a value for the given key is equal to "on".
    *
@@ -81,6 +86,18 @@ public interface DhisConfigurationProvider {
    */
   default boolean isDisabled(ConfigurationKey key) {
     return !DhisConfigurationProvider.isOn(getProperty(key));
+  }
+
+  /**
+   * Get the property value for the given key as an <code>int</code>, or the default value as
+   * specified in the {@link ConfigurationKey#getDefaultValue()} for the configuration key if not
+   * exists.
+   *
+   * @param key the configuration key.
+   * @return the property value.
+   */
+  default int getIntProperty(ConfigurationKey key) {
+    return toInt(getProperty(key));
   }
 
   /**
