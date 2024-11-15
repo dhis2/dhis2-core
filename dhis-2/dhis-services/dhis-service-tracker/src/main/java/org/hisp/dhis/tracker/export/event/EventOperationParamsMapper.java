@@ -141,7 +141,8 @@ class EventOperationParamsMapper {
         .setEvents(operationParams.getEvents())
         .setEnrollments(operationParams.getEnrollments())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
-        .setIncludeRelationships(operationParams.getEventParams().isIncludeRelationships());
+        .setIncludeRelationships(operationParams.getEventParams().isIncludeRelationships())
+        .setIdSchemeParams(operationParams.getIdSchemeParams());
   }
 
   private ProgramStage validateProgramStage(String programStageUid, UserDetails user)
@@ -261,7 +262,8 @@ class EventOperationParamsMapper {
           throw new BadRequestException(
               "Cannot order by '"
                   + uid.getValue()
-                  + "' as its neither a data element nor a tracked entity attribute. Events can be ordered by event fields, data elements and tracked entity attributes.");
+                  + "' as its neither a data element nor a tracked entity attribute. Events can be"
+                  + " ordered by event fields, data elements and tracked entity attributes.");
         }
 
         params.orderBy(tea, order.getDirection());
@@ -269,7 +271,8 @@ class EventOperationParamsMapper {
         throw new IllegalArgumentException(
             "Cannot order by '"
                 + order.getField()
-                + "'. Events can be ordered by event fields, data elements and tracked entity attributes.");
+                + "'. Events can be ordered by event fields, data elements and tracked entity"
+                + " attributes.");
       }
     }
   }
