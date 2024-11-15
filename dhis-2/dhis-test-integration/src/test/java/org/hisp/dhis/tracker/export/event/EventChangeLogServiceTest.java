@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,6 +40,7 @@ import java.util.Map;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -54,7 +56,6 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.tracker.export.event.EventChangeLog.DataValueChange;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
@@ -100,12 +101,6 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     assertNoErrors(
         trackerImportService.importTracker(
             importParams, fromJson("tracker/event_and_enrollment.json")));
-  }
-
-  @BeforeEach
-  void setUpUser() {
-    importUser = userService.getUser("tTgjgobT1oS");
-    injectSecurityContextUser(importUser);
   }
 
   @Test
@@ -268,6 +263,29 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
         () -> assertCreate(dataElement, "15", changeLogs.getItems().get(2)));
   }
 
+  @Test
+  void shouldReturnOnlyUserNameWhenUserDoesNotExistInDatabase()
+      throws ForbiddenException, NotFoundException {
+    Event event = getEvent("QRYjLTiJTrA");
+    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
+    DataElement dataElement = manager.get(DataElement.class, dataElementUid);
+    User deletedUser = new User();
+    deletedUser.setUsername("deletedUsername");
+    eventChangeLogService.addDataValueChangeLog(
+        event, dataElement, "current", "previous", UPDATE, deletedUser.getUsername());
+
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(
+            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
+
+    assertNumberOfChanges(2, changeLogs.getItems());
+    assertAll(
+        () ->
+            assertUpdate(
+                dataElementUid, "previous", "current", changeLogs.getItems().get(0), deletedUser),
+        () -> assertCreate(dataElementUid, "15", changeLogs.getItems().get(1)));
+  }
+
   private void updateDataValue(String event, String dataElementUid, String newValue)
       throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
@@ -314,40 +332,59 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   private void assertCreate(String dataElement, String currentValue, EventChangeLog changeLog) {
     assertAll(
         () -> assertUser(importUser, changeLog),
-        () -> assertEquals("CREATE", changeLog.type()),
+        () -> assertEquals("CREATE", changeLog.getChangeLogType().name()),
         () -> assertChange(dataElement, null, currentValue, changeLog));
   }
 
   private void assertUpdate(
       String dataElement, String previousValue, String currentValue, EventChangeLog changeLog) {
+    assertUpdate(dataElement, previousValue, currentValue, changeLog, importUser);
+  }
+
+  private void assertUpdate(
+      String dataElement,
+      String previousValue,
+      String currentValue,
+      EventChangeLog changeLog,
+      User user) {
     assertAll(
-        () -> assertUser(importUser, changeLog),
-        () -> assertEquals("UPDATE", changeLog.type()),
+        () -> assertUser(user, changeLog),
+        () -> assertEquals("UPDATE", changeLog.getChangeLogType().name()),
         () -> assertChange(dataElement, previousValue, currentValue, changeLog));
   }
 
   private void assertDelete(String dataElement, String previousValue, EventChangeLog changeLog) {
     assertAll(
         () -> assertUser(importUser, changeLog),
-        () -> assertEquals("DELETE", changeLog.type()),
+        () -> assertEquals("DELETE", changeLog.getChangeLogType().name()),
         () -> assertChange(dataElement, previousValue, null, changeLog));
   }
 
   private static void assertChange(
       String dataElement, String previousValue, String currentValue, EventChangeLog changeLog) {
-    DataValueChange expected = new DataValueChange(dataElement, previousValue, currentValue);
-    assertEquals(expected, changeLog.change().dataValue());
+    assertEquals(dataElement, changeLog.getDataElement().getUid());
+    assertEquals(currentValue, changeLog.getCurrentValue());
+    assertEquals(previousValue, changeLog.getPreviousValue());
   }
 
   private static void assertUser(User user, EventChangeLog changeLog) {
     assertAll(
-        () -> assertEquals(user.getUsername(), changeLog.createdBy().getUsername()),
-        () -> assertEquals(user.getFirstName(), changeLog.createdBy().getFirstName()),
-        () -> assertEquals(user.getSurname(), changeLog.createdBy().getSurname()),
-        () -> assertEquals(user.getUid(), changeLog.createdBy().getUid()));
+        () -> assertEquals(user.getUsername(), changeLog.getCreatedBy().getUsername()),
+        () ->
+            assertEquals(
+                user.getFirstName(),
+                changeLog.getCreatedBy() == null ? null : changeLog.getCreatedBy().getFirstName()),
+        () ->
+            assertEquals(
+                user.getSurname(),
+                changeLog.getCreatedBy() == null ? null : changeLog.getCreatedBy().getSurname()),
+        () ->
+            assertEquals(
+                user.getUid(),
+                changeLog.getCreatedBy() == null ? null : changeLog.getCreatedBy().getUid()));
   }
 
-  private ObjectBundle setUpMetadata(String path) throws IOException {
+  private void setUpMetadata(String path) throws IOException {
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
         renderService.fromMetadata(new ClassPathResource(path).getInputStream(), RenderFormat.JSON);
     ObjectBundleParams params = new ObjectBundleParams();
@@ -357,7 +394,6 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     ObjectBundle bundle = objectBundleService.create(params);
     Assertions.assertNoErrors(objectBundleValidationService.validate(bundle));
     objectBundleService.commit(bundle);
-    return bundle;
   }
 
   private TrackerObjects fromJson(String path) throws IOException {

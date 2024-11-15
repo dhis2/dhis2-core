@@ -43,7 +43,6 @@ import org.hisp.dhis.merge.MergeService;
 import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.merge.MergeValidator;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Main class for indicator type merge.
@@ -60,17 +59,11 @@ public class IndicatorTypeMergeService implements MergeService {
   private final MergeValidator validator;
 
   @Override
-  public MergeType getMergeType() {
-    return MergeType.INDICATOR_TYPE;
-  }
-
-  @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
-    return validator.validateUIDs(params, mergeReport, getMergeType());
+    return validator.validateUIDs(params, mergeReport, MergeType.INDICATOR_TYPE);
   }
 
   @Override
-  @Transactional
   public MergeReport merge(@Nonnull MergeRequest request, @Nonnull MergeReport mergeReport) {
     List<IndicatorType> sources =
         indicatorService.getIndicatorTypesByUid(UID.toValueList(request.getSources()));

@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.export.event;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -55,15 +56,28 @@ public interface EventChangeLogService {
   List<TrackedEntityDataValueChangeLog> getTrackedEntityDataValueChangeLogs(
       TrackedEntityDataValueChangeLogQueryParams params);
 
+  @Deprecated(since = "2.42")
   void addTrackedEntityDataValueChangeLog(
       TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog);
+
+  void addDataValueChangeLog(
+      Event event,
+      DataElement dataElement,
+      String currentValue,
+      String previousValue,
+      ChangeLogType changeLogType,
+      String userName);
 
   @Deprecated(since = "2.42")
   int countTrackedEntityDataValueChangeLogs(TrackedEntityDataValueChangeLogQueryParams params);
 
   void deleteTrackedEntityDataValueChangeLog(Event event);
 
+  void deleteEventChangeLog(Event event);
+
   void deleteTrackedEntityDataValueChangeLog(DataElement dataElement);
+
+  void deleteEventChangeLog(DataElement dataElement);
 
   /**
    * Fields the {@link #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)} can order

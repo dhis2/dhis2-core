@@ -376,6 +376,9 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
             .toList());
 
     columns.addAll(getOrganisationUnitGroupSetColumns());
+    if (sqlBuilder.supportsDeclarativePartitioning()) {
+      columns.add(getPartitionColumn());
+    }
 
     return columns;
   }
