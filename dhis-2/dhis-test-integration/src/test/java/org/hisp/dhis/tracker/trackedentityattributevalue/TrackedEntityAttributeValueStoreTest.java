@@ -100,10 +100,10 @@ class TrackedEntityAttributeValueStoreTest extends PostgresIntegrationTestBase {
   void setUp() {
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
-    trackedEntityA = createTrackedEntity(organisationUnit);
-    trackedEntityB = createTrackedEntity(organisationUnit);
-    trackedEntityC = createTrackedEntity(organisationUnit);
-    trackedEntityD = createTrackedEntity(organisationUnit);
+    trackedEntityA = createTrackedEntity(organisationUnit, createDefaultTrackedEntityType());
+    trackedEntityB = createTrackedEntity(organisationUnit, createDefaultTrackedEntityType());
+    trackedEntityC = createTrackedEntity(organisationUnit, createDefaultTrackedEntityType());
+    trackedEntityD = createTrackedEntity(organisationUnit, createDefaultTrackedEntityType());
     manager.save(trackedEntityA);
     manager.save(trackedEntityB);
     manager.save(trackedEntityC);

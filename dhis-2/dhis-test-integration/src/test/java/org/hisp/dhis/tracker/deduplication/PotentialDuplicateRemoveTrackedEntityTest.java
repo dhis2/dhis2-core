@@ -107,10 +107,10 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
   void shouldDeleteRelationShips() throws NotFoundException {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
-    TrackedEntity original = createTrackedEntity(ou);
-    TrackedEntity duplicate = createTrackedEntity(ou);
-    TrackedEntity control1 = createTrackedEntity(ou);
-    TrackedEntity control2 = createTrackedEntity(ou);
+    TrackedEntity original = createTrackedEntity(ou, createDefaultTrackedEntityType());
+    TrackedEntity duplicate = createTrackedEntity(ou, createDefaultTrackedEntityType());
+    TrackedEntity control1 = createTrackedEntity(ou, createDefaultTrackedEntityType());
+    TrackedEntity control2 = createTrackedEntity(ou, createDefaultTrackedEntityType());
     manager.save(original);
     manager.save(duplicate);
     manager.save(control1);
@@ -145,10 +145,10 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
   void shouldDeleteEnrollments() throws ForbiddenException, NotFoundException {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
-    TrackedEntity original = createTrackedEntity(ou);
-    TrackedEntity duplicate = createTrackedEntity(ou);
-    TrackedEntity control1 = createTrackedEntity(ou);
-    TrackedEntity control2 = createTrackedEntity(ou);
+    TrackedEntity original = createTrackedEntity(ou, createDefaultTrackedEntityType());
+    TrackedEntity duplicate = createTrackedEntity(ou, createDefaultTrackedEntityType());
+    TrackedEntity control1 = createTrackedEntity(ou, createDefaultTrackedEntityType());
+    TrackedEntity control2 = createTrackedEntity(ou, createDefaultTrackedEntityType());
     manager.save(original);
     manager.save(duplicate);
     manager.save(control1);
@@ -187,7 +187,8 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
   private TrackedEntity createTrackedEntity(TrackedEntityAttribute trackedEntityAttribute) {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
-    TrackedEntity trackedEntity = createTrackedEntity('T', ou, trackedEntityAttribute);
+    TrackedEntity trackedEntity =
+        createTrackedEntity('T', ou, trackedEntityAttribute, createDefaultTrackedEntityType());
     manager.save(trackedEntity);
     return trackedEntity;
   }

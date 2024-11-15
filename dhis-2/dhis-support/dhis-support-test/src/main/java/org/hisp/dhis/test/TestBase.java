@@ -191,6 +191,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityFilter;
@@ -286,13 +287,18 @@ public abstract class TestBase {
   @Autowired(required = false)
   protected CategoryService internalCategoryService;
 
+  @Autowired private TrackedEntityTypeService trackedEntityTypeService;
+
   @Autowired protected HibernateService hibernateService;
 
   protected static CategoryService categoryService;
 
+  protected static TrackedEntityTypeService entityTypeService;
+
   @PostConstruct
   protected void initServices() {
     categoryService = internalCategoryService;
+    entityTypeService = trackedEntityTypeService;
   }
 
   static {
@@ -2141,29 +2147,36 @@ public abstract class TestBase {
     return trackedEntityType;
   }
 
-  public static TrackedEntity createTrackedEntity(OrganisationUnit organisationUnit) {
+  public static TrackedEntity createTrackedEntity(
+      OrganisationUnit organisationUnit, TrackedEntityType trackedEntityType) {
     TrackedEntity trackedEntity = new TrackedEntity();
     trackedEntity.setAutoFields();
     trackedEntity.setOrganisationUnit(organisationUnit);
+    trackedEntity.setTrackedEntityType(trackedEntityType);
 
     return trackedEntity;
   }
 
   public static TrackedEntity createTrackedEntity(
-      char uniqueChar, OrganisationUnit organisationUnit) {
+      char uniqueChar, OrganisationUnit organisationUnit, TrackedEntityType trackedEntityType) {
     TrackedEntity trackedEntity = new TrackedEntity();
     trackedEntity.setAutoFields();
     trackedEntity.setOrganisationUnit(organisationUnit);
     trackedEntity.setUid(BASE_TE_UID + uniqueChar);
+    trackedEntity.setTrackedEntityType(trackedEntityType);
 
     return trackedEntity;
   }
 
   public static TrackedEntity createTrackedEntity(
-      char uniqueChar, OrganisationUnit organisationUnit, TrackedEntityAttribute attribute) {
+      char uniqueChar,
+      OrganisationUnit organisationUnit,
+      TrackedEntityAttribute attribute,
+      TrackedEntityType trackedEntityType) {
     TrackedEntity trackedEntity = new TrackedEntity();
     trackedEntity.setAutoFields();
     trackedEntity.setOrganisationUnit(organisationUnit);
+    trackedEntity.setTrackedEntityType(trackedEntityType);
 
     TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
     attributeValue.setAttribute(attribute);
@@ -2172,6 +2185,14 @@ public abstract class TestBase {
     trackedEntity.getTrackedEntityAttributeValues().add(attributeValue);
 
     return trackedEntity;
+  }
+
+  public static TrackedEntityType createDefaultTrackedEntityType() {
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    trackedEntityType.setAutoFields();
+    trackedEntityType.setName("TrackedEntityType" + CodeGenerator.generateCode(2));
+    entityTypeService.addTrackedEntityType(trackedEntityType);
+    return trackedEntityType;
   }
 
   public static TrackedEntityAttributeValue createTrackedEntityAttributeValue(

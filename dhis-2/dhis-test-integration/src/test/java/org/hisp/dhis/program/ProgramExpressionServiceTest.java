@@ -99,7 +99,8 @@ class ProgramExpressionServiceTest extends PostgresIntegrationTestBase {
     dataElementB = createDataElement('B');
     dataElementService.addDataElement(dataElementA);
     dataElementService.addDataElement(dataElementB);
-    TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
+    TrackedEntity trackedEntity =
+        createTrackedEntity(organisationUnit, createDefaultTrackedEntityType());
     manager.save(trackedEntity);
     programExpressionA =
         new ProgramExpression(

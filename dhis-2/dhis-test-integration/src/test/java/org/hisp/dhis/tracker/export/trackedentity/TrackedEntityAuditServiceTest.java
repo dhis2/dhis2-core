@@ -112,7 +112,7 @@ class TrackedEntityAuditServiceTest extends PostgresIntegrationTestBase {
     trackedEntityType = createTrackedEntityType('A');
     manager.save(trackedEntityType, false);
 
-    trackedEntity = createTrackedEntity(orgUnitA);
+    trackedEntity = createTrackedEntity(orgUnitA, createDefaultTrackedEntityType());
     trackedEntity.setTrackedEntityType(trackedEntityType);
     manager.save(trackedEntity, false);
 
@@ -177,7 +177,7 @@ class TrackedEntityAuditServiceTest extends PostgresIntegrationTestBase {
   void shouldFailWhenUserHasNoAccessToOrgUnitScope() {
     OrganisationUnit outOfScopeOrgUnit = createOrganisationUnit("out of scope org unit");
     manager.save(outOfScopeOrgUnit, false);
-    trackedEntity = createTrackedEntity(outOfScopeOrgUnit);
+    trackedEntity = createTrackedEntity(outOfScopeOrgUnit, createDefaultTrackedEntityType());
     trackedEntity.setTrackedEntityType(trackedEntityType);
     manager.save(trackedEntity, false);
 

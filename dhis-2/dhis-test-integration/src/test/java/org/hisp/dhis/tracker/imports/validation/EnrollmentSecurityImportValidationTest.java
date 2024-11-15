@@ -163,10 +163,10 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
     manager.update(programStageA);
     manager.update(programStageB);
     manager.update(programA);
-    maleA = createTrackedEntity('A', organisationUnitA);
-    maleB = createTrackedEntity(organisationUnitB);
-    femaleA = createTrackedEntity(organisationUnitA);
-    femaleB = createTrackedEntity(organisationUnitB);
+    maleA = createTrackedEntity('A', organisationUnitA, createDefaultTrackedEntityType());
+    maleB = createTrackedEntity(organisationUnitB, createDefaultTrackedEntityType());
+    femaleA = createTrackedEntity(organisationUnitA, createDefaultTrackedEntityType());
+    femaleB = createTrackedEntity(organisationUnitB, createDefaultTrackedEntityType());
     maleA.setTrackedEntityType(trackedEntityType);
     maleB.setTrackedEntityType(trackedEntityType);
     femaleA.setTrackedEntityType(trackedEntityType);
@@ -352,7 +352,8 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
 
   private TrackedEntity createTrackedEntity(
       TrackedEntityType trackedEntityType, OrganisationUnit orgUnit) {
-    TrackedEntity trackedEntity = createTrackedEntity('T', orgUnit);
+    TrackedEntity trackedEntity =
+        createTrackedEntity('T', orgUnit, createDefaultTrackedEntityType());
     trackedEntity.setTrackedEntityType(trackedEntityType);
     manager.save(trackedEntity);
 

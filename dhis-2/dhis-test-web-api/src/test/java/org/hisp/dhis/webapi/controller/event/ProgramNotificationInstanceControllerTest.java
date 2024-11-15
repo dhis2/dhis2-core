@@ -86,7 +86,8 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
     manager.save(prA);
     ProgramStage psA = createProgramStage('A', prA);
     manager.save(psA);
-    TrackedEntity trackedEntityA = createTrackedEntity('A', orgUnit);
+    TrackedEntity trackedEntityA =
+        createTrackedEntity('A', orgUnit, createDefaultTrackedEntityType());
     manager.save(trackedEntityA);
     enrollment = createEnrollment(prA, trackedEntityA, orgUnit);
     manager.save(enrollment);

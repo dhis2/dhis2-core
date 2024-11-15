@@ -327,7 +327,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     trackedEntityAttributeValueB = new TrackedEntityAttributeValue(teaB, trackedEntityA, "B");
     trackedEntityAttributeValueC = new TrackedEntityAttributeValue(teaC, trackedEntityA, "C");
 
-    trackedEntityA = createTrackedEntity(orgUnitA);
+    trackedEntityA = createTrackedEntity(orgUnitA, createDefaultTrackedEntityType());
     trackedEntityA.setTrackedEntityType(trackedEntityTypeA);
     trackedEntityA.setTrackedEntityAttributeValues(
         Set.of(
@@ -336,11 +336,12 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             trackedEntityAttributeValueC));
     manager.save(trackedEntityA, false);
 
-    trackedEntityChildA = createTrackedEntity(orgUnitChildA);
+    trackedEntityChildA = createTrackedEntity(orgUnitChildA, createDefaultTrackedEntityType());
     trackedEntityChildA.setTrackedEntityType(trackedEntityTypeA);
     manager.save(trackedEntityChildA, false);
 
-    trackedEntityGrandchildA = createTrackedEntity(orgUnitGrandchildA);
+    trackedEntityGrandchildA =
+        createTrackedEntity(orgUnitGrandchildA, createDefaultTrackedEntityType());
     trackedEntityGrandchildA.setTrackedEntityType(trackedEntityTypeA);
     manager.save(trackedEntityGrandchildA, false);
 
@@ -383,7 +384,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     enrollmentB.setEvents(Set.of(eventB));
     manager.save(enrollmentB, false);
 
-    trackedEntityB = createTrackedEntity(orgUnitB);
+    trackedEntityB = createTrackedEntity(orgUnitB, createDefaultTrackedEntityType());
     trackedEntityB.setTrackedEntityType(trackedEntityTypeA);
     manager.save(trackedEntityB, false);
 
@@ -401,7 +402,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     enrollmentC.setEvents(Set.of(eventC));
     manager.save(enrollmentC, false);
 
-    TrackedEntity trackedEntityC = createTrackedEntity(orgUnitC);
+    TrackedEntity trackedEntityC = createTrackedEntity(orgUnitC, createDefaultTrackedEntityType());
     trackedEntityC.setTrackedEntityType(trackedEntityTypeA);
     manager.save(trackedEntityC, false);
 
@@ -1853,7 +1854,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     TrackedEntityType inaccessibleTrackedEntityType = createTrackedEntityType('U');
     inaccessibleTrackedEntityType.setSharing(Sharing.builder().publicAccess("rw------").build());
     manager.save(inaccessibleTrackedEntityType, false);
-    TrackedEntity trackedEntity = createTrackedEntity(orgUnitA);
+    TrackedEntity trackedEntity = createTrackedEntity(orgUnitA, createDefaultTrackedEntityType());
     trackedEntity.setTrackedEntityType(inaccessibleTrackedEntityType);
     manager.save(trackedEntity);
 

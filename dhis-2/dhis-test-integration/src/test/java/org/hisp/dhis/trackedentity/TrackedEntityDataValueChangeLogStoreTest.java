@@ -159,7 +159,7 @@ class TrackedEntityDataValueChangeLogStoreTest extends PostgresIntegrationTestBa
     dataElementService.addDataElement(deA);
     dataElementService.addDataElement(deB);
 
-    TrackedEntity teA = createTrackedEntity(ouA);
+    TrackedEntity teA = createTrackedEntity(ouA, createDefaultTrackedEntityType());
     manager.save(teA);
 
     Enrollment enrollment = createEnrollment(pA, teA, ouA);

@@ -66,7 +66,7 @@ class ProgramMessageControllerTest extends H2ControllerIntegrationTestBase {
     manager.save(prA);
     ProgramStage psA = createProgramStage('A', prA);
     manager.save(psA);
-    TrackedEntity trackedEntityA = createTrackedEntity('A', ouA);
+    TrackedEntity trackedEntityA = createTrackedEntity('A', ouA, createDefaultTrackedEntityType());
     manager.save(trackedEntityA);
     enrollmentA = createEnrollment(prA, trackedEntityA, ouA);
     manager.save(enrollmentA);

@@ -85,9 +85,9 @@ class PotentialDuplicateStoreTEAVTest extends PostgresIntegrationTestBase {
   void setUp() {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
-    original = createTrackedEntity(ou);
-    duplicate = createTrackedEntity(ou);
-    control = createTrackedEntity(ou);
+    original = createTrackedEntity(ou, createDefaultTrackedEntityType());
+    duplicate = createTrackedEntity(ou, createDefaultTrackedEntityType());
+    control = createTrackedEntity(ou, createDefaultTrackedEntityType());
     manager.save(original);
     manager.save(duplicate);
     manager.save(control);

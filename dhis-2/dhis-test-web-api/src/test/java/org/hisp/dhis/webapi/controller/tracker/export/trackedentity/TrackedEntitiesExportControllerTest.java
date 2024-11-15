@@ -159,7 +159,7 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
     program.setTrackedEntityType(trackedEntityType);
     manager.save(program, false);
 
-    softDeletedTrackedEntity = createTrackedEntity(orgUnit);
+    softDeletedTrackedEntity = createTrackedEntity(orgUnit, createDefaultTrackedEntityType());
     softDeletedTrackedEntity.setDeleted(true);
     manager.save(softDeletedTrackedEntity, false);
   }
@@ -1068,7 +1068,7 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
 
   private TrackedEntity trackedEntity(
       OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity te = createTrackedEntity(orgUnit);
+    TrackedEntity te = createTrackedEntity(orgUnit, createDefaultTrackedEntityType());
     te.setTrackedEntityType(trackedEntityType);
     te.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     te.getSharing().setOwner(owner);

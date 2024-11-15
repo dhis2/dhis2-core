@@ -91,7 +91,7 @@ class RelationshipOperationParamsMapperTest extends TestBase {
     Program program = createProgram('A');
     ProgramStage programStage = createProgramStage('A', program);
 
-    trackedEntity = createTrackedEntity(organisationUnit);
+    trackedEntity = createTrackedEntity(organisationUnit, createDefaultTrackedEntityType());
     trackedEntity.setUid(TE_UID.getValue());
     enrollment = createEnrollment(program, trackedEntity, organisationUnit);
     enrollment.setUid(EN_UID.getValue());

@@ -1267,7 +1267,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
       "Event eventDataValues references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void eventMergeTest() throws ConflictException {
     // given
-    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+    TrackedEntity trackedEntity = createTrackedEntity(ou1, createDefaultTrackedEntityType());
     identifiableObjectManager.save(trackedEntity);
     Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
     identifiableObjectManager.save(enrollment);
@@ -1352,7 +1352,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
       "Event eventDataValues references with source DataElements are deleted when using DISCARD merge strategy")
   void eventMergeDiscardTest() throws ConflictException {
     // given
-    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+    TrackedEntity trackedEntity = createTrackedEntity(ou1, createDefaultTrackedEntityType());
     identifiableObjectManager.save(trackedEntity);
     Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
     identifiableObjectManager.save(enrollment);
@@ -1445,7 +1445,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
       "Event eventDataValues references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void eventMergeSourcesDeletedTest() throws ConflictException {
     // given
-    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+    TrackedEntity trackedEntity = createTrackedEntity(ou1, createDefaultTrackedEntityType());
     identifiableObjectManager.save(trackedEntity);
     Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
     identifiableObjectManager.save(enrollment);
@@ -2549,7 +2549,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
       "TrackedEntityDataValueChangeLog with references to source DataElements are not changed or deleted when sources not deleted")
   void trackedEntityDataValueChangeLogMergeTest() throws ConflictException {
     // given
-    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+    TrackedEntity trackedEntity = createTrackedEntity(ou1, createDefaultTrackedEntityType());
     identifiableObjectManager.save(trackedEntity);
     Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
     identifiableObjectManager.save(enrollment);
@@ -2602,7 +2602,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
       "TrackedEntityDataValueChangeLog with references to source DataElements are deleted when sources are deleted")
   void trackedEntityDataValueChangeLogMergeDeletedTest() throws ConflictException {
     // given
-    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+    TrackedEntity trackedEntity = createTrackedEntity(ou1, createDefaultTrackedEntityType());
     identifiableObjectManager.save(trackedEntity);
     Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
     identifiableObjectManager.save(enrollment);

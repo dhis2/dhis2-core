@@ -70,7 +70,8 @@ class HardDeleteAuditTest extends PostgresIntegrationTestBase {
   void testHardDeleteTrackedEntity() {
     OrganisationUnit ou = createOrganisationUnit('A');
     TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
-    TrackedEntity trackedEntity = createTrackedEntity('A', ou, attribute);
+    TrackedEntity trackedEntity =
+        createTrackedEntity('A', ou, attribute, createDefaultTrackedEntityType());
     transactionTemplate.execute(
         status -> {
           manager.save(ou);

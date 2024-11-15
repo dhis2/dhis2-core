@@ -164,13 +164,14 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     programService.updateProgram(program);
     TrackedEntityType trackedEntityType = createTrackedEntityType('A');
     trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
-    trackedEntity = createTrackedEntity(organisationUnit);
+    trackedEntity = createTrackedEntity(organisationUnit, createDefaultTrackedEntityType());
     trackedEntity.setTrackedEntityType(trackedEntityType);
     manager.save(trackedEntity);
-    trackedEntityB = createTrackedEntity(organisationUnit);
+    trackedEntityB = createTrackedEntity(organisationUnit, createDefaultTrackedEntityType());
     trackedEntityB.setTrackedEntityType(trackedEntityType);
     manager.save(trackedEntityB);
-    trackedEntityWithAssociations = createTrackedEntity('T', organisationUnit);
+    trackedEntityWithAssociations =
+        createTrackedEntity('T', organisationUnit, createDefaultTrackedEntityType());
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
     testDate1 = testDate1.minusDays(70);

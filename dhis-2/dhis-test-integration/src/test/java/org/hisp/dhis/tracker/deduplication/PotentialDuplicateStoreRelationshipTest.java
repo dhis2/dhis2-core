@@ -79,10 +79,10 @@ class PotentialDuplicateStoreRelationshipTest extends PostgresIntegrationTestBas
   void setUp() {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
-    original = createTrackedEntity(ou);
-    duplicate = createTrackedEntity(ou);
-    extra1 = createTrackedEntity(ou);
-    extra2 = createTrackedEntity(ou);
+    original = createTrackedEntity(ou, createDefaultTrackedEntityType());
+    duplicate = createTrackedEntity(ou, createDefaultTrackedEntityType());
+    extra1 = createTrackedEntity(ou, createDefaultTrackedEntityType());
+    extra2 = createTrackedEntity(ou, createDefaultTrackedEntityType());
     manager.save(original);
     manager.save(duplicate);
     manager.save(extra1);

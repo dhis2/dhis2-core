@@ -58,9 +58,10 @@ class RelationshipDeletionHandlerTest extends PostgresIntegrationTestBase {
     manager.save(deletableRelationshipType);
     OrganisationUnit orgUnit = createOrganisationUnit('A');
     manager.save(orgUnit);
-    TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnit);
+    TrackedEntity trackedEntityFrom =
+        createTrackedEntity(orgUnit, createDefaultTrackedEntityType());
     manager.save(trackedEntityFrom);
-    TrackedEntity trackedEntityTo = createTrackedEntity(orgUnit);
+    TrackedEntity trackedEntityTo = createTrackedEntity(orgUnit, createDefaultTrackedEntityType());
     manager.save(trackedEntityTo);
     Relationship relationship =
         createTeToTeRelationship(trackedEntityFrom, trackedEntityTo, relationshipType);

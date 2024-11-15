@@ -270,7 +270,7 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
 
   private TrackedEntity trackedEntity(
       OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity te = createTrackedEntity(orgUnit);
+    TrackedEntity te = createTrackedEntity(orgUnit, createDefaultTrackedEntityType());
     te.setTrackedEntityType(trackedEntityType);
     te.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     te.getSharing().setOwner(user);

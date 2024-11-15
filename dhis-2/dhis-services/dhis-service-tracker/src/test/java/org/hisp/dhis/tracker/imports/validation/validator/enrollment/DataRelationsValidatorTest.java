@@ -263,7 +263,7 @@ class DataRelationsValidatorTest extends TestBase {
   }
 
   private TrackedEntity trackedEntity(UID uid, TrackedEntityType type, OrganisationUnit orgUnit) {
-    TrackedEntity te = createTrackedEntity(orgUnit);
+    TrackedEntity te = createTrackedEntity(orgUnit, createDefaultTrackedEntityType());
     te.setUid(uid.getValue());
     te.setTrackedEntityType(type);
     return te;

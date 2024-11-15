@@ -133,7 +133,9 @@ class CopyServiceTest extends TestBase {
 
     OrganisationUnit orgUnit = createOrganisationUnit("New Org 1");
     List<Enrollment> originalEnrollments =
-        List.of(createEnrollment(original, createTrackedEntity(orgUnit), orgUnit));
+        List.of(
+            createEnrollment(
+                original, createTrackedEntity(orgUnit, createDefaultTrackedEntityType()), orgUnit));
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);

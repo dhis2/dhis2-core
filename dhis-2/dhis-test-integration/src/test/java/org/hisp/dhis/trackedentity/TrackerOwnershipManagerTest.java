@@ -116,9 +116,9 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
     trackedEntityType.setSharing(Sharing.builder().publicAccess(AccessStringHelper.FULL).build());
     trackedEntityTypeService.updateTrackedEntityType(trackedEntityType);
 
-    trackedEntityA1 = createTrackedEntity(organisationUnitA);
+    trackedEntityA1 = createTrackedEntity(organisationUnitA, createDefaultTrackedEntityType());
     trackedEntityA1.setTrackedEntityType(trackedEntityType);
-    trackedEntityB1 = createTrackedEntity(organisationUnitB);
+    trackedEntityB1 = createTrackedEntity(organisationUnitB, createDefaultTrackedEntityType());
     trackedEntityB1.setTrackedEntityType(trackedEntityType);
     manager.save(trackedEntityA1);
     manager.save(trackedEntityB1);
