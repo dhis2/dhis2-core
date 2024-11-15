@@ -143,7 +143,6 @@ public class EventPersister
     }
 
     Event clonedEvent = new Event();
-    clonedEvent.setId(originalEvent.getId());
     clonedEvent.setUid(originalEvent.getUid());
     clonedEvent.setOccurredDate(originalEvent.getOccurredDate());
     clonedEvent.setScheduledDate(originalEvent.getScheduledDate());
@@ -252,7 +251,7 @@ public class EventPersister
     String newValue = formatter.apply(valueExtractor.apply(payloadEvent));
 
     if (!Objects.equals(originalValue, newValue)) {
-      ChangeLogType changeLogType = getChangeLogType(originalEvent, payloadEvent, valueExtractor);
+      ChangeLogType changeLogType = getChangeLogType(originalValue, newValue);
 
       eventChangeLogService.addEventPropertyChangeLog(
           payloadEvent, propertyName, originalValue, newValue, changeLogType, user.getUsername());
@@ -349,20 +348,12 @@ public class EventPersister
         && !StringUtils.equals(dv.getValue(), eventDataValue.getValue());
   }
 
-  private <V> boolean isNewProperty(
-      Event originalEvent, Event payloadEvent, Function<Event, V> valueExtractor) {
-    V dbValue = valueExtractor.apply(originalEvent);
-    V payloadValue = valueExtractor.apply(payloadEvent);
-
-    return dbValue == null && payloadValue != null;
+  private boolean isNewProperty(String originalValue, String payloadValue) {
+    return originalValue == null && payloadValue != null;
   }
 
-  private <V> boolean isUpdateProperty(
-      Event originalEvent, Event payloadEvent, Function<Event, V> valueExtractor) {
-    V dbValue = valueExtractor.apply(originalEvent);
-    V payloadValue = valueExtractor.apply(payloadEvent);
-
-    return dbValue != null && payloadValue != null;
+  private boolean isUpdateProperty(String originalValue, String payloadValue) {
+    return originalValue != null && payloadValue != null;
   }
 
   private String formatDate(Date date) {
@@ -380,11 +371,10 @@ public class EventPersister
         .collect(Collectors.joining(", "));
   }
 
-  private <V> ChangeLogType getChangeLogType(
-      Event originalEvent, Event payloadEvent, Function<Event, V> valueExtractor) {
-    if (isNewProperty(originalEvent, payloadEvent, valueExtractor)) {
+  private ChangeLogType getChangeLogType(String originalValue, String newValue) {
+    if (isNewProperty(originalValue, newValue)) {
       return ChangeLogType.CREATE;
-    } else if (isUpdateProperty(originalEvent, payloadEvent, valueExtractor)) {
+    } else if (isUpdateProperty(originalValue, newValue)) {
       return ChangeLogType.UPDATE;
     } else {
       return ChangeLogType.DELETE;

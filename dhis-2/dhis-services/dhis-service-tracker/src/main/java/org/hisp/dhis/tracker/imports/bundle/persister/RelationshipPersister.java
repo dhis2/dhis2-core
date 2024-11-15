@@ -105,8 +105,26 @@ public class RelationshipPersister
   }
 
   @Override
+  protected void handleEventValueChanges(
+      EntityManager entityManager,
+      TrackerPreheat preheat,
+      Relationship trackerDto,
+      org.hisp.dhis.relationship.Relationship hibernateEntity,
+      org.hisp.dhis.relationship.Relationship originalEntity,
+      UserDetails user) {
+    // DO NOTHING - TE HAVE NO DATA VALUES
+  }
+
+  @Override
   protected String getUpdatedTrackedEntity(org.hisp.dhis.relationship.Relationship entity) {
     return null;
+  }
+
+  @Override
+  protected org.hisp.dhis.relationship.Relationship cloneEntityProperties(
+      TrackerPreheat preheat, Relationship trackerDto) {
+    return null;
+    // NO NEED TO CLONE RELATIONSHIP PROPERTIES
   }
 
   @Override

@@ -212,10 +212,7 @@ public abstract class AbstractTrackerPersister<
   protected abstract String getUpdatedTrackedEntity(V entity);
 
   /** Clones the event properties that may potentially be change logged */
-  protected V cloneEntityProperties(TrackerPreheat preheat, T trackerDto) {
-    return null;
-    // No need to clone properties for tracked entities, enrollments nor relationships
-  }
+  protected abstract V cloneEntityProperties(TrackerPreheat preheat, T trackerDto);
 
   /**
    * Converts an object implementing the {@link TrackerDto} interface into the corresponding
@@ -227,15 +224,13 @@ public abstract class AbstractTrackerPersister<
   protected abstract void persistOwnership(TrackerBundle bundle, T trackerDto, V entity);
 
   /** Execute the persistence of Data values linked to the entity being processed */
-  protected void handleEventValueChanges(
+  protected abstract void handleEventValueChanges(
       EntityManager entityManager,
       TrackerPreheat preheat,
       T trackerDto,
       V hibernateEntity,
       V originalEntity,
-      UserDetails user) {
-    // Nothing to do by default
-  }
+      UserDetails user);
 
   /** Execute the persistence of Attribute values linked to the entity being processed */
   protected abstract void updateAttributes(

@@ -99,9 +99,27 @@ public class TrackedEntityPersister
   }
 
   @Override
+  protected void handleEventValueChanges(
+      EntityManager entityManager,
+      TrackerPreheat preheat,
+      org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
+      TrackedEntity hibernateEntity,
+      TrackedEntity originalEntity,
+      UserDetails user) {
+    // DO NOTHING - TE HAVE NO DATA VALUES
+  }
+
+  @Override
   protected String getUpdatedTrackedEntity(TrackedEntity entity) {
     return null; // We don't need to keep track, Tei has already been
     // updated
+  }
+
+  @Override
+  protected TrackedEntity cloneEntityProperties(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto) {
+    return null;
+    // NO NEED TO CLONE RELATIONSHIP PROPERTIES
   }
 
   @Override

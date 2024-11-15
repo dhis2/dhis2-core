@@ -157,7 +157,25 @@ public class EnrollmentPersister
   }
 
   @Override
+  protected void handleEventValueChanges(
+      EntityManager entityManager,
+      TrackerPreheat preheat,
+      org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto,
+      Enrollment hibernateEntity,
+      Enrollment originalEntity,
+      UserDetails user) {
+    // DO NOTHING - TE HAVE NO DATA VALUES
+  }
+
+  @Override
   protected String getUpdatedTrackedEntity(Enrollment entity) {
     return entity.getTrackedEntity().getUid();
+  }
+
+  @Override
+  protected Enrollment cloneEntityProperties(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto) {
+    return null;
+    // NO NEED TO CLONE RELATIONSHIP PROPERTIES
   }
 }
