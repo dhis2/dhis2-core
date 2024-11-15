@@ -184,7 +184,7 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   /** Uses the <code>postgresql</code> table function to query DHIS 2 PostgreSQL server. */
   @Override
   public String qualifyTable(String name) {
-    return String.format("postgresql(%s, table=%s", quote(NAMED_COLLECTION), singleQuote(name));
+    return String.format("postgresql(%s, table=%s)", quote(NAMED_COLLECTION), singleQuote(name));
   }
 
   @Override

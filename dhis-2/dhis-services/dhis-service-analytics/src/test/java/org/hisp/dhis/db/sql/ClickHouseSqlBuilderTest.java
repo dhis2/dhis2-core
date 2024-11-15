@@ -41,7 +41,7 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 import org.junit.jupiter.api.Test;
 
 class ClickHouseSqlBuilderTest {
-  private final SqlBuilder sqlBuilder = new ClickHouseSqlBuilder();
+  private final ClickHouseSqlBuilder sqlBuilder = new ClickHouseSqlBuilder();
 
   private Table getTableA() {
     List<Column> columns =
@@ -170,7 +170,10 @@ class ClickHouseSqlBuilderTest {
 
   @Test
   void testQualifyTable() {
-    // TO DO
+    assertEquals("postgresql(\"pg_dhis\", table='category')", sqlBuilder.qualifyTable("category"));
+    assertEquals(
+        "postgresql(\"pg_dhis\", table='categories_options')",
+        sqlBuilder.qualifyTable("categories_options"));
   }
 
   @Test
@@ -209,8 +212,6 @@ class ClickHouseSqlBuilderTest {
 
     assertEquals(expected, sqlBuilder.createTable(table));
   }
-
-  // void testCreateTableB()
 
   @Test
   void testCreateTableC() {
@@ -296,5 +297,14 @@ class ClickHouseSqlBuilderTest {
         select count(*) as row_count from \"immunization\";""";
 
     assertEquals(expected, sqlBuilder.countRows(getTableA()));
+  }
+
+  // Named collection
+
+  @Test
+  void testDropNamedCollectionIfExists() {
+    assertEquals(
+        "drop named collection if exists \"pg_dhis\";",
+        sqlBuilder.dropNamedCollectionIfExists("pg_dhis"));
   }
 }
