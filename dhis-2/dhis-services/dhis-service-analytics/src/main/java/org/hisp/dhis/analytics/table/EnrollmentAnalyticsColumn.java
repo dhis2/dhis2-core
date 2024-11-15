@@ -176,7 +176,7 @@ public final class EnrollmentAnalyticsColumn {
 
   // Geometry-specific columns
   private static final List<AnalyticsTableColumn> GEOMETRY_COLUMNS =
-      List.of(ENROLLMENT_GEOMETRY, TRACKED_ENTITY_GEOMETRY, LONGITUDE, LATITUDE);
+      List.of(ENROLLMENT_GEOMETRY, LONGITUDE, LATITUDE);
 
   private static List<AnalyticsTableColumn> createJsonColumns(SqlBuilder sqlBuilder) {
 
