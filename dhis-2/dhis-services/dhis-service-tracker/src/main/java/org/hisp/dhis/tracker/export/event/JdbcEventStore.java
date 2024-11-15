@@ -605,12 +605,12 @@ class JdbcEventStore {
       User user) {
     StringBuilder sqlBuilder = new StringBuilder("select ");
     if (TrackerIdScheme.UID
-        == queryParams.getIdSchemeParams().getDataElementIdScheme().getIdScheme()) {
-      sqlBuilder.append("*");
-    } else {
+        != queryParams.getIdSchemeParams().getDataElementIdScheme().getIdScheme()) {
       sqlBuilder.append(
           "event.*, cm.*,eventdatavalue.value as ev_eventdatavalue, de.uid as de_uid, de.code as"
               + " de_code, de.name as de_name, de.attributevalues as de_attributevalues");
+    } else {
+      sqlBuilder.append("*");
     }
     sqlBuilder.append(" from (");
 
