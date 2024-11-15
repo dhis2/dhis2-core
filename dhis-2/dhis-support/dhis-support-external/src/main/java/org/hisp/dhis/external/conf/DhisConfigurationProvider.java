@@ -117,16 +117,6 @@ public interface DhisConfigurationProvider {
   String getProperty(ConfigurationKey key);
 
   /**
-   * Get the property value for the given key as an <code>int</code>, or the default value as
-   * specified in the {@link ConfigurationKey#getDefaultValue()} for the configuration key if not
-   * exists.
-   *
-   * @param key the configuration key.
-   * @return the property value.
-   */
-  int getIntProperty(ConfigurationKey key);
-
-  /**
    * Get the property value for the given key, or the default value if not exists.
    *
    * @param key the configuration key.
