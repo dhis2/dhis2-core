@@ -85,6 +85,7 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
@@ -192,8 +193,10 @@ class AnalyticsValidationServiceTest extends PostgresIntegrationTestBase {
     entityAttribute.setAggregationType(AggregationType.COUNT);
     entityAttribute.setUid(TRACKED_ENTITY_ATTRIBUTE_UID);
     entityAttributeService.addTrackedEntityAttribute(entityAttribute);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
     TrackedEntity trackedEntity =
-        createTrackedEntity('A', orgUnitA, entityAttribute, createDefaultTrackedEntityType());
+        createTrackedEntity('A', orgUnitA, entityAttribute, trackedEntityType);
     manager.save(trackedEntity);
     TrackedEntityAttributeValue trackedEntityAttributeValue =
         new TrackedEntityAttributeValue(entityAttribute, trackedEntity);

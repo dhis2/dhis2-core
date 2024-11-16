@@ -43,6 +43,7 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -89,10 +90,13 @@ class TrackedEntityAttributeValueServiceTest extends PostgresIntegrationTestBase
   void setUp() {
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
-    trackedEntityA = createTrackedEntity(organisationUnit, createDefaultTrackedEntityType());
-    trackedEntityB = createTrackedEntity(organisationUnit, createDefaultTrackedEntityType());
-    trackedEntityC = createTrackedEntity(organisationUnit, createDefaultTrackedEntityType());
-    trackedEntityD = createTrackedEntity(organisationUnit, createDefaultTrackedEntityType());
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    trackedEntityA = createTrackedEntity(organisationUnit, trackedEntityType);
+    trackedEntityB = createTrackedEntity(organisationUnit, trackedEntityType);
+    trackedEntityC = createTrackedEntity(organisationUnit, trackedEntityType);
+    trackedEntityD = createTrackedEntity(organisationUnit, trackedEntityType);
     manager.save(trackedEntityA);
     manager.save(trackedEntityB);
     manager.save(trackedEntityC);

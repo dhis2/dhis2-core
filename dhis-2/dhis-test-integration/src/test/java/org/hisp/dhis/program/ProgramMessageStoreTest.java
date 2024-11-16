@@ -48,6 +48,7 @@ import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.message.ProgramMessageStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,7 +107,9 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     programService.updateProgram(programA);
 
     // Initialize Tracked Entities, Enrollment and Event
-    TrackedEntity trackedEntityB = createTrackedEntity(orgUnitA, createDefaultTrackedEntityType());
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntityB = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityB);
 
     enrollmentA = new Enrollment(new Date(), new Date(), trackedEntityB, programA);
@@ -116,7 +119,7 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     eventA.setScheduledDate(new Date());
     eventA.setUid(CodeGenerator.generateUid());
 
-    TrackedEntity trackedEntityA = createTrackedEntity(orgUnitA, createDefaultTrackedEntityType());
+    TrackedEntity trackedEntityA = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityA);
 
     ProgramMessageRecipients recipientsA = createRecipients(orgUnitA, trackedEntityA);

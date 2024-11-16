@@ -63,6 +63,7 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.joda.time.DateTime;
@@ -201,7 +202,9 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
     programStageService.updateProgramStage(programStageA);
     programA.setProgramStages(Sets.newHashSet(programStageA));
     programService.updateProgram(programA);
-    trackedEntityA = createTrackedEntity(organisationUnitA, createDefaultTrackedEntityType());
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    trackedEntityA = createTrackedEntity(organisationUnitA, trackedEntityType);
     trackedEntityA.setUid(trackedEntityUid);
     manager.save(trackedEntityA);
     trackedEntityAttributeValueA =

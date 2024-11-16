@@ -191,7 +191,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityFilter;
@@ -287,18 +286,13 @@ public abstract class TestBase {
   @Autowired(required = false)
   protected CategoryService internalCategoryService;
 
-  @Autowired private TrackedEntityTypeService trackedEntityTypeService;
-
   @Autowired protected HibernateService hibernateService;
 
   protected static CategoryService categoryService;
 
-  protected static TrackedEntityTypeService entityTypeService;
-
   @PostConstruct
   protected void initServices() {
     categoryService = internalCategoryService;
-    entityTypeService = trackedEntityTypeService;
   }
 
   static {
@@ -2185,14 +2179,6 @@ public abstract class TestBase {
     trackedEntity.getTrackedEntityAttributeValues().add(attributeValue);
 
     return trackedEntity;
-  }
-
-  public static TrackedEntityType createDefaultTrackedEntityType() {
-    TrackedEntityType trackedEntityType = new TrackedEntityType();
-    trackedEntityType.setAutoFields();
-    trackedEntityType.setName("TrackedEntityType" + CodeGenerator.generateCode(2));
-    entityTypeService.addTrackedEntityType(trackedEntityType);
-    return trackedEntityType;
   }
 
   public static TrackedEntityAttributeValue createTrackedEntityAttributeValue(

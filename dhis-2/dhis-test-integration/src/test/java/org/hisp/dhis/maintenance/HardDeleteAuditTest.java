@@ -44,6 +44,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,8 +71,9 @@ class HardDeleteAuditTest extends PostgresIntegrationTestBase {
   void testHardDeleteTrackedEntity() {
     OrganisationUnit ou = createOrganisationUnit('A');
     TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
-    TrackedEntity trackedEntity =
-        createTrackedEntity('A', ou, attribute, createDefaultTrackedEntityType());
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity('A', ou, attribute, trackedEntityType);
     transactionTemplate.execute(
         status -> {
           manager.save(ou);

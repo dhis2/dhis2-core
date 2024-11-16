@@ -56,6 +56,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.Disabled;
@@ -108,8 +109,10 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
     manager.save(ou);
     manager.save(attribute);
-    TrackedEntity trackedEntity =
-        createTrackedEntity('A', ou, attribute, createDefaultTrackedEntityType());
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity('A', ou, attribute, trackedEntityType);
     manager.save(trackedEntity);
     AuditQuery query = AuditQuery.builder().uid(Sets.newHashSet(trackedEntity.getUid())).build();
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
@@ -128,8 +131,11 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
     manager.save(ou);
     manager.save(attribute);
-    TrackedEntity trackedEntity =
-        createTrackedEntity('A', ou, attribute, createDefaultTrackedEntityType());
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+
+    TrackedEntity trackedEntity = createTrackedEntity('A', ou, attribute, trackedEntityType);
     manager.save(trackedEntity);
     TrackedEntityAttributeValue dataValue =
         createTrackedEntityAttributeValue('A', trackedEntity, attribute);

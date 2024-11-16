@@ -40,6 +40,7 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -85,9 +86,12 @@ class PotentialDuplicateStoreTEAVTest extends PostgresIntegrationTestBase {
   void setUp() {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
-    original = createTrackedEntity(ou, createDefaultTrackedEntityType());
-    duplicate = createTrackedEntity(ou, createDefaultTrackedEntityType());
-    control = createTrackedEntity(ou, createDefaultTrackedEntityType());
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    original = createTrackedEntity(ou, trackedEntityType);
+    duplicate = createTrackedEntity(ou, trackedEntityType);
+    control = createTrackedEntity(ou, trackedEntityType);
     manager.save(original);
     manager.save(duplicate);
     manager.save(control);

@@ -101,8 +101,7 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
     programA.getProgramStages().add(programStageA);
     manager.update(programA);
 
-    trackedEntityA = createTrackedEntity('T', orgUnitA, createDefaultTrackedEntityType());
-    trackedEntityA.setTrackedEntityType(trackedEntityTypeA);
+    trackedEntityA = createTrackedEntity('T', orgUnitA, trackedEntityTypeA);
     manager.save(trackedEntityA, false);
 
     User user = createAndAddUser(false, "user", Set.of(orgUnitA), Set.of(orgUnitA), "ALL");

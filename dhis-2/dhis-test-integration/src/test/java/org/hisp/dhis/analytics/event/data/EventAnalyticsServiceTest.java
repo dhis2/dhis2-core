@@ -411,9 +411,8 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     manager.save(trackedEntityType);
 
     // Tracked Entity Instances (Registrations)
-    TrackedEntity teiA = createTrackedEntity(ouD, createDefaultTrackedEntityType());
+    TrackedEntity teiA = createTrackedEntity(ouD, trackedEntityType);
     teiA.setUid("trackEntInA");
-    teiA.setTrackedEntityType(trackedEntityType);
     manager.save(teiA);
 
     // Tracked Entity Attribute Values

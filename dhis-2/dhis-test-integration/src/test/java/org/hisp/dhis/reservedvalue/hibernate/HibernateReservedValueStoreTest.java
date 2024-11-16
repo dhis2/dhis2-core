@@ -48,6 +48,7 @@ import org.hisp.dhis.textpattern.TextPatternParser;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.BeforeAll;
@@ -169,7 +170,10 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
       throws TextPatternParser.TextPatternParsingException, IllegalAccessException {
     OrganisationUnit ou = createOrganisationUnit("OU");
     organisationUnitStore.save(ou);
-    TrackedEntity trackedEntity = createTrackedEntity(ou, createDefaultTrackedEntityType());
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity(ou, trackedEntityType);
     manager.save(trackedEntity);
     TrackedEntityAttribute tea = createTrackedEntityAttribute('Y');
     TextPattern textPattern = TextPatternParser.parse(key);
@@ -221,7 +225,9 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
     saveReservedValue(reservedValue.value(prog001).build());
     OrganisationUnit ou = createOrganisationUnit("OU");
     organisationUnitStore.save(ou);
-    TrackedEntity trackedEntity = createTrackedEntity(ou, createDefaultTrackedEntityType());
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity(ou, trackedEntityType);
     manager.save(trackedEntity);
     TrackedEntityAttribute tea = createTrackedEntityAttribute('Y');
     tea.setUid(teaUid);
@@ -237,7 +243,10 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
     saveReservedValue(reservedValue.value(prog001).build());
     OrganisationUnit ou = createOrganisationUnit("OU");
     organisationUnitStore.save(ou);
-    TrackedEntity trackedEntity = createTrackedEntity(ou, createDefaultTrackedEntityType());
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity(ou, trackedEntityType);
     manager.save(trackedEntity);
     TrackedEntityAttribute tea = createTrackedEntityAttribute('Y');
     tea.setUid(teaUid);
@@ -261,7 +270,9 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
     // used value
     OrganisationUnit ou = createOrganisationUnit("OU");
     organisationUnitStore.save(ou);
-    TrackedEntity trackedEntity = createTrackedEntity(ou, createDefaultTrackedEntityType());
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity(ou, trackedEntityType);
     manager.save(trackedEntity);
     TrackedEntityAttribute tea = createTrackedEntityAttribute('Y');
     tea.setUid(teaUid);

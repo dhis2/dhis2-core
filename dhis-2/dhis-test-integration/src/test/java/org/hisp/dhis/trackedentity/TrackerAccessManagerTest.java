@@ -155,12 +155,11 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     manager.update(programStageA);
     manager.update(programStageB);
     manager.update(programA);
-    trackedEntityA = createTrackedEntity(orgUnitA, createDefaultTrackedEntityType());
-    TrackedEntity trackedEntityB = createTrackedEntity(orgUnitB, createDefaultTrackedEntityType());
-    TrackedEntity femaleA = createTrackedEntity(orgUnitA, createDefaultTrackedEntityType());
-    TrackedEntity femaleB = createTrackedEntity(orgUnitB, createDefaultTrackedEntityType());
-    trackedEntityA.setTrackedEntityType(trackedEntityType);
-    trackedEntityB.setTrackedEntityType(trackedEntityType);
+    trackedEntityA = createTrackedEntity(orgUnitA, trackedEntityType);
+    TrackedEntity trackedEntityB = createTrackedEntity(orgUnitB, trackedEntityType);
+    TrackedEntity femaleA = createTrackedEntity(orgUnitA, trackedEntityType);
+    TrackedEntity femaleB = createTrackedEntity(orgUnitB, trackedEntityType);
+
     femaleA.setTrackedEntityType(trackedEntityType);
     femaleB.setTrackedEntityType(trackedEntityType);
     manager.save(trackedEntityA);

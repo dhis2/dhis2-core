@@ -82,9 +82,11 @@ class TrackedEntityProgramOwnerServiceTest extends PostgresIntegrationTestBase {
     organisationUnitService.addOrganisationUnit(organisationUnitA);
     organisationUnitB = createOrganisationUnit('B');
     organisationUnitService.addOrganisationUnit(organisationUnitB);
-    trackedEntityA1 = createTrackedEntity(organisationUnitA, createDefaultTrackedEntityType());
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    trackedEntityA1 = createTrackedEntity(organisationUnitA, trackedEntityType);
     trackedEntityA1.setUid(TE_A1);
-    trackedEntityB1 = createTrackedEntity(organisationUnitA, createDefaultTrackedEntityType());
+    trackedEntityB1 = createTrackedEntity(organisationUnitA, trackedEntityType);
     trackedEntityB1.setUid(TE_B1);
     manager.save(trackedEntityA1);
     manager.save(trackedEntityB1);

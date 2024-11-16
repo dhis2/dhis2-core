@@ -35,6 +35,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -58,10 +59,11 @@ class RelationshipDeletionHandlerTest extends PostgresIntegrationTestBase {
     manager.save(deletableRelationshipType);
     OrganisationUnit orgUnit = createOrganisationUnit('A');
     manager.save(orgUnit);
-    TrackedEntity trackedEntityFrom =
-        createTrackedEntity(orgUnit, createDefaultTrackedEntityType());
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnit, trackedEntityType);
     manager.save(trackedEntityFrom);
-    TrackedEntity trackedEntityTo = createTrackedEntity(orgUnit, createDefaultTrackedEntityType());
+    TrackedEntity trackedEntityTo = createTrackedEntity(orgUnit, trackedEntityType);
     manager.save(trackedEntityTo);
     Relationship relationship =
         createTeToTeRelationship(trackedEntityFrom, trackedEntityTo, relationshipType);

@@ -38,6 +38,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,8 +78,9 @@ class EventProgramEnrollmentServiceTest extends PostgresIntegrationTestBase {
     OrganisationUnit organisationUnitB = createOrganisationUnit('B');
     manager.save(organisationUnitB);
 
-    TrackedEntity trackedEntity =
-        createTrackedEntity(organisationUnitA, createDefaultTrackedEntityType());
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity(organisationUnitA, trackedEntityType);
     manager.save(trackedEntity);
 
     enrollmentA = createEnrollment(programA, trackedEntity, organisationUnitA);

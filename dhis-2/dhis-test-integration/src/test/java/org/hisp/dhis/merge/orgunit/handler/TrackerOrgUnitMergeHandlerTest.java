@@ -39,6 +39,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -97,9 +98,12 @@ class TrackerOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
     manager.save(ouA);
     manager.save(ouB);
     manager.save(ouC);
-    trackedEntityA = createTrackedEntity('A', ouA, createDefaultTrackedEntityType());
-    trackedEntityB = createTrackedEntity('B', ouB, createDefaultTrackedEntityType());
-    trackedEntityC = createTrackedEntity('C', ouC, createDefaultTrackedEntityType());
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    trackedEntityA = createTrackedEntity('A', ouA, trackedEntityType);
+    trackedEntityB = createTrackedEntity('B', ouB, trackedEntityType);
+    trackedEntityC = createTrackedEntity('C', ouC, trackedEntityType);
     manager.save(trackedEntityA);
     manager.save(trackedEntityB);
     manager.save(trackedEntityC);

@@ -41,6 +41,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -79,10 +80,13 @@ class PotentialDuplicateStoreRelationshipTest extends PostgresIntegrationTestBas
   void setUp() {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
-    original = createTrackedEntity(ou, createDefaultTrackedEntityType());
-    duplicate = createTrackedEntity(ou, createDefaultTrackedEntityType());
-    extra1 = createTrackedEntity(ou, createDefaultTrackedEntityType());
-    extra2 = createTrackedEntity(ou, createDefaultTrackedEntityType());
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    original = createTrackedEntity(ou, trackedEntityType);
+    duplicate = createTrackedEntity(ou, trackedEntityType);
+    extra1 = createTrackedEntity(ou, trackedEntityType);
+    extra2 = createTrackedEntity(ou, trackedEntityType);
     manager.save(original);
     manager.save(duplicate);
     manager.save(extra1);

@@ -84,10 +84,8 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
 
     TrackedEntityType trackedEntityType = createTrackedEntityType('A');
     trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
-    TrackedEntity original = createTrackedEntity(ou, createDefaultTrackedEntityType());
-    TrackedEntity duplicate = createTrackedEntity(ou, createDefaultTrackedEntityType());
-    original.setTrackedEntityType(trackedEntityType);
-    duplicate.setTrackedEntityType(trackedEntityType);
+    TrackedEntity original = createTrackedEntity(ou, trackedEntityType);
+    TrackedEntity duplicate = createTrackedEntity(ou, trackedEntityType);
     manager.save(original);
     manager.save(duplicate);
     Program program = createProgram('A');
@@ -139,10 +137,8 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
     trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
     trackedEntityType.setSharing(sharing);
     trackedEntityTypeService.updateTrackedEntityType(trackedEntityType);
-    TrackedEntity original = createTrackedEntity(ou, createDefaultTrackedEntityType());
-    TrackedEntity duplicate = createTrackedEntity(ou, createDefaultTrackedEntityType());
-    original.setTrackedEntityType(trackedEntityType);
-    duplicate.setTrackedEntityType(trackedEntityType);
+    TrackedEntity original = createTrackedEntity(ou, trackedEntityType);
+    TrackedEntity duplicate = createTrackedEntity(ou, trackedEntityType);
     manager.save(original);
     manager.save(duplicate);
     Program program = createProgram('A');
