@@ -400,7 +400,7 @@ class ProgramNotificationServiceTest extends PostgresIntegrationTestBase {
     programNotificationStore.save(a3);
     // TE
 
-    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    TrackedEntityType trackedEntityType = createTrackedEntityType('M');
     manager.save(trackedEntityType);
     TrackedEntity trackedEntityX = createTrackedEntity(organisationUnitA, trackedEntityType);
     TrackedEntity trackedEntityY = createTrackedEntity(organisationUnitA, trackedEntityType);
