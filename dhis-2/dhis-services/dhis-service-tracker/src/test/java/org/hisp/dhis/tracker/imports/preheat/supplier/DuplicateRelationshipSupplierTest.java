@@ -109,11 +109,11 @@ class DuplicateRelationshipSupplierTest extends TestBase {
 
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
 
-    teA = createTrackedEntity(organisationUnit, createDefaultTrackedEntityType());
+    teA = createTrackedEntity(organisationUnit, createTrackedEntityType('D'));
     teA.setUid(TE_A_UID.getValue());
-    teB = createTrackedEntity(organisationUnit, createDefaultTrackedEntityType());
+    teB = createTrackedEntity(organisationUnit, createTrackedEntityType('E'));
     teB.setUid(TE_B_UID.getValue());
-    teC = createTrackedEntity(organisationUnit, createDefaultTrackedEntityType());
+    teC = createTrackedEntity(organisationUnit, createTrackedEntityType('F'));
     teC.setUid(TE_C_UID.getValue());
 
     relationshipA =
