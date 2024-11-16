@@ -97,7 +97,7 @@ class UniqueAttributeSupplierTest extends TestBase {
     OrganisationUnit orgUnit = createOrganisationUnit('A');
     Program program = createProgram('A');
     Attribute attribute = createAttribute('A');
-    trackedEntity = createTrackedEntity('A', orgUnit, createDefaultTrackedEntityType());
+    trackedEntity = createTrackedEntity('A', orgUnit, createTrackedEntityType('U'));
     trackedEntity.setUid(TE_UID.getValue());
     trackedEntity.setAttributeValues(AttributeValues.of(Map.of(attribute.getUid(), UNIQUE_VALUE)));
     enrollment = createEnrollment(program, trackedEntity, orgUnit);
