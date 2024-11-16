@@ -140,8 +140,7 @@ class TrackedEntityAttributeControllerTest extends H2ControllerIntegrationTestBa
     program.getProgramAttributes().add(pteaB);
     manager.update(program);
 
-    te = createTrackedEntity(orgUnit, createDefaultTrackedEntityType());
-    te.setTrackedEntityType(trackedEntityType);
+    te = createTrackedEntity(orgUnit, trackedEntityType);
     manager.save(te);
 
     enrollment = new Enrollment(program, te, orgUnit);

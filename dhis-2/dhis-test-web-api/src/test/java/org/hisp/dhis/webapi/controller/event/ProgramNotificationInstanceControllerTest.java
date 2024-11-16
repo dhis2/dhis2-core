@@ -47,6 +47,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.junit.jupiter.api.BeforeEach;
@@ -86,8 +87,9 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
     manager.save(prA);
     ProgramStage psA = createProgramStage('A', prA);
     manager.save(psA);
-    TrackedEntity trackedEntityA =
-        createTrackedEntity('A', orgUnit, createDefaultTrackedEntityType());
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntityA = createTrackedEntity('A', orgUnit, trackedEntityType);
     manager.save(trackedEntityA);
     enrollment = createEnrollment(prA, trackedEntityA, orgUnit);
     manager.save(enrollment);

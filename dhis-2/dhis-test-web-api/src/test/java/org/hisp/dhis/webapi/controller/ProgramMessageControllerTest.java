@@ -41,6 +41,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.controller.message.ProgramMessageController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -66,7 +67,9 @@ class ProgramMessageControllerTest extends H2ControllerIntegrationTestBase {
     manager.save(prA);
     ProgramStage psA = createProgramStage('A', prA);
     manager.save(psA);
-    TrackedEntity trackedEntityA = createTrackedEntity('A', ouA, createDefaultTrackedEntityType());
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntityA = createTrackedEntity('A', ouA, trackedEntityType);
     manager.save(trackedEntityA);
     enrollmentA = createEnrollment(prA, trackedEntityA, ouA);
     manager.save(enrollmentA);

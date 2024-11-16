@@ -183,8 +183,7 @@ class TrigramSummaryControllerTest extends H2ControllerIntegrationTestBase {
     program.getProgramAttributes().add(pteaB);
     manager.update(program);
 
-    trackedEntity = createTrackedEntity(orgUnit, createDefaultTrackedEntityType());
-    trackedEntity.setTrackedEntityType(trackedEntityType);
+    trackedEntity = createTrackedEntity(orgUnit, trackedEntityType);
     manager.save(trackedEntity);
 
     enrollment = new Enrollment(program, trackedEntity, orgUnit);

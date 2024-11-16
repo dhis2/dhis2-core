@@ -117,14 +117,12 @@ class ChangeLogControllerTest extends H2ControllerIntegrationTestBase {
 
     trackedEntityType = trackedEntityTypeAccessible();
 
-    te1 = createTrackedEntity(orgUnit, createDefaultTrackedEntityType());
-    te1.setTrackedEntityType(trackedEntityType);
+    te1 = createTrackedEntity(orgUnit, trackedEntityType);
     te1.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     te1.getSharing().setOwner(owner);
     manager.save(te1, false);
 
-    te2 = createTrackedEntity(orgUnit, createDefaultTrackedEntityType());
-    te2.setTrackedEntityType(trackedEntityType);
+    te2 = createTrackedEntity(orgUnit, trackedEntityType);
     te2.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     te2.getSharing().setOwner(owner);
     manager.save(te2, false);

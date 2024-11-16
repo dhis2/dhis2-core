@@ -79,11 +79,9 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
     trackedEntityType = createTrackedEntityType('A');
     dbmsManager.save(trackedEntityType);
 
-    origin = createTrackedEntity(orgUnit, createDefaultTrackedEntityType());
-    origin.setTrackedEntityType(trackedEntityType);
-    duplicate1 = createTrackedEntity(orgUnit, createDefaultTrackedEntityType());
-    duplicate1.setTrackedEntityType(trackedEntityType);
-    TrackedEntity duplicate2 = createTrackedEntity(orgUnit, createDefaultTrackedEntityType());
+    origin = createTrackedEntity(orgUnit, trackedEntityType);
+    duplicate1 = createTrackedEntity(orgUnit, trackedEntityType);
+    TrackedEntity duplicate2 = createTrackedEntity(orgUnit, trackedEntityType);
 
     dbmsManager.save(origin);
     dbmsManager.save(duplicate1);
@@ -97,8 +95,7 @@ class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void shouldPostPotentialDuplicateWhenTrackedEntitiesExist() throws Exception {
-    TrackedEntity trackedEntity = createTrackedEntity(orgUnit, createDefaultTrackedEntityType());
-    trackedEntity.setTrackedEntityType(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity(orgUnit, trackedEntityType);
     dbmsManager.save(trackedEntity);
     PotentialDuplicate potentialDuplicate =
         new PotentialDuplicate(UID.of(trackedEntity), UID.of(duplicate1));

@@ -136,8 +136,7 @@ class EnrollmentsExportControllerTest extends H2ControllerIntegrationTestBase {
     tea.getSharing().setOwner(owner);
     manager.save(tea, false);
 
-    te = createTrackedEntity(orgUnit, createDefaultTrackedEntityType());
-    te.setTrackedEntityType(trackedEntityType);
+    te = createTrackedEntity(orgUnit, trackedEntityType);
     manager.save(te);
 
     trackedEntityAttributeValue = new TrackedEntityAttributeValue();
