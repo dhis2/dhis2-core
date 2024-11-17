@@ -394,7 +394,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             where des.valuetype in (${valTypes}) \
             and des.domaintype = 'AGGREGATE' \
             ${partitionClause} \
-            and (ps.monthstartdate=ougs.startdate or ougs.startdate is null) \
+            and (ougs.startdate is null or ps.monthstartdate=ougs.startdate) \
             and dv.lastupdated < '${startTime}' \
             and dv.value is not null \
             and dv.deleted = false\s""",
