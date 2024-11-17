@@ -382,8 +382,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             Map.of(
                 "approvalSelectExpression", approvalSelectExpression,
                 "valueExpression", valueExpression,
-                "textValueExpression", textValueExpression,
-                "peStartDateMonth", sqlBuilder.dateTrunc("month", "ps.startdate"))));
+                "textValueExpression", textValueExpression)));
 
     if (!params.isSkipOutliers()) {
       sql.append(getOutliersJoinStatement());

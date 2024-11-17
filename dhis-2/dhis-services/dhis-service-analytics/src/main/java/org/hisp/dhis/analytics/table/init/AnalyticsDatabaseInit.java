@@ -90,7 +90,7 @@ public class AnalyticsDatabaseInit {
 
   /** Work for initializing a PostgreSQL analytics database. */
   private void initPostgreSql() {
-    // No work yet.
+    // No work yet
   }
 
   /** Work for initializing a Doris analytics database. */
