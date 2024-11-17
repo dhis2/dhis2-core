@@ -837,6 +837,14 @@
           },
           "value": "15",
           "providedElsewhere": false
+        },
+        {
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "GieVkTxp4HG"
+          },
+          "value": "1.5",
+          "providedElsewhere": false
         }
       ],
       "notes": [],
