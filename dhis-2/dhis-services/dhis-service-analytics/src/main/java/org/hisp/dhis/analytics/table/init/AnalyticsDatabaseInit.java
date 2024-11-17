@@ -28,8 +28,11 @@
 package org.hisp.dhis.analytics.table.init;
 
 import static org.hisp.dhis.db.sql.ClickHouseSqlBuilder.NAMED_COLLECTION;
+
 import java.util.Map;
 import javax.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.sql.ClickHouseSqlBuilder;
@@ -40,8 +43,6 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Class responsible for performing work for initialization of an analytics database.
@@ -92,9 +93,7 @@ public class AnalyticsDatabaseInit {
     // No work yet.
   }
 
-  /**
-   * Work for initializing a Doris analytics database. 
-   */
+  /** Work for initializing a Doris analytics database. */
   private void initDoris() {
     createDorisJdbcCatalog();
   }
@@ -116,7 +115,7 @@ public class AnalyticsDatabaseInit {
     jdbcTemplate.execute(sqlBuilder.dropCatalogIfExists());
     jdbcTemplate.execute(sqlBuilder.createCatalog(connectionUrl, username, password));
   }
-  
+
   /**
    * Creates a ClickHouse named collection with connection information for the DHIS 2 PostgreSQL
    * database.
