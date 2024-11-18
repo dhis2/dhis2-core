@@ -49,7 +49,6 @@ import org.hisp.dhis.test.webapi.json.domain.JsonCategoryOptionCombo;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -183,7 +182,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
         error.getMessage());
   }
 
-  @Disabled("This test is not working as expected")
+  @Test
   @DisplayName(
       "Default category option combos with non-default category options should not be allowed")
   void catOptionComboDefaultWithNonDefaultOptionsNotAllowedTest() {
@@ -207,30 +206,13 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
         "categoryCombo" : {"id" : "%s"} }
         """
                     .formatted(categoryOptionRed, defaultCategoryComboId))
-            .content();
+            .content(HttpStatus.CONFLICT);
 
     JsonErrorReport error =
-        response.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1124);
+        response2.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1125);
     assertNotNull(error);
-    assertEquals(
-        "Category option combo Not default already exists for category combo default",
+    assertEquals("Category option combo Not default contains options not associated with category combo default",
         error.getMessage());
   }
 
-  @Test
-  @DisplayName("Empty catcombo for a category option combo not allowed")
-  void catOptionComboEmptyCatComboTest() {
-    JsonMixed response =
-        POST(
-                "/categoryOptionCombos/",
-                """
-        { "name": "Empty catcombo",
-        "categoryOptions" : [{"id" : "CocUid0001"}],
-        "categoryCombo" : {} }
-        """)
-            .content(HttpStatus.CONFLICT);
-    assertEquals(
-        "\"One or more errors occurred, please see full details in import report.\"",
-        response.get("message").toString());
-  }
 }

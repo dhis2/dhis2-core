@@ -163,8 +163,7 @@ class TrackerPreheatIdentifiersTest extends TrackerTest {
     }
   }
 
-  @Disabled
-  // Disabling this as we cannot import duplicate category option combos for default
+  @Test
   void testCategoryOptionComboIdentifiers() {
     List<Pair<String, TrackerIdSchemeParam>> data = buildDataSet("XXXvX50cXC0", "COCA", "COCAname");
     for (Pair<String, TrackerIdSchemeParam> pair : data) {

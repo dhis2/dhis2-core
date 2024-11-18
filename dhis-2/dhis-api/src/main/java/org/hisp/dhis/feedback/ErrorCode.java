@@ -70,6 +70,7 @@ public enum ErrorCode {
   E1123("Category option combo {0} must be associated with a category combo"),
   E1124("Category option combo {0} cannot be associated with the default category combo"),
 
+  E1125("Category option combo {0} contains options not associated with category combo {1}"),
   /* Org unit merge */
   E1500("At least two source orgs unit must be specified"),
   E1501("Target org unit must be specified"),
