@@ -526,19 +526,19 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
                 sql.append(
                     replaceQualify(
                         """
-                    \s left join ${trackedentityattributevalue} "${teaUid}" on "${teaUid}".trackedentityid=te.trackedentityid \
-                    and "${teaUid}".trackedentityattributeid = ${teaId}""",
+                    \s left join ${trackedentityattributevalue} ${teaUid} on ${teaUid}.trackedentityid=te.trackedentityid \
+                    and ${teaUid}.trackedentityattributeid = ${teaId}""",
                         Map.of(
-                            "teaUid", tea.getUid(),
+                            "teaUid", quote(tea.getUid()),
                             "teaId", String.valueOf(tea.getId())))));
     sql.append(
-        replace(
+        replaceQualify(
             """
             \s where te.trackedentitytypeid = ${tetId} \
             and te.lastupdated < '${startTime}' \
-            and exists (select 1 from enrollment en \
+            and exists (select 1 from ${enrollment} en \
             where en.trackedentityid = te.trackedentityid \
-            and exists (select 1 from event ev \
+            and exists (select 1 from ${event} ev \
             where ev.enrollmentid = en.enrollmentid \
             and ev.status in (${statuses}) \
             and ev.deleted = false)) \

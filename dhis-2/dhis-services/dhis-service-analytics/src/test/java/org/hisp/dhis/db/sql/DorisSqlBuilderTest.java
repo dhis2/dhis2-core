@@ -180,6 +180,17 @@ class DorisSqlBuilderTest {
         "date_trunc(pe.startdate, 'month')", sqlBuilder.dateTrunc("month", "pe.startdate"));
   }
 
+  @Test
+  void testDifferenceInSeconds() {
+    assertEquals(
+        "(unix_timestamp(a.startdate) - unix_timestamp(b.enddate))",
+        sqlBuilder.differenceInSeconds("a.startdate", "b.enddate"));
+    assertEquals(
+        "(unix_timestamp(a.`startdate`) - unix_timestamp(b.`enddate`))",
+        sqlBuilder.differenceInSeconds(
+            sqlBuilder.quote("a", "startdate"), sqlBuilder.quote("b", "enddate")));
+  }
+
   // Statements
 
   @Test

@@ -214,6 +214,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     return String.format("date_trunc(%s, %s)", singleQuote(text), timestamp);
   }
 
+  @Override
+  public String differenceInSeconds(String columnA, String columnB) {
+    return String.format("extract(epoch from (%s - %s))", columnA, columnB);
+  }
+
   // Statements
 
   @Override
