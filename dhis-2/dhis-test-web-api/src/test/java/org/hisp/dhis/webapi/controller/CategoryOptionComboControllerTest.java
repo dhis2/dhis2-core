@@ -211,8 +211,8 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
     JsonErrorReport error =
         response2.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1125);
     assertNotNull(error);
-    assertEquals("Category option combo Not default contains options not associated with category combo default",
+    assertEquals(
+        "Category option combo Not default contains options not associated with category combo default",
         error.getMessage());
   }
-
 }

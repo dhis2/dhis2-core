@@ -32,7 +32,6 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -47,7 +46,6 @@ import org.springframework.stereotype.Component;
 public class CategoryOptionComboObjectBundleHook
     extends AbstractObjectBundleHook<CategoryOptionCombo> {
   private final CategoryService categoryService;
-
 
   static boolean haveEqualCatComboCatOptionReferenceIds(
       CategoryOptionCombo one, CategoryOptionCombo other) {
@@ -85,9 +83,14 @@ public class CategoryOptionComboObjectBundleHook
       return; // Only check for duplicates if the object is not persisted
     }
 
-    List<CategoryOptionCombo> categoryOptionCombos = categoryService.getAllCategoryOptionCombos().stream()
-        .filter(coc -> coc.getCategoryCombo().getUid().equals(categoryOptionCombo.getCategoryCombo().getUid()))
-        .toList();
+    List<CategoryOptionCombo> categoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos().stream()
+            .filter(
+                coc ->
+                    coc.getCategoryCombo()
+                        .getUid()
+                        .equals(categoryOptionCombo.getCategoryCombo().getUid()))
+            .toList();
 
     // Check if the categoryOptionCombo is already in the list. This could be an update or re-import
     // of the same object.
@@ -111,12 +114,14 @@ public class CategoryOptionComboObjectBundleHook
   }
 
   private void checkCategoryOptionsExistInCategoryCombo(
-      CategoryOptionCombo categoryOptionCombo, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+      CategoryOptionCombo categoryOptionCombo,
+      ObjectBundle bundle,
+      Consumer<ErrorReport> addReports) {
 
-//    //Exit early if there are no category options in the combo
-//    if (!bundle.isPersisted(categoryOptionCombo.getCategoryCombo())) {
-//      return;
-//    }
+    //    //Exit early if there are no category options in the combo
+    //    if (!bundle.isPersisted(categoryOptionCombo.getCategoryCombo())) {
+    //      return;
+    //    }
 
     Set<String> categoryOptionUids =
         categoryOptionCombo.getCategoryOptions().stream()
@@ -131,8 +136,7 @@ public class CategoryOptionComboObjectBundleHook
     }
 
     Set<String> existingCategoryOptionsInCombo =
-        existingCategoryCombo
-            .getCategoryOptions().stream()
+        existingCategoryCombo.getCategoryOptions().stream()
             .map(CategoryOption::getUid)
             .collect(Collectors.toSet());
 
@@ -151,7 +155,6 @@ public class CategoryOptionComboObjectBundleHook
   private void checkNonStandardDefaultCatOptionCombo(
       CategoryOptionCombo categoryOptionCombo, Consumer<ErrorReport> addReports) {
 
-
     CategoryCombo categoryCombo = categoryOptionCombo.getCategoryCombo();
     CategoryCombo defaultCombo = categoryService.getDefaultCategoryCombo();
     if (!categoryCombo.getUid().equals(defaultCombo.getUid())) {
@@ -163,9 +166,7 @@ public class CategoryOptionComboObjectBundleHook
     if (categoryOptionCombo.getUid() != defaultCatOptionCombo.getUid()) {
       addReports.accept(
           new ErrorReport(
-              CategoryOptionCombo.class,
-              ErrorCode.E1124,
-              categoryOptionCombo.getName()));
+              CategoryOptionCombo.class, ErrorCode.E1124, categoryOptionCombo.getName()));
     }
   }
 
@@ -178,6 +179,5 @@ public class CategoryOptionComboObjectBundleHook
     checkNonStandardDefaultCatOptionCombo(categoryOptionCombo, addReports);
     checkDuplicateCategoryOptionCombos(categoryOptionCombo, bundle, addReports);
     checkCategoryOptionsExistInCategoryCombo(categoryOptionCombo, bundle, addReports);
-
   }
 }
