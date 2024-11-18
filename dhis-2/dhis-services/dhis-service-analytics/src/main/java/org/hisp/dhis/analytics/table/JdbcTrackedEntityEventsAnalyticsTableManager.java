@@ -216,19 +216,19 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
               .name("ou")
               .dataType(CHARACTER_11)
               .nullable(NULL)
-              .selectExpression("ou.uid")
+              .selectExpression("ous.organisationunituid")
               .build(),
           AnalyticsTableColumn.builder()
               .name("ouname")
               .dataType(VARCHAR_255)
               .nullable(NULL)
-              .selectExpression("ou.name")
+              .selectExpression("ous.name")
               .build(),
           AnalyticsTableColumn.builder()
               .name("oucode")
               .dataType(CHARACTER_32)
               .nullable(NULL)
-              .selectExpression("ou.code")
+              .selectExpression("ous.code")
               .build(),
           AnalyticsTableColumn.builder()
               .name("oulevel")
@@ -331,11 +331,10 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
             select temp.supportedyear from \
             (select distinct extract(year from ${eventDateExpression}) as supportedyear \
             from ${trackedentity} te \
-            inner join ${trackedentitytype} tet on tet.trackedentitytypeid = te.trackedentitytypeid \
-            inner join ${enrollment} en on en.trackedentityid = te.trackedentityid \
-            inner join ${event} ev on ev.enrollmentid = en.enrollmentid \
+            inner join ${enrollment} en on te.trackedentityid=en.trackedentityid \
+            inner join ${event} ev on en.enrollmentid=ev.enrollmentid \
             where ev.lastupdated <= '${startTime}' \
-            and tet.trackedentitytypeid = ${tetId} \
+            and te.trackedentitytypeid = ${tetId} \
             and (${eventDateExpression}) is not null \
             and (${eventDateExpression}) > '1000-01-01' \
             and ev.deleted = false \
@@ -415,13 +414,12 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
             replaceQualify(
                 """
                 \s from ${event} ev \
-                inner join ${enrollment} en on en.enrollmentid = ev.enrollmentid and en.deleted = false \
-                inner join ${trackedentity} te on te.trackedentityid = en.trackedentityid \
+                inner join ${enrollment} en on en.enrollmentid=ev.enrollmentid and en.deleted = false \
+                inner join ${trackedentity} te on te.trackedentityid=en.trackedentityid \
                 and te.deleted = false and te.trackedentitytypeid = ${tetId} and te.lastupdated < '${startTime}' \
-                left join ${programstage} ps on ps.programstageid = ev.programstageid \
-                left join ${program} p on p.programid = ps.programid \
-                left join ${organisationunit} ou on ev.organisationunitid = ou.organisationunitid \
-                left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
+                left join ${programstage} ps on ev.programstageid=ps.programstageid \
+                left join ${program} p on ps.programid=p.programid \
+                left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
                 where ev.status in (${statuses}) \
                 ${partitionClause} \
                 and ev.deleted = false\s""",

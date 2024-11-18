@@ -80,6 +80,10 @@ public class OrganisationUnitStructureResourceTable implements ResourceTable {
         Lists.newArrayList(
             new Column("organisationunitid", DataType.BIGINT, Nullable.NOT_NULL),
             new Column("organisationunituid", DataType.CHARACTER_11, Nullable.NOT_NULL),
+            new Column("name", DataType.VARCHAR_255, Nullable.NOT_NULL),
+            new Column("code", DataType.VARCHAR_50, Nullable.NULL),
+            new Column("openingdate", DataType.DATE, Nullable.NULL),
+            new Column("closeddate", DataType.DATE, Nullable.NULL),
             new Column("level", DataType.INTEGER, Nullable.NOT_NULL),
             new Column("path", DataType.VARCHAR_255, Nullable.NULL));
 
@@ -147,6 +151,10 @@ public class OrganisationUnitStructureResourceTable implements ResourceTable {
 
       values.add(unit.getId());
       values.add(unit.getUid());
+      values.add(unit.getCode());
+      values.add(unit.getName());
+      values.add(unit.getOpeningDate());
+      values.add(unit.getClosedDate());
       values.add(level);
       values.add(unit.getPath());
 
