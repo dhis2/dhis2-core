@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.export.event;
 
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
@@ -63,10 +64,13 @@ public interface EventChangeLogService {
   void addDataValueChangeLog(
       Event event,
       DataElement dataElement,
-      String currentValue,
       String previousValue,
+      String value,
       ChangeLogType changeLogType,
       String userName);
+
+  void addPropertyChangeLog(
+      @Nonnull Event currentEvent, @Nonnull Event event, @Nonnull String userName);
 
   @Deprecated(since = "2.42")
   int countTrackedEntityDataValueChangeLogs(TrackedEntityDataValueChangeLogQueryParams params);

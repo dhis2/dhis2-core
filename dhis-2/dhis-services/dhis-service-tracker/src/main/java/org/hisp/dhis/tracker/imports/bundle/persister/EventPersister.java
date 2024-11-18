@@ -129,6 +129,24 @@ public class EventPersister
   }
 
   @Override
+  protected Event cloneEntityProperties(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event) {
+    Event originalEvent = preheat.getEvent(event.getUid());
+
+    if (originalEvent == null) {
+      return new Event();
+    }
+
+    Event clonedEvent = new Event();
+    clonedEvent.setUid(originalEvent.getUid());
+    clonedEvent.setOccurredDate(originalEvent.getOccurredDate());
+    clonedEvent.setScheduledDate(originalEvent.getScheduledDate());
+    clonedEvent.setGeometry(originalEvent.getGeometry());
+
+    return clonedEvent;
+  }
+
+  @Override
   protected TrackerType getType() {
     return TrackerType.EVENT;
   }
@@ -148,9 +166,11 @@ public class EventPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Event event,
-      Event hibernateEntity,
+      Event payloadEntity,
+      Event currentEntity,
       UserDetails user) {
-    handleDataValues(entityManager, preheat, event.getDataValues(), hibernateEntity, user);
+    handleDataValues(entityManager, preheat, event.getDataValues(), payloadEntity, user);
+    eventChangeLogService.addPropertyChangeLog(currentEntity, payloadEntity, user.getUsername());
   }
 
   private void handleDataValues(
@@ -175,21 +195,21 @@ public class EventPersister
 
           if (isNewDataValue(dbDataValue, dataValue)) {
             eventChangeLogService.addDataValueChangeLog(
-                event, dataElement, dataValue.getValue(), null, CREATE, user.getUsername());
+                event, dataElement, null, dataValue.getValue(), CREATE, user.getUsername());
             saveDataValue(dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isUpdate(dbDataValue, dataValue)) {
             eventChangeLogService.addDataValueChangeLog(
                 event,
                 dataElement,
-                dataValue.getValue(),
                 dbDataValue.getValue(),
+                dataValue.getValue(),
                 UPDATE,
                 user.getUsername());
             updateDataValue(
                 dbDataValue, dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isDeletion(dbDataValue, dataValue)) {
             eventChangeLogService.addDataValueChangeLog(
-                event, dataElement, null, dbDataValue.getValue(), DELETE, user.getUsername());
+                event, dataElement, dbDataValue.getValue(), null, DELETE, user.getUsername());
             deleteDataValue(dbDataValue, event, dataElement, entityManager, preheat);
           }
         });

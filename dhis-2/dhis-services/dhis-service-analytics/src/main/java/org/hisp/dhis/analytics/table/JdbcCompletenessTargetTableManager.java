@@ -79,7 +79,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
               .name("ao")
               .dataType(CHARACTER_11)
               .nullable(NOT_NULL)
-              .selectExpression("ao.uid")
+              .selectExpression("acs.categoryoptioncombouid")
               .build(),
           AnalyticsTableColumn.builder()
               .name("ouopeningdate")
@@ -184,7 +184,6 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
         inner join ${organisationunit} ou on doc.organisationunitid=ou.organisationunitid \
         left join analytics_rs_orgunitstructure ous on doc.organisationunitid=ous.organisationunitid \
         left join analytics_rs_organisationunitgroupsetstructure ougs on doc.organisationunitid=ougs.organisationunitid \
-        left join ${categoryoptioncombo} ao on doc.attributeoptioncomboid=ao.categoryoptioncomboid \
         left join analytics_rs_categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid""");
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);

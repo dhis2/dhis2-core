@@ -826,7 +826,7 @@
         "idScheme": "UID",
         "identifier": "DiszpKrYNg8"
       },
-      "status": "ACTIVE",
+      "status": "COMPLETED",
       "deleted": false,
       "dataValues": [
         {
@@ -839,8 +839,13 @@
           "providedElsewhere": false
         }
       ],
-      "notes": [],
-      "relationships": []
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -11.4197,
+          8.1039
+        ]
+      }
     },
     {
       "event": "kWjSezkXHVp",
@@ -1163,7 +1168,29 @@
         "idScheme": "UID",
         "identifier": "HllvX50cXC0"
       },
-      "notes": []
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -11.416855,
+              8.132308
+            ],
+            [
+              -11.445351,
+              8.089312
+            ],
+            [
+              -11.383896,
+              8.089652
+            ],
+            [
+              -11.416855,
+              8.132308
+            ]
+          ]
+        ]
+      }
     },
     {
       "event": "G9PbzJY8bJG",
