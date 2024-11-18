@@ -102,7 +102,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   static final String[] EXPORTABLE_EVENT_STATUSES = {"'COMPLETED'", "'ACTIVE'", "'SCHEDULE'"};
 
-  protected static List<AnalyticsTableColumn> FIXED_COLS;
+  protected final List<AnalyticsTableColumn> fixedColumns;
 
   public JdbcEventAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -132,7 +132,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         analyticsExportSettings,
         periodDataProvider,
         sqlBuilder);
-    FIXED_COLS = EventAnalyticsColumn.getColumns(sqlBuilder);
+    fixedColumns = EventAnalyticsColumn.getColumns(sqlBuilder);
   }
 
   @Override
@@ -400,7 +400,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @return a list of {@link AnalyticsTableColumn}.
    */
   private List<AnalyticsTableColumn> getColumns(Program program) {
-    List<AnalyticsTableColumn> columns = new ArrayList<>(FIXED_COLS);
+    List<AnalyticsTableColumn> columns = new ArrayList<>(fixedColumns);
 
     if (program.hasNonDefaultCategoryCombo()) {
       List<Category> categories = program.getCategoryCombo().getCategories();

@@ -464,7 +464,7 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
-  public void testWithFunctions() {
+  void testWithFunctions() {
     // Test with SQL functions
     assertEquals(
         "coalesce(own.\"ou\",ax.\"ou\") as ou",
@@ -478,7 +478,7 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
-  public void testFixQuoteSpecialCases() {
+  void testFixQuoteSpecialCases() {
     // Test with special characters
     assertEquals("\"column$name\"", sqlBuilder.fixQuote("column$name"));
     assertEquals("\"column-name\"", sqlBuilder.fixQuote("column-name"));
@@ -495,7 +495,7 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
-  public void testFixQuoteEdgeCases() {
+  void testFixQuoteEdgeCases() {
     // Test with multiple dots
     assertEquals("schema.table.\"column\"", sqlBuilder.fixQuote("schema.table.column"));
   }

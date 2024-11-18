@@ -347,7 +347,7 @@ class DorisSqlBuilderTest {
 
 
   @Test
-  public void testFixQuote() {
+  void testFixQuote() {
     // Test null and empty cases
     assertEquals("", sqlBuilder.fixQuote(null));
     assertEquals("", sqlBuilder.fixQuote(""));
@@ -414,7 +414,7 @@ class DorisSqlBuilderTest {
   }
 
   @Test
-  public void testWithFunctions() {
+  void testWithFunctions() {
     // Test with SQL functions
     assertEquals(
         "coalesce(own.\"ou\",ax.\"ou\") as ou",

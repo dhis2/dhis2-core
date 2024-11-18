@@ -64,7 +64,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.analytics.EnrollmentAnalyticsTableManager")
 public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableManager {
 
-  private static List<AnalyticsTableColumn> FIXED_COLS;
+  private final List<AnalyticsTableColumn> fixedColumns;
 
   public JdbcEnrollmentAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -94,7 +94,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
         analyticsExportSettings,
         periodDataProvider,
         sqlBuilder);
-    FIXED_COLS = EnrollmentAnalyticsColumn.getColumns(sqlBuilder);
+    fixedColumns = EnrollmentAnalyticsColumn.getColumns(sqlBuilder);
   }
 
   @Override
@@ -167,7 +167,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
 
   private List<AnalyticsTableColumn> getColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-    columns.addAll(FIXED_COLS);
+    columns.addAll(fixedColumns);
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(getOrganisationUnitNameHierarchyColumn());
     columns.addAll(getOrganisationUnitGroupSetColumns());
