@@ -198,6 +198,11 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return String.format("(unix_timestamp(%s) - unix_timestamp(%s))", columnA, columnB);
   }
 
+  @Override
+  public String regexpMatch(String pattern) {
+    return String.format("regexp %s", pattern);
+  }
+
   // Statements
 
   @Override
@@ -352,10 +357,5 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String dropCatalogIfExists() {
     return String.format("drop catalog if exists %s;", quote(catalog));
-  }
-
-  @Override
-  public String regexpMatch(String pattern) {
-    return "REGEXP " + pattern;
   }
 }
