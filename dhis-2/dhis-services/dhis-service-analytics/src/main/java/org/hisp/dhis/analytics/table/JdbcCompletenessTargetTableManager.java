@@ -180,7 +180,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
         qualifyVariables(
             """
         from analytics_rs_datasetorganisationunitcategory doc \
-        inner join ${dataset} ds on doc.datasetid=ds.datasetid \
+        inner join analytics_rs_dataset ds on doc.datasetid=ds.datasetid \
         inner join ${organisationunit} ou on doc.organisationunitid=ou.organisationunitid \
         left join analytics_rs_orgunitstructure ous on doc.organisationunitid=ous.organisationunitid \
         left join analytics_rs_organisationunitgroupsetstructure ougs on doc.organisationunitid=ougs.organisationunitid \
