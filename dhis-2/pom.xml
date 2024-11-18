@@ -169,7 +169,7 @@
     <!-- Apache Artemis -->
     <artemis-jakarta.version>2.38.0</artemis-jakarta.version>
     <netty-all.version>4.1.115.Final</netty-all.version>
-    <classgraph.version>4.8.177</classgraph.version>
+    <classgraph.version>4.8.179</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.2.1.1</sms-compression.version>
