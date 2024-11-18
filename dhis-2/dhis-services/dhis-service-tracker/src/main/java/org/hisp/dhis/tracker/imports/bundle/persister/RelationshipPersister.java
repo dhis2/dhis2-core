@@ -105,7 +105,7 @@ public class RelationshipPersister
   }
 
   @Override
-  protected void handleEventValueChanges(
+  protected void updateDataValues(
       EntityManager entityManager,
       TrackerPreheat preheat,
       Relationship trackerDto,

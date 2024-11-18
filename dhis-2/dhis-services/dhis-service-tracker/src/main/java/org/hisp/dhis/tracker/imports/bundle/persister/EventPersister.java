@@ -162,7 +162,7 @@ public class EventPersister
   }
 
   @Override
-  protected void handleEventValueChanges(
+  protected void updateDataValues(
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Event event,

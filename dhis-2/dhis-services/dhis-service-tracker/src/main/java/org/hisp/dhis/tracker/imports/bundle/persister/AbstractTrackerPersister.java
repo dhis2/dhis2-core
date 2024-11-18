@@ -129,7 +129,7 @@ public abstract class AbstractTrackerPersister<
         //
         if (isNew(bundle, trackerDto)) {
           entityManager.persist(convertedDto);
-          handleEventValueChanges(
+          updateDataValues(
               entityManager,
               bundle.getPreheat(),
               trackerDto,
@@ -145,7 +145,7 @@ public abstract class AbstractTrackerPersister<
             typeReport.getStats().incIgnored();
             // Relationships are not updated. A warning was already added to the report
           } else {
-            handleEventValueChanges(
+            updateDataValues(
                 entityManager,
                 bundle.getPreheat(),
                 trackerDto,
@@ -224,7 +224,7 @@ public abstract class AbstractTrackerPersister<
   protected abstract void persistOwnership(TrackerBundle bundle, T trackerDto, V entity);
 
   /** Execute the persistence of Data values linked to the entity being processed */
-  protected abstract void handleEventValueChanges(
+  protected abstract void updateDataValues(
       EntityManager entityManager,
       TrackerPreheat preheat,
       T trackerDto,

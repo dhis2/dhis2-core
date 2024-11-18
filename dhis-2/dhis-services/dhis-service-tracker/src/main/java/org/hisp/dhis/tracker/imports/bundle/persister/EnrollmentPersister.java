@@ -157,7 +157,7 @@ public class EnrollmentPersister
   }
 
   @Override
-  protected void handleEventValueChanges(
+  protected void updateDataValues(
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto,
