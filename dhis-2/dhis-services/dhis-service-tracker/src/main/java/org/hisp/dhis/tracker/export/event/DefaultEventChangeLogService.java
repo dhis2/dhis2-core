@@ -37,6 +37,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
@@ -116,39 +117,27 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
       Event event,
       DataElement dataElement,
       String previousValue,
-      String currentValue,
+      String value,
       ChangeLogType changeLogType,
       String userName) {
 
     EventChangeLog eventChangeLog =
         new EventChangeLog(
-            event,
-            dataElement,
-            null,
-            previousValue,
-            currentValue,
-            changeLogType,
-            new Date(),
-            userName);
+            event, dataElement, null, previousValue, value, changeLogType, new Date(), userName);
 
     hibernateEventChangeLogStore.addEventChangeLog(eventChangeLog);
   }
 
   @Override
   @Transactional
-  public void addPropertyChangeLog(Event newEvent, Event currentEvent, String userName) {
-
+  public void addPropertyChangeLog(
+      @Nonnull Event currentEvent, @Nonnull Event event, @Nonnull String username) {
     logIfChanged(
-        "occurredDate", Event::getOccurredDate, this::formatDate, newEvent, currentEvent, userName);
+        "occurredDate", Event::getOccurredDate, this::formatDate, currentEvent, event, username);
     logIfChanged(
-        "scheduledDate",
-        Event::getScheduledDate,
-        this::formatDate,
-        newEvent,
-        currentEvent,
-        userName);
+        "scheduledDate", Event::getScheduledDate, this::formatDate, currentEvent, event, username);
     logIfChanged(
-        "geometry", Event::getGeometry, this::formatGeometry, newEvent, currentEvent, userName);
+        "geometry", Event::getGeometry, this::formatGeometry, currentEvent, event, username);
   }
 
   @Override
@@ -180,19 +169,19 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
       String propertyName,
       Function<Event, T> valueExtractor,
       Function<T, String> formatter,
-      Event newEvent,
       Event currentEvent,
+      Event event,
       String userName) {
 
     String currentValue = formatter.apply(valueExtractor.apply(currentEvent));
-    String newValue = formatter.apply(valueExtractor.apply(newEvent));
+    String newValue = formatter.apply(valueExtractor.apply(event));
 
     if (!Objects.equals(currentValue, newValue)) {
       ChangeLogType changeLogType = getChangeLogType(currentValue, newValue);
 
       EventChangeLog eventChangeLog =
           new EventChangeLog(
-              newEvent,
+              event,
               null,
               propertyName,
               currentValue,
