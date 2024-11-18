@@ -192,6 +192,11 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     return String.format("date_trunc(%s, %s)", singleQuote(text), timestamp);
   }
 
+  @Override
+  public String differenceInSeconds(String columnA, String columnB) {
+    return String.format("(unix_timestamp(%s) - unix_timestamp(%s))", columnA, columnB);
+  }
+
   // Statements
 
   @Override
