@@ -29,15 +29,18 @@ package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
+import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
+import org.hisp.dhis.db.model.constraint.Unique;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
@@ -69,6 +72,17 @@ public class DataSetResourceTable implements ResourceTable {
 
   private List<String> getPrimaryKey() {
     return List.of("datasetid");
+  }
+
+  @Override
+  public List<Index> getIndexes() {
+    return List.of(
+        Index.builder()
+            .name(appendRandom("in_rs_dataset_uid"))
+            .tableName(toStaging(TABLE_NAME))
+            .unique(Unique.UNIQUE)
+            .columns(List.of("uid"))
+            .build());
   }
 
   @Override
