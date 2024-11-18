@@ -176,7 +176,6 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
       case DOUBLE -> dataTypeDouble();
       case BOOLEAN -> dataTypeBoolean();
       case CHARACTER_11 -> dataTypeCharacter(11);
-      case CHARACTER_32 -> dataTypeCharacter(32);
       case VARCHAR_50 -> dataTypeVarchar(50);
       case VARCHAR_255 -> dataTypeVarchar(255);
       case TEXT -> dataTypeText();
