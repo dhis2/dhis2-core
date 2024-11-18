@@ -188,15 +188,15 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     sql +=
         replaceQualify(
             """
-            from ${validationresult} vrs
-            inner join analytics_rs_periodstructure ps on vrs.periodid=ps.periodid
-            inner join ${validationrule} vr on vr.validationruleid=vrs.validationruleid
-            inner join analytics_rs_organisationunitgroupsetstructure ougs on vrs.organisationunitid=ougs.organisationunitid
-            and (cast(${peStartDateMonth} as date)=ougs.startdate or ougs.startdate is null)
-            left join analytics_rs_orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid
-            inner join analytics_rs_categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid
-            where vrs.created < '${startTime}'
-            and vrs.created is not null ${partitionClause}""",
+            from ${validationresult} vrs \
+            inner join analytics_rs_periodstructure ps on vrs.periodid=ps.periodid \
+            inner join ${validationrule} vr on vr.validationruleid=vrs.validationruleid \
+            inner join analytics_rs_organisationunitgroupsetstructure ougs on vrs.organisationunitid=ougs.organisationunitid \
+            left join analytics_rs_orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid \
+            inner join analytics_rs_categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid \
+            where vrs.created < '${startTime}' \
+            and vrs.created is not null ${partitionClause} \
+            and (ougs.startdate is null or ps.monthstartdate=ougs.startdate)""",
             Map.of(
                 "peStartDateMonth", sqlBuilder.dateTrunc("month", "ps.startdate"),
                 "startTime", toLongDate(params.getStartTime()),
