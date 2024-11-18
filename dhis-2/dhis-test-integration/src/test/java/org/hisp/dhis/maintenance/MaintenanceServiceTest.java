@@ -335,6 +335,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
     eventA.setAttributeOptionCombo(coA);
+    eventA.setOrganisationUnit(organisationUnit);
     manager.save(eventA);
     TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog =
         new TrackedEntityDataValueChangeLog(
@@ -364,6 +365,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid(UID.generate().getValue());
     eventA.setAttributeOptionCombo(coA);
+    eventA.setOrganisationUnit(organisationUnit);
     manager.save(eventA);
     long idA = eventA.getId();
     Relationship r = new Relationship();
