@@ -183,10 +183,10 @@ class DorisSqlBuilderTest {
   @Test
   void testDifferenceInSeconds() {
     assertEquals(
-        "extract(epoch from (a.startdate - b.enddate))",
+        "(unix_timestamp(a.startdate) - unix_timestamp(b.enddate))",
         sqlBuilder.differenceInSeconds("a.startdate", "b.enddate"));
     assertEquals(
-        "extract(epoch from (a.`startdate` - b.`enddate`))",
+        "(unix_timestamp(a.`startdate`) - unix_timestamp(b.`enddate`))",
         sqlBuilder.differenceInSeconds(
             sqlBuilder.quote("a", "startdate"), sqlBuilder.quote("b", "enddate")));
   }

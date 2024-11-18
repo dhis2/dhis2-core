@@ -195,7 +195,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String differenceInSeconds(String columnA, String columnB) {
-    return String.format("extract(epoch from (%s - %s))", columnA, columnB);
+    return String.format("(unix_timestamp(%s) - unix_timestamp(%s))", columnA, columnB);
   }
 
   // Statements
