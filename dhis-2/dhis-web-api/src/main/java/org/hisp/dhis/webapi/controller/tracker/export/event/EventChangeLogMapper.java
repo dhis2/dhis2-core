@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog;
 import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog.DataValueChange;
-import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog.EventPropertyChange;
+import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog.PropertyChange;
 import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.mapstruct.Mapper;
@@ -76,11 +76,11 @@ public interface EventChangeLogMapper {
   @Mapping(target = "property", source = "eventProperty")
   @Mapping(target = "previousValue", source = "previousValue")
   @Mapping(target = "currentValue", source = "currentValue")
-  EventPropertyChange mapEventPropertyChange(
+  PropertyChange mapEventPropertyChange(
       org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog);
 
   @Named("mapIfEventPropertyChangeExists")
-  default EventPropertyChange mapIfEventPropertyExists(
+  default PropertyChange mapIfEventPropertyExists(
       org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog) {
     if (eventChangeLog.getEventProperty() == null) {
       return null;

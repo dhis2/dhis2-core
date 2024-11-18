@@ -32,23 +32,19 @@ import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 
 import jakarta.persistence.EntityManager;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -66,7 +62,6 @@ import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.user.UserDetails;
-import org.locationtech.jts.geom.Geometry;
 import org.springframework.stereotype.Component;
 
 /**
@@ -171,11 +166,11 @@ public class EventPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Event event,
-      Event hibernateEntity,
-      Event originalEntity,
+      Event payloadEntity,
+      Event currentEntity,
       UserDetails user) {
-    handleDataValues(entityManager, preheat, event.getDataValues(), hibernateEntity, user);
-    logEventPropertyChanges(originalEntity, hibernateEntity, user);
+    handleDataValues(entityManager, preheat, event.getDataValues(), payloadEntity, user);
+    eventChangeLogService.addPropertyChangeLog(payloadEntity, currentEntity, user.getUsername());
   }
 
   private void handleDataValues(
@@ -218,44 +213,6 @@ public class EventPersister
             deleteDataValue(dbDataValue, event, dataElement, entityManager, preheat);
           }
         });
-  }
-
-  private void logEventPropertyChanges(Event originalEvent, Event payloadEvent, UserDetails user) {
-    logIfChanged(
-        "occurredDate",
-        Event::getOccurredDate,
-        this::formatDate,
-        originalEvent,
-        payloadEvent,
-        user);
-    logIfChanged(
-        "scheduledDate",
-        Event::getScheduledDate,
-        this::formatDate,
-        originalEvent,
-        payloadEvent,
-        user);
-    logIfChanged(
-        "geometry", Event::getGeometry, this::formatGeometry, originalEvent, payloadEvent, user);
-  }
-
-  private <T> void logIfChanged(
-      String propertyName,
-      Function<Event, T> valueExtractor,
-      Function<T, String> formatter,
-      Event originalEvent,
-      Event payloadEvent,
-      UserDetails user) {
-
-    String originalValue = formatter.apply(valueExtractor.apply(originalEvent));
-    String newValue = formatter.apply(valueExtractor.apply(payloadEvent));
-
-    if (!Objects.equals(originalValue, newValue)) {
-      ChangeLogType changeLogType = getChangeLogType(originalValue, newValue);
-
-      eventChangeLogService.addEventPropertyChangeLog(
-          payloadEvent, propertyName, originalValue, newValue, changeLogType, user.getUsername());
-    }
   }
 
   private void saveDataValue(
@@ -346,38 +303,5 @@ public class EventPersister
     return eventDataValue != null
         && !StringUtils.isBlank(dv.getValue())
         && !StringUtils.equals(dv.getValue(), eventDataValue.getValue());
-  }
-
-  private boolean isNewProperty(String originalValue, String payloadValue) {
-    return originalValue == null && payloadValue != null;
-  }
-
-  private boolean isUpdateProperty(String originalValue, String payloadValue) {
-    return originalValue != null && payloadValue != null;
-  }
-
-  private String formatDate(Date date) {
-    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-    return date != null ? formatter.format(date) : null;
-  }
-
-  private String formatGeometry(Geometry geometry) {
-    if (geometry == null) {
-      return null;
-    }
-
-    return Stream.of(geometry.getCoordinates())
-        .map(c -> String.format("(%f, %f)", c.x, c.y))
-        .collect(Collectors.joining(", "));
-  }
-
-  private ChangeLogType getChangeLogType(String originalValue, String newValue) {
-    if (isNewProperty(originalValue, newValue)) {
-      return ChangeLogType.CREATE;
-    } else if (isUpdateProperty(originalValue, newValue)) {
-      return ChangeLogType.UPDATE;
-    } else {
-      return ChangeLogType.DELETE;
-    }
   }
 }

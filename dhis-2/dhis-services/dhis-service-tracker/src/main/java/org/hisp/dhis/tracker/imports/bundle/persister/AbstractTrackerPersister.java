@@ -228,8 +228,8 @@ public abstract class AbstractTrackerPersister<
       EntityManager entityManager,
       TrackerPreheat preheat,
       T trackerDto,
-      V hibernateEntity,
-      V originalEntity,
+      V payloadEntity,
+      V currentEntity,
       UserDetails user);
 
   /** Execute the persistence of Attribute values linked to the entity being processed */

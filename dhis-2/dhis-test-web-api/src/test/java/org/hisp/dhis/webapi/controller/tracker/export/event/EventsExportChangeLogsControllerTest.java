@@ -34,7 +34,6 @@ import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -67,6 +66,7 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.webapi.controller.tracker.JsonAssertions;
 import org.hisp.dhis.webapi.controller.tracker.JsonEventChangeLog;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage.JsonPager;
@@ -461,10 +461,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
             assertEquals(dataElement.getUid(), actual.getChange().getDataValue().getDataElement()),
         () -> assertEquals(previousValue, actual.getChange().getDataValue().getPreviousValue()),
         () -> assertEquals(currentValue, actual.getChange().getDataValue().getCurrentValue()),
-        () ->
-            assertFalse(
-                actual.getChange().has("eventProperty"),
-                "Event property not expected to be present, but it was"));
+        () -> JsonAssertions.assertHasNoMember(actual.getChange(), "eventProperty"));
   }
 
   private static void assertPagerLink(String actual, int page, int pageSize, String start) {

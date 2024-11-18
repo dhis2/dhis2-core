@@ -161,8 +161,8 @@ public class EnrollmentPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto,
-      Enrollment hibernateEntity,
-      Enrollment originalEntity,
+      Enrollment payloadEntity,
+      Enrollment currentEntity,
       UserDetails user) {
     // DO NOTHING - TE HAVE NO DATA VALUES
   }

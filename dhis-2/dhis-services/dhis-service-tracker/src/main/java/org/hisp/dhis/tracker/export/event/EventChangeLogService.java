@@ -68,13 +68,7 @@ public interface EventChangeLogService {
       ChangeLogType changeLogType,
       String userName);
 
-  void addEventPropertyChangeLog(
-      Event event,
-      String eventProperty,
-      String previousValue,
-      String currentValue,
-      ChangeLogType changeLogType,
-      String userName);
+  void addPropertyChangeLog(Event newEvent, Event currentEvent, String userName);
 
   @Deprecated(since = "2.42")
   int countTrackedEntityDataValueChangeLogs(TrackedEntityDataValueChangeLogQueryParams params);

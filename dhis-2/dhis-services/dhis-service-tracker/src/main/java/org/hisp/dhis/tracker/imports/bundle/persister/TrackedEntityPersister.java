@@ -103,8 +103,8 @@ public class TrackedEntityPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
-      TrackedEntity hibernateEntity,
-      TrackedEntity originalEntity,
+      TrackedEntity payloadEntity,
+      TrackedEntity currentEntity,
       UserDetails user) {
     // DO NOTHING - TE HAVE NO DATA VALUES
   }

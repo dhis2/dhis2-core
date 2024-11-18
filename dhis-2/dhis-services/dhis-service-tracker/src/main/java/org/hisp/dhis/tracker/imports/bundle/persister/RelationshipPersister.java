@@ -109,8 +109,8 @@ public class RelationshipPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       Relationship trackerDto,
-      org.hisp.dhis.relationship.Relationship hibernateEntity,
-      org.hisp.dhis.relationship.Relationship originalEntity,
+      org.hisp.dhis.relationship.Relationship payloadEntity,
+      org.hisp.dhis.relationship.Relationship currentEntity,
       UserDetails user) {
     // DO NOTHING - TE HAVE NO DATA VALUES
   }
