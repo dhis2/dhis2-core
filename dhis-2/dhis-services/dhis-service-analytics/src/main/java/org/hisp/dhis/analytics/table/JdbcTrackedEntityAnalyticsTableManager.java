@@ -181,7 +181,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
           AnalyticsTableColumn.builder()
               .name("ou")
               .dataType(CHARACTER_11)
-              .selectExpression("ous.uid")
+              .selectExpression("ous.organisationunituid")
               .build(),
           AnalyticsTableColumn.builder()
               .name("ouname")
