@@ -33,7 +33,10 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -44,14 +47,36 @@ import org.hisp.dhis.fieldfiltering.FieldPreset;
  *
  * @author Jan Bernitt
  */
-@Data
+@Getter
+@EqualsAndHashCode
+@ToString
 @Accessors(chain = true)
 @OpenApi.Shared
 public class GetObjectParams {
 
-  @JsonProperty @CheckForNull List<String> fields;
+  /**
+   * Fields allow {@code property[sub,sub]} syntax where a comma occurs as part of the property
+   * name. These commas need to be ignored when splitting a {@code fields} parameter list.
+   */
+  private static final String FIELD_SPLIT = ",(?![^\\[\\]]*\\]|[^\\(\\)]*\\)|([a-zA-Z0-9]+,?)+\\))";
 
-  @JsonProperty Defaults defaults = Defaults.INCLUDE;
+  @OpenApi.Shared.Inline
+  @OpenApi.Property(OpenApi.PropertyNames[].class)
+  @JsonProperty
+  @CheckForNull
+  List<String> fields;
+
+  @Setter @JsonProperty @Nonnull Defaults defaults = Defaults.INCLUDE;
+
+  /**
+   * Since splitting on comma is too unsophisticated to be correct this needs custom split code when
+   * called by spring injecting URL parmaeters
+   *
+   * @param fields field expression
+   */
+  public void setFields(String fields) {
+    this.fields = fields == null ? null : List.of(fields.split(FIELD_SPLIT));
+  }
 
   public GetObjectParams addField(String field) {
     if (fields == null) fields = new ArrayList<>();
@@ -98,7 +123,7 @@ public class GetObjectParams {
    */
   public GetObjectListParams toListParams() {
     GetObjectListParams res = new GetObjectListParams();
-    res.setFields(fields);
+    if (fields != null) fields.forEach(res::addField);
     res.setDefaults(defaults);
     return res;
   }

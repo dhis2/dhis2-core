@@ -33,6 +33,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.Data;
@@ -89,15 +91,35 @@ public class GetObjectListParams extends GetObjectParams {
     return this;
   }
 
-  /*
-   * spring currently does not consider @JsonProperty names and only goes by the field name
+  /**
+   * For spring URL parameter injection only.
+   *
+   * <p>The issue is that a filter value may contain comma as part of the value, not to separate
+   * values which can be misunderstood by spring so the splitting needs to be done with custom
+   * logic.
+   *
+   * @param filters all filters as a comma seperated string
    */
-
-  public void setFilter(List<String> filters) {
-    this.filters = filters;
+  public void setFilter(String filters) {
+    this.filters = splitFilters(filters);
   }
 
   public void setOrder(List<String> orders) {
     this.orders = orders;
+  }
+
+  private static final Pattern FILTER_PARTS =
+      Pattern.compile(
+          "(?<property>[a-zA-Z0-9.]+):(?<op>[^:,\\n\\r]+)(?::(?<value>\\[[^]]*]|[^,\\n\\r]+))?");
+
+  private static List<String> splitFilters(String filters) {
+    if (filters == null) return null;
+    if (!filters.contains(",")) return new ArrayList<>(List.of(filters));
+    List<String> res = new ArrayList<>();
+    Matcher m = FILTER_PARTS.matcher(filters);
+    while (m.find()) {
+      res.add(m.group());
+    }
+    return res;
   }
 }

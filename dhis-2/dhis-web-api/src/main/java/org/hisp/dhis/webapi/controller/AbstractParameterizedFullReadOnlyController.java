@@ -451,7 +451,7 @@ public abstract class AbstractParameterizedFullReadOnlyController<
     cachePrivate(response);
 
     GetObjectParams params = new GetObjectParams();
-    params.setFields(List.of(pvProperty + fieldFilter));
+    params.addField(pvProperty + fieldFilter);
     ObjectNode objectNode = getObjectInternal(pvUid, params, currentUser);
 
     return ResponseEntity.ok(objectNode);
