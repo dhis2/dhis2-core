@@ -29,54 +29,44 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
-import org.mapstruct.Named;
 
+/**
+ * MetadataMapper maps {@link MetadataObject}s to a string identifier using the {@code idScheme}
+ * specified in the {@code idSchemeParams}. Metadata that does not have an identifier for the
+ * idScheme is collected in {@link MappingErrors}.
+ */
 @Mapper
 public interface MetadataMapper {
 
-  @Named("programToString")
-  default String map(Program program, @Context TrackerIdSchemeParams idSchemeParams) {
-    return idSchemeParams.getProgramIdScheme().getIdentifier(program);
+  default <T extends IdentifiableObject & MetadataObject> String map(
+      @Context TrackerIdSchemeParams idSchemeParams, @Context MappingErrors errors, T metadata) {
+    String identifier = idSchemeParams.getIdentifier(metadata);
+
+    if (StringUtils.isEmpty(identifier)) {
+      errors.add(metadata);
+    }
+
+    return identifier;
   }
 
-  @Named("programStageToString")
-  default String map(ProgramStage programStage, @Context TrackerIdSchemeParams idSchemeParams) {
-    return idSchemeParams.getProgramStageIdScheme().getIdentifier(programStage);
-  }
-
-  @Named("organisationUnitToString")
-  default String map(OrganisationUnit orgUnit, @Context TrackerIdSchemeParams idSchemeParams) {
-    return idSchemeParams.getOrgUnitIdScheme().getIdentifier(orgUnit);
-  }
-
-  @Named("categoryOptionComboToString")
   default String map(
-      CategoryOptionCombo categoryOptionCombo, @Context TrackerIdSchemeParams idSchemeParams) {
-    return idSchemeParams.getCategoryOptionComboIdScheme().getIdentifier(categoryOptionCombo);
-  }
-
-  @Named("categoryOptionToString")
-  default String map(CategoryOption categoryOption, @Context TrackerIdSchemeParams idSchemeParams) {
-    return idSchemeParams.getCategoryOptionIdScheme().getIdentifier(categoryOption);
-  }
-
-  @Named("categoryOptionsToString")
-  default String map(Set<CategoryOption> categoryOptions, @Context TrackerIdSchemeParams context) {
+      @Context TrackerIdSchemeParams idSchemeParams,
+      @Context MappingErrors errors,
+      Set<CategoryOption> categoryOptions) {
     if (categoryOptions == null || categoryOptions.isEmpty()) {
       return null;
     }
 
     return categoryOptions.stream()
-        .map(co -> map(co, context))
+        .map(co -> map(idSchemeParams, errors, co))
         .collect(Collectors.joining(TextUtils.COMMA));
   }
 }
