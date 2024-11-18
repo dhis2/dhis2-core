@@ -115,7 +115,7 @@
     <lettuce.version>6.5.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>10.20.1</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>10.21.0</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.10.8</ehcache3.version>
     <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
