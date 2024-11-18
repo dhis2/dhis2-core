@@ -79,7 +79,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
               .name("ao")
               .dataType(CHARACTER_11)
               .nullable(NOT_NULL)
-              .selectExpression("acs.acs.categoryoptioncombouid")
+              .selectExpression("acs.categoryoptioncombouid")
               .build(),
           AnalyticsTableColumn.builder()
               .name("ouopeningdate")
