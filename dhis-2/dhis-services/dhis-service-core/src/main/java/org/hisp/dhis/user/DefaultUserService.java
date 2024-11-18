@@ -793,30 +793,33 @@ public class DefaultUserService implements UserService {
   public void enableTwoFa(User user, String code) {
     if (user.getSecret() == null) {
       throw new IllegalStateException(
-          "User has not asked for a QR code yet, call the /qr endpoint first");
+          "User has not enrolled in two factor authentication, call enrollment first");
     }
-
     if (!UserService.hasTwoFactorSecretForApproval(user)) {
       throw new IllegalStateException(
-          "QR already approved, you must call /disable and then call /qr before you can enable");
+          "User has already enabled two factor authentication, call disable and enroll first");
     }
 
+    if (validate2FACode(user, code)) {
+      throw new IllegalStateException("Invalid code");
+    }
+
+    approveTwoFactorSecret(user, CurrentUserUtil.getCurrentUserDetails());
+  }
+
+  @Override
+  public boolean validate2FACode(User user, String code) {
     TwoFactorType twoFactorType = user.getTwoFactorType();
     if (twoFactorType == null) {
       throw new IllegalStateException("Two factor type is not set");
     }
 
     if (twoFactorType == TwoFactorType.EMAIL) {
-      if (!TwoFactoryAuthenticationUtils.verifyEmail2FACode(code, user.getSecret())) {
-        throw new IllegalStateException("Invalid 2FA code");
-      }
+      return TwoFactoryAuthenticationUtils.verifyEmail2FACode(code, user.getSecret());
     } else if (twoFactorType == TwoFactorType.TOTP) {
-      if (!TwoFactoryAuthenticationUtils.verifyTOTP(code, user.getSecret())) {
-        throw new IllegalStateException("Invalid code");
-      }
+      return TwoFactoryAuthenticationUtils.verifyTOTP(code, user.getSecret());
     }
-
-    approveTwoFactorSecret(user, CurrentUserUtil.getCurrentUserDetails());
+    return true;
   }
 
   @Override

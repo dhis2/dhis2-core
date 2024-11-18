@@ -584,6 +584,8 @@ public interface UserService {
    */
   void disableTwoFa(User user, String code);
 
+  boolean validate2FACode(User user, String code);
+
   /**
    * Register a failed 2FA disable attempt for the given user account.
    *

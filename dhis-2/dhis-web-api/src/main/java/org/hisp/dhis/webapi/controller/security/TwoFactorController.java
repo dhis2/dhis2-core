@@ -43,7 +43,9 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
 import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.setting.SystemSettings;
@@ -52,7 +54,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -211,21 +212,21 @@ public class TwoFactorController {
   @ResponseBody
   public WebMessage enable(
       @RequestBody Map<String, String> body, @CurrentUser(required = true) User currentUser)
-      throws WebMessageException {
+      throws WebMessageException, ConflictException, ForbiddenException {
     String code = body.get("code");
 
     if (!currentUser.isTwoFactorEnabled()
         || !UserService.hasTwoFactorSecretForApproval(currentUser)) {
-      throw new WebMessageException(conflict(ErrorCode.E3029.getMessage(), ErrorCode.E3029));
+      throw new ConflictException(ErrorCode.E3029);
     }
 
-    if (!verifyCode(code, currentUser)) {
-      return unauthorized(ErrorCode.E3023.getMessage());
+    if (!userService.validate2FACode(currentUser, code)) {
+      throw new ForbiddenException(ErrorCode.E3023);
     }
 
     userService.enableTwoFa(currentUser, code);
 
-    return ok("Two factor authentication was enabled successfully");
+    return ok("Two factor authentication was enabled successfully!");
   }
 
   /**
@@ -263,10 +264,6 @@ public class TwoFactorController {
   }
 
   private static boolean verifyCode(String code, User currentUser) {
-    if (currentUser == null) {
-      throw new BadCredentialsException(ErrorCode.E3025.getMessage());
-    }
-
     return TwoFactoryAuthenticationUtils.verifyTOTP(code, currentUser.getSecret());
   }
 }

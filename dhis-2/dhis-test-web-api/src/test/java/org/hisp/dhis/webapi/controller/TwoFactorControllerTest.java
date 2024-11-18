@@ -81,7 +81,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     String secret = enrolledUser.getSecret();
     assertNotNull(secret);
     String codeTTL = replaceApprovalPartOfTheSecret(secret);
-    String[] codeAndTTL = codeTTL.split("//|");
+    String[] codeAndTTL = codeTTL.split("\\|");
     String code = codeAndTTL[0];
 
     assertStatus(HttpStatus.OK, POST("/2fa/enabled", "{'code':'" + code + "'}"));
