@@ -215,10 +215,10 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     String sql =
         replaceQualify(
             """
-            select distinct(extract(year from ps.startdate))
-            from ${validationresult} vrs
-            inner join analytics_rs_periodstructure ps on vrs.periodid=ps.periodid
-            where ps.startdate is not null
+            select distinct(extract(year from ps.startdate)) \
+            from ${validationresult} vrs \
+            inner join analytics_rs_periodstructure ps on vrs.periodid=ps.periodid \
+            where ps.startdate is not null \
             and vrs.created < '${startTime}'
             ${fromDateClause}""",
             Map.of(
