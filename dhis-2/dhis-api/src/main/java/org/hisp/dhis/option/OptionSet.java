@@ -42,7 +42,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
-import org.hisp.dhis.analytics.OptionSetSelectionMode;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
@@ -63,10 +62,6 @@ public class OptionSet extends BaseIdentifiableObject implements VersionedObject
 
   private String description;
 
-  /** The option set selection mode associated with the option set. */
-  private transient OptionSetSelectionMode optionSetSelectionMode =
-      OptionSetSelectionMode.AGGREGATED;
-
   public OptionSet() {}
 
   public OptionSet(String name, ValueType valueType) {
@@ -74,28 +69,10 @@ public class OptionSet extends BaseIdentifiableObject implements VersionedObject
     this.valueType = valueType;
   }
 
-  public OptionSet(
-      String name, ValueType valueType, OptionSetSelectionMode optionSetSelectionMode) {
-    this.name = name;
-    this.valueType = valueType;
-    this.optionSetSelectionMode = optionSetSelectionMode;
-  }
-
   public OptionSet(String name, ValueType valueType, List<Option> options) {
     this.name = name;
     this.valueType = valueType;
     this.options = options;
-  }
-
-  public OptionSet(
-      String name,
-      ValueType valueType,
-      List<Option> options,
-      OptionSetSelectionMode optionSetSelectionMode) {
-    this.name = name;
-    this.valueType = valueType;
-    this.options = options;
-    this.optionSetSelectionMode = optionSetSelectionMode;
   }
 
   // -------------------------------------------------------------------------
@@ -242,13 +219,5 @@ public class OptionSet extends BaseIdentifiableObject implements VersionedObject
 
   public void setDescription(String description) {
     this.description = description;
-  }
-
-  public OptionSetSelectionMode getOptionSetSelectionMode() {
-    return optionSetSelectionMode;
-  }
-
-  public void setOptionSetSelectionMode(OptionSetSelectionMode optionSetSelectionMode) {
-    this.optionSetSelectionMode = optionSetSelectionMode;
   }
 }

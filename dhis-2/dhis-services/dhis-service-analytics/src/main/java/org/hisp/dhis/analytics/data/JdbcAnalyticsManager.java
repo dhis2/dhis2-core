@@ -342,8 +342,6 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
   private String getSelectClause(DataQueryParams params) {
     String sql = "select " + getCommaDelimitedQuotedDimensionColumns(params.getDimensions()) + ", ";
 
-    sql += getOptionSetItemsClause(params);
-
     sql += getValueClause(params);
 
     sql += getAggregatedOptionValueClause(params);
@@ -372,19 +370,8 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
   protected String getAggregatedOptionValueClause(DataQueryParams params) {
     String sql = "";
 
-    if (params.hasOptionSetAggregatedSelectionMode() && params.hasOptionSetInDimensionItems()) {
-      sql += ", count(" + params.getValueColumn() + ") as valuecount ";
-      return sql;
-    }
-
-    return sql;
-  }
-
-  protected String getOptionSetItemsClause(DataQueryParams params) {
-    String sql = "";
-
     if (params.hasOptionSetInDimensionItems()) {
-      sql += "optionsetuid, optionvalueuid, ";
+      sql += ", count(" + params.getValueColumn() + ") as valuecount ";
       return sql;
     }
 
@@ -1006,7 +993,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       if (params.isDataType(TEXT)) {
         String value = rowSet.getString(VALUE_ID);
 
-        if (params.hasOptionSetInDimensionItems() && params.hasOptionSetAggregatedSelectionMode()) {
+        if (params.hasOptionSetInDimensionItems()) {
           map.put(key + DIMENSION_SEP + value, rowSet.getString("valuecount"));
         } else {
           map.put(key.toString(), value);

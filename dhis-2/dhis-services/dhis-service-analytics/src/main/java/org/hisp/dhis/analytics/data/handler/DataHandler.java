@@ -429,11 +429,11 @@ public class DataHandler {
       EventQueryParams eventQueryParams =
           new EventQueryParams.Builder(fromDataQueryParams(dataSourceParams))
               .withSkipMeta(true)
+              .withOptionSetSelectionCriteria(params.getOptionSetSelectionCriteria())
               .build();
 
       // TODO split EventQueryParams (aggregated, disaggregated)
-      // Grid eventGrid = eventAggregatedService.getAggregatedData(eventQueryParams);
-      Grid eventGrid = eventQueryService.getEvents(eventQueryParams);
+      Grid eventGrid = eventAggregatedService.getAggregatedData(eventQueryParams);
       grid.addRows(eventGrid);
 
       replaceGridIfNeeded(grid, eventGrid);

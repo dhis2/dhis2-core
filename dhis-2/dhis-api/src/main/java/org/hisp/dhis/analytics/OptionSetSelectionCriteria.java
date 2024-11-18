@@ -27,23 +27,52 @@
  */
 package org.hisp.dhis.analytics;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import lombok.Getter;
 
-/** The selection modes for items with option sets */
-public enum OptionSetSelectionMode {
-  // All options in an option set are chosen and aggregated into a single column.
-  // This selection is relative, so any new options added to the option set are included.
-  AGGREGATED,
-  // All options in an option set are chosen and displayed as data items.
-  // This selection is relative, so any new options added to the option set are included.
-  DISAGGREGATED,
-  // choose options from an option set and display those as disaggregated data items.
-  // This selection is non-relative and will not automatically include
-  // any options added to the option set in the future.
-  ABSOLUTE;
+public class OptionSetSelectionCriteria {
+  @Getter private Map<String, OptionSetSelectionMode> optionSetSelectionModes;
+  @Getter private List<String> options;
 
-  public static List<String> getOptionSetSelectionModes() {
-    return Arrays.stream(OptionSetSelectionMode.values()).map(Enum::toString).toList();
+  OptionSetSelectionCriteria(
+      Map<String, OptionSetSelectionMode> optionSetSelectionModes, List<String> options) {
+    this.optionSetSelectionModes = optionSetSelectionModes;
+    this.options = options;
+  }
+
+  public static OptionSetSelectionCriteriaBuilder builder() {
+    return new OptionSetSelectionCriteriaBuilder();
+  }
+
+  public static class OptionSetSelectionCriteriaBuilder {
+    private Map<String, OptionSetSelectionMode> optionSetSelectionModes;
+    private List<String> options;
+
+    OptionSetSelectionCriteriaBuilder() {}
+
+    public OptionSetSelectionCriteriaBuilder optionSetSelectionModes(
+        Map<String, OptionSetSelectionMode> optionSetSelectionModes) {
+      this.optionSetSelectionModes = Collections.unmodifiableMap(optionSetSelectionModes);
+      return this;
+    }
+
+    public OptionSetSelectionCriteriaBuilder options(List<String> options) {
+      this.options = Collections.unmodifiableList(options);
+      return this;
+    }
+
+    public OptionSetSelectionCriteria build() {
+      return new OptionSetSelectionCriteria(this.optionSetSelectionModes, this.options);
+    }
+
+    public String toString() {
+      return "OptionSetSelectionCriteria.OptionSetSelectionCriteriaBuilder(optionSetSelectionModes="
+          + this.optionSetSelectionModes
+          + ", options="
+          + this.options
+          + ")";
+    }
   }
 }

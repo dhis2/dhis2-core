@@ -59,6 +59,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.analytics.OptionSetSelectionCriteria;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
@@ -305,6 +306,7 @@ public class EventQueryParams extends DataQueryParams {
     params.rowContext = this.rowContext;
     params.multipleQueries = this.multipleQueries;
     params.userOrganisationUnitsCriteria = this.userOrganisationUnitsCriteria;
+    params.optionSetSelectionCriteria = this.optionSetSelectionCriteria;
     return params;
   }
 
@@ -1358,6 +1360,12 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withMultipleQueries(boolean multipleQueries) {
       this.params.multipleQueries = multipleQueries;
+      return this;
+    }
+
+    public Builder withOptionSetSelectionCriteria(
+        OptionSetSelectionCriteria optionSetSelectionCriteria) {
+      this.params.optionSetSelectionCriteria = optionSetSelectionCriteria;
       return this;
     }
   }

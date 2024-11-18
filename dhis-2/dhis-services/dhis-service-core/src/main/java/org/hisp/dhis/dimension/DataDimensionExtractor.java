@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
-import org.hisp.dhis.analytics.OptionSetSelectionMode;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemId;
@@ -45,7 +44,6 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ReportingRateMetric;
@@ -53,8 +51,6 @@ import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
@@ -264,45 +260,15 @@ public class DataDimensionExtractor {
    */
   @Transactional(readOnly = true)
   public ProgramDataElementDimensionItem getProgramDataElementDimensionItem(
-      IdScheme idScheme,
-      String programId,
-      String dataElementId,
-      String optionSetUid,
-      String optionSetSelectionMode) {
+      IdScheme idScheme, String programId, String dataElementId) {
     Program program = idObjectManager.getObject(Program.class, idScheme, programId);
     DataElement dataElement = idObjectManager.getObject(DataElement.class, idScheme, dataElementId);
-    addOptionSetSelectionMode(dataElement, optionSetUid, optionSetSelectionMode);
 
     if (program == null || dataElement == null) {
       return null;
     }
 
     return new ProgramDataElementDimensionItem(program, dataElement);
-  }
-
-  /**
-   * Add OptionSetSelectionMode if option set exists
-   *
-   * @param optionSetUid
-   * @param optionSetSelectionMode
-   */
-  private void addOptionSetSelectionMode(
-      DataElement dataElement, String optionSetUid, String optionSetSelectionMode) {
-    if (dataElement == null
-        || optionSetUid == null
-        || optionSetSelectionMode == null
-        || dataElement.getOptionSet() == null) {
-      return;
-    }
-    if (optionSetUid.equals(dataElement.getOptionSet().getUid())) {
-      try {
-        dataElement
-            .getOptionSet()
-            .setOptionSetSelectionMode(OptionSetSelectionMode.valueOf(optionSetSelectionMode));
-      } catch (IllegalArgumentException ignored) {
-        throw new IllegalQueryException(new ErrorMessage(ErrorCode.E1121, optionSetSelectionMode));
-      }
-    }
   }
 
   private DimensionalItemObject getDimensionalItemObject(

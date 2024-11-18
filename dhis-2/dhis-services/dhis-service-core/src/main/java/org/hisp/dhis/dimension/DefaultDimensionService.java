@@ -349,7 +349,13 @@ public class DefaultDimensionService implements DimensionService {
       String id0 = splitSafe(dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 0);
       String id1 = splitSafe(dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 1);
       String id2 = splitSafe(dimensionItem, COMPOSITE_DIM_OBJECT_ESCAPED_SEP, 2);
+
       String optionSetSelectionMode = splitSafe(dimensionItem, "-", 1);
+      if (optionSetSelectionMode != null && id2 != null) {
+        id2 = splitSafe(id2, "-", 0);
+      } else if (optionSetSelectionMode != null && id1 != null) {
+        id1 = splitSafe(id1, "-", 0);
+      }
 
       DataElementOperand operand;
       ReportingRate reportingRate;
@@ -363,8 +369,7 @@ public class DefaultDimensionService implements DimensionService {
         return reportingRate;
       }
       if ((programDataElement =
-              dataDimensionExtractor.getProgramDataElementDimensionItem(
-                  idScheme, id0, id1, id2, optionSetSelectionMode))
+              dataDimensionExtractor.getProgramDataElementDimensionItem(idScheme, id0, id1))
           != null) {
         return programDataElement;
       }
@@ -373,6 +378,11 @@ public class DefaultDimensionService implements DimensionService {
           != null) {
         return programAttribute;
       }
+
+      if (!idScheme.is(IdentifiableProperty.UID) || CodeGenerator.isValidUid(id0)) {
+        return idObjectManager.get(DataDimensionItem.DATA_DIM_CLASSES, idScheme, id0);
+      }
+
     } else if (!idScheme.is(IdentifiableProperty.UID) || CodeGenerator.isValidUid(dimensionItem)) {
       return idObjectManager.get(DataDimensionItem.DATA_DIM_CLASSES, idScheme, dimensionItem);
     }

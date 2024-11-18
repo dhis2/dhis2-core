@@ -235,8 +235,8 @@ public class DataQueryParams {
   /** The aggregation type. */
   protected AnalyticsAggregationType aggregationType;
 
-  /** The option set selection mode. */
-  protected OptionSetSelectionMode optionSetSelectionMode;
+  /** The option set selection criteria. */
+  protected OptionSetSelectionCriteria optionSetSelectionCriteria;
 
   /** The measure criteria, which is measure filters and corresponding values. */
   protected Map<MeasureFilter, Double> measureCriteria = new HashMap<>();
@@ -502,7 +502,7 @@ public class DataQueryParams {
     params.dimensions = DimensionalObjectUtils.getCopies(this.dimensions);
     params.filters = DimensionalObjectUtils.getCopies(this.filters);
     params.aggregationType = this.aggregationType != null ? this.aggregationType.instance() : null;
-    params.optionSetSelectionMode = this.optionSetSelectionMode;
+    params.optionSetSelectionCriteria = this.optionSetSelectionCriteria;
     params.measureCriteria = new HashMap<>(this.measureCriteria);
     params.preAggregateMeasureCriteria = new HashMap<>(this.preAggregateMeasureCriteria);
     params.skipMeta = this.skipMeta;
@@ -596,7 +596,7 @@ public class DataQueryParams {
         (k, v) -> key.add("preAggregateMeasureCriteria", (String.valueOf(k) + v)));
 
     return key.add("aggregationType", aggregationType)
-        .add("optionSetSelectionMode", optionSetSelectionMode)
+        .add("optionSetSelectionCriteria", optionSetSelectionCriteria)
         .add("skipMeta", skipMeta)
         .add("skipData", skipData)
         .add("skipHeaders", skipHeaders)
@@ -876,10 +876,6 @@ public class DataQueryParams {
                         it ->
                             it.getDimensionItemType() == DimensionItemType.DATA_ELEMENT
                                 && ((DataElement) it).getOptionSet() != null));
-  }
-
-  public boolean hasOptionSetAggregatedSelectionMode() {
-    return optionSetSelectionMode == OptionSetSelectionMode.AGGREGATED;
   }
 
   /**
@@ -1973,8 +1969,8 @@ public class DataQueryParams {
     return aggregationType;
   }
 
-  public OptionSetSelectionMode getOptionSetSelectionMode() {
-    return optionSetSelectionMode;
+  public OptionSetSelectionCriteria getOptionSetSelectionCriteria() {
+    return optionSetSelectionCriteria;
   }
 
   public Map<MeasureFilter, Double> getMeasureCriteria() {
@@ -2821,8 +2817,9 @@ public class DataQueryParams {
       return this;
     }
 
-    public Builder withOptionSetSelectionMode(OptionSetSelectionMode optionSetSelectionMode) {
-      this.params.optionSetSelectionMode = optionSetSelectionMode;
+    public Builder withOptionSetSelectionCriteria(
+        OptionSetSelectionCriteria optionSetSelectionCriteria) {
+      this.params.optionSetSelectionCriteria = optionSetSelectionCriteria;
       return this;
     }
 
