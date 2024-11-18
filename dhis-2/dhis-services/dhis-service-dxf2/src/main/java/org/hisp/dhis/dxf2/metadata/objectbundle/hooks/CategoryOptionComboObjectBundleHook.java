@@ -114,8 +114,7 @@ public class CategoryOptionComboObjectBundleHook
   }
 
   private void checkCategoryOptionsExistInCategoryCombo(
-      CategoryOptionCombo categoryOptionCombo,
-      Consumer<ErrorReport> addReports) {
+      CategoryOptionCombo categoryOptionCombo, Consumer<ErrorReport> addReports) {
 
     Set<String> categoryOptionUids =
         categoryOptionCombo.getCategoryOptions().stream()
@@ -157,7 +156,7 @@ public class CategoryOptionComboObjectBundleHook
 
     CategoryOptionCombo defaultCatOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
-    if (!categoryOptionCombo.getUid().equals(defaultCatOptionCombo.getUid()  )) {
+    if (!categoryOptionCombo.getUid().equals(defaultCatOptionCombo.getUid())) {
       addReports.accept(
           new ErrorReport(
               CategoryOptionCombo.class, ErrorCode.E1124, categoryOptionCombo.getName()));
