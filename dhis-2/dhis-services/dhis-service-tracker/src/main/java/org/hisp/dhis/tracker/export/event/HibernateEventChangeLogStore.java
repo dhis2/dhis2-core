@@ -92,6 +92,7 @@ public class HibernateEventChangeLogStore {
                  u.uid
           from EventChangeLog ecl
           join ecl.event e
+          left join ecl.dataElement d
           left join ecl.createdBy u
           where e.uid = :eventUid
           order by %s

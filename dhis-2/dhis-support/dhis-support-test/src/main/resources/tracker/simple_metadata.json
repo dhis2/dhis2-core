@@ -1104,7 +1104,16 @@
           "sortOrder": 2
         }
       ],
-      "validationStrategy": "ON_UPDATE_AND_INSERT"
+      "validationStrategy": "ON_UPDATE_AND_INSERT",
+      "featureType": "POINT",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "multi-program-stage-attribute"
+        }
+      ]
     },
     {
       "id": "SKNvpoLioON",
@@ -1258,9 +1267,7 @@
           "id": "FdIeUL4gyoB"
         }
       ],
-      "program": {
-        "id": "SeeUNWLQmZk"
-      },
+      "featureType": "POLYGON",
       "repeatable": true,
       "sortOrder": 1,
       "user": {
