@@ -206,6 +206,17 @@ class PostgreSqlBuilderTest {
         "date_trunc('month', pe.startdate)", sqlBuilder.dateTrunc("month", "pe.startdate"));
   }
 
+  @Test
+  void testDifferenceInSeconds() {
+    assertEquals(
+        "extract(epoch from (a.startdate - b.enddate))",
+        sqlBuilder.differenceInSeconds("a.startdate", "b.enddate"));
+    assertEquals(
+        "extract(epoch from (a.\"startdate\" - b.\"enddate\"))",
+        sqlBuilder.differenceInSeconds(
+            sqlBuilder.quote("a", "startdate"), sqlBuilder.quote("b", "enddate")));
+  }
+
   // Statements
 
   @Test

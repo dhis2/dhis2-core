@@ -38,6 +38,7 @@ import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
+import static org.hisp.dhis.util.DateUtils.SECONDS_PER_DAY;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
@@ -258,8 +259,8 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
   private List<AnalyticsTableColumn> getColumns() {
     String idColAlias = "concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',ao.uid) as id ";
-    String timelyDateDiff =
-        "extract(epoch from (cdr.date - ps.enddate)) / ( " + DateUtils.SECONDS_PER_DAY + " )";
+    String diffInSeconds = sqlBuilder.differenceInSeconds("cdr.date", "ps.enddate");
+    String timelyDateDiff = diffInSeconds + " / (" + SECONDS_PER_DAY + ")";
     String timelyAlias = "((" + timelyDateDiff + ") <= ds.timelydays) as timely";
 
     List<AnalyticsTableColumn> columns = new ArrayList<>();

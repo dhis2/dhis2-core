@@ -193,6 +193,11 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return String.format("date_trunc(%s, %s)", timestamp, singleQuote(text));
   }
 
+  @Override
+  public String differenceInSeconds(String columnA, String columnB) {
+    return String.format("(unix_timestamp(%s) - unix_timestamp(%s))", columnA, columnB);
+  }
+
   // Statements
 
   @Override
