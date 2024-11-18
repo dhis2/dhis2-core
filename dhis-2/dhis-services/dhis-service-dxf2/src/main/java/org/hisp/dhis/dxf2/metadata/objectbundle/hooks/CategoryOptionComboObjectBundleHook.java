@@ -115,13 +115,7 @@ public class CategoryOptionComboObjectBundleHook
 
   private void checkCategoryOptionsExistInCategoryCombo(
       CategoryOptionCombo categoryOptionCombo,
-      ObjectBundle bundle,
       Consumer<ErrorReport> addReports) {
-
-    //    //Exit early if there are no category options in the combo
-    //    if (!bundle.isPersisted(categoryOptionCombo.getCategoryCombo())) {
-    //      return;
-    //    }
 
     Set<String> categoryOptionUids =
         categoryOptionCombo.getCategoryOptions().stream()
@@ -163,7 +157,7 @@ public class CategoryOptionComboObjectBundleHook
 
     CategoryOptionCombo defaultCatOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
-    if (categoryOptionCombo.getUid() != defaultCatOptionCombo.getUid()) {
+    if (!categoryOptionCombo.getUid().equals(defaultCatOptionCombo.getUid()  )) {
       addReports.accept(
           new ErrorReport(
               CategoryOptionCombo.class, ErrorCode.E1124, categoryOptionCombo.getName()));
@@ -178,6 +172,6 @@ public class CategoryOptionComboObjectBundleHook
 
     checkNonStandardDefaultCatOptionCombo(categoryOptionCombo, addReports);
     checkDuplicateCategoryOptionCombos(categoryOptionCombo, bundle, addReports);
-    checkCategoryOptionsExistInCategoryCombo(categoryOptionCombo, bundle, addReports);
+    checkCategoryOptionsExistInCategoryCombo(categoryOptionCombo, addReports);
   }
 }
