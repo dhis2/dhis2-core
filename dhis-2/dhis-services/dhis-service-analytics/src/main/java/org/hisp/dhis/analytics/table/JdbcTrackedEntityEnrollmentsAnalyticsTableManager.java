@@ -33,7 +33,6 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
-import static org.hisp.dhis.db.model.DataType.CHARACTER_32;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
@@ -172,7 +171,7 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
               .build(),
           AnalyticsTableColumn.builder()
               .name("oucode")
-              .dataType(CHARACTER_32)
+              .dataType(VARCHAR_50)
               .nullable(NULL)
               .selectExpression("ous.code")
               .build(),

@@ -37,7 +37,6 @@ import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
-import static org.hisp.dhis.db.model.DataType.CHARACTER_32;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
@@ -226,7 +225,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
               .build(),
           AnalyticsTableColumn.builder()
               .name("oucode")
-              .dataType(CHARACTER_32)
+              .dataType(VARCHAR_50)
               .nullable(NULL)
               .selectExpression("ous.code")
               .build(),
