@@ -259,7 +259,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
   private List<AnalyticsTableColumn> getColumns() {
     String idColAlias = "concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',ao.uid) as id ";
-    String diffInSeconds = sqlBuilder.differenceInSeconds("crd.date", "ps.enddate");
+    String diffInSeconds = sqlBuilder.differenceInSeconds("cdr.date", "ps.enddate");
     String timelyDateDiff = diffInSeconds + " / (" + SECONDS_PER_DAY + ")";
     String timelyAlias = "((" + timelyDateDiff + ") <= ds.timelydays) as timely";
 
