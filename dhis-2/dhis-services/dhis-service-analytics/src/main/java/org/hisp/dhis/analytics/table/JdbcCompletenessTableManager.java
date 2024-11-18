@@ -170,12 +170,12 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             """
             delete from ${tableName} ax \
             where ax.id in ( \
-            select concat(ds.uid,'-',ps.iso,'-',ou.uid,'-',ao.uid) as id \
+            select concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',acs.categoryoptioncombouid) as id \
             from ${completedatasetregistration} cdr \
             inner join ${dataset} ds on cdr.datasetid=ds.datasetid \
             inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid \
-            inner join ${organisationunit} ou on cdr.sourceid=ou.organisationunitid \
-            inner join ${categoryoptioncombo} ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid \
+            inner join analytics_rs_orgunitstructure ous on cdr.sourceid=ous.organisationunitid \
+            inner join analytics_rs_categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid \
             where cdr.lastupdated >= '${startDate}' \
             and cdr.lastupdated < '${endDate}');""",
             Map.of(
@@ -226,7 +226,6 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             inner join analytics_rs_organisationunitgroupsetstructure ougs on cdr.sourceid=ougs.organisationunitid \
             left join analytics_rs_orgunitstructure ous on cdr.sourceid=ous.organisationunitid \
             inner join analytics_rs_categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid \
-            inner join ${categoryoptioncombo} ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid \
             where cdr.date is not null \
             ${partitionClause} \
             and (ougs.startdate is null or ps.monthstartdate=ougs.startdate) \
@@ -258,7 +257,8 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   }
 
   private List<AnalyticsTableColumn> getColumns() {
-    String idColAlias = "concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',ao.uid) as id ";
+    String idColAlias =
+        "concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',acs.categoryoptioncombouid) as id ";
     String diffInSeconds = sqlBuilder.differenceInSeconds("cdr.date", "ps.enddate");
     String timelyDateDiff = diffInSeconds + " / (" + SECONDS_PER_DAY + ")";
     String timelyAlias = "((" + timelyDateDiff + ") <= ds.timelydays) as timely";

@@ -198,9 +198,10 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
             and vrs.created is not null ${partitionClause} \
             and (ougs.startdate is null or ps.monthstartdate=ougs.startdate)""",
             Map.of(
-                "peStartDateMonth", sqlBuilder.dateTrunc("month", "ps.startdate"),
-                "startTime", toLongDate(params.getStartTime()),
-                "partitionClause", partitionClause));
+                "startTime",
+                toLongDate(params.getStartTime()),
+                "partitionClause",
+                partitionClause));
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
