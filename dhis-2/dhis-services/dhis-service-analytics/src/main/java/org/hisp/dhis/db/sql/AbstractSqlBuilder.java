@@ -81,6 +81,11 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
         : items.stream().map(this::singleQuote).collect(Collectors.joining(COMMA));
   }
 
+  @Override
+  public String differenceInSeconds(String columnA, String columnB) {
+    return String.format("extract(epoch from (%s - %s))", columnA, columnB);
+  }
+
   // Index types
 
   @Override
