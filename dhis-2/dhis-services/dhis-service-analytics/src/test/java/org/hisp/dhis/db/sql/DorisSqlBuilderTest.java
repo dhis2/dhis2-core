@@ -344,4 +344,18 @@ class DorisSqlBuilderTest {
 
     assertEquals(expected, sqlBuilder.countRows(getTableA()));
   }
+
+  @Test
+  void testRegexpMatch() {
+    assertEquals("REGEXP test", sqlBuilder.regexpMatch("test"));
+
+    // Test pattern with regex special characters
+    assertEquals("REGEXP \\d", sqlBuilder.regexpMatch("\\d"));
+
+    // Test empty string
+    assertEquals("REGEXP ", sqlBuilder.regexpMatch(""));
+
+    // Test complex regex pattern
+    assertEquals("REGEXP [a-z]\\w+\\d{3}", sqlBuilder.regexpMatch("[a-z]\\w+\\d{3}"));
+  }
 }

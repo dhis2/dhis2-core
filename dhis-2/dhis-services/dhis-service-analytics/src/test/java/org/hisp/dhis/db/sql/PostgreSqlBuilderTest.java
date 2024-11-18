@@ -429,4 +429,13 @@ class PostgreSqlBuilderTest {
     // then
     assertEquals(expected, createIndexStmt);
   }
+
+  @Test
+  void testRegexpMatch() {
+    assertEquals("~* test", sqlBuilder.regexpMatch("test"));
+    assertEquals("~* ", sqlBuilder.regexpMatch(""));
+    assertEquals("~* null", sqlBuilder.regexpMatch(null));
+    assertEquals("~* .*[a-z]\\d+", sqlBuilder.regexpMatch(".*[a-z]\\d+"));
+    assertEquals("~*  ", sqlBuilder.regexpMatch(" "));
+  }
 }

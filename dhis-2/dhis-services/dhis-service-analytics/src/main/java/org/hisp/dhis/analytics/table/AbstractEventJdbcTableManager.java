@@ -96,11 +96,11 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   public static final String OU_NAME_COL_SUFFIX = "_name";
 
   protected final String getNumericClause() {
-    return " and value ~* '" + NUMERIC_LENIENT_REGEXP + "'";
+    return " and value " + sqlBuilder.regexpMatch("'" + NUMERIC_LENIENT_REGEXP + "'");
   }
 
   protected final String getDateClause() {
-    return " and value ~* '" + DATE_REGEXP + "'";
+    return " and value " + sqlBuilder.regexpMatch("'" + DATE_REGEXP + "'");
   }
 
   protected Skip skipIndex(ValueType valueType, boolean hasOptionSet) {
@@ -126,7 +126,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           + columnName
           + " = 'false' then 0 else null end";
     } else if (valueType.isDate()) {
-      return "cast(" + columnName + " as timestamp)";
+      return "cast(" + columnName + " as " + sqlBuilder.dataTypeTimestamp() + ")";
     } else if (valueType.isGeo() && isSpatialSupport()) {
       return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || ("
           + columnName
