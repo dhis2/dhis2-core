@@ -360,4 +360,12 @@ public interface SqlBuilder {
    * @return a drop catalog if exists statement.
    */
   String dropCatalogIfExists();
+
+  /**
+   * Returns the appropriate regexp matching syntax
+   *
+   * @param pattern The regexp pattern to match against
+   * @return The complete regexp matching clause for the current database
+   */
+  String regexpMatch(String pattern);
 }

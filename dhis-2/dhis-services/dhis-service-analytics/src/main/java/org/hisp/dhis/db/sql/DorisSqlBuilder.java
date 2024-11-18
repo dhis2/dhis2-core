@@ -353,4 +353,9 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   public String dropCatalogIfExists() {
     return String.format("drop catalog if exists %s;", quote(catalog));
   }
+
+  @Override
+  public String regexpMatch(String pattern) {
+    return "REGEXP " + pattern;
+  }
 }

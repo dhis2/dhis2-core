@@ -350,4 +350,9 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   public String dropCatalogIfExists() {
     return notSupported();
   }
+
+  @Override
+  public String regexpMatch(String pattern) {
+    return "~* " + pattern;
+  }
 }
