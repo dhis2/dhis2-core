@@ -194,7 +194,7 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String differenceInSeconds(String columnA, String columnB) {
-    return String.format("(unix_timestamp(%s) - unix_timestamp(%s))", columnA, columnB);
+    return String.format("(toUnixTimestamp(%s) - toUnixTimestamp(%s))", columnA, columnB);
   }
 
   // Statements
