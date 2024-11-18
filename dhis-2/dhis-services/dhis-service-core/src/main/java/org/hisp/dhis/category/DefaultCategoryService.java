@@ -671,7 +671,7 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   public List<CategoryOptionCombo> getCategoryOptionCombosByUid(Collection<UID> uids) {
-    return List.of();
+    return categoryOptionComboStore.getByUid(UID.toValueList(uids));
   }
 
   // -------------------------------------------------------------------------

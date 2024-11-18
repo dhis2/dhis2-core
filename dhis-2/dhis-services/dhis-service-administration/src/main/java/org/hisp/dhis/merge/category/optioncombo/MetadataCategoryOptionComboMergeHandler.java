@@ -29,15 +29,12 @@ package org.hisp.dhis.merge.category.optioncombo;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.CategoryDimensionStore;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionComboStore;
-import org.hisp.dhis.category.CategoryOptionGroupStore;
-import org.hisp.dhis.category.CategoryStore;
+import org.hisp.dhis.category.CategoryOptionStore;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.minmax.MinMaxDataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.springframework.stereotype.Component;
@@ -51,11 +48,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class MetadataCategoryOptionComboMergeHandler {
 
-  private final CategoryStore categoryStore;
-  private final CategoryOptionComboStore categoryOptionComboStore;
-  private final CategoryOptionGroupStore categoryOptionGroupStore;
-  private final OrganisationUnitStore organisationUnitStore;
-  private final CategoryDimensionStore categoryDimensionStore;
+  private final CategoryOptionStore categoryOptionStore;
 
   /**
    * Remove sources from {@link CategoryOption} and add target to {@link CategoryOption}
@@ -64,7 +57,14 @@ public class MetadataCategoryOptionComboMergeHandler {
    * @param target to add
    */
   public void handleCategoryOptions(List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
-    // TODO
+    List<CategoryOption> categoryOptions =
+        categoryOptionStore.getByCategoryOptionCombo(UID.toUidValueSet(sources));
+
+    categoryOptions.forEach(
+        co -> {
+          co.addCategoryOptionCombo(target);
+          co.removeCategoryOptionCombos(sources);
+        });
   }
 
   /**
