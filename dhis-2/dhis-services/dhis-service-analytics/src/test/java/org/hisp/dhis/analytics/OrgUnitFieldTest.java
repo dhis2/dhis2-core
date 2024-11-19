@@ -56,15 +56,12 @@ class OrgUnitFieldTest {
 
   private static final OrgUnitField ENROLL =
       new OrgUnitField("ENROLLMENT").withSqlBuilder(sqlBuilder);
-  ;
 
   private static final OrgUnitField OSTART =
       new OrgUnitField("OWNER_AT_START").withSqlBuilder(sqlBuilder);
-  ;
 
   private static final OrgUnitField OEND =
       new OrgUnitField("OWNER_AT_END").withSqlBuilder(sqlBuilder);
-  ;
 
   @Test
   void testIsJoinOrgUnitTables() {
