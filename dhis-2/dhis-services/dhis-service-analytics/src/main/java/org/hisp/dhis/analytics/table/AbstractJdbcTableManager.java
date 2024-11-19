@@ -151,9 +151,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected Boolean spatialSupport;
 
   protected boolean isSpatialSupport() {
-    if (spatialSupport == null)
+    if (spatialSupport == null) {
       spatialSupport = databaseInfoProvider.getDatabaseInfo().isSpatialSupport();
-    return spatialSupport;
+    }
+
+    return spatialSupport && sqlBuilder.supportsGeospatialData();
   }
 
   /**

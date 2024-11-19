@@ -229,6 +229,19 @@ public interface SqlBuilder {
    */
   String dateTrunc(String timeUnit, String source);
 
+  /**
+   * @param columnA the name of the first date column.
+   * @param columnB the name of the second date column.
+   * @return an expression which returns the difference in seconds.
+   */
+  String differenceInSeconds(String columnA, String columnB);
+
+  /**
+   * @param pattern the regular expression pattern to match against
+   * @return a regular expression matching clause.
+   */
+  String regexpMatch(String pattern);
+
   // Statements
 
   /**
