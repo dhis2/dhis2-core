@@ -560,7 +560,6 @@ public class DefaultDimensionService implements DimensionService {
           }
 
           object.setRawRelativePeriods(new ArrayList<>(relativePeriods));
-          // object.setRelatives(new RelativePeriods().setRelativePeriodsFromEnums(enums));
           object.setPeriods(periodService.reloadPeriods(new ArrayList<>(periods)));
         } else if (ORGANISATION_UNIT.equals(type)) {
           for (String ou : uids) {
