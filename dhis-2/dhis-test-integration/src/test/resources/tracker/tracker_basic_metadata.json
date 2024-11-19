@@ -2998,25 +2998,6 @@
       "created": "2019-03-25T13:40:24.775"
     },
     {
-      "id": "KKKKX50cXC0",
-      "name": "accesstest1",
-      "code": "accesstest1",
-      "categoryOptions": [
-        {
-          "id": "XXXXKDKCefk"
-        }
-      ],
-      "categoryCombo": {
-        "id": "bjDvmb4bfuf"
-      },
-      "translations": [],
-      "startDate": "2019-01-01T00:00:00.000",
-      "lastUpdated": "2019-03-25T13:40:24.779",
-      "ignoreApproval": false,
-      "attributeValues": [],
-      "created": "2019-03-25T13:40:24.775"
-    },
-    {
       "id": "OOlvX50cXC0",
       "code": "nondef1 cat1",
       "name": "nondef1 cat1",

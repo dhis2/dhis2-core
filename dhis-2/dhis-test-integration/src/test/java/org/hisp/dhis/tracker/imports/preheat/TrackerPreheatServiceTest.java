@@ -151,7 +151,7 @@ class TrackerPreheatServiceTest extends TrackerTest {
     assertFalse(preheat.getAll(CategoryOptionCombo.class).isEmpty());
 
     // Need to fix this duplicate category option combo
-    assertNotNull(preheat.get(CategoryOptionCombo.class, "XXXvX50cXC0"));
+    assertNotNull(preheat.get(CategoryOptionCombo.class, "HllvX50cXC0"));
 
     assertNotNull(preheat.get(CategoryOption.class, "XXXrKDKCefk"));
   }
