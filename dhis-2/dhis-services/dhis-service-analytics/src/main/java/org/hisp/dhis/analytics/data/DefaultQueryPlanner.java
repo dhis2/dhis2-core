@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.data;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
@@ -34,9 +35,14 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.util.DateUtils.getEarliest;
 import static org.hisp.dhis.util.DateUtils.getLatest;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -65,10 +71,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Component;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -235,7 +237,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
 
     if (params.isSkipPartitioning()) {
       queries.add(params);
-    } else if (!params.getPeriods().isEmpty()) {
+    } else if (isNotEmpty(params.getPeriods())) {
       ListMap<String, DimensionalItemObject> periodTypePeriodMap =
           PartitionUtils.getPeriodTypePeriodMap(params.getPeriods());
 
@@ -252,7 +254,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
 
         queries.add(query);
       }
-    } else if (!params.getFilterPeriods().isEmpty()) {
+    } else if (isNotEmpty(params.getFilterPeriods())) {
       DimensionalObject filter = params.getFilter(PERIOD_DIM_ID);
 
       ListMap<String, DimensionalItemObject> periodTypePeriodMap =
@@ -289,7 +291,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
   public List<DataQueryParams> groupByOrgUnitLevel(DataQueryParams params) {
     List<DataQueryParams> queries = new ArrayList<>();
 
-    if (!params.getOrganisationUnits().isEmpty()) {
+    if (isNotEmpty(params.getOrganisationUnits())) {
       ListMap<Integer, DimensionalItemObject> levelOrgUnitMap =
           QueryPlannerUtils.getLevelOrgUnitMap(params.getOrganisationUnits());
 
@@ -305,7 +307,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
 
         queries.add(query);
       }
-    } else if (!params.getFilterOrganisationUnits().isEmpty()) {
+    } else if (isNotEmpty(params.getFilterOrganisationUnits())) {
       ListMap<Integer, DimensionalItemObject> levelOrgUnitMap =
           QueryPlannerUtils.getLevelOrgUnitMap(params.getFilterOrganisationUnits());
 
@@ -339,7 +341,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
   public List<DataQueryParams> groupByStartEndDateRestriction(DataQueryParams params) {
     List<DataQueryParams> queries = new ArrayList<>();
 
-    if (!params.getPeriods().isEmpty()) {
+    if (isNotEmpty(params.getPeriods())) {
       for (DimensionalItemObject item : params.getPeriods()) {
         Period period = (Period) item;
 
@@ -356,7 +358,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
 
         queries.add(query);
       }
-    } else if (!params.getFilterPeriods().isEmpty()) {
+    } else if (isNotEmpty(params.getFilterPeriods())) {
       Period period = (Period) params.getFilterPeriods().get(0);
 
       DataQueryParams query =
@@ -385,7 +387,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
   private List<DataQueryParams> groupByDataType(DataQueryParams params) {
     List<DataQueryParams> queries = new ArrayList<>();
 
-    if (!params.getDataElements().isEmpty()) {
+    if (isNotEmpty(params.getDataElements())) {
       ListMap<DataType, DimensionalItemObject> dataTypeDataElementMap =
           QueryPlannerUtils.getDataTypeDataElementMap(params.getDataElements());
 
@@ -419,7 +421,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
   private List<DataQueryParams> groupByQueryMods(DataQueryParams params) {
     List<DataQueryParams> queries = new ArrayList<>();
 
-    if (!params.getDataElements().isEmpty()) {
+    if (isNotEmpty(params.getDataElements())) {
       ListMap<QueryModifiers, DimensionalItemObject> queryModsElementMap =
           QueryPlannerUtils.getQueryModsElementMap(params.getDataElements());
 
@@ -475,7 +477,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
   private List<DataQueryParams> groupByAggregationType(DataQueryParams params) {
     List<DataQueryParams> queries = new ArrayList<>();
 
-    if (!params.getDataElements().isEmpty()) {
+    if (isNotEmpty(params.getDataElements())) {
       ListMap<AnalyticsAggregationType, DimensionalItemObject> aggregationTypeDataElementMap =
           QueryPlannerUtils.getAggregationTypeDataElementMap(
               params.getDataElements(), params.getAggregationType(), params.getPeriodType());
@@ -489,13 +491,13 @@ public class DefaultQueryPlanner implements QueryPlanner {
 
         queries.add(query);
       }
-    } else if (!params.getDataElementGroupSets().isEmpty()) {
+    } else if (isNotEmpty(params.getDataElementGroupSets())) {
       DataElementGroup deg = params.getFirstDataElementGroup();
 
       AnalyticsAggregationType aggregationType =
           ObjectUtils.firstNonNull(params.getAggregationType(), AnalyticsAggregationType.SUM);
 
-      if (deg != null && !deg.getMembers().isEmpty()) {
+      if (deg != null && isNotEmpty(deg.getMembers())) {
         PeriodType periodType = PeriodType.getPeriodTypeByName(params.getPeriodType());
         AnalyticsAggregationType degAggType =
             AnalyticsAggregationType.fromAggregationType(deg.getAggregationType());
@@ -633,7 +635,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
   private List<DataQueryParams> groupByDataPeriodType(DataQueryParams params) {
     List<DataQueryParams> queries = new ArrayList<>();
 
-    if (params.isDisaggregation() && !params.getDataElements().isEmpty()) {
+    if (params.isDisaggregation() && isNotEmpty(params.getDataElements())) {
       ListMap<PeriodType, DimensionalItemObject> periodTypeDataElementMap =
           QueryPlannerUtils.getPeriodTypeDataElementMap(params.getDataElements());
 
@@ -646,7 +648,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
 
         queries.add(query);
       }
-    } else if (params.isDisaggregation() && !params.getDataElementGroupSets().isEmpty()) {
+    } else if (params.isDisaggregation() && isNotEmpty(params.getDataElementGroupSets())) {
       DataElementGroup deg = params.getFirstDataElementGroup();
       PeriodType periodType = deg != null ? deg.getPeriodType() : null;
 
@@ -671,7 +673,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
   private List<DataQueryParams> groupByPeriod(DataQueryParams params) {
     List<DataQueryParams> queries = new ArrayList<>();
 
-    if (params.isFirstOrLastOrLastInPeriodAggregationType() && !params.getPeriods().isEmpty()) {
+    if (params.isFirstOrLastOrLastInPeriodAggregationType() && isNotEmpty(params.getPeriods())) {
       for (DimensionalItemObject period : params.getPeriods()) {
         String periodType = ((Period) period).getPeriodType().getName().toLowerCase();
 
