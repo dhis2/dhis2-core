@@ -61,10 +61,13 @@ public class Table {
   /** Table primary key column name(s). Optional. */
   private final List<String> primaryKey;
 
-  /** Table checks. PostgreSQL-only feature. Optional. */
+  /** Table sort key. Applies to column-oriented databases including Doris and ClickHouse only. */
+  private final List<String> sortKey;
+
+  /** Table checks. Applies to PostgreSQL only. Optional. */
   private final List<String> checks;
 
-  /** Whether table is logged or unlogged. PostgreSQL-only feature. */
+  /** Whether table is logged or unlogged. Applies to PostgreSQL only. */
   private final Logged logged;
 
   /** Parent table. This table inherits from the parent if specified. Optional. */
@@ -84,6 +87,7 @@ public class Table {
     this.name = name;
     this.columns = columns;
     this.primaryKey = primaryKey;
+    this.sortKey = List.of();
     this.checks = List.of();
     this.logged = Logged.UNLOGGED;
     this.parent = null;
@@ -102,6 +106,7 @@ public class Table {
     this.name = name;
     this.columns = columns;
     this.primaryKey = primaryKey;
+    this.sortKey = List.of();
     this.checks = List.of();
     this.logged = logged;
     this.parent = null;
@@ -114,6 +119,7 @@ public class Table {
    * @param name the table name.
    * @param columns the list of {@link Column}.
    * @param primaryKey the primary key.
+   * @param sortKey the sort key.
    * @param checks the list of checks.
    * @param logged the {@link Logged} parameter.
    */
@@ -121,11 +127,13 @@ public class Table {
       String name,
       List<Column> columns,
       List<String> primaryKey,
+      List<String> sortKey,
       List<String> checks,
       Logged logged) {
     this.name = name;
     this.columns = columns;
     this.primaryKey = primaryKey;
+    this.sortKey = sortKey;
     this.checks = checks;
     this.logged = logged;
     this.parent = null;
@@ -152,6 +160,7 @@ public class Table {
     this.name = name;
     this.columns = columns;
     this.primaryKey = primaryKey;
+    this.sortKey = List.of();
     this.checks = checks;
     this.logged = logged;
     this.parent = parent;

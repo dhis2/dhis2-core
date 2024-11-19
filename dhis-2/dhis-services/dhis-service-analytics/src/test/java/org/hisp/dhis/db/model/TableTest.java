@@ -59,8 +59,8 @@ class TableTest {
   void testIsUnlogged() {
     List<Column> columns = List.of(colA, colB);
 
-    Table tableA = new Table("analytics", columns, List.of(), List.of(), Logged.UNLOGGED);
-    Table tableB = new Table("analytics", columns, List.of(), List.of(), Logged.LOGGED);
+    Table tableA = new Table("analytics", columns, List.of(), Logged.UNLOGGED);
+    Table tableB = new Table("analytics", columns, List.of(), Logged.LOGGED);
 
     assertTrue(tableA.isUnlogged());
     assertFalse(tableB.isUnlogged());
