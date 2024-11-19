@@ -56,7 +56,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/api/predictorGroups")
 @RequiredArgsConstructor
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class PredictorGroupController extends AbstractCrudController<PredictorGroup, GetObjectListParams> {
+public class PredictorGroupController
+    extends AbstractCrudController<PredictorGroup, GetObjectListParams> {
 
   private final PredictionService predictionService;
 

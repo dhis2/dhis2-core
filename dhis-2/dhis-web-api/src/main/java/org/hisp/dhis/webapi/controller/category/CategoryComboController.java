@@ -54,7 +54,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 @RequestMapping("/api/categoryCombos")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class CategoryComboController extends AbstractCrudController<CategoryCombo, GetObjectListParams> {
+public class CategoryComboController
+    extends AbstractCrudController<CategoryCombo, GetObjectListParams> {
   @Autowired private CategoryService categoryService;
 
   @Autowired private DataValueService dataValueService;

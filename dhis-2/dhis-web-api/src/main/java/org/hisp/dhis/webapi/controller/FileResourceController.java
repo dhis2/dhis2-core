@@ -55,6 +55,7 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceOwner;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
@@ -82,7 +83,8 @@ import org.springframework.web.multipart.MultipartFile;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class FileResourceController extends AbstractFullReadOnlyController<FileResource> {
+public class FileResourceController
+    extends AbstractFullReadOnlyController<FileResource, GetObjectListParams> {
   private final FileResourceService fileResourceService;
 
   private final FileResourceUtils fileResourceUtils;

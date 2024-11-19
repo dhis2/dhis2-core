@@ -36,4 +36,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/api/dataApprovalWorkflows")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class DataApprovalWorkflowController extends AbstractCrudController<DataApprovalWorkflow, GetObjectListParams> {}
+public class DataApprovalWorkflowController
+    extends AbstractCrudController<DataApprovalWorkflow, GetObjectListParams> {}

@@ -38,4 +38,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 @RequestMapping("/api/indicatorGroups")
-public class IndicatorGroupController extends AbstractCrudController<IndicatorGroup, GetObjectListParams> {}
+public class IndicatorGroupController
+    extends AbstractCrudController<IndicatorGroup, GetObjectListParams> {}

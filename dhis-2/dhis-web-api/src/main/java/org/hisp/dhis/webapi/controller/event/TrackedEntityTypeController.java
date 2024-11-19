@@ -40,4 +40,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/api/trackedEntityTypes")
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
-public class TrackedEntityTypeController extends AbstractCrudController<TrackedEntityType, GetObjectListParams> {}
+public class TrackedEntityTypeController
+    extends AbstractCrudController<TrackedEntityType, GetObjectListParams> {}

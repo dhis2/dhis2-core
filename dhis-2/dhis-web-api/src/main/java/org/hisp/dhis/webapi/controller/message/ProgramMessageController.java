@@ -61,7 +61,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/messages")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
-public class ProgramMessageController extends AbstractCrudController<ProgramMessage, GetObjectListParams> {
+public class ProgramMessageController
+    extends AbstractCrudController<ProgramMessage, GetObjectListParams> {
   @Autowired private ProgramMessageService programMessageService;
 
   @Autowired protected ProgramMessageRequestParamMapper requestParamMapper;

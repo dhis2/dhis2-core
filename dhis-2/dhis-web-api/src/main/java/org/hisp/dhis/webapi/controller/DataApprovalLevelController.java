@@ -38,7 +38,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/api/dataApprovalLevels")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class DataApprovalLevelController extends AbstractCrudController<DataApprovalLevel, GetObjectListParams> {
+public class DataApprovalLevelController
+    extends AbstractCrudController<DataApprovalLevel, GetObjectListParams> {
   @Autowired private DataApprovalLevelService dataApprovalLevelService;
 
   @Override

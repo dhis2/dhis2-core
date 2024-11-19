@@ -72,7 +72,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequestMapping("/api/categoryOptions")
 @RequiredArgsConstructor
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class CategoryOptionController extends AbstractCrudController<CategoryOption, GetObjectListParams> {
+public class CategoryOptionController
+    extends AbstractCrudController<CategoryOption, GetObjectListParams> {
   private final CategoryService categoryService;
   private final MergeProcessor categoryOptionMergeProcessor;
 

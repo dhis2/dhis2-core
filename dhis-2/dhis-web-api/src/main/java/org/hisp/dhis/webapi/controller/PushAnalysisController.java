@@ -68,7 +68,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 @OpenApi.Document(classifiers = {"team:platform", "purpose:support"})
-public class PushAnalysisController extends AbstractCrudController<PushAnalysis, GetObjectListParams> {
+public class PushAnalysisController
+    extends AbstractCrudController<PushAnalysis, GetObjectListParams> {
 
   private final PushAnalysisService pushAnalysisService;
   private final ContextUtils contextUtils;

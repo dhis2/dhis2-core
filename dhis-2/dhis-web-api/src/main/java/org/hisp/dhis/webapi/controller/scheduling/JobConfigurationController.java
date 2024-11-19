@@ -75,7 +75,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/jobConfigurations")
 @RequiredArgsConstructor
 @OpenApi.Document(classifiers = {"team:platform", "purpose:support"})
-public class JobConfigurationController extends AbstractCrudController<JobConfiguration, GetObjectListParams> {
+public class JobConfigurationController
+    extends AbstractCrudController<JobConfiguration, GetObjectListParams> {
 
   private final JobConfigurationService jobConfigurationService;
   private final JobSchedulerService jobSchedulerService;

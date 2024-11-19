@@ -58,7 +58,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequestMapping("/api/indicatorTypes")
 @RequiredArgsConstructor
 @Slf4j
-public class IndicatorTypeController extends AbstractCrudController<IndicatorType, GetObjectListParams> {
+public class IndicatorTypeController
+    extends AbstractCrudController<IndicatorType, GetObjectListParams> {
 
   private final MergeProcessor indicatorTypeMergeProcessor;
 

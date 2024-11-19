@@ -39,4 +39,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/api/dataEntryForms")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class DataEntryFormController extends AbstractCrudController<DataEntryForm, GetObjectListParams> {}
+public class DataEntryFormController
+    extends AbstractCrudController<DataEntryForm, GetObjectListParams> {}

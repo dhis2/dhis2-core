@@ -40,4 +40,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/api/dataElementGroupSets")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class DataElementGroupSetController extends AbstractCrudController<DataElementGroupSet, GetObjectListParams> {}
+public class DataElementGroupSetController
+    extends AbstractCrudController<DataElementGroupSet, GetObjectListParams> {}

@@ -63,7 +63,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequestMapping("/api/dataElements")
 @RequiredArgsConstructor
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class DataElementController extends AbstractCrudController<DataElement, GetObjectListParams> {
+public class DataElementController
+    extends AbstractCrudController<DataElement, GetObjectListParams> {
 
   private final DataElementService dataElementService;
   private final MergeProcessor dataElementMergeProcessor;

@@ -39,4 +39,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/api/analyticsTableHooks")
 @OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
-public class AnalyticsTableHookController extends AbstractCrudController<AnalyticsTableHook, GetObjectListParams> {}
+public class AnalyticsTableHookController
+    extends AbstractCrudController<AnalyticsTableHook, GetObjectListParams> {}

@@ -57,7 +57,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
     classifiers = {"team:analytics", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/dashboardItems")
-public class DashboardItemController extends AbstractCrudController<DashboardItem, GetObjectListParams> {
+public class DashboardItemController
+    extends AbstractCrudController<DashboardItem, GetObjectListParams> {
   // TODO this controller class is only needed for the pre 2.30 old dashboard
   // app and should be removed
 

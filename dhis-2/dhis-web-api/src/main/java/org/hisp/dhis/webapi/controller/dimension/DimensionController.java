@@ -88,7 +88,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping("/api/dimensions")
 @RequiredArgsConstructor
-public class DimensionController extends AbstractCrudController<DimensionalObject, GetObjectListParams> {
+public class DimensionController
+    extends AbstractCrudController<DimensionalObject, GetObjectListParams> {
 
   // -------------------------------------------------------------------------
   // Dependencies

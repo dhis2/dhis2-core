@@ -51,7 +51,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/api/identifiableObjects")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class IdentifiableObjectController extends AbstractCrudController<IdentifiableObject, GetObjectListParams> {
+public class IdentifiableObjectController
+    extends AbstractCrudController<IdentifiableObject, GetObjectListParams> {
 
   @Nonnull
   @Override

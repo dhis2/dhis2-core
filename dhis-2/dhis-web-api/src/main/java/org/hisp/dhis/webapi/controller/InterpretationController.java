@@ -84,7 +84,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequestMapping("/api/interpretations")
 @OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
-public class InterpretationController extends AbstractCrudController<Interpretation, GetObjectListParams> {
+public class InterpretationController
+    extends AbstractCrudController<Interpretation, GetObjectListParams> {
   @Autowired private InterpretationService interpretationService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;

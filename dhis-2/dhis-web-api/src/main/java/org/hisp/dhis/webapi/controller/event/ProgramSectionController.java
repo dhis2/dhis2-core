@@ -40,4 +40,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/api/programSections")
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
-public class ProgramSectionController extends AbstractCrudController<ProgramSection, GetObjectListParams> {}
+public class ProgramSectionController
+    extends AbstractCrudController<ProgramSection, GetObjectListParams> {}

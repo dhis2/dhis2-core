@@ -57,7 +57,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/api/programIndicators")
 @RequiredArgsConstructor
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
-public class ProgramIndicatorController extends AbstractCrudController<ProgramIndicator, GetObjectListParams> {
+public class ProgramIndicatorController
+    extends AbstractCrudController<ProgramIndicator, GetObjectListParams> {
   private final ProgramIndicatorService programIndicatorService;
 
   private final I18nManager i18nManager;

@@ -40,4 +40,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/api/externalMapLayers")
 @OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
-public class ExternalMapLayerController extends AbstractCrudController<ExternalMapLayer, GetObjectListParams> {}
+public class ExternalMapLayerController
+    extends AbstractCrudController<ExternalMapLayer, GetObjectListParams> {}

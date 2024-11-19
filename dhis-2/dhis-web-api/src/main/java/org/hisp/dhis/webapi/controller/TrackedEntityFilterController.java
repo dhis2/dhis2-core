@@ -45,7 +45,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/api/trackedEntityInstanceFilters")
 @ApiVersion(include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
-public class TrackedEntityFilterController extends AbstractCrudController<TrackedEntityFilter, GetObjectListParams> {
+public class TrackedEntityFilterController
+    extends AbstractCrudController<TrackedEntityFilter, GetObjectListParams> {
   private final TrackedEntityFilterService teiFilterService;
 
   public TrackedEntityFilterController(TrackedEntityFilterService teiFilterService) {

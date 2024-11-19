@@ -45,7 +45,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/eventFilters")
 @ApiVersion(include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
-public class EventFilterController extends AbstractCrudController<EventFilter, GetObjectListParams> {
+public class EventFilterController
+    extends AbstractCrudController<EventFilter, GetObjectListParams> {
   private final EventFilterService eventFilterService;
 
   public EventFilterController(EventFilterService eventFilterService) {

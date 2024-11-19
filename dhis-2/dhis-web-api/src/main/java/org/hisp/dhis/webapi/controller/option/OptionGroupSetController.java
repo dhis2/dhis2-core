@@ -40,4 +40,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/api/optionGroupSets")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class OptionGroupSetController extends AbstractCrudController<OptionGroupSet, GetObjectListParams> {}
+public class OptionGroupSetController
+    extends AbstractCrudController<OptionGroupSet, GetObjectListParams> {}

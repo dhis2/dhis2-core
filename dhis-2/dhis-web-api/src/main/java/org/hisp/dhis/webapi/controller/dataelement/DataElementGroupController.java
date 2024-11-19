@@ -64,7 +64,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 @RequestMapping("/api/dataElementGroups")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class DataElementGroupController extends AbstractCrudController<DataElementGroup, GetObjectListParams> {
+public class DataElementGroupController
+    extends AbstractCrudController<DataElementGroup, GetObjectListParams> {
   @Autowired private CategoryService dataElementCategoryService;
 
   @Autowired private DataElementService dataElementService;

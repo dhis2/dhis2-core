@@ -59,7 +59,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @AllArgsConstructor
 @RequestMapping("/api/programRules")
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
-public class ProgramRuleController extends AbstractCrudController<ProgramRule, GetObjectListParams> {
+public class ProgramRuleController
+    extends AbstractCrudController<ProgramRule, GetObjectListParams> {
   private final I18nManager i18nManager;
 
   private final ProgramRuleEngine programRuleEngine;

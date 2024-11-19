@@ -64,7 +64,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/aggregateDataExchanges")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-public class AggregateDataExchangeController extends AbstractCrudController<AggregateDataExchange, GetObjectListParams> {
+public class AggregateDataExchangeController
+    extends AbstractCrudController<AggregateDataExchange, GetObjectListParams> {
   private final AggregateDataExchangeService service;
 
   @PostMapping("/exchange")

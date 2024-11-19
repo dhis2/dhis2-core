@@ -38,4 +38,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 @RequestMapping("/api/validationRuleGroups")
-public class ValidationRuleGroupController extends AbstractCrudController<ValidationRuleGroup, GetObjectListParams> {}
+public class ValidationRuleGroupController
+    extends AbstractCrudController<ValidationRuleGroup, GetObjectListParams> {}
