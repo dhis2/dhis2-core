@@ -411,7 +411,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     Collections.sort(years);
 
-    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, sortKey, logged, distribution);
+    AnalyticsTable table =
+        new AnalyticsTable(getAnalyticsTableType(), columns, sortKey, logged, distribution);
 
     for (Integer year : years) {
       List<String> checks = getPartitionChecks(year, getEndDate(calendar, year));
@@ -447,7 +448,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     Date endDate = params.getStartTime();
     boolean hasUpdatedData = hasUpdatedLatestData(lastAnyTableUpdate, endDate);
 
-    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, List.of(), logged, distribution);
+    AnalyticsTable table =
+        new AnalyticsTable(getAnalyticsTableType(), columns, List.of(), logged, distribution);
 
     if (hasUpdatedData) {
       table.addTablePartition(

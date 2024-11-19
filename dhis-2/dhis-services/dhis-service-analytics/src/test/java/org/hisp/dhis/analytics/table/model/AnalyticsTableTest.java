@@ -76,7 +76,8 @@ class AnalyticsTableTest {
   @Test
   void testConstructor() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, sortKeyA, Logged.UNLOGGED);
+        new AnalyticsTable(
+            AnalyticsTableType.DATA_VALUE, columnsA, sortKeyA, Logged.UNLOGGED, NONE);
 
     assertEquals(AnalyticsTableType.DATA_VALUE, table.getTableType());
     assertTrue(table.getPrimaryKey().isEmpty());
@@ -88,7 +89,8 @@ class AnalyticsTableTest {
   @Test
   void testGetTableNameDataValue() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, sortKeyA, Logged.UNLOGGED, NONE);
+        new AnalyticsTable(
+            AnalyticsTableType.DATA_VALUE, columnsA, sortKeyA, Logged.UNLOGGED, NONE);
     assertEquals("analytics", table.getMainName());
     assertEquals("analytics_temp", table.getName());
   }
@@ -96,7 +98,8 @@ class AnalyticsTableTest {
   @Test
   void testGetTableNameCompleteness() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, columnsA, sortKeyA, Logged.UNLOGGED, NONE);
+        new AnalyticsTable(
+            AnalyticsTableType.COMPLETENESS, columnsA, sortKeyA, Logged.UNLOGGED, NONE);
     assertEquals("analytics_completeness", table.getMainName());
     assertEquals("analytics_completeness_temp", table.getName());
   }
@@ -170,7 +173,8 @@ class AnalyticsTableTest {
                 .build());
 
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, List.of(), Logged.UNLOGGED, NONE);
+        new AnalyticsTable(
+            AnalyticsTableType.DATA_VALUE, columns, List.of(), Logged.UNLOGGED, NONE);
 
     assertEquals(3, table.getDimensionColumns().size());
     assertEquals("dx", table.getDimensionColumns().get(0).getName());
@@ -208,9 +212,11 @@ class AnalyticsTableTest {
   @Test
   void testEquals() {
     AnalyticsTable tableA =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, sortKeyA, Logged.UNLOGGED, NONE);
+        new AnalyticsTable(
+            AnalyticsTableType.DATA_VALUE, columnsA, sortKeyA, Logged.UNLOGGED, NONE);
     AnalyticsTable tableB =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, sortKeyA, Logged.UNLOGGED, NONE);
+        new AnalyticsTable(
+            AnalyticsTableType.DATA_VALUE, columnsA, sortKeyA, Logged.UNLOGGED, NONE);
     List<AnalyticsTable> uniqueList = new UniqueArrayList<>();
     uniqueList.add(tableA);
     uniqueList.add(tableB);
@@ -223,6 +229,7 @@ class AnalyticsTableTest {
         new AnalyticsTable(
             AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS,
             columnsA,
+            List.of(),
             Logged.UNLOGGED,
             DISTRIBUTED);
     table.addTablePartition(
@@ -236,7 +243,8 @@ class AnalyticsTableTest {
   @Test
   void createPartitionWhenTableTypeNotDistributedAndSystemSettingsDistributed() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, columnsA, Logged.UNLOGGED, DISTRIBUTED);
+        new AnalyticsTable(
+            AnalyticsTableType.COMPLETENESS, columnsA, List.of(), Logged.UNLOGGED, DISTRIBUTED);
     table.addTablePartition(
         List.of(),
         2014,
@@ -248,7 +256,7 @@ class AnalyticsTableTest {
   @Test
   void createPartitionWhenTableTypeDistributedAndSystemSettingsNotDistributed() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.EVENT, columnsA, Logged.UNLOGGED, NONE);
+        new AnalyticsTable(AnalyticsTableType.EVENT, columnsA, List.of(), Logged.UNLOGGED, NONE);
     table.addTablePartition(
         List.of(),
         2014,
@@ -260,7 +268,8 @@ class AnalyticsTableTest {
   @Test
   void createPartitionWhenTableTypeNotDistributedAndSystemSettingsNotDistributed() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED, NONE);
+        new AnalyticsTable(
+            AnalyticsTableType.DATA_VALUE, columnsA, List.of(), Logged.UNLOGGED, NONE);
     table.addTablePartition(
         List.of(),
         2014,

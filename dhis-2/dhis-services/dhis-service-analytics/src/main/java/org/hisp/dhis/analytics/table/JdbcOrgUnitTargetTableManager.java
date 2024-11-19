@@ -123,7 +123,9 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
 
     return params.isLatestUpdate()
         ? List.of()
-        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), SORT_KEY, logged, distribution));
+        : List.of(
+            new AnalyticsTable(
+                getAnalyticsTableType(), getColumns(), SORT_KEY, logged, distribution));
   }
 
   @Override
