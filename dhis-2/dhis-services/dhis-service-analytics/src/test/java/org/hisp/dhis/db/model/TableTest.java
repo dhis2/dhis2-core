@@ -110,6 +110,7 @@ class TableTest {
 
     assertTrue(tableA.hasSortKey());
     assertFalse(tableB.hasSortKey());
+    assertEquals(List.of("dx"), tableA.getSortKey());
   }
 
   @Test
