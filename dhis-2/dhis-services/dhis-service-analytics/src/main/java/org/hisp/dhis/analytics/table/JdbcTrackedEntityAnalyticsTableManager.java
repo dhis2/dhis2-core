@@ -96,7 +96,6 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-
   public JdbcTrackedEntityAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,

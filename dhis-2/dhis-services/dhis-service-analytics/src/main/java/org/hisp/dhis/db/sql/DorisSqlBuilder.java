@@ -27,20 +27,6 @@
  */
 package org.hisp.dhis.db.sql;
 
-import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-
-import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-
-import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;

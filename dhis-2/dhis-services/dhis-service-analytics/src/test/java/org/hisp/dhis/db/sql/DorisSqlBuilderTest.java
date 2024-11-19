@@ -345,7 +345,6 @@ class DorisSqlBuilderTest {
     assertEquals(expected, sqlBuilder.countRows(getTableA()));
   }
 
-
   @Test
   void testFixQuote() {
     // Test null and empty cases
