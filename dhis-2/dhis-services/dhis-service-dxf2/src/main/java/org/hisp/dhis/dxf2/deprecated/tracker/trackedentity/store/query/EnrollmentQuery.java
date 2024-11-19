@@ -98,7 +98,7 @@ public class EnrollmentQuery {
         + "join program p on pi.programid = p.programid "
         + "join trackedentity tei on pi.trackedentityid = tei.trackedentityid "
         + "join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid "
-        + "join organisationunit o on tei.organisationunitid = o.organisationunitid "
+        + "join organisationunit o on pi.organisationunitid = o.organisationunitid "
         + "where pi.trackedentityid in (:ids) ";
   }
 
