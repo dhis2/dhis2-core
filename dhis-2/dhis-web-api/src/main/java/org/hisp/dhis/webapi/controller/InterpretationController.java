@@ -56,6 +56,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.Disjunction;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
@@ -83,7 +84,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequestMapping("/api/interpretations")
 @OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
-public class InterpretationController extends AbstractCrudController<Interpretation> {
+public class InterpretationController extends AbstractCrudController<Interpretation, GetObjectListParams> {
   @Autowired private InterpretationService interpretationService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;

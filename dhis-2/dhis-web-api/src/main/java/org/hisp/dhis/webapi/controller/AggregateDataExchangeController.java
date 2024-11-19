@@ -40,6 +40,7 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
@@ -63,7 +64,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/aggregateDataExchanges")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-public class AggregateDataExchangeController extends AbstractCrudController<AggregateDataExchange> {
+public class AggregateDataExchangeController extends AbstractCrudController<AggregateDataExchange, GetObjectListParams> {
   private final AggregateDataExchangeService service;
 
   @PostMapping("/exchange")

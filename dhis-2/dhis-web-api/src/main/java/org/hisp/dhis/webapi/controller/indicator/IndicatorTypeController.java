@@ -40,6 +40,7 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeProcessor;
 import org.hisp.dhis.merge.MergeType;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
@@ -57,7 +58,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequestMapping("/api/indicatorTypes")
 @RequiredArgsConstructor
 @Slf4j
-public class IndicatorTypeController extends AbstractCrudController<IndicatorType> {
+public class IndicatorTypeController extends AbstractCrudController<IndicatorType, GetObjectListParams> {
 
   private final MergeProcessor indicatorTypeMergeProcessor;
 

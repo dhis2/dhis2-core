@@ -37,6 +37,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -50,7 +51,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/api/identifiableObjects")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class IdentifiableObjectController extends AbstractCrudController<IdentifiableObject> {
+public class IdentifiableObjectController extends AbstractCrudController<IdentifiableObject, GetObjectListParams> {
 
   @Nonnull
   @Override

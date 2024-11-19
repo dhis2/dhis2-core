@@ -87,7 +87,7 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:data"})
-public class SmsInboundController extends AbstractCrudController<IncomingSms> {
+public class SmsInboundController extends AbstractCrudController<IncomingSms, GetObjectListParams> {
   private final IncomingSmsService incomingSMSService;
 
   private final RenderService renderService;

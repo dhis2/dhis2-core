@@ -79,7 +79,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Deprecated
 @Controller
 @RequestMapping("/api/eventCharts")
-public class EventChartController extends AbstractCrudController<EventChart> {
+public class EventChartController extends AbstractCrudController<EventChart, GetObjectListParams> {
   @Autowired private EventChartService eventChartService;
 
   @Autowired private ChartService chartService;

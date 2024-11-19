@@ -65,7 +65,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Deprecated
 @Controller
 @RequestMapping("/api/eventReports")
-public class EventReportController extends AbstractCrudController<EventReport> {
+public class EventReportController extends AbstractCrudController<EventReport, GetObjectListParams> {
   @Autowired private DimensionService dimensionService;
 
   @Autowired private I18nManager i18nManager;

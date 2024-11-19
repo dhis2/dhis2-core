@@ -39,6 +39,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
 import org.hisp.dhis.predictor.PredictorGroup;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.springframework.stereotype.Controller;
@@ -55,7 +56,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/api/predictorGroups")
 @RequiredArgsConstructor
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class PredictorGroupController extends AbstractCrudController<PredictorGroup> {
+public class PredictorGroupController extends AbstractCrudController<PredictorGroup, GetObjectListParams> {
 
   private final PredictionService predictionService;
 

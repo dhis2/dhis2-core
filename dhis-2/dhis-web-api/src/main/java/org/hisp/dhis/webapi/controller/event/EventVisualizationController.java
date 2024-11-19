@@ -64,6 +64,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -90,7 +91,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @ApiVersion({DEFAULT, ALL})
 @AllArgsConstructor
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
-public class EventVisualizationController extends AbstractCrudController<EventVisualization> {
+public class EventVisualizationController extends AbstractCrudController<EventVisualization, GetObjectListParams> {
   private final DimensionService dimensionService;
 
   private final LegendSetService legendSetService;

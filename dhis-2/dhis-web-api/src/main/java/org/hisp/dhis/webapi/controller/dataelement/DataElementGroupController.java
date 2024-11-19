@@ -45,6 +45,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -63,7 +64,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 @RequestMapping("/api/dataElementGroups")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class DataElementGroupController extends AbstractCrudController<DataElementGroup> {
+public class DataElementGroupController extends AbstractCrudController<DataElementGroup, GetObjectListParams> {
   @Autowired private CategoryService dataElementCategoryService;
 
   @Autowired private DataElementService dataElementService;

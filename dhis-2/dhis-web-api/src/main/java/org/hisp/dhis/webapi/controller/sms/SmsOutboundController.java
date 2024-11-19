@@ -73,7 +73,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/sms/outbound")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:data"})
-public class SmsOutboundController extends AbstractCrudController<OutboundSms> {
+public class SmsOutboundController extends AbstractCrudController<OutboundSms, GetObjectListParams> {
   private final MessageSender smsMessageSender;
 
   private final RenderService renderService;

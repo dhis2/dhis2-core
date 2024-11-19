@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.option;
 
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.option.OptionGroup;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,4 +40,4 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/api/optionGroups")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class OptionGroupController extends AbstractCrudController<OptionGroup> {}
+public class OptionGroupController extends AbstractCrudController<OptionGroup, GetObjectListParams> {}

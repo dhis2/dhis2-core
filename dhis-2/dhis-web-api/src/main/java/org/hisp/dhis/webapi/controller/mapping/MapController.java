@@ -64,6 +64,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -92,7 +93,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequestMapping("/api/maps")
 @OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
-public class MapController extends AbstractCrudController<Map> {
+public class MapController extends AbstractCrudController<Map, GetObjectListParams> {
   private static final int MAP_MIN_WIDTH = 140;
 
   private static final int MAP_MIN_HEIGHT = 25;

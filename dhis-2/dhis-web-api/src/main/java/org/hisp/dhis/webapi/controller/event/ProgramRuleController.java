@@ -40,6 +40,7 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -58,7 +59,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @AllArgsConstructor
 @RequestMapping("/api/programRules")
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
-public class ProgramRuleController extends AbstractCrudController<ProgramRule> {
+public class ProgramRuleController extends AbstractCrudController<ProgramRule, GetObjectListParams> {
   private final I18nManager i18nManager;
 
   private final ProgramRuleEngine programRuleEngine;

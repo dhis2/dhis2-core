@@ -48,6 +48,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeProcessor;
 import org.hisp.dhis.merge.MergeType;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
@@ -65,7 +66,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/api/indicators")
-public class IndicatorController extends AbstractCrudController<Indicator> {
+public class IndicatorController extends AbstractCrudController<Indicator, GetObjectListParams> {
   private final ExpressionService expressionService;
 
   private final ExpressionResolverCollection resolvers;
