@@ -33,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -41,17 +43,20 @@ import org.junit.jupiter.api.Test;
  * @author Jim Grace
  */
 class OrgUnitFieldTest {
+
+  private static final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
   private static final OrgUnitField DEFALT = new OrgUnitField(null);
 
-  private static final OrgUnitField ATTRIB = new OrgUnitField("attributeId");
+  private static final OrgUnitField ATTRIB = new OrgUnitField("attributeId").withSqlBuilder(sqlBuilder);
 
-  private static final OrgUnitField REGIST = new OrgUnitField("REGISTRATION");
+  private static final OrgUnitField REGIST = new OrgUnitField("REGISTRATION").withSqlBuilder(sqlBuilder);
 
-  private static final OrgUnitField ENROLL = new OrgUnitField("ENROLLMENT");
+  private static final OrgUnitField ENROLL = new OrgUnitField("ENROLLMENT").withSqlBuilder(sqlBuilder);;
 
-  private static final OrgUnitField OSTART = new OrgUnitField("OWNER_AT_START");
+  private static final OrgUnitField OSTART = new OrgUnitField("OWNER_AT_START").withSqlBuilder(sqlBuilder);;
 
-  private static final OrgUnitField OEND = new OrgUnitField("OWNER_AT_END");
+  private static final OrgUnitField OEND = new OrgUnitField("OWNER_AT_END").withSqlBuilder(sqlBuilder);;
 
   @Test
   void testIsJoinOrgUnitTables() {
