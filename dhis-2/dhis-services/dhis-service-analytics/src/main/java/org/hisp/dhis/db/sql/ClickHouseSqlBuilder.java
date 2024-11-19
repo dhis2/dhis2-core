@@ -254,7 +254,7 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     } else if (table.hasPrimaryKey()) {
       keys = toCommaSeparated(table.getPrimaryKey(), this::quote);
     } else {
-      keys = quote(table.getColumns().get(0).getName());
+      keys = quote(table.getFirstColumn().getName());
     }
 
     return String.format("order by (%s)", keys);
