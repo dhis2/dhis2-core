@@ -186,7 +186,7 @@
       "attributeValues": [],
       "minDaysFromStart": 0,
       "sharing": {
-        "public": "rw------",
+        "public": "rwrw----",
         "external": false,
         "owner": "VfaA5WwHLdP",
         "users": {},
@@ -751,6 +751,10 @@
           "jiFUk9o7gH3": {
             "id": "jiFUk9o7gH3",
             "access": "rwrw----"
+          },
+          "VfaA5WwHLdP": {
+            "id": "VfaA5WwHLdP",
+            "access": "--------"
           }
         },
         "userGroups": {}
@@ -2683,6 +2687,30 @@
       "created": "2019-03-25T13:40:24.722",
       "translations": [],
       "sharing": {
+        "public": "--------",
+        "external": false,
+        "owner": null,
+        "users": {
+            "VfaA5WwHLdP": {
+                "id": "VfaA5WwHLdP",
+                "access": "--------"
+            }
+        },
+        "userGroups": {}
+      }
+    },
+    {
+      "id": "WnKa7zOVoLK",
+      "code": "Alt default",
+      "name": "Alt default",
+      "shortName": "Alt default",
+      "startDate": "2019-01-01T00:00:00.000",
+      "attributeValues": [],
+      "lastUpdated": "2019-03-25T13:40:24.783",
+      "organisationUnits": [],
+      "created": "2019-03-25T13:40:24.722",
+      "translations": [],
+      "sharing": {
         "public": "rwrw----",
         "external": false,
         "owner": null,
@@ -2820,6 +2848,30 @@
       "categoryOptions": [
         {
           "id": "xYerKDKCefk"
+        }
+      ],
+      "dataDimension": false,
+      "attributeValues": [],
+      "translations": [],
+      "created": "2019-03-25T13:40:24.762",
+      "lastUpdated": "2019-03-29T08:54:32.360",
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {}
+      }
+    },
+    {
+      "id": "LwulPEjPHnJ",
+      "name": "Alt default",
+      "shortName": "Alt default",
+      "code": "Alt default",
+      "dataDimensionType": "DISAGGREGATION",
+      "categoryOptions": [
+        {
+          "id": "WnKa7zOVoLK"
         }
       ],
       "dataDimension": false,
