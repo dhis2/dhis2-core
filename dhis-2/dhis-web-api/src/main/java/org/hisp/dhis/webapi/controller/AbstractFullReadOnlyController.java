@@ -45,6 +45,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
@@ -150,6 +151,8 @@ public abstract class AbstractFullReadOnlyController<
    * some filters are always present.
    */
   protected void addProgrammaticFilters(P params) {}
+
+  protected void addProgrammaticFilters(Consumer<String> add) {}
 
   // --------------------------------------------------------------------------
   // GET Full
@@ -410,7 +413,9 @@ public abstract class AbstractFullReadOnlyController<
 
     T entity = getEntity(pvUid);
 
-    Query query = queryService.getQueryFromUrl(getEntityClass(), params.toListParams());
+    GetObjectListParams listParams = params.toListParams();
+    addProgrammaticFilters(listParams::addFilter); // temporary workaround
+    Query query = queryService.getQueryFromUrl(getEntityClass(), listParams);
     query.setCurrentUserDetails(currentUser);
     query.setObjects(List.of(entity));
     query.setDefaults(params.getDefaults());

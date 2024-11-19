@@ -37,6 +37,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E7231;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Set;
+import java.util.function.Consumer;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
@@ -107,7 +108,13 @@ public class EventReportController
   @Deprecated
   @Override
   protected void addProgrammaticFilters(GetObjectListParams params) {
-    params.addFilter("type:in:[PIVOT_TABLE,LINE_LIST]").addFilter("legacy:eq:true");
+    addProgrammaticFilters(params::addFilter);
+  }
+
+  @Override
+  protected void addProgrammaticFilters(Consumer<String> add) {
+    add.accept("type:in:[PIVOT_TABLE,LINE_LIST]");
+    add.accept("legacy:eq:true");
   }
 
   @Override

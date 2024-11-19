@@ -38,6 +38,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Set;
+import java.util.function.Consumer;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
@@ -167,10 +168,14 @@ public class EventChartController extends AbstractCrudController<EventChart, Get
   @Deprecated
   @Override
   protected void addProgrammaticFilters(GetObjectListParams params) {
-    params
-        .addFilter("type:!eq:PIVOT_TABLE")
-        .addFilter("type:!eq:LINE_LIST")
-        .addFilter("legacy:eq:true");
+    addProgrammaticFilters(params::addFilter);
+  }
+
+  @Override
+  protected void addProgrammaticFilters(Consumer<String> add) {
+    add.accept("type:!eq:PIVOT_TABLE");
+    add.accept("type:!eq:LINE_LIST");
+    add.accept("legacy:eq:true");
   }
 
   @Override
