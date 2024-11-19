@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.merge.dataelement;
 
-import static org.hisp.dhis.feedback.ErrorCode.E1554;
-import static org.hisp.dhis.feedback.ErrorCode.E1555;
+import static org.hisp.dhis.feedback.ErrorCode.E1550;
+import static org.hisp.dhis.feedback.ErrorCode.E1551;
 
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -56,7 +56,7 @@ public class DataElementMergeValidator {
     if (!mismatches.isEmpty()) {
       report.addErrorMessage(
           new ErrorMessage(
-              E1554,
+              E1550,
               target.getValueType(),
               mismatches.stream().map(DataElement::getValueType).distinct().toList()));
     }
@@ -75,7 +75,7 @@ public class DataElementMergeValidator {
     if (!mismatches.isEmpty()) {
       report.addErrorMessage(
           new ErrorMessage(
-              E1555,
+              E1551,
               target.getDomainType(),
               mismatches.stream().map(DataElement::getDomainType).distinct().toList()));
     }

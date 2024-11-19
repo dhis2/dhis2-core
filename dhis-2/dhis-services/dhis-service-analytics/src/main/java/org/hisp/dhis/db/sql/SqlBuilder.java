@@ -229,6 +229,13 @@ public interface SqlBuilder {
    */
   String dateTrunc(String timeUnit, String source);
 
+  /**
+   * @param columnA the name of the first date column.
+   * @param columnB the name of the second date column.
+   * @return an expression which returns the difference in seconds.
+   */
+  String differenceInSeconds(String columnA, String columnB);
+
   // Statements
 
   /**
@@ -353,4 +360,12 @@ public interface SqlBuilder {
    * @return a drop catalog if exists statement.
    */
   String dropCatalogIfExists();
+
+  /**
+   * Returns the appropriate regexp matching syntax
+   *
+   * @param pattern The regexp pattern to match against
+   * @return The complete regexp matching clause for the current database
+   */
+  String regexpMatch(String pattern);
 }

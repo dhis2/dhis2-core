@@ -28,8 +28,9 @@
 package org.hisp.dhis.webapi.controller.tracker;
 
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog;
 
-/** Representation of {@link org.hisp.dhis.tracker.export.event.EventChangeLog}. */
+/** Representation of {@link EventChangeLog}. */
 public interface JsonEventChangeLog extends JsonObject {
   default JsonUser getCreatedBy() {
     return get("createdBy").as(JsonUser.class);
@@ -47,11 +48,29 @@ public interface JsonEventChangeLog extends JsonObject {
     default JsonDataValue getDataValue() {
       return get("dataValue").as(JsonDataValue.class);
     }
+
+    default JsonEventProperty getEventProperty() {
+      return get("eventProperty").as(JsonEventProperty.class);
+    }
   }
 
   interface JsonDataValue extends JsonObject {
     default String getDataElement() {
       return getString("dataElement").string();
+    }
+
+    default String getPreviousValue() {
+      return getString("previousValue").string();
+    }
+
+    default String getCurrentValue() {
+      return getString("currentValue").string();
+    }
+  }
+
+  interface JsonEventProperty extends JsonObject {
+    default String getProperty() {
+      return getString("property").string();
     }
 
     default String getPreviousValue() {

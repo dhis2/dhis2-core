@@ -180,6 +180,17 @@ class DorisSqlBuilderTest {
         "date_trunc(pe.startdate, 'month')", sqlBuilder.dateTrunc("month", "pe.startdate"));
   }
 
+  @Test
+  void testDifferenceInSeconds() {
+    assertEquals(
+        "(unix_timestamp(a.startdate) - unix_timestamp(b.enddate))",
+        sqlBuilder.differenceInSeconds("a.startdate", "b.enddate"));
+    assertEquals(
+        "(unix_timestamp(a.`startdate`) - unix_timestamp(b.`enddate`))",
+        sqlBuilder.differenceInSeconds(
+            sqlBuilder.quote("a", "startdate"), sqlBuilder.quote("b", "enddate")));
+  }
+
   // Statements
 
   @Test
@@ -188,9 +199,9 @@ class DorisSqlBuilderTest {
 
     String expected =
         """
-        create table `immunization` (`id` bigint not null, \
-        `data` char(11) not null, `period` varchar(50) not null, \
-        `created` datetime null, `user` json null, `value` double null) \
+        create table `immunization` (`id` bigint not null,\
+        `data` char(11) not null,`period` varchar(50) not null,\
+        `created` datetime null,`user` json null,`value` double null) \
         engine = olap \
         unique key (`id`) \
         distributed by hash(`id`) buckets 10 \
@@ -205,8 +216,8 @@ class DorisSqlBuilderTest {
 
     String expected =
         """
-        create table `vaccination` (`id` int not null, \
-        `facility_type` varchar(255) null, `bcg_doses` double null) \
+        create table `vaccination` (`id` int not null,\
+        `facility_type` varchar(255) null,`bcg_doses` double null) \
         engine = olap \
         duplicate key (`id`) \
         distributed by hash(`id`) buckets 10 \
@@ -223,8 +234,8 @@ class DorisSqlBuilderTest {
 
     String expected =
         """
-        create table `nutrition` (`id` bigint not null, \
-        `vitamin_a` bigint null, `vitamin_d` bigint null) \
+        create table `nutrition` (`id` bigint not null,\
+        `vitamin_a` bigint null,`vitamin_d` bigint null) \
         engine = olap \
         unique key (`id`) \
         distributed by hash(`id`) buckets 10 \
@@ -332,5 +343,19 @@ class DorisSqlBuilderTest {
         select count(*) as row_count from `immunization`;""";
 
     assertEquals(expected, sqlBuilder.countRows(getTableA()));
+  }
+
+  @Test
+  void testRegexpMatch() {
+    assertEquals("REGEXP test", sqlBuilder.regexpMatch("test"));
+
+    // Test pattern with regex special characters
+    assertEquals("REGEXP \\d", sqlBuilder.regexpMatch("\\d"));
+
+    // Test empty string
+    assertEquals("REGEXP ", sqlBuilder.regexpMatch(""));
+
+    // Test complex regex pattern
+    assertEquals("REGEXP [a-z]\\w+\\d{3}", sqlBuilder.regexpMatch("[a-z]\\w+\\d{3}"));
   }
 }

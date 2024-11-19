@@ -32,7 +32,9 @@ import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
+import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.Collection;
@@ -149,9 +151,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected Boolean spatialSupport;
 
   protected boolean isSpatialSupport() {
-    if (spatialSupport == null)
+    if (spatialSupport == null) {
       spatialSupport = databaseInfoProvider.getDatabaseInfo().isSpatialSupport();
-    return spatialSupport;
+    }
+
+    return spatialSupport && sqlBuilder.supportsGeospatialData();
   }
 
   /**
@@ -730,6 +734,24 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     variableNames.forEach(name -> map.putIfAbsent(name, qualify(name)));
 
     return TextUtils.replace(template, map);
+  }
+
+  protected AnalyticsTableColumn getPartitionColumn() {
+    return AnalyticsTableColumn.builder()
+        .name("year")
+        .dataType(INTEGER)
+        .nullable(NOT_NULL)
+        // The expression should use sqlBuilder, but the concept of functions (like YEAR)
+        // is part of the previous PR (https://github.com/dhis2/dhis2-core/pull/19131/files)
+        .selectExpression(
+            """
+                       CASE
+                           WHEN ev.status = 'SCHEDULE' THEN YEAR(ev.scheduleddate)
+                           ELSE YEAR(ev.occurreddate)
+                       END
+                  """)
+        .skipIndex(Skip.SKIP)
+        .build();
   }
 
   // -------------------------------------------------------------------------

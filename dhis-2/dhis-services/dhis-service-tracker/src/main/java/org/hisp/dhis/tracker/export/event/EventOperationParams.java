@@ -52,6 +52,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.Order;
 
 @Getter
@@ -145,6 +146,9 @@ public class EventOperationParams {
   private Set<UID> enrollments;
 
   private EventParams eventParams;
+
+  @Builder.Default
+  private TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
 
   public static class EventOperationParamsBuilder {
 

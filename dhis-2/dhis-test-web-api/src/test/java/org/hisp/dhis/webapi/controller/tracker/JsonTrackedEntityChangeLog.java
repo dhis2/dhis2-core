@@ -28,8 +28,9 @@
 package org.hisp.dhis.webapi.controller.tracker;
 
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog;
 
-/** Representation of {@link org.hisp.dhis.tracker.export.event.EventChangeLog}. */
+/** Representation of {@link EventChangeLog}. */
 public interface JsonTrackedEntityChangeLog extends JsonObject {
   default JsonUser getCreatedBy() {
     return get("createdBy").as(JsonUser.class);

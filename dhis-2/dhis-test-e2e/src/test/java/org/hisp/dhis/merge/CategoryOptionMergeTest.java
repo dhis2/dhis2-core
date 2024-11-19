@@ -113,9 +113,9 @@ class CategoryOptionMergeTest extends ApiTest {
         .validate()
         .statusCode(200)
         .body("httpStatus", equalTo("OK"))
-        .body("response.mergeReport.message", equalTo("CATEGORY_OPTION merge complete"))
+        .body("response.mergeReport.message", equalTo("CategoryOption merge complete"))
         .body("response.mergeReport.mergeErrors", empty())
-        .body("response.mergeReport.mergeType", equalTo("CATEGORY_OPTION"))
+        .body("response.mergeReport.mergeType", equalTo("CategoryOption"))
         .body("response.mergeReport.sourcesDeleted", hasItems(sourceUid1, sourceUid2));
 
     categoryOptionApiActions.get(sourceUid1).validateStatus(404);
