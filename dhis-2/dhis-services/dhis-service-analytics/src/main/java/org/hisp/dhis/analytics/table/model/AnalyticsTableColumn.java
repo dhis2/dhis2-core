@@ -70,7 +70,7 @@ public class AnalyticsTableColumn {
   /** Index type, defaults to database default type {@link IndexType#BTREE}. */
   @Builder.Default private final IndexType indexType = IndexType.BTREE;
 
-  /** Index column names, defaults to column name. */
+  /** Index column names. */
   @Builder.Default private final List<String> indexColumns = List.of();
 
   /** The column type indicates the column origin. */

@@ -161,7 +161,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
               .selectExpression("ous.level as oulevel")
               .build());
 
-  private static final List<String> SORT_KEY = List.of("dx");
+  private static final List<String> SORT_KEY = List.of("dx", "co");
 
   public JdbcAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
