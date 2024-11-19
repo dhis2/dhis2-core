@@ -57,6 +57,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.EntityType(ProgramDataElementDimensionItem.class)
 @OpenApi.Document(
     entity = DimensionalItemObject.class,
     classifiers = {"team:tracker", "purpose:metadata"})
