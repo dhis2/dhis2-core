@@ -191,15 +191,15 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     String code = generateTOTP2FACodeFromUserSecret(user);
     assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
 
-    assertStatus(HttpStatus.UNAUTHORIZED, POST("/2fa/disable", "{'code':'333333'}"));
+    assertStatus(HttpStatus.FORBIDDEN, POST("/2fa/disable", "{'code':'333333'}"));
 
     for (int i = 0; i < 3; i++) {
       assertWebMessage(
-          "Unauthorized",
-          401,
+          "Forbidden",
+          403,
           "ERROR",
           "Invalid 2FA code",
-          POST("/2fa/disable", "{'code':'333333'}").content(HttpStatus.UNAUTHORIZED));
+          POST("/2fa/disable", "{'code':'333333'}").content(HttpStatus.FORBIDDEN));
     }
 
     assertWebMessage(
