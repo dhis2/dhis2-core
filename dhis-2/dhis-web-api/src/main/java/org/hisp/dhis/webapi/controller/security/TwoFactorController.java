@@ -46,7 +46,8 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
+import org.hisp.dhis.security.twofa.TwoFactorAuthService;
+import org.hisp.dhis.security.twofa.TwoFactorAuthUtils;
 import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.user.CurrentUser;
@@ -75,6 +76,7 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor
 public class TwoFactorController {
   private final UserService userService;
+  private final TwoFactorAuthService twoFactorAuthService;
 
   @PostMapping(value = "/enrollEmail2FA")
   @ResponseStatus(HttpStatus.OK)
@@ -87,14 +89,14 @@ public class TwoFactorController {
       throw new WebMessageException(conflict(ErrorCode.E3045.getMessage(), ErrorCode.E3045));
     }
     if (currentUser.isTwoFactorEnabled()
-        && !UserService.hasTwoFactorSecretForApproval(currentUser)) {
+        && !TwoFactorAuthUtils.is2FASecretForApproval(currentUser.getSecret())) {
       throw new WebMessageException(conflict(ErrorCode.E3022.getMessage(), ErrorCode.E3022));
     }
     if (!userService.isEmailVerified(currentUser)) {
       throw new WebMessageException(conflict(ErrorCode.E3043.getMessage(), ErrorCode.E3043));
     }
 
-    userService.enrollEmail2FA(currentUser);
+    twoFactorAuthService.enrollEmail2FA(currentUser);
 
     return ok("Email 2FA code was generated and sent successfully");
   }
@@ -110,11 +112,11 @@ public class TwoFactorController {
       throw new WebMessageException(conflict(ErrorCode.E3044.getMessage(), ErrorCode.E3044));
     }
     if (currentUser.isTwoFactorEnabled()
-        && !UserService.hasTwoFactorSecretForApproval(currentUser)) {
+        && !TwoFactorAuthUtils.is2FASecretForApproval(currentUser.getSecret())) {
       throw new WebMessageException(conflict(ErrorCode.E3022.getMessage(), ErrorCode.E3022));
     }
 
-    userService.enrollTOTP2FA(currentUser);
+    twoFactorAuthService.enrollTOTP2FA(currentUser);
 
     return ok("TOTP 2FA code was generated and sent, see the QR code endpoint");
   }
@@ -156,11 +158,11 @@ public class TwoFactorController {
       throw new WebMessageException(conflict(ErrorCode.E3044.getMessage(), ErrorCode.E3044));
     }
     if (currentUser.isTwoFactorEnabled()
-        && !UserService.hasTwoFactorSecretForApproval(currentUser)) {
+        && !TwoFactorAuthUtils.is2FASecretForApproval(currentUser.getSecret())) {
       throw new WebMessageException(conflict(ErrorCode.E3022.getMessage(), ErrorCode.E3022));
     }
 
-    userService.enrollTOTP2FA(currentUser);
+    twoFactorAuthService.enrollTOTP2FA(currentUser);
 
     writeQRCode(currentUser, response, settings);
   }
@@ -171,15 +173,14 @@ public class TwoFactorController {
     List<ErrorCode> errorCodes = new ArrayList<>();
 
     String qrContent =
-        TwoFactoryAuthenticationUtils.generateQrContent(
+        TwoFactorAuthUtils.generateQrContent(
             settings.getApplicationTitle(), currentUser, errorCodes::add);
 
     if (!errorCodes.isEmpty()) {
       throw new WebMessageException(conflict(errorCodes.get(0).getMessage(), errorCodes.get(0)));
     }
 
-    byte[] qrCode =
-        TwoFactoryAuthenticationUtils.generateQRCode(qrContent, 200, 200, errorCodes::add);
+    byte[] qrCode = TwoFactorAuthUtils.generateQRCode(qrContent, 200, 200, errorCodes::add);
 
     if (!errorCodes.isEmpty()) {
       throw new WebMessageException(conflict(errorCodes.get(0).getMessage(), errorCodes.get(0)));
@@ -196,7 +197,7 @@ public class TwoFactorController {
   @ResponseBody
   public boolean isEnabled(@CurrentUser(required = true) User currentUser) {
     return currentUser.isTwoFactorEnabled()
-        && !UserService.hasTwoFactorSecretForApproval(currentUser);
+        && !TwoFactorAuthUtils.is2FASecretForApproval(currentUser.getSecret());
   }
 
   /**
@@ -216,15 +217,15 @@ public class TwoFactorController {
     String code = body.get("code");
 
     if (!currentUser.isTwoFactorEnabled()
-        || !UserService.hasTwoFactorSecretForApproval(currentUser)) {
+        || !TwoFactorAuthUtils.is2FASecretForApproval(currentUser.getSecret())) {
       throw new ConflictException(ErrorCode.E3029);
     }
 
-    if (!userService.validate2FACode(currentUser, code)) {
+    if (!twoFactorAuthService.isValid2FACode(currentUser, code)) {
       throw new ForbiddenException(ErrorCode.E3023);
     }
 
-    userService.enableTwoFa(currentUser, code);
+    twoFactorAuthService.enable2FA(currentUser, code);
 
     return ok("Two factor authentication was enabled successfully!");
   }
@@ -249,7 +250,7 @@ public class TwoFactorController {
       throw new WebMessageException(conflict(ErrorCode.E3031.getMessage(), ErrorCode.E3031));
     }
 
-    if (userService.twoFaDisableIsLocked(currentUser.getUsername())) {
+    if (userService.is2FADisableEndpointLocked(currentUser.getUsername())) {
       throw new WebMessageException(conflict(ErrorCode.E3042.getMessage(), ErrorCode.E3042));
     }
 
@@ -258,12 +259,12 @@ public class TwoFactorController {
       return unauthorized(ErrorCode.E3023.getMessage());
     }
 
-    userService.disableTwoFa(currentUser, code);
+    twoFactorAuthService.disable2FA(currentUser, code);
 
     return ok("Two factor authentication was disabled successfully");
   }
 
   private static boolean verifyCode(String code, User currentUser) {
-    return TwoFactoryAuthenticationUtils.verifyTOTP(code, currentUser.getSecret());
+    return TwoFactorAuthUtils.verifyTOTP2FACode(code, currentUser.getSecret());
   }
 }

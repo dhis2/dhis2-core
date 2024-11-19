@@ -25,10 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.security.twofa;
 
 import static org.hisp.dhis.feedback.ErrorCode.E3026;
 import static org.hisp.dhis.feedback.ErrorCode.E3028;
+import static org.hisp.dhis.security.twofa.TwoFactorAuthService.TWO_FACTOR_CODE_APPROVAL_PREFIX;
 import static org.hisp.dhis.user.UserService.TWO_FACTOR_CODE_APPROVAL_PREFIX;
 
 import com.google.common.base.Strings;
@@ -55,13 +56,13 @@ import org.jboss.aerogear.security.otp.Totp;
  * @author Morten Svanæs
  */
 @Slf4j
-public class TwoFactoryAuthenticationUtils {
-  private TwoFactoryAuthenticationUtils() {
+public class TwoFactorAuthUtils {
+  private TwoFactorAuthUtils() {
     throw new IllegalStateException("Utility class");
   }
 
   private static final String APP_NAME_PREFIX = "DHIS 2 ";
-  private static final Pattern PIPE_SPLIT_PATTERN = Pattern.compile("//|");
+  private static final Pattern PIPE_SPLIT_PATTERN = Pattern.compile("\\|");
 
   /**
    * Generate QR code in PNG format based on given qrContent.
@@ -98,7 +99,7 @@ public class TwoFactoryAuthenticationUtils {
    * @param appName app name to be used for generating QR content.
    * @param user {@link User} which the QR Code is generated for.
    * @return a String which can be used for generating a QR code by calling method {@link
-   *     TwoFactoryAuthenticationUtils#generateQRCode(String, int, int, Consumer)}
+   *     TwoFactorAuthUtils#generateQRCode(String, int, int, Consumer)}
    */
   public static String generateQrContent(String appName, User user, Consumer<ErrorCode> errorCode) {
     String secret = user.getSecret();
@@ -139,7 +140,7 @@ public class TwoFactoryAuthenticationUtils {
    * @param secret
    * @return true if the user secret matches the given code, false if not.
    */
-  public static boolean verifyTOTP(String code, String secret) {
+  public static boolean verifyTOTP2FACode(String code, String secret) {
     if (Strings.isNullOrEmpty(secret)) {
       throw new IllegalArgumentException("User must have a secret");
     }
@@ -163,5 +164,19 @@ public class TwoFactoryAuthenticationUtils {
       secret = secret.substring(TWO_FACTOR_CODE_APPROVAL_PREFIX.length());
     }
     return secret;
+  }
+
+  /**
+   * If the user's secret starts with the prefix `APPROVAL_`, then return true
+   *
+   * @param user The user to check.
+   * @return A boolean value.
+   */
+  static boolean is2FASecretForApproval(User user) {
+    return user.getSecret().startsWith(TWO_FACTOR_CODE_APPROVAL_PREFIX);
+  }
+
+  public static boolean is2FASecretForApproval(String secret) {
+    return secret.startsWith(TWO_FACTOR_CODE_APPROVAL_PREFIX);
   }
 }

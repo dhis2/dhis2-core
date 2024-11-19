@@ -93,6 +93,7 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.security.twofa.TwoFactorAuthService;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
@@ -147,6 +148,8 @@ public class UserController extends AbstractCrudController<User> {
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private PasswordValidationService passwordValidationService;
+
+  @Autowired private TwoFactorAuthService twoFactorAuthService;
 
   // -------------------------------------------------------------------------
   // GET
@@ -536,7 +539,7 @@ public class UserController extends AbstractCrudController<User> {
   public WebMessage disableTwoFa(@PathVariable("uid") String uid, @CurrentUser User currentUser)
       throws ForbiddenException {
     List<ErrorReport> errors = new ArrayList<>();
-    userService.privilegedTwoFactorDisable(currentUser, uid, errors::add);
+    twoFactorAuthService.privileged2FADisable(currentUser, uid, errors::add);
 
     if (errors.isEmpty()) {
       return WebMessageUtils.ok();

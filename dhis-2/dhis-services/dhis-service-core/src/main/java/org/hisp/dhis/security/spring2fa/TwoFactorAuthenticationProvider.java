@@ -27,13 +27,15 @@
  */
 package org.hisp.dhis.security.spring2fa;
 
+import static org.hisp.dhis.security.twofa.TwoFactorAuthService.TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME;
+
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
-import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
+import org.hisp.dhis.security.twofa.TwoFactorAuthUtils;
 import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.user.SystemUser;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,7 +115,9 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
 
     // If the user requires 2FA, and it's not enabled/provisioned, redirect to
     // the enrolment page, (via the CustomAuthFailureHandler)
-    if (userService.hasTwoFactorRoleRestriction(userDetails) && !userDetails.isTwoFactorEnabled()) {
+    boolean has2FARestriction =
+        userDetails.hasAnyRestrictions(Set.of(TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME));
+    if (has2FARestriction && !userDetails.isTwoFactorEnabled()) {
       throw new TwoFactorAuthenticationEnrolmentException(
           "User must setup two-factor authentication before logging in");
     }
@@ -147,9 +151,9 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
     validate2FACode(code, type, userSecret, userDetails.getUsername());
   }
 
-  private boolean validateCode(String code, TwoFactorType type, String userSecret) {
+  private boolean isValid2FACode(String code, TwoFactorType type, String userSecret) {
     if (TwoFactorType.TOTP.equals(type)) {
-      return TwoFactoryAuthenticationUtils.verifyTOTP(code, userSecret);
+      return TwoFactorAuthUtils.verifyTOTP2FACode(code, userSecret);
     } else if (TwoFactorType.EMAIL.equals(type)) {
       return StringUtils.equals(code, userSecret);
     }
@@ -158,26 +162,23 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
 
   private void validate2FACode(
       String code, TwoFactorType type, String userSecret, String username) {
-    if (!validateCode(code, type, userSecret)) {
+    if (!isValid2FACode(code, type, userSecret)) {
       log.debug("Two-factor authentication failure for user: '{}'", username);
-
-      // We need to reset the two factor secret if the user has one for approval, this probably
-      // means that the user has not finished the 2FA enrollment probably and has logged out and
-      // lost the enrollment setup flow. During enforced enrollment, we need to reset and basically
-      // restart the enrollment.
-      if (UserService.hasTwoFactorSecretForApproval(userSecret)) {
-        User user = userService.getUserByUsername(username);
-        userService.resetTwoFactor(user, new SystemUser());
+      if (TwoFactorAuthUtils.is2FASecretForApproval(userSecret)) {
+        // We need to reset the two factor secret if the user has one for approval, this probably
+        // means that the user has not finished the 2FA enrollment, and has logged out and
+        // the enrollment setup can not continue. During enforced enrollment, we need to reset and
+        // basically start over.
+        userService.reset2FA(username, new SystemUser());
         throw new TwoFactorAuthenticationEnrolmentException("Invalid verification code");
       }
+
       throw new TwoFactorAuthenticationException("Invalid verification code");
 
-    } else if (UserService.hasTwoFactorSecretForApproval(userSecret)) {
-      User user = userService.getUserByUsername(username);
-      // This means two factor is for approval, but is not a valid 2FA code.
+    } else if (TwoFactorAuthUtils.is2FASecretForApproval(userSecret)) {
       // We need this special case to approve the 2FA secret if the user is doing enforced enrolling
-      // on login. Then the user can't log in, so approval is the first successful login.
-      userService.approveTwoFactorSecret(user, new SystemUser());
+      // on login.
+      userService.approve2FAEnrollment(username, new SystemUser());
     }
   }
 }

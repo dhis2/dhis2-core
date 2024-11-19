@@ -32,6 +32,7 @@ import static java.time.ZoneId.systemDefault;
 import static java.time.ZonedDateTime.now;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.security.twofa.TwoFactorAuthService.TWO_FACTOR_CODE_APPROVAL_PREFIX;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 
@@ -74,7 +75,6 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -85,16 +85,14 @@ import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
-import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.security.twofa.TwoFactorType;
+import org.hisp.dhis.security.twofa.TwoFactorAuthUtils;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.filter.UserRoleCanIssueFilter;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
-import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
@@ -106,13 +104,13 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * @author Chau Thu Tran
+ * @author Morten Svanæs
  */
 @Slf4j
 @Lazy
 @Service("org.hisp.dhis.user.UserService")
 public class DefaultUserService implements UserService {
   private static final long EMAIL_TOKEN_EXPIRY_MILLIS = 3600000;
-  private static final long TWOFA_EMAIL_CODE_EXPIRY_MILLIS = 3600000;
 
   private final UserStore userStore;
   private final UserGroupService userGroupService;
@@ -781,46 +779,43 @@ public class DefaultUserService implements UserService {
     return userStore.getExpiringUserAccounts(inDays);
   }
 
-  @Transactional
-  @Override
-  public void resetTwoFactor(User user, UserDetails actingUser) {
-    user.setSecret(null);
-    updateUser(user, actingUser);
-  }
+  //  @Transactional
+  //  @Override
+  //  public void resetTwoFactor(User user, UserDetails actingUser) {
+  //    user.setSecret(null);
+  //    updateUser(user, actingUser);
+  //  }
 
-  @Transactional
-  @Override
-  public void enableTwoFa(User user, String code) {
-    if (user.getSecret() == null) {
-      throw new IllegalStateException(
-          "User has not enrolled in two factor authentication, call enrollment first");
-    }
-    if (!UserService.hasTwoFactorSecretForApproval(user)) {
-      throw new IllegalStateException(
-          "User has already enabled two factor authentication, call disable and enroll first");
-    }
+  //  @Transactional
+  //  @Override
+  //  public void enable2FA(User user, String code) {
+  //    if (user.getSecret() == null) {
+  //      throw new IllegalStateException(
+  //          "User has not enrolled in two factor authentication, call enrollment first");
+  //    }
+  //    if (!UserService.hasTwoFactorSecretForApproval(user)) {
+  //      throw new IllegalStateException(
+  //          "User has already enabled two factor authentication, call disable and enroll first");
+  //    }
+  //    if (!isValid2FACode(user, code)) {
+  //      throw new IllegalStateException("Invalid code");
+  //    }
+  //    approveTwoFactorSecret(user, CurrentUserUtil.getCurrentUserDetails());
+  //  }
 
-    if (validate2FACode(user, code)) {
-      throw new IllegalStateException("Invalid code");
-    }
-
-    approveTwoFactorSecret(user, CurrentUserUtil.getCurrentUserDetails());
-  }
-
-  @Override
-  public boolean validate2FACode(User user, String code) {
-    TwoFactorType twoFactorType = user.getTwoFactorType();
-    if (twoFactorType == null) {
-      throw new IllegalStateException("Two factor type is not set");
-    }
-
-    if (twoFactorType == TwoFactorType.EMAIL) {
-      return TwoFactoryAuthenticationUtils.verifyEmail2FACode(code, user.getSecret());
-    } else if (twoFactorType == TwoFactorType.TOTP) {
-      return TwoFactoryAuthenticationUtils.verifyTOTP(code, user.getSecret());
-    }
-    return true;
-  }
+  //  @Override
+  //  public boolean isValid2FACode(User user, String code) {
+  //    TwoFactorType twoFactorType = user.getTwoFactorType();
+  //    if (twoFactorType == null) {
+  //      throw new IllegalStateException("Two factor type is not set");
+  //    }
+  //    if (twoFactorType == TwoFactorType.EMAIL) {
+  //      return TwoFactoryAuthenticationUtils.verifyEmail2FACode(code, user.getSecret());
+  //    } else if (twoFactorType == TwoFactorType.TOTP) {
+  //      return TwoFactoryAuthenticationUtils.verifyTOTP(code, user.getSecret());
+  //    }
+  //    return true;
+  //  }
 
   @Override
   public void registerFailed2FADisableAttempt(String username) {
@@ -835,45 +830,8 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
-  public boolean twoFaDisableIsLocked(String username) {
+  public boolean is2FADisableEndpointLocked(String username) {
     return twoFaDisableFailedAttemptCache.get(username).orElse(0) >= LOGIN_MAX_FAILED_ATTEMPTS;
-  }
-
-  @Transactional
-  @Override
-  public void disableTwoFa(User user, String code) {
-    if (user.getSecret() == null) {
-      throw new IllegalStateException("Two factor is not enabled, enable first");
-    }
-
-    if (twoFaDisableIsLocked(user.getUsername())) {
-      throw new IllegalStateException("Too many failed attempts, try again later");
-    }
-
-    if (!TwoFactoryAuthenticationUtils.verifyTOTP(code, user.getSecret())) {
-      registerFailed2FADisableAttempt(user.getUsername());
-      throw new IllegalStateException("Invalid code");
-    }
-
-    resetTwoFactor(user, CurrentUserUtil.getCurrentUserDetails());
-    registerSuccess2FADisable(user.getUsername());
-  }
-
-  @Override
-  @Transactional
-  public void privilegedTwoFactorDisable(
-      User currentUser, String userUid, Consumer<ErrorReport> errors) throws ForbiddenException {
-    User user = getUser(userUid);
-    if (user == null) {
-      throw new IllegalArgumentException("User not found");
-    }
-
-    if (currentUser.getUid().equals(user.getUid())
-        || !canCurrentUserCanModify(currentUser, user, errors)) {
-      throw new ForbiddenException(ErrorCode.E3021.getMessage());
-    }
-
-    resetTwoFactor(user, UserDetails.fromUser(currentUser));
   }
 
   @Override
@@ -995,163 +953,6 @@ public class DefaultUserService implements UserService {
     }
 
     return true;
-  }
-
-  @Override
-  @Transactional
-  public void enrollTOTP2FA(User user) {
-    if (user.isTwoFactorEnabled()) {
-      throw new IllegalStateException(
-          "User has 2FA enabled already, disable first to enroll again");
-    }
-    String newSecret = TWO_FACTOR_CODE_APPROVAL_PREFIX + Base32.random();
-    user.setSecret(newSecret);
-    user.setTwoFactorType(TwoFactorType.TOTP);
-    updateUser(user);
-  }
-
-  @Override
-  @Transactional
-  public void enrollEmail2FA(User user) {
-    if (user.isTwoFactorEnabled()) {
-      throw new IllegalStateException(
-          "User has 2FA enabled already, disable first to enroll again");
-    }
-    if (!isEmailVerified(user)) {
-      throw new IllegalStateException("User's email is not verified");
-    }
-
-    user.setTwoFactorType(TwoFactorType.EMAIL);
-
-    Email2FACode email2FACode = getEmail2FAForApprovalCode();
-    user.setSecret(email2FACode.encodedCode());
-
-    trySendingEmail2FACode(user, email2FACode.code());
-
-    updateUser(user);
-  }
-
-  @Override
-  @Transactional
-  public void sendEmail2FACode(User user) {
-    if (!user.isTwoFactorEnabled()) {
-      throw new IllegalStateException(
-          "User has not enabled 2FA , enable before trying to send code");
-    }
-    if (!user.getTwoFactorType().equals(TwoFactorType.EMAIL)) {
-      throw new IllegalStateException("User has not email 2FA enabled");
-    }
-    if (!isEmailVerified(user)) {
-      throw new IllegalStateException("User's email is not verified");
-    }
-
-    Email2FACode email2FACode = getEmail2FACode();
-    user.setSecret(email2FACode.encodedCode());
-
-    trySendingEmail2FACode(user, email2FACode.code());
-
-    updateUser(user);
-  }
-
-  private record Email2FACode(String code, String encodedCode) {}
-
-  @Nonnull
-  private static Email2FACode getEmail2FACode() {
-    String code = new String(CodeGenerator.generateSecureRandomNumber(6));
-    String encodedCode = code + "|" + (System.currentTimeMillis() + TWOFA_EMAIL_CODE_EXPIRY_MILLIS);
-    return new Email2FACode(code, encodedCode);
-  }
-
-  @Nonnull
-  private static Email2FACode getEmail2FAForApprovalCode() {
-    String code = new String(CodeGenerator.generateSecureRandomNumber(6));
-    String encodedCode =
-        TWO_FACTOR_CODE_APPROVAL_PREFIX
-            + code
-            + "|"
-            + (System.currentTimeMillis() + TWOFA_EMAIL_CODE_EXPIRY_MILLIS);
-    return new Email2FACode(code, encodedCode);
-  }
-
-  private void trySendingEmail2FACode(User user, String code) {
-    String applicationTitle = settingsProvider.getCurrentSettings().getApplicationTitle();
-    if (applicationTitle == null || applicationTitle.isEmpty()) {
-      applicationTitle = DEFAULT_APPLICATION_TITLE;
-    }
-
-    Map<String, Object> vars = new HashMap<>();
-    vars.put("applicationTitle", applicationTitle);
-    vars.put("code", code);
-    vars.put("username", user.getUsername());
-    vars.put("email", user.getEmail());
-
-    I18n i18n =
-        i18nManager.getI18n(
-            userSettingsService.getUserSettings(user.getUsername(), true).getUserUiLocale());
-    vars.put("i18n", i18n);
-
-    VelocityManager vm = new VelocityManager();
-    String messageBody = vm.render(vars, "twofa_email_body_template_" + "v1");
-    String messageSubject = i18n.getString("twofa_email_subject");
-
-    OutboundMessageResponse status =
-        emailMessageSender.sendMessage(messageSubject, messageBody, null, null, Set.of(user), true);
-
-    boolean success = status.getResponseObject() == EmailResponse.SENT;
-
-    if (!success) {
-      throw new IllegalStateException("Sending 2FA code with email failed");
-    }
-  }
-
-  @Override
-  @Transactional
-  public void approveTwoFactorSecret(User user, UserDetails actingUser) {
-    if (user.getSecret() != null && UserService.hasTwoFactorSecretForApproval(user)) {
-      user.setSecret(user.getSecret().replace(TWO_FACTOR_CODE_APPROVAL_PREFIX, ""));
-      updateUser(user, actingUser);
-    }
-  }
-
-  @Override
-  public boolean hasTwoFactorRoleRestriction(UserDetails userDetails) {
-    return userDetails.hasAnyRestrictions(Set.of(TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME));
-  }
-
-  @Override
-  @Transactional
-  public void validateTwoFactorUpdate(boolean before, boolean after, User userToModify)
-      throws ForbiddenException {
-    if (before == after) {
-      return;
-    }
-
-    if (!before) {
-      throw new ForbiddenException("You can not enable 2FA with this API endpoint, only disable.");
-    }
-
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-
-    // Current user can not update their own 2FA settings, must use
-    // /2fa/enable or disable API, even if they are admin.
-    if (currentUserDetails.getUid().equals(userToModify.getUid())) {
-      throw new ForbiddenException(ErrorCode.E3030.getMessage());
-    }
-
-    // If current user has access to manage this user, they can disable 2FA.
-    if (!aclService.canUpdate(currentUserDetails, userToModify)) {
-      throw new ForbiddenException(
-          String.format(
-              "User `%s` is not allowed to update object `%s`.",
-              currentUserDetails.getUsername(), userToModify));
-    }
-
-    User currentUser = userStore.getUserByUsername(currentUserDetails.getUsername());
-
-    if (!canAddOrUpdateUser(getUids(userToModify.getGroups()), currentUser)
-        || !currentUserDetails.canModifyUser(userToModify)) {
-      throw new ForbiddenException("You don't have the proper permissions to update this user.");
-    }
   }
 
   @Override
@@ -1695,6 +1496,28 @@ public class DefaultUserService implements UserService {
   @Override
   public String getUserSecret(String username) {
     return userStore.getUserSecret(username);
+  }
+
+  @Override
+  public void reset2FA(String username, UserDetails actingUser) {
+    User user = userStore.getUserByUsername(username);
+    if (user == null) {
+      throw new IllegalArgumentException("User not found");
+    }
+    user.setSecret(null);
+    updateUser(user, actingUser);
+  }
+
+  @Override
+  public void approve2FAEnrollment(String username, UserDetails actingUser) {
+    User user = userStore.getUserByUsername(username);
+    if (user == null) {
+      throw new IllegalArgumentException("User not found");
+    }
+    if (user.getSecret() != null && TwoFactorAuthUtils.is2FASecretForApproval(user)) {
+      user.setSecret(user.getSecret().replace(TWO_FACTOR_CODE_APPROVAL_PREFIX, ""));
+      updateUser(user, actingUser);
+    }
   }
 
   @Override
