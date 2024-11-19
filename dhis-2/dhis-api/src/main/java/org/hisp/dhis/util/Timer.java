@@ -69,16 +69,14 @@ public class Timer {
   }
 
   public long getTimeInS() {
-    long endTime = System.nanoTime();
-    long time = (endTime - startTime) / 1000000000;
+    final long endTime = System.nanoTime();
+    final long time = (endTime - startTime) / 1000000000;
     return time;
   }
 
   public long getTime(String msg) {
-    long time = getSplitTime(msg);
-
+    final long time = getSplitTime(msg);
     start();
-
     return time;
   }
 
