@@ -45,6 +45,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.message.EmailMessageSender;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
@@ -72,7 +73,7 @@ public class TwoFactorAuthService {
 
   private final UserService userService;
   private final SystemSettingsProvider settingsProvider;
-  private final EmailMessageSender emailMessageSender;
+  private final MessageSender emailMessageSender;
   private final UserSettingsService userSettingsService;
   private final I18nManager i18nManager;
   private final AclService aclService;

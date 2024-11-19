@@ -59,6 +59,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.PasswordManager;
+import org.hisp.dhis.security.twofa.TwoFactorAuthService;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeAll;
@@ -90,6 +91,8 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   @Autowired private PasswordManager passwordManager;
 
   @Autowired private TransactionTemplate transactionTemplate;
+
+  @Autowired private TwoFactorAuthService twoFactorAuthService;
 
   private OrganisationUnit unitA;
 
@@ -639,18 +642,18 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testDisableTwoFaWithAdminUser() throws ForbiddenException {
     User userToModify = createAndAddUser("A");
-    userService.enrollTOTP2FA(userToModify);
+    twoFactorAuthService.enrollTOTP2FA(userToModify);
     userService.updateUser(userToModify);
 
     List<ErrorReport> errors = new ArrayList<>();
-    userService.privilegedTwoFactorDisable(getAdminUser(), userToModify.getUid(), errors::add);
+    twoFactorAuthService.privileged2FADisable(getAdminUser(), userToModify.getUid(), errors::add);
     assertTrue(errors.isEmpty());
   }
 
   @Test
   void testDisableTwoFaWithManageUser() throws ForbiddenException {
     User userToModify = createAndAddUser("A");
-    userService.enrollTOTP2FA(userToModify);
+    twoFactorAuthService.enrollTOTP2FA(userToModify);
 
     UserGroup userGroupA = createUserGroup('A', Sets.newHashSet(userToModify));
     userGroupService.addUserGroup(userGroupA);
@@ -668,7 +671,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     userService.updateUser(currentUser);
 
     List<ErrorReport> errors = new ArrayList<>();
-    userService.privilegedTwoFactorDisable(currentUser, userToModify.getUid(), errors::add);
+    twoFactorAuthService.privileged2FADisable(currentUser, userToModify.getUid(), errors::add);
     assertTrue(errors.isEmpty());
   }
 

@@ -28,14 +28,15 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.security.twofa.TwoFactorAuthService.TWO_FACTOR_CODE_APPROVAL_PREFIX;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
-import static org.hisp.dhis.user.UserService.TWO_FACTOR_CODE_APPROVAL_PREFIX;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.security.twofa.TwoFactorAuthService;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.SystemUser;
@@ -43,6 +44,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.security.TwoFactorController;
 import org.jboss.aerogear.security.otp.Totp;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -54,12 +56,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
+  @Autowired private TwoFactorAuthService twoFactorAuthService;
+
   @Test
   void testEnableTOTP2FA() {
     User user = makeUser("X", List.of("TEST"));
     user.setEmail("valid.x@email.com");
     userService.addUser(user);
-    userService.enrollTOTP2FA(user);
+    twoFactorAuthService.enrollTOTP2FA(user);
 
     switchToNewUser(user);
 
@@ -73,7 +77,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     user.setEmail("valid.x@email.com");
     user.setVerifiedEmail("valid.x@email.com");
     userService.addUser(user);
-    userService.enrollEmail2FA(user);
+    twoFactorAuthService.enrollEmail2FA(user);
 
     switchToNewUser(user);
 
@@ -92,7 +96,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     User user = makeUser("X", List.of("TEST"));
     user.setEmail("valid.x@email.com");
     userService.addUser(user);
-    userService.enrollTOTP2FA(user);
+    twoFactorAuthService.enrollTOTP2FA(user);
 
     switchToNewUser(user);
 
@@ -108,49 +112,65 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     assertNull(getCurrentUser().getSecret());
 
     User user = userService.getUser(CurrentUserUtil.getCurrentUserDetails().getUid());
-    userService.enrollTOTP2FA(user);
+    twoFactorAuthService.enrollTOTP2FA(user);
 
     user = userService.getUser(CurrentUserUtil.getCurrentUserDetails().getUid());
     assertNotNull(user.getSecret());
 
     String code = generateTOTP2FACodeFromUserSecret(user);
 
-    assertStatus(HttpStatus.OK, POST("/2fa/enabled", "{'code':'" + code + "'}"));
+    assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
 
     user = userService.getUser(CurrentUserUtil.getCurrentUserDetails().getUid());
     assertNotNull(user.getSecret());
   }
 
   @Test
-  void testEnable2FANotCalledQrFirst() {
+  void testEnable2FANotEnrolledFirst() {
     assertEquals(
-        "User must call the /qrCode endpoint first",
-        POST("/2fa/enabled", "{'code':'wrong'}")
+        "User must start 2FA enrollment first",
+        POST("/2fa/enable", "{'code':'wrong'}")
             .error(HttpStatus.Series.CLIENT_ERROR)
             .getMessage());
   }
 
   @Test
-  void testDisable2FA() {
+  void testDisableTOTP2FA() {
     User newUser = makeUser("Y", List.of("TEST"));
     newUser.setEmail("valid.y@email.com");
 
     userService.addUser(newUser);
-    userService.enrollTOTP2FA(newUser);
-    userService.approveTwoFactorSecret(newUser, new SystemUser());
+    twoFactorAuthService.enrollTOTP2FA(newUser);
+    twoFactorAuthService.approve2FAEnrollment(newUser, new SystemUser());
 
     switchToNewUser(newUser);
 
     String code = generateTOTP2FACodeFromUserSecret(newUser);
 
-    assertStatus(HttpStatus.OK, POST("/2fa/disabled", "{'code':'" + code + "'}"));
+    assertStatus(HttpStatus.OK, POST("/2fa/disable", "{'code':'" + code + "'}"));
+  }
+
+  @Test
+  void testDisableTOTP2FA() {
+    User newUser = makeUser("Y", List.of("TEST"));
+    newUser.setEmail("valid.y@email.com");
+
+    userService.addUser(newUser);
+    twoFactorAuthService.enrollTOTP2FA(newUser);
+    twoFactorAuthService.approve2FAEnrollment(newUser, new SystemUser());
+
+    switchToNewUser(newUser);
+
+    String code = generateTOTP2FACodeFromUserSecret(newUser);
+
+    assertStatus(HttpStatus.OK, POST("/2fa/disable", "{'code':'" + code + "'}"));
   }
 
   @Test
   void testDisable2FANotEnabled() {
     assertEquals(
         "Two factor authentication is not enabled",
-        POST("/2fa/disabled", "{'code':'wrong'}")
+        POST("/2fa/disable", "{'code':'wrong'}")
             .error(HttpStatus.Series.CLIENT_ERROR)
             .getMessage());
   }
@@ -160,14 +180,14 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     User user = makeUser("X", List.of("TEST"));
     user.setEmail("valid.x@email.com");
     userService.addUser(user);
-    userService.enrollTOTP2FA(user);
+    twoFactorAuthService.enrollTOTP2FA(user);
 
     switchToNewUser(user);
 
     String code = generateTOTP2FACodeFromUserSecret(user);
-    assertStatus(HttpStatus.OK, POST("/2fa/enabled", "{'code':'" + code + "'}"));
+    assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
 
-    assertStatus(HttpStatus.UNAUTHORIZED, POST("/2fa/disabled", "{'code':'333333'}"));
+    assertStatus(HttpStatus.UNAUTHORIZED, POST("/2fa/disable", "{'code':'333333'}"));
 
     for (int i = 0; i < 3; i++) {
       assertWebMessage(
@@ -175,7 +195,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
           401,
           "ERROR",
           "Invalid 2FA code",
-          POST("/2fa/disabled", "{'code':'333333'}").content(HttpStatus.UNAUTHORIZED));
+          POST("/2fa/disable", "{'code':'333333'}").content(HttpStatus.UNAUTHORIZED));
     }
 
     assertWebMessage(
@@ -183,7 +203,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
         409,
         "ERROR",
         "Too many failed disable attempts. Please try again later",
-        POST("/2fa/disabled", "{'code':'333333'}").content(HttpStatus.CONFLICT));
+        POST("/2fa/disable", "{'code':'333333'}").content(HttpStatus.CONFLICT));
   }
 
   private static String replaceApprovalPartOfTheSecret(String secret) {

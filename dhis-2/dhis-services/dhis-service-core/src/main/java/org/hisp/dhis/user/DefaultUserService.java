@@ -779,44 +779,6 @@ public class DefaultUserService implements UserService {
     return userStore.getExpiringUserAccounts(inDays);
   }
 
-  //  @Transactional
-  //  @Override
-  //  public void resetTwoFactor(User user, UserDetails actingUser) {
-  //    user.setSecret(null);
-  //    updateUser(user, actingUser);
-  //  }
-
-  //  @Transactional
-  //  @Override
-  //  public void enable2FA(User user, String code) {
-  //    if (user.getSecret() == null) {
-  //      throw new IllegalStateException(
-  //          "User has not enrolled in two factor authentication, call enrollment first");
-  //    }
-  //    if (!UserService.hasTwoFactorSecretForApproval(user)) {
-  //      throw new IllegalStateException(
-  //          "User has already enabled two factor authentication, call disable and enroll first");
-  //    }
-  //    if (!isValid2FACode(user, code)) {
-  //      throw new IllegalStateException("Invalid code");
-  //    }
-  //    approveTwoFactorSecret(user, CurrentUserUtil.getCurrentUserDetails());
-  //  }
-
-  //  @Override
-  //  public boolean isValid2FACode(User user, String code) {
-  //    TwoFactorType twoFactorType = user.getTwoFactorType();
-  //    if (twoFactorType == null) {
-  //      throw new IllegalStateException("Two factor type is not set");
-  //    }
-  //    if (twoFactorType == TwoFactorType.EMAIL) {
-  //      return TwoFactoryAuthenticationUtils.verifyEmail2FACode(code, user.getSecret());
-  //    } else if (twoFactorType == TwoFactorType.TOTP) {
-  //      return TwoFactoryAuthenticationUtils.verifyTOTP(code, user.getSecret());
-  //    }
-  //    return true;
-  //  }
-
   @Override
   public void registerFailed2FADisableAttempt(String username) {
     Integer attempts = twoFaDisableFailedAttemptCache.get(username).orElse(0);
@@ -1514,7 +1476,7 @@ public class DefaultUserService implements UserService {
     if (user == null) {
       throw new IllegalArgumentException("User not found");
     }
-    if (user.getSecret() != null && TwoFactorAuthUtils.is2FASecretForApproval(user)) {
+    if (user.getSecret() != null && TwoFactorAuthUtils.is2FASecretForApproval(user.getSecret())) {
       user.setSecret(user.getSecret().replace(TWO_FACTOR_CODE_APPROVAL_PREFIX, ""));
       updateUser(user, actingUser);
     }

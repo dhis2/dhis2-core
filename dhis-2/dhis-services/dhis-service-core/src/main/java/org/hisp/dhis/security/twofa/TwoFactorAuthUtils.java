@@ -30,7 +30,6 @@ package org.hisp.dhis.security.twofa;
 import static org.hisp.dhis.feedback.ErrorCode.E3026;
 import static org.hisp.dhis.feedback.ErrorCode.E3028;
 import static org.hisp.dhis.security.twofa.TwoFactorAuthService.TWO_FACTOR_CODE_APPROVAL_PREFIX;
-import static org.hisp.dhis.user.UserService.TWO_FACTOR_CODE_APPROVAL_PREFIX;
 
 import com.google.common.base.Strings;
 import com.google.zxing.BarcodeFormat;
