@@ -219,6 +219,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     return String.format("extract(epoch from (%s - %s))", columnA, columnB);
   }
 
+  @Override
+  public String regexpMatch(String pattern) {
+    return String.format("~* %s", pattern);
+  }
+
   // Statements
 
   @Override
@@ -349,10 +354,5 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String dropCatalogIfExists() {
     return notSupported();
-  }
-
-  @Override
-  public String regexpMatch(String pattern) {
-    return "~* " + pattern;
   }
 }
