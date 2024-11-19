@@ -64,31 +64,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.analytics.EnrollmentAnalyticsTableManager")
 public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableManager {
 
-  private static final List<AnalyticsTableColumn> FIXED_COLS =
-      List.of(
-          EnrollmentAnalyticsColumn.ENROLLMENT,
-          EnrollmentAnalyticsColumn.ENROLLMENT_DATE,
-          EnrollmentAnalyticsColumn.OCCURRED_DATE,
-          EnrollmentAnalyticsColumn.COMPLETED_DATE,
-          EnrollmentAnalyticsColumn.LAST_UPDATED,
-          EnrollmentAnalyticsColumn.STORED_BY,
-          EnrollmentAnalyticsColumn.CREATED_BY_USERNAME,
-          EnrollmentAnalyticsColumn.CREATED_BY_NAME,
-          EnrollmentAnalyticsColumn.CREATED_BY_LASTNAME,
-          EnrollmentAnalyticsColumn.CREATED_BY_DISPLAYNAME,
-          EnrollmentAnalyticsColumn.LAST_UPDATED_BY_USERNAME,
-          EnrollmentAnalyticsColumn.LAST_UPDATED_BY_NAME,
-          EnrollmentAnalyticsColumn.LAST_UPDATED_BY_LASTNAME,
-          EnrollmentAnalyticsColumn.LAST_UPDATED_BY_DISPLAYNAME,
-          EnrollmentAnalyticsColumn.ENROLLMENT_STATUS,
-          EnrollmentAnalyticsColumn.LONGITUDE,
-          EnrollmentAnalyticsColumn.LATITUDE,
-          EnrollmentAnalyticsColumn.OU,
-          EnrollmentAnalyticsColumn.OU_NAME,
-          EnrollmentAnalyticsColumn.OU_CODE,
-          EnrollmentAnalyticsColumn.OU_LEVEL,
-          EnrollmentAnalyticsColumn.ENROLLMENT_GEOMETRY,
-          EnrollmentAnalyticsColumn.REGISTRATION_OU);
+  private final List<AnalyticsTableColumn> fixedColumns;
 
   public JdbcEnrollmentAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -118,6 +94,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
         analyticsExportSettings,
         periodDataProvider,
         sqlBuilder);
+    fixedColumns = EnrollmentAnalyticsColumn.getColumns(sqlBuilder);
   }
 
   @Override
@@ -165,21 +142,21 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     String fromClause =
         replaceQualify(
             """
-            \s from ${enrollment} en \
-            inner join ${program} pr on en.programid=pr.programid \
-            left join ${trackedentity} te on en.trackedentityid=te.trackedentityid \
-            and te.deleted = false \
-            left join ${organisationunit} registrationou on te.organisationunitid=registrationou.organisationunitid \
-            inner join ${organisationunit} ou on en.organisationunitid=ou.organisationunitid \
-            left join analytics_rs_orgunitstructure ous on en.organisationunitid=ous.organisationunitid \
-            left join analytics_rs_organisationunitgroupsetstructure ougs on en.organisationunitid=ougs.organisationunitid \
-            and (cast(${enrollmentDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
-            left join analytics_rs_dateperiodstructure dps on cast(en.enrollmentdate as date)=dps.dateperiod \
-            where pr.programid=${programId}  \
-            and en.organisationunitid is not null \
-            and en.lastupdated <= '${startTime}' \
-            and en.occurreddate is not null \
-            and en.deleted = false\s""",
+                    \s from ${enrollment} en \
+                    inner join ${program} pr on en.programid=pr.programid \
+                    left join ${trackedentity} te on en.trackedentityid=te.trackedentityid \
+                    and te.deleted = false \
+                    left join ${organisationunit} registrationou on te.organisationunitid=registrationou.organisationunitid \
+                    inner join ${organisationunit} ou on en.organisationunitid=ou.organisationunitid \
+                    left join analytics_rs_orgunitstructure ous on en.organisationunitid=ous.organisationunitid \
+                    left join analytics_rs_organisationunitgroupsetstructure ougs on en.organisationunitid=ougs.organisationunitid \
+                    and (cast(${enrollmentDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
+                    left join analytics_rs_dateperiodstructure dps on cast(en.enrollmentdate as date)=dps.dateperiod \
+                    where pr.programid=${programId}  \
+                    and en.organisationunitid is not null \
+                    and en.lastupdated <= '${startTime}' \
+                    and en.occurreddate is not null \
+                    and en.deleted = false\s""",
             Map.of(
                 "enrollmentDateMonth", sqlBuilder.dateTrunc("month", "en.enrollmentdate"),
                 "programId", String.valueOf(program.getId()),
@@ -190,7 +167,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
 
   private List<AnalyticsTableColumn> getColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-    columns.addAll(FIXED_COLS);
+    columns.addAll(fixedColumns);
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(getOrganisationUnitNameHierarchyColumn());
     columns.addAll(getOrganisationUnitGroupSetColumns());
@@ -199,7 +176,9 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
 
     if (program.isRegistration()) {
       columns.add(EnrollmentAnalyticsColumn.TRACKED_ENTITY);
-      columns.add(EnrollmentAnalyticsColumn.TRACKED_ENTITY_GEOMETRY);
+      if (sqlBuilder.supportsGeospatialData()) {
+        columns.add(EnrollmentAnalyticsColumn.TRACKED_ENTITY_GEOMETRY);
+      }
     }
 
     return filterDimensionColumns(columns);

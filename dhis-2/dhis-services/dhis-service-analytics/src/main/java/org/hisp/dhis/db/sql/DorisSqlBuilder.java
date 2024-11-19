@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.db.sql;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
@@ -203,6 +205,32 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return String.format("regexp %s", pattern);
   }
 
+  @Override
+  public String concat(String... columns) {
+    return "concat(" + String.join(", ", columns) + ")";
+  }
+
+  @Override
+  public String trim(String expression) {
+    return "trim(" + expression + ")";
+  }
+
+  @Override
+  public String coalesce(String expression, String defaultValue) {
+    return "coalesce(" + expression + ", " + defaultValue + ")";
+  }
+
+  @Override
+  public String jsonExtract(String column, String property) {
+    return "json_unquote(json_extract(" + column + ", '$." + property + "'))";
+  }
+
+  @Override
+  public String jsonExtract(String tablePrefix, String column, String jsonPath) {
+    return String.format(
+        "json_unquote(json_extract(%s.%s, '$.%s'))", tablePrefix, column, jsonPath);
+  }
+
   // Statements
 
   @Override
@@ -237,9 +265,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     // Partitions
 
     if (table.hasPartitions()) {
-      String partitions = toCommaSeparated(table.getPartitions(), this::toPartitionString);
-
-      sql.append("partition by range(year) (").append(partitions).append(") "); // Make configurable
+      sql.append(generatePartitionClause(table.getPartitions()));
     }
 
     // Distribution
@@ -258,6 +284,40 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     sql.append("properties (\"replication_num\" = \"1\")");
 
     return sql.append(";").toString();
+  }
+
+  /**
+   * Generates the partition clause for the table creation SQL.
+   *
+   * @param partitions the list of table partitions
+   * @return the partition clause string
+   */
+  private String generatePartitionClause(List<TablePartition> partitions) {
+    StringBuilder partitionClause =
+        new StringBuilder("partition by range(year) ("); // Make configurable
+
+    List<TablePartition> sortedPartitions;
+    try {
+      sortedPartitions =
+          partitions.stream()
+              .sorted(Comparator.comparingInt(p -> Integer.parseInt(p.getValue().toString())))
+              .toList();
+    } catch (NumberFormatException e) {
+      sortedPartitions = partitions;
+    }
+
+    for (int i = 0; i < sortedPartitions.size(); i++) {
+      if (i == sortedPartitions.size() - 1) {
+        // Handle last partition with MAXVALUE
+        partitionClause
+            .append("partition ")
+            .append(quote(sortedPartitions.get(i).getName()))
+            .append(" values less than(MAXVALUE),");
+      } else {
+        partitionClause.append(toPartitionString(sortedPartitions.get(i))).append(",");
+      }
+    }
+    return partitionClause.substring(0, partitionClause.length() - 1) + ") ";
   }
 
   /**
