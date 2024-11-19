@@ -902,6 +902,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     if (params.hasTimeField() && DimensionType.PERIOD == dimension.getDimensionType()) {
       return sqlBuilder.quote(DATE_PERIOD_STRUCT_ALIAS, col);
     } else if (DimensionType.ORGANISATION_UNIT == dimension.getDimensionType()) {
+      // TODO: luciano -> should use SqlBuilder.fixQuote
       return params.getOrgUnitField().getOrgUnitStructCol(col, getAnalyticsType(), isGroupByClause);
     } else if (DimensionType.ORGANISATION_UNIT_GROUP_SET == dimension.getDimensionType()) {
       return params

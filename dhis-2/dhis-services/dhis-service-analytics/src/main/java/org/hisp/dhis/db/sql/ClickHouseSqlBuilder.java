@@ -202,6 +202,41 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     return String.format("mactch %s", pattern); // TO DO
   }
 
+  @Override
+  public String dateDiffInDays(String date1, String date2) {
+    return "";
+  }
+
+  @Override
+  public String concat(String... columns) {
+    return "";
+  }
+
+  @Override
+  public String trim(String expression) {
+    return "";
+  }
+
+  @Override
+  public String coalesce(String expression, String defaultValue) {
+    return "";
+  }
+
+  @Override
+  public String fixQuote(String column) {
+    return "";
+  }
+
+  @Override
+  public String jsonExtract(String column, String property) {
+    return "";
+  }
+
+  @Override
+  public String jsonExtract(String tablePrefix, String column, String jsonPath) {
+    return "";
+  }
+
   // Statements
 
   @Override

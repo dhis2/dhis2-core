@@ -350,4 +350,85 @@ class DorisSqlBuilderTest {
 
     assertEquals(expected, sqlBuilder.countRows(getTableA()));
   }
+
+  @Test
+  void testFixQuote() {
+    // Test null and empty cases
+    assertEquals("", sqlBuilder.fixQuote(null));
+    assertEquals("", sqlBuilder.fixQuote(""));
+    assertEquals("", sqlBuilder.fixQuote("   "));
+
+    // Test simple column names
+    assertEquals("`column_name`", sqlBuilder.fixQuote("\"column_name\""));
+    assertEquals("ax.`column_name`", sqlBuilder.fixQuote("ax.\"column_name\""));
+
+    assertEquals("`column_name`", sqlBuilder.fixQuote("column_name"));
+    assertEquals("`my_column`", sqlBuilder.fixQuote("my_column"));
+    assertEquals("`id`", sqlBuilder.fixQuote("id"));
+
+    // Test already quoted columns
+    assertEquals("`column_name`", sqlBuilder.fixQuote("`column_name`"));
+    assertEquals("`test_column`", sqlBuilder.fixQuote("`test_column`"));
+
+    // Test with alias
+    assertEquals("alias.`column_name`", sqlBuilder.fixQuote("alias.column_name"));
+    assertEquals("ax.`id`", sqlBuilder.fixQuote("ax.id"));
+    assertEquals("t1.`column_name`", sqlBuilder.fixQuote("t1.column_name"));
+
+    // Test with alias and already quoted columns
+    assertEquals("alias.`column_name`", sqlBuilder.fixQuote("alias.`column_name`"));
+    assertEquals("ax.`id`", sqlBuilder.fixQuote("ax.`id`"));
+
+    // Test with spaces
+    assertEquals("`column name`", sqlBuilder.fixQuote("column name"));
+    assertEquals("alias.`column name`", sqlBuilder.fixQuote("alias.column name"));
+    assertEquals("alias.`column name`", sqlBuilder.fixQuote("alias.`column name`"));
+
+    // Test with spaces around dot
+    assertEquals("alias   .`column_name`", sqlBuilder.fixQuote("alias   .   column_name"));
+
+    // Test with trailing/leading spaces
+    assertEquals("`column_name`", sqlBuilder.fixQuote("  column_name  "));
+    assertEquals("alias.`column_name`", sqlBuilder.fixQuote("  alias.column_name  "));
+
+    // Test with special characters
+    assertEquals("`column$name`", sqlBuilder.fixQuote("column$name"));
+    assertEquals("`column-name`", sqlBuilder.fixQuote("column-name"));
+    assertEquals("`column#name`", sqlBuilder.fixQuote("column#name"));
+
+    // Test with numbers
+    assertEquals("`column123`", sqlBuilder.fixQuote("column123"));
+    assertEquals("`123column`", sqlBuilder.fixQuote("123column"));
+
+    // Test with mixed case
+    assertEquals("`ColumnName`", sqlBuilder.fixQuote("ColumnName"));
+    assertEquals("`camelCase`", sqlBuilder.fixQuote("camelCase"));
+    assertEquals("Alias.`columnName`", sqlBuilder.fixQuote("Alias.columnName"));
+
+    // Test with multiple dots
+    assertEquals("schema.table.`column`", sqlBuilder.fixQuote("schema.table.column"));
+    assertEquals("db.schema.table.`column`", sqlBuilder.fixQuote("db.schema.table.column"));
+
+    // Test with multiple dots
+    assertEquals("schema.table.`column`", sqlBuilder.fixQuote("schema.table.column"));
+    assertEquals("db.schema.table.`column`", sqlBuilder.fixQuote("db.schema.table.column"));
+
+    // Test with alias
+    assertEquals("alias.`column_name` as ou", sqlBuilder.fixQuote("alias.\"column_name\" as ou"));
+    assertEquals("alias.`column_name` as ou", sqlBuilder.fixQuote("alias.`column_name` as ou"));
+  }
+
+  @Test
+  void testWithFunctions() {
+    // Test with SQL functions
+    assertEquals(
+        "coalesce(own.\"ou\",ax.\"ou\") as ou",
+        sqlBuilder.fixQuote("coalesce(own.\"ou\",ax.\"ou\") as ou"));
+    assertEquals("count(*) as count", sqlBuilder.fixQuote("count(*) as count"));
+    assertEquals(
+        "max(\"column_name\") as max_val", sqlBuilder.fixQuote("max(\"column_name\") as max_val"));
+    assertEquals(
+        "substring(\"name\", 1, 10) as short_name",
+        sqlBuilder.fixQuote("substring(\"name\", 1, 10) as short_name"));
+  }
 }

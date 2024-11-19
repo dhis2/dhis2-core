@@ -29,6 +29,7 @@ package org.hisp.dhis.db.sql;
 
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
@@ -203,6 +204,72 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return String.format("regexp %s", pattern);
   }
 
+  @Override
+  public String dateDiffInDays(String date1, String date2) {
+    return "datefiff(" + date1 + ", " + date2 + ")";
+  }
+
+  @Override
+  public String concat(String... columns) {
+    return "concat(" + String.join(", ", columns) + ")";
+  }
+
+  @Override
+  public String trim(String expression) {
+    return "trim(" + expression + ")";
+  }
+
+  @Override
+  public String coalesce(String expression, String defaultValue) {
+    return "coalesce(" + expression + ", " + defaultValue + ")";
+  }
+
+  @Override
+  public String fixQuote(String column) {
+    if (StringUtils.isBlank(column)) {
+      return "";
+    }
+
+    // Trim the entire input first
+    column = column.trim();
+
+    // If it contains a function call (contains '(' and ')'), return as is
+    if (column.contains("(") && column.contains(")")) {
+      return column;
+    }
+
+    // If there's an AS clause, handle it separately
+    int asIndex = column.toLowerCase().indexOf(" as ");
+    if (asIndex != -1) {
+      String beforeAs = column.substring(0, asIndex);
+      String afterAs = column.substring(asIndex);
+      return fixQuote(beforeAs) + afterAs;
+    }
+
+    // Handle cases with alias (multiple dots)
+    if (column.contains(".")) {
+      int lastDotIndex = column.lastIndexOf(".");
+      String prefix = column.substring(0, lastDotIndex + 1); // Include the dot
+      String columnName = column.substring(lastDotIndex + 1);
+
+      // Quote the column part, preserve only internal spaces
+      return prefix.trim() + quoteIdentifier(columnName.trim());
+    }
+
+    // Simple column name case
+    return quoteIdentifier(column.trim());
+  }
+
+  @Override
+  public String jsonExtract(String column, String property) {
+    return "";
+  }
+
+  @Override
+  public String jsonExtract(String tablePrefix, String column, String jsonPath) {
+    return "";
+  }
+
   // Statements
 
   @Override
@@ -357,5 +424,11 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String dropCatalogIfExists() {
     return String.format("drop catalog if exists %s;", quote(catalog));
+  }
+
+  private String quoteIdentifier(String identifier) {
+    // Remove any existing quotes (both backticks and double quotes)
+    identifier = identifier.replaceAll("[`\"]", "");
+    return "`" + identifier + "`";
   }
 }
