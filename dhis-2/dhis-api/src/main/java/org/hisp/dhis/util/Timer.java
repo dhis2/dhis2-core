@@ -70,8 +70,7 @@ public class Timer {
 
   public long getTimeInS() {
     final long endTime = System.nanoTime();
-    final long time = (endTime - startTime) / 1000000000;
-    return time;
+    return (endTime - startTime) / 1000000000;
   }
 
   public long getTime(String msg) {
