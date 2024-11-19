@@ -97,6 +97,22 @@ class TableTest {
   }
 
   @Test
+  void testHasSortKey() {
+    Table tableA =
+        new Table(
+            "analytics",
+            List.of(colA, colB),
+            List.of("dx", "value"),
+            List.of("dx"),
+            List.of(),
+            Logged.UNLOGGED);
+    Table tableB = new Table("analytics", List.of(colA, colB), List.of("dx", "value"));
+
+    assertTrue(tableA.hasSortKey());
+    assertFalse(tableB.hasSortKey());
+  }
+
+  @Test
   void testSuccessfulValidation() {
     List<Column> columns = List.of(colA);
     List<String> primaryKey = List.of();
