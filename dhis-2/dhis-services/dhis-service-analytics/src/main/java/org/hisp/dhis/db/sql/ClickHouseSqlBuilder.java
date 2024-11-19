@@ -247,19 +247,17 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
    * @return the order by clause.
    */
   private String getOrderByClause(Table table) {
-    StringBuilder sql = new StringBuilder();
+    String keys = null;
 
-    // TO DO sort key
-
-    if (table.hasPrimaryKey()) {
-      String keys = toCommaSeparated(table.getPrimaryKey(), this::quote);
-      sql.append("order by (").append(keys).append(")");
+    if (table.hasSortKey()) {
+      keys = toCommaSeparated(table.getSortKey(), this::quote);
+    } else if (table.hasPrimaryKey()) {
+      keys = toCommaSeparated(table.getPrimaryKey(), this::quote);
     } else {
-      String firstColumn = quote(table.getColumns().get(0).getName());
-      sql.append("order by (").append(firstColumn).append(")");
+      keys = quote(table.getColumns().get(0).getName());
     }
 
-    return sql.toString();
+    return String.format("order by (%s)", keys);
   }
 
   @Override

@@ -67,9 +67,7 @@ class ClickHouseSqlBuilderTest {
             new Column("facility_type", DataType.VARCHAR_255, Nullable.NULL, Collation.C),
             new Column("bcg_doses", DataType.DOUBLE));
 
-    List<String> checks = List.of("\"id\">0", "\"bcg_doses\">0");
-
-    return new Table("vaccination", columns, List.of(), checks, Logged.UNLOGGED);
+    return new Table("vaccination", columns, List.of());
   }
 
   private Table getTableC() {
@@ -82,6 +80,19 @@ class ClickHouseSqlBuilderTest {
     List<String> primaryKey = List.of("id");
 
     return new Table("nutrition", columns, primaryKey, List.of(), Logged.LOGGED, getTableB());
+  }
+
+  private Table getTableD() {
+    List<Column> columns =
+        List.of(
+            new Column("id", DataType.BIGINT, Nullable.NOT_NULL),
+            new Column("data", DataType.CHARACTER_11, Nullable.NOT_NULL),
+            new Column("period", DataType.VARCHAR_50, Nullable.NOT_NULL),
+            new Column("value", DataType.DOUBLE));
+
+    List<String> sortKey = List.of("data", "period");
+
+    return new Table("immunization", columns, List.of(), sortKey, List.of(), Logged.LOGGED);
   }
 
   // Data types
@@ -224,6 +235,20 @@ class ClickHouseSqlBuilderTest {
         create table "nutrition" ("id" Int64 not null,"vitamin_a" Int64 null,\
         "vitamin_d" Int64 null) \
         engine = MergeTree() order by ("id");""";
+
+    assertEquals(expected, sqlBuilder.createTable(table));
+  }
+
+  @Test
+  void testCreateTableD() {
+    Table table = getTableD();
+
+    String expected =
+        """
+        create table "immunization" ("id" Int64 not null,"data" String not null,\
+        "period" String not null,"value" Float64 null) \
+        engine = MergeTree() \
+        order by ("data","period");""";
 
     assertEquals(expected, sqlBuilder.createTable(table));
   }
