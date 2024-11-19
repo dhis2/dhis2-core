@@ -57,6 +57,7 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogOperationParams;
@@ -176,7 +177,9 @@ class TrackedEntitiesExportController {
           trackedEntitiesPage =
               trackedEntityService.getTrackedEntities(operationParams, pageParams);
       List<TrackedEntity> trackedEntities =
-          trackedEntitiesPage.getItems().stream().map(TRACKED_ENTITY_MAPPER::map).toList();
+          trackedEntitiesPage.getItems().stream()
+              .map(te -> TRACKED_ENTITY_MAPPER.map(te, TrackerIdSchemeParams.builder().build()))
+              .toList();
       List<ObjectNode> objectNodes =
           fieldFilterService.toObjectNodes(trackedEntities, requestParams.getFields());
 
@@ -187,7 +190,7 @@ class TrackedEntitiesExportController {
 
     List<TrackedEntity> trackedEntities =
         trackedEntityService.getTrackedEntities(operationParams).stream()
-            .map(TRACKED_ENTITY_MAPPER::map)
+            .map(te -> TRACKED_ENTITY_MAPPER.map(te, TrackerIdSchemeParams.builder().build()))
             .toList();
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(trackedEntities, requestParams.getFields());
@@ -209,7 +212,7 @@ class TrackedEntitiesExportController {
 
     List<TrackedEntity> trackedEntities =
         trackedEntityService.getTrackedEntities(operationParams).stream()
-            .map(TRACKED_ENTITY_MAPPER::map)
+            .map(te -> TRACKED_ENTITY_MAPPER.map(te, TrackerIdSchemeParams.builder().build()))
             .toList();
 
     ResponseHeader.addContentDispositionAttachment(response, TE_CSV_FILE);
@@ -231,7 +234,7 @@ class TrackedEntitiesExportController {
 
     List<TrackedEntity> trackedEntities =
         trackedEntityService.getTrackedEntities(operationParams).stream()
-            .map(TRACKED_ENTITY_MAPPER::map)
+            .map(te -> TRACKED_ENTITY_MAPPER.map(te, TrackerIdSchemeParams.builder().build()))
             .toList();
 
     ResponseHeader.addContentDispositionAttachment(response, TE_CSV_FILE + ZIP_EXT);
@@ -254,7 +257,7 @@ class TrackedEntitiesExportController {
 
     List<TrackedEntity> trackedEntities =
         trackedEntityService.getTrackedEntities(operationParams).stream()
-            .map(TRACKED_ENTITY_MAPPER::map)
+            .map(te -> TRACKED_ENTITY_MAPPER.map(te, TrackerIdSchemeParams.builder().build()))
             .toList();
 
     ResponseHeader.addContentDispositionAttachment(response, TE_CSV_FILE + GZIP_EXT);
@@ -276,7 +279,8 @@ class TrackedEntitiesExportController {
     TrackedEntityParams trackedEntityParams = fieldsMapper.map(fields);
     TrackedEntity trackedEntity =
         TRACKED_ENTITY_MAPPER.map(
-            trackedEntityService.getTrackedEntity(uid, program, trackedEntityParams));
+            trackedEntityService.getTrackedEntity(uid, program, trackedEntityParams),
+            TrackerIdSchemeParams.builder().build());
 
     return ResponseEntity.ok(fieldFilterService.toObjectNode(trackedEntity, fields));
   }
@@ -294,7 +298,8 @@ class TrackedEntitiesExportController {
 
     TrackedEntity trackedEntity =
         TRACKED_ENTITY_MAPPER.map(
-            trackedEntityService.getTrackedEntity(uid, program, trackedEntityParams));
+            trackedEntityService.getTrackedEntity(uid, program, trackedEntityParams),
+            TrackerIdSchemeParams.builder().build());
 
     OutputStream outputStream = response.getOutputStream();
     response.setContentType(CONTENT_TYPE_CSV);

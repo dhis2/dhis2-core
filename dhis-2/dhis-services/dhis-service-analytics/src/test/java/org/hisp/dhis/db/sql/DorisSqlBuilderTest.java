@@ -65,9 +65,7 @@ class DorisSqlBuilderTest {
             new Column("facility_type", DataType.VARCHAR_255, Nullable.NULL, Collation.C),
             new Column("bcg_doses", DataType.DOUBLE));
 
-    List<String> checks = List.of("\"id\">0", "\"bcg_doses\">0");
-
-    return new Table("vaccination", columns, List.of(), checks, Logged.UNLOGGED);
+    return new Table("vaccination", columns, List.of(), Logged.UNLOGGED);
   }
 
   private Table getTableC() {
@@ -180,6 +178,25 @@ class DorisSqlBuilderTest {
         "date_trunc(pe.startdate, 'month')", sqlBuilder.dateTrunc("month", "pe.startdate"));
   }
 
+  @Test
+  void testDifferenceInSeconds() {
+    assertEquals(
+        "(unix_timestamp(a.startdate) - unix_timestamp(b.enddate))",
+        sqlBuilder.differenceInSeconds("a.startdate", "b.enddate"));
+    assertEquals(
+        "(unix_timestamp(a.`startdate`) - unix_timestamp(b.`enddate`))",
+        sqlBuilder.differenceInSeconds(
+            sqlBuilder.quote("a", "startdate"), sqlBuilder.quote("b", "enddate")));
+  }
+
+  @Test
+  void testRegexpMatch() {
+    assertEquals("regexp test", sqlBuilder.regexpMatch("test"));
+    assertEquals("regexp \\d", sqlBuilder.regexpMatch("\\d"));
+    assertEquals("regexp ", sqlBuilder.regexpMatch(""));
+    assertEquals("regexp [a-z]\\w+\\d{3}", sqlBuilder.regexpMatch("[a-z]\\w+\\d{3}"));
+  }
+
   // Statements
 
   @Test
@@ -188,9 +205,9 @@ class DorisSqlBuilderTest {
 
     String expected =
         """
-        create table `immunization` (`id` bigint not null, \
-        `data` char(11) not null, `period` varchar(50) not null, \
-        `created` datetime null, `user` json null, `value` double null) \
+        create table `immunization` (`id` bigint not null,\
+        `data` char(11) not null,`period` varchar(50) not null,\
+        `created` datetime null,`user` json null,`value` double null) \
         engine = olap \
         unique key (`id`) \
         distributed by hash(`id`) buckets 10 \
@@ -205,8 +222,8 @@ class DorisSqlBuilderTest {
 
     String expected =
         """
-        create table `vaccination` (`id` int not null, \
-        `facility_type` varchar(255) null, `bcg_doses` double null) \
+        create table `vaccination` (`id` int not null,\
+        `facility_type` varchar(255) null,`bcg_doses` double null) \
         engine = olap \
         duplicate key (`id`) \
         distributed by hash(`id`) buckets 10 \
@@ -223,8 +240,8 @@ class DorisSqlBuilderTest {
 
     String expected =
         """
-        create table `nutrition` (`id` bigint not null, \
-        `vitamin_a` bigint null, `vitamin_d` bigint null) \
+        create table `nutrition` (`id` bigint not null,\
+        `vitamin_a` bigint null,`vitamin_d` bigint null) \
         engine = olap \
         unique key (`id`) \
         distributed by hash(`id`) buckets 10 \

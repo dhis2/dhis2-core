@@ -37,6 +37,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -191,11 +192,17 @@ class OrgUnitValueTypeSupplierTest extends TestBase {
   }
 
   private TrackedEntity trackedEntity(Attribute... attributes) {
-    return TrackedEntity.builder().attributes(attributes(attributes)).build();
+    return TrackedEntity.builder()
+        .trackedEntity(UID.generate())
+        .attributes(attributes(attributes))
+        .build();
   }
 
   private Enrollment enrollment(Attribute... attributes) {
-    return Enrollment.builder().attributes(attributes(attributes)).build();
+    return Enrollment.builder()
+        .enrollment(UID.generate())
+        .attributes(attributes(attributes))
+        .build();
   }
 
   private List<Attribute> attributes(Attribute[] attributes) {
@@ -219,7 +226,7 @@ class OrgUnitValueTypeSupplierTest extends TestBase {
   }
 
   private Event event(DataValue... dataValues) {
-    return Event.builder().dataValues(dataValues(dataValues)).build();
+    return Event.builder().event(UID.generate()).dataValues(dataValues(dataValues)).build();
   }
 
   private Set<DataValue> dataValues(DataValue[] dataValues) {

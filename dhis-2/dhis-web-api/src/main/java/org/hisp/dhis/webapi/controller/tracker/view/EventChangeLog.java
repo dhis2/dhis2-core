@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,28 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.webapi.controller.tracker.view;
 
-import java.util.List;
-import java.util.Set;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Date;
+import org.hisp.dhis.common.UID;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface EventStore {
-  /** Get all events matching given params. */
-  List<Event> getEvents(EventQueryParams params);
+public record EventChangeLog(
+    @JsonProperty User createdBy,
+    @JsonProperty Date createdAt,
+    @JsonProperty String type,
+    @JsonProperty Change change) {
 
-  /** Get a page of events matching given params. */
-  Page<Event> getEvents(EventQueryParams params, PageParams pageParams);
+  public record Change(
+      @JsonProperty DataValueChange dataValue, @JsonProperty PropertyChange eventProperty) {}
 
-  /**
-   * Fields the {@link #getEvents(EventQueryParams)} can order events by. Ordering by fields other
-   * than these is considered a programmer error. Validation of user provided field names should
-   * occur before calling {@link #getEvents(EventQueryParams)}.
-   */
-  Set<String> getOrderableFields();
+  public record DataValueChange(
+      @JsonProperty UID dataElement,
+      @JsonProperty String previousValue,
+      @JsonProperty String currentValue) {}
+
+  public record PropertyChange(
+      @JsonProperty String property,
+      @JsonProperty String previousValue,
+      @JsonProperty String currentValue) {}
 }

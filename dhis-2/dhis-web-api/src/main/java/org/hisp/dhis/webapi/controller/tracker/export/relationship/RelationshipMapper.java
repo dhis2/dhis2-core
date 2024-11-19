@@ -36,12 +36,13 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
+import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-@Mapper(uses = {RelationshipItemMapper.class, InstantMapper.class})
+@Mapper(uses = {RelationshipItemMapper.class, UIDMapper.class, InstantMapper.class})
 public abstract class RelationshipMapper {
 
   /**

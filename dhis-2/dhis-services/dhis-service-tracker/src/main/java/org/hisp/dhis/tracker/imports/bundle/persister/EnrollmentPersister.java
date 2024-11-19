@@ -73,18 +73,8 @@ public class EnrollmentPersister
         entityManager,
         preheat,
         enrollment.getAttributes(),
-        preheat.getTrackedEntity(UID.of(enrollmentToPersist.getTrackedEntity())),
+        enrollmentToPersist.getTrackedEntity(),
         user);
-  }
-
-  @Override
-  protected void updateDataValues(
-      EntityManager entityManager,
-      TrackerPreheat preheat,
-      org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
-      Enrollment enrollmentToPersist,
-      UserDetails user) {
-    // DO NOTHING - TE HAVE NO DATA VALUES
   }
 
   @Override
@@ -167,7 +157,25 @@ public class EnrollmentPersister
   }
 
   @Override
+  protected void updateDataValues(
+      EntityManager entityManager,
+      TrackerPreheat preheat,
+      org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto,
+      Enrollment payloadEntity,
+      Enrollment currentEntity,
+      UserDetails user) {
+    // DO NOTHING - TE HAVE NO DATA VALUES
+  }
+
+  @Override
   protected String getUpdatedTrackedEntity(Enrollment entity) {
     return entity.getTrackedEntity().getUid();
+  }
+
+  @Override
+  protected Enrollment cloneEntityProperties(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto) {
+    return null;
+    // NO NEED TO CLONE RELATIONSHIP PROPERTIES
   }
 }

@@ -119,6 +119,7 @@ public interface UserDetails
             .password(user.getPassword())
             .externalAuth(user.isExternalAuth())
             .isTwoFactorEnabled(user.isTwoFactorEnabled())
+            .isEmailVerified(user.isEmailVerified())
             .code(user.getCode())
             .firstName(user.getFirstName())
             .surname(user.getSurname())
@@ -243,6 +244,8 @@ public interface UserDetails
   boolean isExternalAuth();
 
   boolean isTwoFactorEnabled();
+
+  boolean isEmailVerified();
 
   boolean hasAnyRestrictions(Collection<String> restrictions);
 

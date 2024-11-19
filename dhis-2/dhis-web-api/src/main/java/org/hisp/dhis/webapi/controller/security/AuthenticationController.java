@@ -40,6 +40,7 @@ import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.security.LoginResponse.STATUS;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -147,7 +148,7 @@ public class AuthenticationController {
       this.sessionStrategy.onAuthentication(authenticationResult, request, response);
       saveContext(request, response, authenticationResult);
 
-      String redirectUrl = getRedirectUrl(request, response);
+      String redirectUrl = getRedirectUrl(authenticationResult, request, response);
 
       if (this.eventPublisher != null) {
         this.eventPublisher.publishEvent(
@@ -160,7 +161,6 @@ public class AuthenticationController {
       return LoginResponse.builder().loginStatus(STATUS.INCORRECT_TWO_FACTOR_CODE).build();
     } catch (TwoFactorAuthenticationEnrolmentException e) {
       return LoginResponse.builder().loginStatus(STATUS.REQUIRES_TWO_FACTOR_ENROLMENT).build();
-
     } catch (CredentialsExpiredException e) {
       return LoginResponse.builder().loginStatus(STATUS.PASSWORD_EXPIRED).build();
     } catch (LockedException e) {
@@ -212,17 +212,31 @@ public class AuthenticationController {
     this.securityContextRepository.saveContext(context, request, response);
   }
 
-  private String getRedirectUrl(HttpServletRequest request, HttpServletResponse response) {
+  private String getRedirectUrl(
+      Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
+    // Default redirect URL
     String redirectUrl =
         request.getContextPath() + "/" + settingsProvider.getCurrentSettings().getStartModule();
-
     if (!redirectUrl.endsWith("/")) {
       redirectUrl += "/";
     }
 
+    // Check enforce verified email, redirect to the account page if email is not verified
+    boolean enforceVerifiedEmail = settingsProvider.getCurrentSettings().getEnforceVerifiedEmail();
+    if (enforceVerifiedEmail) {
+      UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+      if (!userDetails.isEmailVerified()) {
+        return request.getContextPath() + "/dhis-web-user-profile/#/account";
+      }
+    }
+
+    // Check for saved request, i.e. the user has tried to access a page directly before logging in.
     SavedRequest savedRequest = requestCache.getRequest(request, null);
     if (savedRequest != null) {
       DefaultSavedRequest defaultSavedRequest = (DefaultSavedRequest) savedRequest;
+      // Check saved request to avoid redirecting to non-html pages, e.g. images.
+      // If the saved request is not filtered, the user will be redirected to the saved request,
+      // otherwise the default redirect URL is used.
       if (!filterSavedRequest(defaultSavedRequest)) {
         if (defaultSavedRequest.getQueryString() != null) {
           redirectUrl =
@@ -236,6 +250,12 @@ public class AuthenticationController {
     return redirectUrl;
   }
 
+  /**
+   * Filter saved request to avoid redirecting to non-html pages.
+   *
+   * @param savedRequest
+   * @return true if the saved request should be filtered
+   */
   private boolean filterSavedRequest(DefaultSavedRequest savedRequest) {
     String requestURI = savedRequest.getRequestURI();
     return !requestURI.endsWith(".html") && !requestURI.endsWith("/") && requestURI.contains(".");

@@ -138,6 +138,17 @@ public final class Assertions {
   }
 
   /**
+   * Asserts that the given collection is not null and not empty.
+   *
+   * @param actual the collection.
+   * @param message fails with this message
+   */
+  public static void assertNotEmpty(Collection<?> actual, String message) {
+    assertNotNull(actual, message);
+    assertFalse(actual.isEmpty(), message);
+  }
+
+  /**
    * Asserts that the given collection contains the expected number of elements.
    *
    * @param actual the collection.
@@ -173,7 +184,8 @@ public final class Assertions {
   }
 
   /**
-   * Asserts that the given string neither null, a length of zero nor whitespace only.
+   * Asserts that the given string is not null, has a non-zero length, and contains non-whitespace
+   * characters.
    *
    * @param actual the string.
    */
@@ -183,13 +195,24 @@ public final class Assertions {
   }
 
   /**
-   * Asserts that the given string neither null or a length of zero.
+   * Asserts that the given string is not null and has a non-zero length.
    *
    * @param actual the string.
    */
   public static void assertNotEmpty(String actual) {
     assertNotNull(actual);
     assertTrue(!actual.isEmpty());
+  }
+
+  /**
+   * Asserts that the given string is not null and has a non-zero length.
+   *
+   * @param actual the string.
+   * @param message fails with this message
+   */
+  public static void assertNotEmpty(String actual, String message) {
+    assertNotNull(actual, message);
+    assertTrue(!actual.isEmpty(), message);
   }
 
   /**

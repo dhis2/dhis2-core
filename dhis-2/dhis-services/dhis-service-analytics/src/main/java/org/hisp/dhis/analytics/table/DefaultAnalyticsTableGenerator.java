@@ -71,8 +71,6 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
   private final OutliersCache outliersCache;
 
-  // TODO introduce last successful timestamps per table type
-
   @Override
   public void generateAnalyticsTables(AnalyticsTableUpdateParams params0, JobProgress progress) {
     Clock clock = new Clock(log).startClock();

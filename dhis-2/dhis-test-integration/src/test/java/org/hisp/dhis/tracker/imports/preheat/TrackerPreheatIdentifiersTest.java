@@ -47,6 +47,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
@@ -84,7 +85,8 @@ class TrackerPreheatIdentifiersTest extends TrackerTest {
     for (Pair<String, TrackerIdSchemeParam> pair : data) {
       String id = pair.getLeft();
       TrackerIdSchemeParam param = pair.getRight();
-      Event event = Event.builder().orgUnit(param.toMetadataIdentifier(id)).build();
+      Event event =
+          Event.builder().event(UID.generate()).orgUnit(param.toMetadataIdentifier(id)).build();
       TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event)).build();
       TrackerIdSchemeParams params = TrackerIdSchemeParams.builder().orgUnitIdScheme(param).build();
 
@@ -100,7 +102,11 @@ class TrackerPreheatIdentifiersTest extends TrackerTest {
     for (Pair<String, TrackerIdSchemeParam> pair : data) {
       String id = pair.getLeft();
       TrackerIdSchemeParam param = pair.getRight();
-      Event event = Event.builder().programStage(param.toMetadataIdentifier(id)).build();
+      Event event =
+          Event.builder()
+              .event(UID.generate())
+              .programStage(param.toMetadataIdentifier(id))
+              .build();
       TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event)).build();
       TrackerIdSchemeParams params =
           TrackerIdSchemeParams.builder().programStageIdScheme(param).build();
@@ -121,6 +127,7 @@ class TrackerPreheatIdentifiersTest extends TrackerTest {
           DataValue.builder().dataElement(param.toMetadataIdentifier(id)).value("val1").build();
       Event event =
           Event.builder()
+              .event(UID.generate())
               .programStage(MetadataIdentifier.ofUid("NpsdDv6kKSO"))
               .dataValues(Collections.singleton(dv1))
               .build();
@@ -141,7 +148,10 @@ class TrackerPreheatIdentifiersTest extends TrackerTest {
       String id = pair.getLeft();
       TrackerIdSchemeParam param = pair.getRight();
       Event event =
-          Event.builder().attributeCategoryOptions(Set.of(param.toMetadataIdentifier(id))).build();
+          Event.builder()
+              .event(UID.generate())
+              .attributeCategoryOptions(Set.of(param.toMetadataIdentifier(id)))
+              .build();
       TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event)).build();
       TrackerIdSchemeParams params =
           TrackerIdSchemeParams.builder().categoryOptionIdScheme(param).build();
@@ -158,7 +168,11 @@ class TrackerPreheatIdentifiersTest extends TrackerTest {
     for (Pair<String, TrackerIdSchemeParam> pair : data) {
       String id = pair.getLeft();
       TrackerIdSchemeParam param = pair.getRight();
-      Event event = Event.builder().attributeOptionCombo(param.toMetadataIdentifier(id)).build();
+      Event event =
+          Event.builder()
+              .event(UID.generate())
+              .attributeOptionCombo(param.toMetadataIdentifier(id))
+              .build();
       TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(event)).build();
       TrackerIdSchemeParams params =
           TrackerIdSchemeParams.builder().categoryOptionComboIdScheme(param).build();
@@ -185,7 +199,10 @@ class TrackerPreheatIdentifiersTest extends TrackerTest {
 
   @Test
   void testDefaultsWithIdSchemesOtherThanUID() {
-    TrackerObjects trackerObjects = TrackerObjects.builder().events(List.of(new Event())).build();
+    TrackerObjects trackerObjects =
+        TrackerObjects.builder()
+            .events(List.of(Event.builder().event(UID.generate()).build()))
+            .build();
     TrackerIdSchemeParams params =
         TrackerIdSchemeParams.builder()
             .idScheme(TrackerIdSchemeParam.NAME)

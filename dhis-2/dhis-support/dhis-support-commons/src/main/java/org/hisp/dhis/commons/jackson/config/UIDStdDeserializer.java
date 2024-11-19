@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.dataelement;
+package org.hisp.dhis.commons.jackson.config;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.merge.MergeProcessor;
-import org.hisp.dhis.merge.MergeService;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import java.io.IOException;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.UID;
 
-/**
- * Implementation of {@link MergeProcessor} that currently only uses its default method.
- *
- * @author david mackessy
- */
-@Component
-@RequiredArgsConstructor
-public class DataElementMergeProcessor implements MergeProcessor {
-
-  /**
-   * Spring injects the correct service based on the variable name (when there are multiple
-   * implementations to choose from). So The {@link DataElementMergeService} gets injected here.
-   */
-  private final MergeService dataElementMergeService;
+public class UIDStdDeserializer extends StdDeserializer<UID> {
+  public UIDStdDeserializer() {
+    super(UID.class);
+  }
 
   @Override
-  public MergeService getMergeService() {
-    return dataElementMergeService;
+  public UID deserialize(JsonParser parser, DeserializationContext context) throws IOException {
+    String valueAsString = parser.getText();
+
+    if (StringUtils.isNotBlank(valueAsString)) {
+      try {
+        return UID.of(valueAsString);
+      } catch (Exception e) {
+        throw new JsonParseException(parser, e.getMessage());
+      }
+    }
+    return null;
   }
 }

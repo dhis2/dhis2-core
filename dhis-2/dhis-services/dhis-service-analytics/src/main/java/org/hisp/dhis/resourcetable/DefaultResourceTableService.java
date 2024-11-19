@@ -65,6 +65,7 @@ import org.hisp.dhis.resourcetable.table.DataApprovalRemapLevelResourceTable;
 import org.hisp.dhis.resourcetable.table.DataElementGroupSetResourceTable;
 import org.hisp.dhis.resourcetable.table.DataElementResourceTable;
 import org.hisp.dhis.resourcetable.table.DataSetOrganisationUnitCategoryResourceTable;
+import org.hisp.dhis.resourcetable.table.DataSetResourceTable;
 import org.hisp.dhis.resourcetable.table.DatePeriodResourceTable;
 import org.hisp.dhis.resourcetable.table.IndicatorGroupSetResourceTable;
 import org.hisp.dhis.resourcetable.table.OrganisationUnitGroupSetResourceTable;
@@ -148,6 +149,7 @@ public class DefaultResourceTableService implements ResourceTableService {
             logged, idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class)),
         new IndicatorGroupSetResourceTable(
             logged, idObjectManager.getAllNoAcl(IndicatorGroupSet.class)),
+        new DataSetResourceTable(logged),
         new OrganisationUnitGroupSetResourceTable(
             logged,
             idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class),

@@ -320,22 +320,22 @@ class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerInte
 
   private String createJsonPayload(int value) {
     return """
-        {
-          "trackedEntities": [
-            {
-              "attributes": [
-                {
-                  "attribute": "numericAttr",
-                  "value": %d
-                }
-              ],
-              "trackedEntity": "IOR1AXXl24H",
-              "trackedEntityType": "ja8NY4PW7Xm",
-              "orgUnit": "h4w96yEMlzO"
-            }
-          ]
-        }
-        """
+           {
+             "trackedEntities": [
+               {
+                 "attributes": [
+                   {
+                     "attribute": "numericAttr",
+                     "value": %d
+                   }
+                 ],
+                 "trackedEntity": "IOR1AXXl24H",
+                 "trackedEntityType": "ja8NY4PW7Xm",
+                 "orgUnit": "h4w96yEMlzO"
+               }
+             ]
+           }
+           """
         .formatted(value);
   }
 

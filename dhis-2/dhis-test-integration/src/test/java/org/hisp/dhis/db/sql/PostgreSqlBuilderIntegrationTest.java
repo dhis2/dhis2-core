@@ -102,7 +102,7 @@ class PostgreSqlBuilderIntegrationTest extends PostgresIntegrationTestBase {
 
     List<String> checks = List.of("\"id\">0", "\"bcg_doses\">0");
 
-    return new Table("vaccination", columns, List.of(), checks, Logged.UNLOGGED);
+    return new Table("vaccination", columns, List.of(), List.of(), checks, Logged.UNLOGGED);
   }
 
   private Table getTableC() {
