@@ -161,6 +161,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
               .selectExpression("ous.level as oulevel")
               .build());
 
+  private static final List<String> SORT_KEY = List.of("dx");
+
   public JdbcAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -206,7 +208,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     AnalyticsTable table =
         params.isLatestUpdate()
             ? getLatestAnalyticsTable(params, getColumns(params))
-            : getRegularAnalyticsTable(params, getDataYears(params), getColumns(params));
+            : getRegularAnalyticsTable(params, getDataYears(params), getColumns(params), SORT_KEY);
 
     return table.hasTablePartitions() ? List.of(table) : List.of();
   }
