@@ -257,7 +257,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
    */
   private boolean isAttributeFilter(Query query, Restriction restriction) {
     return query.getSchema().getKlass().isAssignableFrom(Attribute.class)
-           && Attribute.ObjectType.isValidType(restriction.getQueryPath().getPath());
+        && Attribute.ObjectType.isValidType(restriction.getQueryPath().getPath());
   }
 
   /**
