@@ -210,6 +210,15 @@ public class Table {
   }
 
   /**
+   * Indicates whether the table has a sort key.
+   *
+   * @return true if the table has a sort key.
+   */
+  public boolean hasSortKey() {
+    return isNotEmpty(sortKey);
+  }
+
+  /**
    * Indicates whether the table has at least one check.
    *
    * @return true if the table has at least one check.
