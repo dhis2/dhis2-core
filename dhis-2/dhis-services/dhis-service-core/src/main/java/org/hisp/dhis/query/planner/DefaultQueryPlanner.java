@@ -219,14 +219,12 @@ public class DefaultQueryPlanner implements QueryPlanner {
           setQueryPathLocale(restriction);
         }
 
-        if (restriction.getQueryPath().isPersisted()
-            && !restriction.getQueryPath().haveAlias()
-            && !Attribute.ObjectType.isValidType(restriction.getQueryPath().getPath())) {
-          pQuery
-              .getAliases()
-              .addAll(Arrays.asList(((Restriction) criterion).getQueryPath().getAlias()));
+        if (restriction.getQueryPath().isPersisted() && !isAttributeFilter(query, restriction)) {
           pQuery.getCriterions().add(criterion);
           iterator.remove();
+          if (restriction.getQueryPath().haveAlias()) {
+            pQuery.getAliases().addAll(Arrays.asList(restriction.getQueryPath().getAlias()));
+          }
         }
       }
     }
@@ -268,12 +266,12 @@ public class DefaultQueryPlanner implements QueryPlanner {
           setQueryPathLocale(restriction);
         }
 
-        if (restriction.getQueryPath().isPersisted()
-            && !restriction.getQueryPath().haveAlias(1)
-            && !Attribute.ObjectType.isValidType(restriction.getQueryPath().getPath())) {
-          criteriaJunction
-              .getAliases()
-              .addAll(Arrays.asList(((Restriction) criterion).getQueryPath().getAlias()));
+        if (restriction.getQueryPath().isPersisted() && !isAttributeFilter(query, restriction)) {
+          if (restriction.getQueryPath().haveAlias()) {
+            criteriaJunction
+                .getAliases()
+                .addAll(Arrays.asList(restriction.getQueryPath().getAlias()));
+          }
           criteriaJunction.getCriterions().add(criterion);
           iterator.remove();
         } else if (persistedOnly) {
@@ -307,5 +305,15 @@ public class DefaultQueryPlanner implements QueryPlanner {
                 UserSettingKey.DB_LOCALE,
                 systemSettingManager.getSystemSetting(
                     SettingKey.DB_LOCALE, LocaleManager.DEFAULT_LOCALE)));
+  }
+
+  /**
+   * Handle attribute filter such as /attributes?fields=id,name&filter=userAttribute:eq:true
+   *
+   * @return true if attribute filter
+   */
+  private boolean isAttributeFilter(Query query, Restriction restriction) {
+    return query.getSchema().getKlass().isAssignableFrom(Attribute.class)
+        && Attribute.ObjectType.isValidType(restriction.getQueryPath().getPath());
   }
 }
