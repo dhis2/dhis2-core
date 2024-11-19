@@ -186,7 +186,7 @@
       "attributeValues": [],
       "minDaysFromStart": 0,
       "sharing": {
-        "public": "rwrw----",
+        "public": "rw------",
         "external": false,
         "owner": "VfaA5WwHLdP",
         "users": {},
@@ -751,10 +751,6 @@
           "jiFUk9o7gH3": {
             "id": "jiFUk9o7gH3",
             "access": "rwrw----"
-          },
-          "VfaA5WwHLdP": {
-            "id": "VfaA5WwHLdP",
-            "access": "--------"
           }
         },
         "userGroups": {}
@@ -2687,23 +2683,18 @@
       "created": "2019-03-25T13:40:24.722",
       "translations": [],
       "sharing": {
-        "public": "--------",
+        "public": "rwrw----",
         "external": false,
         "owner": null,
-        "users": {
-            "VfaA5WwHLdP": {
-                "id": "VfaA5WwHLdP",
-                "access": "--------"
-            }
-        },
+        "users": {},
         "userGroups": {}
       }
     },
     {
-      "id": "WnKa7zOVoLK",
-      "code": "Alt default",
-      "name": "Alt default",
-      "shortName": "Alt default",
+      "id": "WAFwwid9TzE",
+      "code": "default2",
+      "name": "default2",
+      "shortName": "default2",
       "startDate": "2019-01-01T00:00:00.000",
       "attributeValues": [],
       "lastUpdated": "2019-03-25T13:40:24.783",
@@ -2864,14 +2855,14 @@
       }
     },
     {
-      "id": "LwulPEjPHnJ",
-      "name": "Alt default",
-      "shortName": "Alt default",
-      "code": "Alt default",
+      "id": "Vk8PHR8HBAe",
+      "name": "default2",
+      "shortName": "default2",
+      "code": "default2",
       "dataDimensionType": "DISAGGREGATION",
       "categoryOptions": [
         {
-          "id": "WnKa7zOVoLK"
+          "id": "WAFwwid9TzE"
         }
       ],
       "dataDimension": false,
@@ -2945,6 +2936,28 @@
       "categories": [
         {
           "id": "GLevLNI9wkl"
+        }
+      ],
+      "created": "2019-03-25T13:40:24.771",
+      "lastUpdated": "2019-03-25T13:40:24.781",
+      "skipTotal": false,
+      "translations": [],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {}
+      }
+    },
+    {
+      "id": "WG3syvpSE9o",
+      "code": "default2",
+      "name": "default2",
+      "dataDimensionType": "DISAGGREGATION",
+      "categories": [
+        {
+          "id": "Vk8PHR8HBAe"
         }
       ],
       "created": "2019-03-25T13:40:24.771",
@@ -3041,6 +3054,25 @@
       ],
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
+      },
+      "translations": [],
+      "startDate": "2019-01-01T00:00:00.000",
+      "lastUpdated": "2019-03-25T13:40:24.779",
+      "ignoreApproval": false,
+      "attributeValues": [],
+      "created": "2019-03-25T13:40:24.775"
+    },
+    {
+      "id": "KKKKX50cXC0",
+      "name": "accesstest1",
+      "code": "accesstest1",
+      "categoryOptions": [
+        {
+          "id": "XXXXKDKCefk"
+        }
+      ],
+      "categoryCombo": {
+        "id": "WG3syvpSE9o"
       },
       "translations": [],
       "startDate": "2019-01-01T00:00:00.000",
