@@ -387,8 +387,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       sql = "sum(daysxvalue) / sum(daysno) * 100";
     } else if (SIMPLE_AGGREGATION_TYPES.contains(aggType.getAggregationType())) {
       sql = String.format("%s(%s)", aggType.getAggregationType().getValue(), valueColumn);
-    } else // SUM and no value
-    {
+    } else { // SUM and no value
       sql = "sum(" + valueColumn + ")";
     }
 
