@@ -371,7 +371,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    * @return a SQL numeric value column.
    */
   protected String getAggregateValueColumn(DataQueryParams params) {
-    String sql;
+    String sql = null;
 
     AnalyticsAggregationType aggType = params.getAggregationType();
 
