@@ -45,6 +45,7 @@ import org.hibernate.cache.jcache.MissingCacheStrategy;
 import org.hibernate.cache.jcache.internal.JCacheRegionFactory;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.jpa.HibernatePersistenceProvider;
+import org.hibernate.tool.schema.Action;
 import org.hisp.dhis.cache.DefaultHibernateCacheManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dbms.HibernateDbmsManager;
@@ -178,6 +179,10 @@ public class HibernateConfig {
           ConfigSettings.MISSING_CACHE_STRATEGY,
           MissingCacheStrategy.CREATE.getExternalRepresentation());
     }
+
+    properties.put(
+        AvailableSettings.HBM2DDL_AUTO,
+        Action.valueOf(dhisConfig.getProperty(ConfigurationKey.CONNECTION_SCHEMA).toUpperCase()));
 
     properties.put(
         AvailableSettings.SHOW_SQL, dhisConfig.getProperty(ConfigurationKey.HIBERNATE_SHOW_SQL));
