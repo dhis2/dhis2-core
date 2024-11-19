@@ -28,6 +28,7 @@
 package org.hisp.dhis.util;
 
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.MessageFormatter;
 
 @Slf4j
 public class Timer {
@@ -49,10 +50,10 @@ public class Timer {
     return getSplitTime("Split");
   }
 
-  public long getSplitTime(String msg) {
-    long endTime = System.nanoTime();
-
-    long time = (endTime - startTime) / 1000;
+  public long getSplitTime(String pattern, Object... args) {
+    final long endTime = System.nanoTime();
+    final long time = (endTime - startTime) / 1000;
+    final String msg = MessageFormatter.arrayFormat(pattern, args).getMessage();
 
     if (!printDisabled) {
       log.info("Time: " + time + " micros: " + msg);
