@@ -184,7 +184,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         params = getParamsWithOffsetPartitions(params, tableType);
       }
 
-      String sql = getSql(params, tableType);
+      final String sql = getSql(params, tableType);
 
       final DataQueryParams immutableParams = DataQueryParams.newBuilder(params).build();
 
@@ -313,7 +313,6 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     StringBuilder builder = new StringBuilder();
 
     builder.append(getSelectClause(params));
-
     builder.append(getFromClause(params, tableType));
 
     // Skip the where clause here if already in sub query
@@ -326,7 +325,8 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     if (params.hasMeasureCriteria()
         && params.isDataType(DataType.NUMERIC)
         && !params.hasReportingRates()) {
-      /* Reporting rates applies the measure criteria after the rates calculation phase. It cannot be done at this stage. */
+      // Reporting rates applies the measure criteria after the rates calculation phase. Cannot be
+      // done at this stage.
       builder.append(getMeasureCriteriaSql(params));
     }
 
