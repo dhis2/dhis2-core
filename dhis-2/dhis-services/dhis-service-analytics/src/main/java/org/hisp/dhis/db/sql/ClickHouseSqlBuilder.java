@@ -199,32 +199,32 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String regexpMatch(String pattern) {
-    return String.format("mactch %s", pattern); // TO DO
+    return String.format("match %s", pattern); // TO DO
   }
 
   @Override
   public String concat(String... columns) {
-    return "";
+    return "concat(" + String.join(", ", columns) + ")";
   }
 
   @Override
   public String trim(String expression) {
-    return "";
+    return "trim(" + expression + ")";
   }
 
   @Override
   public String coalesce(String expression, String defaultValue) {
-    return "";
+    return "coalesce(" + expression + ", " + defaultValue + ")";
   }
 
   @Override
   public String jsonExtract(String column, String property) {
-    return "";
+    return "JSONExtractRaw(" + column + ", '" + property + "')";
   }
 
   @Override
   public String jsonExtract(String tablePrefix, String column, String jsonPath) {
-    return "";
+    return String.format("JSONExtractRaw(%s.%s, '%s')", tablePrefix, column, jsonPath);
   }
 
   // Statements

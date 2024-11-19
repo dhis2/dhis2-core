@@ -222,12 +222,13 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String jsonExtract(String column, String property) {
-    return "";
+    return "json_unquote(json_extract(" + column + ", '$." + property + "'))";
   }
 
   @Override
   public String jsonExtract(String tablePrefix, String column, String jsonPath) {
-    return "";
+    return String.format(
+        "json_unquote(json_extract(%s.%s, '$.%s'))", tablePrefix, column, jsonPath);
   }
 
   // Statements
@@ -416,11 +417,5 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String dropCatalogIfExists() {
     return String.format("drop catalog if exists %s;", quote(catalog));
-  }
-
-  private String quoteIdentifier(String identifier) {
-    // Remove any existing quotes (both backticks and double quotes)
-    identifier = identifier.replaceAll("[`\"]", "");
-    return "`" + identifier + "`";
   }
 }
