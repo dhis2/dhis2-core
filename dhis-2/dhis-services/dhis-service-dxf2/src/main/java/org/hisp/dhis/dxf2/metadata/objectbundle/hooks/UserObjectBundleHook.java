@@ -44,12 +44,14 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.security.twofa.TwoFactorAuthService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -69,6 +71,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
   public static final String PRE_UPDATE_USER_KEY = "preUpdateUser";
 
   private final UserService userService;
+  private final TwoFactorAuthService validateTwoFactorUpdate;
 
   private final FileResourceService fileResourceService;
 
@@ -182,6 +185,12 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
         fileResource.setAssigned(true);
         fileResourceService.updateFileResource(fileResource);
       }
+    }
+    try {
+      validateTwoFactorUpdate.validateTwoFactorUpdate(
+          persisted.isTwoFactorEnabled(), user.isTwoFactorEnabled(), persisted);
+    } catch (ForbiddenException e) {
+      throw new RuntimeException(e);
     }
   }
 

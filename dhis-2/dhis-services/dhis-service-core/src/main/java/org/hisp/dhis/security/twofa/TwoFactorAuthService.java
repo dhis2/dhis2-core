@@ -44,7 +44,6 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.message.EmailMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.security.acl.AclService;
@@ -137,13 +136,10 @@ public class TwoFactorAuthService {
     if (user.getSecret() == null) {
       throw new IllegalStateException("Two factor is not enabled, enable first");
     }
-
     if (userService.is2FADisableEndpointLocked(user.getUsername())) {
       throw new IllegalStateException("Too many failed attempts, try again later");
     }
-
-    if (!TwoFactorAuthUtils.verifyTOTP2FACode(code, user.getSecret())) {
-      userService.registerFailed2FADisableAttempt(user.getUsername());
+    if (!isValid2FACode(user, code)) {
       throw new IllegalStateException("Invalid code");
     }
 

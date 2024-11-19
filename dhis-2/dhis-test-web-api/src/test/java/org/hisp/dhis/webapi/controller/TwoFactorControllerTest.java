@@ -129,9 +129,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
   void testEnable2FANotEnrolledFirst() {
     assertEquals(
         "User must start 2FA enrollment first",
-        POST("/2fa/enable", "{'code':'wrong'}")
-            .error(HttpStatus.Series.CLIENT_ERROR)
-            .getMessage());
+        POST("/2fa/enable", "{'code':'wrong'}").error(HttpStatus.Series.CLIENT_ERROR).getMessage());
   }
 
   @Test
@@ -151,19 +149,25 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testDisableTOTP2FA() {
+  void testDisableEmail2FA() {
     User newUser = makeUser("Y", List.of("TEST"));
     newUser.setEmail("valid.y@email.com");
+    newUser.setVerifiedEmail("valid.y@email.com");
 
     userService.addUser(newUser);
-    twoFactorAuthService.enrollTOTP2FA(newUser);
+    twoFactorAuthService.enrollEmail2FA(newUser);
     twoFactorAuthService.approve2FAEnrollment(newUser, new SystemUser());
 
     switchToNewUser(newUser);
 
-    String code = generateTOTP2FACodeFromUserSecret(newUser);
+    User enrolledUser = userService.getUserByUsername(newUser.getUsername());
+    String secretAndTTL = enrolledUser.getSecret();
+    String code = secretAndTTL.split("\\|")[0];
 
     assertStatus(HttpStatus.OK, POST("/2fa/disable", "{'code':'" + code + "'}"));
+
+    User disabledUser = userService.getUserByUsername(newUser.getUsername());
+    assertNull(disabledUser.getSecret());
   }
 
   @Test

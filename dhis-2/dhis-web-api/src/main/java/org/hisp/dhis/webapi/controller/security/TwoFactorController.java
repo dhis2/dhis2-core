@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -59,7 +58,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -194,7 +192,6 @@ public class TwoFactorController {
       value = "/enabled",
       consumes = {"text/*", "application/*"})
   @ResponseStatus(HttpStatus.OK)
-  @ResponseBody
   public boolean isEnabled(@CurrentUser(required = true) User currentUser) {
     return currentUser.isTwoFactorEnabled()
         && !TwoFactorAuthUtils.is2FASecretForApproval(currentUser.getSecret());
@@ -210,17 +207,15 @@ public class TwoFactorController {
       value = {"/enabled", "/enable"},
       consumes = {"text/*", "application/*"})
   @ResponseStatus(HttpStatus.OK)
-  @ResponseBody
   public WebMessage enable(
       @RequestBody Map<String, String> body, @CurrentUser(required = true) User currentUser)
       throws WebMessageException, ConflictException, ForbiddenException {
-    String code = body.get("code");
-
     if (!currentUser.isTwoFactorEnabled()
         || !TwoFactorAuthUtils.is2FASecretForApproval(currentUser.getSecret())) {
       throw new ConflictException(ErrorCode.E3029);
     }
 
+    String code = body.get("code");
     if (!twoFactorAuthService.isValid2FACode(currentUser, code)) {
       throw new ForbiddenException(ErrorCode.E3023);
     }
@@ -240,31 +235,24 @@ public class TwoFactorController {
       value = {"/disabled", "/disable"},
       consumes = {"text/*", "application/*"})
   @ResponseStatus(HttpStatus.OK)
-  @ResponseBody
   public WebMessage disable(
       @RequestBody Map<String, String> body, @CurrentUser(required = true) User currentUser)
-      throws WebMessageException {
-    String code = body.get("code");
-
+      throws WebMessageException, ForbiddenException {
     if (!currentUser.isTwoFactorEnabled()) {
       throw new WebMessageException(conflict(ErrorCode.E3031.getMessage(), ErrorCode.E3031));
     }
-
     if (userService.is2FADisableEndpointLocked(currentUser.getUsername())) {
       throw new WebMessageException(conflict(ErrorCode.E3042.getMessage(), ErrorCode.E3042));
     }
 
-    if (!verifyCode(code, currentUser)) {
+    String code = body.get("code");
+    if (!twoFactorAuthService.isValid2FACode(currentUser, code)) {
       userService.registerFailed2FADisableAttempt(currentUser.getUsername());
-      return unauthorized(ErrorCode.E3023.getMessage());
+      throw new ForbiddenException(ErrorCode.E3023);
     }
 
     twoFactorAuthService.disable2FA(currentUser, code);
 
     return ok("Two factor authentication was disabled successfully");
-  }
-
-  private static boolean verifyCode(String code, User currentUser) {
-    return TwoFactorAuthUtils.verifyTOTP2FACode(code, currentUser.getSecret());
   }
 }
