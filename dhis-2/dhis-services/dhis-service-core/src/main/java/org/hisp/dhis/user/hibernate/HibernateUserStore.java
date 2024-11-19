@@ -63,6 +63,7 @@ import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -641,5 +642,18 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         getSession().createQuery("from User u where u.verifiedEmail = :email", User.class);
     query.setParameter("email", email);
     return query.uniqueResult();
+  }
+
+  @Override
+  public List<User> getUsersWithOrgUnit(String orgUnitTable, UID uid) {
+    return getQuery(
+            """
+            select distinct u from User u
+            join u.%s ou
+            where ou.uid = :uid
+            """
+                .formatted(orgUnitTable))
+        .setParameter("uid", uid.getValue())
+        .getResultList();
   }
 }

@@ -38,6 +38,8 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Nguyen Hong Duc
@@ -224,4 +226,15 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   User getUserByVerificationToken(String token);
 
   User getUserByVerifiedEmail(String email);
+
+  /**
+   * Method that retrieves all {@link User}s that have an entry for the {@link OrganisationUnit} in
+   * the given table
+   *
+   * @param orgUnitTable table to search (one of 'organisationUnits', 'dataViewOrganisationUnits',
+   *     'teiSearchOrganisationUnits')
+   * @param uid {@link OrganisationUnit} {@link UID} to match on
+   * @return matching {@link User}s
+   */
+  List<User> getUsersWithOrgUnit(String orgUnitTable, UID uid);
 }

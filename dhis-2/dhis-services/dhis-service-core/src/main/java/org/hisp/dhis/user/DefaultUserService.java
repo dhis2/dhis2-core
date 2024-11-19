@@ -68,6 +68,7 @@ import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PasswordGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
@@ -1575,6 +1576,11 @@ public class DefaultUserService implements UserService {
   @Transactional(readOnly = true)
   public User getUserByVerificationToken(String token) {
     return userStore.getUserByVerificationToken(token);
+  }
+
+  @Override
+  public List<User> getUsersWithOrgUnit(String orgUnitTable, UID uid) {
+    return userStore.getUsersWithOrgUnit(orgUnitTable, uid);
   }
 
   @Override

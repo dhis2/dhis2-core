@@ -41,11 +41,13 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Chau Thu Tran
@@ -891,4 +893,15 @@ public interface UserService {
   boolean isEmailVerified(User currentUser);
 
   User getUserByVerificationToken(String token);
+
+  /**
+   * Method that retrieves all {@link User}s that have an entry for the {@link OrganisationUnit} in
+   * the given table
+   *
+   * @param orgUnitTable table to search (one of 'organisationUnits', 'dataViewOrganisationUnits',
+   *     'teiSearchOrganisationUnits')
+   * @param uid {@link OrganisationUnit} {@link UID} to match on
+   * @return matching {@link User}s
+   */
+  List<User> getUsersWithOrgUnit(String orgUnitTable, UID uid);
 }
