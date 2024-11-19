@@ -497,14 +497,15 @@ public class DefaultMetadataExportService implements MetadataExportService {
       Class<? extends IdentifiableObject> objectType = entry.getKey();
       if (classMap.containsKey("fields")) params.addFields(objectType, classMap.get("fields"));
 
-      GetObjectListParams queryParams =
-          new GetObjectListParams()
-              .setPaging(false)
-              .setFilters(classMap.get("filter"))
-              .setOrders(classMap.get("order"));
-      Query query = queryService.getQueryFromUrl(objectType, queryParams);
-      query.setDefaultOrder();
-      params.addQuery(query);
+      List<String> filters = classMap.get("filter");
+      List<String> orders = classMap.get("order");
+      if (filters != null || orders != null) {
+        GetObjectListParams queryParams =
+            new GetObjectListParams().setPaging(false).setFilters(filters).setOrders(orders);
+        Query query = queryService.getQueryFromUrl(objectType, queryParams);
+        query.setDefaultOrder();
+        params.addQuery(query);
+      }
     }
 
     return params;

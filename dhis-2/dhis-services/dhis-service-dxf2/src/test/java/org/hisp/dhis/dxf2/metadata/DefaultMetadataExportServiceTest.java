@@ -64,6 +64,7 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.user.SystemUser;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -220,6 +221,7 @@ class DefaultMetadataExportServiceTest {
     when(schemaService.getMetadataSchemas()).thenReturn(schemas);
 
     // when
+    params.setCurrentUserDetails(new SystemUser());
     service.getMetadata(params);
 
     // then
