@@ -801,11 +801,7 @@ public interface UserService {
 
   boolean isEmailVerified(User currentUser);
 
-  User getUserByVerificationToken(String token);
+  User getUserByEmailVerificationToken(String token);
 
   String getUserSecret(String username);
-
-  void reset2FA(String username, UserDetails actingUser);
-
-  void approve2FAEnrollment(String username, UserDetails actingUser);
 }

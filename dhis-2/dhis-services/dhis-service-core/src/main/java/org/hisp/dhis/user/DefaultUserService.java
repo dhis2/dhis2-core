@@ -32,7 +32,6 @@ import static java.time.ZoneId.systemDefault;
 import static java.time.ZonedDateTime.now;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.security.twofa.TwoFactorAuthService.TWO_FACTOR_CODE_APPROVAL_PREFIX;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 
@@ -86,7 +85,6 @@ import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.security.twofa.TwoFactorAuthUtils;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.filter.UserRoleCanIssueFilter;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -1427,7 +1425,7 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional
   public boolean verifyEmail(String token) {
-    User user = getUserByVerificationToken(token);
+    User user = getUserByEmailVerificationToken(token);
     if (user == null) {
       return false;
     }
@@ -1451,35 +1449,13 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public User getUserByVerificationToken(String token) {
-    return userStore.getUserByVerificationToken(token);
+  public User getUserByEmailVerificationToken(String token) {
+    return userStore.getUserByEmailVerificationToken(token);
   }
 
   @Override
   public String getUserSecret(String username) {
     return userStore.getUserSecret(username);
-  }
-
-  @Override
-  public void reset2FA(String username, UserDetails actingUser) {
-    User user = userStore.getUserByUsername(username);
-    if (user == null) {
-      throw new IllegalArgumentException("User not found");
-    }
-    user.setSecret(null);
-    updateUser(user, actingUser);
-  }
-
-  @Override
-  public void approve2FAEnrollment(String username, UserDetails actingUser) {
-    User user = userStore.getUserByUsername(username);
-    if (user == null) {
-      throw new IllegalArgumentException("User not found");
-    }
-    if (user.getSecret() != null && TwoFactorAuthUtils.is2FASecretForApproval(user.getSecret())) {
-      user.setSecret(user.getSecret().replace(TWO_FACTOR_CODE_APPROVAL_PREFIX, ""));
-      updateUser(user, actingUser);
-    }
   }
 
   @Override

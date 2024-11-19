@@ -33,9 +33,11 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
+import org.hisp.dhis.security.twofa.TwoFactorAuthService;
 import org.hisp.dhis.security.twofa.TwoFactorAuthUtils;
 import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.user.SystemUser;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,14 +62,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
   private UserService userService;
+  private TwoFactorAuthService twoFactorAuthService;
 
   @Autowired
   public TwoFactorAuthenticationProvider(
       @Qualifier("userDetailsService") UserDetailsService detailsService,
       PasswordEncoder passwordEncoder,
-      @Lazy UserService userService) {
+      @Lazy UserService userService,
+      @Lazy TwoFactorAuthService twoFactorAuthService) {
 
     this.userService = userService;
+    this.twoFactorAuthService = twoFactorAuthService;
     setUserDetailsService(detailsService);
     setPasswordEncoder(passwordEncoder);
   }
@@ -169,7 +174,8 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
         // means that the user has not finished the 2FA enrollment, and has logged out and
         // the enrollment setup can not continue. During enforced enrollment, we need to reset and
         // basically start over.
-        userService.reset2FA(username, new SystemUser());
+        User user = userService.getUserByUsername(username);
+        twoFactorAuthService.reset2FA(user, new SystemUser());
         throw new TwoFactorAuthenticationEnrolmentException("Invalid verification code");
       }
 
@@ -178,7 +184,8 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
     } else if (TwoFactorAuthUtils.is2FASecretForApproval(userSecret)) {
       // We need this special case to approve the 2FA secret if the user is doing enforced enrolling
       // on login.
-      userService.approve2FAEnrollment(username, new SystemUser());
+      User user = userService.getUserByUsername(username);
+      twoFactorAuthService.approve2FAEnrollment(user, new SystemUser());
     }
   }
 }

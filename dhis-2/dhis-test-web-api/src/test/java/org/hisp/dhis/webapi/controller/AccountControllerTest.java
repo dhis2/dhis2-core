@@ -334,7 +334,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   private void assertValidEmailVerificationToken(String token) {
-    User user = userService.getUserByVerificationToken(token);
+    User user = userService.getUserByEmailVerificationToken(token);
     assertNotNull(user);
   }
 

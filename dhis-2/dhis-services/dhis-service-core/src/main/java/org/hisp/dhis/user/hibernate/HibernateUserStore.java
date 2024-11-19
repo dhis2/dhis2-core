@@ -627,7 +627,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
-  public User getUserByVerificationToken(String token) {
+  public User getUserByEmailVerificationToken(String token) {
     Query<User> query =
         getSession()
             .createQuery("from User u where u.emailVerificationToken like :token", User.class);
