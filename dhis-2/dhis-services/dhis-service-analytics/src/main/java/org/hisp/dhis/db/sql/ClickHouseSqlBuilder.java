@@ -197,6 +197,11 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     return String.format("(toUnixTimestamp(%s) - toUnixTimestamp(%s))", columnA, columnB);
   }
 
+  @Override
+  public String regexpMatch(String pattern) {
+    return String.format("mactch %s", pattern); // TO DO
+  }
+
   // Statements
 
   @Override
