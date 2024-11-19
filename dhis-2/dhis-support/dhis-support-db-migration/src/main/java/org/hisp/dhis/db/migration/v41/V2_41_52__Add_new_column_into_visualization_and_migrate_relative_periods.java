@@ -88,7 +88,7 @@ import org.flywaydb.core.api.migration.Context;
 import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
 
-public class V2_41_51__Add_new_column_into_visualization_and_migrate_relative_periods
+public class V2_41_52__Add_new_column_into_visualization_and_migrate_relative_periods
     extends BaseJavaMigration {
 
   public static final Map<String, String> SELECT_UPDATE_PAIRS =
@@ -102,7 +102,7 @@ public class V2_41_51__Add_new_column_into_visualization_and_migrate_relative_pe
           "select m.mapviewid, m.relativeperiodsid from mapview m join relativeperiods r ON r.relativeperiodsid = m.relativeperiodsid order by m.mapviewid",
           "update mapview set relativeperiods = ? where mapviewid = ?");
   private static final Logger log =
-      getLogger(V2_41_51__Add_new_column_into_visualization_and_migrate_relative_periods.class);
+      getLogger(V2_41_52__Add_new_column_into_visualization_and_migrate_relative_periods.class);
 
   private static final Map<String, String> PERIODS = new HashMap<>();
 
