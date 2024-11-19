@@ -87,6 +87,7 @@ class TableTest {
 
     assertTrue(tableA.hasPrimaryKey());
     assertFalse(tableB.hasPrimaryKey());
+    assertEquals(List.of("dx"), tableA.getPrimaryKey());
   }
 
   @Test
