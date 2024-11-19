@@ -48,15 +48,23 @@ class OrgUnitFieldTest {
 
   private static final OrgUnitField DEFALT = new OrgUnitField(null);
 
-  private static final OrgUnitField ATTRIB = new OrgUnitField("attributeId").withSqlBuilder(sqlBuilder);
+  private static final OrgUnitField ATTRIB =
+      new OrgUnitField("attributeId").withSqlBuilder(sqlBuilder);
 
-  private static final OrgUnitField REGIST = new OrgUnitField("REGISTRATION").withSqlBuilder(sqlBuilder);
+  private static final OrgUnitField REGIST =
+      new OrgUnitField("REGISTRATION").withSqlBuilder(sqlBuilder);
 
-  private static final OrgUnitField ENROLL = new OrgUnitField("ENROLLMENT").withSqlBuilder(sqlBuilder);;
+  private static final OrgUnitField ENROLL =
+      new OrgUnitField("ENROLLMENT").withSqlBuilder(sqlBuilder);
+  ;
 
-  private static final OrgUnitField OSTART = new OrgUnitField("OWNER_AT_START").withSqlBuilder(sqlBuilder);;
+  private static final OrgUnitField OSTART =
+      new OrgUnitField("OWNER_AT_START").withSqlBuilder(sqlBuilder);
+  ;
 
-  private static final OrgUnitField OEND = new OrgUnitField("OWNER_AT_END").withSqlBuilder(sqlBuilder);;
+  private static final OrgUnitField OEND =
+      new OrgUnitField("OWNER_AT_END").withSqlBuilder(sqlBuilder);
+  ;
 
   @Test
   void testIsJoinOrgUnitTables() {
