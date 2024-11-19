@@ -243,15 +243,6 @@ public interface SqlBuilder {
   String regexpMatch(String pattern);
 
   /**
-   * Returns a SQL function that calculates the difference in days between two dates.
-   *
-   * @param date1 the first date
-   * @param date2 the second date
-   * @return the SQL function
-   */
-  String dateDiffInDays(String date1, String date2);
-
-  /**
    * Creates a SQL concatenation function that combines multiple columns or expressions.
    *
    * @param columns the column names or expressions to concatenate
@@ -276,41 +267,6 @@ public interface SqlBuilder {
    * @return the SQL function for coalescing
    */
   String coalesce(String expression, String defaultValue);
-
-  /**
-   * Properly quotes identifiers (column names) according to the specific SQL dialect rules. For
-   * PostgreSQL, double quotes (") are used. For Doris/MySQL, backticks (`) are used.
-   *
-   * <p>This method is meant to be used for quoting column names in SQL queries, in cases where the
-   * system is already quoting identifiers, but the quoting takes place where SqlBuilder is not
-   * available (for instance, in the static methods of utility classes).
-   *
-   * <p>The method handles various input formats:
-   *
-   * <ul>
-   *   <li>Simple column names: "column_name" or column_name
-   *   <li>Qualified names: "schema"."table"."column" or schema.table.column
-   *   <li>Aliased columns: alias.column_name or alias."column_name"
-   * </ul>
-   *
-   * @param column The identifier to be quoted. Can be:
-   *     <ul>
-   *       <li>null or empty string (returns empty string)
-   *       <li>a simple column name (e.g., "column_name" or column_name)
-   *       <li>a qualified name (e.g., "schema"."table"."column" or schema.table.column)
-   *       <li>an aliased column (e.g., alias.column_name or alias."column_name")
-   *     </ul>
-   *
-   * @return The properly quoted identifier according to the SQL dialect:
-   *     <ul>
-   *       <li>For PostgreSQL: Returns the identifier wrapped in double quotes (")
-   *       <li>For Doris/MySQL: Returns the identifier wrapped in backticks (`)
-   *       <li>Returns empty string if input is null or empty
-   *       <li>Preserves existing correct quoting
-   *       <li>Preserves intentional spaces around dots in qualified names
-   *     </ul>
-   */
-  String fixQuote(String column);
 
   /**
    * Extracts a value from a JSON column using a specified property path.

@@ -203,11 +203,6 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String dateDiffInDays(String date1, String date2) {
-    return "";
-  }
-
-  @Override
   public String concat(String... columns) {
     return "";
   }
@@ -219,11 +214,6 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String coalesce(String expression, String defaultValue) {
-    return "";
-  }
-
-  @Override
-  public String fixQuote(String column) {
     return "";
   }
 

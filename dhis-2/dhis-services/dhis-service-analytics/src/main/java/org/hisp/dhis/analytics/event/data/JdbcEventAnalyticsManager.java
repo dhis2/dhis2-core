@@ -632,8 +632,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
             .map(object -> (OrganisationUnit) object)
             .collect(
                 Collectors.groupingBy(
-                    // TODO: luciano -> should use fixquote
-                    unit -> orgUnitField.getOrgUnitLevelCol(unit.getLevel(), getAnalyticsType())));
+                    unit -> orgUnitField.withSqlBuilder(sqlBuilder).getOrgUnitLevelCol(unit.getLevel(), getAnalyticsType())));
 
     return collect.keySet().stream()
         .map(org -> toInCondition(org, collect.get(org)))

@@ -43,6 +43,7 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.program.AnalyticsType;
 
 /**
@@ -82,6 +83,8 @@ public class OrgUnitField {
   private final String field;
 
   private final OrgUnitFieldType type;
+
+  private SqlBuilder sqlBuilder;
 
   public OrgUnitField(String field) {
     this.field = field;
@@ -224,5 +227,10 @@ public class OrgUnitField {
   @Override
   public String toString() {
     return "[" + field + "-" + type + "]";
+  }
+
+  public OrgUnitField withSqlBuilder(SqlBuilder sqlBuilder) {
+    this.sqlBuilder = sqlBuilder;
+    return this;
   }
 }
