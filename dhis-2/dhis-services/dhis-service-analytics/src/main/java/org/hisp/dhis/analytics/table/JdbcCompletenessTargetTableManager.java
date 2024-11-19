@@ -102,6 +102,8 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
               .selectExpression("doc.coenddate")
               .build());
 
+  private static final List<String> SORT_KEY = List.of("dx");
+
   public JdbcCompletenessTargetTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -143,7 +145,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     Logged logged = analyticsTableSettings.getTableLogged();
     return params.isLatestUpdate()
         ? List.of()
-        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged));
+        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), SORT_KEY, logged));
   }
 
   @Override

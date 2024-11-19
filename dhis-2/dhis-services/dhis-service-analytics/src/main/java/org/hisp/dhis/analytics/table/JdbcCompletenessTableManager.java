@@ -91,6 +91,8 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
               .selectExpression("ps.year")
               .build());
 
+  private static final List<String> SORT_KEY = List.of("dx");
+
   public JdbcCompletenessTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -132,7 +134,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     AnalyticsTable table =
         params.isLatestUpdate()
             ? getLatestAnalyticsTable(params, getColumns())
-            : getRegularAnalyticsTable(params, getDataYears(params), getColumns());
+            : getRegularAnalyticsTable(params, getDataYears(params), getColumns(), SORT_KEY);
 
     return table.hasTablePartitions() ? List.of(table) : List.of();
   }

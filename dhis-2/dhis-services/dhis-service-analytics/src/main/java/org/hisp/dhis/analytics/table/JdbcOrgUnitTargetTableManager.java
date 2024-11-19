@@ -77,6 +77,8 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
               .selectExpression("oug.uid")
               .build());
 
+  private static final List<String> SORT_KEY = List.of("oug");
+
   public JdbcOrgUnitTargetTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -118,7 +120,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
     Logged logged = analyticsTableSettings.getTableLogged();
     return params.isLatestUpdate()
         ? List.of()
-        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged));
+        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), SORT_KEY, logged));
   }
 
   @Override
