@@ -200,7 +200,7 @@ public class OrgUnitField {
   private String getTableAndColumn(String tableAlias, String col, boolean noColumnAlias) {
     if (type.isOwnership()) {
       return "coalesce("
-          + quote(OWNERSHIP_TBL_ALIAS, col)
+          + sqlBuilder.quote(OWNERSHIP_TBL_ALIAS, col)
           + ","
           + ouQuote(tableAlias, col, true)
           + ")"
@@ -218,7 +218,7 @@ public class OrgUnitField {
    */
   private String ouQuote(String tableAlias, String col, boolean noColumnAlias) {
     if (ORG_UNIT_STRUCT_ALIAS.equals(tableAlias) && DEFAULT_ORG_UNIT_COL.equals(col)) {
-      return quote(tableAlias, "organisationunituid") + ((noColumnAlias) ? "" : " as " + col);
+      return sqlBuilder.quote(tableAlias, "organisationunituid") + ((noColumnAlias) ? "" : " as " + col);
     }
 
     return quote(tableAlias, col);
