@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.config;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_SCHEMA;
 import static org.hisp.dhis.external.conf.ConfigurationKey.USE_QUERY_CACHE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.USE_SECOND_LEVEL_CACHE;
 
+import java.awt.Desktop.Action;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -154,6 +156,10 @@ public class HibernateConfig {
       properties.put(AvailableSettings.CACHE_REGION_FACTORY, EhcacheRegionFactory.class.getName());
       properties.put(AvailableSettings.USE_QUERY_CACHE, dhisConfig.getProperty(USE_QUERY_CACHE));
     }
+
+    properties.put(
+        AvailableSettings.HBM2DDL_AUTO,
+        Action.valueOf(dhisConfig.getProperty(CONNECTION_SCHEMA).toUpperCase()));
 
     // TODO: this is anti-pattern and should be turn off
     properties.put("hibernate.allow_update_outside_transaction", "true");
