@@ -34,14 +34,9 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.util.DateUtils.getEarliest;
 import static org.hisp.dhis.util.DateUtils.getLatest;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -70,6 +65,10 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Component;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -111,7 +110,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
             .build();
 
     for (Function<DataQueryParams, List<DataQueryParams>> grouper : groupers) {
-      List<DataQueryParams> currentQueries = Lists.newArrayList(queries);
+      List<DataQueryParams> currentQueries = new ArrayList<>(queries);
       queries.clear();
 
       currentQueries.forEach(query -> queries.addAll(grouper.apply(query)));
@@ -125,7 +124,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
       return queryGroups;
     }
 
-    List<String> splitDimensions = Lists.newArrayList(DATA_X_DIM_ID, ORGUNIT_DIM_ID);
+    List<String> splitDimensions = List.of(DATA_X_DIM_ID, ORGUNIT_DIM_ID);
 
     for (String dim : splitDimensions) {
       queryGroups = splitByDimension(queryGroups, dim, plannerParams.getOptimalQueries());
