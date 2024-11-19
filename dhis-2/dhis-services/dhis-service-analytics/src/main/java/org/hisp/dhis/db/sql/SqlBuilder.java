@@ -236,6 +236,12 @@ public interface SqlBuilder {
    */
   String differenceInSeconds(String columnA, String columnB);
 
+  /**
+   * @param pattern the regular expression pattern to match against
+   * @return a regular expression matching clause.
+   */
+  String regexpMatch(String pattern);
+
   // Statements
 
   /**
@@ -360,12 +366,4 @@ public interface SqlBuilder {
    * @return a drop catalog if exists statement.
    */
   String dropCatalogIfExists();
-
-  /**
-   * Returns the appropriate regexp matching syntax
-   *
-   * @param pattern The regexp pattern to match against
-   * @return The complete regexp matching clause for the current database
-   */
-  String regexpMatch(String pattern);
 }

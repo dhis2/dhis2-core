@@ -191,6 +191,14 @@ class DorisSqlBuilderTest {
             sqlBuilder.quote("a", "startdate"), sqlBuilder.quote("b", "enddate")));
   }
 
+  @Test
+  void testRegexpMatch() {
+    assertEquals("regexp test", sqlBuilder.regexpMatch("test"));
+    assertEquals("regexp \\d", sqlBuilder.regexpMatch("\\d"));
+    assertEquals("regexp ", sqlBuilder.regexpMatch(""));
+    assertEquals("regexp [a-z]\\w+\\d{3}", sqlBuilder.regexpMatch("[a-z]\\w+\\d{3}"));
+  }
+
   // Statements
 
   @Test
@@ -343,19 +351,5 @@ class DorisSqlBuilderTest {
         select count(*) as row_count from `immunization`;""";
 
     assertEquals(expected, sqlBuilder.countRows(getTableA()));
-  }
-
-  @Test
-  void testRegexpMatch() {
-    assertEquals("REGEXP test", sqlBuilder.regexpMatch("test"));
-
-    // Test pattern with regex special characters
-    assertEquals("REGEXP \\d", sqlBuilder.regexpMatch("\\d"));
-
-    // Test empty string
-    assertEquals("REGEXP ", sqlBuilder.regexpMatch(""));
-
-    // Test complex regex pattern
-    assertEquals("REGEXP [a-z]\\w+\\d{3}", sqlBuilder.regexpMatch("[a-z]\\w+\\d{3}"));
   }
 }
