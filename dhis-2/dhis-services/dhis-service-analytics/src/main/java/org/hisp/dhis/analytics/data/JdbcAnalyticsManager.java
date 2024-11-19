@@ -325,9 +325,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     if (params.hasMeasureCriteria()
         && params.isDataType(DataType.NUMERIC)
         && !params.hasReportingRates()) {
-      // Reporting rates applies the measure criteria after the rates calculation phase. Cannot be
-      // done here.
-      // done at this stage.
+      // Reporting rates applies the measure criteria after the rates calculation phase
       builder.append(getMeasureCriteriaSql(params));
     }
 
