@@ -39,6 +39,7 @@ import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -70,10 +71,24 @@ class AnalyticsTableTest {
               .selectExpression("value")
               .build());
 
+  private final List<String> sortKeyA = List.of("data");
+
+  @Test
+  void testConstructor() {
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, sortKeyA, Logged.UNLOGGED);
+
+    assertEquals(AnalyticsTableType.DATA_VALUE, table.getTableType());
+    assertTrue(table.getPrimaryKey().isEmpty());
+    assertEquals(sortKeyA, table.getSortKey());
+    assertTrue(table.getChecks().isEmpty());
+    assertEquals(Logged.UNLOGGED, table.getLogged());
+  }
+
   @Test
   void testGetTableNameDataValue() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED, NONE);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, sortKeyA, Logged.UNLOGGED, NONE);
     assertEquals("analytics", table.getMainName());
     assertEquals("analytics_temp", table.getName());
   }
@@ -81,7 +96,7 @@ class AnalyticsTableTest {
   @Test
   void testGetTableNameCompleteness() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, columnsA, Logged.UNLOGGED, NONE);
+        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, columnsA, sortKeyA, Logged.UNLOGGED, NONE);
     assertEquals("analytics_completeness", table.getMainName());
     assertEquals("analytics_completeness_temp", table.getName());
   }
@@ -89,7 +104,8 @@ class AnalyticsTableTest {
   @Test
   void testGetTableNameValidationResult() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.VALIDATION_RESULT, columnsA, Logged.UNLOGGED, NONE);
+        new AnalyticsTable(
+            AnalyticsTableType.VALIDATION_RESULT, columnsA, sortKeyA, Logged.UNLOGGED, NONE);
     assertEquals("analytics_validationresult", table.getMainName());
     assertEquals("analytics_validationresult_temp", table.getName());
   }
@@ -154,7 +170,7 @@ class AnalyticsTableTest {
                 .build());
 
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, Logged.UNLOGGED, NONE);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, List.of(), Logged.UNLOGGED, NONE);
 
     assertEquals(3, table.getDimensionColumns().size());
     assertEquals("dx", table.getDimensionColumns().get(0).getName());
@@ -192,9 +208,9 @@ class AnalyticsTableTest {
   @Test
   void testEquals() {
     AnalyticsTable tableA =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED, NONE);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, sortKeyA, Logged.UNLOGGED, NONE);
     AnalyticsTable tableB =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED, NONE);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, sortKeyA, Logged.UNLOGGED, NONE);
     List<AnalyticsTable> uniqueList = new UniqueArrayList<>();
     uniqueList.add(tableA);
     uniqueList.add(tableB);

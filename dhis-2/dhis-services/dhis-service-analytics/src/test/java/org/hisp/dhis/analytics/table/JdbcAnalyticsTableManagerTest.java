@@ -334,17 +334,16 @@ class JdbcAnalyticsTableManagerTest {
       "Verify if the method swapParentTable is called with the swapped table name not the staging table name")
   void testSwapTable() {
     Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+    List<AnalyticsTableColumn> columns =
+        List.of(
+            AnalyticsTableColumn.builder()
+                .name("year")
+                .dataType(INTEGER)
+                .selectExpression("")
+                .build());
+    List<String> sortKey = List.of("dx");
     AnalyticsTable table =
-        new AnalyticsTable(
-            AnalyticsTableType.DATA_VALUE,
-            List.of(
-                AnalyticsTableColumn.builder()
-                    .name("year")
-                    .dataType(INTEGER)
-                    .selectExpression("")
-                    .build()),
-            LOGGED,
-            NONE);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, sortKey, LOGGED, NONE);
     table.addTablePartition(List.of(), 2023, new DateTime(2023, 1, 1, 0, 0).toDate(), null);
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();

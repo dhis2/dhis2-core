@@ -29,10 +29,11 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.Note;
+import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(uses = {InstantMapper.class, UserMapper.class})
+@Mapper(uses = {InstantMapper.class, UIDMapper.class, UserMapper.class})
 public interface NoteMapper {
   @Mapping(target = "note", source = "uid")
   @Mapping(target = "storedAt", source = "created")

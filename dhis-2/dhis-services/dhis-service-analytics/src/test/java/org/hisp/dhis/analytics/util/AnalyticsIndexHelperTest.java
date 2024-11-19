@@ -104,6 +104,6 @@ class AnalyticsIndexHelperTest {
                 .indexType(BTREE)
                 .build());
 
-    return new AnalyticsTable(EVENT, columns, Logged.UNLOGGED, NONE);
+    return new AnalyticsTable(EVENT, columns, List.of(), Logged.UNLOGGED, NONE);
   }
 }

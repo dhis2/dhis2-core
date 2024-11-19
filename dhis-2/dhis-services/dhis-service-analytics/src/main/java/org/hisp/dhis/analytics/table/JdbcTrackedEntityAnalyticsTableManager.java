@@ -182,17 +182,17 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
           AnalyticsTableColumn.builder()
               .name("ou")
               .dataType(CHARACTER_11)
-              .selectExpression("ou.uid")
+              .selectExpression("ous.organisationunituid")
               .build(),
           AnalyticsTableColumn.builder()
               .name("ouname")
               .dataType(VARCHAR_255)
-              .selectExpression("ou.name")
+              .selectExpression("ous.name")
               .build(),
           AnalyticsTableColumn.builder()
               .name("oucode")
               .dataType(VARCHAR_50)
-              .selectExpression("ou.code")
+              .selectExpression("ous.code")
               .build(),
           AnalyticsTableColumn.builder()
               .name("oulevel")
@@ -379,6 +379,9 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
             .toList());
 
     columns.addAll(getOrganisationUnitGroupSetColumns());
+    if (sqlBuilder.supportsDeclarativePartitioning()) {
+      columns.add(getPartitionColumn());
+    }
 
     return columns;
   }
@@ -512,8 +515,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
             replaceQualify(
                 """
                 \s from ${trackedentity} te \
-                left join ${organisationunit} ou on te.organisationunitid=ou.organisationunitid \
-                left join analytics_rs_orgunitstructure ous on ous.organisationunitid=ou.organisationunitid \
+                left join analytics_rs_orgunitstructure ous on te.organisationunitid=ous.organisationunitid \
                 left join analytics_rs_organisationunitgroupsetstructure ougs on te.organisationunitid=ougs.organisationunitid \
                 and (cast(${trackedEntityCreatedMonth} as date)=ougs.startdate \
                 or ougs.startdate is null)""",
@@ -526,19 +528,19 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
                 sql.append(
                     replaceQualify(
                         """
-                    \s left join ${trackedentityattributevalue} "${teaUid}" on "${teaUid}".trackedentityid=te.trackedentityid \
-                    and "${teaUid}".trackedentityattributeid = ${teaId}""",
+                    \s left join ${trackedentityattributevalue} ${teaUid} on ${teaUid}.trackedentityid=te.trackedentityid \
+                    and ${teaUid}.trackedentityattributeid = ${teaId}""",
                         Map.of(
-                            "teaUid", tea.getUid(),
+                            "teaUid", quote(tea.getUid()),
                             "teaId", String.valueOf(tea.getId())))));
     sql.append(
-        replace(
+        replaceQualify(
             """
             \s where te.trackedentitytypeid = ${tetId} \
             and te.lastupdated < '${startTime}' \
-            and exists (select 1 from enrollment en \
+            and exists (select 1 from ${enrollment} en \
             where en.trackedentityid = te.trackedentityid \
-            and exists (select 1 from event ev \
+            and exists (select 1 from ${event} ev \
             where ev.enrollmentid = en.enrollmentid \
             and ev.status in (${statuses}) \
             and ev.deleted = false)) \

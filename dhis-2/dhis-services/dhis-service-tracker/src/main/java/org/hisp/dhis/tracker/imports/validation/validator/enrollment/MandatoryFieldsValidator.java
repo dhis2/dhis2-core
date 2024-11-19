@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1122;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
@@ -44,9 +43,6 @@ class MandatoryFieldsValidator implements Validator<Enrollment> {
     reporter.addErrorIf(() -> enrollment.getOrgUnit().isBlank(), enrollment, E1122, "orgUnit");
     reporter.addErrorIf(() -> enrollment.getProgram().isBlank(), enrollment, E1122, "program");
     reporter.addErrorIf(
-        () -> StringUtils.isEmpty(enrollment.getTrackedEntity()),
-        enrollment,
-        E1122,
-        "trackedEntity");
+        () -> enrollment.getTrackedEntity() == null, enrollment, E1122, "trackedEntity");
   }
 }

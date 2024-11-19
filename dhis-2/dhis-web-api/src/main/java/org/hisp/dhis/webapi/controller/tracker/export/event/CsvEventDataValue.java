@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import org.hisp.dhis.common.UID;
 import org.springframework.util.Assert;
 
 /**
@@ -67,7 +68,7 @@ import org.springframework.util.Assert;
   "updatedAtDataValue"
 })
 class CsvEventDataValue {
-  private String event;
+  private UID event;
 
   private String status;
 
@@ -77,7 +78,7 @@ class CsvEventDataValue {
 
   private String orgUnit;
 
-  private String enrollment;
+  private UID enrollment;
 
   private String occurredAt;
 
@@ -162,11 +163,11 @@ class CsvEventDataValue {
   }
 
   @JsonProperty
-  public String getEvent() {
+  public UID getEvent() {
     return event;
   }
 
-  public void setEvent(String event) {
+  public void setEvent(UID event) {
     this.event = event;
   }
 
@@ -198,11 +199,11 @@ class CsvEventDataValue {
   }
 
   @JsonProperty
-  public String getEnrollment() {
+  public UID getEnrollment() {
     return enrollment;
   }
 
-  public void setEnrollment(String enrollment) {
+  public void setEnrollment(UID enrollment) {
     this.enrollment = enrollment;
   }
 

@@ -41,8 +41,9 @@ import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
@@ -70,12 +71,15 @@ class EachTest {
   @Test
   void testCallsValidatorForEachItemInCollection() {
     Validator<Enrollment> validator =
-        each(Enrollment::getNotes, (r, b, n) -> addError(r, n.getNote()));
+        each(Enrollment::getNotes, (r, b, n) -> addError(r, n.getNote().getValue()));
 
-    validator.validate(reporter, bundle, enrollment("Kj6vYde4LHh", "V1", "V2", "V3"));
+    UID note1 = UID.generate();
+    UID note2 = UID.generate();
+    UID note3 = UID.generate();
+    validator.validate(reporter, bundle, enrollment(UID.of("Kj6vYde4LHh"), note1, note2, note3));
 
     // order of input collection is preserved
-    assertEquals(List.of("V1", "V2", "V3"), actualErrorMessages());
+    assertEquals(UID.toValueList(List.of(note1, note2, note3)), actualErrorMessages());
   }
 
   @Test
@@ -97,7 +101,10 @@ class EachTest {
               }
             });
 
-    validator.validate(reporter, bundle, enrollment("Kj6vYde4LHh", "input1", "input2", "input2"));
+    validator.validate(
+        reporter,
+        bundle,
+        enrollment(UID.of("Kj6vYde4LHh"), UID.generate(), UID.generate(), UID.generate()));
 
     assertIsEmpty(actualErrorMessages());
   }
@@ -112,9 +119,10 @@ class EachTest {
                     Map.of(
                         ENROLLMENT,
                         Map.of(
-                            "Kj6vYde4LHh", UPDATE,
-                            "Nav6inZRw1u", CREATE))))
-            .enrollments(List.of(enrollment("Kj6vYde4LHh"), enrollment("Nav6inZRw1u")))
+                            UID.of("Kj6vYde4LHh"), UPDATE,
+                            UID.of("Nav6inZRw1u"), CREATE))))
+            .enrollments(
+                List.of(enrollment(UID.of("Kj6vYde4LHh")), enrollment(UID.of("Nav6inZRw1u"))))
             .build();
 
     Validator<TrackerBundle> validator =
@@ -123,7 +131,7 @@ class EachTest {
             new Validator<>() {
               @Override
               public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
-                addError(reporter, enrollment.getEnrollment());
+                addError(reporter, enrollment.getEnrollment().getValue());
               }
 
               @Override
@@ -137,7 +145,7 @@ class EachTest {
     assertContainsOnly(List.of("Nav6inZRw1u"), actualErrorMessages());
   }
 
-  private static Enrollment enrollment(String uid, String... notes) {
+  private static Enrollment enrollment(UID uid, UID... notes) {
     List<Note> n = Arrays.stream(notes).map(s -> Note.builder().note(s).build()).toList();
 
     return Enrollment.builder().enrollment(uid).notes(n).build();
@@ -150,7 +158,8 @@ class EachTest {
    */
   private static void addError(Reporter reporter, String message) {
     reporter.addError(
-        new Error(message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, "uid", List.of()));
+        new Error(
+            message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, UID.generate(), List.of()));
   }
 
   private List<String> actualErrorMessages() {

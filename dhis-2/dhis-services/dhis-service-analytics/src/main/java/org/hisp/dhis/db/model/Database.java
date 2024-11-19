@@ -27,12 +27,26 @@
  */
 package org.hisp.dhis.db.model;
 
+import org.hisp.dhis.analytics.table.init.AnalyticsDatabaseInit;
+import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilderProvider;
+
 /**
  * Enumeration of database platforms.
+ *
+ * <p>To add support for a new analytics database engine, add the following:
+ *
+ * <ul>
+ *   <li>Value to this {@link Database}.
+ *   <li>Implementation class of {@link SqlBuilder}.
+ *   <li>Register {@link SqlBuilder} implementation in {@link SqlBuilderProvider}.
+ *   <li>Method to {@link AnalyticsDatabaseInit} (optional).
+ *   <li>JDBC driver in <code>pom.xml</code>.
+ * </ul>
  *
  * @author Lars Helge Overland
  */
 public enum Database {
   POSTGRESQL,
-  DORIS;
+  DORIS
 }

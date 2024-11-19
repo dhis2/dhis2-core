@@ -29,16 +29,13 @@ package org.hisp.dhis.tracker.imports.bundle;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.ValidationMode;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;
-import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.junit.jupiter.api.Test;
 
@@ -79,43 +76,5 @@ class TrackerBundleTest {
     assertEquals(2, trackerBundle.getTrackedEntities().size());
     assertEquals(2, trackerBundle.getEnrollments().size());
     assertEquals(2, trackerBundle.getEvents().size());
-  }
-
-  @Test
-  void testGetTrackedEntityGivenNull() {
-    TrackerBundle bundle =
-        TrackerBundle.builder()
-            .trackedEntities(List.of(TrackedEntity.builder().trackedEntity("uid").build()))
-            .build();
-
-    assertTrue(bundle.findTrackedEntityByUid(null).isEmpty());
-  }
-
-  @Test
-  void testGetEnrollmentGivenNull() {
-    TrackerBundle bundle =
-        TrackerBundle.builder()
-            .enrollments(List.of(Enrollment.builder().enrollment("uid").build()))
-            .build();
-
-    assertTrue(bundle.findEnrollmentByUid(null).isEmpty());
-  }
-
-  @Test
-  void testGetRelationshipGivenNull() {
-    TrackerBundle bundle =
-        TrackerBundle.builder()
-            .relationships(List.of(Relationship.builder().relationship("uid").build()))
-            .build();
-
-    assertTrue(bundle.findRelationshipByUid(null).isEmpty());
-  }
-
-  @Test
-  void testGetRelationshipInBundleContainingNullUids() {
-    TrackerBundle bundle =
-        TrackerBundle.builder().relationships(List.of(Relationship.builder().build())).build();
-
-    assertTrue(bundle.findRelationshipByUid("uid").isEmpty());
   }
 }

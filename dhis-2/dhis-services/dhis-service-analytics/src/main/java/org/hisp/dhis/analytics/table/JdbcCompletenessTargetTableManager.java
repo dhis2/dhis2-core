@@ -80,7 +80,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
               .name("ao")
               .dataType(CHARACTER_11)
               .nullable(NOT_NULL)
-              .selectExpression("ao.uid")
+              .selectExpression("acs.categoryoptioncombouid")
               .build(),
           AnalyticsTableColumn.builder()
               .name("ouopeningdate")
@@ -102,6 +102,8 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
               .dataType(DATE)
               .selectExpression("doc.coenddate")
               .build());
+
+  private static final List<String> SORT_KEY = List.of("dx");
 
   public JdbcCompletenessTargetTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -146,7 +148,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
 
     return params.isLatestUpdate()
         ? List.of()
-        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged, distribution));
+        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), SORT_KEY, logged, distribution));
   }
 
   @Override
@@ -182,12 +184,11 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     sql +=
         qualifyVariables(
             """
-        from analytics_rs_datasetorganisationunitcategory doc
-        inner join ${dataset} ds on doc.datasetid=ds.datasetid
-        inner join ${organisationunit} ou on doc.organisationunitid=ou.organisationunitid
-        left join analytics_rs_orgunitstructure ous on doc.organisationunitid=ous.organisationunitid
-        left join analytics_rs_organisationunitgroupsetstructure ougs on doc.organisationunitid=ougs.organisationunitid
-        left join ${categoryoptioncombo} ao on doc.attributeoptioncomboid=ao.categoryoptioncomboid
+        from analytics_rs_datasetorganisationunitcategory doc \
+        inner join analytics_rs_dataset ds on doc.datasetid=ds.datasetid \
+        inner join ${organisationunit} ou on doc.organisationunitid=ou.organisationunitid \
+        left join analytics_rs_orgunitstructure ous on doc.organisationunitid=ous.organisationunitid \
+        left join analytics_rs_organisationunitgroupsetstructure ougs on doc.organisationunitid=ougs.organisationunitid \
         left join analytics_rs_categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid""");
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);

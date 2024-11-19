@@ -79,17 +79,21 @@ public class AnalyticsTable extends Table {
    *
    * @param tableType the {@link AnalyticsTableType}.
    * @param columns the list of {@link Column}.
+   * @param sortKey the sort key.
    * @param logged the {@link Logged} property.
    * @param distribution the {@link Distribution} based on Citus settings.
    */
   public AnalyticsTable(
       AnalyticsTableType tableType,
       List<AnalyticsTableColumn> columns,
+      List<String> sortKey,
       Logged logged,
       Distribution distribution) {
     super(
         toStaging(tableType.getTableName()),
         toColumns(columns),
+        List.of(),
+        sortKey,
         List.of(),
         logged,
         getDistributedFlag(distribution, tableType.isDistributed()));

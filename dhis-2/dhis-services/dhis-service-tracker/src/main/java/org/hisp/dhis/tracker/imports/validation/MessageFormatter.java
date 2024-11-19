@@ -40,7 +40,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -107,10 +107,11 @@ class MessageFormatter {
     if (Date.class.isAssignableFrom(type)) return (DateFormat.getInstance().format(argument));
     if (Instant.class.isAssignableFrom(type))
       return DateUtils.toIso8601NoTz(DateUtils.fromInstant((Instant) argument));
-    if (Enrollment.class.isAssignableFrom(type)) return ((Enrollment) argument).getEnrollment();
+    if (Enrollment.class.isAssignableFrom(type))
+      return ((Enrollment) argument).getEnrollment().getValue();
     if (Event.class.isAssignableFrom(type)) return ((Event) argument).getEvent().getValue();
     if (TrackedEntity.class.isAssignableFrom(type))
-      return ((TrackedEntity) argument).getTrackedEntity();
+      return ((TrackedEntity) argument).getTrackedEntity().getValue();
     return argument.toString();
   }
 

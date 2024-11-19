@@ -82,8 +82,10 @@ class AnalyticsTableServiceTest {
                 .selectExpression("value")
                 .build());
 
+    List<String> sortKey = List.of("dx");
+
     AnalyticsTable tA =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, Logged.UNLOGGED, NONE);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, sortKey, Logged.UNLOGGED, NONE);
     tA.addTablePartition(
         List.of(),
         2010,
@@ -95,7 +97,7 @@ class AnalyticsTableServiceTest {
         new DateTime(2011, 1, 1, 0, 0).toDate(),
         new DateTime(2011, 12, 31, 0, 0).toDate());
     AnalyticsTable tB =
-        new AnalyticsTable(AnalyticsTableType.ORG_UNIT_TARGET, columns, Logged.UNLOGGED, NONE);
+        new AnalyticsTable(AnalyticsTableType.ORG_UNIT_TARGET, columns, sortKey, Logged.UNLOGGED, NONE);
     List<AnalyticsTablePartition> partitions = tableService.getTablePartitions(List.of(tA, tB));
 
     assertEquals(3, partitions.size());
