@@ -105,7 +105,7 @@ import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.Users;
-import org.hisp.dhis.webapi.controller.AbstractParameterizedCrudController;
+import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -130,7 +130,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequestMapping("/api/users")
 public class UserController
-    extends AbstractParameterizedCrudController<User, UserController.GetUserObjectListParams> {
+    extends AbstractCrudController<User, UserController.GetUserObjectListParams> {
 
   public static final String INVITE_PATH = "/invite";
 

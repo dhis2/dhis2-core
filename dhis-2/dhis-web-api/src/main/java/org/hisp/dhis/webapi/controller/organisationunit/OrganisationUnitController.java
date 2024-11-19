@@ -75,7 +75,7 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.version.VersionService;
-import org.hisp.dhis.webapi.controller.AbstractParameterizedCrudController;
+import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -97,7 +97,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequestMapping("/api/organisationUnits")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class OrganisationUnitController
-    extends AbstractParameterizedCrudController<
+    extends AbstractCrudController<
         OrganisationUnit, OrganisationUnitController.GetOrganisationUnitObjectListParams> {
 
   @Autowired private OrganisationUnitService organisationUnitService;

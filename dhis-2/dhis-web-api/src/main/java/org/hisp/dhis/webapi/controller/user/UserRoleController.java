@@ -42,7 +42,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.webapi.controller.AbstractParameterizedCrudController;
+import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -59,8 +59,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequestMapping("/api/userRoles")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class UserRoleController
-    extends AbstractParameterizedCrudController<
-        UserRole, UserRoleController.GetUserRoleObjectListParams> {
+    extends AbstractCrudController<UserRole, UserRoleController.GetUserRoleObjectListParams> {
 
   private final UserService userService;
 

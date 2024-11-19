@@ -52,7 +52,7 @@ import org.hisp.dhis.textpattern.TextPatternService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.controller.AbstractParameterizedCrudController;
+import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -72,7 +72,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/api/trackedEntityAttributes")
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
 public class TrackedEntityAttributeController
-    extends AbstractParameterizedCrudController<
+    extends AbstractCrudController<
         TrackedEntityAttribute,
         TrackedEntityAttributeController.GetTrackedEntityAttributeObjectListParams> {
 

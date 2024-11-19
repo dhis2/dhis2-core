@@ -51,7 +51,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.Query;
-import org.hisp.dhis.webapi.controller.AbstractParameterizedCrudController;
+import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -72,8 +72,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequiredArgsConstructor
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
 public class ProgramController
-    extends AbstractParameterizedCrudController<
-        Program, ProgramController.GetProgramObjectListParams> {
+    extends AbstractCrudController<Program, ProgramController.GetProgramObjectListParams> {
 
   @Data
   @EqualsAndHashCode(callSuper = true)

@@ -107,7 +107,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequiredArgsConstructor
 @OpenApi.Document(classifiers = {"team:platform", "purpose:support"})
 public class MessageConversationController
-    extends AbstractParameterizedCrudController<
+    extends AbstractCrudController<
         org.hisp.dhis.message.MessageConversation,
         MessageConversationController.GetMessageConversationObjectListParams> {
 

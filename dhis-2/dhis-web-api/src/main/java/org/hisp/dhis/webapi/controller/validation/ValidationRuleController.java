@@ -47,7 +47,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
-import org.hisp.dhis.webapi.controller.AbstractParameterizedCrudController;
+import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -62,7 +62,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping("/api/validationRules")
 public class ValidationRuleController
-    extends AbstractParameterizedCrudController<
+    extends AbstractCrudController<
         ValidationRule, ValidationRuleController.GetValidationRuleObjectListParams> {
 
   @Autowired private DataSetService dataSetService;
