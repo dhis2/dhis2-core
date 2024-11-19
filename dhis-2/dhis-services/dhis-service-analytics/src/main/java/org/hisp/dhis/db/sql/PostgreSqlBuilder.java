@@ -35,7 +35,6 @@ import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
-import org.hisp.dhis.util.DateUtils;
 
 /**
  * Implementation of {@link SqlBuilder} for PostgreSQL.

@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.db.sql;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
@@ -263,9 +264,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     // Partitions
 
     if (table.hasPartitions()) {
-      String partitions = toCommaSeparated(table.getPartitions(), this::toPartitionString);
-
-      sql.append("partition by range(year) (").append(partitions).append(") "); // Make configurable
+      sql.append(generatePartitionClause(table.getPartitions()));
     }
 
     // Distribution
@@ -284,6 +283,40 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     sql.append("properties (\"replication_num\" = \"1\")");
 
     return sql.append(";").toString();
+  }
+
+  /**
+   * Generates the partition clause for the table creation SQL.
+   *
+   * @param partitions the list of table partitions
+   * @return the partition clause string
+   */
+  private String generatePartitionClause(List<TablePartition> partitions) {
+    StringBuilder partitionClause =
+        new StringBuilder("partition by range(year) ("); // Make configurable
+
+    List<TablePartition> sortedPartitions;
+    try {
+      sortedPartitions =
+          partitions.stream()
+              .sorted(Comparator.comparingInt(p -> Integer.parseInt(p.getValue().toString())))
+              .toList();
+    } catch (NumberFormatException e) {
+      sortedPartitions = partitions;
+    }
+
+    for (int i = 0; i < sortedPartitions.size(); i++) {
+      if (i == sortedPartitions.size() - 1) {
+        // Handle last partition with MAXVALUE
+        partitionClause
+            .append("partition ")
+            .append(quote(sortedPartitions.get(i).getName()))
+            .append(" values less than(MAXVALUE),");
+      } else {
+        partitionClause.append(toPartitionString(sortedPartitions.get(i))).append(",");
+      }
+    }
+    return partitionClause.substring(0, partitionClause.length() - 1) + ") ";
   }
 
   /**
