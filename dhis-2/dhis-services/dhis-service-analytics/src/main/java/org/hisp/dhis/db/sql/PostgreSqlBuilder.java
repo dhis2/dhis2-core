@@ -224,6 +224,31 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     return String.format("~* %s", pattern);
   }
 
+  @Override
+  public String concat(String... columns) {
+    return "concat(" + String.join(", ", columns) + ")";
+  }
+
+  @Override
+  public String trim(String expression) {
+    return "trim(" + expression + ")";
+  }
+
+  @Override
+  public String coalesce(String expression, String defaultValue) {
+    return "coalesce(" + expression + ", " + defaultValue + ")";
+  }
+
+  @Override
+  public String jsonExtract(String column, String property) {
+    return column + " ->> '" + property + "'";
+  }
+
+  @Override
+  public String jsonExtract(String tablePrefix, String column, String jsonPath) {
+    return String.format("%s.%s ->> '%s'", tablePrefix, column, jsonPath);
+  }
+
   // Statements
 
   @Override
