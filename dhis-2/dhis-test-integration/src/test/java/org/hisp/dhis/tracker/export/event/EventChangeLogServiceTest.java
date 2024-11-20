@@ -316,18 +316,15 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(
             UID.of(event), defaultOperationParams, defaultPageParams);
-    List<EventChangeLog> scheduledDateLogs = getChangeLogsByProperty(changeLogs, "scheduledDate");
-    List<EventChangeLog> occurredDateLogs = getChangeLogsByProperty(changeLogs, "occurredDate");
+    List<EventChangeLog> scheduledAtLogs = getChangeLogsByProperty(changeLogs, "scheduledAt");
+    List<EventChangeLog> occurredAtLogs = getChangeLogsByProperty(changeLogs, "occurredAt");
 
-    assertNumberOfChanges(1, scheduledDateLogs);
-    assertNumberOfChanges(1, occurredDateLogs);
+    assertNumberOfChanges(1, scheduledAtLogs);
+    assertNumberOfChanges(1, occurredAtLogs);
     assertAll(
         () ->
-            assertPropertyCreate(
-                "scheduledDate", "2022-04-22 06:00:38.343", scheduledDateLogs.get(0)),
-        () ->
-            assertPropertyCreate(
-                "occurredDate", "2022-04-20 06:00:38.343", occurredDateLogs.get(0)));
+            assertPropertyCreate("scheduledAt", "2022-04-22 06:00:38.343", scheduledAtLogs.get(0)),
+        () -> assertPropertyCreate("occurredAt", "2022-04-20 06:00:38.343", occurredAtLogs.get(0)));
   }
 
   @Test
@@ -340,30 +337,27 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(event, defaultOperationParams, defaultPageParams);
-    List<EventChangeLog> scheduledDateLogs = getChangeLogsByProperty(changeLogs, "scheduledDate");
-    List<EventChangeLog> occurredDateLogs = getChangeLogsByProperty(changeLogs, "occurredDate");
+    List<EventChangeLog> scheduledAtLogs = getChangeLogsByProperty(changeLogs, "scheduledAt");
+    List<EventChangeLog> occurredAtLogs = getChangeLogsByProperty(changeLogs, "occurredAt");
 
-    assertNumberOfChanges(2, scheduledDateLogs);
-    assertNumberOfChanges(2, occurredDateLogs);
+    assertNumberOfChanges(2, scheduledAtLogs);
+    assertNumberOfChanges(2, occurredAtLogs);
     assertAll(
         () ->
             assertPropertyUpdate(
-                "scheduledDate",
+                "scheduledAt",
                 "2022-04-22 06:00:38.343",
                 currentTime.toString(formatter),
-                scheduledDateLogs.get(0)),
+                scheduledAtLogs.get(0)),
         () ->
-            assertPropertyCreate(
-                "scheduledDate", "2022-04-22 06:00:38.343", scheduledDateLogs.get(1)),
+            assertPropertyCreate("scheduledAt", "2022-04-22 06:00:38.343", scheduledAtLogs.get(1)),
         () ->
             assertPropertyUpdate(
-                "occurredDate",
+                "occurredAt",
                 "2022-04-20 06:00:38.343",
                 currentTime.toString(formatter),
-                occurredDateLogs.get(0)),
-        () ->
-            assertPropertyCreate(
-                "occurredDate", "2022-04-20 06:00:38.343", occurredDateLogs.get(1)));
+                occurredAtLogs.get(0)),
+        () -> assertPropertyCreate("occurredAt", "2022-04-20 06:00:38.343", occurredAtLogs.get(1)));
   }
 
   @Test
@@ -375,21 +369,17 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(event, defaultOperationParams, defaultPageParams);
-    List<EventChangeLog> scheduledDateLogs = getChangeLogsByProperty(changeLogs, "scheduledDate");
-    List<EventChangeLog> occurredDateLogs = getChangeLogsByProperty(changeLogs, "occurredDate");
+    List<EventChangeLog> scheduledAtLogs = getChangeLogsByProperty(changeLogs, "scheduledAt");
+    List<EventChangeLog> occurredAtLogs = getChangeLogsByProperty(changeLogs, "occurredAt");
 
-    assertNumberOfChanges(2, scheduledDateLogs);
-    assertNumberOfChanges(1, occurredDateLogs);
+    assertNumberOfChanges(2, scheduledAtLogs);
+    assertNumberOfChanges(1, occurredAtLogs);
     assertAll(
         () ->
-            assertPropertyDelete(
-                "scheduledDate", "2022-04-22 06:00:38.343", scheduledDateLogs.get(0)),
+            assertPropertyDelete("scheduledAt", "2022-04-22 06:00:38.343", scheduledAtLogs.get(0)),
         () ->
-            assertPropertyCreate(
-                "scheduledDate", "2022-04-22 06:00:38.343", scheduledDateLogs.get(1)),
-        () ->
-            assertPropertyCreate(
-                "occurredDate", "2022-04-20 06:00:38.343", occurredDateLogs.get(0)));
+            assertPropertyCreate("scheduledAt", "2022-04-22 06:00:38.343", scheduledAtLogs.get(1)),
+        () -> assertPropertyCreate("occurredAt", "2022-04-20 06:00:38.343", occurredAtLogs.get(0)));
   }
 
   @Test
@@ -638,18 +628,18 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
         () -> assertPropertyCreate("geometry", "(-11.419700, 8.103900)", changeLogs.get(0)),
         () ->
             assertPropertyUpdate(
-                "occurredDate",
+                "occurredAt",
                 "2022-04-20 06:00:38.343",
                 currentTime.toString(formatter),
                 changeLogs.get(1)),
-        () -> assertPropertyCreate("occurredDate", "2022-04-20 06:00:38.343", changeLogs.get(2)),
+        () -> assertPropertyCreate("occurredAt", "2022-04-20 06:00:38.343", changeLogs.get(2)),
         () ->
             assertPropertyUpdate(
-                "scheduledDate",
+                "scheduledAt",
                 "2022-04-22 06:00:38.343",
                 currentTime.toString(formatter),
                 changeLogs.get(3)),
-        () -> assertPropertyCreate("scheduledDate", "2022-04-22 06:00:38.343", changeLogs.get(4)));
+        () -> assertPropertyCreate("scheduledAt", "2022-04-22 06:00:38.343", changeLogs.get(4)));
   }
 
   @Test
@@ -672,18 +662,18 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     assertAll(
         () ->
             assertPropertyUpdate(
-                "scheduledDate",
+                "scheduledAt",
                 "2022-04-22 06:00:38.343",
                 currentTime.toString(formatter),
                 changeLogs.get(0)),
-        () -> assertPropertyCreate("scheduledDate", "2022-04-22 06:00:38.343", changeLogs.get(1)),
+        () -> assertPropertyCreate("scheduledAt", "2022-04-22 06:00:38.343", changeLogs.get(1)),
         () ->
             assertPropertyUpdate(
-                "occurredDate",
+                "occurredAt",
                 "2022-04-20 06:00:38.343",
                 currentTime.toString(formatter),
                 changeLogs.get(2)),
-        () -> assertPropertyCreate("occurredDate", "2022-04-20 06:00:38.343", changeLogs.get(3)),
+        () -> assertPropertyCreate("occurredAt", "2022-04-20 06:00:38.343", changeLogs.get(3)),
         () -> assertPropertyCreate("geometry", "(-11.419700, 8.103900)", changeLogs.get(4)));
   }
 
