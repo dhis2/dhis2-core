@@ -27,11 +27,15 @@
  */
 package org.hisp.dhis.analytics.table.init;
 
+import static org.hisp.dhis.db.sql.ClickHouseSqlBuilder.NAMED_COLLECTION;
+
+import java.util.Map;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.db.sql.ClickHouseSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilderProvider;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -78,6 +82,7 @@ public class AnalyticsDatabaseInit {
     switch (database) {
       case POSTGRESQL -> initPostgreSql();
       case DORIS -> initDoris();
+      case CLICKHOUSE -> initClickHouse();
     }
 
     log.info("Initialized analytics database: '{}'", database);
@@ -93,6 +98,11 @@ public class AnalyticsDatabaseInit {
     createDorisJdbcCatalog();
   }
 
+  /** Work for initializing a ClickHouse analytics database. */
+  private void initClickHouse() {
+    createClickHouseNamedCollection();
+  }
+
   /**
    * Creates a Doris JDBC catalog which is used to connect to and read from the PostgreSQL
    * transaction database as an external data source.
@@ -104,5 +114,24 @@ public class AnalyticsDatabaseInit {
 
     jdbcTemplate.execute(sqlBuilder.dropCatalogIfExists());
     jdbcTemplate.execute(sqlBuilder.createCatalog(connectionUrl, username, password));
+  }
+
+  /**
+   * Creates a ClickHouse named collection with connection information for the DHIS 2 PostgreSQL
+   * database.
+   */
+  private void createClickHouseNamedCollection() {
+    Map<String, Object> keyValues =
+        Map.of(
+            "host", config.getProperty(ConfigurationKey.CONNECTION_HOST),
+            "port", config.getIntProperty(ConfigurationKey.CONNECTION_PORT),
+            "database", config.getProperty(ConfigurationKey.CONNECTION_DATABASE),
+            "username", config.getProperty(ConfigurationKey.CONNECTION_USERNAME),
+            "password", config.getProperty(ConfigurationKey.CONNECTION_PASSWORD));
+
+    ClickHouseSqlBuilder clickHouseSqlBuilder = new ClickHouseSqlBuilder();
+
+    jdbcTemplate.execute(clickHouseSqlBuilder.dropNamedCollectionIfExists(NAMED_COLLECTION));
+    jdbcTemplate.execute(clickHouseSqlBuilder.createNamedCollection(NAMED_COLLECTION, keyValues));
   }
 }

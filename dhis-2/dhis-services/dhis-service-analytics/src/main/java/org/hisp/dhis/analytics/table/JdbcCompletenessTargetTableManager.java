@@ -102,6 +102,8 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
               .selectExpression("doc.coenddate")
               .build());
 
+  private static final List<String> SORT_KEY = List.of("dx");
+
   public JdbcCompletenessTargetTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -143,7 +145,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     Logged logged = analyticsTableSettings.getTableLogged();
     return params.isLatestUpdate()
         ? List.of()
-        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged));
+        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), SORT_KEY, logged));
   }
 
   @Override
@@ -179,12 +181,12 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     sql +=
         qualifyVariables(
             """
-        from analytics_rs_datasetorganisationunitcategory doc \
-        inner join analytics_rs_dataset ds on doc.datasetid=ds.datasetid \
-        inner join ${organisationunit} ou on doc.organisationunitid=ou.organisationunitid \
-        left join analytics_rs_orgunitstructure ous on doc.organisationunitid=ous.organisationunitid \
-        left join analytics_rs_organisationunitgroupsetstructure ougs on doc.organisationunitid=ougs.organisationunitid \
-        left join analytics_rs_categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid""");
+            from analytics_rs_datasetorganisationunitcategory doc \
+            inner join analytics_rs_dataset ds on doc.datasetid=ds.datasetid \
+            inner join ${organisationunit} ou on doc.organisationunitid=ou.organisationunitid \
+            left join analytics_rs_orgunitstructure ous on doc.organisationunitid=ous.organisationunitid \
+            left join analytics_rs_organisationunitgroupsetstructure ougs on doc.organisationunitid=ougs.organisationunitid \
+            left join analytics_rs_categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid""");
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
