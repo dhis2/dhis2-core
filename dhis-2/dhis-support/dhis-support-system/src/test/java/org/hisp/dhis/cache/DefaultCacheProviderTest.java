@@ -47,7 +47,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.env.MockEnvironment;
 
 @ExtendWith(MockitoExtension.class)
-public class DefaultCacheProviderTest {
+class DefaultCacheProviderTest {
 
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 
