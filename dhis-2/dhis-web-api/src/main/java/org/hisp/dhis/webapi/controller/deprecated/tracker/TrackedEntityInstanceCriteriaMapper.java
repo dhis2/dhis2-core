@@ -286,6 +286,13 @@ public class TrackedEntityInstanceCriteriaMapper {
         at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(), at.isUnique());
   }
 
+  /**
+   * Validates and retrieves the program optionally specified in the given criteria. Returns <code>
+   * null</code> if program is not specified.
+   *
+   * @param criteria the {@link TrackedEntityInstanceCriteria}.
+   * @return a {@link Program} or <code>null</code>.
+   */
   private Program validateProgram(TrackedEntityInstanceCriteria criteria) {
     Function<String, Program> getProgram =
         uid -> {
