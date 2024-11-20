@@ -1820,24 +1820,6 @@
           "id": "xYerKDKCefk"
         }
       ]
-    },
-    {
-      "lastUpdated": "2019-01-28T11:01:30.775",
-      "code": "COCA",
-      "created": "2019-01-28T11:01:30.771",
-      "name": "COCAname",
-      "id": "XXXvX50cXC0",
-      "ignoreApproval": false,
-      "categoryCombo": {
-        "id": "bjDvmb4bfuf"
-      },
-      "translations": [],
-      "attributeValues": [],
-      "categoryOptions": [
-        {
-          "id": "xYerKDKCefk"
-        }
-      ]
     }
   ],
   "categories": [

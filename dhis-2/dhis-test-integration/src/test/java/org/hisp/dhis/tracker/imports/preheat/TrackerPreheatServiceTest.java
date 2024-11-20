@@ -149,7 +149,7 @@ class TrackerPreheatServiceTest extends TrackerTest {
     assertFalse(preheat.getAll(OrganisationUnit.class).isEmpty());
     assertFalse(preheat.getAll(ProgramStage.class).isEmpty());
     assertFalse(preheat.getAll(CategoryOptionCombo.class).isEmpty());
-    assertNotNull(preheat.get(CategoryOptionCombo.class, "XXXvX50cXC0"));
+    assertNotNull(preheat.get(CategoryOptionCombo.class, "HllvX50cXC0"));
     assertNotNull(preheat.get(CategoryOption.class, "XXXrKDKCefk"));
   }
 }
