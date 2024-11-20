@@ -711,6 +711,10 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getPath() {
+    if (path != null) {
+      return path;
+    }
+
     List<String> pathList = new ArrayList<>();
     Set<String> visitedSet = new HashSet<>();
     OrganisationUnit unit = parent;
