@@ -123,6 +123,7 @@ public class DimensionController
    * DimensionalObject} and there is no specific {@link InternalHibernateGenericStore} to retrieve
    * them from.
    */
+  @OpenApi.Response(ObjectListResponse.class)
   @Override
   @GetMapping
   public @ResponseBody ResponseEntity<StreamingJsonRoot<DimensionalObject>> getObjectList(
@@ -145,7 +146,7 @@ public class DimensionController
   @Override
   @GetMapping(produces = {"text/csv", "application/text"})
   public ResponseEntity<String> getObjectListCsv(
-      @RequestParam GetObjectListParams params,
+      GetObjectListParams params,
       @CurrentUser UserDetails currentUser,
       @RequestParam(defaultValue = ",") char separator,
       @RequestParam(defaultValue = ";") String arraySeparator,
@@ -312,9 +313,10 @@ public class DimensionController
     Query filteredQuery = queryService.getQueryFromUrl(DimensionalObject.class, params);
     filteredQuery.setObjects(dimensionService.getAllDimensions());
 
+    filteredQuery.setSkipPaging(true); // paging is done post
     @SuppressWarnings("unchecked")
-    List<DimensionalObject> filteredEntities =
+    List<DimensionalObject> filteredNotPaged =
         (List<DimensionalObject>) queryService.query(filteredQuery);
-    return PaginationUtils.addPagingIfEnabled(params, filteredEntities);
+    return PaginationUtils.addPagingIfEnabled(params, filteredNotPaged);
   }
 }
