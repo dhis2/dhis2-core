@@ -130,8 +130,6 @@ public class V2_42_21__Add_new_column_into_visualization_and_migrate_relative_pe
             + (schema != null ? "table_schema='" + schema + "' and " : "")
             + "table_name='eventvisualization' and column_name='relativeperiods')";
 
-    System.out.println("QUERY: " + checkColumnExists);
-
     try (Statement statement = context.getConnection().createStatement();
         ResultSet rs = statement.executeQuery(checkColumnExists)) {
       while (rs.next()) {
