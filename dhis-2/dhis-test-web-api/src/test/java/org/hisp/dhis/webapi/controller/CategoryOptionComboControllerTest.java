@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -42,7 +41,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonCategoryOptionCombo;
@@ -179,40 +177,6 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
     assertNotNull(error);
     assertEquals(
         "Category option combo Not default already exists for category combo default",
-        error.getMessage());
-  }
-
-  @Test
-  @DisplayName(
-      "Default category option combos with non-default category options should not be allowed")
-  void catOptionComboDefaultWithNonDefaultOptionsNotAllowedTest() {
-    JsonObject response =
-        GET("/categoryOptionCombos?filter=name:eq:default&fields=id,categoryCombo[id],categoryOptions[id]")
-            .content();
-    JsonList<JsonCategoryOptionCombo> catOptionCombos =
-        response.getList("categoryOptionCombos", JsonCategoryOptionCombo.class);
-    String defaultCategoryComboId = catOptionCombos.get(0).getCategoryCombo().getId();
-
-    String categoryOptionRed =
-        assertStatus(
-            HttpStatus.CREATED, POST("/categoryOptions", "{ 'name': 'Red', 'shortName': 'Red' }"));
-
-    JsonMixed response2 =
-        POST(
-                "/categoryOptionCombos/",
-                """
-        { "name": "Not default",
-        "categoryOptions" : [{"id" : "%s"}],
-        "categoryCombo" : {"id" : "%s"} }
-        """
-                    .formatted(categoryOptionRed, defaultCategoryComboId))
-            .content(HttpStatus.CONFLICT);
-
-    JsonErrorReport error =
-        response2.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1125);
-    assertNotNull(error);
-    assertEquals(
-        "Category option combo Not default contains options not associated with category combo default",
         error.getMessage());
   }
 }

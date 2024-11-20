@@ -92,14 +92,12 @@ public class CategoryOptionComboObjectBundleHook
                         .equals(categoryOptionCombo.getCategoryCombo().getUid()))
             .toList();
 
-    // Check if the categoryOptionCombo is already in the list. This could be an update or re-import
-    // of the same object.
+    // This could be an update or re-import of the same object.
     if (categoryOptionCombos.stream()
         .anyMatch(coc -> coc.getUid().equals(categoryOptionCombo.getUid()))) {
       return;
     }
-    // Check to see if the COC already exists in the list of COCs
-    // If it does, then it is a duplicate
+    // Check to see if the COC already exists in the list of COCs by comparing reference ids
     for (CategoryOptionCombo existingCategoryOptionCombo : categoryOptionCombos) {
       if (haveEqualCatComboCatOptionReferenceIds(categoryOptionCombo, existingCategoryOptionCombo)
           && !categoryOptionCombo.getUid().equals(existingCategoryOptionCombo.getUid())) {
@@ -110,38 +108,6 @@ public class CategoryOptionComboObjectBundleHook
                 categoryOptionCombo.getName(),
                 existingCategoryOptionCombo.getName()));
       }
-    }
-  }
-
-  private void checkCategoryOptionsExistInCategoryCombo(
-      CategoryOptionCombo categoryOptionCombo, Consumer<ErrorReport> addReports) {
-
-    Set<String> categoryOptionUids =
-        categoryOptionCombo.getCategoryOptions().stream()
-            .map(CategoryOption::getUid)
-            .collect(Collectors.toSet());
-
-    CategoryCombo existingCategoryCombo =
-        categoryService.getCategoryCombo(categoryOptionCombo.getCategoryCombo().getUid());
-
-    if (existingCategoryCombo == null) {
-      return;
-    }
-
-    Set<String> existingCategoryOptionsInCombo =
-        existingCategoryCombo.getCategoryOptions().stream()
-            .map(CategoryOption::getUid)
-            .collect(Collectors.toSet());
-
-    categoryOptionUids.removeAll(existingCategoryOptionsInCombo);
-
-    if (!categoryOptionUids.isEmpty()) {
-      addReports.accept(
-          new ErrorReport(
-              CategoryOptionCombo.class,
-              ErrorCode.E1125,
-              categoryOptionCombo.getName(),
-              existingCategoryCombo.getName()));
     }
   }
 
@@ -171,6 +137,5 @@ public class CategoryOptionComboObjectBundleHook
 
     checkNonStandardDefaultCatOptionCombo(categoryOptionCombo, addReports);
     checkDuplicateCategoryOptionCombos(categoryOptionCombo, bundle, addReports);
-    checkCategoryOptionsExistInCategoryCombo(categoryOptionCombo, addReports);
   }
 }
