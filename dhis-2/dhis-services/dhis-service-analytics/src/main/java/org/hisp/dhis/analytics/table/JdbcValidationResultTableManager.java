@@ -99,6 +99,8 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
               .selectExpression("ps.year")
               .build());
 
+  private static final List<String> SORT_KEY = List.of("dx");
+
   public JdbcValidationResultTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -138,8 +140,9 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     AnalyticsTable table =
         params.isLatestUpdate()
-            ? new AnalyticsTable(AnalyticsTableType.VALIDATION_RESULT, List.of(), Logged.LOGGED)
-            : getRegularAnalyticsTable(params, getDataYears(params), getColumns());
+            ? new AnalyticsTable(
+                AnalyticsTableType.VALIDATION_RESULT, List.of(), List.of(), Logged.LOGGED)
+            : getRegularAnalyticsTable(params, getDataYears(params), getColumns(), SORT_KEY);
 
     return table.hasTablePartitions() ? List.of(table) : List.of();
   }

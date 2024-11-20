@@ -27,108 +27,106 @@
  */
 package org.hisp.dhis.db.sql;
 
-import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
-import org.hisp.dhis.db.model.TablePartition;
 import org.hisp.dhis.db.model.constraint.Nullable;
 
+@Getter
 @RequiredArgsConstructor
-public class DorisSqlBuilder extends AbstractSqlBuilder {
-
-  private final String catalog;
-
-  private final String driverFilename;
+public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   // Constants
 
-  private static final String QUOTE = "`";
+  public static final String NAMED_COLLECTION = "pg_dhis";
+
+  private static final String QUOTE = "\"";
 
   // Data types
 
   @Override
   public String dataTypeSmallInt() {
-    return "smallint";
+    return "Int16";
   }
 
   @Override
   public String dataTypeInteger() {
-    return "int";
+    return "Int32";
   }
 
   @Override
   public String dataTypeBigInt() {
-    return "bigint";
+    return "Int64";
   }
 
   @Override
   public String dataTypeDecimal() {
-    return "decimal(18,6)";
+    return "Decimal(10,6)";
   }
 
   @Override
   public String dataTypeFloat() {
-    return "float";
+    return "Float32";
   }
 
   @Override
   public String dataTypeDouble() {
-    return "double";
+    return "Float64";
   }
 
   @Override
   public String dataTypeBoolean() {
-    return "boolean";
+    return "Bool";
   }
 
   @Override
   public String dataTypeCharacter(int length) {
-    return String.format("char(%d)", length);
+    return "String";
   }
 
   @Override
   public String dataTypeVarchar(int length) {
-    return String.format("varchar(%d)", length);
+    return "String";
   }
 
   @Override
   public String dataTypeText() {
-    return "string";
+    return "String";
   }
 
   @Override
   public String dataTypeDate() {
-    return "date";
+    return "Date";
   }
 
   @Override
   public String dataTypeTimestamp() {
-    return "datetime";
+    return "DateTime64(3)";
   }
 
   @Override
   public String dataTypeTimestampTz() {
-    return "datetime";
+    return "DateTime64(3)";
   }
 
   @Override
   public String dataTypeGeometry() {
-    return "string";
+    return "String";
   }
 
   @Override
   public String dataTypeGeometryPoint() {
-    return "string";
+    return "String";
   }
 
   @Override
   public String dataTypeJson() {
-    return "json";
+    return "JSON";
   }
 
   // Index functions
@@ -180,29 +178,28 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String escape(String value) {
-    return value
-        .replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE))
-        .replace(BACKSLASH, (BACKSLASH + BACKSLASH));
+    return value.replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE));
   }
 
+  /** Uses the <code>postgresql</code> table function to query DHIS 2 PostgreSQL server. */
   @Override
   public String qualifyTable(String name) {
-    return String.format("%s.%s.%s", catalog, SCHEMA, quote(name));
+    return String.format("postgresql(%s, table=%s)", quote(NAMED_COLLECTION), singleQuote(name));
   }
 
   @Override
   public String dateTrunc(String text, String timestamp) {
-    return String.format("date_trunc(%s, %s)", timestamp, singleQuote(text));
+    return String.format("date_trunc(%s, %s)", singleQuote(text), timestamp);
   }
 
   @Override
   public String differenceInSeconds(String columnA, String columnB) {
-    return String.format("(unix_timestamp(%s) - unix_timestamp(%s))", columnA, columnB);
+    return String.format("(toUnixTimestamp(%s) - toUnixTimestamp(%s))", columnA, columnB);
   }
 
   @Override
   public String regexpMatch(String pattern) {
-    return String.format("regexp %s", pattern);
+    return String.format("match %s", pattern); // TO DO
   }
 
   @Override
@@ -222,20 +219,19 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String jsonExtract(String column, String property) {
-    return "json_unquote(json_extract(" + column + ", '$." + property + "'))";
+    return "JSONExtractRaw(" + column + ", '" + property + "')";
   }
 
   @Override
   public String jsonExtract(String tablePrefix, String column, String jsonPath) {
-    return String.format(
-        "json_unquote(json_extract(%s.%s, '$.%s'))", tablePrefix, column, jsonPath);
+    return String.format("JSONExtractRaw(%s.%s, '%s')", tablePrefix, column, jsonPath);
   }
 
   // Statements
 
   @Override
   public String createTable(Table table) {
-    Validate.isTrue(table.hasPrimaryKey() || table.hasColumns());
+    Validate.notEmpty(table.getColumns());
 
     StringBuilder sql =
         new StringBuilder("create table ").append(quote(table.getName())).append(" ");
@@ -245,79 +241,14 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     if (table.hasColumns()) {
       String columns = toCommaSeparated(table.getColumns(), this::toColumnString);
 
-      sql.append("(").append(columns).append(") engine = olap ");
+      sql.append("(").append(columns).append(") engine = MergeTree() ");
     }
 
-    // Primary key
+    // Order by
 
-    if (table.hasPrimaryKey()) {
-      // If primary key exists, use it as keys with the unique model
-      String keys = toCommaSeparated(table.getPrimaryKey(), this::quote);
-
-      sql.append("unique key (").append(keys).append(") ");
-    } else if (table.hasColumns()) {
-      // If columns exist, use first as key with the duplicate model
-      String key = quote(table.getFirstColumn().getName());
-
-      sql.append("duplicate key (").append(key).append(") ");
-    }
-
-    // Partitions
-
-    if (table.hasPartitions()) {
-      sql.append(generatePartitionClause(table.getPartitions()));
-    }
-
-    // Distribution
-
-    if (table.hasPrimaryKey() || table.hasColumns()) {
-      String distKey = getDistKey(table);
-
-      sql.append("distributed by hash(")
-          .append(quote(distKey))
-          .append(") ")
-          .append("buckets 10 "); // Verify this
-    }
-
-    // Properties
-
-    sql.append("properties (\"replication_num\" = \"1\")");
+    sql.append(getOrderByClause(table));
 
     return sql.append(";").toString();
-  }
-
-  /**
-   * Generates the partition clause for the table creation SQL.
-   *
-   * @param partitions the list of table partitions
-   * @return the partition clause string
-   */
-  private String generatePartitionClause(List<TablePartition> partitions) {
-    StringBuilder partitionClause =
-        new StringBuilder("partition by range(year) ("); // Make configurable
-
-    List<TablePartition> sortedPartitions;
-    try {
-      sortedPartitions =
-          partitions.stream()
-              .sorted(Comparator.comparingInt(p -> Integer.parseInt(p.getValue().toString())))
-              .toList();
-    } catch (NumberFormatException e) {
-      sortedPartitions = partitions;
-    }
-
-    for (int i = 0; i < sortedPartitions.size(); i++) {
-      if (i == sortedPartitions.size() - 1) {
-        // Handle last partition with MAXVALUE
-        partitionClause
-            .append("partition ")
-            .append(quote(sortedPartitions.get(i).getName()))
-            .append(" values less than(MAXVALUE),");
-      } else {
-        partitionClause.append(toPartitionString(sortedPartitions.get(i))).append(",");
-      }
-    }
-    return partitionClause.substring(0, partitionClause.length() - 1) + ") ";
   }
 
   /**
@@ -333,35 +264,30 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   /**
-   * Returns a partition definition string.
+   * Returns an order by clause. The primary key columns will be used for ordering. ClickHouse will
+   * use order by columns as primary key when the primary key clause is omitted. The primary key
+   * does not have to uniquely identify each row.
    *
-   * @param partition the {@link TablePartition}.
-   * @return a partition definition string.
+   * @param table the {@link Table}.
+   * @return the order by clause.
    */
-  private String toPartitionString(TablePartition partition) {
-    String condition = "values less than(\"" + partition.getValue() + "\")";
-    return "partition " + quote(partition.getName()) + " " + condition;
-  }
+  private String getOrderByClause(Table table) {
+    String keys = null;
 
-  /**
-   * Returns the distribution key. Uses the first primary key column name if any exists, or the
-   * first column name if any exists, otherwise null.
-   *
-   * @param table {@link Table}.
-   */
-  private String getDistKey(Table table) {
-    if (table.hasPrimaryKey()) {
-      return table.getFirstPrimaryKey();
-    } else if (table.hasColumns()) {
-      return table.getFirstColumn().getName();
+    if (table.hasSortKey()) {
+      keys = toCommaSeparated(table.getSortKey(), this::quote);
+    } else if (table.hasPrimaryKey()) {
+      keys = toCommaSeparated(table.getPrimaryKey(), this::quote);
+    } else {
+      keys = quote(table.getFirstColumn().getName());
     }
 
-    return null;
+    return String.format("order by (%s)", keys);
   }
 
   @Override
   public String renameTable(Table table, String newName) {
-    return String.format("alter table %s rename %s;", quote(table.getName()), quote(newName));
+    return String.format("rename table %s to %s;", quote(table.getName()), quote(newName));
   }
 
   @Override
@@ -378,16 +304,14 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   public String tableExists(String name) {
     return String.format(
         """
-        select t.table_name from information_schema.tables t \
-        where t.table_schema = 'public' \
-        and t.table_name = %s;""",
+        select t.name as table_name \
+        from system.tables t \
+        where t.database = 'default' \
+        and t.name = %s \
+        and engine not in ('View', 'Materialized View');""",
         singleQuote(name));
   }
 
-  /**
-   * Doris supports indexes but relies on concurrency and compression for query performance instead
-   * of indexes on arbitrary columns. Read more at {@link https://t.ly/uNK5T}.
-   */
   @Override
   public String createIndex(Index index) {
     return notSupported();
@@ -395,27 +319,40 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String createCatalog(String connectionUrl, String username, String password) {
-    return replace(
-        """
-        create catalog ${catalog} \
-        properties (
-        "type" = "jdbc", \
-        "user" = "${username}", \
-        "password" = "${password}", \
-        "jdbc_url" = "${connection_url}", \
-        "driver_url" = "${driver_filename}", \
-        "driver_class" = "org.postgresql.Driver"
-        );""",
-        Map.of(
-            "catalog", quote(catalog),
-            "username", username,
-            "password", password,
-            "connection_url", connectionUrl,
-            "driver_filename", driverFilename));
+    return notSupported();
   }
 
   @Override
   public String dropCatalogIfExists() {
-    return String.format("drop catalog if exists %s;", quote(catalog));
+    return notSupported();
+  }
+
+  /**
+   * @param name the collection name.
+   * @param keyValues the map of key value pairs.
+   * @return a create named collection statement.
+   */
+  public String createNamedCollection(String name, Map<String, Object> keyValues) {
+    String pairs = toCommaSeparated(keyValues.entrySet(), this::toPairString);
+    return String.format("create named collection %s as %s;", quote(name), pairs);
+  }
+
+  /**
+   * @param name the collection name.
+   * @return a drop named collection if exists statement.
+   */
+  public String dropNamedCollectionIfExists(String name) {
+    return String.format("drop named collection if exists %s;", quote(name));
+  }
+
+  /**
+   * Converts the given {@link Map} {@link Entry} to a key value pair string.
+   *
+   * @param pair the {@link Entry}.
+   * @return a key value pair string.
+   */
+  private String toPairString(Entry<String, Object> pair) {
+    return String.format(
+        "%s = %s", quote(pair.getKey()), singleQuote(String.valueOf(pair.getValue())));
   }
 }

@@ -28,23 +28,22 @@
 package org.hisp.dhis.db.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
-import org.hisp.dhis.db.model.Index;
-import org.hisp.dhis.db.model.IndexFunction;
-import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.model.constraint.Unique;
 import org.junit.jupiter.api.Test;
 
-class PostgreSqlBuilderTest {
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+class ClickHouseSqlBuilderTest {
+  private final ClickHouseSqlBuilder sqlBuilder = new ClickHouseSqlBuilder();
 
   private Table getTableA() {
     List<Column> columns =
@@ -61,32 +60,6 @@ class PostgreSqlBuilderTest {
     return new Table("immunization", columns, primaryKey, Logged.LOGGED);
   }
 
-  private List<Index> getIndexesA() {
-    return List.of(
-        Index.builder()
-            .name("in_immunization_data")
-            .tableName("immunization")
-            .columns(List.of("data"))
-            .build(),
-        Index.builder()
-            .name("in_immunization_period_created")
-            .tableName("immunization")
-            .columns(List.of("period", "created"))
-            .build(),
-        Index.builder()
-            .name("in_immunization_user")
-            .tableName("immunization")
-            .indexType(IndexType.GIN)
-            .columns(List.of("user"))
-            .build(),
-        Index.builder()
-            .name("in_immunization_data_period")
-            .tableName("immunization")
-            .columns(List.of("data", "period"))
-            .function(IndexFunction.LOWER)
-            .build());
-  }
-
   private Table getTableB() {
     List<Column> columns =
         List.of(
@@ -94,9 +67,7 @@ class PostgreSqlBuilderTest {
             new Column("facility_type", DataType.VARCHAR_255, Nullable.NULL, Collation.C),
             new Column("bcg_doses", DataType.DOUBLE));
 
-    List<String> checks = List.of("\"id\">0", "\"bcg_doses\">0");
-
-    return new Table("vaccination", columns, List.of(), List.of(), checks, Logged.UNLOGGED);
+    return new Table("vaccination", columns, List.of());
   }
 
   private Table getTableC() {
@@ -111,33 +82,44 @@ class PostgreSqlBuilderTest {
     return new Table("nutrition", columns, primaryKey, List.of(), Logged.LOGGED, getTableB());
   }
 
+  private Table getTableD() {
+    List<Column> columns =
+        List.of(
+            new Column("id", DataType.BIGINT, Nullable.NOT_NULL),
+            new Column("data", DataType.CHARACTER_11, Nullable.NOT_NULL),
+            new Column("period", DataType.VARCHAR_50, Nullable.NOT_NULL),
+            new Column("value", DataType.DOUBLE));
+
+    List<String> sortKey = List.of("data", "period");
+
+    return new Table("immunization", columns, List.of(), sortKey, List.of(), Logged.LOGGED);
+  }
+
   // Data types
 
   @Test
   void testDataTypes() {
-    assertEquals("double precision", sqlBuilder.dataTypeDouble());
-    assertEquals("geometry", sqlBuilder.dataTypeGeometry());
+    assertEquals("Float64", sqlBuilder.dataTypeDouble());
+    assertEquals("DateTime64(3)", sqlBuilder.dataTypeTimestamp());
   }
 
   // Index types
 
   @Test
   void testIndexTypes() {
-    assertEquals("btree", sqlBuilder.indexTypeBtree());
-    assertEquals("gist", sqlBuilder.indexTypeGist());
-    assertEquals("gin", sqlBuilder.indexTypeGin());
+    assertThrows(UnsupportedOperationException.class, () -> sqlBuilder.indexTypeBtree());
   }
 
   // Capabilities
 
   @Test
   void testSupportsAnalyze() {
-    assertTrue(sqlBuilder.supportsAnalyze());
+    assertFalse(sqlBuilder.supportsAnalyze());
   }
 
   @Test
   void testSupportsVacuum() {
-    assertTrue(sqlBuilder.supportsVacuum());
+    assertFalse(sqlBuilder.supportsVacuum());
   }
 
   // Utilities
@@ -147,6 +129,9 @@ class PostgreSqlBuilderTest {
     assertEquals(
         "\"Treated \"\"malaria\"\" at facility\"",
         sqlBuilder.quote("Treated \"malaria\" at facility"));
+    assertEquals(
+        "\"\"\"Patients on \"\"treatment\"\" for TB\"\"\"",
+        sqlBuilder.quote("\"Patients on \"treatment\" for TB\""));
     assertEquals("\"quarterly\"", sqlBuilder.quote("quarterly"));
     assertEquals("\"Fully immunized\"", sqlBuilder.quote("Fully immunized"));
   }
@@ -156,6 +141,9 @@ class PostgreSqlBuilderTest {
     assertEquals(
         "ax.\"Treated \"\"malaria\"\" at facility\"",
         sqlBuilder.quote("ax", "Treated \"malaria\" at facility"));
+    assertEquals(
+        "analytics.\"Patients on \"\"treatment\"\" for TB\"",
+        sqlBuilder.quote("analytics", "Patients on \"treatment\" for TB"));
     assertEquals("analytics.\"quarterly\"", sqlBuilder.quote("analytics", "quarterly"));
     assertEquals("dv.\"Fully immunized\"", sqlBuilder.quote("dv", "Fully immunized"));
   }
@@ -180,7 +168,6 @@ class PostgreSqlBuilderTest {
   void testEscape() {
     assertEquals("Age group ''under 5'' years", sqlBuilder.escape("Age group 'under 5' years"));
     assertEquals("Level ''high'' found", sqlBuilder.escape("Level 'high' found"));
-    assertEquals("C:\\\\Downloads\\\\File.doc", sqlBuilder.escape("C:\\Downloads\\File.doc"));
   }
 
   @Test
@@ -196,34 +183,16 @@ class PostgreSqlBuilderTest {
 
   @Test
   void testQualifyTable() {
-    assertEquals("\"category\"", sqlBuilder.qualifyTable("category"));
-    assertEquals("\"categories_options\"", sqlBuilder.qualifyTable("categories_options"));
+    assertEquals("postgresql(\"pg_dhis\", table='category')", sqlBuilder.qualifyTable("category"));
+    assertEquals(
+        "postgresql(\"pg_dhis\", table='categories_options')",
+        sqlBuilder.qualifyTable("categories_options"));
   }
 
   @Test
   void testDateTrunc() {
     assertEquals(
         "date_trunc('month', pe.startdate)", sqlBuilder.dateTrunc("month", "pe.startdate"));
-  }
-
-  @Test
-  void testDifferenceInSeconds() {
-    assertEquals(
-        "extract(epoch from (a.startdate - b.enddate))",
-        sqlBuilder.differenceInSeconds("a.startdate", "b.enddate"));
-    assertEquals(
-        "extract(epoch from (a.\"startdate\" - b.\"enddate\"))",
-        sqlBuilder.differenceInSeconds(
-            sqlBuilder.quote("a", "startdate"), sqlBuilder.quote("b", "enddate")));
-  }
-
-  @Test
-  void testRegexpMatch() {
-    assertEquals("~* test", sqlBuilder.regexpMatch("test"));
-    assertEquals("~* ", sqlBuilder.regexpMatch(""));
-    assertEquals("~* null", sqlBuilder.regexpMatch(null));
-    assertEquals("~* .*[a-z]\\d+", sqlBuilder.regexpMatch(".*[a-z]\\d+"));
-    assertEquals("~*  ", sqlBuilder.regexpMatch(" "));
   }
 
   // Statements
@@ -234,9 +203,11 @@ class PostgreSqlBuilderTest {
 
     String expected =
         """
-        create table "immunization" ("id" bigint not null, "data" char(11) not null, \
-        "period\" varchar(50) not null, "created" timestamp null, "user" jsonb null, \
-        "value" double precision null, primary key ("id"));""";
+        create table "immunization" ("id" Int64 not null,"data" String not null,\
+        "period" String not null,"created" DateTime64(3) null,"user" JSON null,\
+        "value" Float64 null) \
+        engine = MergeTree() \
+        order by ("id");""";
 
     assertEquals(expected, sqlBuilder.createTable(table));
   }
@@ -247,9 +218,10 @@ class PostgreSqlBuilderTest {
 
     String expected =
         """
-        create unlogged table "vaccination" ("id" integer not null, \
-        "facility_type" varchar(255) null collate "C", "bcg_doses" double precision null, \
-        check("id">0), check("bcg_doses">0));""";
+        create table "vaccination" ("id" Int32 not null,\
+        "facility_type" String null,"bcg_doses" Float64 null) \
+        engine = MergeTree() \
+        order by ("id");""";
 
     assertEquals(expected, sqlBuilder.createTable(table));
   }
@@ -260,35 +232,32 @@ class PostgreSqlBuilderTest {
 
     String expected =
         """
-        create table "nutrition" ("id" bigint not null, "vitamin_a" bigint null, \
-        "vitamin_d" bigint null, primary key ("id")) inherits ("vaccination");""";
+        create table "nutrition" ("id" Int64 not null,"vitamin_a" Int64 null,\
+        "vitamin_d" Int64 null) \
+        engine = MergeTree() order by ("id");""";
 
     assertEquals(expected, sqlBuilder.createTable(table));
   }
 
   @Test
-  void testAnalyzeTable() {
-    Table table = getTableA();
+  void testCreateTableD() {
+    Table table = getTableD();
 
-    String expected = "analyze \"immunization\";";
+    String expected =
+        """
+        create table "immunization" ("id" Int64 not null,"data" String not null,\
+        "period" String not null,"value" Float64 null) \
+        engine = MergeTree() \
+        order by ("data","period");""";
 
-    assertEquals(expected, sqlBuilder.analyzeTable(table));
-  }
-
-  @Test
-  void testVacuumTable() {
-    Table table = getTableA();
-
-    String expected = "vacuum \"immunization\";";
-
-    assertEquals(expected, sqlBuilder.vacuumTable(table));
+    assertEquals(expected, sqlBuilder.createTable(table));
   }
 
   @Test
   void testRenameTable() {
     Table table = getTableA();
 
-    String expected = "alter table \"immunization\" rename to \"vaccination\";";
+    String expected = "rename table \"immunization\" to \"vaccination\";";
 
     assertEquals(expected, sqlBuilder.renameTable(table, "vaccination"));
   }
@@ -313,14 +282,14 @@ class PostgreSqlBuilderTest {
   void testDropTableIfExistsCascade() {
     Table table = getTableA();
 
-    String expected = "drop table if exists \"immunization\" cascade;";
+    String expected = "drop table if exists \"immunization\";";
 
     assertEquals(expected, sqlBuilder.dropTableIfExistsCascade(table));
   }
 
   @Test
   void testDropTableIfExistsCascadeString() {
-    String expected = "drop table if exists \"immunization\" cascade;";
+    String expected = "drop table if exists \"immunization\";";
 
     assertEquals(expected, sqlBuilder.dropTableIfExistsCascade("immunization"));
   }
@@ -329,42 +298,21 @@ class PostgreSqlBuilderTest {
   void testSwapTable() {
     String expected =
         """
-        drop table if exists "vaccination" cascade; \
-        alter table "immunization" rename to "vaccination";""";
+        drop table if exists "vaccination"; \
+        rename table "immunization" to "vaccination";""";
 
     assertEquals(expected, sqlBuilder.swapTable(getTableA(), "vaccination"));
-  }
-
-  @Test
-  void testSetParent() {
-    String expected = "alter table \"immunization\" inherit \"vaccination\";";
-
-    assertEquals(expected, sqlBuilder.setParentTable(getTableA(), "vaccination"));
-  }
-
-  @Test
-  void testRemoveParent() {
-    String expected = "alter table \"immunization\" no inherit \"vaccination\";";
-
-    assertEquals(expected, sqlBuilder.removeParentTable(getTableA(), "vaccination"));
-  }
-
-  @Test
-  void testSwapParentTable() {
-    String expected =
-        """
-        alter table "immunization" no inherit "vaccination"; \
-        alter table "immunization" inherit \"nutrition\";""";
-
-    assertEquals(expected, sqlBuilder.swapParentTable(getTableA(), "vaccination", "nutrition"));
   }
 
   @Test
   void testTableExists() {
     String expected =
         """
-        select t.table_name from information_schema.tables t \
-        where t.table_schema = 'public' and t.table_name = 'immunization';""";
+        select t.name as table_name \
+        from system.tables t \
+        where t.database = 'default' \
+        and t.name = 'immunization' \
+        and engine not in ('View', 'Materialized View');""";
 
     assertEquals(expected, sqlBuilder.tableExists("immunization"));
   }
@@ -373,69 +321,29 @@ class PostgreSqlBuilderTest {
   void testCountRows() {
     String expected =
         """
-        select count(*) as row_count from "immunization";""";
+        select count(*) as row_count from \"immunization\";""";
 
     assertEquals(expected, sqlBuilder.countRows(getTableA()));
   }
 
+  // Named collection
+
   @Test
-  void testCreateIndexA() {
-    List<Index> indexes = getIndexesA();
-
+  void testCreateNamedCollection() {
     String expected =
-        "create index \"in_immunization_data\" on \"immunization\" using btree(\"data\");";
+        """
+        create named collection "pg_dhis" as """;
 
-    assertEquals(expected, sqlBuilder.createIndex(indexes.get(0)));
+    assertTrue(
+        sqlBuilder
+            .createNamedCollection("pg_dhis", Map.of("host", "mydomain.org"))
+            .startsWith(expected));
   }
 
   @Test
-  void testCreateIndexB() {
-    List<Index> indexes = getIndexesA();
-
-    String expected =
-        "create index \"in_immunization_period_created\" on \"immunization\" using btree(\"period\",\"created\");";
-
-    assertEquals(expected, sqlBuilder.createIndex(indexes.get(1)));
-  }
-
-  @Test
-  void testCreateIndexC() {
-    List<Index> indexes = getIndexesA();
-
-    String expected =
-        "create index \"in_immunization_user\" on \"immunization\" using gin(\"user\");";
-
-    assertEquals(expected, sqlBuilder.createIndex(indexes.get(2)));
-  }
-
-  @Test
-  void testCreateIndexD() {
-    List<Index> indexes = getIndexesA();
-
-    String expected =
-        "create index \"in_immunization_data_period\" on \"immunization\" using btree(lower(\"data\"),lower(\"period\"));";
-
-    assertEquals(expected, sqlBuilder.createIndex(indexes.get(3)));
-  }
-
-  @Test
-  void testCreateIndexWithDescNullsLast() {
-    // given
-    String expected =
-        "create unique index \"index_a\" on \"table_a\" using btree(\"column_a\" desc nulls last);";
-    Index index =
-        Index.builder()
-            .name("index_a")
-            .tableName("table_a")
-            .unique(Unique.UNIQUE)
-            .columns(List.of("column_a"))
-            .sortOrder("desc nulls last")
-            .build();
-
-    // when
-    String createIndexStmt = sqlBuilder.createIndex(index);
-
-    // then
-    assertEquals(expected, createIndexStmt);
+  void testDropNamedCollectionIfExists() {
+    assertEquals(
+        "drop named collection if exists \"pg_dhis\";",
+        sqlBuilder.dropNamedCollectionIfExists("pg_dhis"));
   }
 }

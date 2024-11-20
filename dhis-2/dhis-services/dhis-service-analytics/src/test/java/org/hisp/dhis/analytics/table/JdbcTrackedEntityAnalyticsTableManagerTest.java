@@ -109,6 +109,14 @@ class JdbcTrackedEntityAnalyticsTableManagerTest {
     when(sqlBuilder.qualifyTable(anyString()))
         .thenAnswer(inv -> SqlUtils.quote(inv.getArgument(0)));
 
+    when(sqlBuilder.jsonExtract(anyString(), anyString(), anyString())).thenReturn("jsonExtract");
+    when(sqlBuilder.jsonExtract(anyString(), anyString())).thenReturn("jsonExtract");
+
+    when(sqlBuilder.coalesce(anyString(), anyString()))
+        .thenAnswer(inv -> "coalesce(" + inv.getArgument(0) + ", " + inv.getArgument(1) + "))");
+
+    when(sqlBuilder.trim(anyString())).thenAnswer(inv -> "trim(" + inv.getArgument(0) + ")");
+
     when(tet.getTrackedEntityAttributes()).thenReturn(List.of(nonConfidentialTea, confidentialTea));
 
     when(program.getTrackedEntityType()).thenReturn(tet);

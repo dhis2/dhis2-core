@@ -242,6 +242,52 @@ public interface SqlBuilder {
    */
   String regexpMatch(String pattern);
 
+  /**
+   * Creates a SQL concatenation function that combines multiple columns or expressions.
+   *
+   * @param columns the column names or expressions to concatenate
+   * @return the SQL function for concatenation
+   */
+  String concat(String... columns);
+
+  /**
+   * Creates a SQL trim function that removes leading and trailing spaces from an expression.
+   *
+   * @param expression the expression to trim
+   * @return the SQL function for trimming
+   */
+  String trim(String expression);
+
+  /**
+   * Creates a SQL COALESCE function that returns the first non-null expression from the provided
+   * expressions. If the first expression is null, it returns the default expression.
+   *
+   * @param expression the expression to check for null
+   * @param defaultValue the value to return if the first expression is null
+   * @return the SQL function for coalescing
+   */
+  String coalesce(String expression, String defaultValue);
+
+  /**
+   * Extracts a value from a JSON column using a specified property path.
+   *
+   * @param column the JSON column name to extract from
+   * @param property the JSON property path to extract
+   * @return the SQL function for JSON value extraction
+   */
+  String jsonExtract(String column, String property);
+
+  /**
+   * Extracts a value from a JSON column using a specified JSON path expression, with support for
+   * table prefix qualification.
+   *
+   * @param tablePrefix the prefix/alias of the table containing the JSON column
+   * @param column the JSON column name to extract from
+   * @param jsonPath the JSON path expression to extract the value
+   * @return the SQL function for JSON value extraction
+   */
+  String jsonExtract(String tablePrefix, String column, String jsonPath);
+
   // Statements
 
   /**
