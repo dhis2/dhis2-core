@@ -50,6 +50,10 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore")
 public class HibernateEventChangeLogStore {
   private static final String COLUMN_CHANGELOG_CREATED = "ecl.created";
+  private static final String COLUMN_CHANGELOG_USER = "ecl.createdByUsername";
+  private static final String COLUMN_CHANGELOG_DATA_ELEMENT = "d.uid";
+  private static final String COLUMN_CHANGELOG_PROPERTY = "ecl.eventProperty";
+
   private static final String DEFAULT_ORDER =
       COLUMN_CHANGELOG_CREATED + " " + SortDirection.DESC.getValue();
 
@@ -61,7 +65,11 @@ public class HibernateEventChangeLogStore {
    * map to a view model. This mapping is not necessary for change logs.
    */
   private static final Map<String, String> ORDERABLE_FIELDS =
-      Map.ofEntries(entry("createdAt", COLUMN_CHANGELOG_CREATED));
+      Map.ofEntries(
+          entry("createdAt", COLUMN_CHANGELOG_CREATED),
+          entry("username", COLUMN_CHANGELOG_USER),
+          entry("dataElement", COLUMN_CHANGELOG_DATA_ELEMENT),
+          entry("property", COLUMN_CHANGELOG_PROPERTY));
 
   private final EntityManager entityManager;
 
@@ -73,8 +81,7 @@ public class HibernateEventChangeLogStore {
     entityManager.unwrap(Session.class).save(eventChangeLog);
   }
 
-  public Page<EventChangeLog> getEventChangeLogs(
-      UID event, List<Order> order, PageParams pageParams) {
+  public Page<EventChangeLog> getEventChangeLogs(UID event, Order order, PageParams pageParams) {
 
     String hql =
         String.format(
@@ -159,14 +166,21 @@ public class HibernateEventChangeLogStore {
     entityManager.createQuery(hql).setParameter("event", event).executeUpdate();
   }
 
-  private static String sortExpressions(List<Order> order) {
-    if (order.isEmpty()) {
+  private static String sortExpressions(Order order) {
+    if (order == null) {
       return DEFAULT_ORDER;
     }
 
-    return ORDERABLE_FIELDS.get(order.get(0).getField())
-        + " "
-        + order.get(0).getDirection().getValue();
+    StringBuilder orderBuilder = new StringBuilder();
+    orderBuilder.append(ORDERABLE_FIELDS.get(order.getField()));
+    orderBuilder.append(" ");
+    orderBuilder.append(order.getDirection().getValue());
+
+    if (!order.getField().equals("createdAt")) {
+      orderBuilder.append(", ").append(DEFAULT_ORDER);
+    }
+
+    return orderBuilder.toString();
   }
 
   public Set<String> getOrderableFields() {
