@@ -44,8 +44,6 @@ public class EventChangeLogOperationParams {
 
   public static class EventChangeLogOperationParamsBuilder {
 
-    private Order order;
-
     // Do not remove this unused method. This hides the order field from the builder which Lombok
     // does not support. The repeated order field and private order method prevent access to order
     // via the builder.
