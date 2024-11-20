@@ -1,61 +1,37 @@
--- Delete invalid events linked to invalid enrollments.
-delete from event e where e.enrollmentid in (
-        select en.enrollmentid
-        from enrollment en join program p on en.programid = p.programid
-        where p.type = 'WITH_REGISTRATION'
-        and en.trackedentityid is null
-    );
+DO $$
+DECLARE dummyOrgUnitId bigint;
+DECLARE dummyOrgUnitUid varchar(11);
+BEGIN
+    select coalesce((select max(organisationunitid) + 1 from organisationunit), 1) into dummyOrgUnitId;
+    select generate_uid() into dummyOrgUnitUid;
 
--- Delete invalid enrollments that are part of a tracker program and
--- have null tracked entity.
-delete from enrollment en where en.programid in (
-        select p.programid
-        from program p
-        where p.type = 'WITH_REGISTRATION'
-)
-and en.trackedentityid is null;
+    while (select count(*) from organisationunit where uid = dummyOrgUnitUid) > 0 loop
+        select generate_uid() into dummyOrgUnitUid;
+    end loop;
 
--- Update null organisation unit of enrollments to organisation unit of one of its events
-update enrollment en set organisationunitid =
-         (select distinct ev.organisationunitid
-                  from event ev
-                  where en.enrollmentid = ev.enrollmentid
-                    and ev.organisationunitid is not null
-                  limit 1)
-where en.organisationunitid is null;
+    insert into organisationunit
+    (organisationunitid, name, code, parentid, shortname, openingdate, created, lastupdated, uid, hierarchylevel)
+    values
+        (dummyOrgUnitId,
+         'DUMMY OU',
+         'DUMMY_OU_CODE',
+         null,
+         'DUMMY OU',
+         '1970-01-01',
+         now(),
+         now(),
+         dummyOrgUnitUid,
+         0);
 
--- If organisationunitid column is still null for any placeholder enrollment,
--- update organisation unit to root organisation unit.
--- Placeholder enrollments do not have a tracked entity, so we need to use one well-know
--- organisation unit.
--- Organisation unit for this enrollments is never used anyway but we still need to fill in a value.
-update enrollment en set organisationunitid = (
-        select distinct organisationunitid
-        from organisationunit
-        where parentid is null
-        limit 1
-    )
-where en.organisationunitid is null
-and (select type from program p where en.programid = p.programid) = 'WITHOUT_REGISTRATION';
+    -- Update null organisation unit of enrollments to dummy organisation unit
+    update enrollment en set organisationunitid = dummyOrgUnitId
+    where en.organisationunitid is null;
 
--- If organisationunitid column is still null for any enrollment that is not a placeholder,
--- use the tracked entity organisation unit.
--- Tracked entity organisation unit is guaranteed to be not null.
-update enrollment en set organisationunitid =
-         (select te.organisationunitid
-          from trackedentity te
-          where en.trackedentityid = te.trackedentityid)
-where en.organisationunitid is null
-and (select type from program p where en.programid = p.programid) = 'WITH_REGISTRATION';
+    alter table enrollment alter column organisationunitid set not null;
 
-alter table enrollment alter column organisationunitid set not null;
+    -- Update null organisation unit of event to dummy organisation unit
+    update event ev set organisationunitid = dummyOrgUnitId
+    where ev.organisationunitid is null;
 
--- Update null organisation unit of event to organisation unit the enrollment
--- that at this point is guaranteed to be not null.
-update event ev set organisationunitid = (
-        select organisationunitid
-        from enrollment en
-        where en.enrollmentid = ev.enrollmentid)
-where ev.organisationunitid is null;
-
-alter table event alter column organisationunitid set not null;
+    alter table event alter column organisationunitid set not null;
+END $$;
