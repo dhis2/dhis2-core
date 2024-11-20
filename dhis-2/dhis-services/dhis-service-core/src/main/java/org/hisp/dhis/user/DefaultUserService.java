@@ -1579,7 +1579,7 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
-  public List<User> getUsersWithOrgUnit(String orgUnitTable, UID uid) {
+  public List<User> getUsersWithOrgUnit(@Nonnull String orgUnitTable, @Nonnull UID uid) {
     return userStore.getUsersWithOrgUnit(orgUnitTable, uid);
   }
 

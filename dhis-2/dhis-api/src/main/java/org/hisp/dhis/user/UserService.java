@@ -903,5 +903,5 @@ public interface UserService {
    * @param uid {@link OrganisationUnit} {@link UID} to match on
    * @return matching {@link User}s
    */
-  List<User> getUsersWithOrgUnit(String orgUnitTable, UID uid);
+  List<User> getUsersWithOrgUnit(@Nonnull String orgUnitTable, @Nonnull UID uid);
 }
