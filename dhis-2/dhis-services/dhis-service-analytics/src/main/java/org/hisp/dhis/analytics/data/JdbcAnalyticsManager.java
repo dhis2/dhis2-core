@@ -909,16 +909,12 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
     for (MeasureFilter filter : params.getMeasureCriteria().keySet()) {
       Double criterion = params.getMeasureCriteria().get(filter);
+      String sqlFilter =
+          String.format(
+              " %s %s %s ",
+              getAggregateValueColumn(params), OPERATOR_SQL_MAP.get(filter), criterion);
 
-      sql +=
-          sqlHelper.havingAnd()
-              + " "
-              + getAggregateValueColumn(params)
-              + " "
-              + OPERATOR_SQL_MAP.get(filter)
-              + " "
-              + criterion
-              + " ";
+      sql += sqlHelper.havingAnd() + sqlFilter;
     }
 
     return sql;

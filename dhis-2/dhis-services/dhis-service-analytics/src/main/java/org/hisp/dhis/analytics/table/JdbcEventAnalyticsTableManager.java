@@ -279,13 +279,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String sql =
         replaceQualify(
             """
-                    select ev.eventid \
-                    from ${event} ev \
-                    inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
-                    where en.programid = ${programId} \
-                    and ev.lastupdated >= '${startDate}' \
-                    and ev.lastupdated < '${endDate}' \
-                    limit 1;""",
+            select ev.eventid \
+            from ${event} ev \
+            inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
+            where en.programid = ${programId} \
+            and ev.lastupdated >= '${startDate}' \
+            and ev.lastupdated < '${endDate}' \
+            limit 1;""",
             Map.of(
                 "programId", String.valueOf(program.getId()),
                 "startDate", toLongDate(startDate),
@@ -302,14 +302,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       String sql =
           replaceQualify(
               """
-                      delete from ${tableName} ax \
-                      where ax.event in ( \
-                      select ev.uid \
-                      from ${event} ev \
-                      inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
-                      where en.programid = ${programId} \
-                      and ev.lastupdated >= '${startDate}' \
-                      and ev.lastupdated < '${endDate}');""",
+              delete from ${tableName} ax \
+              where ax.event in ( \
+              select ev.uid \
+              from ${event} ev \
+              inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
+              where en.programid = ${programId} \
+              and ev.lastupdated >= '${startDate}' \
+              and ev.lastupdated < '${endDate}');""",
               Map.of(
                   "tableName", qualify(table.getName()),
                   "programId", String.valueOf(table.getProgram().getId()),
@@ -339,28 +339,28 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String fromClause =
         replaceQualify(
             """
-                    \sfrom ${event} ev \
-                    inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
-                    inner join ${programstage} ps on ev.programstageid=ps.programstageid \
-                    inner join ${program} pr on en.programid=pr.programid and en.deleted = false \
-                    inner join ${categoryoptioncombo} ao on ev.attributeoptioncomboid=ao.categoryoptioncomboid \
-                    left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and te.deleted = false \
-                    left join ${organisationunit} registrationou on te.organisationunitid=registrationou.organisationunitid \
-                    inner join ${organisationunit} ou on ev.organisationunitid=ou.organisationunitid \
-                    left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
-                    left join analytics_rs_organisationunitgroupsetstructure ougs on ev.organisationunitid=ougs.organisationunitid \
-                    and (cast(${eventDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
-                    left join ${organisationunit} enrollmentou on en.organisationunitid=enrollmentou.organisationunitid \
-                    inner join analytics_rs_categorystructure acs on ev.attributeoptioncomboid=acs.categoryoptioncomboid \
-                    left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
-                    where ev.lastupdated < '${startTime}' ${partitionClause} \
-                    and pr.programid=${programId} \
-                    and ev.organisationunitid is not null \
-                    and (${eventDateExpression}) is not null \
-                    and dps.year >= ${firstDataYear} \
-                    and dps.year <= ${latestDataYear} \
-                    and ev.status in (${exportableEventStatues}) \
-                    and ev.deleted = false""",
+            \sfrom ${event} ev \
+            inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
+            inner join ${programstage} ps on ev.programstageid=ps.programstageid \
+            inner join ${program} pr on en.programid=pr.programid and en.deleted = false \
+            inner join ${categoryoptioncombo} ao on ev.attributeoptioncomboid=ao.categoryoptioncomboid \
+            left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and te.deleted = false \
+            left join ${organisationunit} registrationou on te.organisationunitid=registrationou.organisationunitid \
+            inner join ${organisationunit} ou on ev.organisationunitid=ou.organisationunitid \
+            left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
+            left join analytics_rs_organisationunitgroupsetstructure ougs on ev.organisationunitid=ougs.organisationunitid \
+            and (cast(${eventDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
+            left join ${organisationunit} enrollmentou on en.organisationunitid=enrollmentou.organisationunitid \
+            inner join analytics_rs_categorystructure acs on ev.attributeoptioncomboid=acs.categoryoptioncomboid \
+            left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
+            where ev.lastupdated < '${startTime}' ${partitionClause} \
+            and pr.programid=${programId} \
+            and ev.organisationunitid is not null \
+            and (${eventDateExpression}) is not null \
+            and dps.year >= ${firstDataYear} \
+            and dps.year <= ${latestDataYear} \
+            and ev.status in (${exportableEventStatues}) \
+            and ev.deleted = false""",
             Map.of(
                 "eventDateMonth", sqlBuilder.dateTrunc("month", eventDateExpression),
                 "eventDateExpression", eventDateExpression,
@@ -501,12 +501,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String selectClause = getSelectClause(attribute.getValueType(), "value");
     String query =
         """
-              \s(select l.uid from ${maplegend} l \
-              inner join ${trackedentityattributevalue} av on l.startvalue <= ${selectClause} \
-              and l.endvalue > ${selectClause} \
-              and l.maplegendsetid=${legendSetId} \
-              and av.trackedentityid=en.trackedentityid \
-              and av.trackedentityattributeid=${attributeId} ${numericClause}) as ${column}""";
+        \s(select l.uid from ${maplegend} l \
+        inner join ${trackedentityattributevalue} av on l.startvalue <= ${selectClause} \
+        and l.endvalue > ${selectClause} \
+        and l.maplegendsetid=${legendSetId} \
+        and av.trackedentityid=en.trackedentityid \
+        and av.trackedentityattributeid=${attributeId} ${numericClause}) as ${column}""";
 
     return attribute.getLegendSets().stream()
         .map(
@@ -634,8 +634,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private String selectForInsert(DataElement dataElement, String fromType, String dataClause) {
     return replaceQualify(
         """
-            (select ${fromType} from ${event} \
-            where eventid=ev.eventid ${dataClause})${closingParentheses} as ${dataElementUid}""",
+        (select ${fromType} from ${event} \
+        where eventid=ev.eventid ${dataClause})${closingParentheses} as ${dataElementUid}""",
         Map.of(
             "fromType",
             fromType,
@@ -651,11 +651,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       DataElement dataElement, String select, String dataClause) {
     String query =
         """
-            (select l.uid from ${maplegend} l
-            inner join ${event} on l.startvalue <= ${select}
-            and l.endvalue > ${select}
-            and l.maplegendsetid=${legendSetId}
-            and eventid=ev.eventid ${dataClause}) as ${column}""";
+        (select l.uid from ${maplegend} l
+        inner join ${event} on l.startvalue <= ${select}
+        and l.endvalue > ${select}
+        and l.maplegendsetid=${legendSetId}
+        and eventid=ev.eventid ${dataClause}) as ${column}""";
 
     return dataElement.getLegendSets().stream()
         .map(
@@ -709,17 +709,17 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String sql =
         replaceQualify(
             """
-                    select temp.supportedyear from \
-                    (select distinct extract(year from ${eventDateExpression}) as supportedyear \
-                    from ${event} ev \
-                    inner join ${enrollment} en on ev.enrollmentid = en.enrollmentid \
-                    where ev.lastupdated <= '${startTime}' and en.programid = ${programId} \
-                    and (${eventDateExpression}) is not null \
-                    and (${eventDateExpression}) > '1000-01-01' \
-                    and ev.deleted = false \
-                    ${fromDateClause}) as temp \
-                    where temp.supportedyear >= ${firstDataYear} \
-                    and temp.supportedyear <= ${latestDataYear}""",
+            select temp.supportedyear from \
+            (select distinct extract(year from ${eventDateExpression}) as supportedyear \
+            from ${event} ev \
+            inner join ${enrollment} en on ev.enrollmentid = en.enrollmentid \
+            where ev.lastupdated <= '${startTime}' and en.programid = ${programId} \
+            and (${eventDateExpression}) is not null \
+            and (${eventDateExpression}) > '1000-01-01' \
+            and ev.deleted = false \
+            ${fromDateClause}) as temp \
+            where temp.supportedyear >= ${firstDataYear} \
+            and temp.supportedyear <= ${latestDataYear}""",
             Map.of(
                 "eventDateExpression", eventDateExpression,
                 "startTime", toLongDate(params.getStartTime()),
