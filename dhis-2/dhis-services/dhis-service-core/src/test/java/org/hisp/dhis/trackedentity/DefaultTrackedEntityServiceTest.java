@@ -30,7 +30,7 @@ package org.hisp.dhis.trackedentity;
 import static org.hisp.dhis.DhisConvenienceTest.injectSecurityContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.Set;
@@ -75,7 +75,9 @@ class DefaultTrackedEntityServiceTest {
 
   @Mock private TrackedEntityAttributeValueChangeLogService attributeValueAuditService;
 
-  private TrackedEntityQueryParams params;
+  private TrackedEntityQueryParams paramsA;
+
+  private TrackedEntityQueryParams paramsB;
 
   private DefaultTrackedEntityService teiService;
 
@@ -103,11 +105,15 @@ class DefaultTrackedEntityServiceTest {
     this.user = user;
     injectSecurityContext(UserDetails.fromUser(user));
 
-    params = new TrackedEntityQueryParams();
-    params.setOrgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE);
-    params.setProgram(new Program("Test program"));
-    params.getProgram().setMaxTeiCountToReturn(10);
-    params.setTrackedEntityUids(Set.of("1"));
+    paramsA = new TrackedEntityQueryParams();
+    paramsA.setOrgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE);
+    paramsA.setProgram(new Program("Test program"));
+    paramsA.getProgram().setMaxTeiCountToReturn(10);
+    paramsA.setTrackedEntityUids(Set.of("1"));
+
+    paramsB = new TrackedEntityQueryParams();
+    paramsB.setOrgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE);
+    paramsB.setTrackedEntityUids(Set.of("1"));
   }
 
   @Test
@@ -122,7 +128,7 @@ class DefaultTrackedEntityServiceTest {
     IllegalQueryException expectedException =
         assertThrows(
             IllegalQueryException.class,
-            () -> teiService.validateSearchScope(params, true),
+            () -> teiService.validateSearchScope(paramsA, true),
             "test message");
 
     assertEquals("maxteicountreached", expectedException.getMessage());
@@ -137,6 +143,14 @@ class DefaultTrackedEntityServiceTest {
     String currentUsername = CurrentUserUtil.getCurrentUsername();
     when(userService.getUserByUsername(currentUsername)).thenReturn(user);
 
-    teiService.validateSearchScope(params, true);
+    teiService.validateSearchScope(paramsA, true);
+  }
+
+  @Test
+  void noExceptionThrownWhenNoProgramSpecified() {
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    when(userService.getUserByUsername(currentUsername)).thenReturn(user);
+
+    teiService.validateSearchScope(paramsB, true);
   }
 }
