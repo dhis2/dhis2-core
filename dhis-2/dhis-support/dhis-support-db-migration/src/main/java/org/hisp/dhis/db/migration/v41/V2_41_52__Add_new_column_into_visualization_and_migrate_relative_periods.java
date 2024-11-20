@@ -27,51 +27,7 @@
  */
 package org.hisp.dhis.db.migration.v41;
 
-import static org.hisp.dhis.period.RelativePeriodEnum.BIMONTHS_THIS_YEAR;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_10_FINANCIAL_YEARS;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_10_YEARS;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_12_MONTHS;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_12_WEEKS;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_14_DAYS;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_180_DAYS;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_2_SIXMONTHS;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_30_DAYS;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_3_DAYS;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_3_MONTHS;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_4_BIWEEKS;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_4_QUARTERS;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_4_WEEKS;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_52_WEEKS;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_5_FINANCIAL_YEARS;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_5_YEARS;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_60_DAYS;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_6_BIMONTHS;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_6_MONTHS;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_7_DAYS;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_90_DAYS;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_BIMONTH;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_BIWEEK;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_FINANCIAL_YEAR;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_MONTH;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_QUARTER;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_SIX_MONTH;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_WEEK;
-import static org.hisp.dhis.period.RelativePeriodEnum.LAST_YEAR;
-import static org.hisp.dhis.period.RelativePeriodEnum.MONTHS_LAST_YEAR;
-import static org.hisp.dhis.period.RelativePeriodEnum.MONTHS_THIS_YEAR;
-import static org.hisp.dhis.period.RelativePeriodEnum.QUARTERS_LAST_YEAR;
-import static org.hisp.dhis.period.RelativePeriodEnum.QUARTERS_THIS_YEAR;
-import static org.hisp.dhis.period.RelativePeriodEnum.THIS_BIMONTH;
-import static org.hisp.dhis.period.RelativePeriodEnum.THIS_BIWEEK;
-import static org.hisp.dhis.period.RelativePeriodEnum.THIS_FINANCIAL_YEAR;
-import static org.hisp.dhis.period.RelativePeriodEnum.THIS_MONTH;
-import static org.hisp.dhis.period.RelativePeriodEnum.THIS_QUARTER;
-import static org.hisp.dhis.period.RelativePeriodEnum.THIS_SIX_MONTH;
-import static org.hisp.dhis.period.RelativePeriodEnum.THIS_WEEK;
-import static org.hisp.dhis.period.RelativePeriodEnum.THIS_YEAR;
-import static org.hisp.dhis.period.RelativePeriodEnum.TODAY;
-import static org.hisp.dhis.period.RelativePeriodEnum.WEEKS_THIS_YEAR;
-import static org.hisp.dhis.period.RelativePeriodEnum.YESTERDAY;
+import static org.hisp.dhis.period.RelativePeriodEnum.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.sql.PreparedStatement;
@@ -155,8 +111,35 @@ public class V2_41_52__Add_new_column_into_visualization_and_migrate_relative_pe
   }
 
   public void migrate(Context context) throws SQLException {
-    step1(context);
-    step2(context);
+    if (!isMigrationAlreadyApplied(context)) {
+      step1(context);
+      step2(context);
+    }
+  }
+
+  private boolean isMigrationAlreadyApplied(Context context) {
+    String schema = null;
+    try {
+      schema = context.getConnection().getSchema();
+    } catch (SQLException e) {
+      log.error("Schema check: ", e);
+    }
+
+    final String checkColumnExists =
+        "select exists (select 1 from information_schema.columns where "
+            + (schema != null ? "table_schema='" + schema + "' and " : "")
+            + "table_name='eventvisualization' and column_name='relativeperiods')";
+
+    try (Statement statement = context.getConnection().createStatement();
+        ResultSet rs = statement.executeQuery(checkColumnExists)) {
+      while (rs.next()) {
+        return rs.getBoolean(1);
+      }
+    } catch (SQLException e) {
+      log.error("Check failed: ", e);
+    }
+
+    return false;
   }
 
   /**
@@ -257,7 +240,7 @@ public class V2_41_52__Add_new_column_into_visualization_and_migrate_relative_pe
       ps.setLong(2, parentTableId);
       ps.executeUpdate();
 
-      // Clear the list of periods so it can be reused in the next iteration.
+      // Clear the list of periods, so it can be reused in the next iteration.
       periodList.clear();
     }
   }
