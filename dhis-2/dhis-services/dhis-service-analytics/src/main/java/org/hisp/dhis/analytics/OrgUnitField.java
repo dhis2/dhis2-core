@@ -43,6 +43,7 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.program.AnalyticsType;
 
@@ -84,7 +85,7 @@ public class OrgUnitField {
 
   private final OrgUnitFieldType type;
 
-  private SqlBuilder sqlBuilder;
+  private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   public OrgUnitField(String field) {
     this.field = field;
