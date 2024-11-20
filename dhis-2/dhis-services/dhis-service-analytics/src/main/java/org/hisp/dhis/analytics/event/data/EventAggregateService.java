@@ -69,6 +69,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
@@ -239,7 +240,7 @@ public class EventAggregateService {
 
     List<EventQueryParams> queries = queryPlanner.planAggregateQuery(params);
 
-    timer.getSplitTime("Planned event query, got partitions: " + params.getPartitions());
+    timer.getSplitTime("Planned event query, got partitions: {}", params.getPartitions());
 
     for (EventQueryParams query : queries) {
       if (query.hasEnrollmentProgramIndicatorDimension()) {

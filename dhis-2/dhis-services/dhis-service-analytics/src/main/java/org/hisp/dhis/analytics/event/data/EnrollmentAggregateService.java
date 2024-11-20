@@ -142,7 +142,7 @@ public class EnrollmentAggregateService {
 
     for (EventQueryParams queryParams : paramsList) {
       timer.getSplitTime(
-          "Planned enrollment query, got partitions: " + queryParams.getPartitions());
+          "Planned enrollment query, got partitions: {}", queryParams.getPartitions());
 
       int maxLimit =
           params.isAggregatedEnrollments() ? UNLIMITED_PAGING : queryValidator.getMaxLimit();

@@ -291,7 +291,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .withName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
         .withMainName(TABLE_PREFIX + program.getUid().toLowerCase())
         .withColumnSize(57 + OU_NAME_HIERARCHY_COUNT)
-        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .addColumns(periodColumns)
         .addColumn(
             categoryA.getUid(),
@@ -514,7 +514,7 @@ class JdbcEventAnalyticsTableManagerTest {
             TEXT,
             toSelectExpression(aliasD5_name, d5.getUid() + "_name"),
             Skip.SKIP)
-        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .build()
         .verify();
   }
@@ -590,7 +590,7 @@ class JdbcEventAnalyticsTableManagerTest {
             TEXT,
             String.format(aliasTea1, "ou.name", tea1.getId(), tea1.getUid()),
             Skip.SKIP)
-        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .build()
         .verify();
   }
@@ -791,13 +791,13 @@ class JdbcEventAnalyticsTableManagerTest {
         .withMainName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
-            JdbcEventAnalyticsTableManager.FIXED_COLS.size()
+            EventAnalyticsColumn.getColumns(sqlBuilder).size()
                 + PeriodType.getAvailablePeriodTypes().size()
                 + ouLevels.size()
                 + (programA.isRegistration() ? 1 : 0)
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .addColumn(("uidlevel" + ouLevels.get(0).getLevel()), col -> match(ouLevels.get(0), col))
         .addColumn(("uidlevel" + ouLevels.get(1).getLevel()), col -> match(ouLevels.get(1), col))
         .build()
@@ -834,13 +834,13 @@ class JdbcEventAnalyticsTableManagerTest {
         .withMainName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
-            JdbcEventAnalyticsTableManager.FIXED_COLS.size()
+            EventAnalyticsColumn.getColumns(sqlBuilder).size()
                 + PeriodType.getAvailablePeriodTypes().size()
                 + ouGroupSet.size()
                 + (programA.isRegistration() ? 1 : 0)
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .addColumn(ouGroupSet.get(0).getUid(), col -> match(ouGroupSet.get(0), col))
         .addColumn(ouGroupSet.get(1).getUid(), col -> match(ouGroupSet.get(1), col))
         .build()
@@ -876,13 +876,13 @@ class JdbcEventAnalyticsTableManagerTest {
         .withMainName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
-            JdbcEventAnalyticsTableManager.FIXED_COLS.size()
+            EventAnalyticsColumn.getColumns(sqlBuilder).size()
                 + PeriodType.getAvailablePeriodTypes().size()
                 + cogs.size()
                 + (programA.isRegistration() ? 1 : 0)
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .addColumn(cogs.get(0).getUid(), col -> match(cogs.get(0), col))
         .addColumn(cogs.get(1).getUid(), col -> match(cogs.get(1), col))
         .build()
@@ -981,9 +981,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
     String ouQuery =
         """
-        (select ou.%s from \"organisationunit\" ou where ou.uid = \
-        (select value from \"trackedentityattributevalue\" where trackedentityid=en.trackedentityid and \
-        trackedentityattributeid=9999)) as %s""";
+            (select ou.%s from \"organisationunit\" ou where ou.uid = \
+            (select value from \"trackedentityattributevalue\" where trackedentityid=en.trackedentityid and \
+            trackedentityattributeid=9999)) as %s""";
 
     assertThat(sql.getValue(), containsString(String.format(ouQuery, "uid", quote(tea.getUid()))));
     assertThat(sql.getValue(), containsString(String.format(ouQuery, "name", quote(tea.getUid()))));

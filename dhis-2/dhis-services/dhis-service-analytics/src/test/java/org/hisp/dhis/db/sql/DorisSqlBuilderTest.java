@@ -65,9 +65,7 @@ class DorisSqlBuilderTest {
             new Column("facility_type", DataType.VARCHAR_255, Nullable.NULL, Collation.C),
             new Column("bcg_doses", DataType.DOUBLE));
 
-    List<String> checks = List.of("\"id\">0", "\"bcg_doses\">0");
-
-    return new Table("vaccination", columns, List.of(), checks, Logged.UNLOGGED);
+    return new Table("vaccination", columns, List.of(), Logged.UNLOGGED);
   }
 
   private Table getTableC() {
