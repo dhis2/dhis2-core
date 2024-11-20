@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.common.event;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import lombok.Getter;
 import org.hisp.dhis.common.cache.Region;
 import org.springframework.context.ApplicationEvent;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
  * @author Ameen Mohamed

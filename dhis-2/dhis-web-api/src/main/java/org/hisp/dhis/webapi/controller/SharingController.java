@@ -115,7 +115,7 @@ public class SharingController {
 
   @Autowired private EntityManager entityManager;
 
-  @Autowired private  ApplicationEventPublisher eventPublisher;
+  @Autowired private ApplicationEventPublisher eventPublisher;
 
   // -------------------------------------------------------------------------
   // Resources

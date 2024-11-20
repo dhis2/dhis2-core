@@ -35,7 +35,6 @@ import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.cache.Region;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
@@ -183,7 +182,6 @@ public class DefaultCacheProvider implements CacheProvider {
             .forceInMemory()
             .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_10K))));
   }
-
 
   @Override
   public <V> Cache<V> createInUserSearchOrgUnitHierarchyCache() {
