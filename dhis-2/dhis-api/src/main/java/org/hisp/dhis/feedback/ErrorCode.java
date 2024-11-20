@@ -193,7 +193,7 @@ public enum ErrorCode {
   E3020(
       "You must have permissions to create user, or ability to manage at least one user group for the user"),
   E3021("Not allowed to disable 2FA for current user"),
-  E3022("User has two factor authentication enabled, disable 2FA before you create a new QR code"),
+  E3022("User has 2FA enabled already, disable 2FA before you try to enroll again"),
   E3023("Invalid 2FA code"),
   E3024("Not allowed to disable 2FA"),
   E3025("No current user"),
@@ -209,9 +209,10 @@ public enum ErrorCode {
   E3041("User `{0}` is not allowed to change a user having the ALL authority"),
   E3042("Too many failed disable attempts. Please try again later"),
   E3043("User has not a verified email, please verify your email first before you enable 2FA"),
-  E3044("TOTP two-factor authentication is not enabled"),
-  E3045("Email based two-factor authentication is not enabled"),
-  E3046("TOTP two-factor authentication is not enabled"),
+  E3044("TOTP 2FA is not enabled"),
+  E3045("Email based 2FA is not enabled in the system settings"),
+  E3046("TOTP 2FA is not enabled in the system settings"),
+  E3047("User is not in TOTP 2FA enrollment mode"),
 
   /* Metadata Validation */
   E4000("Missing required property `{0}`"),

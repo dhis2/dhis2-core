@@ -33,6 +33,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.springframework.security.core.GrantedAuthority;
 
 /**
@@ -86,6 +87,11 @@ public class SystemUser implements UserDetails {
   @Override
   public boolean isSuper() {
     return true;
+  }
+
+  @Override
+  public String getSecret() {
+    return "";
   }
 
   @Override
@@ -185,8 +191,8 @@ public class SystemUser implements UserDetails {
   }
 
   @Override
-  public String getTwoFactorType() {
-    return "";
+  public TwoFactorType getTwoFactorType() {
+    return TwoFactorType.NONE;
   }
 
   @Override

@@ -150,42 +150,32 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
     }
 
     String code = StringUtils.deleteWhitespace(authDetails.getCode());
-    TwoFactorType type = TwoFactorType.valueOf(userDetails.getTwoFactorType());
-    String userSecret = userService.getUserSecret(userDetails.getUsername());
-
-    validate2FACode(code, type, userSecret, userDetails.getUsername());
+    validate2FACode(code, userDetails);
   }
 
-  private boolean isValid2FACode(String code, TwoFactorType type, String userSecret) {
-    if (TwoFactorType.TOTP.equals(type)) {
-      return TwoFactorAuthUtils.verifyTOTP2FACode(code, userSecret);
-    } else if (TwoFactorType.EMAIL.equals(type)) {
-      return StringUtils.equals(code, userSecret);
-    }
-    throw new IllegalStateException("Unknown two-factor type: " + type);
-  }
+  private void validate2FACode(String code, UserDetails userDetails) {
+    String username = userDetails.getUsername();
+    TwoFactorType type = userDetails.getTwoFactorType();
+    String secret = userDetails.getSecret();
 
-  private void validate2FACode(
-      String code, TwoFactorType type, String userSecret, String username) {
-    if (!isValid2FACode(code, type, userSecret)) {
+    if (TwoFactorAuthUtils.isValid2FACode(code, type, secret)) {
+      if (type.isEnrolling()) {
+        // We need this special case to approve the 2FA secret if the user is doing enforced
+        // enrolling during login.
+        twoFactorAuthService.setUserToEnabled2FA(userDetails, new SystemUser());
+      }
+    } else {
       log.debug("Two-factor authentication failure for user: '{}'", username);
-      if (TwoFactorAuthUtils.is2FASecretForApproval(userSecret)) {
+      if (type.isEnrolling()) {
         // We need to reset the two factor secret if the user has one for approval, this probably
         // means that the user has not finished the 2FA enrollment, and has logged out and
         // the enrollment setup can not continue. During enforced enrollment, we need to reset and
         // basically start over.
-        User user = userService.getUserByUsername(username);
-        twoFactorAuthService.reset2FA(user, new SystemUser());
-        throw new TwoFactorAuthenticationEnrolmentException("Invalid verification code");
+        twoFactorAuthService.reset2FA(userDetails, new SystemUser());
+        throw new TwoFactorAuthenticationEnrolmentException("Invalid 2FA code");
       }
-
-      throw new TwoFactorAuthenticationException("Invalid verification code");
-
-    } else if (TwoFactorAuthUtils.is2FASecretForApproval(userSecret)) {
-      // We need this special case to approve the 2FA secret if the user is doing enforced enrolling
-      // on login.
-      User user = userService.getUserByUsername(username);
-      twoFactorAuthService.approve2FAEnrollment(user, new SystemUser());
+      throw new TwoFactorAuthenticationException("Invalid 2FA code");
     }
   }
+  // All good, 2FA code is valid!
 }

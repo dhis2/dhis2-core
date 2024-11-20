@@ -29,7 +29,6 @@ package org.hisp.dhis.security.twofa;
 
 import static org.hisp.dhis.feedback.ErrorCode.E3026;
 import static org.hisp.dhis.feedback.ErrorCode.E3028;
-import static org.hisp.dhis.security.twofa.TwoFactorAuthService.TWO_FACTOR_CODE_APPROVAL_PREFIX;
 
 import com.google.common.base.Strings;
 import com.google.zxing.BarcodeFormat;
@@ -86,41 +85,41 @@ public class TwoFactorAuthUtils {
       MatrixToImageWriter.writeToStream(bitMatrix, "PNG", byteArrayOutputStream);
       return byteArrayOutputStream.toByteArray();
     } catch (WriterException | IOException e) {
-      log.error(e.getMessage(), e);
+      log.warn(e.getMessage(), e);
       errorCode.accept(E3026);
       return ArrayUtils.EMPTY_BYTE_ARRAY;
     }
   }
 
   /**
-   * Generate QR content based on given appName and {@link User}
-   *
-   * @param appName app name to be used for generating QR content.
-   * @param user {@link User} which the QR Code is generated for.
-   * @return a String which can be used for generating a QR code by calling method {@link
-   *     TwoFactorAuthUtils#generateQRCode(String, int, int, Consumer)}
+   * Generate TOTP URL based appName and {@link User}, this is used as input to the TOTP generator.
    */
-  public static String generateQrContent(String appName, User user, Consumer<ErrorCode> errorCode) {
-    String secret = user.getSecret();
-
+  public static String generateTOTP2FAURL(
+      String appName, String secret, String username, Consumer<ErrorCode> errorCode) {
     if (Strings.isNullOrEmpty(secret)) {
       errorCode.accept(E3028);
     }
-
-    secret = removeApprovalPrefix(secret);
-
     String app = (APP_NAME_PREFIX + StringUtils.stripToEmpty(appName)).replace(" ", "%20");
+    return String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s", app, username, secret, app);
+  }
 
-    return String.format(
-        "otpauth://totp/%s:%s?secret=%s&issuer=%s", app, user.getUsername(), secret, app);
+  public static boolean isValid2FACode(String code, TwoFactorType type, String secret) {
+    if (TwoFactorType.TOTP == type || TwoFactorType.ENROLLING_TOTP == type) {
+      return TwoFactorAuthUtils.verifyTOTP2FACode(code, secret);
+    } else if (TwoFactorType.EMAIL == type || TwoFactorType.ENROLLING_EMAIL == type) {
+      return TwoFactorAuthUtils.verifyEmail2FACode(code, secret);
+    }
+    throw new IllegalStateException("Unknown 2FA type: " + type);
   }
 
   public static boolean verifyEmail2FACode(String code, String secret) {
+    if (Strings.isNullOrEmpty(code)) {
+      throw new IllegalArgumentException("Code can not be null or empty");
+    }
     if (Strings.isNullOrEmpty(secret)) {
-      throw new IllegalArgumentException("User must have a secret");
+      throw new IllegalArgumentException("Secret can not be null or empty");
     }
 
-    secret = removeApprovalPrefix(secret);
     String[] codeAndTTL = PIPE_SPLIT_PATTERN.split(secret);
     secret = codeAndTTL[0];
     long ttl = Long.parseLong(codeAndTTL[1]);
@@ -132,23 +131,17 @@ public class TwoFactorAuthUtils {
     return code.equals(secret);
   }
 
-  /**
-   * Verifies that the secret for the given user matches the given code.
-   *
-   * @param code the code.
-   * @param secret
-   * @return true if the user secret matches the given code, false if not.
-   */
   public static boolean verifyTOTP2FACode(String code, String secret) {
+    if (Strings.isNullOrEmpty(code)) {
+      throw new IllegalArgumentException("Code can not be null or empty");
+    }
     if (Strings.isNullOrEmpty(secret)) {
-      throw new IllegalArgumentException("User must have a secret");
+      throw new IllegalArgumentException("Secret can not be null or empty");
     }
 
     if (!LongValidator.getInstance().isValid(code)) {
       return false;
     }
-
-    secret = removeApprovalPrefix(secret);
 
     Totp totp = new Totp(secret);
     try {
@@ -156,26 +149,5 @@ public class TwoFactorAuthUtils {
     } catch (NumberFormatException ex) {
       return false;
     }
-  }
-
-  private static String removeApprovalPrefix(String secret) {
-    if (secret.startsWith(TWO_FACTOR_CODE_APPROVAL_PREFIX)) {
-      secret = secret.substring(TWO_FACTOR_CODE_APPROVAL_PREFIX.length());
-    }
-    return secret;
-  }
-
-  /**
-   * If the user's secret starts with the prefix `APPROVAL_`, then return true
-   *
-   * @param user The user to check.
-   * @return A boolean value.
-   */
-  static boolean is2FASecretForApproval(User user) {
-    return user.getSecret().startsWith(TWO_FACTOR_CODE_APPROVAL_PREFIX);
-  }
-
-  public static boolean is2FASecretForApproval(String secret) {
-    return secret.startsWith(TWO_FACTOR_CODE_APPROVAL_PREFIX);
   }
 }

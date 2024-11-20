@@ -31,6 +31,31 @@ import lombok.Getter;
 
 @Getter
 public enum TwoFactorType {
+  NONE,
   TOTP,
-  EMAIL
+  EMAIL,
+  ENROLLING_TOTP,
+  ENROLLING_EMAIL;
+
+  public boolean isEnrolling() {
+    return this == ENROLLING_TOTP || this == ENROLLING_EMAIL;
+  }
+
+  public TwoFactorType getEnabledType() {
+    if (this == ENROLLING_TOTP) {
+      return TOTP;
+    } else if (this == ENROLLING_EMAIL) {
+      return EMAIL;
+    } else {
+      throw new IllegalStateException("Two factor type is not enrolling");
+    }
+  }
+
+  public boolean isEnabled() {
+    if (this == TOTP || this == EMAIL) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }

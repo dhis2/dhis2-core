@@ -28,15 +28,21 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
-import static org.hisp.dhis.security.twofa.TwoFactorAuthService.TWO_FACTOR_CODE_APPROVAL_PREFIX;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService;
+import org.hisp.dhis.security.twofa.TwoFactorType;
+import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.SystemUser;
@@ -57,6 +63,53 @@ import org.springframework.transaction.annotation.Transactional;
 class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private TwoFactorAuthService twoFactorAuthService;
+  @Autowired private SystemSettingsService systemSettingsService;
+
+  @Test
+  void testEnrollTOTP2FA() {
+    User user = makeUser("X", List.of("TEST"));
+    user.setEmail("valid.x@email.com");
+    userService.addUser(user);
+
+    switchToNewUser(user);
+
+    assertStatus(HttpStatus.OK, POST("/2fa/enrollTOTP2FA"));
+
+    User enrolledUser = userService.getUserByUsername(user.getUsername());
+    assertNotNull(enrolledUser.getSecret());
+    assertTrue(enrolledUser.getSecret().matches("^[a-zA-Z0-9]{32}$"));
+    assertSame(TwoFactorType.ENROLLING_TOTP, enrolledUser.getTwoFactorType());
+
+    HttpResponse res = GET("/2fa/showQRCodeAsJson");
+    assertStatus(HttpStatus.OK, res);
+    assertNotNull(res.content());
+
+    JsonMixed content = res.content();
+    JsonValue base32Secret = content.get("base32Secret");
+    JsonValue base64QRImage = content.get("base64QRImage");
+
+    assertTrue(base32Secret.isString());
+    assertTrue(base64QRImage.isString());
+  }
+
+  @Test
+  void testEnrollEmail2FA() {
+    systemSettingsService.put("email2FAEnabled", "true");
+
+    User user = makeUser("X", List.of("TEST"));
+    user.setEmail("valid.x@email.com");
+    user.setVerifiedEmail("valid.x@email.com");
+    userService.addUser(user);
+
+    switchToNewUser(user);
+
+    assertStatus(HttpStatus.OK, POST("/2fa/enrollEmail2FA"));
+
+    User enrolledUser = userService.getUserByUsername(user.getUsername());
+    assertNotNull(enrolledUser.getSecret());
+    assertTrue(enrolledUser.getSecret().matches("^[0-9]{6}\\|\\d+$"));
+    assertSame(TwoFactorType.ENROLLING_EMAIL, enrolledUser.getTwoFactorType());
+  }
 
   @Test
   void testEnableTOTP2FA() {
@@ -84,8 +137,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     User enrolledUser = userService.getUserByUsername(user.getUsername());
     String secret = enrolledUser.getSecret();
     assertNotNull(secret);
-    String codeTTL = replaceApprovalPartOfTheSecret(secret);
-    String[] codeAndTTL = codeTTL.split("\\|");
+    String[] codeAndTTL = secret.split("\\|");
     String code = codeAndTTL[0];
 
     assertStatus(HttpStatus.OK, POST("/2fa/enabled", "{'code':'" + code + "'}"));
@@ -139,7 +191,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
     userService.addUser(newUser);
     twoFactorAuthService.enrollTOTP2FA(newUser);
-    twoFactorAuthService.approve2FAEnrollment(newUser, new SystemUser());
+    twoFactorAuthService.setUserToEnabled2FA(newUser, new SystemUser());
 
     switchToNewUser(newUser);
 
@@ -156,7 +208,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
     userService.addUser(newUser);
     twoFactorAuthService.enrollEmail2FA(newUser);
-    twoFactorAuthService.approve2FAEnrollment(newUser, new SystemUser());
+    twoFactorAuthService.setUserToEnabled2FA(newUser, new SystemUser());
 
     switchToNewUser(newUser);
 
@@ -210,11 +262,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
         POST("/2fa/disable", "{'code':'333333'}").content(HttpStatus.CONFLICT));
   }
 
-  private static String replaceApprovalPartOfTheSecret(String secret) {
-    return secret.replace(TWO_FACTOR_CODE_APPROVAL_PREFIX, "");
-  }
-
   private static String generateTOTP2FACodeFromUserSecret(User newUser) {
-    return new Totp(replaceApprovalPartOfTheSecret(newUser.getSecret())).now();
+    return new Totp(newUser.getSecret()).now();
   }
 }

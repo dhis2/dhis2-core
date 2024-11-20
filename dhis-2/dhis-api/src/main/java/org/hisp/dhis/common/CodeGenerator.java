@@ -28,6 +28,7 @@
 package org.hisp.dhis.common;
 
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
 
@@ -141,6 +142,13 @@ public class CodeGenerator {
   public static char[] generateSecureRandomCode(int codeSize) {
     SecureRandom sr = SecureRandomHolder.GENERATOR;
     return generateRandomAlphanumericCode(codeSize, sr);
+  }
+
+  public static byte[] generateSecureRandomBytes(int length) {
+    SecureRandom sr = SecureRandomHolder.GENERATOR;
+    byte[] bytes = new byte[length];
+    sr.nextBytes(bytes);
+    return Arrays.copyOf(bytes, length);
   }
 
   /**

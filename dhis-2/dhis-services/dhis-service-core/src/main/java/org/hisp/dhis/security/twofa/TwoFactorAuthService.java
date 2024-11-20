@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.security.twofa;
 
+import static org.hisp.dhis.common.CodeGenerator.generateSecureRandomBytes;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.user.UserService.DEFAULT_APPLICATION_TITLE;
 
@@ -66,7 +67,6 @@ import org.springframework.transaction.annotation.Transactional;
 @AllArgsConstructor
 public class TwoFactorAuthService {
 
-  public static final String TWO_FACTOR_CODE_APPROVAL_PREFIX = "APPROVAL_";
   public static final String TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME = "R_ENABLE_2FA";
   public static final long TWOFA_EMAIL_CODE_EXPIRY_MILLIS = 3600000;
 
@@ -78,81 +78,142 @@ public class TwoFactorAuthService {
   private final AclService aclService;
 
   /**
-   * "Disable 2FA authentication for the input user, by setting the secret to null."
+   * Verify the 2FA code for the user.
    *
-   * @param user The user object that you want to reset the 2FA for.
+   * @param user The user that is being verified.
+   * @param code The 2FA code that is being verified.
+   * @return A boolean value.
+   */
+  public boolean isInvalid2FACode(User user, String code) {
+    return !TwoFactorAuthUtils.isValid2FACode(code, user.getTwoFactorType(), user.getSecret());
+  }
+
+  /**
+   * Enroll user in time-based one-time password (TOTP) based two-factor authentication.
+   *
+   * @param user The user object that is being enrolled.
    */
   @Transactional
-  public void reset2FA(User user, UserDetails actingUser) {
-    user.setSecret(null);
+  public void enrollTOTP2FA(User user) {
+    if (user.isTwoFactorEnabled()) {
+      throw new IllegalStateException(
+          "User has 2FA enabled already, disable first to enroll again");
+    }
+    user.setTwoFactorType(TwoFactorType.ENROLLING_TOTP);
+    String totpSeed = Base32.encode(generateSecureRandomBytes(20));
+    user.setSecret(totpSeed);
+    userService.updateUser(user);
+  }
+
+  /**
+   * Enroll user in email based two-factor authentication.
+   *
+   * @param user The user object that is being enrolled.
+   */
+  @Transactional
+  public void enrollEmail2FA(User user) {
+    if (user.isTwoFactorEnabled()) {
+      throw new IllegalStateException(
+          "User has 2FA enabled already, disable first to enroll again");
+    }
+    if (!userService.isEmailVerified(user)) {
+      throw new IllegalStateException("User's email is not verified, verify email first");
+    }
+    user.setTwoFactorType(TwoFactorType.ENROLLING_EMAIL);
+    Email2FACode email2FACode = generateEmail2FACode();
+    user.setSecret(email2FACode.encodedCode());
+
+    send2FACodeWithEmailSender(user, email2FACode.code());
+
+    userService.updateUser(user);
+  }
+
+  /**
+   * Enable 2FA authentication for the user, if the user is in the 2FA enrolling state.
+   *
+   * @param user The user to enable 2FA authentication.
+   * @param code The TOTP code that the user generated with the authenticator app, or the email code
+   *     that was sent to the user.
+   */
+  @Transactional
+  public void enable2FA(User user, String code) {
+    if (user.getTwoFactorType().isEnabled()) {
+      throw new IllegalStateException(
+          "User has 2FA enabled already, disable first to enroll and enable again");
+    }
+    if (!user.getTwoFactorType().isEnrolling()) {
+      throw new IllegalStateException("User has not enrolled in 2FA, call enrollment first");
+    }
+
+    if (isInvalid2FACode(user, code)) {
+      throw new IllegalStateException("Invalid 2FA code");
+    }
+
+    setUserToEnabled2FA(user, CurrentUserUtil.getCurrentUserDetails());
+  }
+
+  public void setUserToEnabled2FA(User user, UserDetails actingUser) {
+    user.setTwoFactorType(user.getTwoFactorType().getEnabledType());
+    userService.updateUser(user, actingUser);
+  }
+
+  public void setUserToEnabled2FA(UserDetails userDetails, UserDetails actingUser) {
+    User user = userService.getUserByUsername(userDetails.getUsername());
+    if (!user.getTwoFactorType().isEnrolling()) {
+      throw new IllegalStateException("Two factor type is not enrolling");
+    }
+    user.setTwoFactorType(user.getTwoFactorType().getEnabledType());
     userService.updateUser(user, actingUser);
   }
 
   /**
-   * If the user has a secret, and the secret has not been approved, and the code is valid, then
-   * approve the secret and effectively enable 2FA.
-   *
-   * @param user The user object to enable 2FA authentication for.
-   * @param code The code that the user entered into the app
-   */
-  @Transactional
-  public void enable2FA(User user, String code) {
-    if (user.getSecret() == null) {
-      throw new IllegalStateException(
-          "User has not enrolled in two factor authentication, call enrollment first");
-    }
-    if (!TwoFactorAuthUtils.is2FASecretForApproval(user)) {
-      throw new IllegalStateException(
-          "User has already enabled two factor authentication, call disable and enroll first");
-    }
-    if (!isValid2FACode(user, code)) {
-      throw new IllegalStateException("Invalid code");
-    }
-    approve2FAEnrollment(user, CurrentUserUtil.getCurrentUserDetails());
-  }
-
-  public boolean isValid2FACode(User user, String code) {
-    TwoFactorType twoFactorType = user.getTwoFactorType();
-    if (twoFactorType == null) {
-      throw new IllegalStateException("Two factor type is not set");
-    }
-    if (twoFactorType == TwoFactorType.EMAIL) {
-      return TwoFactorAuthUtils.verifyEmail2FACode(code, user.getSecret());
-    } else if (twoFactorType == TwoFactorType.TOTP) {
-      return TwoFactorAuthUtils.verifyTOTP2FACode(code, user.getSecret());
-    }
-    return true;
-  }
-
-  /**
    * If the user has 2FA authentication enabled, and the code is valid, then disable 2FA
-   * authentication
+   * authentication.
    *
-   * @param user The user object that you want to disable 2FA authentication for.
-   * @param code The code that the user entered
+   * @param user The user that you want to disable 2FA authentication
+   * @param code The 2FA code
    */
   @Transactional
   public void disable2FA(User user, String code) {
-    if (user.getSecret() == null) {
+    if (!user.isTwoFactorEnabled()) {
       throw new IllegalStateException("Two factor is not enabled, enable first");
     }
     if (userService.is2FADisableEndpointLocked(user.getUsername())) {
-      throw new IllegalStateException("Too many failed attempts, try again later");
+      throw new IllegalStateException("Too many failed disable attempts, try again later");
     }
-    if (!isValid2FACode(user, code)) {
-      throw new IllegalStateException("Invalid code");
+
+    if (isInvalid2FACode(user, code)) {
+      throw new IllegalStateException("Invalid 2FA code");
     }
 
     reset2FA(user, CurrentUserUtil.getCurrentUserDetails());
+
     userService.registerSuccess2FADisable(user.getUsername());
+  }
+
+  /**
+   * Disable 2FA authentication for the user.
+   *
+   * @param user The user that you want to reset.
+   */
+  @Transactional
+  public void reset2FA(User user, UserDetails actingUser) {
+    user.setSecret(null);
+    user.setTwoFactorType(null);
+    userService.updateUser(user, actingUser);
+  }
+
+  @Transactional
+  public void reset2FA(UserDetails userDetails, UserDetails actingUser) {
+    User user = userService.getUserByUsername(userDetails.getUsername());
+    user.setSecret(null);
+    user.setTwoFactorType(null);
+    userService.updateUser(user, actingUser);
   }
 
   /**
    * "If the current user is not the user being modified, and the current user has the authority to
    * modify the user, then disable two-factor authentication for the user."
-   *
-   * <p>The first thing we do is get the user object from the database. If the user doesn't exist,
-   * we throw an exception
    *
    * @param currentUser The user who is making the request.
    * @param userUid The user UID of the user to disable 2FA for.
@@ -175,53 +236,9 @@ public class TwoFactorAuthService {
   }
 
   /**
-   * Generate a new two factor (TOTP) secret for the user, but prefix it with a special string so
-   * that we can tell the difference between a normal secret and an approval secret.
+   * Email the user with a new 2FA code.
    *
-   * @param user The user object that is being updated.
-   */
-  @Transactional
-  public void enrollTOTP2FA(User user) {
-    if (user.isTwoFactorEnabled()) {
-      throw new IllegalStateException(
-          "User has 2FA enabled already, disable first to enroll again");
-    }
-    String newSecret = TWO_FACTOR_CODE_APPROVAL_PREFIX + Base32.random();
-    user.setSecret(newSecret);
-    user.setTwoFactorType(TwoFactorType.TOTP);
-    userService.updateUser(user);
-  }
-
-  /**
-   * Generate a new two factor (EMAIL) code for the user, but prefix it with a special string so
-   * that we can tell the difference between a normal secret and an approval secret.
-   *
-   * @param user The user object that is being updated.
-   */
-  @Transactional
-  public void enrollEmail2FA(User user) {
-    if (user.isTwoFactorEnabled()) {
-      throw new IllegalStateException(
-          "User has 2FA enabled already, disable first to enroll again");
-    }
-    if (!userService.isEmailVerified(user)) {
-      throw new IllegalStateException("User's email is not verified");
-    }
-
-    user.setTwoFactorType(TwoFactorType.EMAIL);
-
-    Email2FACode email2FACode = getEmail2FAForApprovalCode();
-    user.setSecret(email2FACode.encodedCode());
-
-    send2FACodeWithEmailSender(user, email2FACode.code());
-
-    userService.updateUser(user);
-  }
-
-  /**
-   * Email the user with the 2FA code.
-   *
-   * @param user The user object that is being updated.
+   * @param user The user that is being sent the 2FA code.
    */
   @Transactional
   public void resendEmail2FACode(User user) {
@@ -236,7 +253,7 @@ public class TwoFactorAuthService {
       throw new IllegalStateException("User's email is not verified");
     }
 
-    Email2FACode email2FACode = getEmail2FACode();
+    Email2FACode email2FACode = generateEmail2FACode();
     user.setSecret(email2FACode.encodedCode());
 
     send2FACodeWithEmailSender(user, email2FACode.code());
@@ -247,20 +264,9 @@ public class TwoFactorAuthService {
   private record Email2FACode(String code, String encodedCode) {}
 
   @Nonnull
-  private static Email2FACode getEmail2FACode() {
+  private static Email2FACode generateEmail2FACode() {
     String code = new String(CodeGenerator.generateSecureRandomNumber(6));
     String encodedCode = code + "|" + (System.currentTimeMillis() + TWOFA_EMAIL_CODE_EXPIRY_MILLIS);
-    return new Email2FACode(code, encodedCode);
-  }
-
-  @Nonnull
-  private static Email2FACode getEmail2FAForApprovalCode() {
-    String code = new String(CodeGenerator.generateSecureRandomNumber(6));
-    String encodedCode =
-        TWO_FACTOR_CODE_APPROVAL_PREFIX
-            + code
-            + "|"
-            + (System.currentTimeMillis() + TWOFA_EMAIL_CODE_EXPIRY_MILLIS);
     return new Email2FACode(code, encodedCode);
   }
 
@@ -292,20 +298,6 @@ public class TwoFactorAuthService {
 
     if (!success) {
       throw new IllegalStateException("Sending 2FA code with email failed");
-    }
-  }
-
-  /**
-   * If the user has an OTP secret that starts with the approval prefix, remove the prefix and
-   * update the user property.
-   *
-   * @param user The user object that is being updated.
-   */
-  @Transactional
-  public void approve2FAEnrollment(User user, UserDetails actingUser) {
-    if (user.getSecret() != null && TwoFactorAuthUtils.is2FASecretForApproval(user)) {
-      user.setSecret(user.getSecret().replace(TWO_FACTOR_CODE_APPROVAL_PREFIX, ""));
-      userService.updateUser(user, actingUser);
     }
   }
 

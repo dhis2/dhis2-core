@@ -37,6 +37,7 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.user.UserDetailsImpl.UserDetailsImplBuilder;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -119,7 +120,8 @@ public interface UserDetails
             .password(user.getPassword())
             .externalAuth(user.isExternalAuth())
             .isTwoFactorEnabled(user.isTwoFactorEnabled())
-            .twoFactorType(user.getTwoFactorType() != null ? user.getTwoFactorType().name() : null)
+            .twoFactorType(user.getTwoFactorType())
+            .secret(user.getSecret())
             .isEmailVerified(user.isEmailVerified())
             .firstName(user.getFirstName())
             .surname(user.getSurname())
@@ -199,6 +201,8 @@ public interface UserDetails
 
   boolean isSuper();
 
+  String getSecret();
+
   @Override
   String getUid();
 
@@ -245,7 +249,7 @@ public interface UserDetails
 
   boolean isTwoFactorEnabled();
 
-  String getTwoFactorType();
+  TwoFactorType getTwoFactorType();
 
   boolean isEmailVerified();
 
