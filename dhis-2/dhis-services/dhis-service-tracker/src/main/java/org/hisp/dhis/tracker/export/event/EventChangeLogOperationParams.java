@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -48,7 +47,7 @@ public class EventChangeLogOperationParams {
     // does not support. The repeated order field and private order method prevent access to order
     // via the builder.
     // Order should be added via the orderBy builder methods.
-    private EventChangeLogOperationParamsBuilder order(List<Order> order) {
+    private EventChangeLogOperationParamsBuilder order(Order order) {
       return this;
     }
 

@@ -35,6 +35,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.hibernate.Session;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.SortDirection;
@@ -81,7 +83,8 @@ public class HibernateEventChangeLogStore {
     entityManager.unwrap(Session.class).save(eventChangeLog);
   }
 
-  public Page<EventChangeLog> getEventChangeLogs(UID event, Order order, PageParams pageParams) {
+  public Page<EventChangeLog> getEventChangeLogs(
+      @Nonnull UID event, @Nullable Order order, @Nonnull PageParams pageParams) {
 
     String hql =
         String.format(
@@ -166,7 +169,7 @@ public class HibernateEventChangeLogStore {
     entityManager.createQuery(hql).setParameter("event", event).executeUpdate();
   }
 
-  private static String sortExpressions(Order order) {
+  private String sortExpressions(Order order) {
     if (order == null) {
       return DEFAULT_ORDER;
     }

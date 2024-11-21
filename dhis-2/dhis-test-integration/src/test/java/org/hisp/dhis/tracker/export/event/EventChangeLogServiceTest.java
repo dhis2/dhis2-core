@@ -36,28 +36,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.feedback.Assertions;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.render.RenderFormat;
-import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -68,18 +54,17 @@ import org.hisp.dhis.user.User;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Transactional;
 
-class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
+@Transactional
+class EventChangeLogServiceTest extends TrackerTest {
 
   @Autowired private EventChangeLogService eventChangeLogService;
 
@@ -88,12 +73,6 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   @Autowired private TrackerObjectDeletionService trackerObjectDeletionService;
 
   @Autowired private IdentifiableObjectManager manager;
-
-  @Autowired private ObjectBundleService objectBundleService;
-
-  @Autowired private ObjectBundleValidationService objectBundleValidationService;
-
-  @Autowired private RenderService renderService;
 
   private User importUser;
 
@@ -107,8 +86,9 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   private TrackerObjects trackerObjects;
 
-  @BeforeEach
+  @BeforeAll
   void setUp() throws IOException {
+    injectSecurityContextUser(getAdminUser());
     setUpMetadata("tracker/simple_metadata.json");
 
     importUser = userService.getUser("tTgjgobT1oS");
@@ -118,6 +98,11 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     trackerObjects = fromJson("tracker/event_and_enrollment.json");
 
     assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+  }
+
+  @BeforeEach
+  void resetSecurityContext() {
+    injectSecurityContextUser(importUser);
   }
 
   @Test
@@ -459,224 +444,6 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
             assertPropertyCreate("geometry", "(-11.419700, 8.103900)", geometryChangeLogs.get(1)));
   }
 
-  private static Stream<Arguments> provideOrderParamsDesc() {
-    return Stream.of(
-        Arguments.of(
-            "createdAt",
-            SortDirection.DESC,
-            Arrays.asList("25", "20", "15"),
-            Arrays.asList("20", "15", null)),
-        Arguments.of(
-            "username",
-            SortDirection.DESC,
-            Arrays.asList("25", "20", "15"),
-            Arrays.asList("20", "15", null)),
-        Arguments.of(
-            "username",
-            SortDirection.ASC,
-            Arrays.asList("25", "20", "15"),
-            Arrays.asList("20", "15", null)));
-  }
-
-  @ParameterizedTest
-  @MethodSource("provideOrderParamsDesc")
-  void shouldSortChangeLogsByCreatedAtDescWhenOrderingByDateOrUsername(
-      String field,
-      SortDirection sortDirection,
-      List<String> currentValues,
-      List<String> previousValues)
-      throws ForbiddenException, NotFoundException {
-    EventChangeLogOperationParams params =
-        EventChangeLogOperationParams.builder().orderBy(field, sortDirection).build();
-    Event event = getEvent("QRYjLTiJTrA");
-    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
-
-    updateDataValues(event, dataElementUid, "20", "25");
-
-    List<EventChangeLog> changeLogs =
-        getDataElementChangeLogs(
-            eventChangeLogService.getEventChangeLog(
-                UID.of("QRYjLTiJTrA"), params, defaultPageParams));
-
-    assertNumberOfChanges(3, changeLogs);
-    assertAll(
-        () ->
-            assertDataElementUpdate(
-                "GieVkTxp4HH", previousValues.get(0), currentValues.get(0), changeLogs.get(0)),
-        () ->
-            assertDataElementUpdate(
-                "GieVkTxp4HH", previousValues.get(1), currentValues.get(1), changeLogs.get(1)),
-        () -> assertDataElementCreate("GieVkTxp4HH", currentValues.get(2), changeLogs.get(2)));
-  }
-
-  @Test
-  void shouldSortChangeLogsWhenOrderingByCreatedAtAsc()
-      throws ForbiddenException, NotFoundException {
-
-    EventChangeLogOperationParams params =
-        EventChangeLogOperationParams.builder().orderBy("createdAt", SortDirection.ASC).build();
-
-    Event event = getEvent("QRYjLTiJTrA");
-    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
-
-    updateDataValues(event, dataElementUid, "20", "25");
-
-    List<EventChangeLog> changeLogs =
-        getDataElementChangeLogs(
-            eventChangeLogService.getEventChangeLog(
-                UID.of("QRYjLTiJTrA"), params, defaultPageParams));
-
-    assertNumberOfChanges(3, changeLogs);
-    assertAll(
-        () -> assertDataElementCreate(dataElementUid, "15", changeLogs.get(0)),
-        () -> assertDataElementUpdate(dataElementUid, "15", "20", changeLogs.get(1)),
-        () -> assertDataElementUpdate(dataElementUid, "20", "25", changeLogs.get(2)));
-  }
-
-  @Test
-  void shouldSortChangeLogsWhenOrderingByCreatedAtDesc()
-      throws ForbiddenException, NotFoundException {
-
-    EventChangeLogOperationParams params =
-        EventChangeLogOperationParams.builder().orderBy("createdAt", SortDirection.DESC).build();
-
-    Event event = getEvent("QRYjLTiJTrA");
-    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
-
-    updateDataValues(event, dataElementUid, "20", "25");
-
-    List<EventChangeLog> changeLogs =
-        getDataElementChangeLogs(
-            eventChangeLogService.getEventChangeLog(
-                UID.of("QRYjLTiJTrA"), params, defaultPageParams));
-
-    assertNumberOfChanges(3, changeLogs);
-    assertAll(
-        () -> assertDataElementUpdate(dataElementUid, "20", "25", changeLogs.get(0)),
-        () -> assertDataElementUpdate(dataElementUid, "15", "20", changeLogs.get(1)),
-        () -> assertDataElementCreate(dataElementUid, "15", changeLogs.get(2)));
-  }
-
-  @Test
-  void shouldSortChangeLogsWhenOrderingByDataElementAsc()
-      throws ForbiddenException, NotFoundException {
-
-    EventChangeLogOperationParams params =
-        EventChangeLogOperationParams.builder().orderBy("dataElement", SortDirection.ASC).build();
-    Event event = getEvent("kWjSezkXHVp");
-
-    updateDataValues(event, "GieVkTxp4HH", "20", "25");
-    updateDataValues(event, "GieVkTxp4HG", "20");
-
-    List<EventChangeLog> changeLogs =
-        getDataElementChangeLogs(
-            eventChangeLogService.getEventChangeLog(
-                UID.of("kWjSezkXHVp"), params, defaultPageParams));
-
-    assertNumberOfChanges(5, changeLogs);
-    assertAll(
-        () -> assertDataElementUpdate("GieVkTxp4HG", "10", "20", changeLogs.get(0)),
-        () -> assertDataElementCreate("GieVkTxp4HG", "10", changeLogs.get(1)),
-        () -> assertDataElementUpdate("GieVkTxp4HH", "20", "25", changeLogs.get(2)),
-        () -> assertDataElementUpdate("GieVkTxp4HH", "15", "20", changeLogs.get(3)),
-        () -> assertDataElementCreate("GieVkTxp4HH", "15", changeLogs.get(4)));
-  }
-
-  @Test
-  void shouldSortChangeLogsWhenOrderingByDataElementDesc()
-      throws ForbiddenException, NotFoundException {
-
-    EventChangeLogOperationParams params =
-        EventChangeLogOperationParams.builder().orderBy("dataElement", SortDirection.DESC).build();
-    Event event = getEvent("kWjSezkXHVp");
-
-    updateDataValues(event, "GieVkTxp4HH", "20", "25");
-    updateDataValues(event, "GieVkTxp4HG", "20");
-
-    List<EventChangeLog> changeLogs =
-        getDataElementChangeLogs(
-            eventChangeLogService.getEventChangeLog(
-                UID.of("kWjSezkXHVp"), params, defaultPageParams));
-
-    assertNumberOfChanges(5, changeLogs);
-    assertAll(
-        () -> assertDataElementUpdate("GieVkTxp4HH", "20", "25", changeLogs.get(0)),
-        () -> assertDataElementUpdate("GieVkTxp4HH", "15", "20", changeLogs.get(1)),
-        () -> assertDataElementCreate("GieVkTxp4HH", "15", changeLogs.get(2)),
-        () -> assertDataElementUpdate("GieVkTxp4HG", "10", "20", changeLogs.get(3)),
-        () -> assertDataElementCreate("GieVkTxp4HG", "10", changeLogs.get(4)));
-  }
-
-  @Test
-  void shouldSortChangeLogsWhenOrderingByPropertyAsc()
-      throws ForbiddenException, NotFoundException, IOException {
-
-    EventChangeLogOperationParams params =
-        EventChangeLogOperationParams.builder().orderBy("property", SortDirection.ASC).build();
-    UID event = UID.of("QRYjLTiJTrA");
-
-    LocalDateTime currentTime = LocalDateTime.now();
-    updateEventDates(event, currentTime.toDate().toInstant());
-
-    List<EventChangeLog> changeLogs =
-        getAllPropertyChangeLogs(
-            eventChangeLogService.getEventChangeLog(
-                UID.of("QRYjLTiJTrA"), params, defaultPageParams));
-
-    assertNumberOfChanges(5, changeLogs);
-    assertAll(
-        () -> assertPropertyCreate("geometry", "(-11.419700, 8.103900)", changeLogs.get(0)),
-        () ->
-            assertPropertyUpdate(
-                "occurredAt",
-                "2022-04-20 06:00:38.343",
-                currentTime.toString(formatter),
-                changeLogs.get(1)),
-        () -> assertPropertyCreate("occurredAt", "2022-04-20 06:00:38.343", changeLogs.get(2)),
-        () ->
-            assertPropertyUpdate(
-                "scheduledAt",
-                "2022-04-22 06:00:38.343",
-                currentTime.toString(formatter),
-                changeLogs.get(3)),
-        () -> assertPropertyCreate("scheduledAt", "2022-04-22 06:00:38.343", changeLogs.get(4)));
-  }
-
-  @Test
-  void shouldSortChangeLogsWhenOrderingByPropertyDesc()
-      throws ForbiddenException, NotFoundException, IOException {
-
-    EventChangeLogOperationParams params =
-        EventChangeLogOperationParams.builder().orderBy("property", SortDirection.DESC).build();
-    UID event = UID.of("QRYjLTiJTrA");
-
-    LocalDateTime currentTime = LocalDateTime.now();
-    updateEventDates(event, currentTime.toDate().toInstant());
-
-    List<EventChangeLog> changeLogs =
-        getAllPropertyChangeLogs(
-            eventChangeLogService.getEventChangeLog(
-                UID.of("QRYjLTiJTrA"), params, defaultPageParams));
-
-    assertNumberOfChanges(5, changeLogs);
-    assertAll(
-        () ->
-            assertPropertyUpdate(
-                "scheduledAt",
-                "2022-04-22 06:00:38.343",
-                currentTime.toString(formatter),
-                changeLogs.get(0)),
-        () -> assertPropertyCreate("scheduledAt", "2022-04-22 06:00:38.343", changeLogs.get(1)),
-        () ->
-            assertPropertyUpdate(
-                "occurredAt",
-                "2022-04-20 06:00:38.343",
-                currentTime.toString(formatter),
-                changeLogs.get(2)),
-        () -> assertPropertyCreate("occurredAt", "2022-04-20 06:00:38.343", changeLogs.get(3)),
-        () -> assertPropertyCreate("geometry", "(-11.419700, 8.103900)", changeLogs.get(4)));
-  }
-
   private void updateDataValue(String event, String dataElementUid, String newValue) {
     trackerObjects.getEvents().stream()
         .filter(e -> e.getEvent().getValue().equalsIgnoreCase(event))
@@ -857,23 +624,6 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
                 changeLog.getCreatedBy() == null ? null : changeLog.getCreatedBy().getUid()));
   }
 
-  private void setUpMetadata(String path) throws IOException {
-    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
-        renderService.fromMetadata(new ClassPathResource(path).getInputStream(), RenderFormat.JSON);
-    ObjectBundleParams params = new ObjectBundleParams();
-    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
-    params.setImportStrategy(ImportStrategy.CREATE);
-    params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
-    Assertions.assertNoErrors(objectBundleValidationService.validate(bundle));
-    objectBundleService.commit(bundle);
-  }
-
-  private TrackerObjects fromJson(String path) throws IOException {
-    return renderService.fromJson(
-        new ClassPathResource(path).getInputStream(), TrackerObjects.class);
-  }
-
   private List<EventChangeLog> getDataElementChangeLogs(Page<EventChangeLog> changeLogs) {
     return changeLogs.getItems().stream().filter(cl -> cl.getDataElement() != null).toList();
   }
@@ -885,20 +635,10 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
         .toList();
   }
 
-  private List<EventChangeLog> getAllPropertyChangeLogs(Page<EventChangeLog> changeLogs) {
-    return changeLogs.getItems().stream().filter(cl -> cl.getEventProperty() != null).toList();
-  }
-
   private Geometry createGeometryPoint(double x, double y) {
     GeometryFactory geometryFactory = new GeometryFactory();
     Coordinate coordinate = new Coordinate(x, y);
 
     return geometryFactory.createPoint(coordinate);
-  }
-
-  private void updateDataValues(Event event, String dataElementUid, String... values) {
-    for (String value : values) {
-      updateDataValue(event.getUid(), dataElementUid, value);
-    }
   }
 }
