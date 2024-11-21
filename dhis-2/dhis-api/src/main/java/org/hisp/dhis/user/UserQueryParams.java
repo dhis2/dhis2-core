@@ -75,6 +75,7 @@ public class UserQueryParams {
 
   @ToString.Include private UserInvitationStatus invitationStatus;
 
+  /** If empty, no matching condition will be generated */
   private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
   private Set<UserGroup> userGroups = new HashSet<>();
