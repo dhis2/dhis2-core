@@ -188,10 +188,10 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
         () -> assertUpdate(dataElement, "value 1", "value 2", dataValueChangeLogs.get(2)),
         () ->
             assertPropertyCreateExists(
-                "occurredDate", "2023-01-10 00:00:00.000", eventPropertyChangeLogs),
+                "occurredAt", "2023-01-10 00:00:00.000", eventPropertyChangeLogs),
         () ->
             assertPropertyCreateExists(
-                "scheduledDate", "2023-01-10 00:00:00.000", eventPropertyChangeLogs));
+                "scheduledAt", "2023-01-10 00:00:00.000", eventPropertyChangeLogs));
   }
 
   @Test
@@ -217,10 +217,10 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
         () -> assertDelete(dataElement, "value 3", dataValueChangeLogs.get(2)),
         () ->
             assertPropertyCreateExists(
-                "occurredDate", "2023-01-10 00:00:00.000", eventPropertyChangeLogs),
+                "occurredAt", "2023-01-10 00:00:00.000", eventPropertyChangeLogs),
         () ->
             assertPropertyCreateExists(
-                "scheduledDate", "2023-01-10 00:00:00.000", eventPropertyChangeLogs));
+                "scheduledAt", "2023-01-10 00:00:00.000", eventPropertyChangeLogs));
   }
 
   @Test

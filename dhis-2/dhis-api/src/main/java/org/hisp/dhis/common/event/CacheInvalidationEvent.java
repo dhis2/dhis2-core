@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.common.event;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import lombok.Getter;
-import org.hisp.dhis.common.SortDirection;
-import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.common.cache.Region;
+import org.springframework.context.ApplicationEvent;
 
+/**
+ * @author Ameen Mohamed
+ */
 @Getter
-@Builder
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class EventChangeLogOperationParams {
+public class CacheInvalidationEvent extends ApplicationEvent {
+  private final Region region;
+  private final String key;
 
-  private Order order;
+  public CacheInvalidationEvent(Object source, @Nonnull Region region, @Nullable String key) {
+    super(source);
+    this.region = region;
+    this.key = key;
+  }
 
-  public static class EventChangeLogOperationParamsBuilder {
-
-    // Do not remove this unused method. This hides the order field from the builder which Lombok
-    // does not support. The repeated order field and private order method prevent access to order
-    // via the builder.
-    // Order should be added via the orderBy builder methods.
-    private EventChangeLogOperationParamsBuilder order(Order order) {
-      return this;
-    }
-
-    public EventChangeLogOperationParamsBuilder orderBy(String field, SortDirection direction) {
-      this.order = new Order(field, direction);
-      return this;
-    }
+  public CacheInvalidationEvent(Object source, @Nonnull Region region) {
+    super(source);
+    this.region = region;
+    this.key = null;
   }
 }

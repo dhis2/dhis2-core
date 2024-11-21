@@ -25,35 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.common;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import org.hisp.dhis.common.SortDirection;
-import org.hisp.dhis.tracker.export.Order;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@Getter
-@Builder
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class EventChangeLogOperationParams {
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.deduplication.DeduplicationService;
+import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 
-  private Order order;
+class UidDBConstraintCheckTest extends PostgresIntegrationTestBase {
+  @Autowired private DeduplicationService deduplicationService;
 
-  public static class EventChangeLogOperationParamsBuilder {
-
-    // Do not remove this unused method. This hides the order field from the builder which Lombok
-    // does not support. The repeated order field and private order method prevent access to order
-    // via the builder.
-    // Order should be added via the orderBy builder methods.
-    private EventChangeLogOperationParamsBuilder order(Order order) {
-      return this;
-    }
-
-    public EventChangeLogOperationParamsBuilder orderBy(String field, SortDirection direction) {
-      this.order = new Order(field, direction);
-      return this;
-    }
+  @Test
+  void shouldFailWhenAddingAPotentialDuplicateWithInvalidUid() {
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(UID.generate(), UID.generate());
+    potentialDuplicate.setUid("INVALID");
+    DataIntegrityViolationException exception =
+        assertThrows(
+            DataIntegrityViolationException.class,
+            () -> deduplicationService.addPotentialDuplicate(potentialDuplicate));
+    assertContains("constraint [potentialduplicate_check_uid]", exception.getMessage());
   }
 }

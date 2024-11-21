@@ -25,35 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.common.cache;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import org.hisp.dhis.common.SortDirection;
-import org.hisp.dhis.tracker.export.Order;
-
-@Getter
-@Builder
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class EventChangeLogOperationParams {
-
-  private Order order;
-
-  public static class EventChangeLogOperationParamsBuilder {
-
-    // Do not remove this unused method. This hides the order field from the builder which Lombok
-    // does not support. The repeated order field and private order method prevent access to order
-    // via the builder.
-    // Order should be added via the orderBy builder methods.
-    private EventChangeLogOperationParamsBuilder order(Order order) {
-      return this;
-    }
-
-    public EventChangeLogOperationParamsBuilder orderBy(String field, SortDirection direction) {
-      this.order = new Order(field, direction);
-      return this;
-    }
-  }
+/**
+ * Enum is used to make sure we do not use same region twice. Each method should have its own
+ * constant.
+ */
+@SuppressWarnings("squid:S115") // allow non enum-ish names
+public enum Region {
+  analyticsResponse,
+  defaultObjectCache,
+  isDataApproved,
+  allConstantsCache,
+  inUserOrgUnitHierarchy,
+  inUserSearchOrgUnitHierarchy,
+  periodIdCache,
+  userAccountRecoverAttempt,
+  userFailedLoginAttempt,
+  twoFaDisableFailedAttempt,
+  programOwner,
+  programTempOwner,
+  currentUserGroupInfoCache,
+  attrOptionComboIdCache,
+  googleAccessToken,
+  dataItemsPagination,
+  metadataAttributes,
+  canDataWriteCocCache,
+  analyticsSql,
+  propertyTransformerCache,
+  programHasRulesCache,
+  userGroupNameCache,
+  userDisplayNameCache,
+  pgmOrgUnitAssocCache,
+  catOptOrgUnitAssocCache,
+  dataSetOrgUnitAssocCache,
+  apiTokensCache,
+  teAttributesCache,
+  programTeAttributesCache,
+  userGroupUIDCache,
+  securityCache,
+  dataIntegritySummaryCache,
+  dataIntegrityDetailsCache,
+  queryAliasCache
 }
