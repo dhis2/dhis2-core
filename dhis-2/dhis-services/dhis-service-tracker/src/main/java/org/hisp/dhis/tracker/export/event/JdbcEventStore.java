@@ -499,9 +499,13 @@ class JdbcEventStore {
     if (StringUtils.isEmpty(dataValueResult)) {
       return null;
     }
+    String dataElement = getDataElementIdentifier(dataElementIdScheme, resultSet);
+    if (StringUtils.isEmpty(dataElement)) {
+      return null;
+    }
 
     EventDataValue eventDataValue = new EventDataValue();
-    eventDataValue.setDataElement(getDataElementIdentifier(dataElementIdScheme, resultSet));
+    eventDataValue.setDataElement(dataElement);
     JsonObject dataValueJson = JsonMixed.of(dataValueResult).asObject();
     eventDataValue.setValue(dataValueJson.getString("value").string(""));
     eventDataValue.setProvidedElsewhere(
@@ -536,7 +540,7 @@ class JdbcEventStore {
       case ATTRIBUTE:
         String attributeValuesString = resultSet.getString("de_attributevalues");
         if (StringUtils.isEmpty(attributeValuesString)) {
-          return "";
+          return null;
         }
         JsonObject attributeValuesJson = JsonMixed.of(attributeValuesString).asObject();
         String attributeUid = dataElementIdScheme.getAttributeUid();
