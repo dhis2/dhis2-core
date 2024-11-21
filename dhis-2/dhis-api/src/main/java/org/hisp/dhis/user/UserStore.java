@@ -229,4 +229,5 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @param uid {@link OrganisationUnit} {@link UID} to match on
    * @return matching {@link User}s
    */
-  List<User> getUsersWithOrgUnit(@Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull UID uid);}
+  List<User> getUsersWithOrgUnit(@Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull UID uid);
+}
