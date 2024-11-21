@@ -61,9 +61,7 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
 class EventChangeLogServiceTest extends TrackerTest {
 
   @Autowired private EventChangeLogService eventChangeLogService;
