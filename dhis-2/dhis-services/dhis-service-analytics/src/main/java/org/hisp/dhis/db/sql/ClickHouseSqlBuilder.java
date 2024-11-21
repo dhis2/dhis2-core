@@ -229,7 +229,8 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String jsonExtractNested(String column, String... jsonPath) {
-    return ""; // TODO luciano
+    String path = String.join(".", jsonPath);
+    return String.format("JSONExtract(%s, '%s')", column, path);
   }
 
   // Statements
