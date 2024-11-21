@@ -59,7 +59,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class OrderEventChangeLogTest extends TrackerTest {
+class OrderEventChangeLogTest extends TrackerTest {
 
   @Autowired private EventChangeLogService eventChangeLogService;
 
