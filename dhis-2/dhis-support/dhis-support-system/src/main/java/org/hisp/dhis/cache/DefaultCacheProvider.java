@@ -287,7 +287,7 @@ public class DefaultCacheProvider implements CacheProvider {
     return registerCache(
         this.<V>newBuilder()
             .forRegion(Region.programOwner.name())
-            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .expireAfterWrite(0, TimeUnit.MINUTES)
             .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_1K))));
   }
 
