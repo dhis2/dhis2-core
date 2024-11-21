@@ -189,23 +189,25 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     SqlHelper hlp = new SqlHelper();
 
     List<Order> convertedOrder = null;
-    String hql = null;
+    String hql;
 
-    boolean count = mode == QueryMode.COUNT;
-    if (count) {
+    boolean fetch = mode == QueryMode.OBJECTS;
+    if (mode == QueryMode.COUNT) {
       hql = "select count(distinct u) ";
+    } else if (mode == QueryMode.IDS) {
+      hql = "select distinct u.id ";
     } else {
       Schema userSchema = schemaService.getSchema(User.class);
       convertedOrder = QueryUtils.convertOrderStrings(orders, userSchema);
       String order = JpaQueryUtils.createSelectOrderExpression(convertedOrder, "u");
-      hql = mode == QueryMode.OBJECTS ? "select distinct u" : "select distinct u.id";
+      hql = "select distinct u";
       if (order != null) hql += "," + order;
       hql += " ";
     }
 
     hql += "from User u ";
 
-    if (params.isPrefetchUserGroups() && !count) {
+    if (params.isPrefetchUserGroups() && fetch) {
       hql += "left join fetch u.groups g ";
     } else {
       hql += "left join u.groups g ";
@@ -314,7 +316,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
               + "and u.restoreExpiry < current_timestamp() ";
     }
 
-    if (!count) {
+    if (fetch) {
       String orderExpression = JpaQueryUtils.createOrderExpression(convertedOrder, "u");
       hql += "order by " + StringUtils.defaultString(orderExpression, "u.surname, u.firstName");
     }
@@ -391,7 +393,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
       query.setParameterList("userGroupIds", userGroupIds);
     }
 
-    if (!count) {
+    if (fetch) {
       if (params.getFirst() != null) {
         query.setFirstResult(params.getFirst());
       }
