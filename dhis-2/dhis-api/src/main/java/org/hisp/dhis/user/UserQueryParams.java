@@ -75,11 +75,7 @@ public class UserQueryParams {
 
   @ToString.Include private UserInvitationStatus invitationStatus;
 
-  /**
-   * WARNING: If this field has an empty collection, it can potentially result in all users being
-   * returned from the database. Check the generated query to make sure you're seeing expected
-   * queries and results.
-   */
+  /** If empty, no matching condition will be generated */
   private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
   private Set<UserGroup> userGroups = new HashSet<>();
