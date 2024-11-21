@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -61,6 +63,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -71,10 +74,12 @@ import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.transaction.annotation.Transactional;
@@ -85,6 +90,7 @@ import org.springframework.transaction.annotation.Transactional;
 class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase {
 
   private static final String METADATA_ATTRIBUTE = "j45AR9cBQKc";
+  private static final String UNUSED_METADATA_ATTRIBUTE = "i57a0734128";
 
   @Autowired private RenderService renderService;
 
@@ -126,16 +132,22 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
     TrackerImportParams params = TrackerImportParams.builder().build();
     assertNoErrors(
         trackerImportService.importTracker(params, fromJson("tracker/event_and_enrollment.json")));
-    get(Attribute.class, METADATA_ATTRIBUTE); // ensure this is created in setup
+    // ensure these are created in the setup
+    get(Attribute.class, METADATA_ATTRIBUTE);
+    get(Attribute.class, UNUSED_METADATA_ATTRIBUTE);
 
     manager.flush();
     manager.clear();
   }
 
+  @BeforeEach
+  void setUpUser() {
+    switchContextToUser(importUser);
+  }
+
   @ParameterizedTest
   @MethodSource(value = "shouldExportMetadataUsingGivenIdSchemeProvider")
   void shouldExportMetadataUsingGivenIdScheme(TrackerIdSchemeParam idSchemeParam) {
-    switchContextToUser(importUser);
     Event event = get(Event.class, "QRYjLTiJTrA");
 
     // maps JSON fields to idScheme request parameters
@@ -252,6 +264,30 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
             .as(JsonEvent.class);
 
     assertMetadataIdScheme(metadata, actual, idSchemeParam, "event");
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"/{id}?", "?events={id}&paging=true&", "?events={id}&paging=false&"})
+  void shouldReportMetadataWhichDoesNotHaveAnIdentifierForGivenIdScheme(String urlPortion) {
+    Event event = get(Event.class, "QRYjLTiJTrA");
+
+    JsonWebMessage msg =
+        assertWebMessage(
+            HttpStatus.UNPROCESSABLE_ENTITY,
+            GET(
+                "/tracker/events"
+                    + urlPortion
+                    + "fields=orgUnit,program,programStage,attributeOptionCombo,attributeCategoryOptions,dataValues&idScheme=ATTRIBUTE:{attribute}",
+                event.getUid(),
+                UNUSED_METADATA_ATTRIBUTE));
+
+    assertAll(
+        () ->
+            assertContains(
+                "Not all metadata has an identifier for the requested idScheme", msg.getMessage()),
+        () ->
+            assertContains(
+                "Program[ATTRIBUTE:" + UNUSED_METADATA_ATTRIBUTE + "]", msg.getDevMessage()));
   }
 
   public static Stream<TrackerIdSchemeParam> shouldExportMetadataUsingGivenIdSchemeProvider() {

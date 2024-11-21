@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,46 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.webapi.json.domain;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.jsontree.JsonObject;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-/**
- * Web API equivalent of a {@code WebMessage} or {@code DescriptiveWebMessage}
- *
- * @author Jan Bernitt
- */
-public interface JsonWebMessage extends JsonObject {
-  default String getHttpStatus() {
-    return getString("httpStatus").string();
-  }
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.deduplication.DeduplicationService;
+import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 
-  default int getHttpStatusCode() {
-    return getNumber("httpStatusCode").intValue();
-  }
+class UidDBConstraintCheckTest extends PostgresIntegrationTestBase {
+  @Autowired private DeduplicationService deduplicationService;
 
-  default String getStatus() {
-    return getString("status").string();
-  }
-
-  default String getMessage() {
-    return getString("message").string();
-  }
-
-  default String getDevMessage() {
-    return getString("devMessage").string();
-  }
-
-  default String getDescription() {
-    return getString("description").string();
-  }
-
-  default ErrorCode getErrorCode() {
-    return getString("errorCode").parsed(ErrorCode::valueOf);
-  }
-
-  default JsonObject getResponse() {
-    return getObject("response");
+  @Test
+  void shouldFailWhenAddingAPotentialDuplicateWithInvalidUid() {
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(UID.generate(), UID.generate());
+    potentialDuplicate.setUid("INVALID");
+    DataIntegrityViolationException exception =
+        assertThrows(
+            DataIntegrityViolationException.class,
+            () -> deduplicationService.addPotentialDuplicate(potentialDuplicate));
+    assertContains("constraint [potentialduplicate_check_uid]", exception.getMessage());
   }
 }

@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.analytics.util;
 
+import java.util.function.UnaryOperator;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.db.sql.SqlBuilder;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DisplayNameUtils {
@@ -57,56 +59,97 @@ public final class DisplayNameUtils {
    * @param columnAlias the alias of this column in the analytics database
    * @return the trimmed display name
    */
-  public static String getDisplayName(String originColumn, String tablePrefix, String columnAlias) {
-    return ("case"
-            // If all are empty, return null
-            + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') = ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') = ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'username'), '') = ''"
-            + " then null"
+  public static String getDisplayName(
+      String originColumn, String tablePrefix, String columnAlias, SqlBuilder sqlBuilder) {
+    String surname = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "surname");
+    String firstName = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "firstName");
+    String username = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "username");
 
-            // If username only, return username
-            + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') = ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') = ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'username'), '') <> ''"
-            + " then trim({prefix}.{column} ->> 'username')"
+    // Helper methods for the CASE conditions
+    UnaryOperator<String> isEmpty = expression -> sqlBuilder.coalesce(expression, "''") + " = ''";
 
-            // If firstName only, return firstName
-            + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') = ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') <> ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'username'), '') = ''"
-            + " then trim({prefix}.{column} ->> 'firstName')"
+    UnaryOperator<String> isNotEmpty =
+        expression -> sqlBuilder.coalesce(expression, "''") + " <> ''";
 
-            // If surname only, return surname
-            + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') <> ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') = ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'username'), '') = ''"
-            + " then trim({prefix}.{column} ->> 'surname')"
+    return String.format(
+        "case"
+            +
+            // All empty
+            " when %s and %s and %s then null"
+            +
+            // Username only
+            " when %s and %s and %s then %s"
+            +
+            // FirstName only
+            " when %s and %s and %s then %s"
+            +
+            // Surname only
+            " when %s and %s and %s then %s"
+            +
+            // Surname and FirstName
+            " when %s and %s and %s then %s"
+            +
+            // FirstName and Username
+            " when %s and %s and %s then %s"
+            +
+            // Surname and Username
+            " when %s and %s and %s then %s"
+            +
+            // All fields
+            " else %s end as %s",
+        // All empty
+        isEmpty.apply(surname),
+        isEmpty.apply(firstName),
+        isEmpty.apply(username),
 
-            // If surname and firstName only, return surname + firstName
-            + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') <> ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') <> ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'username'), '') = ''"
-            + " then concat(trim({prefix}.{column} ->> 'surname'), ', ', trim({prefix}.{column} ->> 'firstName'))"
+        // Username only
+        isEmpty.apply(surname),
+        isEmpty.apply(firstName),
+        isNotEmpty.apply(username),
+        username,
 
-            // If firstName and username only, return firstName + username
-            + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') = ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') <> ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'username'), '') <> ''"
-            + " then concat(trim({prefix}.{column} ->> 'firstName'), ' (', trim({prefix}.{column} ->> 'username'), ')')"
+        // FirstName only
+        isEmpty.apply(surname),
+        isNotEmpty.apply(firstName),
+        isEmpty.apply(username),
+        firstName,
 
-            // If surname and username only, return surname + username
-            + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') <> ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') = ''"
-            + " and coalesce(trim({prefix}.{column} ->> 'username'), '') <> ''"
-            + " then concat(trim({prefix}.{column} ->> 'surname'), ' (', trim({prefix}.{column} ->> 'username'), ')')"
+        // Surname only
+        isNotEmpty.apply(surname),
+        isEmpty.apply(firstName),
+        isEmpty.apply(username),
+        surname,
 
-            // If has all columns populated, return surname + firstName +
-            // username
-            + " else concat(trim({prefix}.{column} ->> 'surname'), ', ', trim({prefix}.{column} ->> 'firstName'), ' (', trim({prefix}.{column} ->> 'username'), ')') end"
-            + " as {alias}")
-        .replaceAll("\\{column}", originColumn)
-        .replaceAll("\\{prefix}", tablePrefix)
-        .replaceAll("\\{alias}", columnAlias);
+        // Surname and FirstName
+        isNotEmpty.apply(surname),
+        isNotEmpty.apply(firstName),
+        isEmpty.apply(username),
+        formatNames(sqlBuilder, surname, "', '", firstName),
+
+        // FirstName and Username
+        isEmpty.apply(surname),
+        isNotEmpty.apply(firstName),
+        isNotEmpty.apply(username),
+        formatNames(sqlBuilder, firstName, "' ('", username, "')'"),
+
+        // Surname and Username
+        isNotEmpty.apply(surname),
+        isEmpty.apply(firstName),
+        isNotEmpty.apply(username),
+        formatNames(sqlBuilder, surname, "' ('", username, "')'"),
+
+        // All fields
+        formatNames(sqlBuilder, surname, "', '", firstName, "' ('", username, "')'"),
+        columnAlias);
+  }
+
+  private static String extractJsonValue(
+      SqlBuilder sqlBuilder, String tablePrefix, String originColumn, String path) {
+    String jsonExtracted = sqlBuilder.jsonExtract(tablePrefix, originColumn, path);
+    return sqlBuilder.trim(jsonExtracted);
+  }
+
+  private static String formatNames(SqlBuilder sqlBuilder, String... elements) {
+    return sqlBuilder.concat(elements);
   }
 }

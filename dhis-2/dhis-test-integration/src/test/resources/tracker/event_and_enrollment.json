@@ -883,12 +883,19 @@
       "deleted": false,
       "dataValues": [
         {
-          "created": "2022-04-22T06:00:34.319",
           "dataElement": {
             "idScheme": "UID",
             "identifier": "GieVkTxp4HH"
           },
-          "value": "14",
+          "value": "15",
+          "providedElsewhere": false
+        },
+        {
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "GieVkTxp4HG"
+          },
+          "value": "10",
           "providedElsewhere": false
         }
       ],

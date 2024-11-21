@@ -43,7 +43,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -54,10 +53,11 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
 
-  private final SqlBuilder sqlBuilder;
+  public EventTimeFieldSqlRenderer(SqlBuilder sqlBuilder) {
+    super(sqlBuilder);
+  }
 
   @Getter private final Set<TimeField> allowedTimeFields = Set.of(LAST_UPDATED, SCHEDULED_DATE);
 

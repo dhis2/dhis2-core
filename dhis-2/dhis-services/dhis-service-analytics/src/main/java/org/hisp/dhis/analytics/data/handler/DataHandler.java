@@ -1454,10 +1454,9 @@ public class DataHandler {
     DataQueryGroups queryGroups = queryPlanner.planQuery(params, plannerParams);
 
     timer.getSplitTime(
-        "Planned analytics query, got: "
-            + queryGroups.getLargestGroupSize()
-            + " for optimal: "
-            + optimalQueries);
+        "Planned analytics query, got: {} for optimal: {}",
+        queryGroups.getLargestGroupSize(),
+        optimalQueries);
 
     Map<String, Object> map = new HashMap<>();
 

@@ -18,6 +18,25 @@
       "trackedEntityTypeAttribute": true,
       "unique": true,
       "valueType": "TEXT"
+    },
+    {
+      "id": "i57a0734128",
+      "categoryOptionAttribute": true,
+      "categoryOptionComboAttribute": true,
+      "dataElementAttribute": true,
+      "name": "no metadata should have an attribute value for this attribute",
+      "organisationUnitAttribute": true,
+      "programAttribute": true,
+      "programStageAttribute": true,
+      "relationshipTypeAttribute": true,
+      "sharing": {
+        "owner": "PQD6wXJ2r5j",
+        "public": "rw------"
+      },
+      "trackedEntityAttributeAttribute": true,
+      "trackedEntityTypeAttribute": true,
+      "unique": true,
+      "valueType": "TEXT"
     }
   ],
   "categories": [

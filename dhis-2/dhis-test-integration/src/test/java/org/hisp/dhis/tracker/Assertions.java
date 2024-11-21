@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -38,11 +39,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
@@ -307,6 +313,42 @@ public class Assertions {
     assertTrue(
         hasTimeStamp(date),
         String.format("Supported format is %s but found %s", DATE_WITH_TIMESTAMP_PATTERN, date));
+  }
+
+  public static void assertNotes(List<Note> expected, List<Note> actual) {
+    assertContainsOnly(expected, actual);
+    Map<String, Note> expectedNotes =
+        expected.stream().collect(Collectors.toMap(Note::getUid, Function.identity()));
+    Map<String, Note> actualNotes =
+        actual.stream().collect(Collectors.toMap(Note::getUid, Function.identity()));
+    List<Executable> assertions =
+        expectedNotes.entrySet().stream()
+            .map(
+                entry ->
+                    (Executable)
+                        () -> {
+                          Note expectedNote = entry.getValue();
+                          Note actualNote = actualNotes.get(entry.getKey());
+                          assertAll(
+                              "note assertions " + expectedNote.getUid(),
+                              () ->
+                                  assertEquals(
+                                      expectedNote.getNoteText(),
+                                      actualNote.getNoteText(),
+                                      "noteText"),
+                              () ->
+                                  assertEquals(
+                                      expectedNote.getCreator(),
+                                      actualNote.getCreator(),
+                                      "creator"),
+                              () ->
+                                  assertEquals(
+                                      expectedNote.getCreated(),
+                                      actualNote.getCreated(),
+                                      "created"));
+                        })
+            .toList();
+    assertAll("note assertions", assertions);
   }
 
   private static boolean hasTimeStamp(Date date) {
