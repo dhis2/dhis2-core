@@ -145,13 +145,13 @@ class CategoryOptionComboTest {
 
   @Test
   void testIsDefault() {
-    categoryComboA.setName(CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME);
+    optionComboA.setName(CategoryOptionCombo.DEFAULT_NAME);
     assertTrue(optionComboA.isDefault());
   }
 
   @Test
   void testIsNotDefault() {
-    categoryComboA.setName(CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME + "x");
+    categoryComboA.setName(CategoryOptionCombo.DEFAULT_NAME + "x");
     assertFalse(optionComboA.isDefault());
   }
 

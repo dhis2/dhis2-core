@@ -101,7 +101,7 @@ class MappingErrorsTest {
   }
 
   @Test
-  void shouldReportDefaultCategoryOptionComboCannotBeExortedUsingIdSchemAttribute() {
+  void shouldReportDefaultCategoryOptionComboCannotBeExortedUsingIdSchemeAttribute() {
     CategoryOptionCombo defaultCategoryOptionCombo = new CategoryOptionCombo();
     defaultCategoryOptionCombo.setName(CategoryOptionCombo.DEFAULT_NAME);
     defaultCategoryOptionCombo.setUid(CodeGenerator.generateUid());
@@ -136,7 +136,7 @@ class MappingErrorsTest {
   }
 
   @Test
-  void shouldReportDefaultCategoryOptionCannotBeExortedUsingIdSchemAttribute() {
+  void shouldReportDefaultCategoryOptionCannotBeExortedUsingIdSchemeAttribute() {
     CategoryOption defaultCategoryOption = new CategoryOption();
     defaultCategoryOption.setName(CategoryOption.DEFAULT_NAME);
     defaultCategoryOption.setUid(CodeGenerator.generateUid());
