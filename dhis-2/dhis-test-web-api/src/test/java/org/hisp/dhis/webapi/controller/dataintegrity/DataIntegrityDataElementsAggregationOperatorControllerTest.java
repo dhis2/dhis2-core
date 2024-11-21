@@ -36,19 +36,22 @@ import org.junit.jupiter.api.Test;
  * Generally, data elements which can be aggregated should have their aggregation type set to
  * something other than NONE. {@see
  * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_can_aggregate_operator_none.yaml}
+ * Data elements which cannot be aggregate should have their aggregation type set to NONE. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_cannot_aggregate_operator_not_none.yaml}
  *
  * @author Jason P. Pickering
  */
 class DataIntegrityDataElementsAggregationOperatorControllerTest
     extends AbstractDataIntegrityIntegrationTest {
   private final String check = "data_elements_can_aggregate_with_none_operator";
+  private final String check2 = "data_elements_cannot_aggregate_operator_not_none";
 
   private final String detailsIdType = "dataElements";
 
   private String dataElementB;
 
   @Test
-  void testDataElementInconsistentAggregation() {
+  void testCanAggregateInconsistentAggregation() {
     setUpDataElements();
 
     String dataElementC =
@@ -63,7 +66,7 @@ class DataIntegrityDataElementsAggregationOperatorControllerTest
   }
 
   @Test
-  void testDataElementsConsistentAggregation() {
+  void testCanAggregateConsistentAggregation() {
 
     setUpDataElements();
 
@@ -76,6 +79,35 @@ class DataIntegrityDataElementsAggregationOperatorControllerTest
                     + "'domainType' : 'AGGREGATE', 'aggregationType' : 'NONE'  }"));
 
     assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
+
+  @Test
+  void testCannotAggregateConsistentAggregation() {
+
+    setUpDataElements();
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataElements",
+            "{ 'name': 'Narrative', 'shortName': 'Narrative', 'valueType' : 'TEXT',"
+                + "'domainType' : 'AGGREGATE', 'aggregationType' : 'NONE'  }"));
+
+    assertHasNoDataIntegrityIssues(detailsIdType, check2, true);
+  }
+
+  @Test
+  void testCannotAggregateInconsistentAggregation() {
+    setUpDataElements();
+
+    String dataElementC =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'Narrative', 'shortName': 'Narrative', 'valueType' : 'TEXT',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+
+    assertHasDataIntegrityIssues(detailsIdType, check2, 33, dataElementC, "Narrative", null, true);
   }
 
   @Test
@@ -103,6 +135,7 @@ class DataIntegrityDataElementsAggregationOperatorControllerTest
   void testDataElementsAggregationDividedByZero() {
 
     assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+    assertHasNoDataIntegrityIssues(detailsIdType, check2, false);
   }
 
   void setUpDataElements() {
