@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.ErrorCodeException;
 import org.hisp.dhis.common.UID;
@@ -216,14 +217,44 @@ public final class Assertions {
   }
 
   /**
+   * Asserts that the given string is not null and has a non-zero length.
+   *
+   * @param actual the string.
+   * @param messageSupplier fails with this supplied message
+   */
+  public static void assertNotEmpty(String actual, Supplier<String> messageSupplier) {
+    assertNotNull(actual, messageSupplier);
+    assertTrue(!actual.isEmpty(), messageSupplier);
+  }
+
+  /**
+   * Asserts that the given character sequence is NOT contained within the actual string.
+   *
+   * @param expected expected character sequence not to be contained within the actual string
+   * @param actual actual string which should not contain the expected character sequence
+   */
+  public static void assertNotContains(CharSequence expected, String actual) {
+    assertNotEmpty(
+        actual,
+        () ->
+            String.format(
+                "expected actual NOT to contain '%s', use assertIsEmpty if that is what you expect",
+                expected));
+    assertFalse(
+        actual.contains(expected),
+        () ->
+            String.format(
+                "expected actual NOT to contain '%s', got '%s' instead", expected, actual));
+  }
+
+  /**
    * Asserts that the given character sequence is contained within the actual string.
    *
    * @param expected expected character sequence to be contained within the actual string
    * @param actual actual string which should contain the expected character sequence
    */
   public static void assertContains(CharSequence expected, String actual) {
-    assertNotNull(
-        actual, () -> String.format("expected actual to contain '%s', got null instead", expected));
+    assertNotEmpty(actual, () -> String.format("expected actual to contain '%s'", expected));
     assertTrue(
         actual.contains(expected),
         () -> String.format("expected actual to contain '%s', got '%s' instead", expected, actual));
