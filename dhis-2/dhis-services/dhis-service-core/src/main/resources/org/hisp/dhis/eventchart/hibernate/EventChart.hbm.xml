@@ -33,10 +33,6 @@
                           foreign-key="fk_evisualization_periods_periodid"/>
         </list>
 
-        <many-to-one name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods"
-                     column="relativeperiodsid"
-                     cascade="all-delete-orphan" foreign-key="fk_evisualization_relativeperiodsid"/>
-
         <list name="categoryDimensions" table="eventvisualization_categorydimensions" cascade="all-delete-orphan">
             <cache usage="read-write"/>
             <key column="eventvisualizationid" foreign-key="fk_evisualization_categorydimensions_evisualizationid"/>
@@ -157,6 +153,8 @@
         <property name="hideTitle"/>
 
         <property name="hideSubtitle"/>
+
+        <property name="rawRelativePeriods" column="relativeperiods" type="jbList"/>
 
         <set name="interpretations" inverse="true">
             <key column="eventchartid"/>

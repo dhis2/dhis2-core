@@ -18,6 +18,8 @@
 
         <property name="description" type="text"/>
 
+        <property name="rawRelativePeriods" column="relativeperiods" type="jbList"/>
+
         <list name="organisationUnits" table="eventvisualization_organisationunits">
             <cache usage="read-write"/>
             <key column="eventvisualizationid" foreign-key="fk_eventvisualization_organisationunits_evisualizationid"/>
@@ -33,10 +35,6 @@
             <many-to-many column="periodid" class="org.hisp.dhis.period.Period"
                           foreign-key="fk_evisualization_periods_periodid"/>
         </list>
-
-        <many-to-one name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods"
-                     column="relativeperiodsid"
-                     cascade="all-delete-orphan" foreign-key="fk_evisualization_relativeperiodsid"/>
 
         <list name="categoryDimensions" table="eventvisualization_categorydimensions" cascade="all-delete-orphan">
             <cache usage="read-write"/>

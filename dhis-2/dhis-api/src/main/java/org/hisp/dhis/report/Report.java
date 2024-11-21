@@ -33,10 +33,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.List;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheable;
+import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Include;
@@ -55,6 +58,8 @@ public class Report extends BaseIdentifiableObject implements Cacheable, Metadat
   private Visualization visualization;
 
   private RelativePeriods relatives;
+
+  private List<String> rawRelativePeriods = new ArrayList<>();
 
   private ReportingParams reportingParams;
 
@@ -155,11 +160,50 @@ public class Report extends BaseIdentifiableObject implements Cacheable, Metadat
   @JsonProperty("relativePeriods")
   @JacksonXmlProperty(namespace = DXF_2_0)
   public RelativePeriods getRelatives() {
+    if (relatives == null) {
+      List<RelativePeriodEnum> enums = new ArrayList<>();
+
+      if (rawRelativePeriods != null) {
+        for (String relativePeriod : rawRelativePeriods) {
+          if (RelativePeriodEnum.contains(relativePeriod)) {
+            enums.add(RelativePeriodEnum.valueOf(relativePeriod));
+          }
+        }
+      }
+
+      return new RelativePeriods().setRelativePeriodsFromEnums(enums);
+    }
+
     return relatives;
   }
 
+  /**
+   * It overrides the rawRelativePeriods with the relative periods provided. This is done for
+   * backward compatibility reasons.
+   *
+   * @param relatives the {@link RelativePeriods}.
+   */
   public void setRelatives(RelativePeriods relatives) {
-    this.relatives = relatives;
+    if (relatives != null) {
+      List<RelativePeriodEnum> enums = relatives.getRelativePeriodEnums();
+
+      for (RelativePeriodEnum periodEnum : enums) {
+        String relativePeriod = periodEnum.name();
+        if (RelativePeriodEnum.contains(relativePeriod)) {
+          this.rawRelativePeriods.add(relativePeriod);
+        }
+      }
+
+      this.relatives = relatives;
+    }
+  }
+
+  public List<String> getRawRelativePeriods() {
+    return rawRelativePeriods;
+  }
+
+  public void setRawRelativePeriods(List<String> rawRelativePeriods) {
+    this.rawRelativePeriods = rawRelativePeriods;
   }
 
   @JsonProperty

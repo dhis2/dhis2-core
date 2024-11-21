@@ -27,17 +27,25 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.DataDimensionItem;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.preheat.PreheatService;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
@@ -62,6 +70,49 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
     handleAttributeDimensions(session, schema, analyticalObject, bundle);
     handleProgramIndicatorDimensions(session, schema, analyticalObject, bundle);
     handleVisualizationLegendSet(schema, analyticalObject, bundle);
+    handleRelativePeriods(schema, analyticalObject);
+  }
+
+  private void handleRelativePeriods(Schema schema, BaseAnalyticalObject analyticalObject) {
+    if (!schema.hasPersistedProperty("rawRelativePeriods")) return;
+
+    Set<String> rawRelativePeriods = new LinkedHashSet<>();
+
+    addRawRelativesPeriods(analyticalObject.getRows(), rawRelativePeriods);
+    addRawRelativesPeriods(analyticalObject.getColumns(), rawRelativePeriods);
+    addRawRelativesPeriods(analyticalObject.getFilters(), rawRelativePeriods);
+
+    RelativePeriods relativePeriods = analyticalObject.getRelatives();
+
+    if (relativePeriods != null) {
+      rawRelativePeriods.addAll(
+          relativePeriods.getRelativePeriodEnums().stream().map(Enum::name).collect(toList()));
+    }
+
+    analyticalObject.setRawRelativePeriods(new ArrayList<>(rawRelativePeriods));
+  }
+
+  /**
+   * Adds to the Set of periods, the relative periods present in the given list of {@link
+   * DimensionalObject}, if any.
+   *
+   * @param dimObjects the list of {@link DimensionalObject}.
+   * @param rawRelativePeriods the list of relative periods.
+   */
+  private void addRawRelativesPeriods(
+      List<DimensionalObject> dimObjects, Set<String> rawRelativePeriods) {
+    if (dimObjects != null) {
+      for (DimensionalObject dimObject : dimObjects) {
+        if (dimObject.hasItems()) {
+          for (DimensionalItemObject item : dimObject.getItems()) {
+            String period = item.getUid();
+            if (RelativePeriodEnum.contains(period)) {
+              rawRelativePeriods.add(period);
+            }
+          }
+        }
+      }
+    }
   }
 
   /**
