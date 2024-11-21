@@ -195,7 +195,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     if (mode == QueryMode.COUNT) {
       hql = "select count(distinct u) ";
     } else if (mode == QueryMode.IDS) {
-      hql = "select distinct u.id ";
+      hql = "select distinct u.uid ";
     } else {
       Schema userSchema = schemaService.getSchema(User.class);
       convertedOrder = QueryUtils.convertOrderStrings(orders, userSchema);
