@@ -1,6 +1,3 @@
--- V3__Add_NotNull_Constraint_To_TrackedEntityTypeId.sql
-
--- Step 1: Check if there are any rows with NULL values in trackedentitytypeid
 DO $$
 DECLARE
 dummy_tet_id INT;
