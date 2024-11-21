@@ -34,8 +34,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Nguyen Hong Duc
@@ -181,4 +183,14 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   User getUserByUuid(UUID uuid);
 
   List<User> getHasAuthority(String authority);
+
+  /**
+   * Retrieves all {@link User}s that have an entry for the {@link OrganisationUnit} in the given
+   * table
+   *
+   * @param orgUnitProperty {@link UserOrgUnitProperty} used to search
+   * @param uid {@link OrganisationUnit} uid to match on
+   * @return matching {@link User}s
+   */
+  List<User> getUsersWithOrgUnit(@Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull String uid);
 }
