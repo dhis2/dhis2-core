@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.user;
 
-/**
- * @author Lars Helge Overland
- */
 public enum UserOrgUnitProperty {
   ORG_UNITS("organisationUnits"),
   DATA_VIEW_ORG_UNITS("dataViewOrganisationUnits"),
