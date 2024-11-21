@@ -161,14 +161,26 @@ class EventImportValidationTest extends TrackerTest {
 
   @Test
   void testCantWriteAccessCatCombo() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/validations/events-cat-write-access.json");
+    TrackerObjects trackerObjects =
+        fromJson("tracker/validations/enrollments-cat-write-access.json");
     TrackerImportParams params = new TrackerImportParams();
-    injectSecurityContextUser(userService.getUser(USER_6));
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
+    assertNoErrors(importReport);
+
+    trackerObjects = fromJson("tracker/validations/events-cat-write-access.json");
+    params = new TrackerImportParams();
+    injectSecurityContextUser(userService.getUser(USER_6));
+
+    importReport = trackerImportService.importTracker(params, trackerObjects);
+
     assertHasOnlyErrors(
-        importReport, ValidationCode.E1096, ValidationCode.E1104, ValidationCode.E1095);
+        importReport,
+        ValidationCode.E1096,
+        ValidationCode.E1099,
+        ValidationCode.E1104,
+        ValidationCode.E1095);
   }
 
   @Test

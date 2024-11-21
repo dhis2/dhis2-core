@@ -559,6 +559,74 @@
       "ignoreOverdueEvents": false,
       "programSections": [],
       "created": "2019-03-29T12:41:33.001",
+      "shortName": "Tracker Program no default CC",
+      "incidentDateLabel": "IncidentDate",
+      "translations": [],
+      "style": {
+        "color": "#d32f2f"
+      },
+      "expiryDays": 0,
+      "user": {
+        "id": "tTgjgobT1oS"
+      },
+      "programStages": [
+        {
+          "id": "OilWH8Cj6QU"
+        }
+      ],
+      "selectEnrollmentDatesInFuture": false,
+      "categoryCombo": {
+        "id": "WG3syvpSE9o"
+      },
+      "notificationTemplates": [],
+      "displayIncidentDate": true,
+      "accessLevel": "OPEN",
+      "featureType": "POLYGON",
+      "id": "qiHs9hD2Opf",
+      "lastUpdatedBy": {
+        "id": "tTgjgobT1oS"
+      },
+      "completeEventsExpiryDays": 10,
+      "organisationUnits": [
+        {
+          "id": "QfUVllTs6cS"
+        },
+        {
+          "id": "QfUVllTs6cZ"
+        },
+        {
+          "id": "QfUVllTs6cW"
+        }
+      ],
+      "onlyEnrollOnce": false,
+      "lastUpdated": "2019-03-29T12:41:33.039",
+      "trackedEntityType": {
+        "id": "bPJ0FMtcnEh"
+      },
+      "name": "Tracker Program no default CC",
+      "enrollmentDateLabel": "EnrollmentDate",
+      "maxTeiCountToReturn": 0,
+      "attributeValues": [],
+      "programTrackedEntityAttributes": [],
+      "useFirstStageDuringRegistration": false,
+      "minAttributesRequiredToSearch": 1,
+      "skipOffline": false,
+      "version": 0,
+      "programType": "WITH_REGISTRATION",
+      "selectIncidentDatesInFuture": false,
+      "displayFrontPageList": false,
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "tTgjgobT1oS",
+        "users": {},
+        "userGroups": {}
+      }
+    },
+    {
+      "ignoreOverdueEvents": false,
+      "programSections": [],
+      "created": "2019-03-29T12:41:33.001",
       "shortName": "Tracker Program",
       "incidentDateLabel": "IncidentDate",
       "translations": [],
@@ -572,9 +640,6 @@
       "programStages": [
         {
           "id": "Qmqxq907VNz"
-        },
-        {
-          "id": "OilWH8Cj6QU"
         },
         {
           "id": "m7HlXaMvgX2"
@@ -2672,25 +2737,6 @@
   ],
   "categoryOptions": [
     {
-      "id": "xYerKDKCefk",
-      "code": "default",
-      "name": "default",
-      "shortName": "default",
-      "startDate": "2019-01-01T00:00:00.000",
-      "attributeValues": [],
-      "lastUpdated": "2019-03-25T13:40:24.783",
-      "organisationUnits": [],
-      "created": "2019-03-25T13:40:24.722",
-      "translations": [],
-      "sharing": {
-        "public": "rwrw----",
-        "external": false,
-        "owner": null,
-        "users": {},
-        "userGroups": {}
-      }
-    },
-    {
       "id": "WAFwwid9TzE",
       "code": "default2",
       "name": "default2",
@@ -2831,30 +2877,6 @@
   ],
   "categories": [
     {
-      "id": "GLevLNI9wkl",
-      "name": "default",
-      "shortName": "default",
-      "code": "default",
-      "dataDimensionType": "DISAGGREGATION",
-      "categoryOptions": [
-        {
-          "id": "xYerKDKCefk"
-        }
-      ],
-      "dataDimension": false,
-      "attributeValues": [],
-      "translations": [],
-      "created": "2019-03-25T13:40:24.762",
-      "lastUpdated": "2019-03-29T08:54:32.360",
-      "sharing": {
-        "public": "rw------",
-        "external": false,
-        "owner": null,
-        "users": {},
-        "userGroups": {}
-      }
-    },
-    {
       "id": "Vk8PHR8HBAe",
       "name": "default2",
       "shortName": "default2",
@@ -2928,28 +2950,6 @@
     }
   ],
   "categoryCombos": [
-    {
-      "id": "bjDvmb4bfuf",
-      "code": "default",
-      "name": "default",
-      "dataDimensionType": "DISAGGREGATION",
-      "categories": [
-        {
-          "id": "GLevLNI9wkl"
-        }
-      ],
-      "created": "2019-03-25T13:40:24.771",
-      "lastUpdated": "2019-03-25T13:40:24.781",
-      "skipTotal": false,
-      "translations": [],
-      "sharing": {
-        "public": "rw------",
-        "external": false,
-        "owner": null,
-        "users": {},
-        "userGroups": {}
-      }
-    },
     {
       "id": "WG3syvpSE9o",
       "code": "default2",
@@ -3043,25 +3043,6 @@
     }
   ],
   "categoryOptionCombos": [
-    {
-      "id": "HllvX50cXC0",
-      "code": "default",
-      "name": "default",
-      "categoryOptions": [
-        {
-          "id": "xYerKDKCefk"
-        }
-      ],
-      "categoryCombo": {
-        "id": "bjDvmb4bfuf"
-      },
-      "translations": [],
-      "startDate": "2019-01-01T00:00:00.000",
-      "lastUpdated": "2019-03-25T13:40:24.779",
-      "ignoreApproval": false,
-      "attributeValues": [],
-      "created": "2019-03-25T13:40:24.775"
-    },
     {
       "id": "KKKKX50cXC0",
       "name": "accesstest1",
