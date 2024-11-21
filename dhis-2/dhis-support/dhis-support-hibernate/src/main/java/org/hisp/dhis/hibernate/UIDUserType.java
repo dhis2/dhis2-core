@@ -39,7 +39,7 @@ import org.hisp.dhis.common.UID;
 
 public class UIDUserType implements UserType, Serializable {
 
-  private static final int[] SQL_TYPES = {Types.DISTINCT};
+  private static final int[] SQL_TYPES = {Types.VARCHAR};
 
   @Override
   public int[] sqlTypes() {
