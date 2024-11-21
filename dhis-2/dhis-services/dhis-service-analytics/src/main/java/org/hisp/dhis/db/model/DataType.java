@@ -43,7 +43,6 @@ public enum DataType {
   DOUBLE,
   BOOLEAN,
   CHARACTER_11,
-  CHARACTER_32,
   VARCHAR_50,
   VARCHAR_255,
   TEXT,
@@ -58,7 +57,7 @@ public enum DataType {
       EnumSet.of(SMALLINT, BIGINT, INTEGER, DECIMAL, FLOAT, DOUBLE);
 
   private static final EnumSet<DataType> TYPES_CHARACTER =
-      EnumSet.of(CHARACTER_11, CHARACTER_32, VARCHAR_50, VARCHAR_255, TEXT);
+      EnumSet.of(CHARACTER_11, VARCHAR_50, VARCHAR_255, TEXT);
 
   /**
    * Indicates if the data type is numeric.

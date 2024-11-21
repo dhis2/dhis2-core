@@ -73,14 +73,14 @@ public class AnalyticsDataSourceConfig {
       @Qualifier("actualDataSource") DataSource actualDataSource) {
     if (config.isAnalyticsDatabaseConfigured()) {
       log.info(
-          "Analytics data source detected with database: '{}', connection URL: '{}'",
+          "Analytics database detected: '{}', connection URL: '{}'",
           config.getProperty(ANALYTICS_DATABASE),
           config.getProperty(ANALYTICS_CONNECTION_URL));
 
       return getAnalyticsDataSource();
     } else {
       log.info(
-          "Analytics data source connection URL not specified with key: '{}'",
+          "Analytics database connection URL not specified with key: '{}'",
           ANALYTICS_CONNECTION_URL.getKey());
 
       return actualDataSource;

@@ -65,9 +65,7 @@ class DorisSqlBuilderTest {
             new Column("facility_type", DataType.VARCHAR_255, Nullable.NULL, Collation.C),
             new Column("bcg_doses", DataType.DOUBLE));
 
-    List<String> checks = List.of("\"id\">0", "\"bcg_doses\">0");
-
-    return new Table("vaccination", columns, List.of(), checks, Logged.UNLOGGED);
+    return new Table("vaccination", columns, List.of(), Logged.UNLOGGED);
   }
 
   private Table getTableC() {
@@ -178,6 +176,25 @@ class DorisSqlBuilderTest {
   void testDateTrunc() {
     assertEquals(
         "date_trunc(pe.startdate, 'month')", sqlBuilder.dateTrunc("month", "pe.startdate"));
+  }
+
+  @Test
+  void testDifferenceInSeconds() {
+    assertEquals(
+        "(unix_timestamp(a.startdate) - unix_timestamp(b.enddate))",
+        sqlBuilder.differenceInSeconds("a.startdate", "b.enddate"));
+    assertEquals(
+        "(unix_timestamp(a.`startdate`) - unix_timestamp(b.`enddate`))",
+        sqlBuilder.differenceInSeconds(
+            sqlBuilder.quote("a", "startdate"), sqlBuilder.quote("b", "enddate")));
+  }
+
+  @Test
+  void testRegexpMatch() {
+    assertEquals("regexp test", sqlBuilder.regexpMatch("test"));
+    assertEquals("regexp \\d", sqlBuilder.regexpMatch("\\d"));
+    assertEquals("regexp ", sqlBuilder.regexpMatch(""));
+    assertEquals("regexp [a-z]\\w+\\d{3}", sqlBuilder.regexpMatch("[a-z]\\w+\\d{3}"));
   }
 
   // Statements

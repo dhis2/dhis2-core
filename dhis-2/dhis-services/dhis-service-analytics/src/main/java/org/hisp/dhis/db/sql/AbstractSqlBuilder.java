@@ -134,6 +134,11 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   // Table
 
   @Override
+  public String dropTableIfExists(String name) {
+    return String.format("drop table if exists %s;", quote(name));
+  }
+
+  @Override
   public String analyzeTable(String name) {
     return notSupported();
   }
@@ -171,7 +176,6 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
       case DOUBLE -> dataTypeDouble();
       case BOOLEAN -> dataTypeBoolean();
       case CHARACTER_11 -> dataTypeCharacter(11);
-      case CHARACTER_32 -> dataTypeCharacter(32);
       case VARCHAR_50 -> dataTypeVarchar(50);
       case VARCHAR_255 -> dataTypeVarchar(255);
       case TEXT -> dataTypeText();

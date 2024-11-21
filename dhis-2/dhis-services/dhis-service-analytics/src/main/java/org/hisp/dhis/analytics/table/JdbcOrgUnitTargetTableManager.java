@@ -77,6 +77,8 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
               .selectExpression("oug.uid")
               .build());
 
+  private static final List<String> SORT_KEY = List.of("oug");
+
   public JdbcOrgUnitTargetTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -118,7 +120,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
     Logged logged = analyticsTableSettings.getTableLogged();
     return params.isLatestUpdate()
         ? List.of()
-        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged));
+        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), SORT_KEY, logged));
   }
 
   @Override
@@ -154,10 +156,10 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
     sql +=
         qualifyVariables(
             """
-        from ${orgunitgroupmembers} ougm
-        inner join ${orgunitgroup} oug on ougm.orgunitgroupid=oug.orgunitgroupid
-        left join analytics_rs_orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid
-        left join analytics_rs_organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid""");
+            from ${orgunitgroupmembers} ougm \
+            inner join ${orgunitgroup} oug on ougm.orgunitgroupid=oug.orgunitgroupid \
+            left join analytics_rs_orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid \
+            left join analytics_rs_organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid""");
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }

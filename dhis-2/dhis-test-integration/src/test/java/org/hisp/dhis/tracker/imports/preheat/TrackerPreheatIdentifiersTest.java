@@ -164,7 +164,8 @@ class TrackerPreheatIdentifiersTest extends TrackerTest {
 
   @Test
   void testCategoryOptionComboIdentifiers() {
-    List<Pair<String, TrackerIdSchemeParam>> data = buildDataSet("XXXvX50cXC0", "COCA", "COCAname");
+    List<Pair<String, TrackerIdSchemeParam>> data =
+        buildDataSet("HllvX50cXC0", "default", "default");
     for (Pair<String, TrackerIdSchemeParam> pair : data) {
       String id = pair.getLeft();
       TrackerIdSchemeParam param = pair.getRight();

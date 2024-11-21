@@ -284,6 +284,18 @@ public class DateUtils {
   }
 
   /**
+   * Creates a {@link Date} representing the given year, month and day.
+   *
+   * @param year the year.
+   * @param month the month, from 1.
+   * @param dayOfMonth the day of the month, from 1.
+   * @return a {@link Date}.
+   */
+  public static Date getDate(int year, int month, int dayOfMonth) {
+    return new DateTime(year, month, dayOfMonth, 0, 0).toDate();
+  }
+
+  /**
    * Formats a Date according to the HTTP specification standard date format.
    *
    * @param date the Date to format.
@@ -798,19 +810,29 @@ public class DateUtils {
    * UTC time zone.
    *
    * @param time the LocalDateTime.
-   * @return a Date.
+   * @return a {@link Date}.
    */
   public static Date getDate(LocalDateTime time) {
     Instant instant = time.toInstant(ZoneOffset.UTC);
-
     return Date.from(instant);
+  }
+
+  /**
+   * Truncates the given date to the first day of the month.
+   *
+   * @param date the date to truncate.
+   * @return a {@link Date}.
+   */
+  public static Date dateTruncMonth(Date date) {
+    LocalDate localDate = new LocalDate(date);
+    return localDate.withDayOfMonth(1).toDate();
   }
 
   /**
    * Return the current date minus the duration specified by the given string.
    *
    * @param duration the duration string.
-   * @return a Date.
+   * @return a {@link Date}.
    */
   public static Date nowMinusDuration(String duration) {
     Duration dr = DateUtils.getDuration(duration);
