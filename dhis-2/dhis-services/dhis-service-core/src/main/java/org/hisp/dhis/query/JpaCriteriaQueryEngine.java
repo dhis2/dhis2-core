@@ -88,6 +88,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
   public List<T> query(Query query) {
     Schema schema = query.getSchema();
 
+    @SuppressWarnings("unchecked")
     Class<T> klass = (Class<T>) schema.getKlass();
 
     InternalHibernateGenericStore<T> store = getStore(klass);
@@ -110,30 +111,11 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
     CriteriaQuery<T> criteriaQuery = builder.createQuery(klass);
     Root<T> root = criteriaQuery.from(klass);
 
-    if (query.isEmpty()) {
-      Predicate predicate = builder.conjunction();
-
-      addSharingPredicates(query, schema, predicate, store, builder, root);
-      criteriaQuery.where(predicate);
-
-      // TODO why isn't ordering added here just because there is no filter????
-      TypedQuery<T> typedQuery = entityManager.createQuery(criteriaQuery);
-
-      typedQuery.setFirstResult(query.getFirstResult());
-      typedQuery.setMaxResults(query.getMaxResults());
-
-      return typedQuery.getResultList();
-    }
-
     Predicate predicate = buildPredicates(builder, root, query);
-
     addSharingPredicates(query, schema, predicate, store, builder, root);
-
     criteriaQuery.where(predicate);
 
-    if (!query.getOrders().isEmpty()) {
-      criteriaQuery.orderBy(getOrders(query, builder, root));
-    }
+    if (!query.getOrders().isEmpty()) criteriaQuery.orderBy(getOrders(query, builder, root));
 
     TypedQuery<T> typedQuery = entityManager.createQuery(criteriaQuery);
 
@@ -175,6 +157,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
   public long count(Query query) {
     Schema schema = query.getSchema();
 
+    @SuppressWarnings("unchecked")
     Class<T> klass = (Class<T>) schema.getKlass();
 
     InternalHibernateGenericStore<T> store = getStore(klass);
@@ -200,9 +183,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
     criteriaQuery.select(builder.count(root));
 
     Predicate predicate = buildPredicates(builder, root, query);
-
     addSharingPredicates(query, schema, predicate, store, builder, root);
-
     criteriaQuery.where(predicate);
 
     TypedQuery<Long> typedQuery = entityManager.createQuery(criteriaQuery);
@@ -240,6 +221,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
 
   private <Y> Predicate buildPredicates(CriteriaBuilder builder, Root<Y> root, Query query) {
     Predicate junction = builder.conjunction();
+    if (query.isEmpty()) return junction;
     query.getAliases().forEach(alias -> root.join(alias).alias(alias));
     if (!query.getCriterions().isEmpty()) {
       junction = getJpaJunction(builder, query.getRootJunctionType());
@@ -252,14 +234,10 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
   }
 
   private Predicate getJpaJunction(CriteriaBuilder builder, Junction.Type type) {
-    switch (type) {
-      case AND:
-        return builder.conjunction();
-      case OR:
-        return builder.disjunction();
-    }
-
-    return builder.conjunction();
+    return switch (type) {
+      case AND -> builder.conjunction();
+      case OR -> builder.disjunction();
+    };
   }
 
   private <Y> Predicate getPredicate(
