@@ -228,13 +228,12 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   User getUserByVerifiedEmail(String email);
 
   /**
-   * Method that retrieves all {@link User}s that have an entry for the {@link OrganisationUnit} in
-   * the given table
+   * Retrieves all {@link User}s that have an entry for the {@link OrganisationUnit} in the given
+   * table
    *
-   * @param orgUnitTable table to search (one of 'organisationUnits', 'dataViewOrganisationUnits',
-   *     'teiSearchOrganisationUnits')
+   * @param orgUnitProperty {@link UserOrgUnitProperty} used to search
    * @param uid {@link OrganisationUnit} {@link UID} to match on
    * @return matching {@link User}s
    */
-  List<User> getUsersWithOrgUnit(@Nonnull String orgUnitTable, @Nonnull UID uid);
+  List<User> getUsersWithOrgUnit(@Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull UID uid);
 }

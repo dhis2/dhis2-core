@@ -79,6 +79,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserInvitationStatus;
+import org.hisp.dhis.user.UserOrgUnitProperty;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserStore;
 import org.springframework.context.ApplicationEventPublisher;
@@ -645,14 +646,15 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
-  public List<User> getUsersWithOrgUnit(@Nonnull String orgUnitTable, @Nonnull UID uid) {
+  public List<User> getUsersWithOrgUnit(
+      @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull UID uid) {
     return getQuery(
             """
             select distinct u from User u
             left join fetch u.%s ous
             where ous.uid = :uid
             """
-                .formatted(orgUnitTable))
+                .formatted(orgUnitProperty.getValue()))
         .setParameter("uid", uid.getValue())
         .getResultList();
   }

@@ -306,7 +306,7 @@ class UserStoreTest extends PostgresIntegrationTestBase {
 
     // when retrieving users by org unit uid
     SQLStatementCountValidator.reset();
-    List<User> users = userStore.getUsersWithOrgUnit("organisationUnits", UID.of(ou1));
+    List<User> users = userStore.getUsersWithOrgUnit(UserOrgUnitProperty.ORG_UNITS, UID.of(ou1));
     // getting each org unit to assert later that no other select queries triggered
     users.forEach(
         u ->
