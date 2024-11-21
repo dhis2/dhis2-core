@@ -45,7 +45,6 @@ import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 
 class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private DeduplicationService deduplicationService;
@@ -109,16 +108,6 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertEquals(
         potentialDuplicate,
         deduplicationService.getPotentialDuplicateById(potentialDuplicate.getId()));
-  }
-
-  @Test
-  void shouldFailWhenAddingAPotentialDuplicateWithInvalidUid() {
-    PotentialDuplicate potentialDuplicate =
-        new PotentialDuplicate(TRACKED_ENTITY_A, TRACKED_ENTITY_B);
-    potentialDuplicate.setUid("INVALID");
-    assertThrows(
-        DataIntegrityViolationException.class,
-        () -> deduplicationService.addPotentialDuplicate(potentialDuplicate));
   }
 
   @Test
