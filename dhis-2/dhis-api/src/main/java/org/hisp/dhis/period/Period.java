@@ -113,6 +113,20 @@ public class Period extends BaseDimensionalItemObject {
     this.dateField = period.getDateField();
   }
 
+  /**
+   * Creates a period that is not bound to the persistent layer. It represents a detached Period
+   * that is mainly used for displaying purposes.
+   *
+   * @param isoRelativePeriod the ISO relative period
+   */
+  public Period(RelativePeriodEnum isoRelativePeriod) {
+    this.isoPeriod = isoRelativePeriod.toString();
+    this.name = isoRelativePeriod.toString();
+    this.code = isoRelativePeriod.toString();
+    this.setStartDate(new Date());
+    this.setEndDate(new Date());
+  }
+
   protected Period(PeriodType periodType, Date startDate, Date endDate) {
     this.periodType = periodType;
     this.startDate = startDate;

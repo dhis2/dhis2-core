@@ -87,7 +87,6 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
-import org.hisp.dhis.period.ConfigurablePeriod;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
@@ -138,6 +137,8 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   private Date endDate;
 
   protected RelativePeriods relatives;
+
+  protected List<String> rawRelativePeriods = new ArrayList<>();
 
   protected List<DataElementGroupSetDimension> dataElementGroupSetDimensions = new ArrayList<>();
 
@@ -250,7 +251,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   }
 
   public boolean hasRelativePeriods() {
-    return relatives != null && !relatives.isEmpty();
+    return rawRelativePeriods != null && !rawRelativePeriods.isEmpty();
   }
 
   public boolean hasOrganisationUnitLevels() {
@@ -515,15 +516,13 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
    * @return the dimensional object related to the given dimension and attribute.
    */
   protected DimensionalObject getDimensionalObject(
-      final EventAnalyticalObject eventAnalyticalObject,
-      final String dimension,
-      final Attribute parent) {
-    final Optional<DimensionalObject> optionalDimensionalObject = getDimensionalObject(dimension);
+      EventAnalyticalObject eventAnalyticalObject, String dimension, Attribute parent) {
+    Optional<DimensionalObject> optionalDimensionalObject = getDimensionalObject(dimension);
 
     if (optionalDimensionalObject.isPresent()) {
       return linkAssociations(eventAnalyticalObject, optionalDimensionalObject.get(), parent);
     } else if (Type.contains(dimension)) {
-      final DimensionalObject dimensionalObject =
+      DimensionalObject dimensionalObject =
           new SimpleDimensionHandler(eventAnalyticalObject).getDimensionalObject(dimension, parent);
 
       return linkAssociations(eventAnalyticalObject, dimensionalObject, parent);
@@ -542,14 +541,14 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
    * @return the dimensional object containing the correct associations.
    */
   private DimensionalObject linkAssociations(
-      final EventAnalyticalObject eventAnalyticalObject,
-      final DimensionalObject dimensionalObject,
-      final Attribute parent) {
+      EventAnalyticalObject eventAnalyticalObject,
+      DimensionalObject dimensionalObject,
+      Attribute parent) {
     // Associating event repetitions.
-    final List<EventRepetition> repetitions = eventAnalyticalObject.getEventRepetitions();
+    List<EventRepetition> repetitions = eventAnalyticalObject.getEventRepetitions();
 
     if (isNotEmpty(repetitions)) {
-      for (final EventRepetition eventRepetition : repetitions) {
+      for (EventRepetition eventRepetition : repetitions) {
         if (eventRepetition.getDimension() != null
             && eventRepetition.getDimension().equals(dimensionalObject.getDimension())
             && parent == eventRepetition.getParent()) {
@@ -568,11 +567,11 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
    * @param dimensionalObjects
    */
   protected void populateDimensions(
-      final List<String> dimensions, final List<DimensionalObject> dimensionalObjects) {
+      List<String> dimensions, List<DimensionalObject> dimensionalObjects) {
     if (isNotEmpty(dimensions)) {
-      for (final String dimension : dimensions) {
+      for (String dimension : dimensions) {
         if (isNotBlank(dimension)) {
-          final Optional<DimensionalObject> dimensionalObject = getDimensionalObject(dimension);
+          Optional<DimensionalObject> dimensionalObject = getDimensionalObject(dimension);
           if (dimensionalObject.isPresent()) {
             dimensionalObjects.add(dimensionalObject.get());
           }
@@ -589,12 +588,12 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
    * @param dimensionalObjects
    */
   protected void populateDimensions(
-      final List<String> dimensions,
-      final List<DimensionalObject> dimensionalObjects,
-      final Attribute attribute,
-      final EventAnalyticalObject eventAnalyticalObject) {
+      List<String> dimensions,
+      List<DimensionalObject> dimensionalObjects,
+      Attribute attribute,
+      EventAnalyticalObject eventAnalyticalObject) {
     if (isNotEmpty(dimensions)) {
-      for (final String dimension : dimensions) {
+      for (String dimension : dimensions) {
         if (isNotBlank(dimension)) {
           dimensionalObjects.add(getDimensionalObject(eventAnalyticalObject, dimension, attribute));
         }
@@ -625,10 +624,8 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
       List<Period> periodList = new ArrayList<>(periods);
 
       if (hasRelativePeriods()) {
-        List<RelativePeriodEnum> list = relatives.getRelativePeriodEnums();
-
-        for (RelativePeriodEnum periodEnum : list) {
-          periodList.add(new ConfigurablePeriod(periodEnum.toString()));
+        for (String relPeriod : rawRelativePeriods) {
+          periodList.add(new Period(RelativePeriodEnum.valueOf(relPeriod)));
         }
       }
 
@@ -718,12 +715,13 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
             .collect(toMap(TrackedEntityAttributeDimension::getUid, Function.identity()));
 
     if (attributes.containsKey(dimension)) {
-      final TrackedEntityAttributeDimension tead = attributes.get(dimension);
+      TrackedEntityAttributeDimension tead = attributes.get(dimension);
 
       if (tead != null) {
-        final ValueType valueType =
+        ValueType valueType =
             tead.getAttribute() != null ? tead.getAttribute().getValueType() : null;
-        final OptionSet optionSet =
+
+        OptionSet optionSet =
             tead.getAttribute() != null ? tead.getAttribute().getOptionSet() : null;
 
         return Optional.of(
@@ -777,7 +775,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
             .collect(toMap(TrackedEntityProgramIndicatorDimension::getUid, Function.identity()));
 
     if (programIndicators.containsKey(dimension)) {
-      final TrackedEntityProgramIndicatorDimension teid = programIndicators.get(dimension);
+      TrackedEntityProgramIndicatorDimension teid = programIndicators.get(dimension);
 
       return Optional.of(
           new BaseDimensionalObject(
@@ -805,11 +803,11 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   private <T extends DimensionalEmbeddedObject>
       Optional<DimensionalObject> getDimensionFromEmbeddedObjects(
           String dimension, DimensionType dimensionType, List<T> embeddedObjects) {
-    final Map<String, T> dimensions =
+    Map<String, T> dimensions =
         Maps.uniqueIndex(embeddedObjects, d -> d.getDimension().getDimension());
 
     if (dimensions.containsKey(dimension)) {
-      final DimensionalEmbeddedObject object = dimensions.get(dimension);
+      DimensionalEmbeddedObject object = dimensions.get(dimension);
 
       if (object != null) {
         return Optional.of(
@@ -835,7 +833,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
    * dynamic dimensions.
    */
   public Map<String, String> getMetaData() {
-    final Map<String, String> meta = new HashMap<>();
+    Map<String, String> meta = new HashMap<>();
 
     // TODO use getDimension() instead of getUid() ?
     dataElementGroupSetDimensions.forEach(
@@ -934,11 +932,37 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   @JsonProperty(value = "relativePeriods")
   @JacksonXmlProperty(localName = "relativePeriods", namespace = DxfNamespaces.DXF_2_0)
   public RelativePeriods getRelatives() {
+    if (relatives == null) {
+      List<RelativePeriodEnum> enums = new ArrayList<>();
+
+      if (rawRelativePeriods != null) {
+        for (String relativePeriod : rawRelativePeriods) {
+          if (RelativePeriodEnum.contains(relativePeriod)) {
+            enums.add(RelativePeriodEnum.valueOf(relativePeriod));
+          }
+        }
+      }
+
+      return new RelativePeriods().setRelativePeriodsFromEnums(enums);
+    }
+
     return relatives;
   }
 
   public void setRelatives(RelativePeriods relatives) {
     this.relatives = relatives;
+  }
+
+  @JsonProperty
+  @JsonIgnore
+  @JacksonXmlElementWrapper(localName = "rawRelativePeriods", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "rawRelativePeriods", namespace = DxfNamespaces.DXF_2_0)
+  public List<String> getRawRelativePeriods() {
+    return rawRelativePeriods;
+  }
+
+  public void setRawRelativePeriods(List<String> rawRelativePeriods) {
+    this.rawRelativePeriods = rawRelativePeriods;
   }
 
   @JsonProperty
