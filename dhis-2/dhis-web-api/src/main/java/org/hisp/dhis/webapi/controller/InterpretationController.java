@@ -31,13 +31,9 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
-import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
@@ -55,10 +51,7 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.query.Disjunction;
 import org.hisp.dhis.query.GetObjectListParams;
-import org.hisp.dhis.query.Restrictions;
-import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -454,23 +447,5 @@ public class InterpretationController
       return created("Like removed from interpretation");
     }
     return conflict("Could not remove like, user had not previously liked interpretation");
-  }
-
-  // -------------------------------------------------------------------------
-  // Supportive methods
-  // -------------------------------------------------------------------------
-
-  private Collection<Disjunction> getDisjunctionsFromCustomMentions(
-      List<String> mentions, Schema schema) {
-    Collection<Disjunction> disjunctions = new ArrayList<Disjunction>();
-    for (String m : mentions) {
-      Disjunction disjunction = new Disjunction(schema);
-      String[] split = m.substring(1, m.length() - 1).split(",");
-      List<String> items = Lists.newArrayList(split);
-      disjunction.add(Restrictions.in("mentions.username", items));
-      disjunction.add(Restrictions.in("comments.mentions.username", items));
-      disjunctions.add(disjunction);
-    }
-    return disjunctions;
   }
 }

@@ -49,7 +49,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -190,8 +189,7 @@ public class UserController
         filters != null && filters.stream().anyMatch(f -> f.startsWith("userGroups."));
     queryParams.setPrefetchUserGroups(hasUserGroupFilter);
 
-    List<String> ordersAsString =
-        orderParams.stream().map(Order::toOrderString).collect(Collectors.toList());
+    List<String> ordersAsString = orderParams.stream().map(Order::toOrderString).toList();
 
     return userService.getUsers(queryParams, ordersAsString).stream().map(UID::of).toList();
   }
@@ -391,8 +389,7 @@ public class UserController
   @RequiresAuthority(anyOf = F_REPLICATE_USER)
   @PostMapping("/{uid}/replica")
   @ResponseBody
-  public WebMessage replicateUser(
-      @PathVariable String uid, HttpServletRequest request, HttpServletResponse response)
+  public WebMessage replicateUser(@PathVariable String uid, HttpServletRequest request)
       throws IOException,
           ForbiddenException,
           ConflictException,

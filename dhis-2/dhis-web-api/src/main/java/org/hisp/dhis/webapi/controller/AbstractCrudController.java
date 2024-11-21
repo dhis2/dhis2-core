@@ -180,8 +180,6 @@ public abstract class AbstractCrudController<
           IOException,
           JsonPatchException,
           ConflictException {
-    WebOptions options = new WebOptions(rpParameters);
-
     final T persistedObject = getEntity(pvUid);
 
     if (!aclService.canUpdate(currentUser, persistedObject)) {

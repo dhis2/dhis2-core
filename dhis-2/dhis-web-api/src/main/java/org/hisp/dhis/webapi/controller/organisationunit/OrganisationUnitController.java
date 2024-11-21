@@ -201,7 +201,7 @@ public class OrganisationUnitController
       GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     return getDescendants(uid, params, response, currentUser);
   }
 
@@ -212,7 +212,7 @@ public class OrganisationUnitController
       GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     Criterion descendants = like("path", uid, MatchMode.ANYWHERE);
     return getObjectListInternal(params, response, currentUser, List.of(descendants));
   }
