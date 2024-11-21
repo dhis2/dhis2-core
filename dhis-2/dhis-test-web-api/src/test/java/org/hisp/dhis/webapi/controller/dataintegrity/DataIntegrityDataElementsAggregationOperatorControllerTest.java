@@ -33,15 +33,15 @@ import org.hisp.dhis.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Generally, non-numeric data elements should have their aggregation type set to NONE, while
- * numeric data elements should have their aggregation type set to something other than NONE. {@see
- * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_inconsistent_agg_operator.yaml}
+ * Generally, data elements which can be aggregated should have their aggregation type set to
+ * something other than NONE. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_can_aggregate_operator_none.yaml}
  *
  * @author Jason P. Pickering
  */
 class DataIntegrityDataElementsAggregationOperatorControllerTest
     extends AbstractDataIntegrityIntegrationTest {
-  private final String check = "data_elements_aggregate_aggregation_operator";
+  private final String check = "data_elements_can_aggregate_with_none_operator";
 
   private final String detailsIdType = "dataElements";
 
@@ -51,15 +51,15 @@ class DataIntegrityDataElementsAggregationOperatorControllerTest
   void testDataElementInconsistentAggregation() {
     setUpDataElements();
 
-    dataElementB =
+    String dataElementC =
         assertStatus(
             HttpStatus.CREATED,
             POST(
                 "/dataElements",
-                "{ 'name': 'ANC3', 'shortName': 'ANC3', 'valueType' : 'TEXT',"
-                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+                "{ 'name': 'ANC3', 'shortName': 'ANC3', 'valueType' : 'INTEGER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'NONE'  }"));
 
-    assertHasDataIntegrityIssues(detailsIdType, check, 33, dataElementB, "ANC3", null, true);
+    assertHasDataIntegrityIssues(detailsIdType, check, 33, dataElementC, "ANC3", null, true);
   }
 
   @Test
@@ -79,6 +79,27 @@ class DataIntegrityDataElementsAggregationOperatorControllerTest
   }
 
   @Test
+  void trackerDataElementsAreNotIncluded() {
+    setUpDataElements();
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataElements",
+            "{ 'name': 'TRACKER_A', 'shortName': 'TRACKER_A', 'valueType' : 'INTEGER',"
+                + "'domainType' : 'TRACKER', 'aggregationType' : 'NONE'  }"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataElements",
+            "{ 'name': 'TRACKER_B', 'shortName': 'TRACKER_B', 'valueType' : 'INTEGER',"
+                + "'domainType' : 'TRACKER', 'aggregationType' : 'SUM'  }"));
+
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
+
+  @Test
   void testDataElementsAggregationDividedByZero() {
 
     assertHasNoDataIntegrityIssues(detailsIdType, check, false);
@@ -89,7 +110,7 @@ class DataIntegrityDataElementsAggregationOperatorControllerTest
         HttpStatus.CREATED,
         POST(
             "/dataElements",
-            "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+            "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'INTEGER',"
                 + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
 
     dataElementB =
@@ -97,7 +118,7 @@ class DataIntegrityDataElementsAggregationOperatorControllerTest
             HttpStatus.CREATED,
             POST(
                 "/dataElements",
-                "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'NUMBER',"
+                "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'INTEGER',"
                     + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
   }
 }

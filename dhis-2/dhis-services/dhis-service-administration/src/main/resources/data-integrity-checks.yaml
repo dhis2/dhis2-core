@@ -49,7 +49,7 @@ checks:
   - analytical_objects/push_analysis_no_recipients.yaml
   - data_elements/aggregate_des_no_groups.yaml
   - data_elements/aggregate_des_abandoned.yaml
-  - data_elements/aggregate_des_inconsistent_agg_operator.yaml
+  - data_elements/aggregate_des_can_aggregate_operator_none.yaml
   - data_elements/aggregate_des_excess_groupset_membership.yaml
   - data_elements/aggregate_des_no_analysis.yaml
   - data_elements/aggregate_des_datasets_different_period_types.yaml
