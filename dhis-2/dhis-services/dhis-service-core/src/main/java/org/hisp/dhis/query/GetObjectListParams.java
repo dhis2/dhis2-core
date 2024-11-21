@@ -108,12 +108,35 @@ public class GetObjectListParams extends GetObjectParams {
     this.orders = orders;
   }
 
+  /**
+   * Pattern to split {@code filter} expressions which have 2 or 3 components: {@code
+   * property:operator} or {@code property:operator:value}.
+   *
+   * <p>Examples
+   *
+   * <pre>
+   * name:eq:Peter
+   * organisationUnits:empty
+   * </pre>
+   *
+   * Unfortunately the value can also contain : and when used with [] it can also contain , which
+   * needs extra caution to not read too little or too much into operation and value.
+   */
   private static final Pattern FILTER_PARTS =
       Pattern.compile(
-          "(?<property>[a-zA-Z0-9.]+):(?<op>[^:,\\n\\r]+)(?::(?<value>\\[[^]]*]|[^,\\n\\r]+))?");
+          "(?<property>[a-zA-Z0-9.]+):(?<op>[!$a-zA-Z]{2,10})(?::(?<value>\\[[^]]*]|[^,\\n\\r]+))?");
 
-  private static List<String> splitFilters(String filters) {
-    if (filters == null) return null;
+  /**
+   * Splits a string {@code filter,filter} into a list {@code [filter,filter]}.
+   *
+   * <p>This is non-trivial since filters can contain comma symbols.
+   *
+   * @param filters a comma seperated list of filter expressions
+   * @return a list where each element is a single filter expression
+   */
+  @CheckForNull
+  static List<String> splitFilters(@CheckForNull String filters) {
+    if (filters == null || filters.isEmpty()) return null;
     if (!filters.contains(",")) return new ArrayList<>(List.of(filters));
     List<String> res = new ArrayList<>();
     Matcher m = FILTER_PARTS.matcher(filters);

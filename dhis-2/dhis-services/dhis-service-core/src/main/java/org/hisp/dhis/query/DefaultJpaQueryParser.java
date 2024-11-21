@@ -149,36 +149,8 @@ public class DefaultJpaQueryParser implements QueryParser {
       case "endsWith", "ilike$" ->
           Restrictions.ilike(path, parseValue(valueType, arg), MatchMode.END);
       case "!ilike$" -> Restrictions.notIlike(path, parseValue(valueType, arg), MatchMode.END);
-      case "in" -> {
-        Collection values = null;
-
-        if (property.isCollection()) {
-          values = parseValue(Collection.class, property.getItemKlass(), arg);
-        } else {
-          values = parseValue(Collection.class, valueType, arg);
-        }
-
-        if (values == null || values.isEmpty()) {
-          throw new QueryParserException("Invalid argument `" + arg + "` for in operator.");
-        }
-
-        yield Restrictions.in(path, values);
-      }
-      case "!in" -> {
-        Collection values = null;
-
-        if (property.isCollection()) {
-          values = parseValue(Collection.class, property.getItemKlass(), arg);
-        } else {
-          values = parseValue(Collection.class, valueType, arg);
-        }
-
-        if (values == null || values.isEmpty()) {
-          throw new QueryParserException("Invalid argument `" + arg + "` for in operator.");
-        }
-
-        yield Restrictions.notIn(path, values);
-      }
+      case "in" -> Restrictions.in(path, parseValues(property, valueType, arg));
+      case "!in" -> Restrictions.notIn(path, parseValues(property, valueType, arg));
       case "null" -> Restrictions.isNull(path);
       case "!null" -> Restrictions.isNotNull(path);
       case "empty" -> Restrictions.isEmpty(path);
@@ -186,9 +158,23 @@ public class DefaultJpaQueryParser implements QueryParser {
     };
   }
 
+  @Nonnull
+  @SuppressWarnings("rawtypes")
+  private Collection parseValues(Property property, Class<?> valueType, Object arg) {
+    Collection<?> values =
+        property.isCollection()
+            ? parseValue(Collection.class, property.getItemKlass(), arg)
+            : parseValue(Collection.class, valueType, arg);
+
+    if (values == null || values.isEmpty()) {
+      throw new QueryParserException("Invalid argument `" + arg + "` for in operator.");
+    }
+    return values;
+  }
+
   private Collection<Disjunction> getDisjunctionsFromCustomMentions(
       List<String> mentions, Schema schema) {
-    Collection<Disjunction> disjunctions = new ArrayList<Disjunction>();
+    Collection<Disjunction> disjunctions = new ArrayList<>();
     for (String m : mentions) {
       Disjunction disjunction = new Disjunction(schema);
       String[] split = m.substring(1, m.length() - 1).split(",");
