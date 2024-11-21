@@ -57,6 +57,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeQuery;
@@ -147,7 +148,7 @@ public class OrganisationUnitController
       GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException, NotFoundException, ConflictException {
     return getChildren(uid, params, response, currentUser);
   }
 
@@ -158,13 +159,13 @@ public class OrganisationUnitController
       GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException, NotFoundException, ConflictException {
     OrganisationUnit parent = getEntity(uid);
     List<Criterion> children =
         List.of(
             in("level", List.of(parent.getLevel(), parent.getLevel() + 1)),
             like("path", uid, MatchMode.ANYWHERE));
-    return getObjectListInternal(params, response, currentUser, children);
+    return getObjectListWith(params, response, currentUser, children);
   }
 
   @OpenApi.Response(ObjectListResponse.class)
@@ -175,7 +176,7 @@ public class OrganisationUnitController
       GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException, NotFoundException, ConflictException {
     return getChildrenWithLevel(uid, level, params, response, currentUser);
   }
 
@@ -187,11 +188,11 @@ public class OrganisationUnitController
       GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException, NotFoundException, ConflictException {
     OrganisationUnit parent = getEntity(uid);
     List<Criterion> childrenWithLevel = List.of(like("path", parent.getPath(), MatchMode.START));
     params.setParentLevel(parent.getLevel());
-    return getObjectListInternal(params, response, currentUser, childrenWithLevel);
+    return getObjectListWith(params, response, currentUser, childrenWithLevel);
   }
 
   @OpenApi.Response(ObjectListResponse.class)
@@ -201,7 +202,7 @@ public class OrganisationUnitController
       GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, ConflictException {
     return getDescendants(uid, params, response, currentUser);
   }
 
@@ -212,9 +213,9 @@ public class OrganisationUnitController
       GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, ConflictException {
     Criterion descendants = like("path", uid, MatchMode.ANYWHERE);
-    return getObjectListInternal(params, response, currentUser, List.of(descendants));
+    return getObjectListWith(params, response, currentUser, List.of(descendants));
   }
 
   @OpenApi.Response(ObjectListResponse.class)
@@ -224,7 +225,7 @@ public class OrganisationUnitController
       GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException, NotFoundException, ConflictException {
     return getAncestors(uid, params, response, currentUser);
   }
 
@@ -235,7 +236,7 @@ public class OrganisationUnitController
       GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException, NotFoundException, ConflictException {
     OrganisationUnit root = getEntity(uid);
     List<String> ancestorsIds = List.of(root.getPath().split("/"));
     List<Criterion> ancestorPaths = new ArrayList<>();
@@ -243,7 +244,7 @@ public class OrganisationUnitController
       ancestorPaths.add(Restrictions.eq("path", String.join("/", ancestorsIds.subList(0, i + 1))));
     Criterion ancestors = or(getSchema(), ancestorPaths);
     // TODO add default order level:asc
-    return getObjectListInternal(params, response, currentUser, List.of(ancestors));
+    return getObjectListWith(params, response, currentUser, List.of(ancestors));
   }
 
   @OpenApi.Response(ObjectListResponse.class)
@@ -253,7 +254,7 @@ public class OrganisationUnitController
       GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException, NotFoundException, ConflictException {
     OrganisationUnit root = getEntity(uid);
     List<String> ancestorsIds = List.of(root.getPath().split("/"));
     // TODO check if root is level 1 => no matches
@@ -262,7 +263,7 @@ public class OrganisationUnitController
       parentPaths.add(Restrictions.eq("path", String.join("/", ancestorsIds.subList(0, i + 1))));
     Criterion parents = or(getSchema(), parentPaths);
     // TODO add default order level:asc
-    return getObjectListInternal(params, response, currentUser, List.of(parents));
+    return getObjectListWith(params, response, currentUser, List.of(parents));
   }
 
   @OpenApi.Response(ObjectListResponse.class)
@@ -272,9 +273,9 @@ public class OrganisationUnitController
       GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, ConflictException {
     Criterion userUnits = in("id", currentUser.getUserOrgUnitIds());
-    return getObjectListInternal(params, response, currentUser, List.of(userUnits));
+    return getObjectListWith(params, response, currentUser, List.of(userUnits));
   }
 
   @OpenApi.Response(ObjectListResponse.class)
@@ -285,9 +286,9 @@ public class OrganisationUnitController
           GetOrganisationUnitObjectListParams params,
           HttpServletResponse response,
           @CurrentUser UserDetails currentUser)
-          throws ForbiddenException, BadRequestException {
+          throws ForbiddenException, BadRequestException, ConflictException {
     Criterion userDataUnits = in("id", currentUser.getUserDataOrgUnitIds());
-    return getObjectListInternal(params, response, currentUser, List.of(userDataUnits));
+    return getObjectListWith(params, response, currentUser, List.of(userDataUnits));
   }
 
   @OpenApi.Response(ObjectListResponse.class)
@@ -298,10 +299,10 @@ public class OrganisationUnitController
           GetOrganisationUnitObjectListParams params,
           HttpServletResponse response,
           @CurrentUser UserDetails currentUser)
-          throws ForbiddenException, BadRequestException {
+          throws ForbiddenException, BadRequestException, ConflictException {
     Set<String> ouIds = currentUser.getUserDataOrgUnitIds();
     Criterion userDataUnits = ouIds.isEmpty() ? eq("level", 1) : in("id", ouIds);
-    return getObjectListInternal(params, response, currentUser, List.of(userDataUnits));
+    return getObjectListWith(params, response, currentUser, List.of(userDataUnits));
   }
 
   @OpenApi.Response(ObjectListResponse.class)
@@ -312,16 +313,17 @@ public class OrganisationUnitController
           GetOrganisationUnitObjectListParams params,
           HttpServletResponse response,
           @CurrentUser UserDetails currentUser)
-          throws ForbiddenException, BadRequestException {
+          throws ForbiddenException, BadRequestException, ConflictException {
     // TODO sort by level asc?
     // or implement this as a special thing when constructing orders in general?
-    return getObjectListInternal(params, response, currentUser, List.of());
+    return getObjectListWith(params, response, currentUser, List.of());
   }
 
   @Nonnull
   @Override
-  protected List<Criterion> getSpecialFilters(GetOrganisationUnitObjectListParams params) {
-    List<Criterion> specialFilters = super.getSpecialFilters(params);
+  protected List<Criterion> getAdditionalFilters(GetOrganisationUnitObjectListParams params)
+      throws ConflictException {
+    List<Criterion> specialFilters = super.getAdditionalFilters(params);
     Integer parentLevel = params.getParentLevel();
     Integer level = params.getLevel();
     if (level != null)

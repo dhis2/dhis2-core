@@ -41,7 +41,9 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -232,6 +234,17 @@ public interface UserService {
    * @return a List of users.
    */
   List<User> getUsers(UserQueryParams params, @Nullable List<String> orders);
+
+  /**
+   * Returns a list of users based on the given query parameters. If the specified list of orders
+   * are empty, default order of last name and first name will be applied.
+   *
+   * @param params the user query parameters.
+   * @param orders the already validated order strings (e.g. email:asc).
+   * @return a List of users.
+   */
+  List<UID> getUserIds(UserQueryParams params, @Nullable List<String> orders)
+      throws ConflictException;
 
   /**
    * Returns the number of users based on the given query parameters.

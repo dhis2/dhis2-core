@@ -131,7 +131,7 @@ public class DimensionController
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser) {
 
-    addProgrammaticFilters(params);
+    addProgrammaticModifiers(params);
     PagedEntities<DimensionalObject> pagedEntities = getPagedEntities(params);
     linkService.generatePagerLinks(pagedEntities.pager(), RESOURCE_PATH);
 
@@ -154,7 +154,7 @@ public class DimensionController
       HttpServletResponse response)
       throws IOException {
 
-    addProgrammaticFilters(params);
+    addProgrammaticModifiers(params);
     PagedEntities<DimensionalObject> pagedEntities = getPagedEntities(params);
     String csv =
         applyCsvSteps(

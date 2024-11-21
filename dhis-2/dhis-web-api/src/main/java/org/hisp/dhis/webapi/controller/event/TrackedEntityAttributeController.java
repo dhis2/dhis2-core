@@ -188,7 +188,7 @@ public class TrackedEntityAttributeController
   }
 
   @Override
-  protected void addProgrammaticFilters(GetTrackedEntityAttributeObjectListParams params) {
+  protected void addProgrammaticModifiers(GetTrackedEntityAttributeObjectListParams params) {
     if (!params.isIndexableOnly()) return;
 
     List<String> filters = params.getFilters();

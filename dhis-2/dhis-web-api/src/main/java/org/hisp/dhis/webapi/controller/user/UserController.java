@@ -38,6 +38,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
@@ -83,10 +84,9 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.GetObjectListParams;
-import org.hisp.dhis.query.Order;
-import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -163,16 +163,36 @@ public class UserController
     boolean userOrgUnits;
     boolean includeChildren;
     UserOrgUnitType orgUnitBoundary;
+
+    @OpenApi.Property({UID.class, OrganisationUnit.class})
     String ou;
+
     boolean manage;
+
+    @JsonIgnore
+    boolean isUsingAnySpecialFilters() {
+      return phoneNumber != null
+          || canManage
+          || authSubset
+          || lastLogin != null
+          || inactiveMonths != null
+          || inactiveSince != null
+          || selfRegistered
+          || invitationStatus != null
+          || userOrgUnits
+          || includeChildren
+          || orgUnitBoundary != null
+          || ou != null
+          || manage;
+    }
   }
 
   @Override
-  protected List<UID> getSpecialFilterMatches(GetUserObjectListParams params) {
-    UserQueryParams queryParams = makeUserQueryParams(params);
+  protected List<UID> getPreQueryMatches(GetUserObjectListParams params) throws ConflictException {
+    if (!params.isUsingAnySpecialFilters()) return null;
+    UserQueryParams queryParams = toUserQueryParams(params);
 
     String ou = params.getOu();
-
     if (ou != null) {
       queryParams.addOrganisationUnit(organisationUnitService.getOrganisationUnit(ou));
     }
@@ -181,20 +201,10 @@ public class UserController
       queryParams.setCanManage(true);
       queryParams.setAuthSubset(true);
     }
-
-    List<String> filters = params.getFilters();
-    List<String> orders = params.getOrders();
-    List<Order> orderParams = QueryUtils.convertOrderStrings(orders, getSchema());
-    boolean hasUserGroupFilter =
-        filters != null && filters.stream().anyMatch(f -> f.startsWith("userGroups."));
-    queryParams.setPrefetchUserGroups(hasUserGroupFilter);
-
-    List<String> ordersAsString = orderParams.stream().map(Order::toOrderString).toList();
-
-    return userService.getUsers(queryParams, ordersAsString).stream().map(UID::of).toList();
+    return userService.getUserIds(queryParams, params.getOrders());
   }
 
-  private UserQueryParams makeUserQueryParams(GetUserObjectListParams params) {
+  private UserQueryParams toUserQueryParams(GetUserObjectListParams params) {
     UserQueryParams res = new UserQueryParams();
     res.setQuery(StringUtils.trimToNull(params.getQuery()));
     res.setPhoneNumber(StringUtils.trimToNull(params.getPhoneNumber()));
@@ -208,7 +218,6 @@ public class UserController
     res.setUserOrgUnits(params.isUserOrgUnits());
     res.setIncludeOrgUnitChildren(params.isIncludeChildren());
     res.setOrgUnitBoundary(params.getOrgUnitBoundary());
-
     return res;
   }
 
@@ -757,20 +766,12 @@ public class UserController
         userReplica.getAttributeValues().removedAll(uniqueAttributeIds::contains));
   }
 
-  private User mergeLastLoginAttribute(User source, User target) {
-    if (target == null) {
-      return target;
-    }
-
-    if (target.getLastLogin() != null) {
-      return target;
-    }
+  private void mergeLastLoginAttribute(User source, User target) {
+    if (target == null || target.getLastLogin() != null) return;
 
     if (source != null && source.getLastLogin() != null) {
       target.setLastLogin(source.getLastLogin());
     }
-
-    return target;
   }
 
   /**
@@ -817,12 +818,11 @@ public class UserController
     User userToModify = userService.getUser(uid);
     checkCurrentUserCanModify(userToModify);
 
-    User user = userToModify;
-    user.setAccountExpiry(accountExpiry);
-    userService.updateUser(user);
+    userToModify.setAccountExpiry(accountExpiry);
+    userService.updateUser(userToModify);
 
-    if (!user.isAccountNonExpired()) {
-      userService.invalidateUserSessions(user.getUid());
+    if (!userToModify.isAccountNonExpired()) {
+      userService.invalidateUserSessions(userToModify.getUid());
     }
   }
 

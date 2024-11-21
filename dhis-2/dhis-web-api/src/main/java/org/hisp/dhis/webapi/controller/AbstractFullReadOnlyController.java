@@ -150,7 +150,7 @@ public abstract class AbstractFullReadOnlyController<
    * where forcing a new filter, programmatically, make sense. This is usually used to ensure that
    * some filters are always present.
    */
-  protected void addProgrammaticFilters(P params) {}
+  protected void addProgrammaticModifiers(P params) {}
 
   protected void addProgrammaticFilters(Consumer<String> add) {}
 
@@ -171,32 +171,26 @@ public abstract class AbstractFullReadOnlyController<
   @GetMapping
   public @ResponseBody ResponseEntity<StreamingJsonRoot<T>> getObjectList(
       P params, HttpServletResponse response, @CurrentUser UserDetails currentUser)
-      throws ForbiddenException, BadRequestException {
-    return getObjectListInternal(params, response, currentUser, this::getSpecialFilters);
+      throws ForbiddenException, BadRequestException, ConflictException {
+    return getObjectListInternal(params, response, currentUser, getAdditionalFilters(params));
+  }
+
+  protected final ResponseEntity<StreamingJsonRoot<T>> getObjectListWith(
+      P params,
+      HttpServletResponse response,
+      UserDetails currentUser,
+      List<Criterion> additionalFilters)
+      throws ForbiddenException, BadRequestException, ConflictException {
+    List<Criterion> filters = getAdditionalFilters(params);
+    filters.addAll(additionalFilters);
+    return getObjectListInternal(params, response, currentUser, filters);
   }
 
   protected final ResponseEntity<StreamingJsonRoot<T>> getObjectListInternal(
       P params,
       HttpServletResponse response,
       UserDetails currentUser,
-      List<Criterion> additionalSpecialFilters)
-      throws ForbiddenException, BadRequestException {
-    return getObjectListInternal(
-        params,
-        response,
-        currentUser,
-        options -> {
-          List<Criterion> filters = getSpecialFilters(options);
-          filters.addAll(additionalSpecialFilters);
-          return filters;
-        });
-  }
-
-  protected final ResponseEntity<StreamingJsonRoot<T>> getObjectListInternal(
-      P params,
-      HttpServletResponse response,
-      UserDetails currentUser,
-      Function<P, List<Criterion>> getSpecialFilters)
+      List<Criterion> additionalFilters)
       throws ForbiddenException, BadRequestException {
 
     if (!aclService.canRead(currentUser, getEntityClass())) {
@@ -204,12 +198,10 @@ public abstract class AbstractFullReadOnlyController<
           "You don't have the proper permissions to read objects of this type.");
     }
 
-    addProgrammaticFilters(params);
+    addProgrammaticModifiers(params);
 
-    // Note: null = no special filters, empty = no matches for special filters
-    List<Criterion> specialFilters = getSpecialFilters.apply(params);
-
-    List<T> entities = getEntityList(params, specialFilters);
+    boolean isAlwaysEmpty = additionalFilters.stream().anyMatch(Criterion::isAlwaysFalse);
+    List<T> entities = isAlwaysEmpty ? List.of() : getEntityList(params, additionalFilters);
     postProcessResponseEntities(entities, params);
 
     List<String> fields = params.getFieldsJsonList();
@@ -217,7 +209,7 @@ public abstract class AbstractFullReadOnlyController<
 
     Pager pager = null;
     if (params.isPaging()) {
-      long totalCount = countGetObjectList(params, specialFilters);
+      long totalCount = isAlwaysEmpty ? 0 : countGetObjectList(params, additionalFilters);
       pager = new Pager(params.getPage(), totalCount, params.getPageSize());
       linkService.generatePagerLinks(pager, getEntityClass());
     }
@@ -232,29 +224,30 @@ public abstract class AbstractFullReadOnlyController<
   }
 
   /**
-   * A way to incorporate special filters that run a separate query resulting in matching ID list
+   * A way to incorporate additional filters that run a separate query resulting in matching ID list
    * which then is used as filter in the standard query process.
    *
    * @param params options used
-   * @return the ID of matches, nor null when no such filter is present
+   * @return the ID of matches, nor null when no such filter is present/used
    */
   @CheckForNull
-  protected List<UID> getSpecialFilterMatches(P params) {
+  protected List<UID> getPreQueryMatches(P params) throws ConflictException {
     return null; // no special filters used
   }
 
   @Nonnull
-  protected List<Criterion> getSpecialFilters(P params) {
+  protected List<Criterion> getAdditionalFilters(P params) throws ConflictException {
     List<Criterion> filters = new ArrayList<>();
     if (params.getQuery() != null && !params.getQuery().isEmpty())
       filters.add(Restrictions.query(getSchema(), params.getQuery()));
-    List<UID> matches = getSpecialFilterMatches(params);
+    List<UID> matches = getPreQueryMatches(params);
+    // Note: null = no special filters, empty = no matches for special filters
     if (matches != null) filters.add(createIdInFilter(matches));
     return filters;
   }
 
-  protected final Criterion createIdInFilter(@Nonnull List<UID> specialFilterMatches) {
-    return Restrictions.in("id", UID.toValueList(specialFilterMatches));
+  protected final Criterion createIdInFilter(@Nonnull List<UID> matches) {
+    return Restrictions.in("id", UID.toValueList(matches));
   }
 
   @GetMapping(produces = {"text/csv", "application/text"})
@@ -485,13 +478,13 @@ public abstract class AbstractFullReadOnlyController<
     return objectNodes.isEmpty() ? fieldFilterService.createObjectNode() : objectNodes.get(0);
   }
 
-  private List<T> getEntityList(P params, List<Criterion> specialFilters)
+  private List<T> getEntityList(P params, List<Criterion> additionalFilters)
       throws BadRequestException {
     Query query =
         BadRequestException.on(
             QueryParserException.class,
             () -> queryService.getQueryFromUrl(getEntityClass(), params));
-    query.add(specialFilters);
+    query.add(additionalFilters);
 
     query.setDefaultOrder();
     query.setDefaults(params.getDefaults());
@@ -510,13 +503,13 @@ public abstract class AbstractFullReadOnlyController<
 
   protected void getEntityListPostProcess(P params, List<T> entities) {}
 
-  private long countGetObjectList(P params, List<Criterion> specialFilters)
+  private long countGetObjectList(P params, List<Criterion> additionalFilters)
       throws BadRequestException {
     Query query =
         BadRequestException.on(
             QueryParserException.class,
             () -> queryService.getQueryFromUrl(getEntityClass(), params));
-    query.add(specialFilters);
+    query.add(additionalFilters);
     modifyGetObjectList(params, query);
     return queryService.count(query);
   }

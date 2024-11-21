@@ -167,7 +167,7 @@ public class EventChartController extends AbstractCrudController<EventChart, Get
    */
   @Deprecated
   @Override
-  protected void addProgrammaticFilters(GetObjectListParams params) {
+  protected void addProgrammaticModifiers(GetObjectListParams params) {
     addProgrammaticFilters(params::addFilter);
   }
 

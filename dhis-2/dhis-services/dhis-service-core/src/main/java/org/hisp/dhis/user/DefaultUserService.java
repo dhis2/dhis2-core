@@ -68,9 +68,11 @@ import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PasswordGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.email.EmailResponse;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -311,7 +313,10 @@ public class DefaultUserService implements UserService {
   public List<User> getUsers(UserQueryParams params, @Nullable List<String> orders) {
     handleUserQueryParams(params);
 
-    if (isNotValidUserQueryParams(params)) {
+    try {
+      validateUserQueryParams(params);
+    } catch (ConflictException ex) {
+      log.warn(ex.getMessage());
       return Lists.newArrayList();
     }
 
@@ -320,10 +325,23 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
+  public List<UID> getUserIds(UserQueryParams params, @CheckForNull List<String> orders)
+      throws ConflictException {
+    handleUserQueryParams(params);
+    validateUserQueryParams(params);
+
+    return userStore.getUserIds(params, orders);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public int getUserCount(UserQueryParams params) {
     handleUserQueryParams(params);
 
-    if (isNotValidUserQueryParams(params)) {
+    try {
+      validateUserQueryParams(params);
+    } catch (ConflictException ex) {
+      log.warn(ex.getMessage());
       return 0;
     }
 
@@ -379,25 +397,21 @@ public class DefaultUserService implements UserService {
     }
   }
 
-  private boolean isNotValidUserQueryParams(UserQueryParams params) {
+  private void validateUserQueryParams(UserQueryParams params) throws ConflictException {
     if (params.isCanManage()
         && (params.getUser() == null || !params.getUser().hasManagedGroups())) {
-      log.warn("Cannot get managed users as user does not have any managed groups");
-      return true;
+      throw new ConflictException(
+          "Cannot get managed users as user does not have any managed groups");
     }
-
     if (params.isAuthSubset() && (params.getUser() == null || !params.getUser().hasAuthorities())) {
-      log.warn("Cannot get users with authority subset as user does not have any authorities");
-      return true;
+      throw new ConflictException(
+          "Cannot get users with authority subset as user does not have any authorities");
     }
-
     if (params.isDisjointRoles()
         && (params.getUser() == null || !params.getUser().hasUserRoles())) {
-      log.warn("Cannot get users with disjoint roles as user does not have any user roles");
-      return true;
+      throw new ConflictException(
+          "Cannot get users with disjoint roles as user does not have any user roles");
     }
-
-    return false;
   }
 
   @Override

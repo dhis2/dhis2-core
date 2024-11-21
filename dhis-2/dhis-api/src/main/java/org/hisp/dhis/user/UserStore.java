@@ -38,6 +38,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Nguyen Hong Duc
@@ -62,6 +63,8 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @return a List of users.
    */
   List<User> getUsers(UserQueryParams params, @Nullable List<String> orders);
+
+  List<UID> getUserIds(UserQueryParams params, @Nullable List<String> orders);
 
   /**
    * Returns the number of users based on the given query parameters.

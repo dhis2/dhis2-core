@@ -107,7 +107,7 @@ public class EventReportController
    */
   @Deprecated
   @Override
-  protected void addProgrammaticFilters(GetObjectListParams params) {
+  protected void addProgrammaticModifiers(GetObjectListParams params) {
     addProgrammaticFilters(params::addFilter);
   }
 

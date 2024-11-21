@@ -174,7 +174,7 @@ public class MessageConversationController
   }
 
   @Override
-  protected List<UID> getSpecialFilterMatches(GetMessageConversationObjectListParams params) {
+  protected List<UID> getPreQueryMatches(GetMessageConversationObjectListParams params) {
     String queryString = params.getQueryString();
     if (queryString == null) return null;
 

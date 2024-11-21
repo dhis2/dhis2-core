@@ -70,7 +70,7 @@ public class UserRoleController
   }
 
   @Override
-  protected List<UID> getSpecialFilterMatches(GetUserRoleObjectListParams params) {
+  protected List<UID> getPreQueryMatches(GetUserRoleObjectListParams params) {
     if (!params.isCanIssue()) return null;
     // TODO make actual filter
     return userService.getRolesCurrentUserCanIssue().stream().map(UID::of).toList();
