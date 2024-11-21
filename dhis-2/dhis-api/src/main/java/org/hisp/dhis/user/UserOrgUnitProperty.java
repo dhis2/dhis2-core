@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,46 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.webapi.json.domain;
+package org.hisp.dhis.user;
 
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.jsontree.JsonObject;
+public enum UserOrgUnitProperty {
+  ORG_UNITS("organisationUnits"),
+  DATA_VIEW_ORG_UNITS("dataViewOrganisationUnits"),
+  TEI_SEARCH_ORG_UNITS("teiSearchOrganisationUnits");
 
-/**
- * Web API equivalent of a {@code WebMessage} or {@code DescriptiveWebMessage}
- *
- * @author Jan Bernitt
- */
-public interface JsonWebMessage extends JsonObject {
-  default String getHttpStatus() {
-    return getString("httpStatus").string();
+  private final String value;
+
+  UserOrgUnitProperty(String value) {
+    this.value = value;
   }
 
-  default int getHttpStatusCode() {
-    return getNumber("httpStatusCode").intValue();
-  }
-
-  default String getStatus() {
-    return getString("status").string();
-  }
-
-  default String getMessage() {
-    return getString("message").string();
-  }
-
-  default String getDevMessage() {
-    return getString("devMessage").string();
-  }
-
-  default String getDescription() {
-    return getString("description").string();
-  }
-
-  default ErrorCode getErrorCode() {
-    return getString("errorCode").parsed(ErrorCode::valueOf);
-  }
-
-  default JsonObject getResponse() {
-    return getObject("response");
+  public String getValue() {
+    return value;
   }
 }

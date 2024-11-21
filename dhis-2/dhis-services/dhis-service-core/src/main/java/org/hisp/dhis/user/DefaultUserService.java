@@ -1592,6 +1592,12 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  public List<User> getUsersWithOrgUnit(
+      @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull UID uid) {
+    return userStore.getUsersWithOrgUnit(orgUnitProperty, uid);
+  }
+
+  @Override
   public boolean isEmailVerified(User user) {
     return user.getEmail().equals(user.getVerifiedEmail());
   }

@@ -76,6 +76,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserInvitationStatus;
+import org.hisp.dhis.user.UserOrgUnitProperty;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserStore;
 import org.springframework.context.ApplicationEventPublisher;
@@ -651,5 +652,19 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         getSession().createQuery("from User u where u.verifiedEmail = :email", User.class);
     query.setParameter("email", email);
     return query.uniqueResult();
+  }
+
+  @Override
+  public List<User> getUsersWithOrgUnit(
+      @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull UID uid) {
+    return getQuery(
+            """
+            select distinct u from User u
+            left join fetch u.%s ous
+            where ous.uid = :uid
+            """
+                .formatted(orgUnitProperty.getValue()))
+        .setParameter("uid", uid.getValue())
+        .getResultList();
   }
 }

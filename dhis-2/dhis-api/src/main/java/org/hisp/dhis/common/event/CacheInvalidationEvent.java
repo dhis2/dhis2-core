@@ -25,46 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.webapi.json.domain;
+package org.hisp.dhis.common.event;
 
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.jsontree.JsonObject;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import lombok.Getter;
+import org.hisp.dhis.common.cache.Region;
+import org.springframework.context.ApplicationEvent;
 
 /**
- * Web API equivalent of a {@code WebMessage} or {@code DescriptiveWebMessage}
- *
- * @author Jan Bernitt
+ * @author Ameen Mohamed
  */
-public interface JsonWebMessage extends JsonObject {
-  default String getHttpStatus() {
-    return getString("httpStatus").string();
+@Getter
+public class CacheInvalidationEvent extends ApplicationEvent {
+  private final Region region;
+  private final String key;
+
+  public CacheInvalidationEvent(Object source, @Nonnull Region region, @Nullable String key) {
+    super(source);
+    this.region = region;
+    this.key = key;
   }
 
-  default int getHttpStatusCode() {
-    return getNumber("httpStatusCode").intValue();
-  }
-
-  default String getStatus() {
-    return getString("status").string();
-  }
-
-  default String getMessage() {
-    return getString("message").string();
-  }
-
-  default String getDevMessage() {
-    return getString("devMessage").string();
-  }
-
-  default String getDescription() {
-    return getString("description").string();
-  }
-
-  default ErrorCode getErrorCode() {
-    return getString("errorCode").parsed(ErrorCode::valueOf);
-  }
-
-  default JsonObject getResponse() {
-    return getObject("response");
+  public CacheInvalidationEvent(Object source, @Nonnull Region region) {
+    super(source);
+    this.region = region;
+    this.key = null;
   }
 }
