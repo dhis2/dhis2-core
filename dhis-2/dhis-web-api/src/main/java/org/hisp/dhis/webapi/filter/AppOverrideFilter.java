@@ -42,8 +42,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
+import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
-import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -131,7 +131,7 @@ public class AppOverrideFilter extends OncePerRequestFilter {
         return;
       }
 
-      String etag = CodecUtils.md5Hex(String.valueOf(resource.lastModified()));
+      String etag = HashUtils.hashMD5(String.valueOf(resource.lastModified()).getBytes());
       if (new ServletWebRequest(request, response).checkNotModified(etag)) {
         response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
         return;

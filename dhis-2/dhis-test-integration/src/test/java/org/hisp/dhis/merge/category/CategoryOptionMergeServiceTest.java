@@ -50,6 +50,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.MergeParams;
+import org.hisp.dhis.merge.MergeService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.config.QueryCountDataSourceProxy;
@@ -73,13 +74,13 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 @ContextConfiguration(classes = {QueryCountDataSourceProxy.class})
-class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
+class CategoryOptionMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
   @Autowired private OrganisationUnitService organisationUnitService;
   @Autowired private CategoryDimensionStore dimensionStore;
   @Autowired private IdentifiableObjectManager manager;
-  @Autowired private CategoryOptionMergeProcessor mergeProcessor;
+  @Autowired private MergeService categoryOptionMergeService;
 
   private Category cat1;
   private Category cat2;
@@ -145,7 +146,7 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
 
     // when
     MergeParams mergeParams = getMergeParams();
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<Category> categorySources =
@@ -182,7 +183,7 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // when
     MergeParams mergeParams = getMergeParams();
     mergeParams.setDeleteSources(true);
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<Category> categorySources =
@@ -229,7 +230,7 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
 
     // when
     MergeParams mergeParams = getMergeParams();
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<CategoryOptionCombo> sourceCocs =
@@ -263,7 +264,7 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     SQLStatementCountValidator.reset();
-    mergeProcessor.processMerge(mergeParams);
+    categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     assertDeleteCount(1);
@@ -297,7 +298,7 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
     mergeParams.setDeleteSources(true);
 
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<CategoryOptionCombo> sourceCocs =
@@ -340,7 +341,7 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
 
     // when
     MergeParams mergeParams = getMergeParams();
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<CategoryOptionCombo> sourceCocs =
@@ -390,7 +391,7 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
 
     // when
     MergeParams mergeParams = getMergeParams();
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<OrganisationUnit> orgUnitSources =
@@ -433,7 +434,7 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // when
     MergeParams mergeParams = getMergeParams();
     mergeParams.setDeleteSources(true);
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<OrganisationUnit> orgUnitSources =
@@ -476,7 +477,7 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
 
     // when
     MergeParams mergeParams = getMergeParams();
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<OrganisationUnit> sourceOus =
@@ -525,7 +526,7 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
 
     // when
     MergeParams mergeParams = getMergeParams();
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<CategoryOptionGroup> cogSources =
@@ -568,7 +569,7 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // when
     MergeParams mergeParams = getMergeParams();
     mergeParams.setDeleteSources(true);
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<CategoryOptionGroup> cogSources =
@@ -610,7 +611,7 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
 
     // when
     MergeParams mergeParams = getMergeParams();
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<CategoryOptionGroup> sourceCogs =
@@ -657,7 +658,7 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
 
     // when
     MergeParams mergeParams = getMergeParams();
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<CategoryDimension> cogSources =
@@ -698,7 +699,7 @@ class CategoryOptionMergeProcessorTest extends PostgresIntegrationTestBase {
     // when
     MergeParams mergeParams = getMergeParams();
     mergeParams.setDeleteSources(true);
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = categoryOptionMergeService.processMerge(mergeParams);
 
     // then
     List<CategoryDimension> cdSources =

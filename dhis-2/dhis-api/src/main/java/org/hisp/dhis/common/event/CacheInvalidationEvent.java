@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.dataelement;
+package org.hisp.dhis.common.event;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.merge.MergeProcessor;
-import org.hisp.dhis.merge.MergeService;
-import org.springframework.stereotype.Component;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import lombok.Getter;
+import org.hisp.dhis.common.cache.Region;
+import org.springframework.context.ApplicationEvent;
 
 /**
- * Implementation of {@link MergeProcessor} that currently only uses its default method.
- *
- * @author david mackessy
+ * @author Ameen Mohamed
  */
-@Component
-@RequiredArgsConstructor
-public class DataElementMergeProcessor implements MergeProcessor {
+@Getter
+public class CacheInvalidationEvent extends ApplicationEvent {
+  private final Region region;
+  private final String key;
 
-  /**
-   * Spring injects the correct service based on the variable name (when there are multiple
-   * implementations to choose from). So The {@link DataElementMergeService} gets injected here.
-   */
-  private final MergeService dataElementMergeService;
+  public CacheInvalidationEvent(Object source, @Nonnull Region region, @Nullable String key) {
+    super(source);
+    this.region = region;
+    this.key = key;
+  }
 
-  @Override
-  public MergeService getMergeService() {
-    return dataElementMergeService;
+  public CacheInvalidationEvent(Object source, @Nonnull Region region) {
+    super(source);
+    this.region = region;
+    this.key = null;
   }
 }

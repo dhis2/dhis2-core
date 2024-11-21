@@ -55,6 +55,7 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionStore;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableStore;
+import org.hisp.dhis.tracker.export.event.EventChangeLog;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
 import org.springframework.stereotype.Component;
@@ -76,7 +77,7 @@ public class TrackerDataElementMergeHandler {
   private final ProgramRuleActionStore programRuleActionStore;
   private final ProgramIndicatorStore programIndicatorStore;
   private final EventStore eventStore;
-  private final EventChangeLogService teDataValueChangeLogService;
+  private final EventChangeLogService eventChangeLogService;
 
   /**
    * Method retrieving {@link ProgramIndicator}s which have a source {@link DataElement} reference
@@ -274,9 +275,9 @@ public class TrackerDataElementMergeHandler {
   }
 
   /**
-   * Method handling {@link TrackedEntityDataValueChangeLog}s. All {@link
-   * TrackedEntityDataValueChangeLog}s will either be deleted or left as is, based on whether the
-   * source {@link DataElement}s are being deleted or not.
+   * Method handling {@link TrackedEntityDataValueChangeLog}s and {@link EventChangeLog}s. Both of
+   * them will either be deleted or left as is, based on whether the source {@link DataElement}s are
+   * being deleted or not.
    *
    * @param sources source {@link DataElement}s used to retrieve {@link DataValueAudit}s
    * @param mergeRequest merge request
@@ -286,7 +287,8 @@ public class TrackerDataElementMergeHandler {
     if (mergeRequest.isDeleteSources()) {
       log.info(
           "Deleting source tracked entity data value change log records as source DataElements are being deleted");
-      sources.forEach(teDataValueChangeLogService::deleteTrackedEntityDataValueChangeLog);
+      sources.forEach(eventChangeLogService::deleteTrackedEntityDataValueChangeLog);
+      sources.forEach(eventChangeLogService::deleteEventChangeLog);
     } else {
       log.info(
           "Leaving source tracked entity data value change log records as is, source DataElements are not being deleted");

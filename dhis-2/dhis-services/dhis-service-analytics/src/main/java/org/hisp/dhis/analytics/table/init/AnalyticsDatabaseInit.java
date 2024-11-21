@@ -27,11 +27,15 @@
  */
 package org.hisp.dhis.analytics.table.init;
 
+import static org.hisp.dhis.db.sql.ClickHouseSqlBuilder.NAMED_COLLECTION;
+
+import java.util.Map;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.db.sql.ClickHouseSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilderProvider;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -76,19 +80,34 @@ public class AnalyticsDatabaseInit {
     Database database = settings.getAnalyticsDatabase();
 
     switch (database) {
-      case DORIS -> initDoris();
       case POSTGRESQL -> initPostgreSql();
+      case DORIS -> initDoris();
+      case CLICKHOUSE -> initClickHouse();
     }
 
     log.info("Initialized analytics database: '{}'", database);
   }
 
-  /**
-   * Work for initializing a Doris analytics database. Creates a JDBC catalog which is used to
-   * connect to and read from the PostgreSQL transaction database as an external data source. Read
-   * more at {@link https://t.ly/igk10}.
-   */
+  /** Work for initializing a PostgreSQL analytics database. */
+  private void initPostgreSql() {
+    // No work yet
+  }
+
+  /** Work for initializing a Doris analytics database. */
   private void initDoris() {
+    createDorisJdbcCatalog();
+  }
+
+  /** Work for initializing a ClickHouse analytics database. */
+  private void initClickHouse() {
+    createClickHouseNamedCollection();
+  }
+
+  /**
+   * Creates a Doris JDBC catalog which is used to connect to and read from the PostgreSQL
+   * transaction database as an external data source.
+   */
+  private void createDorisJdbcCatalog() {
     String connectionUrl = config.getProperty(ConfigurationKey.CONNECTION_URL);
     String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
     String password = config.getProperty(ConfigurationKey.CONNECTION_PASSWORD);
@@ -97,8 +116,22 @@ public class AnalyticsDatabaseInit {
     jdbcTemplate.execute(sqlBuilder.createCatalog(connectionUrl, username, password));
   }
 
-  /** Work for initializing a PostgreSQL analytics database. */
-  private void initPostgreSql() {
-    // No work at this point
+  /**
+   * Creates a ClickHouse named collection with connection information for the DHIS 2 PostgreSQL
+   * database.
+   */
+  private void createClickHouseNamedCollection() {
+    Map<String, Object> keyValues =
+        Map.of(
+            "host", config.getProperty(ConfigurationKey.CONNECTION_HOST),
+            "port", config.getIntProperty(ConfigurationKey.CONNECTION_PORT),
+            "database", config.getProperty(ConfigurationKey.CONNECTION_DATABASE),
+            "username", config.getProperty(ConfigurationKey.CONNECTION_USERNAME),
+            "password", config.getProperty(ConfigurationKey.CONNECTION_PASSWORD));
+
+    ClickHouseSqlBuilder clickHouseSqlBuilder = new ClickHouseSqlBuilder();
+
+    jdbcTemplate.execute(clickHouseSqlBuilder.dropNamedCollectionIfExists(NAMED_COLLECTION));
+    jdbcTemplate.execute(clickHouseSqlBuilder.createNamedCollection(NAMED_COLLECTION, keyValues));
   }
 }

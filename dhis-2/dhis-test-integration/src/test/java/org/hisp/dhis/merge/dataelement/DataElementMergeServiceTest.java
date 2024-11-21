@@ -77,6 +77,7 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeParams;
+import org.hisp.dhis.merge.MergeService;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -135,11 +136,11 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
-class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
+class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataElementService dataElementService;
   @Autowired private PeriodService periodService;
-  @Autowired private DataElementMergeProcessor mergeProcessor;
+  @Autowired private MergeService dataElementMergeService;
   @Autowired private MinMaxDataElementStore minMaxDataElementStore;
   @Autowired private EventVisualizationStore eventVisualizationStore;
   @Autowired private AnalyticalObjectStore<EventVisualization> analyticalEventVizStore;
@@ -165,7 +166,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
   @Autowired private DataDimensionItemStore dataDimensionItemStore;
   @Autowired private DataValueStore dataValueStore;
   @Autowired private DataValueAuditStore dataValueAuditStore;
-  @Autowired private EventChangeLogService teDataValueChangeLogService;
+  @Autowired private EventChangeLogService eventChangeLogService;
 
   private DataElement deSource1;
   private DataElement deSource2;
@@ -247,7 +248,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<MinMaxDataElement> minMaxSources =
@@ -282,7 +283,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<MinMaxDataElement> minMaxSources =
@@ -318,7 +319,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<EventVisualization> eventVizSources =
@@ -353,7 +354,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<EventVisualization> eventVizSources =
@@ -422,7 +423,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     // event viz
@@ -498,7 +499,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     // event viz
@@ -542,7 +543,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<SMSCode> smsCommandSources =
@@ -574,7 +575,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<SMSCode> smsCommandSources =
@@ -605,7 +606,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<Predictor> predictorSources =
@@ -638,7 +639,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<Predictor> predictorSources =
@@ -665,7 +666,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<Predictor> predictorSources =
@@ -696,7 +697,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<Predictor> predictorSources =
@@ -725,7 +726,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<Predictor> predictorSources =
@@ -757,7 +758,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<Predictor> predictorSources =
@@ -795,7 +796,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<ProgramStageDataElement> psdeSources =
@@ -829,7 +830,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<ProgramStageDataElement> psdeSources =
@@ -864,7 +865,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<ProgramStageSection> pssSources =
@@ -897,7 +898,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<ProgramStageSection> pssSources =
@@ -932,7 +933,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<ProgramNotificationTemplate> pntSources =
@@ -965,7 +966,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<ProgramNotificationTemplate> pntSources =
@@ -1000,7 +1001,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<ProgramRuleVariable> prvSources =
@@ -1033,7 +1034,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<ProgramRuleVariable> prvSources =
@@ -1068,7 +1069,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<ProgramRuleAction> prvSources =
@@ -1100,7 +1101,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<ProgramRuleAction> prvSources =
@@ -1134,7 +1135,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<ProgramIndicator> piSources =
@@ -1175,7 +1176,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<ProgramIndicator> piSources =
@@ -1211,7 +1212,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<ProgramIndicator> piSources =
@@ -1245,7 +1246,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<ProgramIndicator> piSources =
@@ -1316,7 +1317,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<Event> eventSources =
@@ -1402,7 +1403,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDataMergeStrategy(DataMergeStrategy.DISCARD);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<Event> eventSources =
@@ -1495,7 +1496,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<Event> eventSources =
@@ -1549,7 +1550,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<DataElementOperand> deoSources =
@@ -1582,7 +1583,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<DataElementOperand> deoSources =
@@ -1632,7 +1633,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<DataSetElement> dseSources =
@@ -1694,7 +1695,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<DataSetElement> dseSources =
@@ -1751,7 +1752,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<Section> sectionSources =
@@ -1781,7 +1782,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<Section> sectionSources =
@@ -1814,7 +1815,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<DataElementGroup> degSources =
@@ -1845,7 +1846,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<DataElementGroup> degSources =
@@ -1881,7 +1882,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<Indicator> sourceIndicators1 =
@@ -1927,7 +1928,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<Indicator> sourceIndicators1 =
@@ -1968,7 +1969,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<Indicator> sourceIndicators1 =
@@ -2007,7 +2008,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<Indicator> sourceIndicators1 =
@@ -2052,7 +2053,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     Set<Indicator> sourceIndicators1 =
@@ -2103,7 +2104,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     Set<Indicator> sourceIndicators1 =
@@ -2145,7 +2146,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     Set<DataEntryForm> sourceForms =
@@ -2187,7 +2188,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     Set<DataEntryForm> sourceForms =
@@ -2227,7 +2228,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<DataDimensionItem> sourceItems =
@@ -2260,7 +2261,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<DataDimensionItem> sourceItems =
@@ -2303,7 +2304,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<DataValue> sourceItems =
@@ -2340,7 +2341,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then there should be no source data values present
     List<DataValue> sourceItems =
@@ -2389,7 +2390,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDataMergeStrategy(DataMergeStrategy.DISCARD);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<DataValue> sourceItems =
@@ -2433,7 +2434,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     List<DataValue> sourceItems =
@@ -2473,7 +2474,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     DataValueAuditQueryParams sourceDvaQueryParams =
@@ -2519,7 +2520,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     DataValueAuditQueryParams sourceDvaQueryParams =
@@ -2564,17 +2565,17 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     TrackedEntityDataValueChangeLog tedvcl4 = createTrackedEntityDataValueAudit(e, deSource2, "2");
     TrackedEntityDataValueChangeLog tedvcl5 = createTrackedEntityDataValueAudit(e, deTarget, "1");
 
-    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl1);
-    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl2);
-    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl3);
-    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl4);
-    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl5);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl1);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl2);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl3);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl4);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl5);
 
     // params
     MergeParams mergeParams = getMergeParams();
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     TrackedEntityDataValueChangeLogQueryParams sourceTeDvChangeLogQuery =
@@ -2583,9 +2584,9 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
         getTeQueryParams(e, List.of(deTarget));
 
     List<TrackedEntityDataValueChangeLog> sourceAudits =
-        teDataValueChangeLogService.getTrackedEntityDataValueChangeLogs(sourceTeDvChangeLogQuery);
+        eventChangeLogService.getTrackedEntityDataValueChangeLogs(sourceTeDvChangeLogQuery);
     List<TrackedEntityDataValueChangeLog> targetAudits =
-        teDataValueChangeLogService.getTrackedEntityDataValueChangeLogs(targeteDvChangeLogQuery);
+        eventChangeLogService.getTrackedEntityDataValueChangeLogs(targeteDvChangeLogQuery);
 
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
@@ -2617,18 +2618,18 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     TrackedEntityDataValueChangeLog tedvcl4 = createTrackedEntityDataValueAudit(e, deSource2, "2");
     TrackedEntityDataValueChangeLog tedvcl5 = createTrackedEntityDataValueAudit(e, deTarget, "1");
 
-    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl1);
-    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl2);
-    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl3);
-    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl4);
-    teDataValueChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl5);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl1);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl2);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl3);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl4);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl5);
 
     // params
     MergeParams mergeParams = getMergeParams();
     mergeParams.setDeleteSources(true);
 
     // when
-    MergeReport report = mergeProcessor.processMerge(mergeParams);
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
     TrackedEntityDataValueChangeLogQueryParams sourceTeDvChangeLogQuery =
@@ -2637,9 +2638,9 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
         getTeQueryParams(e, List.of(deTarget));
 
     List<TrackedEntityDataValueChangeLog> sourceAudits =
-        teDataValueChangeLogService.getTrackedEntityDataValueChangeLogs(sourceTeDvChangeLogQuery);
+        eventChangeLogService.getTrackedEntityDataValueChangeLogs(sourceTeDvChangeLogQuery);
     List<TrackedEntityDataValueChangeLog> targetAudits =
-        teDataValueChangeLogService.getTrackedEntityDataValueChangeLogs(targeteDvChangeLogQuery);
+        eventChangeLogService.getTrackedEntityDataValueChangeLogs(targeteDvChangeLogQuery);
 
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
