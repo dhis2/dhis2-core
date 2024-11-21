@@ -25,33 +25,47 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-  name: data_elements_can_aggregate_with_none_operator
-  description: Aggregate data elements which can be aggregated but have an aggregation operator set to NONE
+  name: data_elements_aggregate_aggregation_operator
+  description: Non-numeric data elements which have an aggregation operator other than NONE.
   section: Data elements (aggregate)
   section_order: 8
   summary_sql: >-
     with des_aggregation_op as (
     SELECT uid,name,valuetype,aggregationtype from dataelement
+    where valuetype IN ('TEXT', 'LONG_TEXT', 'LETTER',
+                    'PHONE_NUMBER','EMAIL','DATE','DATETIME','TIME','USERNAME',
+                    'TRACKER_ASSOCIATE','ORGANISATION_UNIT','REFERENCE','AGE','URL',
+                    'FILE_RESOURCE','IMAGE','GEOJSON','MULTI_TEXT')
+    AND aggregationtype != 'NONE' 
+    UNION
+    SELECT uid,name,valuetype,aggregationtype from dataelement
     where valuetype IN ('BOOLEAN', 'TRUE_ONLY', 'NUMBER', 'UNIT_INTERVAL', 'PERCENTAGE', 'INTEGER', 'INTEGER_POSITIVE',
     'INTEGER_NEGATIVE','INTEGER_ZERO_OR_POSITIVE' )
     AND aggregationtype = 'NONE' 
-    AND domaintype = 'AGGREGATE'
+    
     )
     SELECT COUNT(*) as value,
-    100*COUNT(*) / NULLIF( ( SELECT COUNT(*) from dataelement WHERE domaintype = 'AGGREGATE'), 0 ) as percent
+    100*COUNT(*) / NULLIF( ( SELECT COUNT(*) from dataelement), 0 ) as percent
     from des_aggregation_op;
   details_sql: >-
-    SELECT uid,name from dataelement
+    SELECT uid,name,valuetype || ' (' || aggregationtype || ')' as comment
+    FROM dataelement
+    WHERE valuetype IN ('TEXT', 'LONG_TEXT', 'LETTER',
+    'PHONE_NUMBER','EMAIL','DATE','DATETIME','TIME','USERNAME',
+    'TRACKER_ASSOCIATE','ORGANISATION_UNIT','REFERENCE','AGE','URL',
+    'FILE_RESOURCE','IMAGE','GEOJSON','MULTI_TEXT')
+    AND aggregationtype != 'NONE'
+    UNION
+    SELECT uid,name,valuetype || ' (' || aggregationtype || ')' as comment from dataelement
     where valuetype IN ('BOOLEAN', 'TRUE_ONLY', 'NUMBER', 'UNIT_INTERVAL', 'PERCENTAGE', 'INTEGER', 'INTEGER_POSITIVE',
     'INTEGER_NEGATIVE','INTEGER_ZERO_OR_POSITIVE' )
-    AND aggregationtype = 'NONE' 
-    AND domaintype = 'AGGREGATE';
+    AND aggregationtype = 'NONE'
+    ORDER BY name;
   severity: WARNING
   introduction: >
-    Aggregate domain data elements which can be aggregated should usually have an aggregation operator
-    set to a meaningful aggregation operator like SUM or AVERAGE. Data elements which can be aggregated
-    but which have their aggregation operator set to NONE are likely to be incorrectly configured and will
-    not be included in any aggregate data values by default.
+    Data elements which are not numeric (text, dates, etc) should have an aggregation
+    operator set to NONE. Data elements which are able to be aggregated (numbers, integers, etc) 
+    should have an aggregation operator set to something other than NONE, most often SUM.
   recommendation: >
     Open the affected data elements in the Maintenance App and change their aggregation type
     to an appropriate type. Alternatively, these can be altered via the API.
