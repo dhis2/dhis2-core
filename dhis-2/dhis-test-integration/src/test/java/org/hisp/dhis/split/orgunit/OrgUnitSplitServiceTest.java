@@ -224,14 +224,14 @@ class OrgUnitSplitServiceTest extends TransactionalIntegrationTest {
     assertEquals(
         orgUnits,
         user.getOrganisationUnits().size(),
-        "user should have %s org units".formatted(orgUnits));
+        String.format("user should have %s org units", orgUnits));
     assertEquals(
         dataViewOrgUnits,
         user.getDataViewOrganisationUnits().size(),
-        "user should have %s data view org units".formatted(dataViewOrgUnits));
+        String.format("user should have %s data view org units", dataViewOrgUnits));
     assertEquals(
         teiSearchOrgUnits,
         user.getTeiSearchOrganisationUnits().size(),
-        "user should have %s tei search org units".formatted(teiSearchOrgUnits));
+        String.format("user should have %s tei search org units", teiSearchOrgUnits));
   }
 }
