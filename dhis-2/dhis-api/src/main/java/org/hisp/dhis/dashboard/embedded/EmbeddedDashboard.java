@@ -27,14 +27,18 @@
  */
 package org.hisp.dhis.dashboard.embedded;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/** Encapsulates metadata for an embedded and externally provided dashboard. */
+/**
+ * Encapsulates metadata for an embedded and externally provided dashboard.
+ * 
+ * @author Lars Helge Overland
+ */
 @Getter
 @Setter
 @NoArgsConstructor
