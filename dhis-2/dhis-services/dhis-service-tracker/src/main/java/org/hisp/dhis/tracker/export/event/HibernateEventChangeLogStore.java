@@ -169,7 +169,7 @@ public class HibernateEventChangeLogStore {
     entityManager.createQuery(hql).setParameter("event", event).executeUpdate();
   }
 
-  private String sortExpressions(Order order) {
+  private static String sortExpressions(Order order) {
     if (order == null) {
       return DEFAULT_ORDER;
     }
