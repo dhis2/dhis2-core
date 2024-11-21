@@ -288,6 +288,13 @@ public interface SqlBuilder {
    */
   String jsonExtract(String tablePrefix, String column, String jsonPath);
 
+  /**
+   * @param column
+   * @param jsonPath
+   * @return
+   */
+  String jsonExtractNested(String column, String... jsonPath);
+
   // Statements
 
   /**
