@@ -536,13 +536,17 @@ public class AccountController {
   public void sendEmailVerification(@CurrentUser User currentUser, HttpServletRequest request)
       throws ConflictException {
     if (Strings.isNullOrEmpty(currentUser.getEmail())) {
-      throw new ConflictException("Email is not set");
+      throw new ConflictException("User has no email set");
     }
     if (userService.isEmailVerified(currentUser)) {
-      throw new ConflictException("Email is already verified");
+      throw new ConflictException("User has already verified the email address");
     }
     if (userService.getUserByVerifiedEmail(currentUser.getEmail()) != null) {
-      throw new ConflictException("Email is already in use by another account");
+      throw new ConflictException(
+          "The email the user is trying to verify is already verified by another account");
+    }
+    if (!settingsProvider.getCurrentSettings().isEmailConfigured()) {
+      throw new ConflictException("System has no SMTP server configured");
     }
 
     // Generate a new email verification token and send it, we do this in two steps:

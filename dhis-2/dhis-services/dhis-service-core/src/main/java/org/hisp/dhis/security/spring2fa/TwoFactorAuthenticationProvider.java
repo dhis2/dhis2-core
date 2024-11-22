@@ -94,7 +94,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
     }
 
     // Calls the UserDetailsService#loadUserByUsername(), to create the UserDetails object,
-    // after password is validated.
+    // after the password is validated.
     Authentication result = super.authenticate(auth);
     UserDetails userDetails = (UserDetails) result.getPrincipal();
 
@@ -157,6 +157,10 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
     TwoFactorType type = userDetails.getTwoFactorType();
     String secret = userDetails.getSecret();
 
+    if (TwoFactorType.EMAIL == type && (code == null || code.isEmpty())) {
+      twoFactorAuthService.sendEmail2FACode(userDetails);
+    }
+
     if (isValid2FACode(code, type, secret)) {
       if (type.isEnrolling()) {
         // We need this special case to approve the 2FA secret if the user is doing enforced
@@ -166,10 +170,10 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
     } else {
       log.debug("Two-factor authentication failure for user: '{}'", username);
       if (type.isEnrolling()) {
-        // We need to reset the two factor secret if the user has one for approval, this probably
+        // We need to reset the two-factor secret if the user has one for approval, this probably
         // means that the user has not finished the 2FA enrollment, and has logged out and
-        // the enrollment setup can not continue. During enforced enrollment, we need to reset and
-        // basically start over.
+        // the enrollment setup cannot continue. During enforced enrollment, we need to reset and
+        // start over.
         twoFactorAuthService.reset2FA(userDetails, new SystemUser());
         throw new TwoFactorAuthenticationEnrolmentException("Invalid 2FA code");
       }

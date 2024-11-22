@@ -238,10 +238,14 @@ public class TwoFactorAuthService {
   /**
    * Email the user with a new 2FA code.
    *
-   * @param user The user that is being sent the 2FA code.
+   * @param userDetails The user that is being sent the 2FA code.
    */
   @Transactional
-  public void resendEmail2FACode(User user) {
+  public void sendEmail2FACode(UserDetails userDetails) {
+    User user = userService.getUserByUsername(userDetails.getUsername());
+    if (user == null) {
+      throw new IllegalArgumentException("User not found");
+    }
     if (!user.isTwoFactorEnabled()) {
       throw new IllegalStateException(
           "User has not enabled 2FA , enable before trying to send code");

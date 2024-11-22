@@ -28,7 +28,6 @@
 package org.hisp.dhis.auth;
 
 import static org.hisp.dhis.common.network.PortUtil.findAvailablePort;
-import static org.hisp.dhis.system.StartupEventPublisher.SERVER_STARTED_LATCH;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -44,12 +43,19 @@ import java.nio.file.StandardOpenOption;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import javax.mail.BodyPart;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Part;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.system.util.HttpHeadersBuilder;
 import org.hisp.dhis.test.IntegrationTest;
 import org.hisp.dhis.webapi.controller.security.LoginRequest;
 import org.hisp.dhis.webapi.controller.security.LoginResponse;
 import org.jboss.aerogear.security.otp.Totp;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -60,12 +66,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.lang.Nullable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.ResponseExtractor;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.subethamail.wiser.Wiser;
+import org.subethamail.wiser.WiserMessage;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -87,25 +99,65 @@ class AuthTest {
   private static PostgreSQLContainer<?> POSTGRES_CONTAINER;
   private static int availablePort;
 
+  private static String orgUnitUID;
+
   // Added for the fake SMTP server
   private static int smtpPort;
   private static Wiser wiser;
 
+  //  @BeforeAll
+  //  static void setup() throws Exception {
+  //    availablePort = findAvailablePort();
+  //
+  //    POSTGRES_CONTAINER =
+  //        new PostgreSQLContainer<>(POSTGIS_IMAGE_NAME.withTag(POSTGRES_POSTGIS_VERSION))
+  //            .withDatabaseName(POSTGRES_DATABASE_NAME)
+  //            .withUsername(POSTGRES_USERNAME)
+  //            .withPassword(POSTGRES_PASSWORD)
+  //            .withInitScript("db/extensions.sql")
+  //            .withTmpFs(Map.of("/testtmpfs", "rw"))
+  //            .withEnv("LC_COLLATE", "C");
+  //
+  //    POSTGRES_CONTAINER.start();
+  //
+  //    // Start the fake SMTP server
+  //    smtpPort = findAvailablePort();
+  //    wiser = new Wiser();
+  //    wiser.setHostname("localhost");
+  //    wiser.setPort(smtpPort);
+  //    wiser.start();
+  //
+  //    createTmpDhisConf();
+  //
+  //    System.setProperty("dhis2.home", System.getProperty("java.io.tmpdir"));
+  //
+  //    Thread printingHook =
+  //        new Thread(
+  //            () -> {
+  //              log.info("In the middle of a shutdown");
+  //            });
+  //    Runtime.getRuntime().addShutdownHook(printingHook);
+  //
+  //    Thread longRunningHook =
+  //        new Thread(
+  //            () -> {
+  //              try {
+  //                System.setProperty("server.port", Integer.toString(availablePort));
+  //                org.hisp.dhis.web.tomcat.Main.main(null);
+  //              } catch (InterruptedException ignored) {
+  //              } catch (Exception e) {
+  //                throw new RuntimeException(e);
+  //              }
+  //            });
+  //    longRunningHook.start();
+  //
+  //    SERVER_STARTED_LATCH.await();
+  //
+  //    log.info("Server started");
+  //  }
+
   @BeforeAll
   static void setup() throws Exception {
-    availablePort = findAvailablePort();
-
-    POSTGRES_CONTAINER =
-        new PostgreSQLContainer<>(POSTGIS_IMAGE_NAME.withTag(POSTGRES_POSTGIS_VERSION))
-            .withDatabaseName(POSTGRES_DATABASE_NAME)
-            .withUsername(POSTGRES_USERNAME)
-            .withPassword(POSTGRES_PASSWORD)
-            .withInitScript("db/extensions.sql")
-            .withTmpFs(Map.of("/testtmpfs", "rw"))
-            .withEnv("LC_COLLATE", "C");
-
-    POSTGRES_CONTAINER.start();
-
     // Start the fake SMTP server
     smtpPort = findAvailablePort();
     wiser = new Wiser();
@@ -113,33 +165,8 @@ class AuthTest {
     wiser.setPort(smtpPort);
     wiser.start();
 
-    createTmpDhisConf();
-
-    System.setProperty("dhis2.home", System.getProperty("java.io.tmpdir"));
-
-    Thread printingHook =
-        new Thread(
-            () -> {
-              log.info("In the middle of a shutdown");
-            });
-    Runtime.getRuntime().addShutdownHook(printingHook);
-
-    Thread longRunningHook =
-        new Thread(
-            () -> {
-              try {
-                System.setProperty("server.port", Integer.toString(availablePort));
-                org.hisp.dhis.web.tomcat.Main.main(null);
-              } catch (InterruptedException ignored) {
-              } catch (Exception e) {
-                throw new RuntimeException(e);
-              }
-            });
-    longRunningHook.start();
-
-    SERVER_STARTED_LATCH.await();
-
-    log.info("Server started");
+    ObjectMapper objectMapper = new ObjectMapper();
+    orgUnitUID = createOrgUnit(objectMapper, "8080");
   }
 
   private static void createTmpDhisConf() {
@@ -169,7 +196,8 @@ class AuthTest {
 
   @Test
   void testLogin() {
-    String port = Integer.toString(availablePort);
+    //    String port = Integer.toString(availablePort);
+    String port = "8080";
 
     RestTemplate restTemplate = new RestTemplate();
 
@@ -213,127 +241,94 @@ class AuthTest {
   }
 
   @Test
-  void testLogin2FA() throws JsonProcessingException {
-    String port = Integer.toString(availablePort);
-
-    RestTemplate restTemplate = new RestTemplate();
-
-    HttpHeadersBuilder headersBuilder = new HttpHeadersBuilder().withContentTypeJson();
-
-    LoginRequest loginRequest =
-        LoginRequest.builder().username("admin").password("district").build();
-    HttpEntity<LoginRequest> requestEntity = new HttpEntity<>(loginRequest, headersBuilder.build());
-
-    ResponseEntity<LoginResponse> loginResponse =
-        restTemplate.postForEntity(
-            "http://localhost:" + port + "/api/auth/login", requestEntity, LoginResponse.class);
-
-    assertNotNull(loginResponse);
-    assertEquals(HttpStatus.OK, loginResponse.getStatusCode());
-    LoginResponse body = loginResponse.getBody();
-    assertNotNull(body);
-    assertEquals(LoginResponse.STATUS.SUCCESS, body.getLoginStatus());
-    HttpHeaders headers = loginResponse.getHeaders();
-
-    assertEquals("/dhis-web-dashboard/", body.getRedirectUrl());
-
-    assertNotNull(headers);
-    List<String> cookieHeader = headers.get(HttpHeaders.SET_COOKIE);
-    assertNotNull(cookieHeader);
-    assertEquals(1, cookieHeader.size());
-    String cookie = cookieHeader.get(0);
-
-    HttpHeaders validCookieHeader = new HttpHeaders();
-    validCookieHeader.set("Cookie", cookie);
-    HttpEntity<String> getEntity = new HttpEntity<>("", validCookieHeader);
-
-    ResponseEntity<JsonNode> getResponse =
-        restTemplate.exchange(
-            "http://localhost:" + port + "/api/me", HttpMethod.GET, getEntity, JsonNode.class);
-
-    assertEquals(HttpStatus.OK, getResponse.getStatusCode());
-    assertNotNull(getResponse);
-    assertNotNull(getResponse.getBody());
-
-    HttpEntity<Void> twoFAReqEntity = new HttpEntity<>(validCookieHeader);
-    ResponseEntity<String> twoFAResp =
-        restTemplate.postForEntity(
-            "http://localhost:" + port + "/api/2fa/enrollTOTP2FA", twoFAReqEntity, String.class);
-
-    assertNotNull(twoFAResp);
-    assertEquals(HttpStatus.OK, twoFAResp.getStatusCode());
-    assertNotNull(twoFAResp.getBody());
-
+  void createAUser() throws JsonProcessingException {
+    String port = "8080";
     ObjectMapper objectMapper = new ObjectMapper();
-    JsonNode jsonResponse = objectMapper.readTree(twoFAResp.getBody());
-    String message = jsonResponse.get("message").asText();
-    assertEquals(
-        "The user has enrolled in TOTP 2FA, call the QR code endpoint to continue the process",
-        message);
+    createUser(objectMapper, port, "usera", "Test123###...", orgUnitUID);
+  }
 
-    HttpEntity<String> getQREntity = new HttpEntity<>("", validCookieHeader);
-    ResponseEntity<String> showQRResp =
-        restTemplate.exchange(
-            "http://localhost:" + port + "/api/2fa/showQRCodeAsJson",
-            HttpMethod.GET,
-            getQREntity,
-            String.class);
-    assertNotNull(showQRResp);
-    assertEquals(HttpStatus.OK, showQRResp.getStatusCode());
-    assertNotNull(showQRResp.getBody());
-    JsonNode showQrRespJson = objectMapper.readTree(showQRResp.getBody());
+  private String createUser(
+      ObjectMapper objectMapper, String port, String username, String password, String orgUnitUID)
+      throws JsonProcessingException {
+    Map<String, Object> userMap =
+        Map.of(
+            "username",
+            username,
+            "password",
+            password,
+            "email",
+            username + "@email.com",
+            "userRoles",
+            List.of(Map.of("id", "yrB6vc5Ip3r")), // Superuser static role
+            "firstName",
+            "usera",
+            "surname",
+            "userson",
+            "organisationUnits",
+            List.of(Map.of("id", orgUnitUID)));
 
-    String base32Secret = showQrRespJson.get("base32Secret").asText();
-    String base64QRImage = showQrRespJson.get("base64QRImage").asText();
+    ResponseEntity<String> jsonStringResponse = postWithAdminBasicAuth(port, "/api/users", userMap);
 
-    assertNotNull(base32Secret);
-    assertNotNull(base64QRImage);
+    JsonNode fullResponseNode = objectMapper.readTree(jsonStringResponse.getBody());
+    JsonNode response = fullResponseNode.get("response");
+    String uid = response.get("uid").asText();
+    assertNotNull(uid);
 
-    /// Generate TOTP code
-    String code = new Totp(base32Secret).now();
+    ResponseEntity<String> userResp = getWithAdminBasicAuth(port, "/api/users/" + uid, Map.of());
+    assertEquals(HttpStatus.OK, userResp.getStatusCode());
 
-    /// Enable 2FA
-    Map<String, String> enable2FAReqBody = Map.of("code", code);
-    HttpEntity<Map<String, String>> enable2FAEntity =
-        new HttpEntity<>(enable2FAReqBody, validCookieHeader);
-    ResponseEntity<String> enable2FAResp =
-        restTemplate.postForEntity(
-            "http://localhost:" + port + "/api/2fa/enable", enable2FAEntity, String.class);
+    return uid;
+  }
 
-    assertNotNull(enable2FAResp);
-    assertEquals(HttpStatus.OK, enable2FAResp.getStatusCode());
-    assertNotNull(enable2FAResp.getBody());
+  private static String createOrgUnit(ObjectMapper objectMapper, String port)
+      throws JsonProcessingException {
+    ResponseEntity<String> jsonStringResponse =
+        postWithAdminBasicAuth(
+            port,
+            "/api/organisationUnits",
+            Map.of("name", "orgA", "shortName", "orgA", "openingDate", "2024-11-21T16:00:00.000Z"));
 
-    JsonNode enable2FAJSONResp = objectMapper.readTree(enable2FAResp.getBody());
-    assertEquals(
-        "Two factor authentication was enabled successfully",
-        enable2FAJSONResp.get("message").asText());
+    JsonNode fullResponseNode = objectMapper.readTree(jsonStringResponse.getBody());
+    JsonNode response = fullResponseNode.get("response");
+    String uid = response.get("uid").asText();
+    assertNotNull(uid);
+    return uid;
+  }
 
-    /// Start new login
-    HttpHeadersBuilder headersBuilder2 = new HttpHeadersBuilder().withContentTypeJson();
-    LoginRequest loginRequest2 =
-        LoginRequest.builder().username("admin").password("district").build();
-    HttpEntity<LoginRequest> requestEntity2 =
-        new HttpEntity<>(loginRequest2, headersBuilder2.build());
-    ResponseEntity<LoginResponse> loginResponse2 =
-        restTemplate.postForEntity(
-            "http://localhost:" + port + "/api/auth/login", requestEntity2, LoginResponse.class);
-    assertNotNull(loginResponse2);
-    assertEquals(HttpStatus.OK, loginResponse2.getStatusCode());
-    LoginResponse body2 = loginResponse2.getBody();
-    assertNotNull(body2);
-    assertEquals(LoginResponse.STATUS.INCORRECT_TWO_FACTOR_CODE, body2.getLoginStatus());
+  private static ResponseEntity<String> postWithAdminBasicAuth(
+      String port, String path, Map<String, Object> map) {
+    RestTemplate restTemplate = createRestTemplateWithAdminBasicAuthHeader();
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(map, headers);
+    return restTemplate.exchange(
+        "http://localhost:" + port + path, HttpMethod.POST, requestEntity, String.class);
+  }
+
+  private static ResponseEntity<String> getWithAdminBasicAuth(
+      String port, String path, Map<String, Object> map) {
+    RestTemplate restTemplate = createRestTemplateWithAdminBasicAuthHeader();
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(map, headers);
+    return restTemplate.exchange(
+        "http://localhost:" + port + path, HttpMethod.GET, requestEntity, String.class);
   }
 
   @Test
-  void testLogin2FAS() throws JsonProcessingException {
-    String port = Integer.toString(availablePort);
+  void testLoginTOTP2FA() throws JsonProcessingException {
+    //    String port = Integer.toString(availablePort);
+    String port = "8080";
     RestTemplate restTemplate = new RestTemplate();
     ObjectMapper objectMapper = new ObjectMapper();
 
+    String username = "userc";
+    String password = "Test123###...";
+    createUser(objectMapper, port, username, password, orgUnitUID);
+
     // First Login
     ResponseEntity<LoginResponse> loginResponse =
-        login(restTemplate, port, "admin", "district", null);
+        login(restTemplate, port, username, password, null);
 
     // Verify response and extract cookie
     assertLoginSuccess(loginResponse, "/dhis-web-dashboard/");
@@ -351,7 +346,7 @@ class AuthTest {
         twoFAResp,
         "The user has enrolled in TOTP 2FA, call the QR code endpoint to continue the process");
 
-    // Get QR code and base32 secret
+    // Get QR code and Base32 secret
     ResponseEntity<String> showQRResp =
         getWithCookie(restTemplate, port, "/api/2fa/showQRCodeAsJson", cookie);
     JsonNode showQrRespJson = objectMapper.readTree(showQRResp.getBody());
@@ -367,14 +362,227 @@ class AuthTest {
 
     // Attempt to log in without 2FA code
     ResponseEntity<LoginResponse> failedLoginResp =
-        login(restTemplate, port, "admin", "district", null);
+        login(restTemplate, port, username, password, null);
     assertEquals(
         LoginResponse.STATUS.INCORRECT_TWO_FACTOR_CODE, failedLoginResp.getBody().getLoginStatus());
 
+    // Attempt to log in with correct 2FA code
     String login2FACode = new Totp(base32Secret).now();
     ResponseEntity<LoginResponse> login2FAResp =
-        login(restTemplate, port, "admin", "district", login2FACode);
+        login(restTemplate, port, username, password, login2FACode);
     assertLoginSuccess(login2FAResp, "/dhis-web-dashboard/");
+    String newSessionCookie = extractSessionCookie(login2FAResp);
+
+    // Verify new session cookie works
+    ResponseEntity<String> apiMeResp =
+        getWithCookie(restTemplate, port, "/api/me", newSessionCookie);
+    assertEquals(HttpStatus.OK, apiMeResp.getStatusCode());
+    assertNotNull(apiMeResp.getBody());
+  }
+
+  @Test
+  void testLoginEmail2FA() throws IOException, MessagingException {
+    //    String port = Integer.toString(availablePort);
+    String port = "8080";
+    //    RestTemplate restTemplate = new RestTemplate();
+    ObjectMapper objectMapper = new ObjectMapper();
+    RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+
+    String username = "usdxerddddxjjxaddddddxaxxd";
+    String password = "Test123###...";
+    createUser(objectMapper, port, username, password, orgUnitUID);
+
+    // First Login
+    ResponseEntity<LoginResponse> loginResponse =
+        login(restTemplate, port, username, password, null);
+
+    // Verify response and extract cookie
+    assertLoginSuccess(loginResponse, "/dhis-web-dashboard/");
+    String cookie = extractSessionCookie(loginResponse);
+
+    // Verify session
+    ResponseEntity<String> getResponse = getWithCookie(restTemplate, port, "/api/me", cookie);
+    assertEquals(HttpStatus.OK, getResponse.getStatusCode());
+    //
+    //    ResponseEntity<String> systemSettingsResp =
+    //        postWithCookie(
+    //            restTemplate, port, "/api/systemSettings/email2FAEnabled?value=true", null,
+    // cookie);
+    //    assertEquals(HttpStatus.OK, systemSettingsResp.getStatusCode());
+
+    setSystemPropertyWithCookie(restTemplate, port, "email2FAEnabled", "true", cookie);
+    setSystemPropertyWithCookie(restTemplate, port, "keyEmailHostName", "localhost", cookie);
+    setSystemPropertyWithCookie(
+        restTemplate, port, "keyEmailPort", String.valueOf(smtpPort), cookie);
+    setSystemPropertyWithCookie(restTemplate, port, "keyEmailUsername", "nils", cookie);
+    setSystemPropertyWithCookie(restTemplate, port, "keyEmailSender", "system@nils.no", cookie);
+    setSystemPropertyWithCookie(restTemplate, port, "keyEmailTls", "false", cookie);
+
+    // Enroll in Email 2FA
+    ResponseEntity<String> twoFAResp =
+        postWithCookie(restTemplate, port, "/api/2fa/enrollEmail2FA", null, cookie);
+    assertEquals(HttpStatus.CONFLICT, twoFAResp.getStatusCode());
+    assertMessage(
+        twoFAResp,
+        "User has not a verified email, please verify your email first before you enable 2FA");
+
+    JsonNode jsonResponse = new ObjectMapper().readTree(getResponse.getBody());
+    String uid = jsonResponse.get("id").asText();
+
+    //    String value =
+    //        "
+    // [{\"op\":\"add\",\"path\":\"/email\",\"value\":\"netroms@gmail.no\"},{\"op\":\"add\",\"path\":\"/attributeValues\",\"value\":[]}]";
+    //    ResponseEntity<String> patchUserResp =
+    //        patchRequest(restTemplate, port, "/api/42/users/" + uid, value, cookie);
+    //    assertEquals(HttpStatus.OK, patchUserResp.getStatusCode());
+
+    ResponseEntity<String> userResp =
+        getWithCookie(restTemplate, port, "/api/42/users/" + uid, cookie);
+    assertEquals(HttpStatus.OK, userResp.getStatusCode());
+
+    ResponseEntity<String> meResp = getWithCookie(restTemplate, port, "/api/me", cookie);
+    assertEquals(HttpStatus.OK, meResp.getStatusCode());
+
+    ResponseEntity<String> sendVerificationEmailResp =
+        postWithCookie(restTemplate, port, "/api/account/sendEmailVerification", null, cookie);
+    assertEquals(HttpStatus.CREATED, sendVerificationEmailResp.getStatusCode());
+
+    MimeMessage mimeMessage = wiser.getMessages().get(0).getMimeMessage();
+    String verificationEmail = getTextFromMessage(mimeMessage);
+
+    //
+    // http://localhost:54139/api/account/verifyEmail?token=Qn4jUvxlTdm6YAybt7c9OnMOUPHdZMLvyQhfe0UHbXNm
+
+    String verifyToken =
+        verificationEmail.substring(
+            verificationEmail.indexOf("?token=") + 7,
+            verificationEmail.indexOf("You must respond"));
+
+    // replace all newlines /n and /r
+    verifyToken = verifyToken.replaceAll("[\\n\\r]", "");
+
+    ResponseEntity<String> verifyEmailResp =
+        getWithCookie(restTemplate, port, "/api/account/verifyEmail?token=" + verifyToken, cookie);
+    assertEquals(HttpStatus.OK, verifyEmailResp.getStatusCode());
+
+    ResponseEntity<String> verfiedUserResp =
+        getWithCookie(restTemplate, port, "/api/42/users/" + uid, cookie);
+    assertEquals(HttpStatus.OK, verfiedUserResp.getStatusCode());
+
+    //    for (WiserMessage message : wiser.getMessages()) {
+    //      String envelopeSender = message.getEnvelopeSender();
+    //      String envelopeReceiver = message.getEnvelopeReceiver();
+    //      MimeMessage mess = message.getMimeMessage();
+    //
+    //      log.info("Envelope Sender: " + envelopeSender);
+    //    }
+
+    // Enroll in Email 2FA
+    ResponseEntity<String> twoFAEnableResp =
+        postWithCookie(restTemplate, port, "/api/2fa/enrollEmail2FA", null, cookie);
+    assertEquals(HttpStatus.OK, twoFAEnableResp.getStatusCode());
+    assertMessage(
+        twoFAEnableResp,
+        "The user has enrolled in email-based 2FA, a code was generated and sent successfully to the user's email");
+
+    String enrollCode = get2FACodeFromEmail();
+
+    Map<String, String> enable2FAReqBody = Map.of("code", enrollCode);
+    ResponseEntity<String> enable2FAResp =
+        postWithCookie(restTemplate, port, "/api/2fa/enable", enable2FAReqBody, cookie);
+    assertMessage(enable2FAResp, "Two factor authentication was enabled successfully");
+
+    // Attempt to log in without 2FA code, should send email
+    ResponseEntity<LoginResponse> failedLoginResp =
+        login(restTemplate, port, username, password, null);
+    assertEquals(
+        LoginResponse.STATUS.INCORRECT_TWO_FACTOR_CODE, failedLoginResp.getBody().getLoginStatus());
+
+    // Attempt to log in with correct 2FA code
+    String login2FACode = get2FACodeFromEmail();
+    ResponseEntity<LoginResponse> login2FAResp =
+        login(restTemplate, port, username, password, login2FACode);
+    assertLoginSuccess(login2FAResp, "/dhis-web-dashboard/");
+    String newSessionCookie = extractSessionCookie(login2FAResp);
+
+    // Verify new session cookie works
+    ResponseEntity<String> apiMeResp =
+        getWithCookie(restTemplate, port, "/api/me", newSessionCookie);
+    assertEquals(HttpStatus.OK, apiMeResp.getStatusCode());
+    assertNotNull(apiMeResp.getBody());
+  }
+
+  private static @NotNull String get2FACodeFromEmail() throws MessagingException, IOException {
+    List<WiserMessage> messages = wiser.getMessages();
+    String twoFAEnrollmentEmail =
+        getTextFromMessage(wiser.getMessages().get(messages.size() - 1).getMimeMessage());
+    String enrollCode =
+        twoFAEnrollmentEmail.substring(
+            twoFAEnrollmentEmail.indexOf("code:") + 7, twoFAEnrollmentEmail.indexOf("code:") + 13);
+    return enrollCode;
+  }
+
+  public static String getTextFromMessage(Message message) throws MessagingException, IOException {
+    if (message.isMimeType("text/plain")) {
+      // Simple text message
+      return message.getContent().toString();
+    } else if (message.isMimeType("multipart/*")) {
+      // Multipart message
+      MimeMultipart mimeMultipart = (MimeMultipart) message.getContent();
+      return getTextFromMimeMultipart(mimeMultipart);
+    } else if (message.isMimeType("message/rfc822")) {
+      // Nested message (forwarded email)
+      return getTextFromMessage((Message) message.getContent());
+    } else {
+      // Other content types (e.g., text/html)
+      Object content = message.getContent();
+      if (content instanceof String) {
+        return (String) content;
+      }
+    }
+    return "";
+  }
+
+  private static String getTextFromMimeMultipart(MimeMultipart mimeMultipart)
+      throws MessagingException, IOException {
+
+    StringBuilder result = new StringBuilder();
+    int count = mimeMultipart.getCount();
+
+    for (int i = 0; i < count; i++) {
+      BodyPart bodyPart = mimeMultipart.getBodyPart(i);
+
+      if (Part.ATTACHMENT.equalsIgnoreCase(bodyPart.getDisposition())) {
+        // Skip attachments
+        continue;
+      }
+
+      if (bodyPart.isMimeType("text/plain")) {
+        // Plain text part
+        result.append(bodyPart.getContent().toString());
+      } else if (bodyPart.isMimeType("text/html")) {
+        // HTML part (optional: strip HTML tags if needed)
+        String html = (String) bodyPart.getContent();
+        // Use a library like JSoup to convert HTML to plain text if necessary
+        result.append(html);
+      } else if (bodyPart.getContent() instanceof MimeMultipart) {
+        // Nested multipart
+        result.append(getTextFromMimeMultipart((MimeMultipart) bodyPart.getContent()));
+      }
+    }
+    return result.toString();
+  }
+
+  private void setSystemPropertyWithCookie(
+      RestTemplate restTemplate, String port, String property, String value, String cookie) {
+    ResponseEntity<String> systemSettingsResp =
+        postWithCookie(
+            restTemplate,
+            port,
+            "/api/systemSettings/" + property + "?value=" + value,
+            null,
+            cookie);
+    assertEquals(HttpStatus.OK, systemSettingsResp.getStatusCode());
   }
 
   private ResponseEntity<LoginResponse> login(
@@ -409,6 +617,26 @@ class AuthTest {
     return cookies.get(0);
   }
 
+  private ResponseEntity<String> patchWithCookie(
+      RestTemplate restTemplate,
+      String port,
+      String path,
+      Map<String, String> body,
+      String cookie) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("Cookie", cookie);
+    if (body != null) {
+      headers.setContentType(MediaType.APPLICATION_JSON);
+    }
+    HttpEntity<?> requestEntity = new HttpEntity<>(body, headers);
+    try {
+      return restTemplate.postForEntity(
+          "http://localhost:" + port + path, requestEntity, String.class);
+    } catch (HttpClientErrorException e) {
+      return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+    }
+  }
+
   private ResponseEntity<String> postWithCookie(
       RestTemplate restTemplate, String port, String path, Object body, String cookie) {
     HttpHeaders headers = new HttpHeaders();
@@ -417,8 +645,59 @@ class AuthTest {
       headers.setContentType(MediaType.APPLICATION_JSON);
     }
     HttpEntity<?> requestEntity = new HttpEntity<>(body, headers);
-    return restTemplate.postForEntity(
-        "http://localhost:" + port + path, requestEntity, String.class);
+    try {
+      return restTemplate.postForEntity(
+          "http://localhost:" + port + path, requestEntity, String.class);
+    } catch (HttpClientErrorException e) {
+      log.error("Error", e.getResponseBodyAsString());
+      return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+    }
+  }
+
+  private ResponseEntity<String> putWithCookie(
+      RestTemplate restTemplate, String port, String path, Object body, String cookie) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("Cookie", cookie);
+    if (body != null) {
+      headers.setContentType(MediaType.APPLICATION_JSON);
+    }
+    HttpEntity<?> requestEntity = new HttpEntity<>(body, headers);
+    try {
+      return putForEntity(
+          restTemplate, "http://localhost:" + port + path, requestEntity, String.class);
+    } catch (HttpClientErrorException e) {
+      return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+    }
+  }
+
+  public ResponseEntity<String> patchRequest(
+      RestTemplate restTemplate, String port, String path, String requestBody, String cookie) {
+    // Convert Map to HttpEntity with headers
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("Content-Type", "application/json-patch+json");
+    headers.set("Cookie", cookie);
+    HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
+
+    // Execute PATCH request
+    ResponseEntity<String> response =
+        restTemplate.exchange(
+            "http://localhost:" + port + path, HttpMethod.PATCH, requestEntity, String.class);
+
+    return response;
+  }
+
+  public <T> ResponseEntity<T> putForEntity(
+      RestTemplate rest,
+      String url,
+      @Nullable Object request,
+      Class<T> responseType,
+      Object... uriVariables)
+      throws RestClientException {
+
+    RequestCallback requestCallback = rest.httpEntityCallback(request, responseType);
+    ResponseExtractor<ResponseEntity<T>> responseExtractor =
+        rest.responseEntityExtractor(responseType);
+    return rest.execute(url, HttpMethod.PUT, requestCallback, responseExtractor, uriVariables);
   }
 
   private ResponseEntity<String> getWithCookie(
@@ -426,16 +705,28 @@ class AuthTest {
     HttpHeaders headers = new HttpHeaders();
     headers.set("Cookie", cookie);
     HttpEntity<String> requestEntity = new HttpEntity<>("", headers);
-    return restTemplate.exchange(
-        "http://localhost:" + port + path, HttpMethod.GET, requestEntity, String.class);
+    try {
+      return restTemplate.exchange(
+          "http://localhost:" + port + path, HttpMethod.GET, requestEntity, String.class);
+    } catch (HttpClientErrorException e) {
+      return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+    }
   }
 
   private void assertMessage(ResponseEntity<String> response, String expectedMessage)
       throws JsonProcessingException {
     assertNotNull(response);
-    assertEquals(HttpStatus.OK, response.getStatusCode());
     JsonNode jsonResponse = new ObjectMapper().readTree(response.getBody());
     assertEquals(expectedMessage, jsonResponse.get("message").asText());
+  }
+
+  private void assertJsonProperty(
+      ResponseEntity<String> response, String jsonProperty, String expectedValue)
+      throws JsonProcessingException {
+    assertNotNull(response);
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    JsonNode jsonResponse = new ObjectMapper().readTree(response.getBody());
+    assertEquals(expectedValue, jsonResponse.get(jsonProperty).asText());
   }
 
   @Test
@@ -509,7 +800,7 @@ class AuthTest {
     testRedirectUrl(url, url);
   }
 
-  private static RestTemplate createRestTemplateWithBasicAuthHeader() {
+  private static RestTemplate createRestTemplateWithAdminBasicAuthHeader() {
     RestTemplate restTemplate = new RestTemplate();
 
     // Create the authentication header
@@ -534,7 +825,7 @@ class AuthTest {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.TEXT_PLAIN);
 
-    RestTemplate restTemplate = createRestTemplateWithBasicAuthHeader();
+    RestTemplate restTemplate = createRestTemplateWithAdminBasicAuthHeader();
     HttpEntity<String> requestEntity = new HttpEntity<>(value, headers);
 
     ResponseEntity<String> response =
