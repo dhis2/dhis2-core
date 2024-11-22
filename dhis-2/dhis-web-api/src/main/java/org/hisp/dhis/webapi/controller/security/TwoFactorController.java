@@ -33,6 +33,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,6 +55,7 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -96,7 +98,8 @@ public class TwoFactorController {
 
   @PostMapping(value = "/enrollEmail2FA")
   @ResponseStatus(HttpStatus.OK)
-  public WebMessage enrollEmail2FA(@CurrentUser User currentUser, SystemSettings settings)
+  public WebMessage enrollEmail2FA(
+      @CurrentUser User currentUser, SystemSettings settings, HttpServletRequest request)
       throws ConflictException {
     if (!settings.getEmail2FAEnabled()) {
       throw new ConflictException(ErrorCode.E3045);
@@ -280,7 +283,7 @@ public class TwoFactorController {
   public WebMessage disable(
       @RequestBody Map<String, String> body, @CurrentUser(required = true) User currentUser)
       throws ForbiddenException, ConflictException {
-    if (currentUser.isTwoFactorEnabled()) {
+    if (!currentUser.isTwoFactorEnabled()) {
       throw new ConflictException(ErrorCode.E3031.getMessage());
     }
     if (userService.is2FADisableEndpointLocked(currentUser.getUsername())) {

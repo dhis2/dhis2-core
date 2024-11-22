@@ -149,15 +149,15 @@ public class TwoFactorAuthService {
       throw new IllegalStateException("Invalid 2FA code");
     }
 
-    setUserToEnabled2FA(user, CurrentUserUtil.getCurrentUserDetails());
+    setEnabled2FA(user, CurrentUserUtil.getCurrentUserDetails());
   }
 
-  public void setUserToEnabled2FA(User user, UserDetails actingUser) {
+  public void setEnabled2FA(User user, UserDetails actingUser) {
     user.setTwoFactorType(user.getTwoFactorType().getEnabledType());
     userService.updateUser(user, actingUser);
   }
 
-  public void setUserToEnabled2FA(UserDetails userDetails, UserDetails actingUser) {
+  public void setEnabled2FA(UserDetails userDetails, UserDetails actingUser) {
     User user = userService.getUserByUsername(userDetails.getUsername());
     if (!user.getTwoFactorType().isEnrolling()) {
       throw new IllegalStateException("Two factor type is not enrolling");
@@ -281,6 +281,7 @@ public class TwoFactorAuthService {
     vars.put("code", code);
     vars.put("username", user.getUsername());
     vars.put("email", user.getEmail());
+    vars.put("fullName", user.getName());
 
     I18n i18n =
         i18nManager.getI18n(
@@ -288,8 +289,8 @@ public class TwoFactorAuthService {
     vars.put("i18n", i18n);
 
     VelocityManager vm = new VelocityManager();
-    String messageBody = vm.render(vars, "twofa_email_body_template_" + "v1");
-    String messageSubject = i18n.getString("twofa_email_subject");
+    String messageBody = vm.render(vars, "twofa_email_body_template_v1");
+    String messageSubject = i18n.getString("email_2fa_subject") + " " + applicationTitle;
 
     OutboundMessageResponse status =
         emailMessageSender.sendMessage(messageSubject, messageBody, null, null, Set.of(user), true);

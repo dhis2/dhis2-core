@@ -30,18 +30,35 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.ChecksumException;
+import com.google.zxing.FormatException;
+import com.google.zxing.LuminanceSource;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.Result;
+import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
+import com.google.zxing.common.HybridBinarizer;
+import com.google.zxing.qrcode.QRCodeReader;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.Base64;
 import java.util.List;
+import javax.imageio.ImageIO;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService;
 import org.hisp.dhis.security.twofa.TwoFactorType;
-import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -49,6 +66,8 @@ import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.security.TwoFactorController;
 import org.jboss.aerogear.security.otp.Totp;
+import org.jboss.aerogear.security.otp.api.Base32;
+import org.jboss.aerogear.security.otp.api.Base32.DecodingException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,9 +83,11 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private TwoFactorAuthService twoFactorAuthService;
   @Autowired private SystemSettingsService systemSettingsService;
+  @Autowired private MessageSender emailMessageSender;
 
   @Test
-  void testEnrollTOTP2FA() {
+  void testEnrollTOTP2FA()
+      throws ChecksumException, NotFoundException, DecodingException, IOException, FormatException {
     User user = makeUser("X", List.of("TEST"));
     user.setEmail("valid.x@email.com");
     userService.addUser(user);
@@ -85,11 +106,52 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     assertNotNull(res.content());
 
     JsonMixed content = res.content();
-    JsonValue base32Secret = content.get("base32Secret");
-    JsonValue base64QRImage = content.get("base64QRImage");
+    String base32Secret = content.getString("base32Secret").string();
+    String base64QRImage = content.getString("base64QRImage").string();
 
-    assertTrue(base32Secret.isString());
-    assertTrue(base64QRImage.isString());
+    String codeFromQR = decodeBase64QRAndExtractBase32Seed(base64QRImage);
+
+    assertEquals(base32Secret, codeFromQR);
+
+    String code = new Totp(base32Secret).now();
+    assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
+  }
+
+  private String decodeBase64QRAndExtractBase32Seed(String base64QRCode)
+      throws IOException, NotFoundException, ChecksumException, FormatException, DecodingException {
+
+    byte[] imageBytes = Base64.getDecoder().decode(base64QRCode);
+
+    // Read the image from the decoded bytes
+    BufferedImage qrImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
+    assertNotNull(qrImage, "QR image could not be loaded");
+
+    // Decode the QR code
+    String qrCodeContent = decodeQRCode(qrImage);
+    assertNotNull(qrCodeContent, "QR code content could not be decoded");
+
+    // content look like this: otpauth://totp/username?secret=base32secret&issuer=issuer
+    String secret =
+        qrCodeContent.substring(qrCodeContent.indexOf("?") + 8, qrCodeContent.indexOf("&"));
+
+    // Extract the Base32-encoded seed
+    byte[] decodedSeedBytes = Base32.decode(secret);
+    assertEquals(20, decodedSeedBytes.length);
+
+    return secret;
+  }
+
+  private String decodeQRCode(BufferedImage qrImage)
+      throws ChecksumException, NotFoundException, FormatException {
+    // Convert the BufferedImage to a ZXing binary bitmap source
+    LuminanceSource source = new BufferedImageLuminanceSource(qrImage);
+    BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+
+    // Use the QRCodeReader to decode the QR code
+    QRCodeReader qrCodeReader = new QRCodeReader();
+    Result result = qrCodeReader.decode(bitmap);
+
+    return result.getText();
   }
 
   @Test
@@ -97,8 +159,9 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     systemSettingsService.put("email2FAEnabled", "true");
 
     User user = makeUser("X", List.of("TEST"));
-    user.setEmail("valid.x@email.com");
-    user.setVerifiedEmail("valid.x@email.com");
+    String emailAddress = "valid.x@email.com";
+    user.setEmail(emailAddress);
+    user.setVerifiedEmail(emailAddress);
     userService.addUser(user);
 
     switchToNewUser(user);
@@ -109,6 +172,13 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     assertNotNull(enrolledUser.getSecret());
     assertTrue(enrolledUser.getSecret().matches("^[0-9]{6}\\|\\d+$"));
     assertSame(TwoFactorType.ENROLLING_EMAIL, enrolledUser.getTwoFactorType());
+
+    List<OutboundMessage> messagesByEmail = emailMessageSender.getMessagesByEmail(emailAddress);
+    assertFalse(messagesByEmail.isEmpty());
+    String email = messagesByEmail.get(0).getText();
+    String code = email.substring(email.indexOf("code:\n") + 6, email.indexOf("code:\n") + 12);
+
+    assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
   }
 
   @Test
@@ -120,7 +190,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
     switchToNewUser(user);
 
-    String code = generateTOTP2FACodeFromUserSecret(user);
+    String code = new Totp(user.getSecret()).now();
     assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
   }
 
@@ -169,7 +239,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     user = userService.getUser(CurrentUserUtil.getCurrentUserDetails().getUid());
     assertNotNull(user.getSecret());
 
-    String code = generateTOTP2FACodeFromUserSecret(user);
+    String code = new Totp(user.getSecret()).now();
 
     assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
 
@@ -191,11 +261,11 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
     userService.addUser(newUser);
     twoFactorAuthService.enrollTOTP2FA(newUser);
-    twoFactorAuthService.setUserToEnabled2FA(newUser, new SystemUser());
+    twoFactorAuthService.setEnabled2FA(newUser, new SystemUser());
 
     switchToNewUser(newUser);
 
-    String code = generateTOTP2FACodeFromUserSecret(newUser);
+    String code = new Totp(newUser.getSecret()).now();
 
     assertStatus(HttpStatus.OK, POST("/2fa/disable", "{'code':'" + code + "'}"));
   }
@@ -208,12 +278,12 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
     userService.addUser(newUser);
     twoFactorAuthService.enrollEmail2FA(newUser);
-    twoFactorAuthService.setUserToEnabled2FA(newUser, new SystemUser());
+    twoFactorAuthService.setEnabled2FA(newUser, new SystemUser());
 
     switchToNewUser(newUser);
 
-    User enrolledUser = userService.getUserByUsername(newUser.getUsername());
-    String secretAndTTL = enrolledUser.getSecret();
+    User enabledUser = userService.getUserByUsername(newUser.getUsername());
+    String secretAndTTL = enabledUser.getSecret();
     String code = secretAndTTL.split("\\|")[0];
 
     assertStatus(HttpStatus.OK, POST("/2fa/disable", "{'code':'" + code + "'}"));
@@ -240,7 +310,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
 
     switchToNewUser(user);
 
-    String code = generateTOTP2FACodeFromUserSecret(user);
+    String code = new Totp(user.getSecret()).now();
     assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
 
     assertStatus(HttpStatus.FORBIDDEN, POST("/2fa/disable", "{'code':'333333'}"));
@@ -260,9 +330,5 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
         "ERROR",
         "Too many failed disable attempts. Please try again later",
         POST("/2fa/disable", "{'code':'333333'}").content(HttpStatus.CONFLICT));
-  }
-
-  private static String generateTOTP2FACodeFromUserSecret(User newUser) {
-    return new Totp(newUser.getSecret()).now();
   }
 }

@@ -37,7 +37,6 @@ import org.hisp.dhis.security.twofa.TwoFactorAuthService;
 import org.hisp.dhis.security.twofa.TwoFactorAuthUtils;
 import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.user.SystemUser;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -162,7 +161,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
       if (type.isEnrolling()) {
         // We need this special case to approve the 2FA secret if the user is doing enforced
         // enrolling during login.
-        twoFactorAuthService.setUserToEnabled2FA(userDetails, new SystemUser());
+        twoFactorAuthService.setEnabled2FA(userDetails, new SystemUser());
       }
     } else {
       log.debug("Two-factor authentication failure for user: '{}'", username);

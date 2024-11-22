@@ -32,7 +32,9 @@ import static org.hisp.dhis.system.StartupEventPublisher.SERVER_STARTED_LATCH;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
@@ -195,6 +197,66 @@ class AuthTest {
 
     assertNotNull(getResponse);
     assertNotNull(getResponse.getBody());
+  }
+
+  @Test
+  void testLogin2FA() throws JsonProcessingException {
+    String port = Integer.toString(availablePort);
+
+    RestTemplate restTemplate = new RestTemplate();
+
+    HttpHeadersBuilder headersBuilder = new HttpHeadersBuilder().withContentTypeJson();
+
+    LoginRequest loginRequest =
+        LoginRequest.builder().username("admin").password("district").build();
+    HttpEntity<LoginRequest> requestEntity = new HttpEntity<>(loginRequest, headersBuilder.build());
+
+    ResponseEntity<LoginResponse> loginResponse =
+        restTemplate.postForEntity(
+            "http://localhost:" + port + "/api/auth/login", requestEntity, LoginResponse.class);
+
+    assertNotNull(loginResponse);
+    assertEquals(HttpStatus.OK, loginResponse.getStatusCode());
+    LoginResponse body = loginResponse.getBody();
+    assertNotNull(body);
+    assertEquals(LoginResponse.STATUS.SUCCESS, body.getLoginStatus());
+    HttpHeaders headers = loginResponse.getHeaders();
+
+    assertEquals("/dhis-web-dashboard/", body.getRedirectUrl());
+
+    assertNotNull(headers);
+    List<String> cookieHeader = headers.get(HttpHeaders.SET_COOKIE);
+    assertNotNull(cookieHeader);
+    assertEquals(1, cookieHeader.size());
+    String cookie = cookieHeader.get(0);
+
+    HttpHeaders getHeaders = new HttpHeaders();
+    getHeaders.set("Cookie", cookie);
+    HttpEntity<String> getEntity = new HttpEntity<>("", getHeaders);
+
+    ResponseEntity<JsonNode> getResponse =
+        restTemplate.exchange(
+            "http://localhost:" + port + "/api/me", HttpMethod.GET, getEntity, JsonNode.class);
+
+    assertEquals(HttpStatus.OK, getResponse.getStatusCode());
+    assertNotNull(getResponse);
+    assertNotNull(getResponse.getBody());
+
+    HttpEntity<Void> twoFAReqEntity = new HttpEntity<>(getHeaders);
+    ResponseEntity<String> twoFAResp =
+        restTemplate.postForEntity(
+            "http://localhost:" + port + "/api/2fa/enrollTOTP2FA", twoFAReqEntity, String.class);
+
+    assertNotNull(twoFAResp);
+    assertEquals(HttpStatus.OK, twoFAResp.getStatusCode());
+    assertNotNull(twoFAResp.getBody());
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    JsonNode jsonResponse = objectMapper.readTree(twoFAResp.getBody());
+    String message = jsonResponse.get("message").asText();
+    assertEquals(
+        "The user has enrolled in TOTP 2FA, call the QR code endpoint to continue the process",
+        message);
   }
 
   @Test
