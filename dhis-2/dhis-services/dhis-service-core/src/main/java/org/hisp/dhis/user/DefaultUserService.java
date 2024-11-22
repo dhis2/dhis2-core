@@ -53,6 +53,7 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -899,5 +900,11 @@ public class DefaultUserService implements UserService {
   public void generateTwoFactorSecret(User user) {
     user.setSecret(Base32.random());
     updateUser(user);
+  }
+
+  @Override
+  public List<User> getUsersWithOrgUnit(
+      @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull String uid) {
+    return userStore.getUsersWithOrgUnit(orgUnitProperty, uid);
   }
 }
