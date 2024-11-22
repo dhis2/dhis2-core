@@ -536,7 +536,8 @@ class JdbcEventStore {
       case CODE:
         return resultSet.getString("de_code");
       case NAME:
-        return resultSet.getString("de_name");
+        return resultSet.getString("de_uid");
+      // return resultSet.getString("de_name");
       case ATTRIBUTE:
         String attributeValuesString = resultSet.getString("de_attributevalues");
         if (StringUtils.isEmpty(attributeValuesString)) {
