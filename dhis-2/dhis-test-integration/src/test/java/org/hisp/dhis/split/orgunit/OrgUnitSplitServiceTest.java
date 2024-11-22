@@ -49,6 +49,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,9 +60,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 class OrgUnitSplitServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private OrgUnitSplitService service;
-
+  @Autowired private UserService _userService;
   @Autowired private IdentifiableObjectManager idObjectManager;
-
   @Autowired private PeriodService periodService;
 
   private PeriodType ptA;
@@ -74,6 +74,7 @@ class OrgUnitSplitServiceTest extends TransactionalIntegrationTest {
 
   @Override
   public void setUpTest() {
+    userService = _userService;
     ptA = periodService.getPeriodTypeByClass(MonthlyPeriodType.class);
     ouA = createOrganisationUnit('A');
     ouB = createOrganisationUnit('B');
