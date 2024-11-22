@@ -288,6 +288,15 @@ public interface SqlBuilder {
    */
   String jsonExtract(String tablePrefix, String column, String jsonPath);
 
+  /**
+   * Extracts a nested value from a JSON column.
+   *
+   * @param column the name of the JSON column from which to extract the value.
+   * @param jsonPath the hierarchical path to the nested value, represented as a sequence of keys.
+   * @return a SQL expression to extract the specified nested value from the JSON column.
+   */
+  String jsonExtractNested(String column, String... jsonPath);
+
   // Statements
 
   /**

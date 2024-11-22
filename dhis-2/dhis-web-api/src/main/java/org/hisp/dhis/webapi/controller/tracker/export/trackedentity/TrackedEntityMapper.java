@@ -33,6 +33,7 @@ import java.util.Map;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.export.ProgramOwnerMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.enrollment.EnrollmentMapper;
@@ -81,5 +82,7 @@ interface TrackedEntityMapper {
   @Mapping(target = "relationships", source = "relationshipItems")
   @Mapping(target = "attributes", source = "trackedEntityAttributeValues")
   org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity map(
-      TrackedEntity trackedEntity, @Context TrackerIdSchemeParams idSchemeParams);
+      @Context TrackerIdSchemeParams idSchemeParams,
+      @Context MappingErrors errors,
+      TrackedEntity trackedEntity);
 }

@@ -133,9 +133,9 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   public void addPropertyChangeLog(
       @Nonnull Event currentEvent, @Nonnull Event event, @Nonnull String username) {
     logIfChanged(
-        "occurredDate", Event::getOccurredDate, this::formatDate, currentEvent, event, username);
+        "occurredAt", Event::getOccurredDate, this::formatDate, currentEvent, event, username);
     logIfChanged(
-        "scheduledDate", Event::getScheduledDate, this::formatDate, currentEvent, event, username);
+        "scheduledAt", Event::getScheduledDate, this::formatDate, currentEvent, event, username);
     logIfChanged(
         "geometry", Event::getGeometry, this::formatGeometry, currentEvent, event, username);
   }
