@@ -120,7 +120,6 @@ class JdbcEventAnalyticsTableManagerDorisTest {
   private static final String TABLE_PREFIX = "analytics_event_";
 
   private static final String FROM_CLAUSE = "from dhis2.public.`event` where eventid=ev.eventid";
-  // static final String AND_CLAUSE = "and eventid=ev.eventid";
 
   private static final String DATE_CLAUSE =
       "CASE WHEN 'SCHEDULE' = ev.status THEN ev.scheduleddate ELSE ev.occurreddate END";
@@ -223,15 +222,9 @@ class JdbcEventAnalyticsTableManagerDorisTest {
         "(select cast(JSON_UNQUOTE(JSON_EXTRACT(eventdatavalues, '$.%s.value')) as datetime) "
             + FROM_CLAUSE
             + "  and JSON_UNQUOTE(JSON_EXTRACT(eventdatavalues, '$.%s.value')) regexp '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$') as `%s`";
-    //    String aliasD5 =
-    //            "(select ou.uid from dhis2.public.`organisationunit` ou where ou.uid = "
-    //                    + "JSON_UNQUOTE(JSON_EXTRACT(eventdatavalues, "
-    //                    + "'$.%s.value')) "
-    //                    + AND_CLAUSE
-    //                    + " ) as `%s`";
     String aliasD5 =
         "(select ou.uid from dhis2.public.`organisationunit` ou where ou.uid = JSON_UNQUOTE(JSON_EXTRACT(eventdatavalues, '$.deabcdefghG.value')) ) as `deabcdefghG`";
-    String aliasD5_name =
+    String aliasD5Name =
         "(select ou.name from dhis2.public.`organisationunit` ou where ou.uid = JSON_UNQUOTE(JSON_EXTRACT(eventdatavalues, "
             + "'$.%s.value')) "
             + ") as `%s`";
@@ -249,12 +242,6 @@ class JdbcEventAnalyticsTableManagerDorisTest {
 
     when(periodDataProvider.getAvailableYears(DATABASE))
         .thenReturn(List.of(2018, 2019, now().getYear()));
-
-    List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
-
-    //    when(jdbcTemplate.queryForList(
-    //            getYearQueryForCurrentYear(program, true, availableDataYears), Integer.class))
-    //            .thenReturn(List.of(2018, 2019));
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
 
@@ -299,7 +286,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
 
         // element d5 also creates a Name column
         .addColumn(
-            d5.getUid() + "_name", TEXT, toSelectExpression(aliasD5_name, d5.getUid()), Skip.SKIP)
+            d5.getUid() + "_name", TEXT, toSelectExpression(aliasD5Name, d5.getUid()), Skip.SKIP)
         .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .build()
         .verify();
