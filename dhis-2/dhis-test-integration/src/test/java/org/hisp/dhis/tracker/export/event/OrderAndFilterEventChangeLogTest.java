@@ -302,30 +302,18 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
     assertContainsOnly(List.of(dataElement), changeLogDataElements);
   }
 
-  @Test
-  void shouldFilterChangeLogsWhenFilteringByOccurredAt()
-      throws ForbiddenException, NotFoundException {
-    EventChangeLogOperationParams params =
-        EventChangeLogOperationParams.builder()
-            .filterBy("property", new QueryFilter(QueryOperator.EQ, "occurredAt"))
-            .build();
-
-    Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"), params, defaultPageParams);
-
-    Set<String> changeLogOccurredAtProperties =
-        changeLogs.getItems().stream()
-            .map(EventChangeLog::getEventProperty)
-            .collect(Collectors.toSet());
-    assertContainsOnly(List.of("occurredAt"), changeLogOccurredAtProperties);
+  private Stream<Arguments> provideEventProperties() {
+    return Stream.of(
+        Arguments.of("occurredAt"), Arguments.of("scheduledAt"), Arguments.of("geometry"));
   }
 
-  @Test
-  void shouldFilterChangeLogsWhenFilteringByScheduledAt()
+  @ParameterizedTest
+  @MethodSource("provideEventProperties")
+  void shouldFilterChangeLogsWhenFilteringByOccurredAt(String filterValue)
       throws ForbiddenException, NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder()
-            .filterBy("property", new QueryFilter(QueryOperator.EQ, "scheduledAt"))
+            .filterBy("property", new QueryFilter(QueryOperator.EQ, filterValue))
             .build();
 
     Page<EventChangeLog> changeLogs =
@@ -335,25 +323,7 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
         changeLogs.getItems().stream()
             .map(EventChangeLog::getEventProperty)
             .collect(Collectors.toSet());
-    assertContainsOnly(List.of("scheduledAt"), changeLogOccurredAtProperties);
-  }
-
-  @Test
-  void shouldFilterChangeLogsWhenFilteringByGeometry()
-      throws ForbiddenException, NotFoundException {
-    EventChangeLogOperationParams params =
-        EventChangeLogOperationParams.builder()
-            .filterBy("property", new QueryFilter(QueryOperator.EQ, "geometry"))
-            .build();
-
-    Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"), params, defaultPageParams);
-
-    Set<String> changeLogOccurredAtProperties =
-        changeLogs.getItems().stream()
-            .map(EventChangeLog::getEventProperty)
-            .collect(Collectors.toSet());
-    assertContainsOnly(List.of("geometry"), changeLogOccurredAtProperties);
+    assertContainsOnly(List.of(filterValue), changeLogOccurredAtProperties);
   }
 
   private void updateDataValue(String event, String dataElementUid, String newValue) {
