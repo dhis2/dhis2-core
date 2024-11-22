@@ -409,6 +409,7 @@ class AuthTest {
 
     assertEquals(newUserUID, userUID);
 
+    // Enable Email 2FA in system settings, set up SMTP server
     setSystemPropertyWithCookie(restTemplate, port, "email2FAEnabled", "true", cookie);
     setSystemPropertyWithCookie(restTemplate, port, "keyEmailHostName", "localhost", cookie);
     setSystemPropertyWithCookie(
@@ -425,6 +426,7 @@ class AuthTest {
         twoFAResp,
         "User has not a verified email, please verify your email first before you enable 2FA");
 
+    // Send verification email to user
     ResponseEntity<String> sendVerificationEmailResp =
         postWithCookie(restTemplate, port, "/api/account/sendEmailVerification", null, cookie);
     assertEquals(HttpStatus.CREATED, sendVerificationEmailResp.getStatusCode());
@@ -437,6 +439,7 @@ class AuthTest {
             verificationEmail.indexOf("You must respond"));
     verifyToken = verifyToken.replaceAll("[\\n\\r]", "");
 
+    // Verify email with token extracted from email
     ResponseEntity<String> verifyEmailResp =
         getWithCookie(restTemplate, port, "/api/account/verifyEmail?token=" + verifyToken, cookie);
     assertEquals(HttpStatus.OK, verifyEmailResp.getStatusCode());
