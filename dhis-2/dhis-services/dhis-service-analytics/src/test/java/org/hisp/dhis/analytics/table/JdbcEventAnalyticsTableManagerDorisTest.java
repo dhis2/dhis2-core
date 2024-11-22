@@ -121,9 +121,6 @@ class JdbcEventAnalyticsTableManagerDorisTest {
 
   private static final String FROM_CLAUSE = "from dhis2.public.`event` where eventid=ev.eventid";
 
-  private static final String DATE_CLAUSE =
-      "CASE WHEN 'SCHEDULE' = ev.status THEN ev.scheduleddate ELSE ev.occurreddate END";
-
   private static final int OU_NAME_HIERARCHY_COUNT = 1;
 
   private List<AnalyticsTableColumn> periodColumns =
