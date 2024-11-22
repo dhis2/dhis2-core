@@ -55,6 +55,8 @@ checks:
   - data_elements/aggregate_des_datasets_different_period_types.yaml
   - data_elements/aggregate_des_nodata.yaml
   - data_elements/aggregate_des_no_datasets.yaml
+  - data_elements/aggregate_des_cannot_aggregate_operator_not_none.yaml
+  - data_elements/aggregate_des_can_aggregate_operator_none.yaml
   - indicators/indicator_duplicate_types.yaml
   - indicators/indicator_nongrouped.yaml
   - indicators/indicator_noanalysis.yaml
