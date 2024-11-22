@@ -69,8 +69,7 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
     // check existence and access
     eventService.getEvent(event);
 
-    return hibernateEventChangeLogStore.getEventChangeLogs(
-        event, operationParams.getOrder(), pageParams);
+    return hibernateEventChangeLogStore.getEventChangeLogs(event, operationParams, pageParams);
   }
 
   @Transactional
@@ -163,6 +162,11 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   @Transactional(readOnly = true)
   public Set<String> getOrderableFields() {
     return hibernateEventChangeLogStore.getOrderableFields();
+  }
+
+  @Override
+  public Set<String> getFilterableFields() {
+    return hibernateEventChangeLogStore.getFilterableFields();
   }
 
   private <T> void logIfChanged(

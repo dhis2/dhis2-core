@@ -27,10 +27,12 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.tracker.export.Order;
 
@@ -40,19 +42,29 @@ import org.hisp.dhis.tracker.export.Order;
 public class EventChangeLogOperationParams {
 
   private Order order;
+  private Map.Entry<String, QueryFilter> filterEntry;
 
   public static class EventChangeLogOperationParamsBuilder {
 
-    // Do not remove this unused method. This hides the order field from the builder which Lombok
-    // does not support. The repeated order field and private order method prevent access to order
-    // via the builder.
-    // Order should be added via the orderBy builder methods.
+    // Do not remove these unused methods. They hide the order and filter fields from the builder
+    // which Lombok
+    // does not support.
+    // They should be added via their respective orderBy and filterBy builder methods.
     private EventChangeLogOperationParamsBuilder order(Order order) {
+      return this;
+    }
+
+    private EventChangeLogOperationParamsBuilder filterMap(Map<String, QueryFilter> filterMap) {
       return this;
     }
 
     public EventChangeLogOperationParamsBuilder orderBy(String field, SortDirection direction) {
       this.order = new Order(field, direction);
+      return this;
+    }
+
+    public EventChangeLogOperationParamsBuilder filterBy(String field, QueryFilter filter) {
+      this.filterEntry = Map.entry(field, filter);
       return this;
     }
   }

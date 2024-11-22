@@ -51,4 +51,6 @@ public class ChangeLogRequestParams implements FieldsRequestParam {
   private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
 
   private List<OrderCriteria> order = new ArrayList<>();
+
+  private String filter;
 }

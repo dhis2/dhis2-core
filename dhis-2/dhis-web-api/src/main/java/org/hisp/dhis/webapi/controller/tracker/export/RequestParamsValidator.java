@@ -74,6 +74,8 @@ public class RequestParamsValidator {
 
   private static final char ESCAPE = '/';
 
+  private static final String SUPPORTED_CHANGELOG_FILTER_OPERATOR = "eq";
+
   /**
    * Negative lookahead to avoid wrong split of comma-separated list of filters when one or more
    * filter value contain comma. It skips comma escaped by slash
@@ -269,6 +271,39 @@ public class RequestParamsValidator {
     }
 
     validateOrderParamsContainNoDuplicates(order, errorSuffix);
+  }
+
+  /**
+   * Validate the {@code filter} request parameter in change log tracker exporters. Allowed filter
+   * values are {@code supportedFieldNames}. Only one field name at a time can be specified. If the
+   * endpoint supports UIDs use {@link #parseFilters(String)}.
+   */
+  public static void validateFilter(String filter, Set<String> supportedFieldNames)
+      throws BadRequestException {
+    if (filter == null) {
+      return;
+    }
+
+    String[] split = filter.split(":");
+
+    if (split.length != 3) {
+      throw new BadRequestException(
+          "Invalid filter => %s. Expected format is [field]:eq:[value]." + filter);
+    }
+
+    if (!supportedFieldNames.contains(split[0])) {
+      throw new BadRequestException(
+          String.format(
+              "Invalid filter field. Supported fields are '%s'. Only one of them can be specified at a time",
+              String.join(", ", supportedFieldNames.stream().sorted().toList())));
+    }
+
+    if (!split[1].equalsIgnoreCase(SUPPORTED_CHANGELOG_FILTER_OPERATOR)) {
+      throw new BadRequestException(
+          String.format(
+              "Invalid filter operator. The only supported operator is '%s'.",
+              SUPPORTED_CHANGELOG_FILTER_OPERATOR));
+    }
   }
 
   /**

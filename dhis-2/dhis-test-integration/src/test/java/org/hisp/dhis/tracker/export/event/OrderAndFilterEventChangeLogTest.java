@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,8 +36,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -59,7 +64,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class OrderEventChangeLogTest extends TrackerTest {
+class OrderAndFilterEventChangeLogTest extends TrackerTest {
 
   @Autowired private EventChangeLogService eventChangeLogService;
 
@@ -258,6 +263,97 @@ class OrderEventChangeLogTest extends TrackerTest {
                 changeLogs.get(2)),
         () -> assertPropertyCreate("occurredAt", "2022-04-20 06:00:38.343", changeLogs.get(3)),
         () -> assertPropertyCreate("geometry", "(-11.419700, 8.103900)", changeLogs.get(4)));
+  }
+
+  @Test
+  void shouldFilterChangeLogsWhenFilteringByUser() throws ForbiddenException, NotFoundException {
+    EventChangeLogOperationParams params =
+        EventChangeLogOperationParams.builder()
+            .filterBy("username", new QueryFilter(QueryOperator.EQ, importUser.getUsername()))
+            .build();
+
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"), params, defaultPageParams);
+
+    Set<String> changeLogUsers =
+        changeLogs.getItems().stream()
+            .map(cl -> cl.getCreatedBy().getUsername())
+            .collect(Collectors.toSet());
+    assertContainsOnly(List.of(importUser.getUsername()), changeLogUsers);
+  }
+
+  @Test
+  void shouldFilterChangeLogsWhenFilteringByDataElement()
+      throws ForbiddenException, NotFoundException {
+    Event event = getEvent("kWjSezkXHVp");
+    String dataElement = getFirstDataElement(event);
+    EventChangeLogOperationParams params =
+        EventChangeLogOperationParams.builder()
+            .filterBy("dataElement", new QueryFilter(QueryOperator.EQ, dataElement))
+            .build();
+
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(UID.of(event.getUid()), params, defaultPageParams);
+
+    Set<String> changeLogDataElements =
+        changeLogs.getItems().stream()
+            .map(cl -> cl.getDataElement().getUid())
+            .collect(Collectors.toSet());
+    assertContainsOnly(List.of(dataElement), changeLogDataElements);
+  }
+
+  @Test
+  void shouldFilterChangeLogsWhenFilteringByOccurredAt()
+      throws ForbiddenException, NotFoundException {
+    EventChangeLogOperationParams params =
+        EventChangeLogOperationParams.builder()
+            .filterBy("property", new QueryFilter(QueryOperator.EQ, "occurredAt"))
+            .build();
+
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"), params, defaultPageParams);
+
+    Set<String> changeLogOccurredAtProperties =
+        changeLogs.getItems().stream()
+            .map(EventChangeLog::getEventProperty)
+            .collect(Collectors.toSet());
+    assertContainsOnly(List.of("occurredAt"), changeLogOccurredAtProperties);
+  }
+
+  @Test
+  void shouldFilterChangeLogsWhenFilteringByScheduledAt()
+      throws ForbiddenException, NotFoundException {
+    EventChangeLogOperationParams params =
+        EventChangeLogOperationParams.builder()
+            .filterBy("property", new QueryFilter(QueryOperator.EQ, "scheduledAt"))
+            .build();
+
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"), params, defaultPageParams);
+
+    Set<String> changeLogOccurredAtProperties =
+        changeLogs.getItems().stream()
+            .map(EventChangeLog::getEventProperty)
+            .collect(Collectors.toSet());
+    assertContainsOnly(List.of("scheduledAt"), changeLogOccurredAtProperties);
+  }
+
+  @Test
+  void shouldFilterChangeLogsWhenFilteringByGeometry()
+      throws ForbiddenException, NotFoundException {
+    EventChangeLogOperationParams params =
+        EventChangeLogOperationParams.builder()
+            .filterBy("property", new QueryFilter(QueryOperator.EQ, "geometry"))
+            .build();
+
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(UID.of("QRYjLTiJTrA"), params, defaultPageParams);
+
+    Set<String> changeLogOccurredAtProperties =
+        changeLogs.getItems().stream()
+            .map(EventChangeLog::getEventProperty)
+            .collect(Collectors.toSet());
+    assertContainsOnly(List.of("geometry"), changeLogOccurredAtProperties);
   }
 
   private void updateDataValue(String event, String dataElementUid, String newValue) {

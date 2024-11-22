@@ -32,6 +32,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria.fromOrderString;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateFilter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForTrackedEntities;
@@ -141,6 +142,51 @@ class RequestParamsValidatorTest {
         () -> assertContains("repeated", exception.getMessage()),
         () -> assertContains("enrolledAt", exception.getMessage()),
         () -> assertContains("zGlzbfreTOH", exception.getMessage()));
+  }
+
+  @Test
+  void shouldValidateFilterWhenFormatIsCorrect() throws BadRequestException {
+    Set<String> supportedFieldNames = Set.of("field1", "field2");
+
+    validateFilter("field2:eq:value", supportedFieldNames);
+  }
+
+  @Test
+  void shouldFailWhenChangeLogFilterFieldNotSupported() {
+    Set<String> supportedFieldNames = Set.of("field1", "field2");
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> validateFilter("unknownField:eq:value", supportedFieldNames));
+    assertStartsWith(
+        String.format(
+            "Invalid filter field. Supported fields are '%s'.",
+            String.join(", ", supportedFieldNames.stream().sorted().toList())),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenChangeLogFilterOperatorNotSupported() {
+    Set<String> supportedFieldNames = Set.of("field1", "field2");
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> validateFilter("field1:sw:value", supportedFieldNames));
+    assertStartsWith(
+        "Invalid filter operator. The only supported operator is 'eq'.", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenChangeLogFilterDoesNotHaveCorrectFormat() {
+    Set<String> supportedFieldNames = Set.of("field1", "field2");
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class, () -> validateFilter("field1:eq", supportedFieldNames));
+    assertStartsWith(
+        "Invalid filter => %s. Expected format is [field]:eq:[value].", exception.getMessage());
   }
 
   @Test

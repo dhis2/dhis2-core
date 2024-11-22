@@ -85,9 +85,17 @@ public interface EventChangeLogService {
 
   /**
    * Fields the {@link #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)} can order
-   * event change logs by. Ordering by fields other than these is considered a programmer error.
+   * event change logs by. Ordering by fields other than these, is considered a programmer error.
    * Validation of user provided field names should occur before calling {@link
    * #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)}.
    */
   Set<String> getOrderableFields();
+
+  /**
+   * Fields the {@link #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)} can
+   * filter event change logs by. Filtering by fields other than these, is considered a programmer
+   * error. Validation of user provided field names should occur before calling {@link
+   * #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)}.
+   */
+  Set<String> getFilterableFields();
 }
