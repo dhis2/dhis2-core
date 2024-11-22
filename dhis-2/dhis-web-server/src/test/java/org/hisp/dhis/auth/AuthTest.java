@@ -468,9 +468,9 @@ class AuthTest {
     ResponseEntity<LoginResponse> login2FAResp =
         login(restTemplate, port, username, password, login2FACode);
     assertLoginSuccess(login2FAResp, "/dhis-web-dashboard/");
-    String newSessionCookie = extractSessionCookie(login2FAResp);
 
     // Verify new session cookie works
+    String newSessionCookie = extractSessionCookie(login2FAResp);
     ResponseEntity<String> apiMeResp =
         getWithCookie(restTemplate, port, "/api/me", newSessionCookie);
     assertEquals(HttpStatus.OK, apiMeResp.getStatusCode());
