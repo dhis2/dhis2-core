@@ -25,19 +25,16 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-  name: data_elements_cannot_aggregate_operator_not_none
-  description: Aggregate data elements which cannot be aggregated but have an aggregation operator set to something 
-      other than NONE
+  name: data_elements_can_aggregate_with_none_operator
+  description: Aggregate domain data elements which can be aggregated but have an aggregation operator set to NONE
   section: Data elements (aggregate)
   section_order: 9
   summary_sql: >-
     with des_aggregation_op as (
       SELECT uid,name,valuetype,aggregationtype from dataelement
-      where valuetype IN ('TEXT', 'LONG_TEXT', 'LETTER',
-                      'PHONE_NUMBER','EMAIL','DATE','DATETIME','TIME','USERNAME',
-                      'TRACKER_ASSOCIATE','ORGANISATION_UNIT','REFERENCE','AGE','URL',
-                      'FILE_RESOURCE','IMAGE','GEOJSON','MULTI_TEXT')
-      AND aggregationtype != 'NONE' 
+      where valuetype IN ('BOOLEAN', 'TRUE_ONLY', 'NUMBER', 'UNIT_INTERVAL', 'PERCENTAGE', 'INTEGER', 'INTEGER_POSITIVE',
+                              'INTEGER_NEGATIVE','INTEGER_ZERO_OR_POSITIVE' )
+      AND aggregationtype = 'NONE' 
       AND domaintype = 'AGGREGATE'
     )
     SELECT COUNT(*) as value,
@@ -45,18 +42,17 @@
     from des_aggregation_op;
   details_sql: >-
       SELECT uid,name from dataelement
-      where valuetype IN ('TEXT', 'LONG_TEXT', 'LETTER',
-                      'PHONE_NUMBER','EMAIL','DATE','DATETIME','TIME','USERNAME',
-                      'TRACKER_ASSOCIATE','ORGANISATION_UNIT','REFERENCE','AGE','URL',
-                      'FILE_RESOURCE','IMAGE','GEOJSON','MULTI_TEXT')
-      AND aggregationtype != 'NONE'
+      where valuetype IN ('BOOLEAN', 'TRUE_ONLY', 'NUMBER', 'UNIT_INTERVAL', 'PERCENTAGE', 'INTEGER', 'INTEGER_POSITIVE',
+                          'INTEGER_NEGATIVE','INTEGER_ZERO_OR_POSITIVE' )
+      AND aggregationtype = 'NONE'
         AND domaintype = 'AGGREGATE';
   severity: WARNING
   introduction: >
-    Aggregate domain data elements which cannot be aggregated should have their aggregation operator set to NONE.
-    If the aggregation operator is set to something other than NONE, this may lead to unexpected results
+    Aggregate domain data elements which can be aggregated should have their aggregation operator set to some 
+    aggregation operator other than NONE.
+    If the aggregation operator is set to  NONE, this may lead to unexpected results
     in the analytics modules.
   recommendation: >
     Open the affected data elements in the Maintenance App and change their aggregation type
-    to NONE. Alternatively, these can be altered via the API.
+    to an appropriate type, such as SUM. Alternatively, these can be altered via the API.
   details_id_type: dataElements

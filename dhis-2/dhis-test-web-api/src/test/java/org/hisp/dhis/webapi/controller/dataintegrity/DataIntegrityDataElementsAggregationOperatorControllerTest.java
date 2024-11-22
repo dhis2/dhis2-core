@@ -38,11 +38,6 @@ import org.junit.jupiter.api.Test;
  * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_can_aggregate_operator_none.yaml}
  * Data elements which cannot be aggregate should have their aggregation type set to NONE. {@see
  * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_cannot_aggregate_operator_not_none.yaml}
- * ======= Generally, non-numeric data elements should have their aggregation type set to NONE,
- * while numeric data elements should have their aggregation type set to something other than NONE.
- * {@see
- * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_inconsistent_agg_operator.yaml}
- * >>>>>>> 4102dadac02ac5b3d769a88116a1da40c37e7752
  *
  * @author Jason P. Pickering
  */
@@ -50,6 +45,7 @@ class DataIntegrityDataElementsAggregationOperatorControllerTest
     extends AbstractDataIntegrityIntegrationTest {
 
   private final String check = "data_elements_can_aggregate_with_none_operator";
+
   private final String check2 = "data_elements_cannot_aggregate_operator_not_none";
 
   private final String detailsIdType = "dataElements";
@@ -65,8 +61,8 @@ class DataIntegrityDataElementsAggregationOperatorControllerTest
             HttpStatus.CREATED,
             POST(
                 "/dataElements",
-                "{ 'name': 'ANC3', 'shortName': 'ANC3', 'valueType' : 'TEXT',"
-                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+                "{ 'name': 'ANC3', 'shortName': 'ANC3', 'valueType' : 'INTEGER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'NONE'  }"));
 
     assertHasDataIntegrityIssues(detailsIdType, check, 33, dataElementB, "ANC3", null, true);
   }
@@ -76,13 +72,12 @@ class DataIntegrityDataElementsAggregationOperatorControllerTest
 
     setUpDataElements();
 
-    dataElementB =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/dataElements",
-                "{ 'name': 'ANC3', 'shortName': 'ANC3', 'valueType' : 'TEXT',"
-                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'NONE'  }"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataElements",
+            "{ 'name': 'ANC3', 'shortName': 'ANC3', 'valueType' : 'INTEGER',"
+                + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
 
     assertHasNoDataIntegrityIssues(detailsIdType, check, true);
   }
