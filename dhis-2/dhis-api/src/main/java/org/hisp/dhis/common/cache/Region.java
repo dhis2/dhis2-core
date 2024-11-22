@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,46 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.webapi.json.domain;
-
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.jsontree.JsonObject;
+package org.hisp.dhis.common.cache;
 
 /**
- * Web API equivalent of a {@code WebMessage} or {@code DescriptiveWebMessage}
- *
- * @author Jan Bernitt
+ * Enum is used to make sure we do not use same region twice. Each method should have its own
+ * constant.
  */
-public interface JsonWebMessage extends JsonObject {
-  default String getHttpStatus() {
-    return getString("httpStatus").string();
-  }
-
-  default int getHttpStatusCode() {
-    return getNumber("httpStatusCode").intValue();
-  }
-
-  default String getStatus() {
-    return getString("status").string();
-  }
-
-  default String getMessage() {
-    return getString("message").string();
-  }
-
-  default String getDevMessage() {
-    return getString("devMessage").string();
-  }
-
-  default String getDescription() {
-    return getString("description").string();
-  }
-
-  default ErrorCode getErrorCode() {
-    return getString("errorCode").parsed(ErrorCode::valueOf);
-  }
-
-  default JsonObject getResponse() {
-    return getObject("response");
-  }
+@SuppressWarnings("squid:S115") // allow non enum-ish names
+public enum Region {
+  analyticsResponse,
+  defaultObjectCache,
+  isDataApproved,
+  allConstantsCache,
+  inUserOrgUnitHierarchy,
+  inUserSearchOrgUnitHierarchy,
+  periodIdCache,
+  userAccountRecoverAttempt,
+  userFailedLoginAttempt,
+  twoFaDisableFailedAttempt,
+  programOwner,
+  programTempOwner,
+  currentUserGroupInfoCache,
+  attrOptionComboIdCache,
+  googleAccessToken,
+  dataItemsPagination,
+  metadataAttributes,
+  canDataWriteCocCache,
+  analyticsSql,
+  propertyTransformerCache,
+  programHasRulesCache,
+  userGroupNameCache,
+  userDisplayNameCache,
+  pgmOrgUnitAssocCache,
+  catOptOrgUnitAssocCache,
+  dataSetOrgUnitAssocCache,
+  apiTokensCache,
+  teAttributesCache,
+  programTeAttributesCache,
+  userGroupUIDCache,
+  securityCache,
+  dataIntegritySummaryCache,
+  dataIntegrityDetailsCache,
+  queryAliasCache
 }

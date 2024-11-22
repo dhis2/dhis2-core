@@ -108,13 +108,28 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     return skipIndex ? Skip.SKIP : Skip.INCLUDE;
   }
 
+  protected String getSelectClause(ValueType valueType, String columnName) {
+    return getSelectClauseInternal(valueType, columnName, false);
+  }
+
+  protected String getSelectClauseForTea(ValueType valueType, String columnName) {
+    return getSelectClauseInternal(valueType, columnName, true);
+  }
+
   /**
    * Returns the select clause, potentially with a cast statement, based on the given value type.
+   * This internal method handles both Data Value and Tracked Entity Attribute (TEA) select clauses.
    *
-   * @param valueType the value type to represent as database column type.
+   * @param valueType The value type to represent as database column type
+   * @param columnName The name of the column to be selected
+   * @param isTeaContext Whether the selection is in the context of a Tracked Entity Attribute. When
+   *     true, organization unit selections will include an additional subquery wrapper
+   * @return A SQL select expression appropriate for the given value type and context
    */
-  protected String getSelectClause(ValueType valueType, String columnName) {
+  private String getSelectClauseInternal(
+      ValueType valueType, String columnName, boolean isTeaContext) {
     String doubleType = sqlBuilder.dataTypeDouble();
+
     if (valueType.isDecimal()) {
       return "cast(" + columnName + " as " + doubleType + ")";
     } else if (valueType.isInteger()) {
@@ -132,9 +147,11 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           + columnName
           + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
     } else if (valueType.isOrganisationUnit()) {
-      return replaceQualify(
-          "ou.uid from ${organisationunit} ou where ou.uid = (select ${columnName}",
-          Map.of("columnName", columnName));
+      String ouClause =
+          isTeaContext
+              ? "ou.uid from ${organisationunit} ou where ou.uid = (select ${columnName}"
+              : "ou.uid from ${organisationunit} ou where ou.uid = ${columnName}";
+      return replaceQualify(ouClause, Map.of("columnName", columnName));
     } else {
       return columnName;
     }
@@ -184,7 +201,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           attribute.isNumericType()
               ? getNumericClause()
               : attribute.isDateType() ? getDateClause() : "";
-      String select = getSelectClause(attribute.getValueType(), "value");
+      String select = getSelectClauseForTea(attribute.getValueType(), "value");
       Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
       String sql =
