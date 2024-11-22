@@ -236,7 +236,7 @@ public class DataQueryParams {
   protected AnalyticsAggregationType aggregationType;
 
   /** The option set selection criteria. */
-  protected OptionSetSelectionCriteria optionSetSelectionCriteria;
+  protected OptionSetSelectionCriteriaV2 optionSetSelectionCriteria;
 
   /** The measure criteria, which is measure filters and corresponding values. */
   protected Map<MeasureFilter, Double> measureCriteria = new HashMap<>();
@@ -750,6 +750,11 @@ public class DataQueryParams {
   /** Indicates whether organisation unit group sets are present as dimension or filter. */
   public boolean hasOrganisationUnitGroupSets() {
     return !getDimensionsAndFilters(ORGANISATION_UNIT_GROUP_SET).isEmpty();
+  }
+
+  /** Indicates whether option set selection criteria are present as dimension. */
+  public boolean hasOptionSetSelectionCriteria() {
+    return optionSetSelectionCriteria != null;
   }
 
   /**
@@ -1969,7 +1974,7 @@ public class DataQueryParams {
     return aggregationType;
   }
 
-  public OptionSetSelectionCriteria getOptionSetSelectionCriteria() {
+  public OptionSetSelectionCriteriaV2 getOptionSetSelectionCriteria() {
     return optionSetSelectionCriteria;
   }
 
@@ -2818,7 +2823,7 @@ public class DataQueryParams {
     }
 
     public Builder withOptionSetSelectionCriteria(
-        OptionSetSelectionCriteria optionSetSelectionCriteria) {
+        OptionSetSelectionCriteriaV2 optionSetSelectionCriteria) {
       this.params.optionSetSelectionCriteria = optionSetSelectionCriteria;
       return this;
     }

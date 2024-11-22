@@ -66,11 +66,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
-import org.hisp.dhis.analytics.OptionSetSelectionCriteria;
+import org.hisp.dhis.analytics.OptionSetSelection;
+import org.hisp.dhis.analytics.OptionSetSelectionCriteriaV2;
 import org.hisp.dhis.analytics.OptionSetSelectionMode;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -86,6 +88,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.setting.UserSettings;
@@ -178,10 +181,10 @@ public class DefaultDataQueryService implements DataQueryService {
         .build();
   }
 
-  private OptionSetSelectionCriteria getOptionSetSelectionCriteria(Set<String> dimensions) {
-    OptionSetSelectionCriteria.OptionSetSelectionCriteriaBuilder builder =
-        OptionSetSelectionCriteria.builder();
-    Map<String, OptionSetSelectionMode> optionSetSelectionModes = new HashMap<>();
+  private OptionSetSelectionCriteriaV2 getOptionSetSelectionCriteria(Set<String> dimensions) {
+    OptionSetSelectionCriteriaV2.OptionSetSelectionCriteriaV2Builder builder =
+        OptionSetSelectionCriteriaV2.builder();
+    Map<String, OptionSetSelection> optionSetSelections = new HashMap<>();
     for (String dimension : dimensions) {
       String param = DimensionalObjectUtils.getParamFromDimension(dimension);
 
@@ -194,7 +197,7 @@ public class DefaultDataQueryService implements DataQueryService {
         mode = OptionSetSelectionMode.AGGREGATED;
       }
 
-      String key = DimensionalObjectUtils.getThirdIdentifier(param);
+      String key = DimensionalObjectUtils.getOptionSetSelectionModeIdentifier(param);
       if (key == null) {
         key =
             DimensionalObjectUtils.getFirstIdentifier(param)
@@ -204,18 +207,33 @@ public class DefaultDataQueryService implements DataQueryService {
         key = DimensionalObjectUtils.getSecondIdentifier(param) + "." + key;
       }
 
-      optionSetSelectionModes.put(key, mode);
+      OptionSetSelection.OptionSetSelectionBuilder optionSetSelectionBuilder =
+          OptionSetSelection.builder().optionSetSelectionMode(mode).optionSetUid(key);
+      String options = DimensionalObjectUtils.getOptions(param);
+
+      if (options != null && !options.isEmpty()) {
+        List<String> optionList =
+            Stream.of(options.split("#"))
+                .map(
+                    uid ->
+                        Objects.requireNonNull(this.idObjectManager.get(Option.class, uid))
+                            .getCode())
+                .toList();
+        optionSetSelectionBuilder.options(optionList);
+      }
+
+      optionSetSelections.put(key, optionSetSelectionBuilder.build());
     }
 
-    if (optionSetSelectionModes.isEmpty()) {
+    if (optionSetSelections.isEmpty()) {
       return null;
     }
 
-    return builder.optionSetSelectionModes(optionSetSelectionModes).build();
+    return builder.optionSetSelections(optionSetSelections).build();
   }
 
   private boolean hasOptionSet(String param) {
-    String uid = DimensionalObjectUtils.getThirdIdentifier(param);
+    String uid = DimensionalObjectUtils.getOptionSetSelectionModeIdentifier(param);
     if (uid == null) {
       uid = DimensionalObjectUtils.getSecondIdentifier(param);
     }
@@ -342,7 +360,7 @@ public class DefaultDataQueryService implements DataQueryService {
           getItemsFromParam(userOrgUnit).stream()
               .map(ou -> idObjectManager.get(OrganisationUnit.class, ou))
               .filter(Objects::nonNull)
-              .collect(toList()));
+              .toList());
     } else if (currentUser != null && params != null && params.getUserOrgUnitType() != null) {
       switch (params.getUserOrgUnitType()) {
         case DATA_CAPTURE:

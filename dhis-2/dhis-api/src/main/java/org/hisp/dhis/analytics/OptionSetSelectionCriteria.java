@@ -27,52 +27,48 @@
  */
 package org.hisp.dhis.analytics;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import lombok.Getter;
-
 public class OptionSetSelectionCriteria {
-  @Getter private Map<String, OptionSetSelectionMode> optionSetSelectionModes;
-  @Getter private List<String> options;
-
-  OptionSetSelectionCriteria(
-      Map<String, OptionSetSelectionMode> optionSetSelectionModes, List<String> options) {
-    this.optionSetSelectionModes = optionSetSelectionModes;
-    this.options = options;
-  }
-
-  public static OptionSetSelectionCriteriaBuilder builder() {
-    return new OptionSetSelectionCriteriaBuilder();
-  }
-
-  public static class OptionSetSelectionCriteriaBuilder {
-    private Map<String, OptionSetSelectionMode> optionSetSelectionModes;
-    private List<String> options;
-
-    OptionSetSelectionCriteriaBuilder() {}
-
-    public OptionSetSelectionCriteriaBuilder optionSetSelectionModes(
-        Map<String, OptionSetSelectionMode> optionSetSelectionModes) {
-      this.optionSetSelectionModes = Collections.unmodifiableMap(optionSetSelectionModes);
-      return this;
-    }
-
-    public OptionSetSelectionCriteriaBuilder options(List<String> options) {
-      this.options = Collections.unmodifiableList(options);
-      return this;
-    }
-
-    public OptionSetSelectionCriteria build() {
-      return new OptionSetSelectionCriteria(this.optionSetSelectionModes, this.options);
-    }
-
-    public String toString() {
-      return "OptionSetSelectionCriteria.OptionSetSelectionCriteriaBuilder(optionSetSelectionModes="
-          + this.optionSetSelectionModes
-          + ", options="
-          + this.options
-          + ")";
-    }
-  }
+  //  @Getter private Map<String, OptionSetSelectionMode> optionSetSelectionModes;
+  //  @Getter private List<String> options;
+  //
+  //  OptionSetSelectionCriteria(
+  //      Map<String, OptionSetSelectionMode> optionSetSelectionModes, List<String> options) {
+  //    this.optionSetSelectionModes = optionSetSelectionModes;
+  //    this.options = options;
+  //  }
+  //
+  //  public static OptionSetSelectionCriteriaBuilder builder() {
+  //    return new OptionSetSelectionCriteriaBuilder();
+  //  }
+  //
+  //  public static class OptionSetSelectionCriteriaBuilder {
+  //    private Map<String, OptionSetSelectionMode> optionSetSelectionModes;
+  //    private List<String> options;
+  //
+  //    OptionSetSelectionCriteriaBuilder() {}
+  //
+  //    public OptionSetSelectionCriteriaBuilder optionSetSelectionModes(
+  //        Map<String, OptionSetSelectionMode> optionSetSelectionModes) {
+  //      this.optionSetSelectionModes = Collections.unmodifiableMap(optionSetSelectionModes);
+  //      return this;
+  //    }
+  //
+  //    public OptionSetSelectionCriteriaBuilder options(List<String> options) {
+  //      this.options = Collections.unmodifiableList(options);
+  //      return this;
+  //    }
+  //
+  //    public OptionSetSelectionCriteria build() {
+  //      return new OptionSetSelectionCriteria(this.optionSetSelectionModes, this.options);
+  //    }
+  //
+  //    public String toString() {
+  //      return
+  // "OptionSetSelectionCriteria.OptionSetSelectionCriteriaBuilder(optionSetSelectionModes="
+  //          + this.optionSetSelectionModes
+  //          + ", options="
+  //          + this.options
+  //          + ")";
+  //    }
+  //  }
 }

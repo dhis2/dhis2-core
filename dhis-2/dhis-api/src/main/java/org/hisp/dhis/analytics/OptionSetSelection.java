@@ -27,19 +27,14 @@
  */
 package org.hisp.dhis.analytics;
 
-import java.util.Arrays;
 import java.util.List;
+import lombok.Builder;
+import lombok.Getter;
 
-/** The selection modes for items with option sets */
-public enum OptionSetSelectionMode {
-  // All options in an option set are chosen and aggregated into a single column.
-  // This selection is relative, so any new options added to the option set are included.
-  AGGREGATED,
-  // All options in an option set are chosen and displayed as data items.
-  // This selection is relative, so any new options added to the option set are included.
-  DISAGGREGATED;
-
-  public static List<String> getOptionSetSelectionModes() {
-    return Arrays.stream(OptionSetSelectionMode.values()).map(Enum::toString).toList();
-  }
+@Builder
+@Getter
+public class OptionSetSelection {
+  private String optionSetUid;
+  private List<String> options;
+  private OptionSetSelectionMode optionSetSelectionMode;
 }

@@ -91,7 +91,7 @@ public class DimensionalObjectUtils {
   // Luqe6ps5KZ9.uTLkjHWtSL8.R0jROOT3zni-AGGREGATED
   private static final Pattern COMPOSITE_DIM_OBJECT_PATTERN =
       Pattern.compile(
-          "(?<id1>\\w+)\\.(?<id2>\\w+|\\*)(\\.(?<id3>\\w+|\\*))?(-?(?<suffix>AGGREGATED|DISAGGREGATED|ABSOLUTE)?)?");
+          "(?<id1>\\w+)\\.(?<id2>\\w+|\\*)(\\.(?<id3>\\w+|\\*))?(\\[(?<list>[^\\]]*?)\\])?(-(?<suffix>AGGREGATED|DISAGGREGATED)?)?");
 
   private static final Set<QueryOperator> IGNORED_OPERATORS =
       Set.of(QueryOperator.LIKE, QueryOperator.IN, QueryOperator.SW, QueryOperator.EW);
@@ -554,14 +554,19 @@ public class DimensionalObjectUtils {
    */
   public static String getSecondIdentifier(String compositeItem) {
     Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
-    return matcher.matches() ? removeOptionSetSelectionMode(matcher.group(2)) : null;
+    return matcher.matches() ? extractOptionSetSelectionModeIdentifier(matcher.group(2)) : null;
   }
 
-  public static String getThirdIdentifier(String compositeItem) {
+  public static String getOptionSetSelectionModeIdentifier(String compositeItem) {
     Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
     return matcher.matches() && matcher.groupCount() >= 4
-        ? removeOptionSetSelectionMode(matcher.group(4))
+        ? extractOptionSetSelectionModeIdentifier(matcher.group(4))
         : null;
+  }
+
+  public static String getOptions(String compositeItem) {
+    Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
+    return matcher.matches() && matcher.groupCount() >= 6 ? matcher.group(6) : null;
   }
 
   public static OptionSetSelectionMode getOptionSetSelectionMode(String compositeItem) {
@@ -580,7 +585,7 @@ public class DimensionalObjectUtils {
     return null;
   }
 
-  private static String removeOptionSetSelectionMode(String identifier) {
+  private static String extractOptionSetSelectionModeIdentifier(String identifier) {
     if (identifier == null) {
       return null;
     }

@@ -763,11 +763,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         && ((DataElement) params.getValue()).hasOptionSet()
         && params
                 .getOptionSetSelectionCriteria()
-                .getOptionSetSelectionModes()
+                .getOptionSetSelections()
                 .get(
                     params.getValue().getUid()
                         + "."
                         + ((DataElement) params.getValue()).getOptionSet().getUid())
+                .getOptionSetSelectionMode()
             != OptionSetSelectionMode.AGGREGATED) {
       return NONE;
     }
