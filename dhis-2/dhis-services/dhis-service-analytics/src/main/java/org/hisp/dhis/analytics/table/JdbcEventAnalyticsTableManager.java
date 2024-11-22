@@ -475,7 +475,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return AnalyticsTableColumn.builder()
         .name("year")
         .dataType(INTEGER)
-        .selectExpression("CAST(SUBSTRING(dps.yearly, 1, 4) AS INTEGER)")
+        .selectExpression("dps.year")
         .build();
   }
 
