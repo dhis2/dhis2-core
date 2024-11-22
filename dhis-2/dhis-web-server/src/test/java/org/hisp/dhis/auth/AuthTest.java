@@ -49,6 +49,7 @@ import org.hisp.dhis.system.util.HttpHeadersBuilder;
 import org.hisp.dhis.test.IntegrationTest;
 import org.hisp.dhis.webapi.controller.security.LoginRequest;
 import org.hisp.dhis.webapi.controller.security.LoginResponse;
+import org.jboss.aerogear.security.otp.Totp;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -64,6 +65,7 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.subethamail.wiser.Wiser;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -85,6 +87,10 @@ class AuthTest {
   private static PostgreSQLContainer<?> POSTGRES_CONTAINER;
   private static int availablePort;
 
+  // Added for the fake SMTP server
+  private static int smtpPort;
+  private static Wiser wiser;
+
   @BeforeAll
   static void setup() throws Exception {
     availablePort = findAvailablePort();
@@ -99,6 +105,13 @@ class AuthTest {
             .withEnv("LC_COLLATE", "C");
 
     POSTGRES_CONTAINER.start();
+
+    // Start the fake SMTP server
+    smtpPort = findAvailablePort();
+    wiser = new Wiser();
+    wiser.setHostname("localhost");
+    wiser.setPort(smtpPort);
+    wiser.start();
 
     createTmpDhisConf();
 
@@ -230,9 +243,9 @@ class AuthTest {
     assertEquals(1, cookieHeader.size());
     String cookie = cookieHeader.get(0);
 
-    HttpHeaders getHeaders = new HttpHeaders();
-    getHeaders.set("Cookie", cookie);
-    HttpEntity<String> getEntity = new HttpEntity<>("", getHeaders);
+    HttpHeaders validCookieHeader = new HttpHeaders();
+    validCookieHeader.set("Cookie", cookie);
+    HttpEntity<String> getEntity = new HttpEntity<>("", validCookieHeader);
 
     ResponseEntity<JsonNode> getResponse =
         restTemplate.exchange(
@@ -242,7 +255,7 @@ class AuthTest {
     assertNotNull(getResponse);
     assertNotNull(getResponse.getBody());
 
-    HttpEntity<Void> twoFAReqEntity = new HttpEntity<>(getHeaders);
+    HttpEntity<Void> twoFAReqEntity = new HttpEntity<>(validCookieHeader);
     ResponseEntity<String> twoFAResp =
         restTemplate.postForEntity(
             "http://localhost:" + port + "/api/2fa/enrollTOTP2FA", twoFAReqEntity, String.class);
@@ -257,6 +270,172 @@ class AuthTest {
     assertEquals(
         "The user has enrolled in TOTP 2FA, call the QR code endpoint to continue the process",
         message);
+
+    HttpEntity<String> getQREntity = new HttpEntity<>("", validCookieHeader);
+    ResponseEntity<String> showQRResp =
+        restTemplate.exchange(
+            "http://localhost:" + port + "/api/2fa/showQRCodeAsJson",
+            HttpMethod.GET,
+            getQREntity,
+            String.class);
+    assertNotNull(showQRResp);
+    assertEquals(HttpStatus.OK, showQRResp.getStatusCode());
+    assertNotNull(showQRResp.getBody());
+    JsonNode showQrRespJson = objectMapper.readTree(showQRResp.getBody());
+
+    String base32Secret = showQrRespJson.get("base32Secret").asText();
+    String base64QRImage = showQrRespJson.get("base64QRImage").asText();
+
+    assertNotNull(base32Secret);
+    assertNotNull(base64QRImage);
+
+    /// Generate TOTP code
+    String code = new Totp(base32Secret).now();
+
+    /// Enable 2FA
+    Map<String, String> enable2FAReqBody = Map.of("code", code);
+    HttpEntity<Map<String, String>> enable2FAEntity =
+        new HttpEntity<>(enable2FAReqBody, validCookieHeader);
+    ResponseEntity<String> enable2FAResp =
+        restTemplate.postForEntity(
+            "http://localhost:" + port + "/api/2fa/enable", enable2FAEntity, String.class);
+
+    assertNotNull(enable2FAResp);
+    assertEquals(HttpStatus.OK, enable2FAResp.getStatusCode());
+    assertNotNull(enable2FAResp.getBody());
+
+    JsonNode enable2FAJSONResp = objectMapper.readTree(enable2FAResp.getBody());
+    assertEquals(
+        "Two factor authentication was enabled successfully",
+        enable2FAJSONResp.get("message").asText());
+
+    /// Start new login
+    HttpHeadersBuilder headersBuilder2 = new HttpHeadersBuilder().withContentTypeJson();
+    LoginRequest loginRequest2 =
+        LoginRequest.builder().username("admin").password("district").build();
+    HttpEntity<LoginRequest> requestEntity2 =
+        new HttpEntity<>(loginRequest2, headersBuilder2.build());
+    ResponseEntity<LoginResponse> loginResponse2 =
+        restTemplate.postForEntity(
+            "http://localhost:" + port + "/api/auth/login", requestEntity2, LoginResponse.class);
+    assertNotNull(loginResponse2);
+    assertEquals(HttpStatus.OK, loginResponse2.getStatusCode());
+    LoginResponse body2 = loginResponse2.getBody();
+    assertNotNull(body2);
+    assertEquals(LoginResponse.STATUS.INCORRECT_TWO_FACTOR_CODE, body2.getLoginStatus());
+  }
+
+  @Test
+  void testLogin2FAS() throws JsonProcessingException {
+    String port = Integer.toString(availablePort);
+    RestTemplate restTemplate = new RestTemplate();
+    ObjectMapper objectMapper = new ObjectMapper();
+
+    // First Login
+    ResponseEntity<LoginResponse> loginResponse =
+        login(restTemplate, port, "admin", "district", null);
+
+    // Verify response and extract cookie
+    assertLoginSuccess(loginResponse, "/dhis-web-dashboard/");
+    String cookie = extractSessionCookie(loginResponse);
+
+    // Verify session
+    ResponseEntity<String> getResponse = getWithCookie(restTemplate, port, "/api/me", cookie);
+    assertEquals(HttpStatus.OK, getResponse.getStatusCode());
+    assertNotNull(getResponse.getBody());
+
+    // Enroll in TOTP 2FA
+    ResponseEntity<String> twoFAResp =
+        postWithCookie(restTemplate, port, "/api/2fa/enrollTOTP2FA", null, cookie);
+    assertMessage(
+        twoFAResp,
+        "The user has enrolled in TOTP 2FA, call the QR code endpoint to continue the process");
+
+    // Get QR code and base32 secret
+    ResponseEntity<String> showQRResp =
+        getWithCookie(restTemplate, port, "/api/2fa/showQRCodeAsJson", cookie);
+    JsonNode showQrRespJson = objectMapper.readTree(showQRResp.getBody());
+    String base32Secret = showQrRespJson.get("base32Secret").asText();
+    assertNotNull(base32Secret);
+
+    // Generate TOTP code and enable 2FA
+    String enable2FACode = new Totp(base32Secret).now();
+    Map<String, String> enable2FAReqBody = Map.of("code", enable2FACode);
+    ResponseEntity<String> enable2FAResp =
+        postWithCookie(restTemplate, port, "/api/2fa/enable", enable2FAReqBody, cookie);
+    assertMessage(enable2FAResp, "Two factor authentication was enabled successfully");
+
+    // Attempt to log in without 2FA code
+    ResponseEntity<LoginResponse> failedLoginResp =
+        login(restTemplate, port, "admin", "district", null);
+    assertEquals(
+        LoginResponse.STATUS.INCORRECT_TWO_FACTOR_CODE, failedLoginResp.getBody().getLoginStatus());
+
+    String login2FACode = new Totp(base32Secret).now();
+    ResponseEntity<LoginResponse> login2FAResp =
+        login(restTemplate, port, "admin", "district", login2FACode);
+    assertLoginSuccess(login2FAResp, "/dhis-web-dashboard/");
+  }
+
+  private ResponseEntity<LoginResponse> login(
+      RestTemplate restTemplate, String port, String username, String password, String twoFACode) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    LoginRequest loginRequest =
+        LoginRequest.builder()
+            .username(username)
+            .password(password)
+            .twoFactorCode(twoFACode)
+            .build();
+    HttpEntity<LoginRequest> requestEntity = new HttpEntity<>(loginRequest, headers);
+    return restTemplate.postForEntity(
+        "http://localhost:" + port + "/api/auth/login", requestEntity, LoginResponse.class);
+  }
+
+  private void assertLoginSuccess(
+      ResponseEntity<LoginResponse> response, String expectedRedirectUrl) {
+    assertNotNull(response);
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    LoginResponse body = response.getBody();
+    assertNotNull(body);
+    assertEquals(LoginResponse.STATUS.SUCCESS, body.getLoginStatus());
+    assertEquals(expectedRedirectUrl, body.getRedirectUrl());
+  }
+
+  private String extractSessionCookie(ResponseEntity<?> response) {
+    List<String> cookies = response.getHeaders().get(HttpHeaders.SET_COOKIE);
+    assertNotNull(cookies);
+    assertEquals(1, cookies.size());
+    return cookies.get(0);
+  }
+
+  private ResponseEntity<String> postWithCookie(
+      RestTemplate restTemplate, String port, String path, Object body, String cookie) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("Cookie", cookie);
+    if (body != null) {
+      headers.setContentType(MediaType.APPLICATION_JSON);
+    }
+    HttpEntity<?> requestEntity = new HttpEntity<>(body, headers);
+    return restTemplate.postForEntity(
+        "http://localhost:" + port + path, requestEntity, String.class);
+  }
+
+  private ResponseEntity<String> getWithCookie(
+      RestTemplate restTemplate, String port, String path, String cookie) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("Cookie", cookie);
+    HttpEntity<String> requestEntity = new HttpEntity<>("", headers);
+    return restTemplate.exchange(
+        "http://localhost:" + port + path, HttpMethod.GET, requestEntity, String.class);
+  }
+
+  private void assertMessage(ResponseEntity<String> response, String expectedMessage)
+      throws JsonProcessingException {
+    assertNotNull(response);
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    JsonNode jsonResponse = new ObjectMapper().readTree(response.getBody());
+    assertEquals(expectedMessage, jsonResponse.get("message").asText());
   }
 
   @Test

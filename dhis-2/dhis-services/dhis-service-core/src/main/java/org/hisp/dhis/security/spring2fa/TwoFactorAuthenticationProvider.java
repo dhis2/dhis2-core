@@ -157,7 +157,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
     TwoFactorType type = userDetails.getTwoFactorType();
     String secret = userDetails.getSecret();
 
-    if (TwoFactorAuthUtils.isValid2FACode(code, type, secret)) {
+    if (isValid2FACode(code, type, secret)) {
       if (type.isEnrolling()) {
         // We need this special case to approve the 2FA secret if the user is doing enforced
         // enrolling during login.
@@ -175,6 +175,14 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
       }
       throw new TwoFactorAuthenticationException("Invalid 2FA code");
     }
+    // All good, 2FA code is valid!
   }
-  // All good, 2FA code is valid!
+
+  private boolean isValid2FACode(String code, TwoFactorType type, String secret) {
+    try {
+      return TwoFactorAuthUtils.isValid2FACode(code, type, secret);
+    } catch (Exception e) {
+      return false;
+    }
+  }
 }

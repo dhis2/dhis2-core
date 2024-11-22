@@ -53,8 +53,6 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonMixed;
-import org.hisp.dhis.jsontree.JsonString;
-import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService;
@@ -109,7 +107,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     String base32Secret = content.getString("base32Secret").string();
     String base64QRImage = content.getString("base64QRImage").string();
 
-    String codeFromQR = decodeBase64QRAndExtractBase32Seed(base64QRImage);
+    String codeFromQR = decodeBase64QRAndExtractBase32Secret(base64QRImage);
 
     assertEquals(base32Secret, codeFromQR);
 
@@ -117,7 +115,7 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     assertStatus(HttpStatus.OK, POST("/2fa/enable", "{'code':'" + code + "'}"));
   }
 
-  private String decodeBase64QRAndExtractBase32Seed(String base64QRCode)
+  private String decodeBase64QRAndExtractBase32Secret(String base64QRCode)
       throws IOException, NotFoundException, ChecksumException, FormatException, DecodingException {
 
     byte[] imageBytes = Base64.getDecoder().decode(base64QRCode);
@@ -134,9 +132,10 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     String secret =
         qrCodeContent.substring(qrCodeContent.indexOf("?") + 8, qrCodeContent.indexOf("&"));
 
-    // Extract the Base32-encoded seed
-    byte[] decodedSeedBytes = Base32.decode(secret);
-    assertEquals(20, decodedSeedBytes.length);
+    // Extract the Base32-encoded secret bytes, check that it is 20 bytes long, which is in 160 bits
+    // of entropy, which is the RFC 4226 recommendation.
+    byte[] decodedSecretBytes = Base32.decode(secret);
+    assertEquals(20, decodedSecretBytes.length);
 
     return secret;
   }
