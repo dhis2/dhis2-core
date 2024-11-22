@@ -309,7 +309,7 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
 
   @ParameterizedTest
   @MethodSource("provideEventProperties")
-  void shouldFilterChangeLogsWhenFilteringByOccurredAt(String filterValue)
+  void shouldFilterChangeLogsWhenFilteringByProperties(String filterValue)
       throws ForbiddenException, NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder()
