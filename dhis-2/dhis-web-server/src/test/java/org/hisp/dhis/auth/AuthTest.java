@@ -50,6 +50,7 @@ import javax.mail.Part;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.system.util.HttpHeadersBuilder;
 import org.hisp.dhis.test.IntegrationTest;
 import org.hisp.dhis.webapi.controller.security.LoginRequest;
@@ -388,9 +389,9 @@ class AuthTest {
     ObjectMapper objectMapper = new ObjectMapper();
     RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory());
 
-    String username = "usdxerddddxjjxaddddddxaxxd";
+    String username = CodeGenerator.generateCode(8);
     String password = "Test123###...";
-    createUser(objectMapper, port, username, password, orgUnitUID);
+    String newUserUID = createUser(objectMapper, port, username, password, orgUnitUID);
 
     // First Login
     ResponseEntity<LoginResponse> loginResponse =
@@ -401,14 +402,12 @@ class AuthTest {
     String cookie = extractSessionCookie(loginResponse);
 
     // Verify session
-    ResponseEntity<String> getResponse = getWithCookie(restTemplate, port, "/api/me", cookie);
-    assertEquals(HttpStatus.OK, getResponse.getStatusCode());
-    //
-    //    ResponseEntity<String> systemSettingsResp =
-    //        postWithCookie(
-    //            restTemplate, port, "/api/systemSettings/email2FAEnabled?value=true", null,
-    // cookie);
-    //    assertEquals(HttpStatus.OK, systemSettingsResp.getStatusCode());
+    ResponseEntity<String> meResponse = getWithCookie(restTemplate, port, "/api/me", cookie);
+    assertEquals(HttpStatus.OK, meResponse.getStatusCode());
+    JsonNode jsonResponse = new ObjectMapper().readTree(meResponse.getBody());
+    String userUID = jsonResponse.get("id").asText();
+
+    assertEquals(newUserUID, userUID);
 
     setSystemPropertyWithCookie(restTemplate, port, "email2FAEnabled", "true", cookie);
     setSystemPropertyWithCookie(restTemplate, port, "keyEmailHostName", "localhost", cookie);
@@ -426,56 +425,21 @@ class AuthTest {
         twoFAResp,
         "User has not a verified email, please verify your email first before you enable 2FA");
 
-    JsonNode jsonResponse = new ObjectMapper().readTree(getResponse.getBody());
-    String uid = jsonResponse.get("id").asText();
-
-    //    String value =
-    //        "
-    // [{\"op\":\"add\",\"path\":\"/email\",\"value\":\"netroms@gmail.no\"},{\"op\":\"add\",\"path\":\"/attributeValues\",\"value\":[]}]";
-    //    ResponseEntity<String> patchUserResp =
-    //        patchRequest(restTemplate, port, "/api/42/users/" + uid, value, cookie);
-    //    assertEquals(HttpStatus.OK, patchUserResp.getStatusCode());
-
-    ResponseEntity<String> userResp =
-        getWithCookie(restTemplate, port, "/api/42/users/" + uid, cookie);
-    assertEquals(HttpStatus.OK, userResp.getStatusCode());
-
-    ResponseEntity<String> meResp = getWithCookie(restTemplate, port, "/api/me", cookie);
-    assertEquals(HttpStatus.OK, meResp.getStatusCode());
-
     ResponseEntity<String> sendVerificationEmailResp =
         postWithCookie(restTemplate, port, "/api/account/sendEmailVerification", null, cookie);
     assertEquals(HttpStatus.CREATED, sendVerificationEmailResp.getStatusCode());
 
-    MimeMessage mimeMessage = wiser.getMessages().get(0).getMimeMessage();
-    String verificationEmail = getTextFromMessage(mimeMessage);
-
-    //
-    // http://localhost:54139/api/account/verifyEmail?token=Qn4jUvxlTdm6YAybt7c9OnMOUPHdZMLvyQhfe0UHbXNm
-
+    MimeMessage verificationMessage = wiser.getMessages().get(0).getMimeMessage();
+    String verificationEmail = getTextFromMessage(verificationMessage);
     String verifyToken =
         verificationEmail.substring(
             verificationEmail.indexOf("?token=") + 7,
             verificationEmail.indexOf("You must respond"));
-
-    // replace all newlines /n and /r
     verifyToken = verifyToken.replaceAll("[\\n\\r]", "");
 
     ResponseEntity<String> verifyEmailResp =
         getWithCookie(restTemplate, port, "/api/account/verifyEmail?token=" + verifyToken, cookie);
     assertEquals(HttpStatus.OK, verifyEmailResp.getStatusCode());
-
-    ResponseEntity<String> verfiedUserResp =
-        getWithCookie(restTemplate, port, "/api/42/users/" + uid, cookie);
-    assertEquals(HttpStatus.OK, verfiedUserResp.getStatusCode());
-
-    //    for (WiserMessage message : wiser.getMessages()) {
-    //      String envelopeSender = message.getEnvelopeSender();
-    //      String envelopeReceiver = message.getEnvelopeReceiver();
-    //      MimeMessage mess = message.getMimeMessage();
-    //
-    //      log.info("Envelope Sender: " + envelopeSender);
-    //    }
 
     // Enroll in Email 2FA
     ResponseEntity<String> twoFAEnableResp =
@@ -485,21 +449,22 @@ class AuthTest {
         twoFAEnableResp,
         "The user has enrolled in email-based 2FA, a code was generated and sent successfully to the user's email");
 
-    String enrollCode = get2FACodeFromEmail();
-
+    // Enable 2FA with enrollment 2FA code sent via email
+    String enrollCode = extract2FACodeFromLatestEmail();
     Map<String, String> enable2FAReqBody = Map.of("code", enrollCode);
     ResponseEntity<String> enable2FAResp =
         postWithCookie(restTemplate, port, "/api/2fa/enable", enable2FAReqBody, cookie);
     assertMessage(enable2FAResp, "Two factor authentication was enabled successfully");
 
-    // Attempt to log in without 2FA code, should send email
+    // Attempt to log in without 2FA code, should send email with a new code
     ResponseEntity<LoginResponse> failedLoginResp =
         login(restTemplate, port, username, password, null);
+    assertNotNull(failedLoginResp.getBody());
     assertEquals(
         LoginResponse.STATUS.INCORRECT_TWO_FACTOR_CODE, failedLoginResp.getBody().getLoginStatus());
 
-    // Attempt to log in with correct 2FA code
-    String login2FACode = get2FACodeFromEmail();
+    // Attempt to log in with correct 2FA code sent by email
+    String login2FACode = extract2FACodeFromLatestEmail();
     ResponseEntity<LoginResponse> login2FAResp =
         login(restTemplate, port, username, password, login2FACode);
     assertLoginSuccess(login2FAResp, "/dhis-web-dashboard/");
@@ -512,14 +477,12 @@ class AuthTest {
     assertNotNull(apiMeResp.getBody());
   }
 
-  private static @NotNull String get2FACodeFromEmail() throws MessagingException, IOException {
+  private static @NotNull String extract2FACodeFromLatestEmail()
+      throws MessagingException, IOException {
     List<WiserMessage> messages = wiser.getMessages();
-    String twoFAEnrollmentEmail =
+    String twoFAEmail =
         getTextFromMessage(wiser.getMessages().get(messages.size() - 1).getMimeMessage());
-    String enrollCode =
-        twoFAEnrollmentEmail.substring(
-            twoFAEnrollmentEmail.indexOf("code:") + 7, twoFAEnrollmentEmail.indexOf("code:") + 13);
-    return enrollCode;
+    return twoFAEmail.substring(twoFAEmail.indexOf("code:") + 7, twoFAEmail.indexOf("code:") + 13);
   }
 
   public static String getTextFromMessage(Message message) throws MessagingException, IOException {
