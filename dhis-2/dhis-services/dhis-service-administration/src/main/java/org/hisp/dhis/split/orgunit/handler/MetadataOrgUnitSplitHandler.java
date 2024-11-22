@@ -29,14 +29,13 @@ package org.hisp.dhis.split.orgunit.handler;
 
 import com.google.common.collect.Sets;
 import java.util.List;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitRequest;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserQueryParams;
+import org.hisp.dhis.user.UserOrgUnitProperty;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 
@@ -92,11 +91,10 @@ public class MetadataOrgUnitSplitHandler {
   }
 
   public void splitUsers(OrgUnitSplitRequest request) {
-    Set<OrganisationUnit> source = Sets.newHashSet(request.getSource());
+    String sourceOrgUnitUid = request.getSource().getUid();
 
     List<User> dataCaptureUsers =
-        userService.getUsers(
-            new UserQueryParams().setCanSeeOwnRoles(true).setOrganisationUnits(source));
+        userService.getUsersWithOrgUnit(UserOrgUnitProperty.ORG_UNITS, sourceOrgUnitUid);
 
     dataCaptureUsers.forEach(
         u -> {
@@ -105,8 +103,7 @@ public class MetadataOrgUnitSplitHandler {
         });
 
     List<User> dataViewUsers =
-        userService.getUsers(
-            new UserQueryParams().setCanSeeOwnRoles(true).setDataViewOrganisationUnits(source));
+        userService.getUsersWithOrgUnit(UserOrgUnitProperty.DATA_VIEW_ORG_UNITS, sourceOrgUnitUid);
 
     dataViewUsers.forEach(
         u -> {
@@ -115,8 +112,7 @@ public class MetadataOrgUnitSplitHandler {
         });
 
     List<User> teiSearchOrgUnits =
-        userService.getUsers(
-            new UserQueryParams().setCanSeeOwnRoles(true).setTeiSearchOrganisationUnits(source));
+        userService.getUsersWithOrgUnit(UserOrgUnitProperty.TEI_SEARCH_ORG_UNITS, sourceOrgUnitUid);
 
     teiSearchOrgUnits.forEach(
         u -> {

@@ -1005,4 +1005,10 @@ public class DefaultUserService implements UserService {
 
     return userLookups;
   }
+
+  @Override
+  public List<User> getUsersWithOrgUnit(
+      @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull String uid) {
+    return userStore.getUsersWithOrgUnit(orgUnitProperty, uid);
+  }
 }
