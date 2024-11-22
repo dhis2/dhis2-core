@@ -36,6 +36,7 @@ import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY;
+import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
@@ -461,8 +462,21 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         columns.add(EventAnalyticsColumn.TRACKED_ENTITY_GEOMETRY);
       }
     }
+    if (sqlBuilder.supportsDeclarativePartitioning()) {
+      // Add the year column required for declarative partitioning
+      columns.add(getPartitionColumn());
+    }
 
     return filterDimensionColumns(columns);
+  }
+
+  @Override
+  protected AnalyticsTableColumn getPartitionColumn() {
+    return AnalyticsTableColumn.builder()
+        .name("year")
+        .dataType(INTEGER)
+        .selectExpression("dps.year")
+        .build();
   }
 
   private List<AnalyticsTableColumn> getColumnFromTrackedEntityAttribute(
@@ -475,7 +489,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
     String dataClause =
         attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
-    String select = getSelectClause(attribute.getValueType(), "value");
+    String select = getSelectClauseForTea(attribute.getValueType(), "value");
     String sql = selectForInsert(attribute, select, dataClause);
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
@@ -537,7 +551,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     DataType dataType = getColumnType(dataElement.getValueType(), isSpatialSupport());
     String dataClause = getDataClause(dataElement.getUid(), dataElement.getValueType());
-    String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
+    String columnName =
+        sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
     String select = getSelectClause(dataElement.getValueType(), columnName);
     String sql = selectForInsert(dataElement, select, dataClause);
     Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
@@ -598,9 +613,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       DataElement dataElement, String dataClause) {
     final List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    final String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
+    final String columnName =
+        sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
+
     final String fromClause =
-        qualifyVariables("from ${organisationunit} ou where ou.uid = (select " + columnName);
+        qualifyVariables("from ${organisationunit} ou where ou.uid = " + columnName);
 
     if (isSpatialSupport()) {
       String fromType = "ou.geometry " + fromClause;
@@ -631,11 +648,16 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return columns;
   }
 
+  /**
+   * Creates a select statement for data element insertion.
+   *
+   * @param dataElement The data element to create the select statement for
+   * @param fromType The SQL snippet for the "from" part of the query
+   * @param dataClause The data type related clause
+   * @return A SQL select expression for the data element
+   */
   private String selectForInsert(DataElement dataElement, String fromType, String dataClause) {
-    return replaceQualify(
-        """
-        (select ${fromType} from ${event} \
-        where eventid=ev.eventid ${dataClause})${closingParentheses} as ${dataElementUid}""",
+    Map<String, String> replacements =
         Map.of(
             "fromType",
             fromType,
@@ -644,7 +666,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             "closingParentheses",
             getClosingParentheses(fromType),
             "dataElementUid",
-            quote(dataElement.getUid())));
+            quote(dataElement.getUid()));
+
+    String sqlTemplate =
+        dataElement.getValueType().isOrganisationUnit()
+            ? "(select ${fromType} ${dataClause})${closingParentheses} as ${dataElementUid}"
+            : "(select ${fromType} from ${event} where eventid=ev.eventid ${dataClause})${closingParentheses} as ${dataElementUid}";
+
+    return replaceQualify(sqlTemplate, replacements);
   }
 
   private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet(
@@ -655,7 +684,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         inner join ${event} on l.startvalue <= ${select}
         and l.endvalue > ${select}
         and l.maplegendsetid=${legendSetId}
-        and eventid=ev.eventid ${dataClause}) as ${column}""";
+        ${dataClause} where eventid = ev.eventid) as ${column}""";
 
     return dataElement.getLegendSets().stream()
         .map(
@@ -683,9 +712,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     if (valueType.isNumeric() || valueType.isDate()) {
       String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : DATE_REGEXP;
 
-      return replace(
-          " and eventdatavalues #>> '{${uid},value}' ~* '${regex}'",
-          Map.of("uid", uid, "regex", regex));
+      String jsonValue = sqlBuilder.jsonExtractNested("eventdatavalues", uid, "value");
+
+      return " and " + jsonValue + " " + sqlBuilder.regexpMatch("'" + regex + "'");
     }
 
     return "";
