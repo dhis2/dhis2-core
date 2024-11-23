@@ -28,6 +28,7 @@
 package org.hisp.dhis.db.sql;
 
 import java.util.Collection;
+
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 
@@ -237,7 +238,7 @@ public interface SqlBuilder {
   String differenceInSeconds(String columnA, String columnB);
 
   /**
-   * @param the string value such as a column or expression.
+   * @param value the string value such as a column or expression.
    * @param pattern the regular expression pattern to match against.
    * @return a regular expression string matching clause.
    */
