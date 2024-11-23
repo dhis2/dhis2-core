@@ -212,7 +212,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
             + FROM_CLAUSE
             + "  and json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^(-?[0-9]+)(\\.[0-9]+)?$') as `%s`";
     String aliasD3 =
-        "(select case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) = 'true' then 1 when JSON_UNQUOTE(JSON_EXTRACT(eventdatavalues, '$.%s.value')) = 'false' then 0 else null end "
+        "(select case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) = 'true' then 1 when json_unquote(json_extract(eventdatavalues, '$.%s.value')) = 'false' then 0 else null end "
             + FROM_CLAUSE
             + " ) as `%s`";
     String aliasD4 =
@@ -220,9 +220,9 @@ class JdbcEventAnalyticsTableManagerDorisTest {
             + FROM_CLAUSE
             + "  and json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$') as `%s`";
     String aliasD5 =
-        "(select ou.uid from dhis2.public.`organisationunit` ou where ou.uid = JSON_UNQUOTE(JSON_EXTRACT(eventdatavalues, '$.deabcdefghG.value')) ) as `deabcdefghG`";
+        "(select ou.uid from dhis2.public.`organisationunit` ou where ou.uid = json_unquote(json_extract(eventdatavalues, '$.deabcdefghG.value')) ) as `deabcdefghG`";
     String aliasD5Name =
-        "(select ou.name from dhis2.public.`organisationunit` ou where ou.uid = JSON_UNQUOTE(JSON_EXTRACT(eventdatavalues, "
+        "(select ou.name from dhis2.public.`organisationunit` ou where ou.uid = json_unquote(json_extract(eventdatavalues, "
             + "'$.%s.value')) "
             + ") as `%s`";
     String aliasD6 =
