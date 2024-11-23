@@ -358,6 +358,10 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
     return programStages != null && programStages.size() == 1;
   }
 
+  public boolean hasMaxTeiCountToReturn() {
+    return maxTeiCountToReturn > 0;
+  }
+
   @Override
   public int increaseVersion() {
     return ++version;
