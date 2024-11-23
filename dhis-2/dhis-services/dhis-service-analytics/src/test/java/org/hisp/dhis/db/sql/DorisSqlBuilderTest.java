@@ -197,6 +197,13 @@ class DorisSqlBuilderTest {
     assertEquals("id regexp '[a-z]\\w+\\d{3}'", sqlBuilder.regexpMatch("id", "'[a-z]\\w+\\d{3}'"));
   }
 
+  @Test
+  void jsonExtractNested() {
+    assertEquals(
+        "json_unquote(json_extract(eventdatavalues, '$.D7m8vpzxHDJ.value'))",
+        sqlBuilder.jsonExtractNested("eventdatavalues", "D7m8vpzxHDJ", "value"));
+  }
+
   // Statements
 
   @Test
