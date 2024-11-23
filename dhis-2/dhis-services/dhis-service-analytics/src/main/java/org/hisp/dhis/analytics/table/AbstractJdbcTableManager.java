@@ -676,16 +676,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   /**
-   * Single-quotes the given value.
-   *
-   * @param value the value to single-quote.
-   * @return a single-quoted value.
-   */
-  protected String singleQuote(String value) {
-    return sqlBuilder.singleQuote(value);
-  }
-
-  /**
    * Quotes the given relation.
    *
    * @param relation the relation to quote, e.g. a table or column name.

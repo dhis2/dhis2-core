@@ -714,7 +714,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
       String jsonValue = sqlBuilder.jsonExtractNested("eventdatavalues", uid, "value");
 
-      return " and " + sqlBuilder.regexpMatch(jsonValue, singleQuote(regex));
+      return " and " + sqlBuilder.regexpMatch(jsonValue, "'" + regex + "'");
     }
 
     return "";
