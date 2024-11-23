@@ -226,7 +226,7 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
-  void jsonExtractNested() {
+  void testJsonExtractNested() {
     assertEquals(
         "eventdatavalues #>> '{D7m8vpzxHDJ, value}'",
         sqlBuilder.jsonExtractNested("eventdatavalues", "D7m8vpzxHDJ", "value"));
