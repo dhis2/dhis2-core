@@ -28,7 +28,6 @@
 package org.hisp.dhis.db.sql;
 
 import java.util.Collection;
-
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 
