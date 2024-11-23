@@ -676,7 +676,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   /**
-   * Single-quotes the given relation.
+   * Single-quotes the given value.
    *
    * @param value the value to single-quote.
    * @return a single-quoted value.
