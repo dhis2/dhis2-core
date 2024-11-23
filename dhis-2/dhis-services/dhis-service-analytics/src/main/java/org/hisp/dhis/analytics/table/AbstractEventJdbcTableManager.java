@@ -96,11 +96,11 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   public static final String OU_NAME_COL_SUFFIX = "_name";
 
   protected final String getNumericClause() {
-    return " and value " + sqlBuilder.regexpMatch("'" + NUMERIC_LENIENT_REGEXP + "'");
+    return " and " + sqlBuilder.regexpMatch("value", singleQuote(NUMERIC_LENIENT_REGEXP));
   }
 
   protected final String getDateClause() {
-    return " and value " + sqlBuilder.regexpMatch("'" + DATE_REGEXP + "'");
+    return " and " + sqlBuilder.regexpMatch("value", singleQuote(DATE_REGEXP));
   }
 
   protected Skip skipIndex(ValueType valueType, boolean hasOptionSet) {

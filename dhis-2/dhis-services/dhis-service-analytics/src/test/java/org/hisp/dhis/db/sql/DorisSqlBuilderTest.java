@@ -191,10 +191,10 @@ class DorisSqlBuilderTest {
 
   @Test
   void testRegexpMatch() {
-    assertEquals("regexp test", sqlBuilder.regexpMatch("test"));
-    assertEquals("regexp \\d", sqlBuilder.regexpMatch("\\d"));
-    assertEquals("regexp ", sqlBuilder.regexpMatch(""));
-    assertEquals("regexp [a-z]\\w+\\d{3}", sqlBuilder.regexpMatch("[a-z]\\w+\\d{3}"));
+    assertEquals("value regexp 'test'", sqlBuilder.regexpMatch("value", "'test'"));
+    assertEquals("number regexp '\\d'", sqlBuilder.regexpMatch("number", "'\\d'"));
+    assertEquals("color regexp '^Blue$'", sqlBuilder.regexpMatch("color", "'^Blue$'"));
+    assertEquals("id regexp '[a-z]\\w+\\d{3}'", sqlBuilder.regexpMatch("id", "'[a-z]\\w+\\d{3}'"));
   }
 
   // Statements

@@ -219,11 +219,10 @@ class PostgreSqlBuilderTest {
 
   @Test
   void testRegexpMatch() {
-    assertEquals("~* test", sqlBuilder.regexpMatch("test"));
-    assertEquals("~* ", sqlBuilder.regexpMatch(""));
-    assertEquals("~* null", sqlBuilder.regexpMatch(null));
-    assertEquals("~* .*[a-z]\\d+", sqlBuilder.regexpMatch(".*[a-z]\\d+"));
-    assertEquals("~*  ", sqlBuilder.regexpMatch(" "));
+    assertEquals("value ~* 'test'", sqlBuilder.regexpMatch("value", "'test'"));
+    assertEquals("number ~* '\\d'", sqlBuilder.regexpMatch("number", "'\\d'"));
+    assertEquals("color ~* '^Blue$'", sqlBuilder.regexpMatch("color", "'^Blue$'"));
+    assertEquals("id ~* '[a-z]\\w+\\d{3}'", sqlBuilder.regexpMatch("id", "'[a-z]\\w+\\d{3}'"));
   }
 
   // Statements

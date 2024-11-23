@@ -198,8 +198,8 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String regexpMatch(String pattern) {
-    return String.format("match %s", pattern); // TO DO
+  public String regexpMatch(String value, String pattern) {
+    return String.format("match(%s, %s)", value, pattern);
   }
 
   @Override

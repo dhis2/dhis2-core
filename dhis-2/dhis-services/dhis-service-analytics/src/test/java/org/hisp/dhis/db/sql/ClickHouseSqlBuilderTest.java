@@ -195,6 +195,18 @@ class ClickHouseSqlBuilderTest {
         "date_trunc('month', pe.startdate)", sqlBuilder.dateTrunc("month", "pe.startdate"));
   }
 
+  void testDifferenceInSeconds() {
+    // TO DO
+  }
+
+  @Test
+  void testRegexpMatch() {
+    assertEquals("match(value, 'test')", sqlBuilder.regexpMatch("value", "'test'"));
+    assertEquals("match(number, '\\d')", sqlBuilder.regexpMatch("number", "'\\d'"));
+    assertEquals("match(color, '^Blue$')", sqlBuilder.regexpMatch("color", "'^Blue$'"));
+    assertEquals("match(id, '[a-z]\\w+\\d{3}')", sqlBuilder.regexpMatch("id", "'[a-z]\\w+\\d{3}'"));
+  }
+
   // Statements
 
   @Test

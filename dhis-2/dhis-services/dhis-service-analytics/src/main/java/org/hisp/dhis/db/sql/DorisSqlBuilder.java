@@ -201,8 +201,8 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String regexpMatch(String pattern) {
-    return String.format("regexp %s", pattern);
+  public String regexpMatch(String value, String pattern) {
+    return String.format("%s regexp %s", value, pattern);
   }
 
   @Override

@@ -237,10 +237,11 @@ public interface SqlBuilder {
   String differenceInSeconds(String columnA, String columnB);
 
   /**
-   * @param pattern the regular expression pattern to match against
-   * @return a regular expression matching clause.
+   * @param the string value such as a column or expression.
+   * @param pattern the regular expression pattern to match against.
+   * @return a regular expression string matching clause.
    */
-  String regexpMatch(String pattern);
+  String regexpMatch(String value, String pattern);
 
   /**
    * Creates a SQL concatenation function that combines multiple columns or expressions.
