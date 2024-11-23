@@ -220,8 +220,8 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String regexpMatch(String pattern) {
-    return String.format("~* %s", pattern);
+  public String regexpMatch(String value, String pattern) {
+    return String.format("%s ~* %s", value, pattern);
   }
 
   @Override

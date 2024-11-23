@@ -201,8 +201,8 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String regexpMatch(String pattern) {
-    return String.format("regexp %s", pattern);
+  public String regexpMatch(String value, String pattern) {
+    return String.format("%s regexp %s", value, pattern);
   }
 
   @Override
@@ -234,7 +234,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String jsonExtractNested(String column, String... jsonPath) {
     String path = "$." + String.join(".", jsonPath);
-    return String.format("JSON_UNQUOTE(JSON_EXTRACT(%s, '%s'))", column, path);
+    return String.format("json_unquote(json_extract(%s, '%s'))", column, path);
   }
 
   // Statements

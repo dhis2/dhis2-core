@@ -40,6 +40,7 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
+import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import com.google.common.collect.Sets;
@@ -78,7 +79,6 @@ import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
-import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -280,9 +280,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     String numericClause =
         skipDataTypeValidation
             ? ""
-            : replace(
-                "and dv.value ~* '${expression}'",
-                Map.of("expression", MathUtils.NUMERIC_LENIENT_REGEXP));
+            : "and " + sqlBuilder.regexpMatch("dv.value", "'" + NUMERIC_LENIENT_REGEXP + "'");
     String zeroValueCondition = includeZeroValues ? " or des.zeroissignificant = true" : "";
     String zeroValueClause =
         replace(
