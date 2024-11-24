@@ -719,7 +719,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   /**
-   * Returns an expression for extracting a data value.
+   * Returns an expression for extracting a data value for numeric and date value types, otherwise
+   * returns the empty string.
    *
    * @param uid the identifier.
    * @param valueType the {@link ValueType}.
