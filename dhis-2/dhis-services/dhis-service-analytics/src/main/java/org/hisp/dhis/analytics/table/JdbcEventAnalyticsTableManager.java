@@ -520,12 +520,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   private List<AnalyticsTableColumn> getColumnFromOrgUnitDataElement(
       DataElement dataElement, String dataClause) {
-    final List<AnalyticsTableColumn> columns = new ArrayList<>();
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    final String columnName =
+    String columnName =
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
-
-    final String fromClause =
+    String fromClause =
         qualifyVariables("from ${organisationunit} ou where ou.uid = " + columnName);
 
     if (isSpatialSupport()) {
