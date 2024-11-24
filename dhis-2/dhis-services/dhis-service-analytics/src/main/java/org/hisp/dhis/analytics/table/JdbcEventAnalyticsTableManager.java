@@ -546,6 +546,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         .collect(toList());
   }
 
+  /**
+   * Returns a column for the given data element. If the value type of the data element is {@link
+   * ValueType#ORGANISATION_UNIT}, an extra column will be included.
+   *
+   * @param dataElement the {@link DataElement}.
+   * @param withLegendSet indicates
+   * @return
+   */
   private List<AnalyticsTableColumn> getColumnFromDataElement(
       DataElement dataElement, boolean withLegendSet) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
