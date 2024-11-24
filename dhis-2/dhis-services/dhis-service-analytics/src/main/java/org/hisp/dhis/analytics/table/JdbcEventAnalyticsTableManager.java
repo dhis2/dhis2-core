@@ -673,7 +673,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String sqlTemplate =
         dataElement.getValueType().isOrganisationUnit()
             ? "(select ${selectExpression} ${dataClause})${closingParentheses} as ${uid}"
-            : "(select ${selectExpression} from ${event} where eventid=ev.eventid ${dataClause})${closingParentheses} as ${uid}";
+            : "select ${selectExpression}${closingParentheses} as ${uid}";
 
     return replaceQualify(
         sqlTemplate,
