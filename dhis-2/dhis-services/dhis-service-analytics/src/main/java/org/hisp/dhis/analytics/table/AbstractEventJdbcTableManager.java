@@ -108,19 +108,35 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     return skipIndex ? Skip.SKIP : Skip.INCLUDE;
   }
 
-  protected String getSelectExpression(ValueType valueType, String columnName) {
+  /**
+   * Returns a select expression for a data element value, handling casting to the appropriate data
+   * type based on the given value type.
+   *
+   * @param valueType the {@link ValueType}.
+   * @param columnName the column name.
+   * @return a select expression.
+   */
+  protected String getSelectExpressionForDataElement(ValueType valueType, String columnName) {
     return getSelectExpressionInternal(valueType, columnName, false);
   }
 
-  protected String getSelectExpressionForTea(ValueType valueType, String columnName) {
+  /**
+   * Returns a select expression for a tracked entity attribute, handling casting to the appropriate
+   * data type based on the given value type.
+   *
+   * @param valueType the {@link ValueType}.
+   * @param columnName the column name.
+   * @return a select expression.
+   */
+  protected String getSelectExpressionForAttribute(ValueType valueType, String columnName) {
     return getSelectExpressionInternal(valueType, columnName, true);
   }
 
   /**
-   * Returns the select expression, potentially with a cast statement, based on the given value
-   * type. Handles data element and tracked entity attribute select expressions.
+   * Returns a select expression, potentially with a cast statement, based on the given value type.
+   * Handles data element and tracked entity attribute select expressions.
    *
-   * @param valueType the value type to represent as database column type.
+   * @param valueType the {@link ValueType} to represent as database column type.
    * @param columnName the name of the column to be selected.
    * @param isTeaContext whether the selection is in the context of a tracked entity attribute. When
    *     true, organization unit selections will include an additional subquery wrapper.
@@ -201,7 +217,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           attribute.isNumericType()
               ? getNumericClause()
               : attribute.isDateType() ? getDateClause() : "";
-      String select = getSelectExpressionForTea(attribute.getValueType(), "value");
+      String select = getSelectExpressionForAttribute(attribute.getValueType(), "value");
       Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
       String sql =

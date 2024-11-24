@@ -495,7 +495,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     DataType dataType = getColumnType(dataElement.getValueType(), isSpatialSupport());
     String columnExpression =
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
-    String selectExpression = getSelectExpression(dataElement.getValueType(), columnExpression);
+    String selectExpression =
+        getSelectExpressionForDataElement(dataElement.getValueType(), columnExpression);
     String dataExpression = getDataExpression(dataElement.getUid(), dataElement.getValueType());
     String sql = getSelectForInsert(dataElement, selectExpression, dataExpression);
     Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
@@ -564,7 +565,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
-    String selectExpression = getSelectExpressionForTea(attribute.getValueType(), "value");
+    String selectExpression = getSelectExpressionForAttribute(attribute.getValueType(), "value");
     String dataExpression =
         attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
     String sql = selectForInsert(attribute, selectExpression, dataExpression);
@@ -590,7 +591,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   private List<AnalyticsTableColumn> getColumnFromTrackedEntityAttributeWithLegendSet(
       TrackedEntityAttribute attribute, String numericClause) {
-    String selectClause = getSelectExpression(attribute.getValueType(), "value");
+    String selectClause = getSelectExpressionForDataElement(attribute.getValueType(), "value");
     String query =
         """
         \s(select l.uid from ${maplegend} l \
