@@ -225,7 +225,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     Assert.isTrue(
         lastFullTableUpdate.getTime() > 0L,
-        "A full analytics table update process must be run prior to a latest partition update process");
+        "A full analytics table update process must be run prior to a latest partition update");
 
     Date startDate = lastFullTableUpdate;
     Date endDate = params.getStartTime();
@@ -550,12 +550,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return columns;
   }
 
-  private String getDataFilterClause(TrackedEntityAttribute attribute) {
-    return attribute.isNumericType()
-        ? getNumericClause()
-        : attribute.isDateType() ? getDateClause() : EMPTY;
-  }
-
   private List<AnalyticsTableColumn> getColumnFromTrackedEntityAttribute(
       TrackedEntityAttribute attribute, boolean withLegendSet) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
@@ -668,7 +662,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             ? "(select ${selectExpression} ${dataClause})${closingParentheses} as ${uid}"
             : "(select ${selectExpression} from ${event} where eventid=ev.eventid ${dataClause})${closingParentheses} as ${uid}";
 
-    Map<String, String> variables =
+    return replaceQualify(
+        sqlTemplate,
         Map.of(
             "selectExpression",
             selectExpression,
@@ -677,9 +672,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             "closingParentheses",
             getClosingParentheses(selectExpression),
             "uid",
-            quote(dataElement.getUid()));
-
-    return replaceQualify(sqlTemplate, variables);
+            quote(dataElement.getUid())));
   }
 
   /**
@@ -726,9 +719,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * For numeric and date value types, returns a data filter clause for checking whether the value
    * is valid according to the value type. For other value types, returns the empty string.
    *
-   * @param uid the identifier.
-   * @param valueType the {@link ValueType}.
-   * @return an expression for extracting a data value.
+   * @param dataElement the {@link DataElement}.
+   * @return an filter expression.
    */
   private String getDataFilterClause(DataElement dataElement) {
     String uid = dataElement.getUid();
@@ -743,6 +735,19 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     }
 
     return EMPTY;
+  }
+
+  /**
+   * For numeric and date value types, returns a data filter clause for checking whether the value
+   * is valid according to the value type. For other value types, returns the empty string.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @return an filter expression.
+   */
+  private String getDataFilterClause(TrackedEntityAttribute attribute) {
+    return attribute.isNumericType()
+        ? getNumericClause()
+        : attribute.isDateType() ? getDateClause() : EMPTY;
   }
 
   /**
