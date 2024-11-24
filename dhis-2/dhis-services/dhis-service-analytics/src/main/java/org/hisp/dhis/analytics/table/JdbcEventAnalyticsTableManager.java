@@ -493,8 +493,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     DataType dataType = getColumnType(dataElement.getValueType(), isSpatialSupport());
-    String dataExpression =
-        getDataValueExpression(dataElement.getUid(), dataElement.getValueType());
+    String dataExpression = getDataExpression(dataElement.getUid(), dataElement.getValueType());
     String columnName =
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
     String selectExpression = getSelectExpression(dataElement.getValueType(), columnName);
@@ -727,7 +726,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @param valueType the {@link ValueType}.
    * @return an expression for extracting a data value.
    */
-  private String getDataValueExpression(String uid, ValueType valueType) {
+  private String getDataExpression(String uid, ValueType valueType) {
     if (valueType.isNumeric() || valueType.isDate()) {
       String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : DATE_REGEXP;
 
