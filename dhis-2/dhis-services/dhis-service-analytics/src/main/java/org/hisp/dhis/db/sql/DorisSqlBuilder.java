@@ -222,7 +222,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String jsonExtract(String column, String property) {
-    return "json_unquote(json_extract(" + column + ", '$." + property + "'))";
+    return String.format("json_unquote(json_extract(%s, '$.%s'))", column, property);
   }
 
   @Override
