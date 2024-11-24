@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
@@ -717,7 +718,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       return " and " + sqlBuilder.regexpMatch(jsonValue, "'" + regex + "'");
     }
 
-    return "";
+    return EMPTY;
   }
 
   private List<Integer> getDataYears(
@@ -734,7 +735,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                     eventDateExpression,
                     "fromDate",
                     toMediumDate(params.getFromDate())))
-            : "";
+            : EMPTY;
     String sql =
         replaceQualify(
             """
