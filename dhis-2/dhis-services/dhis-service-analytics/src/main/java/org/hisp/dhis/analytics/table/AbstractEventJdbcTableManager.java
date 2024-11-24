@@ -254,8 +254,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    *
    * @param attribute the {@link TrackedEntityAttribute}.
    * @param fromType the sql snippet related to "from" part
-   * @param dataClause the data type related clause like "NUMERIC"
-   * @return
+   * @param dataClause the data type related clause like "NUMERIC".
+   * @return a select statement.
    */
   protected String selectForInsert(
       TrackedEntityAttribute attribute, String fromType, String dataClause) {

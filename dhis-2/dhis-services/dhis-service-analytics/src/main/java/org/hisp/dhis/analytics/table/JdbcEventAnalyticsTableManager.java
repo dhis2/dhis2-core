@@ -706,7 +706,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                   .selectExpression(sql)
                   .build();
             })
-        .collect(toList());
+        .toList();
   }
 
   private String getDataClause(String uid, ValueType valueType) {
