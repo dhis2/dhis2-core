@@ -659,7 +659,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   /**
-   * Creates a select statement for data element insertion.
+   * Creates a select statement for the given select expression.
    *
    * @param dataElement the data element to create the select statement for.
    * @param selectExpression the select expression.
@@ -687,8 +687,16 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return replaceQualify(sqlTemplate, variables);
   }
 
+  /**
+   * Returns a list of columns.
+   *
+   * @param dataElement the {@link DataElement}.
+   * @param selectExpression the select expression.
+   * @param dataFilterClause the data filter clause.
+   * @return a list of {@link AnayticsTableColumn}.
+   */
   private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet(
-      DataElement dataElement, String select, String dataClause) {
+      DataElement dataElement, String selectExpression, String dataFilterClause) {
     String query =
         """
         (select l.uid from ${maplegend} l
@@ -705,9 +713,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                   replaceQualify(
                       query,
                       Map.of(
-                          "select", select,
+                          "select", selectExpression,
                           "legendSetId", String.valueOf(ls.getId()),
-                          "dataClause", dataClause,
+                          "dataClause", dataFilterClause,
                           "column", column));
 
               return AnalyticsTableColumn.builder()
