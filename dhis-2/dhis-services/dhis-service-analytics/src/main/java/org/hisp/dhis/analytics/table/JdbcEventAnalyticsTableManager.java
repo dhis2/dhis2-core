@@ -660,8 +660,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private String getSelectForInsert(DataElement dataElement, String fromType, String dataClause) {
     String sqlTemplate =
         dataElement.getValueType().isOrganisationUnit()
-            ? "(select ${fromType} ${dataClause})${closingParentheses} as ${dataElementUid}"
-            : "(select ${fromType} from ${event} where eventid=ev.eventid ${dataClause})${closingParentheses} as ${dataElementUid}";
+            ? "(select ${fromType} ${dataClause})${closingParentheses} as ${uid}"
+            : "(select ${fromType} from ${event} where eventid=ev.eventid ${dataClause})${closingParentheses} as ${uid}";
 
     Map<String, String> variables =
         Map.of(
@@ -671,7 +671,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             dataClause,
             "closingParentheses",
             getClosingParentheses(fromType),
-            "dataElementUid",
+            "uid",
             quote(dataElement.getUid()));
 
     return replaceQualify(sqlTemplate, variables);
