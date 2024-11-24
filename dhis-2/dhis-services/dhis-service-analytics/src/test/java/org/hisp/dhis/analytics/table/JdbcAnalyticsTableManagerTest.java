@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.db.model.DataType.INTEGER;
+import static org.hisp.dhis.db.model.Distribution.NONE;
 import static org.hisp.dhis.db.model.Logged.LOGGED;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -43,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -54,6 +57,7 @@ import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Distribution;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -70,7 +74,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -116,6 +119,37 @@ class JdbcAnalyticsTableManagerTest {
             analyticsTableSettings,
             periodDataProvider,
             sqlBuilder);
+  }
+
+  @Test
+  void verifyTableNotDistributedWhenCitusEnabledAndTableTypeIsSkipped() {
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .skipCitusTypes(Set.of(AnalyticsTableType.DATA_VALUE))
+            .lastYears(1)
+            .build();
+
+    when(analyticsTableSettings.getDistribution()).thenReturn(Distribution.DISTRIBUTED);
+    when(jdbcTemplate.queryForList(anyString(), ArgumentMatchers.<Class<Integer>>any()))
+        .thenReturn(List.of(2018));
+
+    List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);
+
+    assertFalse(analyticsTables.get(0).isDistributed());
+  }
+
+  @Test
+  void verifyTableIsDistributedWhenCitusEnabledAndTableTypeIsNotSkipped() {
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().lastYears(1).build();
+
+    when(analyticsTableSettings.getDistribution()).thenReturn(Distribution.DISTRIBUTED);
+    when(jdbcTemplate.queryForList(anyString(), ArgumentMatchers.<Class<Integer>>any()))
+        .thenReturn(List.of(2018));
+
+    List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);
+
+    assertTrue(analyticsTables.get(0).isDistributed());
   }
 
   @Test
@@ -170,7 +204,7 @@ class JdbcAnalyticsTableManagerTest {
         AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build();
 
     when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
-    when(jdbcTemplate.queryForList(Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any()))
+    when(jdbcTemplate.queryForList(anyString(), ArgumentMatchers.<Class<Integer>>any()))
         .thenReturn(dataYears);
     when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
 
@@ -211,7 +245,7 @@ class JdbcAnalyticsTableManagerTest {
         AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build();
 
     when(analyticsTableSettings.getTableLogged()).thenReturn(LOGGED);
-    when(jdbcTemplate.queryForList(Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any()))
+    when(jdbcTemplate.queryForList(anyString(), ArgumentMatchers.<Class<Integer>>any()))
         .thenReturn(dataYears);
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
@@ -258,7 +292,7 @@ class JdbcAnalyticsTableManagerTest {
     when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
         .thenReturn(lastLatestPartitionUpdate);
     when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
-    when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
+    when(jdbcTemplate.queryForList(anyString())).thenReturn(queryResp);
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
 
@@ -309,7 +343,7 @@ class JdbcAnalyticsTableManagerTest {
                 .build());
     List<String> sortKey = List.of("dx");
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, sortKey, LOGGED);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, sortKey, LOGGED, NONE);
     table.addTablePartition(List.of(), 2023, new DateTime(2023, 1, 1, 0, 0).toDate(), null);
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();

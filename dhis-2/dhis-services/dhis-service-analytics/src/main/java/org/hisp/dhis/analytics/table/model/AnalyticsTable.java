@@ -27,14 +27,18 @@
  */
 package org.hisp.dhis.analytics.table.model;
 
+import static org.hisp.dhis.db.model.Distribution.DISTRIBUTED;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.Distribution;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.TablePartition;
@@ -49,6 +53,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
  * @author Lars Helge Overland
  */
 @Getter
+@Slf4j
 public class AnalyticsTable extends Table {
   /** Analytics table type. */
   private final AnalyticsTableType tableType;
@@ -76,19 +81,22 @@ public class AnalyticsTable extends Table {
    * @param columns the list of {@link Column}.
    * @param sortKey the sort key.
    * @param logged the {@link Logged} property.
+   * @param distribution the {@link Distribution} based on Citus settings.
    */
   public AnalyticsTable(
       AnalyticsTableType tableType,
       List<AnalyticsTableColumn> columns,
       List<String> sortKey,
-      Logged logged) {
+      Logged logged,
+      Distribution distribution) {
     super(
         toStaging(tableType.getTableName()),
         toColumns(columns),
         List.of(),
         sortKey,
         List.of(),
-        logged);
+        logged,
+        getDistributedFlag(distribution, tableType.isDistributed()));
     this.tableType = tableType;
     this.analyticsTableColumns = columns;
   }
@@ -100,13 +108,20 @@ public class AnalyticsTable extends Table {
    * @param columns the list of {@link Column}.
    * @param logged the {@link Logged} property.
    * @param program the {@link Program}.
+   * @param distribution the {@link Distribution} based on Citus settings.
    */
   public AnalyticsTable(
       AnalyticsTableType tableType,
       List<AnalyticsTableColumn> columns,
       Logged logged,
-      Program program) {
-    super(toStaging(getTableName(tableType, program)), toColumns(columns), List.of(), logged);
+      Program program,
+      Distribution distribution) {
+    super(
+        toStaging(getTableName(tableType, program)),
+        toColumns(columns),
+        List.of(),
+        logged,
+        getDistributedFlag(distribution, tableType.isDistributed()));
     this.tableType = tableType;
     this.analyticsTableColumns = columns;
     this.program = program;
@@ -119,17 +134,20 @@ public class AnalyticsTable extends Table {
    * @param columns the list of {@link Column}.
    * @param logged the {@link Logged} property.
    * @param trackedEntityType the {@link TrackedEntityType}.
+   * @param distribution the {@link Distribution} based on Citus settings.
    */
   public AnalyticsTable(
       AnalyticsTableType tableType,
       List<AnalyticsTableColumn> columns,
       Logged logged,
-      TrackedEntityType trackedEntityType) {
+      TrackedEntityType trackedEntityType,
+      Distribution distribution) {
     super(
         toStaging(getTableName(tableType, trackedEntityType)),
         toColumns(columns),
         List.of(),
-        logged);
+        logged,
+        getDistributedFlag(distribution, tableType.isDistributed()));
     this.tableType = tableType;
     this.analyticsTableColumns = columns;
     this.trackedEntityType = trackedEntityType;
@@ -138,6 +156,19 @@ public class AnalyticsTable extends Table {
   // -------------------------------------------------------------------------
   // Static methods
   // -------------------------------------------------------------------------
+
+  /**
+   * Checks both boolean flags. If both are true, it means that this table should be handled as a
+   * distributed table (type of Citus table).
+   *
+   * @param distribution the {@link Distribution} based on Citus settings.
+   * @param distributedTableType flag to say if the table type is distributed.
+   * @return true if this is a distributed table, false otherwise.
+   */
+  private static boolean getDistributedFlag(
+      Distribution distribution, boolean distributedTableType) {
+    return distribution == DISTRIBUTED && distributedTableType;
+  }
 
   /**
    * Converts the given list of analytics table columns to a list of columns.
@@ -230,6 +261,16 @@ public class AnalyticsTable extends Table {
    */
   public AnalyticsTable addTablePartition(
       List<String> checks, Integer year, Date startDate, Date endDate) {
+
+    if (isDistributed()) {
+      log.info(
+          "Partitions are not supported when using CITUS for distributed analytics tables: no partition for "
+              + year
+              + " will be added to table "
+              + getName());
+      return this;
+    }
+
     Objects.requireNonNull(year);
 
     AnalyticsTablePartition partition =
@@ -249,6 +290,10 @@ public class AnalyticsTable extends Table {
    */
   public boolean hasTablePartitions() {
     return !tablePartitions.isEmpty();
+  }
+
+  public boolean isTableTypeDistributed() {
+    return tableType.isDistributed();
   }
 
   /**

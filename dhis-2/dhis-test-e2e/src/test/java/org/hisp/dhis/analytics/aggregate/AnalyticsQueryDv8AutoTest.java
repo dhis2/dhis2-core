@@ -42,6 +42,7 @@ import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /** Groups e2e tests for "/analytics" aggregate endpoint. */
@@ -234,6 +235,7 @@ public class AnalyticsQueryDv8AutoTest extends AnalyticsApiTest {
   }
 
   @Test
+  @Tag("slowQuery")
   public void queryChildHealthAndInpatientIndicators() throws JSONException {
     // Given
     QueryParamsBuilder params =
@@ -547,6 +549,7 @@ public class AnalyticsQueryDv8AutoTest extends AnalyticsApiTest {
   }
 
   @Test
+  @Tag("slowQuery")
   public void queryDataByFacilityTypeAndOwnershipallOptions() throws JSONException {
     // Given
     QueryParamsBuilder params =
@@ -3228,6 +3231,7 @@ public class AnalyticsQueryDv8AutoTest extends AnalyticsApiTest {
   }
 
   @Test
+  @Tag("slowQuery")
   public void queryIndicatorsByFacilityTypeOwnershipAndLocation() throws JSONException {
     // Given
     QueryParamsBuilder params =

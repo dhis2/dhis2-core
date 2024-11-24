@@ -30,6 +30,7 @@ package org.hisp.dhis.scheduling.parameters;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashSet;
 import java.util.Set;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -45,10 +46,13 @@ import org.hisp.dhis.scheduling.JobParameters;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class AnalyticsJobParameters implements JobParameters {
   @JsonProperty private Integer lastYears;
 
   @JsonProperty private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
+
+  @JsonProperty private Set<AnalyticsTableType> skipCitusTypes = new HashSet<>();
 
   @JsonProperty
   @OpenApi.Property({UID[].class, Program.class})
@@ -56,17 +60,4 @@ public class AnalyticsJobParameters implements JobParameters {
 
   @JsonProperty private boolean skipResourceTables = false;
   @JsonProperty private boolean skipOutliers = false;
-
-  public AnalyticsJobParameters(
-      Integer lastYears,
-      Set<AnalyticsTableType> skipTableTypes,
-      Set<String> skipPrograms,
-      boolean skipResourceTables,
-      boolean skipOutliers) {
-    this.lastYears = lastYears;
-    this.skipTableTypes = skipTableTypes;
-    this.skipPrograms = skipPrograms;
-    this.skipResourceTables = skipResourceTables;
-    this.skipOutliers = skipOutliers;
-  }
 }

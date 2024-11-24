@@ -268,7 +268,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
             .append(" (");
 
     // Columns
-
     if (table.hasColumns()) {
       for (Column column : table.getColumns()) {
         String dataType = getDataTypeName(column.getDataType());
@@ -284,7 +283,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     }
 
     // Primary key
-
     if (table.hasPrimaryKey()) {
       sql.append("primary key (");
 
@@ -296,7 +294,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     }
 
     // Checks
-
     if (table.hasChecks()) {
       for (String check : table.getChecks()) {
         sql.append("check(" + check + ")").append(COMMA);
@@ -306,8 +303,8 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     removeLastComma(sql).append(")");
 
     // Parent
-
-    if (table.hasParent()) {
+    // Only use partitioned (inherited) tables when we should not distribute the table.
+    if (!table.isDistributed() && table.hasParent()) {
       sql.append(" inherits (").append(quote(table.getParent().getName())).append(")");
     }
 

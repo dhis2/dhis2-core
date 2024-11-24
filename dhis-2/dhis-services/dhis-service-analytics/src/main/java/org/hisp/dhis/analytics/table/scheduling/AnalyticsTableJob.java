@@ -64,6 +64,7 @@ public class AnalyticsTableJob implements Job {
             .skipResourceTables(parameters.isSkipResourceTables())
             .skipOutliers(parameters.isSkipOutliers())
             .skipTableTypes(parameters.getSkipTableTypes())
+            .skipCitusTypes(parameters.getSkipCitusTypes())
             .skipPrograms(parameters.getSkipPrograms())
             .jobId(jobConfiguration)
             .startTime(new Date())

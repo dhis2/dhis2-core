@@ -66,6 +66,9 @@ public class AnalyticsTableUpdateParams {
   /** Analytics table types to skip. */
   @Builder.Default private final Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
 
+  /** Analytics table types for which to skip Citus distributed tables. */
+  @Builder.Default private Set<AnalyticsTableType> skipCitusTypes = new HashSet<>();
+
   /** Analytics table programs to skip. */
   @Builder.Default private final Set<String> skipPrograms = new HashSet<>();
 
@@ -112,6 +115,16 @@ public class AnalyticsTableUpdateParams {
 
   public boolean isSkipPrograms() {
     return !skipPrograms.isEmpty();
+  }
+
+  /**
+   * Indicates whether the export process should skip Citus table for the given table type.
+   *
+   * @param type the table type
+   * @return true if Citus should be skipped, false otherwise
+   */
+  public boolean isSkipCitusType(AnalyticsTableType type) {
+    return skipCitusTypes.contains(type);
   }
 
   /**

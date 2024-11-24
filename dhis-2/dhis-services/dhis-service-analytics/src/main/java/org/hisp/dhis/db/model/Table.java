@@ -55,6 +55,8 @@ public class Table {
   /** Table name. Required. */
   @EqualsAndHashCode.Include private final String name;
 
+  private boolean distributed;
+
   /** Table columns. At least one column required, unless a parent table is specified. */
   private final List<Column> columns;
 
@@ -110,6 +112,32 @@ public class Table {
     this.checks = List.of();
     this.logged = logged;
     this.parent = null;
+    this.distributed = false;
+    this.validate();
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name the table name.
+   * @param columns the list of {@link Column}.
+   * @param primaryKey the primary key.
+   * @param logged the {@link Logged} parameter.
+   */
+  public Table(
+      String name,
+      List<Column> columns,
+      List<String> primaryKey,
+      Logged logged,
+      boolean distributed) {
+    this.name = name;
+    this.columns = columns;
+    this.primaryKey = primaryKey;
+    this.sortKey = List.of();
+    this.checks = List.of();
+    this.logged = logged;
+    this.parent = null;
+    this.distributed = distributed;
     this.validate();
   }
 
@@ -137,6 +165,35 @@ public class Table {
     this.checks = checks;
     this.logged = logged;
     this.parent = null;
+    this.validate();
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name the table name.
+   * @param columns the list of {@link Column}.
+   * @param primaryKey the primary key.
+   * @param sortKey the sort key.
+   * @param checks the list of checks.
+   * @param logged the {@link Logged} parameter.
+   */
+  public Table(
+      String name,
+      List<Column> columns,
+      List<String> primaryKey,
+      List<String> sortKey,
+      List<String> checks,
+      Logged logged,
+      boolean distributed) {
+    this.name = name;
+    this.columns = columns;
+    this.primaryKey = primaryKey;
+    this.sortKey = sortKey;
+    this.checks = checks;
+    this.logged = logged;
+    this.parent = null;
+    this.distributed = distributed;
     this.validate();
   }
 

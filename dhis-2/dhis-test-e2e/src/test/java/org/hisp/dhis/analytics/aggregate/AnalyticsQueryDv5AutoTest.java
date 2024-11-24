@@ -42,6 +42,7 @@ import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /** Groups e2e tests for "/analytics" aggregate endpoint. */
@@ -14202,6 +14203,7 @@ public class AnalyticsQueryDv5AutoTest extends AnalyticsApiTest {
   }
 
   @Test
+  @Tag("slowQuery")
   public void queryAncVisits13Last12Months() throws JSONException {
     // Given
     QueryParamsBuilder params =

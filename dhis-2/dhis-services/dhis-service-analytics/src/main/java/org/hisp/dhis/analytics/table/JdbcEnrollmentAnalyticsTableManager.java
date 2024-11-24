@@ -45,6 +45,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Distribution;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -118,11 +119,13 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     List<AnalyticsTable> tables = new UniqueArrayList<>();
 
     Logged logged = analyticsTableSettings.getTableLogged();
+    Distribution distribution = getDistribution(params);
     List<Program> programs = idObjectManager.getAllNoAcl(Program.class);
 
     for (Program program : programs) {
       AnalyticsTable table =
-          new AnalyticsTable(getAnalyticsTableType(), getColumns(program), logged, program);
+          new AnalyticsTable(
+              getAnalyticsTableType(), getColumns(program), logged, program, distribution);
 
       tables.add(table);
     }

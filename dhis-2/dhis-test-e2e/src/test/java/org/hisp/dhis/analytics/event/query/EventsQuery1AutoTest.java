@@ -41,6 +41,7 @@ import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /** Groups e2e tests for "/events/query" endpoint. */
@@ -8489,6 +8490,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
   }
 
   @Test
+  @Tag("slowQuery")
   public void queryVisitOverviewThisYearBo() throws JSONException {
     // Given
     QueryParamsBuilder params =

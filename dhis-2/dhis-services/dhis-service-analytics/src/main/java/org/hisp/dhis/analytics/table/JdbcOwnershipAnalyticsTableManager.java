@@ -56,6 +56,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Distribution;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.jdbc.batchhandler.MappingBatchHandler;
@@ -151,18 +152,23 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
   @Override
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
-    return params.isLatestUpdate() ? List.of() : getRegularAnalyticsTables();
+    return params.isLatestUpdate() ? List.of() : getRegularAnalyticsTables(params);
   }
 
   /**
    * Creates a list of {@link AnalyticsTable} for each program.
    *
+   * @param params the {@link AnalyticsTableUpdateParams}.
    * @return a list of {@link AnalyticsTableUpdateParams}.
    */
-  private List<AnalyticsTable> getRegularAnalyticsTables() {
+  private List<AnalyticsTable> getRegularAnalyticsTables(AnalyticsTableUpdateParams params) {
     Logged logged = analyticsTableSettings.getTableLogged();
+    Distribution distribution = getDistribution(params);
+
     return idObjectManager.getAllNoAcl(Program.class).stream()
-        .map(pr -> new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged, pr))
+        .map(
+            pr ->
+                new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged, pr, distribution))
         .collect(toList());
   }
 
