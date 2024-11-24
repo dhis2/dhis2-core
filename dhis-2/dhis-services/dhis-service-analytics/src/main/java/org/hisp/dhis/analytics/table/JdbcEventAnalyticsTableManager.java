@@ -493,9 +493,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     DataType dataType = getColumnType(dataElement.getValueType(), isSpatialSupport());
-    String columnName =
+    String columnExpression =
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
-    String selectExpression = getSelectExpression(dataElement.getValueType(), columnName);
+    String selectExpression = getSelectExpression(dataElement.getValueType(), columnExpression);
     String dataExpression = getDataExpression(dataElement.getUid(), dataElement.getValueType());
     String sql = getSelectForInsert(dataElement, selectExpression, dataExpression);
     Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
@@ -522,10 +522,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       DataElement dataElement, String dataClause) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    String columnName =
+    String columnExpression =
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
     String fromClause =
-        qualifyVariables("from ${organisationunit} ou where ou.uid = " + columnName);
+        qualifyVariables("from ${organisationunit} ou where ou.uid = " + columnExpression);
 
     if (isSpatialSupport()) {
       String fromType = "ou.geometry " + fromClause;
@@ -662,11 +662,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * Creates a select statement for data element insertion.
    *
    * @param dataElement the data element to create the select statement for.
-   * @param fromType the SQL snippet for the "from" part of the query.
+   * @param selectExpression the select expression.
    * @param dataClause the data type related clause.
    * @return A SQL select expression for the data element.
    */
-  private String getSelectForInsert(DataElement dataElement, String fromType, String dataClause) {
+  private String getSelectForInsert(
+      DataElement dataElement, String selectExpression, String dataClause) {
     String sqlTemplate =
         dataElement.getValueType().isOrganisationUnit()
             ? "(select ${fromType} ${dataClause})${closingParentheses} as ${uid}"
@@ -675,11 +676,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Map<String, String> variables =
         Map.of(
             "fromType",
-            fromType,
+            selectExpression,
             "dataClause",
             dataClause,
             "closingParentheses",
-            getClosingParentheses(fromType),
+            getClosingParentheses(selectExpression),
             "uid",
             quote(dataElement.getUid()));
 
