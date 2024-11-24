@@ -493,10 +493,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     DataType dataType = getColumnType(dataElement.getValueType(), isSpatialSupport());
-    String dataExpression = getDataExpression(dataElement.getUid(), dataElement.getValueType());
     String columnName =
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
     String selectExpression = getSelectExpression(dataElement.getValueType(), columnName);
+    String dataExpression = getDataExpression(dataElement.getUid(), dataElement.getValueType());
     String sql = getSelectForInsert(dataElement, selectExpression, dataExpression);
     Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
 
@@ -564,9 +564,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
+    String selectExpression = getSelectExpressionForTea(attribute.getValueType(), "value");
     String dataExpression =
         attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
-    String selectExpression = getSelectExpressionForTea(attribute.getValueType(), "value");
     String sql = selectForInsert(attribute, selectExpression, dataExpression);
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
