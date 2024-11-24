@@ -553,8 +553,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String dataClause = getDataClause(dataElement.getUid(), dataElement.getValueType());
     String columnName =
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
-    String select = getSelectExpression(dataElement.getValueType(), columnName);
-    String sql = selectForInsert(dataElement, select, dataClause);
+    String selectExpression = getSelectExpression(dataElement.getValueType(), columnName);
+    String sql = getSelectForInsert(dataElement, selectExpression, dataClause);
     Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
 
     if (dataElement.getValueType().isOrganisationUnit()) {
@@ -570,7 +570,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .build());
 
     return withLegendSet
-        ? getColumnFromDataElementWithLegendSet(dataElement, select, dataClause)
+        ? getColumnFromDataElementWithLegendSet(dataElement, selectExpression, dataClause)
         : columns;
   }
 
@@ -621,7 +621,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     if (isSpatialSupport()) {
       String fromType = "ou.geometry " + fromClause;
-      String geoSql = selectForInsert(dataElement, fromType, dataClause);
+      String geoSql = getSelectForInsert(dataElement, fromType, dataClause);
 
       columns.add(
           AnalyticsTableColumn.builder()
@@ -634,7 +634,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     }
 
     String fromTypeSql = "ou.name " + fromClause;
-    String ouNameSql = selectForInsert(dataElement, fromTypeSql, dataClause);
+    String ouNameSql = getSelectForInsert(dataElement, fromTypeSql, dataClause);
 
     columns.add(
         AnalyticsTableColumn.builder()
@@ -656,7 +656,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @param dataClause The data type related clause
    * @return A SQL select expression for the data element
    */
-  private String selectForInsert(DataElement dataElement, String fromType, String dataClause) {
+  private String getSelectForInsert(DataElement dataElement, String fromType, String dataClause) {
     String sqlTemplate =
         dataElement.getValueType().isOrganisationUnit()
             ? "(select ${fromType} ${dataClause})${closingParentheses} as ${dataElementUid}"
