@@ -108,12 +108,12 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     return skipIndex ? Skip.SKIP : Skip.INCLUDE;
   }
 
-  protected String getSelectClause(ValueType valueType, String columnName) {
-    return getSelectClauseInternal(valueType, columnName, false);
+  protected String getSelectExpression(ValueType valueType, String columnName) {
+    return getSelectExpressionInternal(valueType, columnName, false);
   }
 
-  protected String getSelectClauseForTea(ValueType valueType, String columnName) {
-    return getSelectClauseInternal(valueType, columnName, true);
+  protected String getExpressionForTea(ValueType valueType, String columnName) {
+    return getSelectExpressionInternal(valueType, columnName, true);
   }
 
   /**
@@ -126,7 +126,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    *     true, organization unit selections will include an additional subquery wrapper
    * @return A SQL select expression appropriate for the given value type and context
    */
-  private String getSelectClauseInternal(
+  private String getSelectExpressionInternal(
       ValueType valueType, String columnName, boolean isTeaContext) {
     String doubleType = sqlBuilder.dataTypeDouble();
 
@@ -201,7 +201,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           attribute.isNumericType()
               ? getNumericClause()
               : attribute.isDateType() ? getDateClause() : "";
-      String select = getSelectClauseForTea(attribute.getValueType(), "value");
+      String select = getExpressionForTea(attribute.getValueType(), "value");
       Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
       String sql =

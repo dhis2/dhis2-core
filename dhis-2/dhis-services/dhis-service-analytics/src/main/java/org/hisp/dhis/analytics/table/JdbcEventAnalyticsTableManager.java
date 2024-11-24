@@ -489,7 +489,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
     String dataClause =
         attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
-    String select = getSelectClauseForTea(attribute.getValueType(), "value");
+    String select = getExpressionForTea(attribute.getValueType(), "value");
     String sql = selectForInsert(attribute, select, dataClause);
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
@@ -512,7 +512,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   private List<AnalyticsTableColumn> getColumnFromTrackedEntityAttributeWithLegendSet(
       TrackedEntityAttribute attribute, String numericClause) {
-    String selectClause = getSelectClause(attribute.getValueType(), "value");
+    String selectClause = getSelectExpression(attribute.getValueType(), "value");
     String query =
         """
         \s(select l.uid from ${maplegend} l \
@@ -553,7 +553,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String dataClause = getDataClause(dataElement.getUid(), dataElement.getValueType());
     String columnName =
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
-    String select = getSelectClause(dataElement.getValueType(), columnName);
+    String select = getSelectExpression(dataElement.getValueType(), columnName);
     String sql = selectForInsert(dataElement, select, dataClause);
     Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
 
