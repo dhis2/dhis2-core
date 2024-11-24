@@ -407,6 +407,8 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
    * @return a count SQL query
    */
   private String getCountQueryWithMaxTeiLimit(TrackedEntityQueryParams params) {
+    boolean hasMaxTeiCountToReturn =
+        params.hasProgram() && params.getProgram().hasMaxTeiCountToReturn();
     return new StringBuilder()
         .append(getQueryCountSelect(params))
         .append(getQuerySelect(params))
@@ -415,7 +417,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
         .append(getQueryRelatedTables(params))
         .append(getQueryGroupBy(params))
         .append(
-            params.getProgram().getMaxTeiCountToReturn() > 0
+            hasMaxTeiCountToReturn
                 ? getLimitClause(params.getProgram().getMaxTeiCountToReturn() + 1)
                 : "")
         .append(" ) tecount")
