@@ -32,7 +32,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -260,11 +259,11 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       TrackedEntityAttribute attribute, String fromType, String dataClause) {
     return replaceQualify(
         """
-            (select ${fromType} from ${trackedentityattributevalue} \
-            where trackedentityid=en.trackedentityid \
-            and trackedentityattributeid=${attributeId}\
-            ${dataClause})\
-            ${closingParentheses} as ${attributeUid}""",
+        (select ${fromType} from ${trackedentityattributevalue} \
+        where trackedentityid=en.trackedentityid \
+        and trackedentityattributeid=${attributeId}\
+        ${dataClause})\
+        ${closingParentheses} as ${attributeUid}""",
         Map.of(
             "fromType", fromType,
             "dataClause", dataClause,
