@@ -519,7 +519,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   private List<AnalyticsTableColumn> getColumnFromOrgUnitDataElement(
-      DataElement dataElement, String dataClause) {
+      DataElement dataElement, String dataFilterClause) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     String columnExpression =
@@ -529,7 +529,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     if (isSpatialSupport()) {
       String fromType = "ou.geometry " + fromClause;
-      String geoSql = getSelectForInsert(dataElement, fromType, dataClause);
+      String geoSql = getSelectForInsert(dataElement, fromType, dataFilterClause);
 
       columns.add(
           AnalyticsTableColumn.builder()
@@ -542,7 +542,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     }
 
     String fromTypeSql = "ou.name " + fromClause;
-    String ouNameSql = getSelectForInsert(dataElement, fromTypeSql, dataClause);
+    String ouNameSql = getSelectForInsert(dataElement, fromTypeSql, dataFilterClause);
 
     columns.add(
         AnalyticsTableColumn.builder()
@@ -624,7 +624,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   private List<AnalyticsTableColumn> getColumnsFromOrgUnitTrackedEntityAttribute(
-      TrackedEntityAttribute attribute, String dataClause) {
+      TrackedEntityAttribute attribute, String dataFilterClause) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     String fromClause =
@@ -632,7 +632,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     if (isSpatialSupport()) {
       String fromType = "ou.geometry " + fromClause;
-      String geoSql = selectForInsert(attribute, fromType, dataClause);
+      String geoSql = selectForInsert(attribute, fromType, dataFilterClause);
       columns.add(
           AnalyticsTableColumn.builder()
               .name((attribute.getUid() + OU_GEOMETRY_COL_SUFFIX))
@@ -644,7 +644,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     }
 
     String fromTypeSql = "ou.name " + fromClause;
-    String ouNameSql = selectForInsert(attribute, fromTypeSql, dataClause);
+    String ouNameSql = selectForInsert(attribute, fromTypeSql, dataFilterClause);
 
     columns.add(
         AnalyticsTableColumn.builder()
