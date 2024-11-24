@@ -657,7 +657,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @return A SQL select expression for the data element
    */
   private String selectForInsert(DataElement dataElement, String fromType, String dataClause) {
-    Map<String, String> replacements =
+    String sqlTemplate =
+        dataElement.getValueType().isOrganisationUnit()
+            ? "(select ${fromType} ${dataClause})${closingParentheses} as ${dataElementUid}"
+            : "(select ${fromType} from ${event} where eventid=ev.eventid ${dataClause})${closingParentheses} as ${dataElementUid}";
+
+    Map<String, String> variables =
         Map.of(
             "fromType",
             fromType,
@@ -668,12 +673,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             "dataElementUid",
             quote(dataElement.getUid()));
 
-    String sqlTemplate =
-        dataElement.getValueType().isOrganisationUnit()
-            ? "(select ${fromType} ${dataClause})${closingParentheses} as ${dataElementUid}"
-            : "(select ${fromType} from ${event} where eventid=ev.eventid ${dataClause})${closingParentheses} as ${dataElementUid}";
-
-    return replaceQualify(sqlTemplate, replacements);
+    return replaceQualify(sqlTemplate, variables);
   }
 
   private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet(
