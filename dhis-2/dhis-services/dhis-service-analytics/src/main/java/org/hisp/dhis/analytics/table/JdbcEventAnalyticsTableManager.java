@@ -758,9 +758,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @return an filter expression.
    */
   private String getDataFilterClause(TrackedEntityAttribute attribute) {
-    return attribute.isNumericType()
-        ? getNumericClause()
-        : attribute.isDateType() ? getDateClause() : EMPTY;
+    if (attribute.isNumericType()) {
+      return getNumericClause();
+    }
+    return attribute.isDateType() ? getDateClause() : EMPTY;
   }
 
   /**
