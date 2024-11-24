@@ -651,10 +651,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   /**
    * Creates a select statement for data element insertion.
    *
-   * @param dataElement The data element to create the select statement for
-   * @param fromType The SQL snippet for the "from" part of the query
-   * @param dataClause The data type related clause
-   * @return A SQL select expression for the data element
+   * @param dataElement the data element to create the select statement for.
+   * @param fromType the SQL snippet for the "from" part of the query.
+   * @param dataClause the data type related clause.
+   * @return A SQL select expression for the data element.
    */
   private String getSelectForInsert(DataElement dataElement, String fromType, String dataClause) {
     String sqlTemplate =
@@ -764,8 +764,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * Retrieve years for partition tables. Year will become a partition key. The default return value
    * is the list with the recent year.
    *
-   * @param dataYears list of years coming from inner join of event and enrollment tables
-   * @return list of partition key values
+   * @param dataYears the list of years coming from inner join of event and enrollment tables.
+   * @return list of partition key values.
    */
   private List<Integer> getYearsForPartitionTable(List<Integer> dataYears) {
     return ListUtils.mutableCopy(!dataYears.isEmpty() ? dataYears : List.of(Year.now().getValue()));
