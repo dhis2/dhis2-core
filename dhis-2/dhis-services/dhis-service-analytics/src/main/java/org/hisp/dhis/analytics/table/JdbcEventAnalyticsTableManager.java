@@ -480,6 +480,84 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         .build();
   }
 
+  /**
+   * Returns a column for the given data element. If the value type of the data element is {@link
+   * ValueType#ORGANISATION_UNIT}, an extra column will be included.
+   *
+   * @param dataElement the {@link DataElement}.
+   * @param withLegendSet indicates
+   * @return
+   */
+  private List<AnalyticsTableColumn> getColumnFromDataElement(
+      DataElement dataElement, boolean withLegendSet) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+    DataType dataType = getColumnType(dataElement.getValueType(), isSpatialSupport());
+    String dataExpression =
+        getDataValueExpression(dataElement.getUid(), dataElement.getValueType());
+    String columnName =
+        sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
+    String selectExpression = getSelectExpression(dataElement.getValueType(), columnName);
+    String sql = getSelectForInsert(dataElement, selectExpression, dataExpression);
+    Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
+
+    if (dataElement.getValueType().isOrganisationUnit()) {
+      columns.addAll(getColumnFromOrgUnitDataElement(dataElement, dataExpression));
+    }
+
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .name(dataElement.getUid())
+            .columnType(AnalyticsColumnType.DYNAMIC)
+            .dataType(dataType)
+            .selectExpression(sql)
+            .skipIndex(skipIndex)
+            .build());
+
+    return withLegendSet
+        ? getColumnFromDataElementWithLegendSet(dataElement, selectExpression, dataExpression)
+        : columns;
+  }
+
+  private List<AnalyticsTableColumn> getColumnFromOrgUnitDataElement(
+      DataElement dataElement, String dataClause) {
+    final List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+    final String columnName =
+        sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
+
+    final String fromClause =
+        qualifyVariables("from ${organisationunit} ou where ou.uid = " + columnName);
+
+    if (isSpatialSupport()) {
+      String fromType = "ou.geometry " + fromClause;
+      String geoSql = getSelectForInsert(dataElement, fromType, dataClause);
+
+      columns.add(
+          AnalyticsTableColumn.builder()
+              .name((dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX))
+              .columnType(AnalyticsColumnType.DYNAMIC)
+              .dataType(GEOMETRY)
+              .selectExpression(geoSql)
+              .indexType(IndexType.GIST)
+              .build());
+    }
+
+    String fromTypeSql = "ou.name " + fromClause;
+    String ouNameSql = getSelectForInsert(dataElement, fromTypeSql, dataClause);
+
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .name((dataElement.getUid() + OU_NAME_COL_SUFFIX))
+            .columnType(AnalyticsColumnType.DYNAMIC)
+            .dataType(TEXT)
+            .selectExpression(ouNameSql)
+            .skipIndex(SKIP)
+            .build());
+
+    return columns;
+  }
+
   private List<AnalyticsTableColumn> getColumnFromTrackedEntityAttribute(
       TrackedEntityAttribute attribute,
       String numericClause,
@@ -497,6 +575,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     if (attribute.getValueType().isOrganisationUnit()) {
       columns.addAll(getColumnsFromOrgUnitTrackedEntityAttribute(attribute, dataExpression));
     }
+
     columns.add(
         AnalyticsTableColumn.builder()
             .name(attribute.getUid())
@@ -546,44 +625,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         .collect(toList());
   }
 
-  /**
-   * Returns a column for the given data element. If the value type of the data element is {@link
-   * ValueType#ORGANISATION_UNIT}, an extra column will be included.
-   *
-   * @param dataElement the {@link DataElement}.
-   * @param withLegendSet indicates
-   * @return
-   */
-  private List<AnalyticsTableColumn> getColumnFromDataElement(
-      DataElement dataElement, boolean withLegendSet) {
-    List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-    DataType dataType = getColumnType(dataElement.getValueType(), isSpatialSupport());
-    String dataExpression =
-        getDataValueExpression(dataElement.getUid(), dataElement.getValueType());
-    String columnName =
-        sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
-    String selectExpression = getSelectExpression(dataElement.getValueType(), columnName);
-    String sql = getSelectForInsert(dataElement, selectExpression, dataExpression);
-    Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
-
-    if (dataElement.getValueType().isOrganisationUnit()) {
-      columns.addAll(getColumnFromOrgUnitDataElement(dataElement, dataExpression));
-    }
-    columns.add(
-        AnalyticsTableColumn.builder()
-            .name(dataElement.getUid())
-            .columnType(AnalyticsColumnType.DYNAMIC)
-            .dataType(dataType)
-            .selectExpression(sql)
-            .skipIndex(skipIndex)
-            .build());
-
-    return withLegendSet
-        ? getColumnFromDataElementWithLegendSet(dataElement, selectExpression, dataExpression)
-        : columns;
-  }
-
   private List<AnalyticsTableColumn> getColumnsFromOrgUnitTrackedEntityAttribute(
       TrackedEntityAttribute attribute, String dataClause) {
     final List<AnalyticsTableColumn> columns = new ArrayList<>();
@@ -610,45 +651,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     columns.add(
         AnalyticsTableColumn.builder()
             .name((attribute.getUid() + OU_NAME_COL_SUFFIX))
-            .columnType(AnalyticsColumnType.DYNAMIC)
-            .dataType(TEXT)
-            .selectExpression(ouNameSql)
-            .skipIndex(SKIP)
-            .build());
-
-    return columns;
-  }
-
-  private List<AnalyticsTableColumn> getColumnFromOrgUnitDataElement(
-      DataElement dataElement, String dataClause) {
-    final List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-    final String columnName =
-        sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
-
-    final String fromClause =
-        qualifyVariables("from ${organisationunit} ou where ou.uid = " + columnName);
-
-    if (isSpatialSupport()) {
-      String fromType = "ou.geometry " + fromClause;
-      String geoSql = getSelectForInsert(dataElement, fromType, dataClause);
-
-      columns.add(
-          AnalyticsTableColumn.builder()
-              .name((dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX))
-              .columnType(AnalyticsColumnType.DYNAMIC)
-              .dataType(GEOMETRY)
-              .selectExpression(geoSql)
-              .indexType(IndexType.GIST)
-              .build());
-    }
-
-    String fromTypeSql = "ou.name " + fromClause;
-    String ouNameSql = getSelectForInsert(dataElement, fromTypeSql, dataClause);
-
-    columns.add(
-        AnalyticsTableColumn.builder()
-            .name((dataElement.getUid() + OU_NAME_COL_SUFFIX))
             .columnType(AnalyticsColumnType.DYNAMIC)
             .dataType(TEXT)
             .selectExpression(ouNameSql)
