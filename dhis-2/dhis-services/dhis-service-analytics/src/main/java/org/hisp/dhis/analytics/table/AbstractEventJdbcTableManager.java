@@ -117,12 +117,13 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   }
 
   /**
-   * Returns the select clause, potentially with a cast statement, based on the given value type.
-   * This internal method handles both Data Value and Tracked Entity Attribute (TEA) select clauses.
+   * Returns the select expression, potentially with a cast statement, based on the given value
+   * type. This internal method handles both Data Value and Tracked Entity Attribute (TEA) select
+   * expressions.
    *
-   * @param valueType The value type to represent as database column type
-   * @param columnName The name of the column to be selected
-   * @param isTeaContext Whether the selection is in the context of a Tracked Entity Attribute. When
+   * @param valueType the value type to represent as database column type
+   * @param columnName the name of the column to be selected
+   * @param isTeaContext whether the selection is in the context of a Tracked Entity Attribute. When
    *     true, organization unit selections will include an additional subquery wrapper
    * @return A SQL select expression appropriate for the given value type and context
    */
