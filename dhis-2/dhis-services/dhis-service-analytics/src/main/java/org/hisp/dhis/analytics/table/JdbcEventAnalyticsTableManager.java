@@ -488,14 +488,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
-    String dataClause =
+    String dataExpression =
         attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
-    String select = getSelectExpressionForTea(attribute.getValueType(), "value");
-    String sql = selectForInsert(attribute, select, dataClause);
+    String selectExpression = getSelectExpressionForTea(attribute.getValueType(), "value");
+    String sql = selectForInsert(attribute, selectExpression, dataExpression);
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
     if (attribute.getValueType().isOrganisationUnit()) {
-      columns.addAll(getColumnsFromOrgUnitTrackedEntityAttribute(attribute, dataClause));
+      columns.addAll(getColumnsFromOrgUnitTrackedEntityAttribute(attribute, dataExpression));
     }
     columns.add(
         AnalyticsTableColumn.builder()
@@ -559,15 +559,16 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     DataType dataType = getColumnType(dataElement.getValueType(), isSpatialSupport());
-    String dataClause = getDataValueExpression(dataElement.getUid(), dataElement.getValueType());
+    String dataExpression =
+        getDataValueExpression(dataElement.getUid(), dataElement.getValueType());
     String columnName =
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
     String selectExpression = getSelectExpression(dataElement.getValueType(), columnName);
-    String sql = getSelectForInsert(dataElement, selectExpression, dataClause);
+    String sql = getSelectForInsert(dataElement, selectExpression, dataExpression);
     Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
 
     if (dataElement.getValueType().isOrganisationUnit()) {
-      columns.addAll(getColumnFromOrgUnitDataElement(dataElement, dataClause));
+      columns.addAll(getColumnFromOrgUnitDataElement(dataElement, dataExpression));
     }
     columns.add(
         AnalyticsTableColumn.builder()
@@ -579,7 +580,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .build());
 
     return withLegendSet
-        ? getColumnFromDataElementWithLegendSet(dataElement, selectExpression, dataClause)
+        ? getColumnFromDataElementWithLegendSet(dataElement, selectExpression, dataExpression)
         : columns;
   }
 
@@ -728,9 +729,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     if (valueType.isNumeric() || valueType.isDate()) {
       String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : DATE_REGEXP;
 
-      String jsonValue = sqlBuilder.jsonExtractNested("eventdatavalues", uid, "value");
+      String jsonExpression = sqlBuilder.jsonExtractNested("eventdatavalues", uid, "value");
 
-      return " and " + sqlBuilder.regexpMatch(jsonValue, "'" + regex + "'");
+      return " and " + sqlBuilder.regexpMatch(jsonExpression, "'" + regex + "'");
     }
 
     return EMPTY;
