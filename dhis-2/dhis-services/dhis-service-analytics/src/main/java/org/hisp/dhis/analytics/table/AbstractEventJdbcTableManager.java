@@ -108,25 +108,41 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     return skipIndex ? Skip.SKIP : Skip.INCLUDE;
   }
 
-  protected String getSelectClause(ValueType valueType, String columnName) {
-    return getSelectClauseInternal(valueType, columnName, false);
-  }
-
-  protected String getSelectClauseForTea(ValueType valueType, String columnName) {
-    return getSelectClauseInternal(valueType, columnName, true);
+  /**
+   * Returns a select expression for a data element value, handling casting to the appropriate data
+   * type based on the given value type.
+   *
+   * @param valueType the {@link ValueType}.
+   * @param columnName the column name.
+   * @return a select expression.
+   */
+  protected String getSelectExpression(ValueType valueType, String columnName) {
+    return getSelectExpressionInternal(valueType, columnName, false);
   }
 
   /**
-   * Returns the select clause, potentially with a cast statement, based on the given value type.
-   * This internal method handles both Data Value and Tracked Entity Attribute (TEA) select clauses.
+   * Returns a select expression for a tracked entity attribute, handling casting to the appropriate
+   * data type based on the given value type.
    *
-   * @param valueType The value type to represent as database column type
-   * @param columnName The name of the column to be selected
-   * @param isTeaContext Whether the selection is in the context of a Tracked Entity Attribute. When
-   *     true, organization unit selections will include an additional subquery wrapper
-   * @return A SQL select expression appropriate for the given value type and context
+   * @param valueType the {@link ValueType}.
+   * @param columnName the column name.
+   * @return a select expression.
    */
-  private String getSelectClauseInternal(
+  protected String getSelectExpressionForAttribute(ValueType valueType, String columnName) {
+    return getSelectExpressionInternal(valueType, columnName, true);
+  }
+
+  /**
+   * Returns a select expression, potentially with a cast statement, based on the given value type.
+   * Handles data element and tracked entity attribute select expressions.
+   *
+   * @param valueType the {@link ValueType} to represent as database column type.
+   * @param columnName the name of the column to be selected.
+   * @param isTeaContext whether the selection is in the context of a tracked entity attribute. When
+   *     true, organization unit selections will include an additional subquery wrapper.
+   * @return A SQL select expression appropriate for the given value type and context.
+   */
+  private String getSelectExpressionInternal(
       ValueType valueType, String columnName, boolean isTeaContext) {
     String doubleType = sqlBuilder.dataTypeDouble();
 
@@ -201,7 +217,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           attribute.isNumericType()
               ? getNumericClause()
               : attribute.isDateType() ? getDateClause() : "";
-      String select = getSelectClauseForTea(attribute.getValueType(), "value");
+      String select = getSelectExpressionForAttribute(attribute.getValueType(), "value");
       Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
       String sql =
@@ -253,18 +269,18 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    *
    * @param attribute the {@link TrackedEntityAttribute}.
    * @param fromType the sql snippet related to "from" part
-   * @param dataClause the data type related clause like "NUMERIC"
-   * @return
+   * @param dataClause the data type related clause like "NUMERIC".
+   * @return a select statement.
    */
   protected String selectForInsert(
       TrackedEntityAttribute attribute, String fromType, String dataClause) {
     return replaceQualify(
         """
-            (select ${fromType} from ${trackedentityattributevalue} \
-            where trackedentityid=en.trackedentityid \
-            and trackedentityattributeid=${attributeId}\
-            ${dataClause})\
-            ${closingParentheses} as ${attributeUid}""",
+        (select ${fromType} from ${trackedentityattributevalue} \
+        where trackedentityid=en.trackedentityid \
+        and trackedentityattributeid=${attributeId}\
+        ${dataClause})\
+        ${closingParentheses} as ${attributeUid}""",
         Map.of(
             "fromType", fromType,
             "dataClause", dataClause,

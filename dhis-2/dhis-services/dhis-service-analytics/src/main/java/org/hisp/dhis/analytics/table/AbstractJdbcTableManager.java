@@ -746,11 +746,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         // is part of the previous PR (https://github.com/dhis2/dhis2-core/pull/19131/files)
         .selectExpression(
             """
-                       CASE
-                           WHEN ev.status = 'SCHEDULE' THEN YEAR(ev.scheduleddate)
-                           ELSE YEAR(ev.occurreddate)
-                       END
-                  """)
+            CASE
+                WHEN ev.status = 'SCHEDULE' THEN YEAR(ev.scheduleddate)
+                ELSE YEAR(ev.occurreddate)
+            END
+            """)
         .skipIndex(Skip.SKIP)
         .build();
   }

@@ -219,7 +219,7 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String jsonExtract(String column, String property) {
-    return "JSONExtractString(" + column + ", '" + property + "')";
+    return String.format("JSONExtractString(%s, '%s')", column, property);
   }
 
   @Override
