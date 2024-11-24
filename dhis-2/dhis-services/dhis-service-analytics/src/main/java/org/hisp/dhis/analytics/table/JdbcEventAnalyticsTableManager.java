@@ -670,12 +670,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       DataElement dataElement, String selectExpression, String dataFilterClause) {
     String sqlTemplate =
         dataElement.getValueType().isOrganisationUnit()
-            ? "(select ${fromType} ${dataClause})${closingParentheses} as ${uid}"
-            : "(select ${fromType} from ${event} where eventid=ev.eventid ${dataClause})${closingParentheses} as ${uid}";
+            ? "(select ${selectExpression} ${dataClause})${closingParentheses} as ${uid}"
+            : "(select ${selectExpression} from ${event} where eventid=ev.eventid ${dataClause})${closingParentheses} as ${uid}";
 
     Map<String, String> variables =
         Map.of(
-            "fromType",
+            "selectExpression",
             selectExpression,
             "dataClause",
             dataFilterClause,
