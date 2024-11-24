@@ -112,7 +112,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     return getSelectExpressionInternal(valueType, columnName, false);
   }
 
-  protected String getExpressionForTea(ValueType valueType, String columnName) {
+  protected String getSelectExpressionForTea(ValueType valueType, String columnName) {
     return getSelectExpressionInternal(valueType, columnName, true);
   }
 
@@ -201,7 +201,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           attribute.isNumericType()
               ? getNumericClause()
               : attribute.isDateType() ? getDateClause() : "";
-      String select = getExpressionForTea(attribute.getValueType(), "value");
+      String select = getSelectExpressionForTea(attribute.getValueType(), "value");
       Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
       String sql =

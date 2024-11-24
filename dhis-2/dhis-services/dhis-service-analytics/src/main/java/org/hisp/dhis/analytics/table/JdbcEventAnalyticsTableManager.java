@@ -489,7 +489,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     DataType dataType = getColumnType(attribute.getValueType(), isSpatialSupport());
     String dataClause =
         attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
-    String select = getExpressionForTea(attribute.getValueType(), "value");
+    String select = getSelectExpressionForTea(attribute.getValueType(), "value");
     String sql = selectForInsert(attribute, select, dataClause);
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
