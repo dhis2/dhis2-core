@@ -551,7 +551,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     DataType dataType = getColumnType(dataElement.getValueType(), isSpatialSupport());
-    String dataClause = getDataClause(dataElement.getUid(), dataElement.getValueType());
+    String dataClause = getDataValueExpression(dataElement.getUid(), dataElement.getValueType());
     String columnName =
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
     String selectExpression = getSelectExpression(dataElement.getValueType(), columnName);
@@ -709,7 +709,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         .toList();
   }
 
-  private String getDataClause(String uid, ValueType valueType) {
+  /**
+   * Returns an expression for extracting a data value.
+   *
+   * @param uid the identifier.
+   * @param valueType the {@link ValueType}.
+   * @return an expression for extracting a data value.
+   */
+  private String getDataValueExpression(String uid, ValueType valueType) {
     if (valueType.isNumeric() || valueType.isDate()) {
       String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : DATE_REGEXP;
 
@@ -721,11 +728,20 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return EMPTY;
   }
 
+  /**
+   * Returns a list of years for which data exist.
+   *
+   * @param params the {@link AnalyticsTableUpdateParams}.
+   * @param program the {@link Program}.
+   * @param firstDataYear the first year to include.
+   * @param lastDataYear the last data year to include.
+   * @return a list of years for which data exist.
+   */
   private List<Integer> getDataYears(
       AnalyticsTableUpdateParams params,
       Program program,
       Integer firstDataYear,
-      Integer latestDataYear) {
+      Integer lastDataYear) {
     String fromDateClause =
         params.getFromDate() != null
             ? replace(
@@ -756,7 +772,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 "programId", String.valueOf(program.getId()),
                 "fromDateClause", fromDateClause,
                 "firstDataYear", String.valueOf(firstDataYear),
-                "latestDataYear", String.valueOf(latestDataYear)));
+                "latestDataYear", String.valueOf(lastDataYear)));
 
     return jdbcTemplate.queryForList(sql, Integer.class);
   }
