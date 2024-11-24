@@ -116,7 +116,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @param columnName the column name.
    * @return a select expression.
    */
-  protected String getSelectExpressionForDataElement(ValueType valueType, String columnName) {
+  protected String getSelectExpression(ValueType valueType, String columnName) {
     return getSelectExpressionInternal(valueType, columnName, false);
   }
 

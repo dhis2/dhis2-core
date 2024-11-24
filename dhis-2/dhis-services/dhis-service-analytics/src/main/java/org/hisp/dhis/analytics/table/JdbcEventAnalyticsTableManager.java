@@ -495,14 +495,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     DataType dataType = getColumnType(dataElement.getValueType(), isSpatialSupport());
     String columnExpression =
         sqlBuilder.jsonExtractNested("eventdatavalues", dataElement.getUid(), "value");
-    String selectExpression =
-        getSelectExpressionForDataElement(dataElement.getValueType(), columnExpression);
-    String dataExpression = getDataExpression(dataElement.getUid(), dataElement.getValueType());
-    String sql = getSelectForInsert(dataElement, selectExpression, dataExpression);
+    String selectExpression = getSelectExpression(dataElement.getValueType(), columnExpression);
+    String dataFilterClause = getDataFilterClause(dataElement.getUid(), dataElement.getValueType());
+    String sql = getSelectForInsert(dataElement, selectExpression, dataFilterClause);
     Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
 
     if (dataElement.getValueType().isOrganisationUnit()) {
-      columns.addAll(getColumnFromOrgUnitDataElement(dataElement, dataExpression));
+      columns.addAll(getColumnFromOrgUnitDataElement(dataElement, dataFilterClause));
     }
 
     columns.add(
@@ -515,7 +514,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .build());
 
     return withLegendSet
-        ? getColumnFromDataElementWithLegendSet(dataElement, selectExpression, dataExpression)
+        ? getColumnFromDataElementWithLegendSet(dataElement, selectExpression, dataFilterClause)
         : columns;
   }
 
@@ -591,7 +590,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   private List<AnalyticsTableColumn> getColumnFromTrackedEntityAttributeWithLegendSet(
       TrackedEntityAttribute attribute, String numericClause) {
-    String selectClause = getSelectExpressionForDataElement(attribute.getValueType(), "value");
+    String selectClause = getSelectExpression(attribute.getValueType(), "value");
     String query =
         """
         \s(select l.uid from ${maplegend} l \
@@ -664,11 +663,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    *
    * @param dataElement the data element to create the select statement for.
    * @param selectExpression the select expression.
-   * @param dataClause the data type related clause.
+   * @param dataFilterClause the data filter clause.
    * @return A SQL select expression for the data element.
    */
   private String getSelectForInsert(
-      DataElement dataElement, String selectExpression, String dataClause) {
+      DataElement dataElement, String selectExpression, String dataFilterClause) {
     String sqlTemplate =
         dataElement.getValueType().isOrganisationUnit()
             ? "(select ${fromType} ${dataClause})${closingParentheses} as ${uid}"
@@ -679,7 +678,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             "fromType",
             selectExpression,
             "dataClause",
-            dataClause,
+            dataFilterClause,
             "closingParentheses",
             getClosingParentheses(selectExpression),
             "uid",
@@ -721,14 +720,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   /**
-   * Returns an expression for extracting a data value for numeric and date value types and checking
-   * whether to value is valid according to the value type. Otherwise returns the empty string.
+   * For numeric and date value types, returns a data filter clause for checking whether the value
+   * is valid according to the value type. For other value types, returns the empty string.
    *
    * @param uid the identifier.
    * @param valueType the {@link ValueType}.
    * @return an expression for extracting a data value.
    */
-  private String getDataExpression(String uid, ValueType valueType) {
+  private String getDataFilterClause(String uid, ValueType valueType) {
     if (valueType.isNumeric() || valueType.isDate()) {
       String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : DATE_REGEXP;
 
