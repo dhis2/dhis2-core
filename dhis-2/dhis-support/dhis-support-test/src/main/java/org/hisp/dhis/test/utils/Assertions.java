@@ -129,6 +129,17 @@ public final class Assertions {
   }
 
   /**
+   * Asserts that the given collection is not null and empty.
+   *
+   * @param actual the collection.
+   * @param message fails with this message
+   */
+  public static void assertIsEmpty(Collection<?> actual, String message) {
+    assertNotNull(actual, message);
+    assertTrue(actual.isEmpty(), message);
+  }
+
+  /**
    * Asserts that the given collection is not null and not empty.
    *
    * @param actual the collection.
