@@ -429,25 +429,25 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     columns.addAll(
         program.getAnalyticsDataElements().stream()
-            .map(de -> getColumnFromDataElement(de, false))
+            .map(de -> getColumnForDataElement(de, false))
             .flatMap(Collection::stream)
             .toList());
 
     columns.addAll(
         program.getAnalyticsDataElementsWithLegendSet().stream()
-            .map(de -> getColumnFromDataElement(de, true))
+            .map(de -> getColumnForDataElement(de, true))
             .flatMap(Collection::stream)
             .toList());
 
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributes().stream()
-            .map(tea -> getColumnFromTrackedEntityAttribute(tea, false))
+            .map(tea -> getColumnForTrackedEntityAttribute(tea, false))
             .flatMap(Collection::stream)
             .toList());
 
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
-            .map(tea -> getColumnFromTrackedEntityAttribute(tea, true))
+            .map(tea -> getColumnForTrackedEntityAttribute(tea, true))
             .flatMap(Collection::stream)
             .toList());
 
@@ -482,7 +482,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @param withLegendSet indicates
    * @return
    */
-  private List<AnalyticsTableColumn> getColumnFromDataElement(
+  private List<AnalyticsTableColumn> getColumnForDataElement(
       DataElement dataElement, boolean withLegendSet) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
@@ -495,7 +495,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
 
     if (dataElement.getValueType().isOrganisationUnit()) {
-      columns.addAll(getColumnFromOrgUnitDataElement(dataElement, dataFilterClause));
+      columns.addAll(getColumnForOrgUnitDataElement(dataElement, dataFilterClause));
     }
 
     columns.add(
@@ -512,7 +512,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         : columns;
   }
 
-  private List<AnalyticsTableColumn> getColumnFromOrgUnitDataElement(
+  private List<AnalyticsTableColumn> getColumnForOrgUnitDataElement(
       DataElement dataElement, String dataFilterClause) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
@@ -550,7 +550,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return columns;
   }
 
-  private List<AnalyticsTableColumn> getColumnFromTrackedEntityAttribute(
+  private List<AnalyticsTableColumn> getColumnForTrackedEntityAttribute(
       TrackedEntityAttribute attribute, boolean withLegendSet) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
@@ -561,7 +561,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
     if (attribute.getValueType().isOrganisationUnit()) {
-      columns.addAll(getColumnsFromOrgUnitTrackedEntityAttribute(attribute, dataExpression));
+      columns.addAll(getColumnsForOrgUnitTrackedEntityAttribute(attribute, dataExpression));
     }
 
     columns.add(
@@ -573,10 +573,16 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .skipIndex(skipIndex)
             .build());
 
-    return withLegendSet ? getColumnFromAttributeWithLegendSet(attribute) : columns;
+    return withLegendSet ? getColumnForAttributeWithLegendSet(attribute) : columns;
   }
 
-  private List<AnalyticsTableColumn> getColumnFromAttributeWithLegendSet(
+  /**
+   * Returns a list of columns based on the given attribute with legend set.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getColumnForAttributeWithLegendSet(
       TrackedEntityAttribute attribute) {
     String selectClause = getSelectExpression(attribute.getValueType(), "value");
     String numericClause = getNumericClause();
@@ -612,7 +618,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         .collect(toList());
   }
 
-  private List<AnalyticsTableColumn> getColumnsFromOrgUnitTrackedEntityAttribute(
+  /**
+   * Returns a list of columns based on the given attribute.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @param dataFilterClause the data filter clause.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getColumnsForOrgUnitTrackedEntityAttribute(
       TrackedEntityAttribute attribute, String dataFilterClause) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
