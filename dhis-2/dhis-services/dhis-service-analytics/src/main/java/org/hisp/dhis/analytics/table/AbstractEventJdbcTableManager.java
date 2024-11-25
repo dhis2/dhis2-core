@@ -150,12 +150,10 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @return a select expression appropriate for the given value type and context.
    */
   private String getSelectExpression(ValueType valueType, String columnExpression, boolean isTea) {
-    String doubleType = sqlBuilder.dataTypeDouble();
-
     if (valueType.isDecimal()) {
-      return "cast(" + columnExpression + " as " + doubleType + ")";
+      return getCastExpression(columnExpression, NUMERIC_REGEXP, sqlBuilder.dataTypeDouble());
     } else if (valueType.isInteger()) {
-      return "cast(" + columnExpression + " as bigint)";
+      return getCastExpression(columnExpression, NUMERIC_REGEXP, sqlBuilder.dataTypeBigInt());
     } else if (valueType.isBoolean()) {
       return "case when "
           + columnExpression
@@ -163,7 +161,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           + columnExpression
           + " = 'false' then 0 else null end";
     } else if (valueType.isDate()) {
-      return "cast(" + columnExpression + " as " + sqlBuilder.dataTypeTimestamp() + ")";
+      return getCastExpression(columnExpression, DATE_REGEXP, sqlBuilder.dataTypeTimestamp());
     } else if (valueType.isGeo() && isSpatialSupport()) {
       return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || ("
           + columnExpression
@@ -177,6 +175,20 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     } else {
       return columnExpression;
     }
+  }
+
+  /**
+   * Returns a cast expression which includes a value filter for the given value type.
+   *
+   * @param columnExpression the column expression.
+   * @param filterRegex the value type filter regular expression.
+   * @param dataType the SQL data type.
+   * @return a cast and validate expression.
+   */
+  String getCastExpression(String columnExpression, String filterRegex, String dataType) {
+    String filter = sqlBuilder.regexpMatch(columnExpression, filterRegex);
+    return String.format(
+        "case when %s then cast(%s as %s) else null end", filter, columnExpression, dataType);
   }
 
   @Override
