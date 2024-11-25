@@ -165,18 +165,18 @@ class JdbcEventAnalyticsTableManagerDorisTest {
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
 
-    String aliasD1 = "json_unquote(json_extract(eventdatavalues, '$.%s.value')) as `%s`";
-    String aliasD2 =
+    String aliasA = "json_unquote(json_extract(eventdatavalues, '$.%s.value')) as `%s`";
+    String aliasB =
         "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^(-?[0-9]+)(\\.[0-9]+)?$' then cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as double) else null end as `%s`";
-    String aliasD3 =
+    String aliasC =
         "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) = 'true' then 1 when json_unquote(json_extract(eventdatavalues, '$.%s.value')) = 'false' then 0 else null end as `%s`";
-    String aliasD4 =
+    String aliasD =
         "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$' then cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as datetime) else null end as `%s`";
-    String aliasD5 =
+    String aliasE =
         "(select ou.uid from dhis2.public.`organisationunit` ou where ou.uid = json_unquote(json_extract(eventdatavalues, '$.%s.value')) ) as `%s`";
-    String aliasD5Name =
+    String aliasF =
         "(select ou.name from dhis2.public.`organisationunit` ou where ou.uid = json_unquote(json_extract(eventdatavalues, '$.%s.value')) ) as `%s`";
-    String aliasD6 =
+    String aliasG =
         "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^(-?[0-9]+)(\\.[0-9]+)?$' then cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as bigint) else null end as `%s`";
 
     AnalyticsTableUpdateParams params =
@@ -202,37 +202,37 @@ class JdbcEventAnalyticsTableManagerDorisTest {
         .addColumn(
             deA.getUid(),
             TEXT,
-            toSelectExpression(aliasD1, deA.getUid()),
+            toSelectExpression(aliasA, deA.getUid()),
             Skip.SKIP) // ValueType.TEXT
         .addColumn(
             deB.getUid(),
             DOUBLE,
-            toSelectExpression(aliasD2, deB.getUid()),
+            toSelectExpression(aliasB, deB.getUid()),
             IndexType.BTREE) // ValueType.PERCENTAGE
         .addColumn(
             deC.getUid(),
             INTEGER,
-            toSelectExpression(aliasD3, deC.getUid()),
+            toSelectExpression(aliasC, deC.getUid()),
             IndexType.BTREE) // ValueType.BOOLEAN
         .addColumn(
             deD.getUid(),
             TIMESTAMP,
-            toSelectExpression(aliasD4, deD.getUid()),
+            toSelectExpression(aliasD, deD.getUid()),
             IndexType.BTREE) // ValueType.DATE
         .addColumn(
             deE.getUid(),
             TEXT,
-            toSelectExpression(aliasD5, deE.getUid()),
+            toSelectExpression(aliasE, deE.getUid()),
             IndexType.BTREE) // ValueType.ORGANISATION_UNIT
         .addColumn(
             deF.getUid(),
             BIGINT,
-            toSelectExpression(aliasD6, deF.getUid()),
+            toSelectExpression(aliasG, deF.getUid()),
             IndexType.BTREE) // ValueType.INTEGER
 
         // element d5 also creates a Name column
         .addColumn(
-            deE.getUid() + "_name", TEXT, toSelectExpression(aliasD5Name, deE.getUid()), Skip.SKIP)
+            deE.getUid() + "_name", TEXT, toSelectExpression(aliasF, deE.getUid()), Skip.SKIP)
         .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .build()
         .verify();
