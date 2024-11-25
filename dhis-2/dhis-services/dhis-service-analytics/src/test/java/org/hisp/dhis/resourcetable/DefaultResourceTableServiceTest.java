@@ -28,7 +28,7 @@
 package org.hisp.dhis.resourcetable;
 
 import static java.time.temporal.ChronoUnit.YEARS;
-import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
+import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.DATABASE;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
