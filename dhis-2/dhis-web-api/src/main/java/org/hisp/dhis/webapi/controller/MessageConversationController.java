@@ -175,24 +175,24 @@ public class MessageConversationController
 
   @Override
   protected List<UID> getPreQueryMatches(GetMessageConversationObjectListParams params) {
-    String queryString = params.getQueryString();
-    if (queryString == null) return null;
+    String query = params.getQueryString();
+    if (query == null) return null;
 
-    String queryOperator = params.getQueryOperator();
-    if (queryOperator == null) queryOperator = "token";
+    String op = params.getQueryOperator();
+    if (op == null) op = "token";
 
-    List<String> queryFilter =
+    List<String> filters =
         List.of(
-            "subject:" + queryOperator + ":" + queryString,
-            "messages.text:" + queryOperator + ":" + queryString,
-            "messages.sender.displayName:" + queryOperator + ":" + queryString);
+            "subject:" + op + ":" + query,
+            "messages.text:" + op + ":" + query,
+            "messages.sender.displayName:" + op + ":" + query);
 
-    // TODO can this be made into a main query filter?
+    // TODO in another PR: it should work to integrate this
     GetObjectListParams subQueryParams =
         new GetObjectListParams()
             .setPaging(false)
             .setRootJunction(Junction.Type.OR)
-            .setFilters(queryFilter);
+            .setFilters(filters);
     Query subQuery = queryService.getQueryFromUrl(getEntityClass(), subQueryParams);
     return queryService.query(subQuery).stream().map(UID::of).toList();
   }

@@ -556,13 +556,14 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<UserRole> getRolesCurrentUserCanIssue() {
+  public List<UID> getRolesCurrentUserCanIssue() {
     UserDetails user = CurrentUserUtil.getCurrentUserDetails();
 
     boolean canGrantOwnUserRoles = settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
 
     return userRoleStore.getAll().stream()
         .filter(role -> user.canIssueUserRole(role, canGrantOwnUserRoles))
+        .map(role -> UID.of(role.getUid()))
         .toList();
   }
 

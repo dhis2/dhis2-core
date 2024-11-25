@@ -184,7 +184,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     OBJECTS,
     COUNT,
     IDS
-  };
+  }
 
   private Query<?> getUserQuery(UserQueryParams params, List<String> orders, QueryMode mode) {
     SqlHelper hlp = new SqlHelper();

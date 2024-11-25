@@ -420,10 +420,9 @@ public interface UserService {
   int countDataSetUserRoles(DataSet dataSet);
 
   /**
-   * Filters the given collection of user roles based on whether the current user is allowed to
-   * issue it.
+   * @return IDs of the roles the current user can issue
    */
-  List<UserRole> getRolesCurrentUserCanIssue();
+  List<UID> getRolesCurrentUserCanIssue();
 
   /**
    * Validate that the current user are allowed to create or modify properties of the given user.

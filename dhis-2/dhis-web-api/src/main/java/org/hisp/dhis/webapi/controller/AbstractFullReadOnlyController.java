@@ -224,8 +224,9 @@ public abstract class AbstractFullReadOnlyController<
   }
 
   /**
-   * A way to incorporate additional filters that run a separate query resulting in matching ID list
-   * which then is used as filter in the standard query process.
+   * A way to incorporate additional filters to the {@link #getObjectList(GetObjectListParams,
+   * HttpServletResponse, UserDetails)} endpoint that require running a separate query resulting in
+   * matching ID list which then is used as filter in the standard query process.
    *
    * @param params options used
    * @return the ID of matches, nor null when no such filter is present/used

@@ -79,9 +79,9 @@ public class ValidationRuleController
 
   @Override
   protected List<UID> getPreQueryMatches(GetValidationRuleObjectListParams params) {
-    if (params.getDataSet() == null) return null;
-    DataSet ds = dataSetService.getDataSet(params.getDataSet());
-    // TODO can we make this a filter instead? dataSet.id:eq:...
+    String dsId = params.getDataSet();
+    if (dsId == null) return null;
+    DataSet ds = dataSetService.getDataSet(dsId);
     List<ValidationRule> res =
         ds == null
             ? List.of()

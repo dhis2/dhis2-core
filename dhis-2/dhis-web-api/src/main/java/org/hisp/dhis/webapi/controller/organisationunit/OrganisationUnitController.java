@@ -130,6 +130,8 @@ public class OrganisationUnitController
     Integer maxLevel;
     boolean withinUserHierarchy;
     boolean withinUserSearchHierarchy;
+
+    boolean levelSorted;
   }
 
   @ResponseStatus(HttpStatus.OK)
@@ -243,7 +245,7 @@ public class OrganisationUnitController
     for (int i = 0; i < ancestorsIds.size(); i++)
       ancestorPaths.add(Restrictions.eq("path", String.join("/", ancestorsIds.subList(0, i + 1))));
     Criterion ancestors = or(getSchema(), ancestorPaths);
-    // TODO add default order level:asc
+    params.addOrder("level:asc");
     return getObjectListWith(params, response, currentUser, List.of(ancestors));
   }
 
@@ -262,7 +264,7 @@ public class OrganisationUnitController
     for (int i = 0; i < ancestorsIds.size() - 1; i++)
       parentPaths.add(Restrictions.eq("path", String.join("/", ancestorsIds.subList(0, i + 1))));
     Criterion parents = or(getSchema(), parentPaths);
-    // TODO add default order level:asc
+    params.addOrder("level:asc");
     return getObjectListWith(params, response, currentUser, List.of(parents));
   }
 
@@ -305,18 +307,9 @@ public class OrganisationUnitController
     return getObjectListWith(params, response, currentUser, List.of(userDataUnits));
   }
 
-  @OpenApi.Response(ObjectListResponse.class)
-  @GetMapping(params = "levelSorted=true")
-  public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>>
-      getAllOrganisationUnitsByLevel(
-          @RequestParam boolean levelSorted,
-          GetOrganisationUnitObjectListParams params,
-          HttpServletResponse response,
-          @CurrentUser UserDetails currentUser)
-          throws ForbiddenException, BadRequestException, ConflictException {
-    // TODO sort by level asc?
-    // or implement this as a special thing when constructing orders in general?
-    return getObjectListWith(params, response, currentUser, List.of());
+  @Override
+  protected void addProgrammaticModifiers(GetOrganisationUnitObjectListParams params) {
+    if (params.isLevelSorted()) params.addOrder("level:asc");
   }
 
   @Nonnull
