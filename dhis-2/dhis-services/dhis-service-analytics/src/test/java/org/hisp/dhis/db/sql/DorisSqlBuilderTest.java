@@ -198,6 +198,13 @@ class DorisSqlBuilderTest {
   }
 
   @Test
+  void testJsonExtract() {
+    assertEquals(
+        "json_unquote(json_extract(value, '$.D7m8vpzxHDJ'))",
+        sqlBuilder.jsonExtract("value", "D7m8vpzxHDJ"));
+  }
+
+  @Test
   void testJsonExtractNested() {
     assertEquals(
         "json_unquote(json_extract(eventdatavalues, '$.D7m8vpzxHDJ.value'))",

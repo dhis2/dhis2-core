@@ -109,7 +109,6 @@ class JdbcTrackedEntityAnalyticsTableManagerTest {
     when(sqlBuilder.qualifyTable(anyString()))
         .thenAnswer(inv -> SqlUtils.quote(inv.getArgument(0)));
 
-    when(sqlBuilder.jsonExtract(anyString(), anyString(), anyString())).thenReturn("jsonExtract");
     when(sqlBuilder.jsonExtract(anyString(), anyString())).thenReturn("jsonExtract");
 
     when(sqlBuilder.coalesce(anyString(), anyString()))
